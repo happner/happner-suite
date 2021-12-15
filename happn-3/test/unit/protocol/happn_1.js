@@ -1,0 +1,378 @@
+var expect = require('expect.js');
+
+describe(
+  require('../../__fixtures/utils/test_helper')
+    .create()
+    .testName(__filename, 3),
+  function() {
+    it('tests the __transformResponse method, array with one item', function() {
+      var Protocol = require('../../../lib/services/protocol/happn_1');
+      var protocol = new Protocol();
+
+      var response = protocol.__transformResponse(
+        {
+          request: {}
+        },
+        [
+          {
+            _meta: {},
+            data: {}
+          }
+        ]
+      );
+
+      expect(response).to.eql([
+        {
+          _meta: {},
+          data: {}
+        }
+      ]);
+    });
+
+    it('tests the fail method, login action', function(done) {
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      var failure = protocol.fail({
+        session: {
+          secret: '1898981',
+          protocol: 'happn'
+        },
+        error: new Error('test error'),
+        request: {
+          action: 'login'
+        },
+        response: {
+          data: 'test'
+        }
+      });
+
+      expect(failure.response).to.eql({
+        data: 'test',
+        _meta: {
+          type: 'response',
+          status: 'error',
+          published: false,
+          eventId: undefined,
+          action: 'login',
+          error: { name: 'Error', message: 'test error' }
+        },
+        protocol: undefined
+      });
+
+      done();
+    });
+
+    it('tests the fail method, not login action', function(done) {
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      protocol.protocolVersion = 'happn';
+
+      var failure = protocol.fail({
+        session: {
+          secret: '1898981'
+        },
+        error: new Error('test error'),
+        request: {
+          action: 'set',
+          eventId: 1,
+          sessionId: 1,
+          protocol: 'happn'
+        },
+        response: {
+          data: 'test'
+        }
+      });
+
+      expect(failure.response).to.eql({
+        data: 'test',
+        _meta: {
+          type: 'response',
+          status: 'error',
+          published: false,
+          eventId: 1,
+          sessionId: 1,
+          action: 'set',
+          error: {
+            name: 'Error',
+            message: 'test error'
+          }
+        },
+        protocol: 'happn'
+      });
+
+      done();
+    });
+
+    it('tests the success method', function(done) {
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      protocol.protocolVersion = 'happn';
+
+      var success = protocol.success({
+        session: {
+          secret: '1898981'
+        },
+        request: {
+          action: 'set',
+          eventId: 1,
+          sessionId: 1,
+          protocol: 'happn'
+        },
+        response: {
+          data: 'test'
+        }
+      });
+
+      expect(success.response).to.eql({
+        data: 'test',
+        _meta: {
+          type: 'response',
+          status: 'ok',
+          published: false,
+          eventId: 1,
+          sessionId: 1,
+          action: 'set'
+        },
+        protocol: 'happn'
+      });
+
+      done();
+    });
+
+    it('tests the fail method', function(done) {
+      var inputMessage = {
+        error: new Error('test error'),
+        session: {
+          secret: '1898981'
+        },
+        request: {
+          action: 'set',
+          eventId: 1,
+          sessionId: 1,
+          protocol: 'happn'
+        },
+        response: {
+          data: 'test'
+        }
+      };
+
+      var expectedOutputMessage = {
+        data: 'test',
+        _meta: {
+          type: 'response',
+          status: 'error',
+          published: false,
+          eventId: 1,
+          sessionId: 1,
+          action: 'set',
+          error: {
+            name: 'Error',
+            message: 'test error'
+          }
+        },
+        protocol: 'happn'
+      };
+
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      protocol.protocolVersion = 'happn';
+
+      var fail = protocol.fail(inputMessage);
+      expect(fail.response).to.eql(expectedOutputMessage);
+
+      done();
+    });
+
+    it('tests the fail method, no request', function(done) {
+      var inputMessage = {
+        error: new Error('test error'),
+        session: {
+          secret: '1898981'
+        },
+        request: {
+          action: 'set',
+          eventId: 1,
+          sessionId: 1,
+          protocol: 'happn'
+        },
+        response: {
+          data: 'test'
+        }
+      };
+
+      var expectedOutputMessage = {
+        data: 'test',
+        _meta: {
+          type: 'response',
+          status: 'error',
+          published: false,
+          eventId: 1,
+          sessionId: 1,
+          action: 'set',
+          error: {
+            name: 'Error',
+            message: 'test error'
+          }
+        },
+        protocol: 'happn'
+      };
+
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      protocol.protocolVersion = 'happn';
+
+      inputMessage.raw = inputMessage.request;
+      delete inputMessage.request;
+
+      var fail = protocol.fail(inputMessage);
+      expect(fail.response).to.eql(expectedOutputMessage);
+
+      done();
+    });
+
+    it('tests the validate function', function() {
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      const UtilsService = require('../../../lib/services/utils/service');
+      const badPathMessage =
+        'Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*';
+
+      protocol.protocolVersion = 'happn';
+
+      protocol.happn = {
+        services: {
+          utils: new UtilsService()
+        }
+      };
+
+      expect(protocol.validate({})).to.eql({});
+
+      var testMessage = {
+        request: {
+          action: 'on',
+          path: '/test/1'
+        }
+      };
+
+      expect(protocol.validate(testMessage)).to.eql(testMessage);
+
+      testMessage = {
+        request: {
+          action: 'on',
+          path: '\\test\\1'
+        }
+      };
+
+      try {
+        protocol.validate(testMessage);
+      } catch (e) {
+        expect(e.message).to.be(badPathMessage);
+      }
+    });
+
+    function mockProtocol() {
+      const Protocol = require('../../../lib/services/protocol/happn_1');
+      const protocol = new Protocol();
+
+      const UtilsService = require('../../../lib/services/utils/service');
+
+      protocol.protocolVersion = 'happn';
+      protocol.happn = {
+        services: {
+          utils: new UtilsService(),
+          security: {
+            _keyPair: {
+              privateKey: 'mock-priv-key'
+            }
+          }
+        }
+      };
+
+      return protocol;
+    }
+
+    it('tests the validate function', function() {
+      var protocol = mockProtocol();
+      const badPathMessage =
+        'Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*';
+
+      expect(protocol.validate({})).to.eql({});
+
+      var testMessage = {
+        request: {
+          action: 'on',
+          path: '/test/1'
+        }
+      };
+
+      expect(protocol.validate(testMessage)).to.eql(testMessage);
+
+      testMessage = {
+        request: {
+          action: 'on',
+          path: '\\test\\1'
+        }
+      };
+
+      try {
+        protocol.validate(testMessage);
+      } catch (e) {
+        expect(e.message).to.be(badPathMessage);
+      }
+    });
+
+    it('tests the transformIn method, message', function(done) {
+      var protocol = mockProtocol();
+
+      expect(
+        protocol.transformIn({
+          raw: 'test'
+        })
+      ).to.eql({
+        request: 'test'
+      });
+
+      expect(
+        protocol.transformIn({
+          session: {
+            secret: 'test-secret'
+          },
+          raw: {
+            data: 'test'
+          }
+        })
+      ).to.eql({ session: { secret: 'test-secret' }, request: { data: 'test' } });
+
+      done();
+    });
+
+    it('tests the transformIn method,  login', function(done) {
+      var protocol = mockProtocol();
+
+      var transformed = protocol.transformIn({
+        session: {
+          secret: 'test-secret'
+        },
+        raw: {
+          action: 'login',
+          data: {
+            test: 'object'
+          }
+        }
+      });
+
+      expect(transformed).to.eql({
+        session: { secret: 'test-secret' },
+        request: { action: 'login', data: { test: 'object' } }
+      });
+
+      done();
+    });
+  }
+);

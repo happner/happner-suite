@@ -1,0 +1,14 @@
+{
+  "name": "happn-suite",
+  "version": "1.0.0",
+  "workspaces": [
+    "happn-3",
+    "happn-db-provider-loki",
+    "happn-commons",
+    "happn-logger",
+    "happn-nedb",
+    "happn-primus-wrapper",
+    "happn-stats",
+    "happn-util-crypto"
+  ]
+}

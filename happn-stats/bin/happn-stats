@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var commander = require('commander');
+var Promise = global.Promise || require('bluebird');
+var StatsServer;
+var server;
+var plugins = [];
+
+var program = commander
+  .version(require('../package').version)
+  .option('-d, --debug', 'show debug output')
+  .option('-H, --host <addr>', 'assign hostname to listen, default 0.0.0.0')
+  .option('-P, --port <port>', 'assign port to listen, default 49494')
+  .option('-i, --interval <ms>', 'assign report interval, default 10000')
+  .option('-f, --fragments <num>', 'assign fragments per report interval, default 5')
+  .option('-p, --plugin <node-module>', 'use a plugin', collect, []);
+
+program.on('--help', function () {
+  console.log('');
+  console.log('');
+  console.log('  Examples:');
+  console.log('');
+  console.log('    $ PLUGIN_SETTING=eg happn-stats -d -p example/plugin');
+  console.log('    $ PLUGIN_SETTING=eg happn-stats -d -p plugin-module-name -p another');
+  console.log('');
+});
+
+program.parse(process.argv);
+
+if (program.debug) {
+  if (process.env.DEBUG) {
+    process.env.DEBUG += ',happn-stats:*';
+  } else {
+    process.env.DEBUG = 'happn-stats:*';
+  }
+}
+
+// late require: needed after debug setup
+StatsServer = require('../').StatsServer;
+
+server = new StatsServer({
+  host: program.host,
+  port: program.port,
+  reportInterval: program.interval,
+  fragmentsPerReport: program.fragments
+});
+
+server.start()
+
+  .then(function () {
+    function terminate() {
+      console.log();
+      server.stop()
+        .then(function () {
+          return Promise.all(plugins.map(function (plugin) {
+            return plugin.stop();
+          }));
+        })
+        .catch(function (err) {
+          console.error(err);
+          process.exit(1);
+        });
+    }
+
+    process.on('SIGINT', terminate);
+    process.on('SIGTERM', terminate);
+  })
+
+  .then(function () {
+    var promises = [];
+    for (var i = 0; i < program.plugin.length; i++) {
+      promises.push(startPlugin(program.plugin[i]));
+    }
+    return Promise.all(promises);
+  })
+
+  .catch(function (err) {
+    console.error(err);
+    process.exit(1);
+  });
+
+function startPlugin(moduleName) {
+  return new Promise(function (resolve, reject) {
+    var Plugin;
+
+    try {
+      Plugin = require(moduleName);
+    } catch (e) {
+      try {
+        Plugin = require(path.resolve(moduleName));
+      } catch (e) {
+        return reject(e)
+      }
+    }
+
+    var plugin = new Plugin(server);
+    plugins.push(plugin);
+    plugin.start().then(resolve).catch(reject);
+  });
+}
+
+
+function collect(val, array) {
+  array.push(val);
+  return array;
+}
