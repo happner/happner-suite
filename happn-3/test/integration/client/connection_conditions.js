@@ -53,7 +53,7 @@ describe(
             }
           },
           function(e) {
-            expect(e.code).to.be('ECONNREFUSED');
+            expect(e.toString().indexOf('ECONNREFUSED')).to.be.greaterThan(-1);
             callback();
           }
         );

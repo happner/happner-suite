@@ -1,11 +1,12 @@
 const db = require('lokijs'),
   EventEmitter = require('events').EventEmitter,
-  fs = require('fs-extra'),
   readline = require('readline'),
-  constants = require('happn-commons').constants,
-  async = require('async'),
-  util = require('happn-commons').utils,
-  _ = require('lodash'),
+  commons = require('happn-commons'),
+  constants = commons.constants,
+  async = commons.async,
+  util = commons.utils,
+  fs = commons.fs,
+  _ = commons._,
   path = require('path');
 
 module.exports = class LokiDataProvider extends EventEmitter {

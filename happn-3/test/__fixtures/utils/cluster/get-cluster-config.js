@@ -1,4 +1,15 @@
-module.exports = function(port, proxyPort, swimPort, swimHosts, mongoCollection, mongoUrl, clusterSize, seed, secure, activateSessionManagement){
+module.exports = function(
+  port,
+  proxyPort,
+  swimPort,
+  swimHosts,
+  mongoCollection,
+  mongoUrl,
+  clusterSize,
+  seed,
+  secure,
+  activateSessionManagement
+) {
   let config = {
     port,
     services: {
@@ -7,7 +18,7 @@ module.exports = function(port, proxyPort, swimPort, swimHosts, mongoCollection,
           datastores: [
             {
               name: 'mongo',
-              provider: 'happn-service-mongo-2',
+              provider: 'happn-db-provider-mongo',
               isDefault: true,
               settings: {
                 collection: mongoCollection,
@@ -52,8 +63,8 @@ module.exports = function(port, proxyPort, swimPort, swimHosts, mongoCollection,
     config.secure = true;
     config.services.security = {
       config: {
-        activateSessionManagement:activateSessionManagement,
-        sessionTokenSecret:'sessionTokenSecret',
+        activateSessionManagement: activateSessionManagement,
+        sessionTokenSecret: 'sessionTokenSecret',
         adminUser: {
           username: '_ADMIN',
           password: 'secret'

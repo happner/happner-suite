@@ -540,7 +540,7 @@ describe(test.testName(__filename, 3), function() {
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission1);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');
-    test.expect(stored).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
+    test.expect(stored.sort()).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission2);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');

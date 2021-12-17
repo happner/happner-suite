@@ -1,4 +1,4 @@
-const path = require('path'), fs = require('fs');
+const path = require('path'), fs = require('fs-extra'), _ = require('lodash'), libAsync  = require('async');
 const [constantsPath, utilsPath] = ['constants', 'utils'].map(fileName => {
     return path.resolve(__dirname, `./lib/${fileName}.js`);
   });
@@ -13,5 +13,8 @@ module.exports = {
         utils: () => {
             return fs.readFileSync(utilsPath, 'utf8').replace('module.exports = ', '');
         }
-    }
+    },
+    fs,
+    _,
+    async: libAsync
 }

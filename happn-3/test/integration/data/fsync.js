@@ -1,5 +1,6 @@
 require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
   const happn = require('../../../lib/index');
+  const commons = require('happn-commons');
   const service = happn.service;
   const default_timeout = 10000;
   let happnInstance = null;
@@ -13,7 +14,7 @@ require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test =
   before('should initialize the service', async function() {
     this.timeout(20000);
 
-    fsyncSpy = test.sinon.spy(test.fs, 'fsync');
+    fsyncSpy = test.sinon.spy(commons.fs, 'fsync');
 
     test_id = Date.now() + '_' + require('shortid').generate();
 

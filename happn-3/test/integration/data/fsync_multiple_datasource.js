@@ -1,4 +1,5 @@
 require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+  const commons = require('happn-commons');
   const expect = test.chai.expect;
   const happn = require('../../../lib/index');
   const tempFile1 = test.newTestFile();
@@ -26,7 +27,7 @@ require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test =
   before('should initialize the services', function(callback) {
     this.timeout(60000); //travis sometiems takes ages...
 
-    fsyncSpy = test.sinon.spy(test.fs, 'fsync');
+    fsyncSpy = test.sinon.spy(commons.fs, 'fsync');
 
     const serviceConfigs = [
       {

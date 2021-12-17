@@ -12,7 +12,7 @@ describe(test.testName(__filename, 3), function() {
     datastores: [
       {
         name: 'default',
-        provider: 'loki',
+        provider: 'happn-db-provider-loki',
         isDefault: true,
         settings: {}
       }

@@ -1,4 +1,5 @@
-describe(
+// TODO: cluster test
+xdescribe(
   require('../../__fixtures/utils/test_helper')
     .create()
     .testName(__filename, 3),
