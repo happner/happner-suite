@@ -1,13 +1,13 @@
 module.exports = CacheService;
 
-var EventEmitter = require('events').EventEmitter;
+const EventEmitter = require('events').EventEmitter;
 
-var StaticCache = require('./cache_static');
-var LRUCache = require('./cache_lru');
-var PersistedCache = require('./cache_persist');
-var sift = require('sift').default;
-const async = require('async');
-const util = require('happn-commons').utils;
+const StaticCache = require('./cache_static');
+const LRUCache = require('./cache_lru');
+const PersistedCache = require('./cache_persist');
+const commons = require('happn-commons');
+const async = commons.async;
+const util = commons.utils;
 
 CacheService.prototype.initialize = initialize;
 CacheService.prototype.new = _new;
@@ -254,7 +254,7 @@ function getIfExisting(cacheName) {
 function filterCacheItems(filter, items) {
   if (!filter) throw this.happn.services.error.SystemError('filter is missing');
 
-  return sift(
+  return commons.mongoFilter(
     {
       $and: [filter]
     },

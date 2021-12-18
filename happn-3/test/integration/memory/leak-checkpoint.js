@@ -22,18 +22,12 @@ describe(
               {
                 name: 'test',
                 session: {
-                  $and: [
-                    {
-                      user: {
-                        username: {
-                          $eq: '_ADMIN'
-                        }
-                      },
-                      type: {
-                        $eq: 1
-                      }
-                    }
-                  ]
+                  'user.username': {
+                    $eq: '_ADMIN'
+                  },
+                  type: {
+                    $eq: 1
+                  }
                 },
                 policy: {
                   usage_limit: 10,

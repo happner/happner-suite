@@ -1,10 +1,10 @@
 const jwt = require('jwt-simple'),
-  uuid = require('uuid'),
-  sift = require('sift').default,
+  commons = require('happn-commons'),
+  uuid = commons.uuid,
   EventEmitter = require('events').EventEmitter,
-  util = require('happn-commons').utils,
+  util = commons.utils,
   nodeUtil = require('util'),
-  async = require('async'),
+  async = commons.async,
   BaseAuthProvider = require('./authentication/provider-base'),
   path = require('path');
 module.exports = SecurityService;
@@ -1323,7 +1323,7 @@ function __profileSession(session) {
     [0, 1].forEach(function(sessionType) {
       if (session.policy[sessionType] != null) return;
       decoupledSession.type = sessionType;
-      if (sift(filter, [decoupledSession]).length === 1) {
+      if (commons.mongoFilter(filter, decoupledSession).length === 1) {
         session.policy[sessionType] = profile.policy;
       }
     });
@@ -1401,15 +1401,9 @@ function __initializeProfiles(config) {
       config.profiles.push({
         name: 'default-browser', // this is the default underlying profile for stateful sessions
         session: {
-          $and: [
-            {
-              info: {
-                _browser: {
-                  $eq: true
-                }
-              }
-            }
-          ]
+          'info._browser': {
+            $eq: true
+          }
         },
         policy: {
           ttl: '7 days', //a week
@@ -1420,13 +1414,9 @@ function __initializeProfiles(config) {
       config.profiles.push({
         name: 'default-stateful', // this is the default underlying profile for stateful sessions
         session: {
-          $and: [
-            {
-              type: {
-                $eq: 1
-              }
-            }
-          ]
+          type: {
+            $eq: 1
+          }
         },
         policy: {
           ttl: 0, //session never goes stale
@@ -1437,13 +1427,9 @@ function __initializeProfiles(config) {
       config.profiles.push({
         name: 'default-stateless', // this is the default underlying profile for stateless sessions (REST)
         session: {
-          $and: [
-            {
-              type: {
-                $eq: 0
-              }
-            }
-          ]
+          type: {
+            $eq: 0
+          }
         },
         policy: {
           ttl: 0, //session never goes stale
@@ -1538,7 +1524,7 @@ function checkIPAddressWhitelistPolicy(credentials, sessionId, request) {
   return this.__cache_Profiles.every(profile => {
     if (profile.policy.sourceIPWhitelist == null || profile.policy.sourceIPWhitelist.length === 0)
       return true;
-    if (sift(profile.session, [{ user: credentials }]).length === 0) return true;
+    if (commons.mongoFilter(profile.session, { user: credentials }).length === 0) return true;
     if (sessionId) {
       const session = this.sessionService.getSession(sessionId);
       if (!session) return false;

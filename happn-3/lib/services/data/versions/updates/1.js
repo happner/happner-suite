@@ -1,4 +1,5 @@
-var async = require('async');
+const commons = require('happn-commons');
+const async = commons.async;
 
 module.exports = Update1;
 

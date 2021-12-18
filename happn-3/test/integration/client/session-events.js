@@ -47,15 +47,9 @@ describe(
                 {
                   name: 'short-session',
                   session: {
-                    $and: [
-                      {
-                        user: {
-                          username: {
-                            $eq: '_ADMIN'
-                          }
-                        }
-                      }
-                    ]
+                    'user.username': {
+                      $eq: '_ADMIN'
+                    }
                   },
                   policy: {
                     ttl: '3 seconds'
@@ -98,15 +92,9 @@ describe(
                 {
                   name: 'short-session',
                   session: {
-                    $and: [
-                      {
-                        user: {
-                          username: {
-                            $eq: '_ADMIN'
-                          }
-                        }
-                      }
-                    ]
+                    'user.username': {
+                      $eq: '_ADMIN'
+                    }
                   },
                   policy: {
                     ttl: '3 seconds'
@@ -153,15 +141,9 @@ describe(
                 {
                   name: 'short-session',
                   session: {
-                    $and: [
-                      {
-                        user: {
-                          username: {
-                            $eq: '_ADMIN'
-                          }
-                        }
-                      }
-                    ]
+                    'user.username': {
+                      $eq: '_ADMIN'
+                    }
                   },
                   policy: {
                     ttl: '3 seconds'
@@ -201,15 +183,9 @@ describe(
                 {
                   name: 'short-activity-ttl',
                   session: {
-                    $and: [
-                      {
-                        user: {
-                          username: {
-                            $eq: '_ADMIN'
-                          }
-                        }
-                      }
-                    ]
+                    'user.username': {
+                      $eq: '_ADMIN'
+                    }
                   },
                   policy: {
                     ttl: '10 seconds',
@@ -277,15 +253,9 @@ describe(
                 {
                   name: 'short-session',
                   session: {
-                    $and: [
-                      {
-                        user: {
-                          username: {
-                            $eq: '_ADMIN'
-                          }
-                        }
-                      }
-                    ]
+                    'user.username': {
+                      $eq: '_ADMIN'
+                    }
                   },
                   policy: {
                     ttl: '10 seconds'

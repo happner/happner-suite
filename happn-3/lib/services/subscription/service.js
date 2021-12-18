@@ -1,12 +1,13 @@
-var util = require('util'),
+const util = require('util'),
+  commons = require('happn-commons'),
   EventEmitter = require('events').EventEmitter,
-  async = require('async'),
-  CONSTANTS = require('../..').constants,
+  async = commons.async,
+  CONSTANTS = commons.constants,
   TameSearch = require('tame-search'),
-  hyperid = require('happner-hyperid').create({
+  hyperid = commons.hyperid.create({
     urlSafe: true
-  });
-const _ = require('lodash');
+  }),
+  _ = commons._;
 module.exports = SubscriptionService;
 
 function SubscriptionService(opts) {

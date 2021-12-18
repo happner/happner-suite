@@ -549,15 +549,9 @@ describe(
               {
                 name: 'short-session',
                 session: {
-                  $and: [
-                    {
-                      user: {
-                        username: {
-                          $eq: 'TEST USER SHORT'
-                        }
-                      }
-                    }
-                  ]
+                  'user.username': {
+                    $eq: 'TEST USER SHORT'
+                  }
                 },
                 policy: {
                   ttl: '2 seconds'
@@ -566,15 +560,9 @@ describe(
               {
                 name: 'usage-limit',
                 session: {
-                  $and: [
-                    {
-                      user: {
-                        username: {
-                          $eq: 'TEST USER INACTIVE'
-                        }
-                      }
-                    }
-                  ]
+                  'user.username': {
+                    $eq: 'TEST USER INACTIVE'
+                  }
                 },
                 policy: {
                   inactivity_threshold: '1 seconds'

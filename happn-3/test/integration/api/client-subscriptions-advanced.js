@@ -11,7 +11,6 @@ describe(tests.testName(__filename, 3), function() {
     try {
       service.create(function(e, happnInst) {
         if (e) return callback(e);
-
         happnInstance = happnInst;
         callback();
       });

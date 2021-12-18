@@ -27,20 +27,12 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'token-not-allowed',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'TOKEN-NOT-ALLOWED'
-                      }
-                    },
-                    info: {
-                      tokenNotAllowedForLogin: {
-                        $eq: true
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'TOKEN-NOT-ALLOWED'
+                },
+                'info.tokenNotAllowedForLogin': {
+                  $eq: true
+                }
               },
               policy: {
                 disallowTokenLogins: true
@@ -49,20 +41,12 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'short-session',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'SHORT-SESSION'
-                      }
-                    },
-                    info: {
-                      shortSession: {
-                        $eq: true
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'SHORT-SESSION'
+                },
+                'info.shortSession': {
+                  $eq: true
+                }
               },
               policy: {
                 ttl: '2 seconds'
@@ -71,20 +55,12 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'browser-session',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'BROWSER-SESSION'
-                      }
-                    },
-                    info: {
-                      _browser: {
-                        $eq: true
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'BROWSER-SESSION'
+                },
+                'info._browser': {
+                  $eq: true
+                }
               },
               policy: {
                 ttl: '7 days'
@@ -93,20 +69,12 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'locked-session',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'LOCKED-SESSION'
-                      }
-                    },
-                    info: {
-                      tokenOriginLocked: {
-                        $eq: true
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'LOCKED-SESSION'
+                },
+                'info.tokenOriginLocked': {
+                  $eq: true
+                }
               },
               policy: {
                 ttl: 0, // no ttl
@@ -116,16 +84,10 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'node-session',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'NODE-SESSION'
-                      }
-                    },
-                    _browser: false
-                  }
-                ]
+                'user.username': {
+                  $eq: 'NODE-SESSION'
+                },
+                _browser: false
               },
               policy: {
                 ttl: 0 // no ttl
@@ -134,15 +96,9 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'source IP whitelist',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'TEST-ALLOWED-IP'
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'TEST-ALLOWED-IP'
+                }
               },
               policy: {
                 sourceIPWhitelist: [
@@ -156,15 +112,9 @@ describe(tests.testName(__filename, 3), function() {
             {
               name: 'source IP whitelist fail',
               session: {
-                $and: [
-                  {
-                    user: {
-                      username: {
-                        $eq: 'TEST-NOT-ALLOWED-IP'
-                      }
-                    }
-                  }
-                ]
+                'user.username': {
+                  $eq: 'TEST-NOT-ALLOWED-IP'
+                }
               },
               policy: {
                 sourceIPWhitelist: ['240.0.0.1', '::ffff:240.0.0.1']

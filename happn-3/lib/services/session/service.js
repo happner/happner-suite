@@ -1,10 +1,11 @@
-var Primus = require('happn-primus-wrapper'),
-  util = require('happn-commons').utils,
+const Primus = require('happn-primus-wrapper');
+const commons = require('happn-commons');
+const async = commons.async,
+  util = commons.utils,
   EventEmitter = require('events').EventEmitter,
-  uuid = require('uuid'),
+  uuid = commons.uuid,
   path = require('path'),
-  async = require('async'),
-  CONSTANTS = require('../..').constants;
+  CONSTANTS = commons.constants;
 
 module.exports = SessionService;
 

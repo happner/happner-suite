@@ -4,7 +4,7 @@ const [constantsPath, utilsPath] = ['constants', 'utils'].map(fileName => {
   });
 module.exports = {
     maybePromisify: require("./lib/maybe-promisify"),
-    constants: require("./lib/constants"),
+    constants: require("./lib/constants-builder"),
     utils: require("./lib/utils"),
     web: {
         constants: () => {
@@ -16,5 +16,9 @@ module.exports = {
     },
     fs,
     _,
-    async: libAsync
+    async: libAsync,
+    hyperid: require('happner-hyperid'),
+    sift: require('sift'),
+    mongoFilter: require('./lib/mongo-filter'),
+    uuid: require('uuid')
 }

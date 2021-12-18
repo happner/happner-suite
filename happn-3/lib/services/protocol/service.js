@@ -1,7 +1,8 @@
-var util = require('util'),
+const util = require('util'),
   EventEmitter = require('events').EventEmitter,
-  async = require('async'),
-  CONSTANTS = require('../..').constants;
+  commons = require('happn-commons'),
+  async = commons.async,
+  CONSTANTS = commons.constants;
 
 module.exports = ProtocolService;
 

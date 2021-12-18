@@ -2,8 +2,8 @@ module.exports = LRUCache;
 
 var EventEmitter = require('events').EventEmitter;
 var LRU = require('lru-cache');
-var sift = require('sift').default;
-const util = require('happn-commons').utils;
+const commons = require('happn-commons');
+const util = commons.utils;
 
 LRUCache.prototype.setSync = setSync;
 LRUCache.prototype.getSync = getSync;
@@ -218,7 +218,7 @@ function all(filter, callback) {
       if (filter)
         return callback(
           null,
-          sift(
+          commons.mongoFilter(
             {
               $and: [filter]
             },

@@ -1,7 +1,9 @@
-const CONSTANTS = require('../..').constants;
+const commons = require('happn-commons');
+const CONSTANTS = commons.constants;
+const uuid = commons.uuid;
 const SD_EVENTS = CONSTANTS.SECURITY_DIRECTORY_EVENTS;
 const PermissionManager = require('./permissions');
-const util = require('happn-commons').utils;
+const util = commons.utils;
 const nodeUtil = require('util');
 const UsersByGroupCache = require('./users-by-group-cache');
 function SecurityUsers(opts) {
@@ -233,7 +235,7 @@ function __prepareUserForUpsert(user) {
     this.getUserNoGroups(user.username, (e, existing) => {
       if (e) return reject(e);
       var clonedUser = this.utilsService.clone(user); //we are passing the back to who knows where and it lives here in the cache...
-      if (!existing) clonedUser.userid = require('uuid').v4();
+      if (!existing) clonedUser.userid = uuid.v4();
       if (!user.password) return resolve(clonedUser);
       return this.cryptoService.generateHash(
         user.password,

@@ -1,5 +1,6 @@
-var async = require('async');
-const util = require('happn-commons').utils;
+const commons = require('happn-commons');
+const async = commons.async;
+const util = commons.utils;
 function ServiceManager() {}
 
 ServiceManager.prototype.initialize = function(config, happn, callback) {
@@ -72,12 +73,12 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
       function(serviceName, serviceInstanceCB) {
         var serviceInstance = _this.happn.services[serviceName];
 
-        if (typeof serviceInstance.initialize === 'function')
+        if (typeof serviceInstance.initialize === 'function') {
           return serviceInstance.initialize(
             serviceInstance.__happnerSettings.config,
             serviceInstanceCB
           );
-
+        }
         serviceInstanceCB();
       },
       callback

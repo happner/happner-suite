@@ -19,15 +19,9 @@ describe(
               {
                 name: 'default-browser', // this is the default underlying profile for stateful sessions
                 session: {
-                  $and: [
-                    {
-                      info: {
-                        _browser: {
-                          $eq: true
-                        }
-                      }
-                    }
-                  ]
+                  'info._browser': {
+                    $eq: true
+                  }
                 },
                 policy: {
                   ttl: '10 seconds', //a week

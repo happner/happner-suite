@@ -1,8 +1,8 @@
 module.exports = Updater;
-
-var path = require('path');
-var fs = require('fs');
-var async = require('async');
+const commons = require('happn-commons');
+const path = require('path');
+const fs = commons.fs;
+const async = commons.async;
 
 function Updater(dataService, systemService, options) {
   if (!options) options = {};

@@ -105,15 +105,9 @@ describe(
                   {
                     name: 'test-session',
                     session: {
-                      $and: [
-                        {
-                          user: {
-                            username: {
-                              $eq: 'TEST_SESSION'
-                            }
-                          }
-                        }
-                      ]
+                      'user.username': {
+                        $eq: 'TEST_SESSION'
+                      }
                     },
                     policy: {
                       ttl: '2 seconds',

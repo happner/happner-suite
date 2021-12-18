@@ -20,15 +20,9 @@ describe(
               {
                 name: 'short-session',
                 session: {
-                  $and: [
-                    {
-                      user: {
-                        username: {
-                          $eq: 'user-short-session'
-                        }
-                      }
-                    }
-                  ]
+                  'user.username': {
+                    $eq: 'user-short-session'
+                  }
                 },
                 policy: {
                   ttl: '2 seconds'

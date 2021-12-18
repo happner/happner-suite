@@ -1,11 +1,10 @@
 module.exports = PersistedCache;
 
-var EventEmitter = require('events').EventEmitter;
-var async = require('async');
-var lt = require('long-timeout');
-var sift = require('sift').default;
-const util = require('happn-commons').utils;
-
+const EventEmitter = require('events').EventEmitter;
+const commons = require('happn-commons');
+const async = commons.async;
+const util = commons.utils;
+const lt = require('long-timeout');
 PersistedCache.prototype.has = has;
 PersistedCache.prototype.set = util.maybePromisify(set);
 PersistedCache.prototype.get = util.maybePromisify(get);
@@ -223,7 +222,7 @@ function all(filter, callback) {
     if (filter)
       return callback(
         null,
-        sift(
+        commons.mongoFilter(
           {
             $and: [filter]
           },

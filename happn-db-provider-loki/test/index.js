@@ -1,5 +1,5 @@
 require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
-  const LokiDataProvider = require('..');
+  const LokiDataProvider = require('../..');
   const testFileName = test.newTestFile();
   const mockLogger = {
     info: test.sinon.stub(),

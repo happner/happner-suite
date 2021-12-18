@@ -1,12 +1,11 @@
 module.exports = DataService;
-
+const commons = require('happn-commons');
 const traverse = require('traverse'),
-  sift = require('sift').default,
-  async = require('async'),
-  CONSTANTS = require('../..').constants,
-  util = require('happn-commons').utils,
+  async = commons.async,
+  CONSTANTS = commons.constants,
+  util = commons.utils,
   EventEmitter = require('events').EventEmitter,
-  hyperid = require('happner-hyperid').create({
+  hyperid = commons.hyperid.create({
     urlSafe: true
   }),
   VersionUpdater = require('./versions/updater');
@@ -482,7 +481,7 @@ function filter(criteria, data, callback) {
 
   try {
     var filterCriteria = this.parseFields(criteria);
-    callback(null, sift(filterCriteria, data));
+    callback(null, commons.mongoFilter(filterCriteria, data));
   } catch (e) {
     callback(new Error('Filter of resultset failed', e));
   }

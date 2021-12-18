@@ -1,5 +1,6 @@
-const async = require('async');
-const CONSTANTS = require('../../../').constants;
+const commons = require('happn-commons');
+const async = commons.async;
+const CONSTANTS = commons.constants;
 const BaseHappnProtocol = require('./happn_base');
 
 class ProtocolHappn1 extends BaseHappnProtocol {

@@ -11,6 +11,9 @@
   "dependencies": {
     "async": "^3.2.2",
     "fs-extra": "^10.0.0",
-    "lodash": "^4.17.21"
+    "happner-hyperid": "^2.0.0",
+    "lodash": "^4.17.21",
+    "sift": "^15.1.0",
+    "uuid": "^2.0.2"
   }
 }

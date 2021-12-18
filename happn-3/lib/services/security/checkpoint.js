@@ -1,8 +1,9 @@
-const async = require('async');
+const commons = require('happn-commons');
+const async = commons.async;
 const handlebars = require('handlebars');
-const CONSTANTS = require('../..').constants;
+const CONSTANTS = commons.constants;
+const _ = commons._;
 const PermissionsTree = require('./permissions-tree');
-const _ = require('lodash');
 
 module.exports = CheckPoint;
 

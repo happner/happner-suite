@@ -17,20 +17,12 @@ const serviceConfig1 = {
           {
             name: 'token-not-allowed',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    tokenNotAllowedForLogin: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info.tokenNotAllowedForLogin': {
+                $eq: true
+              }
             },
             policy: {
               disallowTokenLogins: true
@@ -39,20 +31,12 @@ const serviceConfig1 = {
           {
             name: 'short-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    shortSession: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info.shortSession': {
+                $eq: true
+              }
             },
             policy: {
               ttl: '2 seconds'
@@ -61,20 +45,12 @@ const serviceConfig1 = {
           {
             name: 'browser-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    _browser: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info._browser': {
+                $eq: true
+              }
             },
             policy: {
               ttl: '7 days'
@@ -83,20 +59,12 @@ const serviceConfig1 = {
           {
             name: 'locked-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    tokenOriginLocked: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info.tokenOriginLocked': {
+                $eq: true
+              }
             },
             policy: {
               ttl: 0, // no ttl
@@ -106,16 +74,10 @@ const serviceConfig1 = {
           {
             name: 'node-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  _browser: false
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              _browser: false
             },
             policy: {
               ttl: 0 // no ttl
@@ -143,20 +105,12 @@ const serviceConfig2 = {
           {
             name: 'token-not-allowed',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    tokenNotAllowedForLogin: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info.tokenNotAllowedForLogin': {
+                $eq: true
+              }
             },
             policy: {
               disallowTokenLogins: true
@@ -165,20 +119,12 @@ const serviceConfig2 = {
           {
             name: 'short-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    shortSession: {
-                      $eq: true
-                    }
-                  }
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              'info.shortSession': {
+                $eq: true
+              }
             },
             policy: {
               ttl: '2 seconds'
@@ -187,16 +133,10 @@ const serviceConfig2 = {
           {
             name: 'browser-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  _browser: true
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              _browser: true
             },
             policy: {
               ttl: '7 days'
@@ -205,20 +145,14 @@ const serviceConfig2 = {
           {
             name: 'locked-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  info: {
-                    tokenOriginLocked: {
-                      $eq: true
-                    }
-                  }
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              info: {
+                tokenOriginLocked: {
+                  $eq: true
                 }
-              ]
+              }
             },
             policy: {
               ttl: 0, // no ttl
@@ -228,16 +162,10 @@ const serviceConfig2 = {
           {
             name: 'node-session',
             session: {
-              $and: [
-                {
-                  user: {
-                    username: {
-                      $eq: '_ADMIN'
-                    }
-                  },
-                  _browser: false
-                }
-              ]
+              'user.username': {
+                $eq: '_ADMIN'
+              },
+              _browser: false
             },
             policy: {
               ttl: 0 // no ttl

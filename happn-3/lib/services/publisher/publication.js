@@ -1,6 +1,6 @@
-var async = require('async'),
-  CONSTANTS = require('../../../').constants;
-
+const commons = require('happn-commons');
+const async = commons.async,
+  CONSTANTS = commons.constants;
 function Publication(message, options, happn) {
   this.happn = happn;
   this.message = message;

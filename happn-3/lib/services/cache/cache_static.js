@@ -1,8 +1,8 @@
 module.exports = StaticCache;
 
 var EventEmitter = require('events').EventEmitter;
-var sift = require('sift').default;
-const util = require('happn-commons').utils;
+const commons = require('happn-commons');
+const util = commons.utils;
 
 StaticCache.prototype.has = has;
 StaticCache.prototype.set = util.maybePromisify(set);
@@ -202,7 +202,7 @@ function all(filter, callback) {
     if (filter)
       return callback(
         null,
-        sift(
+        commons.mongoFilter(
           {
             $and: [filter]
           },
