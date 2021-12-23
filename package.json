@@ -6,14 +6,11 @@
     "happn-db-provider-loki",
     "happn-db-provider-mongo",
     "happn-commons",
+    "happn-commons-test",
     "happn-logger",
     "happn-nedb",
     "happn-primus-wrapper",
     "happn-stats",
     "happn-util-crypto"
-  ],
-  "dependencies": {
-    "happn-service-mongo-2": "^4.0.1",
-    "ws": "^8.1.0"
-  }
+  ]
 }

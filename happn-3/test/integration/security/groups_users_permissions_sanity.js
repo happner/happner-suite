@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
   context('manage users and groups and permissions', async () => {
     const Logger = require('happn-logger');
     const test_id = Date.now() + '_' + require('shortid').generate();

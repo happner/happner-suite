@@ -1,5 +1,6 @@
 describe('happn-tests', function() {
   this.timeout(5000);
+  const testCommons = require('happn-test-commons').create().commons;
 
   let expect = require('expect.js');
   let async = require('async');
@@ -55,7 +56,7 @@ describe('happn-tests', function() {
   configs.forEach(config => {
     context('running battery of tests', function() {
       before('should initialize the service and clients', async () => {
-        test_id = Date.now() + '_' + require('shortid').generate();
+        test_id = Date.now() + '_' + testCommons.nanoid();
         happnTestHelper = require('../__fixtures/happn-test-helper').create(config);
         await happnTestHelper.initialize();
         publisherclient = happnTestHelper.publisherclient;
@@ -68,7 +69,7 @@ describe('happn-tests', function() {
 
       it('the publisher should set new data', function(callback) {
         try {
-          let test_path_end = require('shortid').generate();
+          let test_path_end = testCommons.nanoid();
 
           publisherclient.set(
             '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -150,7 +151,7 @@ describe('happn-tests', function() {
       });
 
       it('the publisher should get null for unfound data, exact path', function(callback) {
-        let test_path_end = require('shortid').generate();
+        let test_path_end = testCommons.nanoid();
         publisherclient.get(
           '1_eventemitter_embedded_sanity/' + test_id + '/unfound/exact/' + test_path_end,
           null,
@@ -174,7 +175,7 @@ describe('happn-tests', function() {
           async.times(
             timesCount,
             function(n, timesCallback) {
-              let test_random_path2 = require('shortid').generate();
+              let test_random_path2 = testCommons.nanoid();
 
               publisherclient.set(
                 testBasePath + '/' + test_random_path2,
@@ -226,7 +227,7 @@ describe('happn-tests', function() {
 
       it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
         try {
-          let test_path_end = require('shortid').generate();
+          let test_path_end = testCommons.nanoid();
 
           publisherclient.set(
             '/1_eventemitter_embedded_sanity/' +
@@ -317,7 +318,7 @@ describe('happn-tests', function() {
       });
 
       it('should contain the same payload between a merge and a normal store for first store', function(done) {
-        let shortid = require('shortid').generate();
+        let shortid = testCommons.nanoid();
 
         let object = {
           param1: 10,
@@ -369,7 +370,7 @@ describe('happn-tests', function() {
       });
 
       it('should search for a complex object', function(callback) {
-        let test_path_end = require('shortid').generate();
+        let test_path_end = testCommons.nanoid();
 
         let complex_obj = {
           regions: ['North', 'South'],
@@ -478,7 +479,7 @@ describe('happn-tests', function() {
       });
 
       it('should search for a complex object by dates', function(callback) {
-        let test_path_end = require('shortid').generate();
+        let test_path_end = testCommons.nanoid();
 
         let complex_obj = {
           regions: ['North', 'South'],
@@ -593,7 +594,7 @@ describe('happn-tests', function() {
 
       it('the publisher should set new data then update the data', function(callback) {
         try {
-          let test_path_end = require('shortid').generate();
+          let test_path_end = testCommons.nanoid();
 
           publisherclient.set(
             '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -681,7 +682,7 @@ describe('happn-tests', function() {
 
       it('the publisher should set new data ', function(callback) {
         try {
-          let test_path_end = require('shortid').generate();
+          let test_path_end = testCommons.nanoid();
 
           publisherclient.set(
             '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -720,7 +721,7 @@ describe('happn-tests', function() {
 
       it('the publisher should set new data then update the data', function(callback) {
         try {
-          let test_path_end = require('shortid').generate();
+          let test_path_end = testCommons.nanoid();
 
           publisherclient.set(
             '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -803,7 +804,7 @@ describe('happn-tests', function() {
       });
 
       it('should get using a wildcard', function(callback) {
-        let test_path_end = require('shortid').generate();
+        let test_path_end = testCommons.nanoid();
 
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end,
@@ -847,7 +848,7 @@ describe('happn-tests', function() {
       });
 
       it('should get paths', function(callback) {
-        let test_path_end = require('shortid').generate();
+        let test_path_end = testCommons.nanoid();
 
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end,
@@ -1159,7 +1160,7 @@ describe('happn-tests', function() {
       it('increments a value on a path', function(done) {
         let async = require('async');
 
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/' + test_id + '/' + test_string;
 
         async.timesSeries(
@@ -1190,7 +1191,7 @@ describe('happn-tests', function() {
       });
 
       it('the listener can call count for data', function(done) {
-        var test_string = require('shortid').generate();
+        var test_string = testCommons.nanoid();
         var test_base_url = '/count_happn/' + test_id + '/set/string/' + test_string;
         publisherclient.set(
           test_base_url,
@@ -1212,7 +1213,7 @@ describe('happn-tests', function() {
       it('increments a value on a path, multiple gauges', function(done) {
         let async = require('async');
 
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/' + test_id + '/' + test_string;
 
         async.timesSeries(
@@ -1256,7 +1257,7 @@ describe('happn-tests', function() {
       it('increments a value on a path, convenience method, multiple gauges', function(done) {
         let async = require('async');
 
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/' + test_id + '/' + test_string;
 
         async.timesSeries(
@@ -1290,7 +1291,7 @@ describe('happn-tests', function() {
       });
 
       it('increments a value on a path, convenience method, listens on path receives event', function(done) {
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
         listenerclient.on(
@@ -1312,7 +1313,7 @@ describe('happn-tests', function() {
       });
 
       it('increments a value on a path, convenience method with custom gauge and increment, listens on path receives event', function(done) {
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
         listenerclient.on(
@@ -1334,7 +1335,7 @@ describe('happn-tests', function() {
       });
 
       it('increments and decrements a value on a path, convenience method with custom gauge and increment and decrement, listens on path receives event', function(done) {
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
         let incrementCount = 0;
@@ -1370,7 +1371,7 @@ describe('happn-tests', function() {
       });
 
       it('increments a value on a path, convenience method, no counter so defaults to 1, listens on path receives event', function(done) {
-        let test_string = require('shortid').generate();
+        let test_string = testCommons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
         listenerclient.on(

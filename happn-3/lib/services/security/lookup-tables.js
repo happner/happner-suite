@@ -1,7 +1,8 @@
-const _ = require('lodash'),
+const commons = require('happn-commons'),
+  _ = commons._,
   nodeUtil = require('util'),
-  CONSTANTS = require('../..').constants;
-const utils = require('happn-commons').utils;
+  CONSTANTS = commons.constants,
+  utils = commons.utils;
 module.exports = class LookupTables {
   constructor() {
     this.authorizeCallback = nodeUtil.callbackify(this.authorize);

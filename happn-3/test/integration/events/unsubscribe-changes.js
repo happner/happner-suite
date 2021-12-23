@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
   let happnInstance = null;
   let publisherclient;
   let listenerclient;

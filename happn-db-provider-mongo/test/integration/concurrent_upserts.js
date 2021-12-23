@@ -1,4 +1,5 @@
 var path = require('path');
+const testCommons = require('happn-test-commons').create().commons;
 /*
 Starts a bunch of concurrent processes that try and cause collisions by updating records on the same path.
 This is in an effort to be sure we are dealing with mongos astonishing upsert:true on a unique index issue.
@@ -7,7 +8,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function(
   this.timeout(20000);
 
   var async = require('async');
-  var testId = require('shortid').generate();
+  var testId = testCommons.nanoid();
   var kid = require('child_process');
 
   var KIDS_COUNT = 10;

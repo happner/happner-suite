@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function(test) {
   let happnInstance = null;
   let publisherclient;
   let listenerclient;
@@ -348,7 +348,6 @@ require('../../__fixtures/utils/test_helper').describe(__filename, 120000, funct
       });
 
       it('searches by timestamps', async () => {
-        this.timeout(5000);
         const itemIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         const windowStart = Date.now();
         const testPath = test.shortid();
@@ -413,7 +412,6 @@ require('../../__fixtures/utils/test_helper').describe(__filename, 120000, funct
       });
 
       it('searches by timestamps - getCreatedBetween convenience method', async () => {
-        this.timeout(5000);
         const itemIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         const windowStart = Date.now();
         const testPath = test.shortid();

@@ -11,9 +11,11 @@
   "dependencies": {
     "async": "^3.2.2",
     "fs-extra": "^10.0.0",
+    "happn-sillyname": "^0.1.1",
     "happner-hyperid": "^2.0.0",
     "lodash": "^4.17.21",
+    "nanoid": "^3.1.30",
     "sift": "^15.1.0",
-    "uuid": "^2.0.2"
+    "uuid": "^3.3.2"
   }
 }

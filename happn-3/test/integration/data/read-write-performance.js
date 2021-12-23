@@ -1,5 +1,7 @@
-const constants = require('../../../lib/constants');
-require('../../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+const constants = require('happn-commons').constants;
+const test = require('../../__fixtures/utils/test_helper').create();
+describe(test.testName(), function() {
+  this.timeout(20000);
   var expect = require('chai').expect;
   var happnInstance = null;
 

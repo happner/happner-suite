@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
   var happn = require('../../../lib/index');
   var happn_client = happn.client;
   var default_timeout = 10000;

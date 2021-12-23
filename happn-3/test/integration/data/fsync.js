@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
   const happn = require('../../../lib/index');
   const commons = require('happn-commons');
   const service = happn.service;

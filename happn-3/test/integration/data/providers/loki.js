@@ -1,5 +1,5 @@
-require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
-  const LokiDataProvider = require('../../../../lib/services/data/providers/loki');
+require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+  const LokiDataProvider = require('happn-db-provider-loki');
   const testFileName = test.newTestFile();
   const mockLogger = {
     info: test.sinon.stub(),
@@ -113,9 +113,24 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
       ...settings
     };
     await lokiProvider.initialize();
-    await lokiProvider.insert({ path: 'test/path/1', data: { test: 'test1' }, created, modified });
-    await lokiProvider.insert({ path: 'test/path/2', data: { test: 'test2' }, created, modified });
-    await lokiProvider.insert({ path: 'test/path/3', data: { test: 'test2' }, created, modified });
+    await lokiProvider.insert({
+      path: 'test/path/1',
+      data: { test: 'test1' },
+      created,
+      modified
+    });
+    await lokiProvider.insert({
+      path: 'test/path/2',
+      data: { test: 'test2' },
+      created,
+      modified
+    });
+    await lokiProvider.insert({
+      path: 'test/path/3',
+      data: { test: 'test2' },
+      created,
+      modified
+    });
 
     test
       .expect(

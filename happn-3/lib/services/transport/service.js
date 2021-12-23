@@ -1,13 +1,14 @@
-var version = require('../../../package.json').version;
-var util = require('util');
-var EventEmitter = require('events').EventEmitter;
-var tcpPortUsed = require('happn-tcp-port-used');
+const version = require('../../../package.json').version;
+const commons = require('happn-commons');
+const util = require('util');
+const EventEmitter = require('events').EventEmitter;
+const tcpPortUsed = require('happn-tcp-port-used');
 
 function TransportService() {
   EventEmitter.call(this);
   this.https = require('https');
   this.http = require('http');
-  this.fs = require('fs');
+  this.fs = commons.fs;
 }
 
 util.inherits(TransportService, EventEmitter);

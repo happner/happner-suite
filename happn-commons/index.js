@@ -20,5 +20,8 @@ module.exports = {
     hyperid: require('happner-hyperid'),
     sift: require('sift'),
     mongoFilter: require('./lib/mongo-filter'),
-    uuid: require('uuid')
+    uuid: require('uuid'),
+    nanoid: require('nanoid').nanoid,
+    sillyname: require('happn-sillyname'),
+    nodeUtils: require("util")
 }

@@ -1,4 +1,3 @@
-const sinon = require('sinon');
 const DataService = require('../../../lib/services/data/service');
 const CacheService = require('../../../lib/services/cache/service');
 
@@ -10,6 +9,7 @@ const fs = require('fs');
 const UtilsService = require('../../../lib/services/utils/service');
 
 describe(test.testName(__filename, 3), function() {
+  const sinon = test.sinon;
   var Logger = require('happn-logger');
   let mockErrorService;
   let dbPath = path.resolve(__dirname, '../../__fixtures/test/test_lookup_db');

@@ -1,6 +1,7 @@
 var filename = require('path').basename(__filename);
 
 describe('integration/' + filename + '\n', function() {
+  const testCommons = require('happn-test-commons').create().commons;
   var expect = require('expect.js');
   var happn = require('happn-3');
   var service = happn.service;
@@ -94,7 +95,7 @@ describe('integration/' + filename + '\n', function() {
   };
 
   before('should initialize the default service', function(callback) {
-    test_id = Date.now() + '_' + require('shortid').generate();
+    test_id = Date.now() + '_' + testCommons.nanoid();
 
     try {
       service.create(
@@ -114,7 +115,7 @@ describe('integration/' + filename + '\n', function() {
   });
 
   before('should initialize the indexed service', function(callback) {
-    test_id = Date.now() + '_' + require('shortid').generate();
+    test_id = Date.now() + '_' + testCommons.nanoid();
 
     try {
       service.create(

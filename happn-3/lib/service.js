@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 const Logger = require('happn-logger'),
   Services = require('./services/manager'),
-  util = require('happn-commons').utils,
-  _ = require('lodash');
+  commons = require('happn-commons'),
+  util = commons.utils,
+  _ = commons._;
 module.exports = {
   initialize: function(config, done) {
     console.warn(

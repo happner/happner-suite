@@ -1,10 +1,11 @@
 var filename = require('path').basename(__filename);
+const testCommons = require('happn-test-commons').create().commons;
 
 describe('integration/' + filename + '\n', function() {
   this.timeout(20000);
   var expect = require('expect.js');
   var service = require('../../index');
-  var testId = require('shortid').generate();
+  var testId = testCommons.nanoid();
   var config = {
     url: 'mongodb://127.0.0.1:27017/happn'
   };
@@ -76,7 +77,7 @@ describe('integration/' + filename + '\n', function() {
   });
 
   it('gets no data', function(callback) {
-    var random = require('shortid').generate();
+    var random = testCommons.nanoid();
 
     serviceInstance.find('/wontfind/' + random, {}, function(e, response) {
       if (e) return callback(e);
@@ -140,7 +141,7 @@ describe('integration/' + filename + '\n', function() {
   });
 
   it('gets data with complex search', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
 
     var complex_obj = {
       regions: ['North', 'South'],
@@ -263,7 +264,7 @@ describe('integration/' + filename + '\n', function() {
 
     var randomItems = [];
 
-    var test_string = require('shortid').generate();
+    var test_string = testCommons.nanoid();
 
     var base_path = '/sort_and_limit/' + test_string + '/';
 
@@ -348,7 +349,7 @@ describe('integration/' + filename + '\n', function() {
   it('increments a data point', function(done) {
     var async = require('async');
 
-    var test_string = require('shortid').generate();
+    var test_string = testCommons.nanoid();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
     async.timesSeries(
@@ -374,7 +375,7 @@ describe('integration/' + filename + '\n', function() {
   it('increments a data point, multiple guages', function(done) {
     var async = require('async');
 
-    var test_string = require('shortid').generate();
+    var test_string = testCommons.nanoid();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
     async.timesSeries(

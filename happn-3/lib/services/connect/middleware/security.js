@@ -1,6 +1,6 @@
 module.exports = SecurityMiddleware;
-
-const fs = require('fs');
+const commons = require('happn-commons');
+const fs = commons.fs;
 const CONSTANTS = require('../../..').constants;
 const devNull = require('dev-null');
 

@@ -1,8 +1,9 @@
-const _ = require('lodash');
+const commons = require('happn-commons');
+const _ = commons._;
 module.exports = class PermissionsTree {
   constructor(permissionsObj, utilsService) {
     this.tree = this.buildTree(permissionsObj || {});
-    this.utils = utilsService || require('happn-commons').utils;
+    this.utils = utilsService || commons.utils;
   }
 
   static create(permissionsObj) {

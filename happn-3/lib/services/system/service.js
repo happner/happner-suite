@@ -1,8 +1,9 @@
-var shortid = require('shortid'),
-  sillyname = require('happn-sillyname'),
-  CONSTANTS = require('../../constants');
-
-module.exports = SystemService;
+const commons = require('happn-commons'),
+  sillyname = commons.sillyname,
+  hyperid = commons.hyperid.create({
+    urlSafe: true
+  }),
+  CONSTANTS = commons.constants;
 
 function SystemService(opts) {
   this.log = opts.logger.createLogger('System');
@@ -45,7 +46,7 @@ SystemService.prototype.uniqueName = function() {
       .split(' ')[0]
       .toLowerCase() +
     '_' +
-    shortid.generate()
+    hyperid()
   );
 };
 
@@ -196,3 +197,4 @@ SystemService.prototype.initialize = function(config, callback) {
     }.bind(this)
   );
 };
+module.exports = SystemService;

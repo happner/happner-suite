@@ -4,7 +4,7 @@ var debug = require('debug')('happn-stats:server');
 var Promise = global.Promise || require('bluebird');
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
-var shortid = require('shortid');
+var nanoid = require('happn-commons').nanoid;
 var Server = require('ws').Server;
 
 function StatsServer(opts) {
@@ -100,7 +100,7 @@ StatsServer.prototype._onConnection = function (socket) {
 }
 
 StatsServer.prototype._getId = function () {
-  var id = shortid.generate();
+  var id = nanoid();
   var clients = this.server.clients;
   for (var i = 0; i < clients.length; i++) {
     if (id == clients[i].id) return this._getId();

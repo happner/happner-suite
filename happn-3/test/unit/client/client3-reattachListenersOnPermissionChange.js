@@ -3,7 +3,7 @@ describe(test.testName(__filename, 3), function() {
   this.timeout(15000);
   const HappnClient = require('../../../lib/client');
   const Constants = require('../../../lib/constants');
-  const sinon = require('sinon');
+  const sinon = test.sinon;
   function mockHappnClient(
     log,
     state,

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function(test) {
   var Logger = require('happn-logger');
   const util = require('util');
   var Services = {};

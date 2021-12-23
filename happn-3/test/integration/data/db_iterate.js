@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
   const test_id = test.shortid();
   const test_file1 = test.newTestFile();
   const test_file2 = test.newTestFile();

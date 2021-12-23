@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
   let serviceInstance;
   let adminClient, testClient;
   let test_id = Date.now() + '_' + require('shortid').generate();

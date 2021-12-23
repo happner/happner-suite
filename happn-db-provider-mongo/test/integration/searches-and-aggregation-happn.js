@@ -2,9 +2,9 @@ var filename = require('path').basename(__filename);
 
 describe('integration/' + filename + '\n', function() {
   this.timeout(5000);
+  const testCommons = require('happn-test-commons').create().commons;
 
   let expect = require('expect.js');
-  let test_id;
   let path = require('path');
   var happnTestHelper;
 
@@ -37,7 +37,7 @@ describe('integration/' + filename + '\n', function() {
   });
 
   before('should initialize the service and clients', async () => {
-    test_id = Date.now() + '_' + require('shortid').generate();
+    test_id = Date.now() + '_' + testCommons.nanoid();
     happnTestHelper = require('../__fixtures/happn-test-helper').create(config);
     await happnTestHelper.initialize();
     publisherclient = happnTestHelper.publisherclient;

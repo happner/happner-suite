@@ -1,11 +1,10 @@
-require('../__fixtures/utils/test_helper').describe(__filename, 120000, function(test) {
+require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
   var happn = require('../../lib/index');
   var old_happn = require('happn');
   var service = happn.service;
   var happn_client = old_happn.client;
   const test_id = Date.now() + '_' + require('shortid').generate();
   var happnInstance = null;
-  this.timeout(5000);
 
   before('should initialize the service', function(callback) {
     try {

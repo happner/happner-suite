@@ -1,5 +1,6 @@
 describe('happn-tests, mixed datasource', function() {
   this.timeout(5000);
+  const testCommons = require('happn-test-commons').create().commons;
   let fs = require('fs');
   let expect = require('expect.js');
   let async = require('async');
@@ -44,7 +45,7 @@ describe('happn-tests, mixed datasource', function() {
     } catch (e) {
       //do nothing
     }
-    test_id = Date.now() + '_' + require('shortid').generate();
+    test_id = Date.now() + '_' + testCommons.nanoid();
     happnTestHelper = require('../__fixtures/happn-test-helper').create(config);
     await happnTestHelper.initialize();
     publisherclient = happnTestHelper.publisherclient;
@@ -90,7 +91,7 @@ describe('happn-tests, mixed datasource', function() {
 
   it('the publisher should set local new data', function(callback) {
     try {
-      var test_path_end = require('shortid').generate();
+      var test_path_end = testCommons.nanoid();
 
       publisherclient.set(
         '/LOCAL/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -188,7 +189,7 @@ describe('happn-tests, mixed datasource', function() {
   });
 
   it('the publisher should get null for unfound data, exact path', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
     publisherclient.get(
       '/LOCAL/1_eventemitter_embedded_sanity/' + test_id + '/unfound/exact/' + test_path_end,
       null,
@@ -212,7 +213,7 @@ describe('happn-tests, mixed datasource', function() {
       async.times(
         timesCount,
         function(n, timesCallback) {
-          var test_random_path2 = require('shortid').generate();
+          var test_random_path2 = testCommons.nanoid();
 
           publisherclient.set(
             testBasePath + '/' + test_random_path2,
@@ -264,7 +265,7 @@ describe('happn-tests, mixed datasource', function() {
 
   it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
     try {
-      var test_path_end = require('shortid').generate();
+      var test_path_end = testCommons.nanoid();
 
       publisherclient.set(
         '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/merge/' + test_path_end,
@@ -379,7 +380,7 @@ describe('happn-tests, mixed datasource', function() {
   });
 
   it('should search for a complex object', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
     var complex_obj = {
       regions: ['North', 'South'],
       towns: ['North.Cape Town'],
@@ -483,7 +484,7 @@ describe('happn-tests, mixed datasource', function() {
   });
 
   it('should search for a complex object by dates', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
 
     var complex_obj = {
       regions: ['North', 'South'],
@@ -599,7 +600,7 @@ describe('happn-tests, mixed datasource', function() {
 
   it('the publisher should set new data then update the data', function(callback) {
     try {
-      var test_path_end = require('shortid').generate();
+      var test_path_end = testCommons.nanoid();
 
       publisherclient.set(
         '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -691,7 +692,7 @@ describe('happn-tests, mixed datasource', function() {
 
   it('the publisher should set new data ', function(callback) {
     try {
-      var test_path_end = require('shortid').generate();
+      var test_path_end = testCommons.nanoid();
 
       publisherclient.set(
         '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -727,7 +728,7 @@ describe('happn-tests, mixed datasource', function() {
 
   it('the publisher should set new data then update the data', function(callback) {
     try {
-      var test_path_end = require('shortid').generate();
+      var test_path_end = testCommons.nanoid();
 
       publisherclient.set(
         '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
@@ -812,7 +813,7 @@ describe('happn-tests, mixed datasource', function() {
   });
 
   it('should get using a wildcard', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
 
     publisherclient.set(
       '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end,
@@ -852,7 +853,7 @@ describe('happn-tests, mixed datasource', function() {
   });
 
   it('should get paths', function(callback) {
-    var test_path_end = require('shortid').generate();
+    var test_path_end = testCommons.nanoid();
 
     publisherclient.set(
       '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end,

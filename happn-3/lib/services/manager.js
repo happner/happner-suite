@@ -74,6 +74,7 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
         var serviceInstance = _this.happn.services[serviceName];
 
         if (typeof serviceInstance.initialize === 'function') {
+          happn.log.info(`${serviceName} service initializing`);
           return serviceInstance.initialize(
             serviceInstance.__happnerSettings.config,
             serviceInstanceCB
