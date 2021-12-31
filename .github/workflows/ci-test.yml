@@ -26,6 +26,7 @@ jobs:
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
 
+    - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
     - run: npm run-script test-cover --workspace=happn-3
