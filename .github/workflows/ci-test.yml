@@ -29,6 +29,7 @@ jobs:
     - run: npm install
 
     - run: npm run-script test-cover --workspace=happn-3
+    - run: npm run-script test-browser --workspace=happn-3
 
     - name: Coveralls
       uses: coverallsapp/github-action@master

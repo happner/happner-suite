@@ -246,7 +246,6 @@
     const name = `${cname}=`;
     const decodedCookie = decodeURIComponent(sessionDocument.cookie);
     const ca = decodedCookie.split(';');
-
     for (let i = 0; i < ca.length; i++) {
       let c = ca[i];
       while (c.charAt(0) === ' ') {
@@ -805,22 +804,6 @@
     });
   };
 
-  HappnClient.prototype.loginWithCookie = function(
-    loginParameters,
-    serverInfo,
-    isBrowser,
-    callback
-  ) {
-    if (isBrowser) {
-      loginParameters.token = HappnClient.__getCookieInstance(serverInfo.cookieName);
-      loginParameters.useCookie = true;
-      return true;
-    } else {
-      callback(new Error('Logging in with cookie only valid in browser'));
-      return false;
-    }
-  };
-
   HappnClient.prototype.login = maybePromisify(function(callback) {
     var _this = this;
 
@@ -846,13 +829,13 @@
         _this.serverInfo = serverInfo;
         if (!_this.serverInfo.secure) return _this.__doLogin(loginParameters, callback);
 
-        if (
-          _this.options.useCookie &&
-          !_this.loginWithCookie(loginParameters, serverInfo, browser, callback)
-        ) {
-          return;
+        if (_this.options.useCookie) {
+          if (!browser) {
+            return callback(new Error('Logging in with cookie only valid in browser'));
+          }
+          loginParameters.token = HappnClient.__getCookieInstance(serverInfo.cookieName);
+          loginParameters.useCookie = true;
         }
-
         if (!loginParameters.token && !loginParameters.username) {
           return callback(new Error('happn server is secure, please specify a username or token'));
         }

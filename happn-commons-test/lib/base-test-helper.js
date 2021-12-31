@@ -19,7 +19,7 @@ class TestHelper {
 		this.moment = require("moment");
 		this._ = this.commons._;
 		this.fs = this.commons.fs;
-		this.rimraf = require("rimraf");
+		this.rimraf = this.commons.rimraf;
 		this.callsites = require("callsites");
 		this.spawn = require("child_process").spawn;
 	}

@@ -1,7 +1,11 @@
 // Karma configuration
 // Generated on Tue Dec 01 2015 11:18:30 GMT+0200 (SAST)
-const fs = require('fs');
+const commons = require('happn-commons');
+const fs = commons.fs;
 module.exports = function(config) {
+  const browserDirPath = commons.path.resolve(__dirname, './tmp');
+  commons.rimraf.sync(browserDirPath);
+  fs.ensureDirSync(commons.path.resolve(__dirname, 'tmp'));
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '../../',
@@ -13,7 +17,7 @@ module.exports = function(config) {
     files: [
       'test/browser/browser-client-02.js',
       'test/browser/01_security_hsts_cookie.js',
-      'test/browser/02_websockets_embedded_sanity_encryptedpayloads.js',
+      'test/browser/02_websockets_embedded_sanity.js',
       'test/browser/03_heartbeats.js',
       'test/browser/04_https_cookie.js',
       'test/browser/05_https_cookieLogin.js',
@@ -58,7 +62,11 @@ module.exports = function(config) {
       Chrome_without_security: {
         base: 'ChromeHeadless',
         // base: 'Chrome', // to see output
-        flags: ['--disable-web-security', '--ignore-certificate-errors']
+        flags: [
+          '--disable-web-security',
+          '--ignore-certificate-errors',
+          `--user-data-dir=${browserDirPath}`
+        ]
       }
     },
 

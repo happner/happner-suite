@@ -10,7 +10,7 @@ var serverHelper = new ServerHelper();
  * Run test once and exit
  */
 gulp.task('default', async () => {
-  var client_code = happn.packager.browserClient({
+  var client_code = await happn.packager.browserClient({
     contentsOnly: true,
     overwrite: true
   });
@@ -100,7 +100,7 @@ gulp.task('default', async () => {
     singleRun: true
   });
 
-  return new Promise(function(resolve, reject) {
+  await new Promise(function(resolve, reject) {
     karmaServer.on('run_complete', async (browsers, results) => {
       await serverHelper.killServers();
       if (results.error || results.failed) return reject(new Error('There are test failures'));

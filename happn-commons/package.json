@@ -15,6 +15,7 @@
     "happner-hyperid": "^2.0.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.1.30",
+    "rimraf": "^3.0.2",
     "sift": "^15.1.0",
     "uuid": "^3.3.2"
   }

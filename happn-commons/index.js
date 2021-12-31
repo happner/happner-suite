@@ -26,5 +26,7 @@ module.exports = {
   uuid: require('uuid'),
   nanoid: require('nanoid').nanoid,
   sillyname: require('happn-sillyname'),
-  nodeUtils: require('util')
+  nodeUtils: require('util'),
+  rimraf: require('rimraf'),
+  path: require('path')
 };
