@@ -21,7 +21,6 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "expect.js": "^0.3.1",
-    "gulp": "^4.0.2",
     "happner-hyperid": "^2.0.0",
     "http-proxy": "^1.18.1",
     "karma": "^6.3.9",

@@ -22,6 +22,8 @@ class TestHelper {
 		this.rimraf = this.commons.rimraf;
 		this.callsites = require("callsites");
 		this.spawn = require("child_process").spawn;
+		this.gulp = require("gulp");
+		this.karma = require("karma");
 	}
 	static create() {
 		return new TestHelper();

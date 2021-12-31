@@ -1,7 +1,8 @@
-var gulp = require('gulp');
-var Server = require('karma').Server;
+const test = require('../__fixtures/utils/test_helper').create();
+const { task } = test.gulp;
+var Server = test.karma.Server;
 var happn = require('../../lib/index');
-var fs = require('fs');
+var fs = test.commons.fs;
 var path = require('path');
 var ServerHelper = require('./__fixtures/serverHelper');
 var serverHelper = new ServerHelper();
@@ -9,7 +10,7 @@ var serverHelper = new ServerHelper();
 /**
  * Run test once and exit
  */
-gulp.task('default', async () => {
+task('default', async function(done) {
   var client_code = await happn.packager.browserClient({
     contentsOnly: true,
     overwrite: true
@@ -100,12 +101,10 @@ gulp.task('default', async () => {
     singleRun: true
   });
 
-  await new Promise(function(resolve, reject) {
-    karmaServer.on('run_complete', async (browsers, results) => {
-      await serverHelper.killServers();
-      if (results.error || results.failed) return reject(new Error('There are test failures'));
-      resolve();
-    });
-    karmaServer.start();
+  karmaServer.on('run_complete', async (_browsers, results) => {
+    await serverHelper.killServers();
+    if (results.error || results.failed) return done(new Error('There are test failures'));
+    done();
   });
+  karmaServer.start();
 });
