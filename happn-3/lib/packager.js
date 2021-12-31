@@ -4,28 +4,29 @@ const fs = require('fs-extra'),
   path = require('path'),
   package = require('../package.json'),
   md5 = require('md5'),
-  minify = require('uglify-es').minify;
+  { minify } = require('terser');
 
 module.exports = {
   package: package,
   protocol: package.protocol,
   version: package.version,
   __cachedBrowserClient: null,
-  __createBrowserClient: function(options) {
+  __createBrowserClient: async function(options) {
     const commons = require('happn-commons');
     var package = require('../package.json');
     var protocol = package.protocol;
     var buf = fs.readFileSync(path.resolve(__dirname, './client.js'));
 
     var constantsbuf = `\r\nthis.CONSTANTS = ${commons.web.constants()}\r\n`;
-    var utilsbuf = `\r\nthis.utils = ${commons.web.utils()}\r\n`;
 
     var clientScript = buf
       .toString()
       .replace('{{protocol}}', protocol) //set the protocol here
       .replace('{{version}}', package.version) //set the happn version here
       .replace('//{{constants}}', constantsbuf)
-      .replace('//{{utils}}', utilsbuf);
+      .replace('//{{utils}}', () => {
+        return `\r\nthis.utils = ${commons.web.utils()}\r\n`;
+      });
 
     if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production') {
       this.__cachedBrowserClient =
@@ -51,13 +52,17 @@ module.exports = {
     }
 
     if (options.min) {
-      const minified = minify(this.__cachedBrowserClient);
-      if (minified.error) throw minified.error;
-      this.__cachedBrowserClient = minified.code;
+      try {
+        const minified = await minify(this.__cachedBrowserClient);
+        this.__cachedBrowserClient = minified.code;
+      } catch (e) {
+        console.log('minify failure');
+        throw e;
+      }
     }
   },
 
-  browserClient: function(options) {
+  browserClient: async function(options) {
     if (!options) options = {};
     var clientDirPath;
     var clientFilePath;
@@ -85,7 +90,7 @@ module.exports = {
     //we delete the file, so a new one is always generated
     //but only if it's not the same (md5)
     if (!process.env.NODE_ENV || process.env.NODE_ENV.toLowerCase() !== 'production') {
-      this.__createBrowserClient(options);
+      await this.__createBrowserClient(options);
 
       if (utils.fileExists(clientFilePath)) {
         var oldMd5 = md5(fs.readFileSync(clientFilePath, 'utf8'));
@@ -107,7 +112,7 @@ module.exports = {
       return this.__cachedBrowserClient;
     }
 
-    if (!this.__cachedBrowserClient) this.__createBrowserClient(options);
+    if (!this.__cachedBrowserClient) await this.__createBrowserClient(options);
     if (!dirPath) return this.__cachedBrowserClient;
     fs.ensureDirSync(clientDirPath);
     fs.writeFileSync(clientFilePath, this.__cachedBrowserClient, 'utf8');

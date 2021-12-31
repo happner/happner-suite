@@ -10,7 +10,7 @@ function initialize() {
   this.happn.log('Client middleware loaded');
 }
 
-function _process(req, res, next) {
+async function _process(req, res, next) {
   try {
     var Happn = require('../../..');
 
@@ -26,7 +26,8 @@ function _process(req, res, next) {
       browserOptions.min = true;
     }
 
-    res.end(Happn.packager.browserClient(browserOptions));
+    const packagedClient = await Happn.packager.browserClient(browserOptions);
+    res.end(packagedClient);
   } catch (e) {
     next(e);
   }

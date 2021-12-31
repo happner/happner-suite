@@ -16,6 +16,7 @@ class TestHelper extends BaseTestHelper {
     this.request = require('request');
     //backward compatability
     this.shortid = this.newid;
+    this.homedir = require('homedir');
   }
 
   static create() {

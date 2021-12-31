@@ -8,5 +8,12 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "lokijs": "^1.5.12",
+    "happn-commons": "^1.0.0"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0"
+  }
 }

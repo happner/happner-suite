@@ -1,0 +1,8 @@
+coverage/
+variants/
+__*/
+happn-3/lib/services/connect/public/browser_primus.js
+happn-3/test/integration/session/management_sanity.js
+happn-3/test/browser/browser-client-02.js
+happn-3/test/browser/browser_client.js
+happn-3/test/integration/session/management-sanity.js

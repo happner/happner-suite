@@ -1,10 +1,10 @@
-var packager = require('./packager');
+const packager = require('./packager');
 
 module.exports = {
   client: require('./client'),
   service: require('./service'),
   constants: require('./constants-builder'),
-  packager: require('./packager'),
+  packager,
   package: packager,
   protocol: packager.protocol,
   version: packager.version

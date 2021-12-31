@@ -2,18 +2,16 @@
   "name": "happn-db-provider-loki",
   "version": "1.0.0",
   "description": "Loki data provider for happn",
-  "workspaces": [
-    "../happn-commons"
-  ],
   "scripts": {
     "test": "test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^3.2.2",
-    "lodash": "^4.17.21",
     "lokijs": "^1.5.12",
     "happn-commons": "^1.0.0"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0"
   }
 }
