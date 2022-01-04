@@ -1,10 +1,5 @@
-var filename = require('path').basename(__filename);
-
-describe('integration/' + filename + '\n', function() {
-  this.timeout(5000);
-  const testCommons = require('happn-test-commons').create().commons;
-
-  let expect = require('expect.js');
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
   let path = require('path');
   var happnTestHelper;
 
@@ -37,7 +32,6 @@ describe('integration/' + filename + '\n', function() {
   });
 
   before('should initialize the service and clients', async () => {
-    test_id = Date.now() + '_' + testCommons.nanoid();
     happnTestHelper = require('../__fixtures/happn-test-helper').create(config);
     await happnTestHelper.initialize();
     publisherclient = happnTestHelper.publisherclient;
@@ -84,7 +78,7 @@ describe('integration/' + filename + '\n', function() {
   it('tests a normal search', function(callback) {
     listenerclient.get('/searches-and-aggregation/*', {}, function(e, items) {
       if (e) return callback(e);
-      expect(items.length).to.be(10);
+      test.expect(items.length).to.be(10);
       callback();
     });
   });
@@ -99,7 +93,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(9);
+        test.expect(count.value).to.be(9);
         callback();
       }
     );
@@ -121,7 +115,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(5);
+        test.expect(count.value).to.be(5);
         callback();
       }
     );
@@ -138,7 +132,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(1);
+        test.expect(count.value).to.be(1);
         callback();
       }
     );
@@ -167,8 +161,8 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, items) {
         if (e) return callback(e);
-        expect(items.value.length).to.be(4);
-        expect(items.value).to.eql([
+        test.expect(items.value.length).to.be(4);
+        test.expect(items.value).to.eql([
           {
             _id: 'Odd',
             total: 1
@@ -219,8 +213,8 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, items) {
         if (e) return callback(e);
-        expect(items.value.length).to.be(1);
-        expect(items.value).to.eql([
+        test.expect(items.value.length).to.be(1);
+        test.expect(items.value).to.eql([
           {
             _id: 'Odd',
             total: 25

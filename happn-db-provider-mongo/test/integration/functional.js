@@ -1,16 +1,12 @@
-var filename = require('path').basename(__filename);
-const testCommons = require('happn-test-commons').create().commons;
-
-describe('integration/' + filename + '\n', function() {
-  this.timeout(20000);
-  var expect = require('expect.js');
-  var service = require('../../index');
-  var testId = testCommons.nanoid();
-  var config = {
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
+  const service = require('../../index');
+  const testId = test.commons.nanoid();
+  const config = {
     url: 'mongodb://127.0.0.1:27017/happn'
   };
 
-  var serviceInstance = new service(config);
+  const serviceInstance = new service(config);
 
   before('should initialize the service', function(callback) {
     serviceInstance.initialize(function(e) {
@@ -51,9 +47,9 @@ describe('integration/' + filename + '\n', function() {
       ) {
         if (e) return callback(e);
 
-        expect(created.data.test).to.equal('data');
-        expect(meta.created > beforeCreatedOrModified).to.equal(true);
-        expect(meta.modified > beforeCreatedOrModified).to.equal(true);
+        test.expect(created.data.test).to.equal('data');
+        test.expect(meta.created > beforeCreatedOrModified).to.equal(true);
+        test.expect(meta.modified > beforeCreatedOrModified).to.equal(true);
 
         callback();
       });
@@ -64,12 +60,12 @@ describe('integration/' + filename + '\n', function() {
     serviceInstance.upsert('/get/' + testId, { data: { test: 'data' } }, function(e, created) {
       if (e) return callback(e);
 
-      expect(created.data.test).to.equal('data');
+      test.expect(created.data.test).to.equal('data');
 
       serviceInstance.find('/get/' + testId, {}, function(e, items) {
         if (e) return callback(e);
 
-        expect(items[0].data.test).to.be('data');
+        test.expect(items[0].data.test).to.be('data');
 
         callback();
       });
@@ -77,12 +73,12 @@ describe('integration/' + filename + '\n', function() {
   });
 
   it('gets no data', function(callback) {
-    var random = testCommons.nanoid();
+    var random = test.commons.nanoid();
 
     serviceInstance.find('/wontfind/' + random, {}, function(e, response) {
       if (e) return callback(e);
 
-      expect(response).to.eql([]);
+      test.expect(response).to.eql([]);
 
       callback();
     });
@@ -95,8 +91,8 @@ describe('integration/' + filename + '\n', function() {
       serviceInstance.remove('/remove/' + testId, function(e, response) {
         if (e) return callback(e);
 
-        expect(response._meta.path).to.equal('/remove/' + testId);
-        expect(response.data.removed).to.equal(1);
+        test.expect(response._meta.path).to.equal('/remove/' + testId);
+        test.expect(response.data.removed).to.equal(1);
 
         callback();
       });
@@ -113,9 +109,9 @@ describe('integration/' + filename + '\n', function() {
         serviceInstance.remove('/remove/multiple/*', function(e, response) {
           if (e) return callback(e);
 
-          expect(response._meta.path).to.equal('/remove/multiple/*');
+          test.expect(response._meta.path).to.equal('/remove/multiple/*');
 
-          expect(response.data.removed).to.equal(2);
+          test.expect(response.data.removed).to.equal(2);
 
           callback();
         });
@@ -131,9 +127,9 @@ describe('integration/' + filename + '\n', function() {
         if (e) return callback(e);
 
         serviceInstance.find('/get/multiple/*/' + testId, function(_e, response) {
-          expect(response.length).to.equal(2);
-          expect(response[0].data.test).to.equal('data');
-          expect(response[1].data.test).to.equal('data');
+          test.expect(response.length).to.equal(2);
+          test.expect(response[0].data.test).to.equal('data');
+          test.expect(response[1].data.test).to.equal('data');
           callback();
         });
       });
@@ -141,7 +137,7 @@ describe('integration/' + filename + '\n', function() {
   });
 
   it('gets data with complex search', function(callback) {
-    var test_path_end = testCommons.nanoid();
+    var test_path_end = test.commons.nanoid();
 
     var complex_obj = {
       regions: ['North', 'South'],
@@ -179,7 +175,7 @@ describe('integration/' + filename + '\n', function() {
       '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex/' + test_path_end,
       { data: complex_obj },
       function(e) {
-        expect(e == null).to.be(true);
+        test.expect(e == null).to.be(true);
         serviceInstance.upsert(
           '/1_eventemitter_embedded_sanity/' +
             testId +
@@ -188,7 +184,7 @@ describe('integration/' + filename + '\n', function() {
             '/1',
           { data: complex_obj },
           function(e) {
-            expect(e == null).to.be(true);
+            test.expect(e == null).to.be(true);
             serviceInstance.upsert(
               '/1_eventemitter_embedded_sanity/' +
                 testId +
@@ -197,7 +193,7 @@ describe('integration/' + filename + '\n', function() {
                 '/2',
               { test: 'data' },
               function(e) {
-                expect(e == null).to.be(true);
+                test.expect(e == null).to.be(true);
 
                 serviceInstance.find(
                   '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex*',
@@ -206,8 +202,8 @@ describe('integration/' + filename + '\n', function() {
                     options: options1
                   },
                   function(e, search_result) {
-                    expect(e == null).to.be(true);
-                    expect(search_result.length == 1).to.be(true);
+                    test.expect(e == null).to.be(true);
+                    test.expect(search_result.length === 1).to.be(true);
 
                     serviceInstance.find(
                       '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex*',
@@ -216,8 +212,8 @@ describe('integration/' + filename + '\n', function() {
                         options: options2
                       },
                       function(e, search_result) {
-                        expect(e == null).to.be(true);
-                        expect(search_result.length == 2).to.be(true);
+                        test.expect(e == null).to.be(true);
+                        test.expect(search_result.length === 2).to.be(true);
                         callback(e);
                       }
                     );
@@ -241,17 +237,17 @@ describe('integration/' + filename + '\n', function() {
     };
 
     serviceInstance.upsert('/not_get/' + testId + '/ok/1', test_obj, function(e) {
-      expect(e == null).to.be(true);
+      test.expect(e == null).to.be(true);
 
       serviceInstance.upsert('/not_get/' + testId + '/_notok_/1', test_obj1, function(e) {
-        expect(e == null).to.be(true);
+        test.expect(e == null).to.be(true);
 
         var listOptions = { criteria: { path: { $not: /.*_notok_.*/ } } };
 
         serviceInstance.find('/not_get/' + testId + '/*', listOptions, function(e, search_result) {
-          expect(e == null).to.be(true);
+          test.expect(e == null).to.be(true);
 
-          expect(search_result.length == 1).to.be(true);
+          test.expect(search_result.length === 1).to.be(true);
 
           done();
         });
@@ -264,7 +260,7 @@ describe('integration/' + filename + '\n', function() {
 
     var randomItems = [];
 
-    var test_string = testCommons.nanoid();
+    var test_string = test.commons.nanoid();
 
     var base_path = '/sort_and_limit/' + test_string + '/';
 
@@ -312,7 +308,7 @@ describe('integration/' + filename + '\n', function() {
 
               var item_from_array = randomItems[itemIndex];
 
-              if (item_from_mongo.data.item_sort_id != item_from_array.item_sort_id)
+              if (item_from_mongo.data.item_sort_id !== item_from_array.item_sort_id)
                 return done(new Error('ascending sort failed'));
             }
 
@@ -333,7 +329,7 @@ describe('integration/' + filename + '\n', function() {
                   var item_from_mongo = items[itemIndex];
                   var item_from_array = randomItems[itemIndex];
 
-                  if (item_from_mongo.data.item_sort_id != item_from_array.item_sort_id)
+                  if (item_from_mongo.data.item_sort_id !== item_from_array.item_sort_id)
                     return done(new Error('descending sort failed'));
                 }
 
@@ -349,7 +345,7 @@ describe('integration/' + filename + '\n', function() {
   it('increments a data point', function(done) {
     var async = require('async');
 
-    var test_string = testCommons.nanoid();
+    var test_string = test.commons.nanoid();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
     async.timesSeries(
@@ -364,7 +360,7 @@ describe('integration/' + filename + '\n', function() {
         serviceInstance.find(test_base_url, {}, function(e, result) {
           if (e) return done(e);
 
-          expect(result[0].data.counter.value).to.be(10);
+          test.expect(result[0].data.counter.value).to.be(10);
 
           done();
         });
@@ -375,7 +371,7 @@ describe('integration/' + filename + '\n', function() {
   it('increments a data point, multiple guages', function(done) {
     var async = require('async');
 
-    var test_string = testCommons.nanoid();
+    var test_string = test.commons.nanoid();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
     async.timesSeries(
@@ -390,16 +386,16 @@ describe('integration/' + filename + '\n', function() {
         serviceInstance.find(test_base_url, {}, function(e, result) {
           if (e) return done(e);
 
-          expect(result[0].data['counter-0'].value).to.be(1);
-          expect(result[0].data['counter-1'].value).to.be(1);
-          expect(result[0].data['counter-2'].value).to.be(1);
-          expect(result[0].data['counter-3'].value).to.be(1);
-          expect(result[0].data['counter-4'].value).to.be(1);
-          expect(result[0].data['counter-5'].value).to.be(1);
-          expect(result[0].data['counter-6'].value).to.be(1);
-          expect(result[0].data['counter-7'].value).to.be(1);
-          expect(result[0].data['counter-8'].value).to.be(1);
-          expect(result[0].data['counter-9'].value).to.be(1);
+          test.expect(result[0].data['counter-0'].value).to.be(1);
+          test.expect(result[0].data['counter-1'].value).to.be(1);
+          test.expect(result[0].data['counter-2'].value).to.be(1);
+          test.expect(result[0].data['counter-3'].value).to.be(1);
+          test.expect(result[0].data['counter-4'].value).to.be(1);
+          test.expect(result[0].data['counter-5'].value).to.be(1);
+          test.expect(result[0].data['counter-6'].value).to.be(1);
+          test.expect(result[0].data['counter-7'].value).to.be(1);
+          test.expect(result[0].data['counter-8'].value).to.be(1);
+          test.expect(result[0].data['counter-9'].value).to.be(1);
 
           done();
         });

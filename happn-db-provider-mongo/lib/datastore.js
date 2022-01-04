@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const mongodb = require('mongodb'),
   mongoclient = mongodb.MongoClient,
   util = require('util');

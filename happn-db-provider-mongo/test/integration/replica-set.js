@@ -1,12 +1,6 @@
-var filename = require('path').basename(__filename);
-
-describe('integration/' + filename + '\n', function() {
-  this.timeout(20000);
-
-  var expect = require('expect.js');
-
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
   var service = require('../../index');
-
   var fullUrl =
     'mongodb://username:password@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/happn?replicaSet=test-set&ssl=true&authSource=admin';
 
@@ -16,7 +10,7 @@ describe('integration/' + filename + '\n', function() {
     };
 
     var serviceInstance = new service(config);
-    expect(serviceInstance.config.url).to.equal(config.url);
+    test.expect(serviceInstance.config.url).to.equal(config.url);
   });
 
   it('should build the url if a db is specified in the options', function() {
@@ -26,7 +20,7 @@ describe('integration/' + filename + '\n', function() {
     };
 
     var serviceInstance = new service(config);
-    expect(serviceInstance.config.url).to.equal(config.url + '/' + config.database);
+    test.expect(serviceInstance.config.url).to.equal(config.url + '/' + config.database);
   });
 
   it('should build the url if a db is specified in the options and there are options in the url', function() {
@@ -37,8 +31,10 @@ describe('integration/' + filename + '\n', function() {
     };
 
     var serviceInstance = new service(config);
-    expect(serviceInstance.config.url).to.equal(
-      'mongodb://username:password@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/happn-test?replicaSet=test-set&ssl=true&authSource=admin'
-    );
+    test
+      .expect(serviceInstance.config.url)
+      .to.equal(
+        'mongodb://username:password@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/happn-test?replicaSet=test-set&ssl=true&authSource=admin'
+      );
   });
 });

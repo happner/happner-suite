@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 var MongoClient = require('mongodb').MongoClient;
 
 module.exports = function(url, collectionName, callback) {
@@ -11,7 +12,7 @@ module.exports = function(url, collectionName, callback) {
     let collection = db.collection(collectionName);
 
     collection.drop(function(err) {
-      if (err && err.message != 'ns not found')
+      if (err && err.message !== 'ns not found')
         if (err) console.log('error clearing mongodb: ' + err.message);
       client.close(callback);
     });

@@ -17,7 +17,7 @@ Config.prototype.parse = function(config) {
 Config.prototype.getDBConnectionUrl = function(connUrl, databaseName) {
   var url = connUrl;
   var mongoUrlParts = mongoUrl(connUrl);
-  if (databaseName != null && databaseName != mongoUrlParts.dbName) {
+  if (databaseName != null && databaseName !== mongoUrlParts.dbName) {
     // we need to add the db name
     url = 'mongodb://';
     var servers = [];

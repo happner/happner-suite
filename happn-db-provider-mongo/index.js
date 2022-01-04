@@ -1,5 +1,6 @@
-let db = require('./lib/datastore'),
-  async = require('async');
+/* eslint-disable no-console */
+let commons = require('happn-commons');
+let async = commons.async;
 
 function MongoProvider(config) {
   if (!config) config = {};
@@ -71,7 +72,7 @@ MongoProvider.prototype.__createIndexes = function(config, callback) {
         (indexKey, indexCB) => {
           let found = false;
           indexes.every(function(indexConfig) {
-            if (indexConfig.path == '/_SYSTEM/INDEXES/' + indexKey) found = true;
+            if (indexConfig.path === '/_SYSTEM/INDEXES/' + indexKey) found = true;
             return !found;
           });
           if (found) return indexCB();
@@ -109,7 +110,7 @@ MongoProvider.prototype.preparePath = function(path) {
   let lastChar = null;
 
   for (let i = 0; i < path.length; i++) {
-    if (path[i] == '*' && lastChar == '*') continue;
+    if (path[i] === '*' && lastChar === '*') continue;
     prepared += path[i];
     lastChar = path[i];
   }
@@ -151,7 +152,7 @@ MongoProvider.prototype.count = function(path, parameters, callback) {
 };
 
 MongoProvider.prototype.find = function(path, parameters, callback) {
-  if (typeof parameters == 'function') {
+  if (typeof parameters === 'function') {
     callback = parameters;
     parameters = {};
   }
@@ -364,7 +365,7 @@ BatchDataItem.prototype.insert = function(data, callback) {
   if (this.queued.length >= this.options.batchSize) return this.empty();
 
   //as soon as something lands up in the queue we start up a timer to ensure it is emptied even when there is a drop in activity
-  if (this.queued.length == 1) this.initialize(); //we start the timer now
+  if (this.queued.length === 1) this.initialize(); //we start the timer now
 };
 
 BatchDataItem.prototype.initialize = function() {
@@ -385,18 +386,6 @@ MongoProvider.prototype.batchInsert = function(data, options, callback) {
 MongoProvider.prototype.insert = function(data, options, callback) {
   if (options.batchSize > 0) return this.batchInsert(data, options, callback);
   this.db.insert(data, options, callback);
-};
-
-MongoProvider.prototype.startCompacting = function(interval, callback, compactionHandler) {
-  return callback();
-};
-
-MongoProvider.prototype.stopCompacting = function(callback) {
-  return callback();
-};
-
-MongoProvider.prototype.compact = function(callback) {
-  return callback();
 };
 
 MongoProvider.prototype.stop = function(callback) {

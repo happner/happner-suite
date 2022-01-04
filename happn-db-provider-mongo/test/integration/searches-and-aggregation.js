@@ -1,8 +1,5 @@
-var filename = require('path').basename(__filename);
-
-describe('integration/' + filename + '\n', function() {
-  this.timeout(20000);
-  var expect = require('expect.js');
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
   var service = require('../../index');
   var config = {
     url: 'mongodb://127.0.0.1:27017/happn'
@@ -80,7 +77,7 @@ describe('integration/' + filename + '\n', function() {
   it('tests a normal search', function(callback) {
     serviceInstance.find('/searches-and-aggregation/*', {}, function(e, items) {
       if (e) return callback(e);
-      expect(items.length).to.be(10);
+      test.expect(items.length).to.be(10);
       callback();
     });
   });
@@ -95,7 +92,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, result) {
         if (e) return callback(e);
-        expect(result.data.value).to.be(9);
+        test.expect(result.data.value).to.be(9);
         callback();
       }
     );
@@ -117,7 +114,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, result) {
         if (e) return callback(e);
-        expect(result.data.value).to.be(5);
+        test.expect(result.data.value).to.be(5);
         callback();
       }
     );
@@ -134,7 +131,7 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, result) {
         if (e) return callback(e);
-        expect(result.data.value).to.be(1);
+        test.expect(result.data.value).to.be(1);
         callback();
       }
     );
@@ -165,8 +162,8 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, result) {
         if (e) return callback(e);
-        expect(result.data.value.length).to.be(4);
-        expect(result.data.value).to.eql([
+        test.expect(result.data.value.length).to.be(4);
+        test.expect(result.data.value).to.eql([
           {
             _id: 'Odd',
             total: 1
@@ -217,8 +214,8 @@ describe('integration/' + filename + '\n', function() {
       },
       function(e, result) {
         if (e) return callback(e);
-        expect(result.data.value.length).to.be(1);
-        expect(result.data.value).to.eql([
+        test.expect(result.data.value.length).to.be(1);
+        test.expect(result.data.value).to.eql([
           {
             _id: 'Odd',
             total: 25

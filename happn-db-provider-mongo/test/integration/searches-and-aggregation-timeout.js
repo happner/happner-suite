@@ -1,15 +1,11 @@
-var filename = require('path').basename(__filename);
-
-describe('integration/' + filename + '\n', function() {
-  this.timeout(20000);
-  var expect = require('expect.js');
-  var service = require('../../index');
-  var test = require('../__fixtures/happn-test-helper').create();
-  var config = {
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 60000 }, function(test) {
+  const service = require('../../index');
+  let config = {
     url: 'mongodb://127.0.0.1:27017/happn'
   };
 
-  var serviceInstance = new service(config);
+  let serviceInstance = new service(config);
 
   before('should clear the mongo collection', function(callback) {
     let clearMongo = require('../__fixtures/clear-mongo-collection');
@@ -58,8 +54,6 @@ describe('integration/' + filename + '\n', function() {
       );
     });
   }
-
-  this.timeout(60000);
   before('it creates large-ish testdata', async () => {
     for (let i = 0; i < 5000; i++) {
       await createTestItem(`largeDataset${i}`, 'largeDataset', `some test data to search on ${i}`);
@@ -88,7 +82,7 @@ describe('integration/' + filename + '\n', function() {
       );
       await test.delay(500);
     }
-    expect(error.code).to.be(50);
+    test.expect(error.code).to.be(50);
   });
 
   after(function(done) {

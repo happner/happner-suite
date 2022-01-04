@@ -1,20 +1,19 @@
-var path = require('path');
-const testCommons = require('happn-test-commons').create().commons;
+/* eslint-disable no-console */
 /*
 Starts a bunch of concurrent processes that try and cause collisions by updating records on the same path.
 This is in an effort to be sure we are dealing with mongos astonishing upsert:true on a unique index issue.
 */
-describe('integration/' + require('path').basename(__filename) + '\n', function() {
-  this.timeout(20000);
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
+  const path = require('path');
 
-  var async = require('async');
-  var testId = testCommons.nanoid();
-  var kid = require('child_process');
+  const async = test.commons.async;
+  const testId = test.commons.nanoid();
+  const kid = require('child_process');
 
-  var KIDS_COUNT = 10;
-  var CONCURRENT_COUNT = 1000;
+  let KIDS_COUNT = 10;
+  let CONCURRENT_COUNT = 1000;
 
-  var testKids = [];
+  let testKids = [];
 
   //sorry about the inappropriate humour, I am referring to baby goats of course.
   before('should fork the kids...', function(done) {
@@ -26,8 +25,8 @@ describe('integration/' + require('path').basename(__filename) + '\n', function(
         );
         testKids.push(testKid);
         testKid.on('message', function(message) {
-          if (message.type != 'startup') return;
-          if (message.state == 'startup-error') return timeCB(new Error(message.error));
+          if (message.type !== 'startup') return;
+          if (message.state === 'startup-error') return timeCB(new Error(message.error));
           timeCB();
         });
         testKid.send({ instruction: 'startup' });
@@ -53,7 +52,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function(
       KIDS_COUNT,
       function(time, timeCB) {
         testKids[time].on('message', function(message) {
-          if (message.type != 'went crazy') return;
+          if (message.type !== 'went crazy') return;
           if (!message.ok) {
             console.log('CONCURRENCY TEST FAILED');
             console.log('-----------------------');

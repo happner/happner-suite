@@ -49,7 +49,7 @@ function goCrazy(instruction) {
     },
     function() {
       process.send({
-        ok: failures.length == 0,
+        ok: failures.length === 0,
         failures: failures,
         type: 'went crazy'
       });
@@ -58,6 +58,6 @@ function goCrazy(instruction) {
 }
 
 process.on('message', function(message) {
-  if (message.instruction == 'startup') return startup();
-  if (message.instruction == 'go crazy') return goCrazy(message);
+  if (message.instruction === 'startup') return startup();
+  if (message.instruction === 'go crazy') return goCrazy(message);
 });

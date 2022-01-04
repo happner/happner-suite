@@ -1,16 +1,10 @@
-var filename = require('path').basename(__filename);
-
-describe('integration/' + filename + '\n', function() {
-  const testCommons = require('happn-test-commons').create().commons;
-  var expect = require('expect.js');
-  var happn = require('happn-3');
-  var service = happn.service;
-  var defaultHappnInstance = null;
-  var indexedHappnInstance = null;
-  var test_id;
-  var path = require('path');
-
-  this.timeout(5000);
+/* eslint-disable no-unused-vars */
+require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
+  const happn = require('happn-3');
+  const service = happn.service;
+  let defaultHappnInstance = null;
+  let indexedHappnInstance = null;
+  const path = require('path');
 
   before('should drop the mongo db', async () => {
     let dropMongoDb = require('../__fixtures/drop-mongo-db');
@@ -31,9 +25,9 @@ describe('integration/' + filename + '\n', function() {
         var collection = database.collection('indexes_configured_test_db_coll');
 
         collection.listIndexes().toArray(function(e, indexes) {
-          expect(e.message).to.be(
-            'ns does not exist: indexes_configured_test_db.indexes_configured_test_db_coll'
-          );
+          test
+            .expect(e.message)
+            .to.be('ns does not exist: indexes_configured_test_db.indexes_configured_test_db_coll');
           client.close(done);
         });
       }
@@ -95,8 +89,6 @@ describe('integration/' + filename + '\n', function() {
   };
 
   before('should initialize the default service', function(callback) {
-    test_id = Date.now() + '_' + testCommons.nanoid();
-
     try {
       service.create(
         defaultConfig,
@@ -115,8 +107,6 @@ describe('integration/' + filename + '\n', function() {
   });
 
   before('should initialize the indexed service', function(callback) {
-    test_id = Date.now() + '_' + testCommons.nanoid();
-
     try {
       service.create(
         indexesConfig,
@@ -183,11 +173,11 @@ describe('integration/' + filename + '\n', function() {
     defaultclient.get('/_SYSTEM/INDEXES/happn_path_index', null, function(e, result) {
       if (e) return done(e);
 
-      expect(result).to.not.be(null);
-      expect(result).to.not.be(undefined);
+      test.expect(result).to.not.be(null);
+      test.expect(result).to.not.be(undefined);
 
-      expect(result.fields).to.eql({ path: 1 });
-      expect(result.options).to.eql({ unique: true, w: 1 });
+      test.expect(result.fields).to.eql({ path: 1 });
+      test.expect(result.options).to.eql({ unique: true, w: 1 });
 
       done();
     });
@@ -197,15 +187,15 @@ describe('integration/' + filename + '\n', function() {
     indexedclient.get('/_SYSTEM/INDEXES/*', null, function(e, results) {
       if (e) return done(e);
 
-      expect(results.length == 2).to.be(true);
+      test.expect(results.length === 2).to.be(true);
 
       results.forEach(function(indexRecord) {
-        if (indexRecord._meta.path == '/_SYSTEM/INDEXES/happn_path_index') {
-          expect(indexRecord.fields).to.eql({ path: 1 });
-          expect(indexRecord.options).to.eql({ unique: true, w: 1 });
+        if (indexRecord._meta.path === '/_SYSTEM/INDEXES/happn_path_index') {
+          test.expect(indexRecord.fields).to.eql({ path: 1 });
+          test.expect(indexRecord.options).to.eql({ unique: true, w: 1 });
         } else {
-          expect(indexRecord.fields).to.eql({ test: 1 });
-          expect(indexRecord.options).to.eql({ w: 1 });
+          test.expect(indexRecord.fields).to.eql({ test: 1 });
+          test.expect(indexRecord.options).to.eql({ w: 1 });
         }
       });
 
@@ -232,10 +222,10 @@ describe('integration/' + filename + '\n', function() {
 
           for (var i = 0; i < indexes.length; i++) {
             var index = indexes[i];
-            if (index['unique'] && index['key'] && index['key'].path == 1) uniqueFound = true;
+            if (index['unique'] && index['key'] && index['key'].path === 1) uniqueFound = true;
           }
 
-          expect(uniqueFound).to.be(true);
+          test.expect(uniqueFound).to.be(true);
           client.close(done);
         });
       }

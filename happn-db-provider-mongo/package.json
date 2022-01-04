@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "mongodb": "^4.1.3",
-    "parse-mongo-url": "^1.1.1"
+    "parse-mongo-url": "^1.1.1",
+    "happn-commons": "^1.0.0"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",
