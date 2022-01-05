@@ -1,5 +1,4 @@
 const db = require('lokijs'),
-  EventEmitter = require('events').EventEmitter,
   readline = require('readline'),
   commons = require('happn-commons'),
   constants = commons.constants,
@@ -9,11 +8,9 @@ const db = require('lokijs'),
   _ = commons._,
   path = require('path');
 
-module.exports = class LokiDataProvider extends EventEmitter {
+module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   constructor(settings, logger) {
-    super();
-    this.settings = settings;
-    this.logger = logger;
+    super(settings, logger);
 
     this.initialize = util.maybePromisify(this.initialize);
     this.stop = util.maybePromisify(this.stop);
@@ -301,12 +298,7 @@ module.exports = class LokiDataProvider extends EventEmitter {
       } catch (e) {
         return callback(e);
       }
-      return callback(
-        null,
-        responseNoQueue.created,
-        this.getMeta(responseNoQueue.document),
-        responseNoQueue.result
-      );
+      return callback(null, this.transform(responseNoQueue.result));
     }
 
     this.operationQueue.push(
@@ -319,7 +311,7 @@ module.exports = class LokiDataProvider extends EventEmitter {
           callback(e);
           return;
         }
-        callback(null, response.created, this.getMeta(response.document), response.result);
+        callback(null, this.transform(response.result));
       }
     );
   }
@@ -434,23 +426,6 @@ module.exports = class LokiDataProvider extends EventEmitter {
     }
     return null;
   }
-  addCriteria(pathObject, criteria) {
-    return { $and: [pathObject, criteria] };
-  }
-  getPathCriteria(path) {
-    if (path.indexOf('*') === -1) {
-      return { path };
-    }
-    return {
-      path: { $regex: '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$' }
-    };
-  }
-  preparePath(path) {
-    return path.replace(/(\*)\1+/g, '$1');
-  }
-  escapeRegex(str) {
-    return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-  }
   increment(path, counterName, increment, callback) {
     if (typeof increment === 'function') {
       callback = increment;
@@ -474,24 +449,5 @@ module.exports = class LokiDataProvider extends EventEmitter {
     recordToIncrement.data[counterName].value += increment;
     this.upsertInternal(path, recordToIncrement);
     return recordToIncrement.data[counterName].value;
-  }
-  getMeta(document) {
-    return {
-      created: document.created,
-      modified: document.modified,
-      modifiedBy: document.modifiedBy,
-      path: document.path
-    };
-  }
-  transform(dataObj, meta) {
-    return {
-      data: dataObj.data,
-      _meta: meta || {
-        path: dataObj.path,
-        created: dataObj.created,
-        modified: dataObj.modified,
-        modifiedBy: dataObj.modifiedBy
-      }
-    };
   }
 };

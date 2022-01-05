@@ -1,318 +1,291 @@
 /* eslint-disable no-console */
 let commons = require('happn-commons');
 let async = commons.async;
+let utils = commons.utils;
 
-function MongoProvider(config) {
-  if (!config) config = {};
-  let ConfigManager = require('./lib/config');
-  let configManager = new ConfigManager();
-  Object.defineProperty(this, 'config', {
-    value: configManager.parse(config)
-  });
-  //feeds back to provider interface, so a not implemented exception can be raised
-  //if someone tries to aggregate with an old provider
-  this.featureset = {
-    aggregate: true,
-    count: true,
-    collation: true,
-    projection: true
-  };
-}
-
-MongoProvider.prototype.UPSERT_TYPE = {
-  upsert: 0,
-  update: 1,
-  insert: 2
-};
-
-MongoProvider.prototype.initialize = function(callback) {
-  require('./lib/datastore').create(this.config, (err, store) => {
-    if (err) return callback(err);
-    this.db = store;
-    this.__createIndexes(this.config, callback);
-  });
-};
-
-MongoProvider.prototype.__createIndexes = function(config, callback) {
-  let doCallback = function(e) {
-    if (e) return callback(new Error('failed to create indexes: ' + e.toString(), e));
-    callback();
-  };
-
-  try {
-    if (config.index === false) {
-      console.warn(
-        'no path index configured for datastore with collection: ' +
-          config.collection +
-          ' this could result in duplicates and bad performance, please make sure all data items have a unique "path" property'
-      );
-      return doCallback();
-    }
-
-    if (config.index == null) {
-      config.index = {
-        happn_path_index: {
-          fields: {
-            path: 1
-          },
-          options: {
-            unique: true,
-            w: 1
-          }
-        }
-      };
-    }
-
-    this.find('/_SYSTEM/INDEXES/*', {}, (e, indexes) => {
-      if (e) return doCallback(e);
-
-      //indexes are configurable, but we always use a default unique one on path, unless explicitly specified
-      async.eachSeries(
-        Object.keys(config.index),
-        (indexKey, indexCB) => {
-          let found = false;
-          indexes.every(function(indexConfig) {
-            if (indexConfig.path === '/_SYSTEM/INDEXES/' + indexKey) found = true;
-            return !found;
-          });
-          if (found) return indexCB();
-          let indexConfig = config.index[indexKey];
-
-          this.db.data.createIndex(indexConfig.fields, indexConfig.options, (e, result) => {
-            if (e) return indexCB(e);
-            this.upsert(
-              '/_SYSTEM/INDEXES/' + indexKey,
-              {
-                data: indexConfig,
-                creation_result: result
-              },
-              indexCB
-            );
-          });
-        },
-        doCallback
-      );
-    });
-  } catch (e) {
-    doCallback(e);
-  }
-};
-
-MongoProvider.prototype.escapeRegex = function(str) {
-  if (typeof str !== 'string') throw new TypeError('Expected a string');
-  return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-};
-
-MongoProvider.prototype.preparePath = function(path) {
-  //strips out duplicate sequential wildcards, ie simon***bishop -> simon*bishop
-  if (!path) return '*';
-  let prepared = '';
-  let lastChar = null;
-
-  for (let i = 0; i < path.length; i++) {
-    if (path[i] === '*' && lastChar === '*') continue;
-    prepared += path[i];
-    lastChar = path[i];
+module.exports = class MongoProvider extends commons.BaseDataProvider {
+  constructor(settings, logger) {
+    let ConfigManager = require('./lib/config');
+    let configManager = new ConfigManager();
+    super(configManager.parse(settings), logger);
+    //feeds back to provider interface, so a not implemented exception can be raised
+    //if someone tries to aggregate with an old provider
+    this.featureset = {
+      aggregate: true,
+      count: true,
+      collation: true,
+      projection: true
+    };
+    this.batchData = {};
+    this.initialize = utils.maybePromisify(this.initialize);
+    this.stop = utils.maybePromisify(this.stop);
+    this.upsert = utils.maybePromisify(this.upsert);
+    this.increment = utils.maybePromisify(this.increment);
+    this.insert = utils.maybePromisify(this.insert);
+    this.find = utils.maybePromisify(this.find);
+    this.findOne = utils.maybePromisify(this.findOne);
+    this.remove = utils.maybePromisify(this.remove);
+    this.count = utils.maybePromisify(this.count);
   }
 
-  return prepared;
-};
-
-MongoProvider.prototype.getPathCriteria = function(path) {
-  let pathCriteria = {
-    $and: []
-  };
-  let returnType = path.indexOf('*'); //0,1 == array -1 == single
-
-  if (returnType > -1) {
-    //strip out **,***,****
-    let searchPath = this.preparePath(path);
-    searchPath = '^' + this.escapeRegex(searchPath).replace(/\\\*/g, '.*') + '$';
-    pathCriteria.$and.push({
-      path: {
-        $regex: new RegExp(searchPath)
-      }
-    });
-  } else
-    pathCriteria.$and.push({
-      path: path
-    }); //precise match
-
-  return pathCriteria;
-};
-
-MongoProvider.prototype.findOne = function(criteria, fields, callback) {
-  return this.db.findOne(criteria, fields, callback);
-};
-
-MongoProvider.prototype.count = function(path, parameters, callback) {
-  let findParameters = Object.assign({}, parameters);
-  findParameters.count = true;
-  return this.find(path, findParameters, callback);
-};
-
-MongoProvider.prototype.find = function(path, parameters, callback) {
-  if (typeof parameters === 'function') {
-    callback = parameters;
-    parameters = {};
-  }
-  let searchOptions = {};
-  if (!parameters) parameters = {};
-  if (!parameters.options) parameters.options = {};
-  let pathCriteria = this.getPathCriteria(path);
-  if (parameters.criteria) pathCriteria.$and.push(parameters.criteria);
-  if (parameters.options.collation) searchOptions.collation = parameters.options.collation;
-
-  if (parameters.options.aggregate) {
-    this.db.aggregate(pathCriteria, parameters.options.aggregate, searchOptions, function(
-      e,
-      result
-    ) {
-      if (e) return callback(e);
-      callback(null, {
-        data: {
-          value: result
-        }
-      });
-    });
-    return;
-  }
-
-  if (parameters.options.limit) searchOptions.limit = parameters.options.limit;
-  if (parameters.options.skip) searchOptions.skip = parameters.options.skip;
-  if (parameters.options.maxTimeMS) searchOptions.maxTimeMS = parameters.options.maxTimeMS;
-
-  if (parameters.count || parameters.options.count) {
-    this.db.count(pathCriteria, searchOptions, function(e, count) {
-      if (e) return callback(e);
-      callback(null, {
-        data: {
-          value: count
-        }
-      });
-    });
-    return;
-  }
-
-  if (parameters.options.fields) searchOptions.projection = parameters.options.fields;
-  if (parameters.options.projection) searchOptions.projection = parameters.options.projection;
-
-  let sortOptions = parameters.options ? parameters.options.sort : null;
-
-  this.db.find(pathCriteria, searchOptions, sortOptions, function(e, items) {
-    if (e) return callback(e);
-    callback(null, items);
-  });
-};
-
-MongoProvider.prototype.update = function(criteria, data, options, callback) {
-  return this.db.update(criteria, data, options, callback);
-};
-
-MongoProvider.prototype.__getMeta = function(response) {
-  return {
-    created: response.created,
-    modified: response.modified,
-    modifiedBy: response.modifiedBy,
-    path: response.path,
-    _id: response._id
-  };
-};
-
-MongoProvider.prototype.increment = function(path, counterName, increment, callback) {
-  return this.db.increment(path, counterName, increment, callback);
-};
-
-MongoProvider.prototype.upsert = function(path, setData, options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  if (options == null) {
-    options = {};
-  }
-  let modifiedOn = Date.now();
-
-  let setParameters = {
-    $set: {
-      data: setData.data,
-      path: path,
-      modified: modifiedOn
-    },
-    $setOnInsert: {
-      created: modifiedOn
-    }
-  };
-
-  if (options.modifiedBy) setParameters.$set.modifiedBy = options.modifiedBy;
-  if (setData._tag) setParameters.$set._tag = setData._tag;
-  if (!options) options = {};
-
-  options.upsert = true;
-
-  if (options.upsertType === this.UPSERT_TYPE.insert) {
-    setParameters.$set.created = modifiedOn;
-
-    return this.db.insert(setParameters.$set, options, (err, response) => {
+  initialize(callback) {
+    require('./lib/datastore').create(this.settings, (err, store) => {
       if (err) return callback(err);
-      callback(null, response, this.__getMeta(response));
+      this.db = store;
+      this.__createIndexes(this.settings, callback);
     });
   }
 
-  if (options.upsertType === this.UPSERT_TYPE.update) {
-    return this.db.update(
+  __createIndexes(config, callback) {
+    let doCallback = function(e) {
+      if (e) return callback(new Error('failed to create indexes: ' + e.toString(), e));
+      callback();
+    };
+
+    try {
+      if (config.index === false) {
+        console.warn(
+          'no path index configured for datastore with collection: ' +
+            config.collection +
+            ' this could result in duplicates and bad performance, please make sure all data items have a unique "path" property'
+        );
+        return doCallback();
+      }
+
+      if (config.index == null) {
+        config.index = {
+          happn_path_index: {
+            fields: {
+              path: 1
+            },
+            options: {
+              unique: true,
+              w: 1
+            }
+          }
+        };
+      }
+
+      this.find('/_SYSTEM/INDEXES/*', {}, (e, indexes) => {
+        if (e) return doCallback(e);
+
+        //indexes are configurable, but we always use a default unique one on path, unless explicitly specified
+        async.eachSeries(
+          Object.keys(config.index),
+          (indexKey, indexCB) => {
+            let found = false;
+            indexes.every(function(indexConfig) {
+              if (indexConfig.path === '/_SYSTEM/INDEXES/' + indexKey) found = true;
+              return !found;
+            });
+            if (found) return indexCB();
+            let indexConfig = config.index[indexKey];
+
+            this.db.data.createIndex(indexConfig.fields, indexConfig.options, (e, result) => {
+              if (e) return indexCB(e);
+              this.upsert(
+                '/_SYSTEM/INDEXES/' + indexKey,
+                {
+                  data: indexConfig,
+                  creation_result: result
+                },
+                indexCB
+              );
+            });
+          },
+          doCallback
+        );
+      });
+    } catch (e) {
+      doCallback(e);
+    }
+  }
+
+  findOne(criteria, fields, callback) {
+    return this.db.findOne(criteria, fields, callback);
+  }
+
+  count(path, parameters, callback) {
+    let findParameters = Object.assign({}, parameters);
+    findParameters.count = true;
+    return this.find(path, findParameters, callback);
+  }
+
+  find(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
+    let searchOptions = {};
+    if (!parameters) parameters = {};
+    if (!parameters.options) parameters.options = {};
+    let pathCriteria = this.getPathCriteria(path);
+
+    if (parameters.criteria) {
+      pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
+    }
+    if (parameters.options.collation) {
+      searchOptions.collation = parameters.options.collation;
+    }
+
+    if (parameters.options.aggregate) {
+      this.db.aggregate(pathCriteria, parameters.options.aggregate, searchOptions, function(
+        e,
+        result
+      ) {
+        if (e) return callback(e);
+        callback(null, {
+          data: {
+            value: result
+          }
+        });
+      });
+      return;
+    }
+
+    if (parameters.options.limit) searchOptions.limit = parameters.options.limit;
+    if (parameters.options.skip) searchOptions.skip = parameters.options.skip;
+    if (parameters.options.maxTimeMS) searchOptions.maxTimeMS = parameters.options.maxTimeMS;
+
+    if (parameters.count || parameters.options.count) {
+      this.db.count(pathCriteria, searchOptions, function(e, count) {
+        if (e) return callback(e);
+        callback(null, {
+          data: {
+            value: count
+          }
+        });
+      });
+      return;
+    }
+
+    if (parameters.options.fields) searchOptions.projection = parameters.options.fields;
+    if (parameters.options.projection) searchOptions.projection = parameters.options.projection;
+
+    let sortOptions = parameters.options ? parameters.options.sort : null;
+
+    this.db.find(pathCriteria, searchOptions, sortOptions, function(e, items) {
+      if (e) return callback(e);
+      callback(null, items);
+    });
+  }
+
+  update(criteria, data, options, callback) {
+    return this.db.update(criteria, data, options, callback);
+  }
+
+  increment(path, counterName, increment, callback) {
+    return this.db.increment(path, counterName, increment, callback);
+  }
+
+  upsert(path, setData, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (options == null) {
+      options = {};
+    }
+    let modifiedOn = Date.now();
+
+    let setParameters = {
+      $set: {
+        data: setData.data,
+        path: path,
+        modified: modifiedOn
+      },
+      $setOnInsert: {
+        created: modifiedOn
+      }
+    };
+
+    if (options.modifiedBy) setParameters.$set.modifiedBy = options.modifiedBy;
+    if (!options) options = {};
+
+    options.upsert = true;
+
+    if (options.upsertType === commons.constants.UPSERT_TYPE.INSERT) {
+      setParameters.$set.created = modifiedOn;
+
+      return this.db.insert(setParameters.$set, options, (err, response) => {
+        if (err) return callback(err);
+        callback(null, { result: response, document: setParameters.$set });
+      });
+    }
+
+    if (options.upsertType === commons.constants.UPSERT_TYPE.UPDATE) {
+      return this.db.update(
+        {
+          path: path
+        },
+        setParameters,
+        options,
+        (err, result) => {
+          if (err) return callback(err);
+          callback(null, result, this.__getMeta(result));
+        }
+      );
+    }
+
+    this.db.findAndModify(
       {
         path: path
       },
       setParameters,
-      options,
-      (err, response) => {
-        if (err) return callback(err);
-        callback(null, response, this.__getMeta(response));
+      (err, result) => {
+        if (err) {
+          if (err.message.indexOf('duplicate key') > -1) {
+            //1 retry - as mongo doesn't seem to understand how upsert:true on a unique index should work...
+            return this.db.findAndModify(
+              {
+                path: path
+              },
+              setParameters,
+              (err, result) => {
+                if (err) return callback(err);
+                callback(null, this.transform(result));
+              }
+            );
+          }
+          return callback(err);
+        }
+        callback(null, this.transform(result));
       }
     );
   }
 
-  this.db.findAndModify(
-    {
-      path: path
-    },
-    setParameters,
-    (err, response) => {
-      if (err) {
-        if (err.message.indexOf('duplicate key') > -1) {
-          //1 retry - as mongo doesn't seem to understand how upsert:true on a unique index should work...
-          return this.db.findAndModify(
-            {
-              path: path
-            },
-            setParameters,
-            (err, response) => {
-              if (err) return callback(err);
-              callback(null, response, this.__getMeta(response));
-            }
-          );
+  remove(path, callback) {
+    return this.db.remove(this.getPathCriteria(path), function(e, removed) {
+      if (e) return callback(e);
+      callback(null, {
+        data: {
+          removed: removed.deletedCount
+        },
+        _meta: {
+          timestamp: Date.now(),
+          path: path
         }
-        return callback(err);
-      }
-      callback(null, response, this.__getMeta(response));
-    }
-  );
-};
-
-MongoProvider.prototype.remove = function(path, callback) {
-  return this.db.remove(this.getPathCriteria(path), function(e, removed) {
-    if (e) return callback(e);
-    callback(null, {
-      data: {
-        removed: removed.deletedCount
-      },
-      _meta: {
-        timestamp: Date.now(),
-        path: path
-      }
+      });
     });
-  });
+  }
+
+  batchInsert(data, options, callback) {
+    options.batchTimeout = options.batchTimeout || 500;
+    //keyed by our batch sizes
+    if (!this.batchData[options.batchSize]) {
+      this.batchData[options.batchSize] = new BatchDataItem(options, this.db);
+    }
+    this.batchData[options.batchSize].insert(data, callback);
+  }
+
+  insert(data, options, callback) {
+    if (options.batchSize > 0) return this.batchInsert(data, options, callback);
+    this.db.insert(data, options, callback);
+  }
+
+  stop(callback) {
+    this.db.disconnect(callback);
+  }
 };
 
 function BatchDataItem(options, db) {
@@ -372,24 +345,3 @@ BatchDataItem.prototype.initialize = function() {
   //empty our batch based on the timeout
   this.timeout = setTimeout(this.empty.bind(this), this.options.batchTimeout);
 };
-
-let batchData = {};
-
-MongoProvider.prototype.batchInsert = function(data, options, callback) {
-  options.batchTimeout = options.batchTimeout || 500;
-  //keyed by our batch sizes
-  if (!batchData[options.batchSize])
-    batchData[options.batchSize] = new BatchDataItem(options, this.db);
-  batchData[options.batchSize].insert(data, callback);
-};
-
-MongoProvider.prototype.insert = function(data, options, callback) {
-  if (options.batchSize > 0) return this.batchInsert(data, options, callback);
-  this.db.insert(data, options, callback);
-};
-
-MongoProvider.prototype.stop = function(callback) {
-  this.db.disconnect(callback);
-};
-
-module.exports = MongoProvider;

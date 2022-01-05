@@ -84,19 +84,25 @@ function find(criteria, searchOptions, sortOptions, callback) {
 }
 
 function increment(path, counterName, increment, callback) {
+  if (typeof increment === 'function') {
+    callback = increment;
+    increment = 1;
+  }
   let setParameters = {
-    $inc: {}
+    $inc: {
+      [`data.${counterName}.value`]: increment
+    }
   };
-
-  setParameters.$inc['data.' + counterName + '.value'] = increment;
 
   this.update(
     {
-      path: path
+      path
     },
     setParameters,
     (e, updated) => {
-      if (e) return callback(e);
+      if (e) {
+        return callback(e);
+      }
       callback(null, updated.data[counterName].value);
     }
   );

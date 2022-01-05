@@ -128,7 +128,7 @@ module.exports = class NedbProvider extends EventEmitter {
       setParameters,
       options,
       //err, response, created, upserted, meta
-      this.__ensureFileSync((err, result, document, created = false, meta) => {
+      this.__ensureFileSync((err, result) => {
         if (err) {
           //data with circular references can cause callstack exceeded errors
           if (err.toString() === 'RangeError: Maximum call stack size exceeded')
@@ -138,18 +138,14 @@ module.exports = class NedbProvider extends EventEmitter {
           return callback(err);
         }
 
-        if (meta) meta.path = meta._id;
-        else meta = this.__getMeta(document || setParameters.$set);
+        const data = result || setParameters.$set;
+        const meta = this.__getMeta(data);
 
         if (setParameters.$set.modifiedBy != null) {
           meta.modifiedBy = setParameters.$set.modifiedBy;
         }
 
-        if (!document) {
-          document = meta;
-        }
-        document.data = setParameters.$set.data;
-        callback(null, { result, document, created });
+        callback(null, this.transform(data, meta));
       })
     );
   }

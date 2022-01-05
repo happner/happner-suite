@@ -3,7 +3,7 @@ var mongoUrl = require('parse-mongo-url');
 function Config() {}
 
 Config.prototype.parse = function(config) {
-  var parsed = JSON.parse(JSON.stringify(config));
+  const parsed = JSON.parse(JSON.stringify(config));
   if (!parsed.database) parsed.database = 'happn';
   if (!parsed.collection)
     parsed.collection = parsed.opts && parsed.opts.collection ? parsed.opts.collection : 'happn';

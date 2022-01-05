@@ -40,16 +40,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     var beforeCreatedOrModified = Date.now();
 
     setTimeout(function() {
-      serviceInstance.upsert('/set/' + testId, { data: { test: 'data' } }, {}, function(
-        e,
-        created,
-        meta
-      ) {
+      serviceInstance.upsert('/set/' + testId, { data: { test: 'data' } }, {}, function(e, result) {
         if (e) return callback(e);
 
-        test.expect(created.data.test).to.equal('data');
-        test.expect(meta.created > beforeCreatedOrModified).to.equal(true);
-        test.expect(meta.modified > beforeCreatedOrModified).to.equal(true);
+        test.expect(result.data.test).to.equal('data');
+        test.expect(result._meta.created > beforeCreatedOrModified).to.equal(true);
+        test.expect(result._meta.modified > beforeCreatedOrModified).to.equal(true);
 
         callback();
       });

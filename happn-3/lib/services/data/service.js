@@ -69,8 +69,6 @@ DataService.prototype.__providerHasFeature = __providerHasFeature;
 DataService.prototype.__findDataProviderConfig = __findDataProviderConfig;
 DataService.prototype.addDataProviderPatterns = addDataProviderPatterns;
 
-DataService.prototype.respondToUpsert = respondToUpsert;
-
 //gets the item.data as an array (from data, _meta container)
 DataService.prototype.extractData = extractData;
 
@@ -192,7 +190,7 @@ function upsert(path, data, options, callback) {
   if (options.merge) {
     const provider = this.db(path);
     if (this.__providerHasFeature(provider, 'merge')) {
-      provider.merge(path, setData, this.respondToUpsert(path, provider, setData, callback));
+      provider.merge(path, setData, callback);
       return;
     }
     //upserting, due to this being non-atomic (concurrency may cause unique index issues)
@@ -558,19 +556,7 @@ function __upsertInternal(path, setData, options, callback) {
     });
   }
 
-  provider.upsert(path, setData, options, this.respondToUpsert(path, provider, setData, callback));
-}
-
-function respondToUpsert(path, provider, setData, callback) {
-  return (e, created, meta, result) => {
-    if (e) {
-      callback(e);
-      return;
-    }
-    const data = created || result || setData;
-    data.path = path;
-    callback(null, provider.transform(data, meta));
-  };
+  provider.upsert(path, setData, options, callback);
 }
 
 function remove(path, options, callback) {

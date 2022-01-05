@@ -28,5 +28,6 @@ module.exports = {
   sillyname: require('happn-sillyname'),
   nodeUtils: require('util'),
   rimraf: require('rimraf'),
-  path: require('path')
+  path: require('path'),
+  BaseDataProvider: require('./lib/base-data-provider')
 };
