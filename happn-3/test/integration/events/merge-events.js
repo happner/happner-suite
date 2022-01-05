@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function (test) {
   var happn = require('../../../lib/index');
   var happn_client = happn.client;
   var default_timeout = 10000;
@@ -7,16 +7,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
   var publisherclient;
   var listenerclient;
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(10000);
 
     publisherclient
       .disconnect({
-        timeout: 2000
+        timeout: 2000,
       })
       .then(
         listenerclient.disconnect({
-          timeout: 2000
+          timeout: 2000,
         })
       )
       .then(happnInstance.stop())
@@ -28,17 +28,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     happnInstance = await test.createInstance();
   });
 
-  before('should initialize the clients', function(callback) {
+  before('should initialize the clients', function (callback) {
     try {
       happn_client.create(
         {
           config: {
             username: '_ADMIN',
-            password: 'happn'
+            password: 'happn',
           },
-          secure: true
+          secure: true,
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
 
           publisherclient = instance;
@@ -47,11 +47,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               },
-              secure: true
+              secure: true,
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               listenerclient = instance;
@@ -66,7 +66,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('the listener should pick up a single wildcard event, merge only', function(done) {
+  it('the listener should pick up a single wildcard event, merge only', function (done) {
     this.timeout(default_timeout);
 
     publisherclient.set(
@@ -74,10 +74,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         //first listen for the change
@@ -86,30 +86,30 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           {
             event_type: 'set',
             merge: true,
-            count: 1
+            count: 1,
           },
-          function(message) {
+          function (message) {
             test
               .expect(listenerclient.state.events['/SET@/e2e_test1/testsubscribe/data/event/*'])
               .to.be(undefined);
 
             test.expect(message).to.eql({
-              property4: 'property4'
+              property4: 'property4',
             });
 
             done();
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
             //then make the change
             publisherclient.set(
               '/e2e_test1/testsubscribe/data/event/merge1',
               {
-                property4: 'property4'
+                property4: 'property4',
               },
               { merge: true },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
               }
             );
@@ -119,7 +119,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('the listener should pick up a single wildcard event, merge only, negative test', function(done) {
+  it('the listener should pick up a single wildcard event, merge only, negative test', function (done) {
     this.timeout(default_timeout);
 
     publisherclient.set(
@@ -127,10 +127,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         //first listen for the change
@@ -138,29 +138,29 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           '/e2e_test1/testsubscribe/data/neg/*',
           {
             event_type: 'set',
-            count: 1
+            count: 1,
           },
-          function(message) {
+          function (message) {
             test.expect(message).to.eql({
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             });
 
             done();
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
             //then make the change
             publisherclient.set(
               '/e2e_test1/testsubscribe/data/neg/merge1',
               {
-                property4: 'property4'
+                property4: 'property4',
               },
               { merge: true },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
               }
             );

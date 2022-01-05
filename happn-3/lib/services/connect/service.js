@@ -28,12 +28,12 @@ function initialize(config, callback) {
     app.use(
       hsts({
         maxAge: 15552000, // 180 days in seconds
-        includeSubDomains: true
+        includeSubDomains: true,
       })
     );
   }
 
-  var loadMiddleware = function(middleware_name) {
+  var loadMiddleware = function (middleware_name) {
     _this.log.$$TRACE('loadMiddleware( ' + middleware_name);
     var Middleware = require('./middleware/' + middleware_name);
     var middleware = new Middleware();

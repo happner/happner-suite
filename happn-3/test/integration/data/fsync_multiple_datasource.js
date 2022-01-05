@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const commons = require('happn-commons');
   const expect = test.chai.expect;
   const happn = require('../../../lib/index');
@@ -10,12 +10,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   let singleClient;
   let multipleClient;
 
-  const getService = function(config, callback) {
+  const getService = function (config, callback) {
     happn.service.create(config, callback);
   };
 
-  const getClient = function(service, callback) {
-    service.services.session.localClient(function(e, instance) {
+  const getClient = function (service, callback) {
+    service.services.session.localClient(function (e, instance) {
       if (e) return callback(e);
       callback(null, instance);
     });
@@ -24,14 +24,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   /** @type {test.sinon.SinonSpy} */
   let fsyncSpy;
 
-  before('should initialize the services', function(callback) {
+  before('should initialize the services', function (callback) {
     this.timeout(60000); //travis sometiems takes ages...
 
     fsyncSpy = test.sinon.spy(commons.fs, 'fsync');
 
     const serviceConfigs = [
       {
-        port: 55001
+        port: 55001,
       },
       {
         services: {
@@ -43,45 +43,45 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
                   isDefault: true,
                   patterns: [
                     '/a3_eventemitter_multiple_datasource/' + test_id + '/memorytest/*',
-                    '/a3_eventemitter_multiple_datasource/' + test_id + '/memorynonwildcard'
-                  ]
+                    '/a3_eventemitter_multiple_datasource/' + test_id + '/memorynonwildcard',
+                  ],
                 },
                 {
                   name: 'persisted',
                   settings: {
                     filename: tempFile1,
-                    fsync: true
+                    fsync: true,
                   },
                   patterns: [
                     '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedtest/*',
-                    '/a3_eventemitter_multiple_datasource/' + test_id + '/persistednonwildcard'
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      }
+                    '/a3_eventemitter_multiple_datasource/' + test_id + '/persistednonwildcard',
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
     ];
 
     test.async.eachSeries(
       serviceConfigs,
-      function(serviceConfig, serviceConfigCallback) {
-        getService(serviceConfig, function(e, happnService) {
+      function (serviceConfig, serviceConfigCallback) {
+        getService(serviceConfig, function (e, happnService) {
           if (e) return serviceConfigCallback(e);
 
           services.push(happnService);
           serviceConfigCallback();
         });
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
-        getClient(services[0], function(e, client) {
+        getClient(services[0], function (e, client) {
           if (e) return callback(e);
           singleClient = client;
 
-          getClient(services[1], function(e, client) {
+          getClient(services[1], function (e, client) {
             if (e) return callback(e);
             multipleClient = client;
             callback();
@@ -104,7 +104,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     fsyncSpy.resetHistory();
   });
 
-  it('should push some data into the single datastore service', async function() {
+  it('should push some data into the single datastore service', async function () {
     this.timeout(4000);
 
     const test_path_end = require('shortid').generate();
@@ -116,7 +116,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -125,7 +125,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(results.property1 === 'property1').to.be.true;
   });
 
-  it('should push some data into the multiple datastore', async function() {
+  it('should push some data into the multiple datastore', async function () {
     this.timeout(4000);
 
     const test_path_end = require('shortid').generate();
@@ -137,7 +137,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -147,7 +147,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(results.property1 === 'property1').to.be.true;
   });
 
-  it('should push some data into the multiple datastore, memory datastore, wildcard pattern', async function() {
+  it('should push some data into the multiple datastore, memory datastore, wildcard pattern', async function () {
     this.timeout(4000);
 
     const test_path_end = require('shortid').generate();
@@ -159,7 +159,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -173,7 +173,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record found in persisted file, meant to be in memory').to.be.null;
   });
 
-  it('should push some data into the multiple datastore, persisted datastore, wildcard pattern', async function() {
+  it('should push some data into the multiple datastore, persisted datastore, wildcard pattern', async function () {
     this.timeout(4000);
 
     const test_path_end = require('shortid').generate();
@@ -185,7 +185,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -199,7 +199,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record not found in persisted file').to.not.be.null;
   });
 
-  it('should push some data into the multiple datastore, memory datastore, exact pattern', async function() {
+  it('should push some data into the multiple datastore, memory datastore, exact pattern', async function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/memorynonwildcard';
@@ -209,7 +209,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -223,7 +223,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record found in persisted file, meant to be in memory').to.be.null;
   });
 
-  it('should push some data into the multiple datastore, persisted datastore, exact pattern', async function() {
+  it('should push some data into the multiple datastore, persisted datastore, exact pattern', async function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/persistednonwildcard';
@@ -233,7 +233,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -247,7 +247,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record not found in persisted file').to.not.be.null;
   });
 
-  it('should push some data into the multiple datastore, default pattern', async function() {
+  it('should push some data into the multiple datastore, default pattern', async function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/default';
@@ -257,7 +257,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -271,7 +271,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record found in persisted file, meant to be in memory').to.be.null;
   });
 
-  it('check the same event should be raised, regardless of what data source we are pushing to', function(callback) {
+  it('check the same event should be raised, regardless of what data source we are pushing to', function (callback) {
     this.timeout(10000);
     let caughtCount = 0;
 
@@ -280,7 +280,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedtest/event';
 
     multipleClient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action === '/SET@' + memoryTestPath ||
           meta.action === '/SET@' + persistedTestPath
@@ -289,7 +289,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           if (caughtCount === 2) {
             test
               .findRecordInDataFile(persistedTestPath, tempFile1)
-              .then(record => {
+              .then((record) => {
                 if (record !== null) return callback();
                 callback(new Error('record not found in persisted file'));
               })
@@ -297,7 +297,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           }
         }
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         multipleClient.set(
@@ -305,10 +305,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             expect(fsyncSpy).to.have.not.been.called;
             if (e) return callback(e);
 
@@ -317,10 +317,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e) {
+              function (e) {
                 expect(fsyncSpy).to.have.been.called;
                 if (e) return callback(e);
               }
@@ -331,7 +331,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('should not find the pattern to be added in the persisted datastore', async function() {
+  it('should not find the pattern to be added in the persisted datastore', async function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedaddedpattern';
@@ -341,7 +341,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -355,7 +355,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record found in persisted file, meant to be in memory').to.be.null;
   });
 
-  it('should add a pattern to the persisted datastore, and check it works', async function() {
+  it('should add a pattern to the persisted datastore, and check it works', async function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedaddedpattern';
@@ -367,7 +367,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {}
     );
@@ -381,7 +381,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     expect(record, 'record not found in persisted file').to.not.be.null;
   });
 
-  it('should remove a pattern from the persisted datastore', function() {
+  it('should remove a pattern from the persisted datastore', function () {
     this.timeout(4000);
 
     const test_path = '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedaddedpattern';

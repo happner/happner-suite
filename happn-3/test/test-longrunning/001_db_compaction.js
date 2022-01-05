@@ -1,4 +1,4 @@
-describe('longrunning/001_db_compaction', function() {
+describe('longrunning/001_db_compaction', function () {
   var expect = require('expect.js');
   var happn = require('../../lib/index');
   var service = happn.service;
@@ -25,10 +25,10 @@ describe('longrunning/001_db_compaction', function() {
     services: {
       data: {
         config: {
-          filename: test_file1
-        }
-      }
-    }
+          filename: test_file1,
+        },
+      },
+    },
   };
 
   var serviceConfig2 = {
@@ -37,10 +37,10 @@ describe('longrunning/001_db_compaction', function() {
     services: {
       data: {
         config: {
-          filename: test_file2
-        }
-      }
-    }
+          filename: test_file2,
+        },
+      },
+    },
   };
 
   var serviceConfig3 = {
@@ -50,10 +50,10 @@ describe('longrunning/001_db_compaction', function() {
       data: {
         config: {
           filename: test_file3,
-          compactInterval: 5000 //compact every 5 seconds
-        }
-      }
-    }
+          compactInterval: 5000, //compact every 5 seconds
+        },
+      },
+    },
   };
 
   var serviceConfig4 = {
@@ -66,21 +66,21 @@ describe('longrunning/001_db_compaction', function() {
             {
               name: 'file4',
               settings: {
-                filename: test_file4
+                filename: test_file4,
               },
-              patterns: ['/c7a_db_compaction/' + test_id + '/4/*']
+              patterns: ['/c7a_db_compaction/' + test_id + '/4/*'],
             },
             {
               name: 'file4a',
               settings: {
-                filename: test_file4a
+                filename: test_file4a,
               },
-              patterns: ['/c7a_db_compaction/' + test_id + '/4a/*']
-            }
-          ]
-        }
-      }
-    }
+              patterns: ['/c7a_db_compaction/' + test_id + '/4a/*'],
+            },
+          ],
+        },
+      },
+    },
   };
 
   var clientConfig1 = {
@@ -88,8 +88,8 @@ describe('longrunning/001_db_compaction', function() {
       secure: true,
       port: 4444,
       username: '_ADMIN',
-      password: 'happn'
-    }
+      password: 'happn',
+    },
   };
 
   var clientConfig2 = {
@@ -97,8 +97,8 @@ describe('longrunning/001_db_compaction', function() {
       secure: true,
       port: 4445,
       username: '_ADMIN',
-      password: 'happn'
-    }
+      password: 'happn',
+    },
   };
 
   var clientConfig3 = {
@@ -106,8 +106,8 @@ describe('longrunning/001_db_compaction', function() {
       secure: true,
       port: 4446,
       username: '_ADMIN',
-      password: 'happn'
-    }
+      password: 'happn',
+    },
   };
 
   var clientConfig4 = {
@@ -115,8 +115,8 @@ describe('longrunning/001_db_compaction', function() {
       secure: true,
       port: 4447,
       username: '_ADMIN',
-      password: 'happn'
-    }
+      password: 'happn',
+    },
   };
 
   var serviceInstance1;
@@ -134,23 +134,23 @@ describe('longrunning/001_db_compaction', function() {
   var client3;
   var client4;
 
-  var getService = function(config, callback) {
-    happn.service.create(config, function(e, service) {
+  var getService = function (config, callback) {
+    happn.service.create(config, function (e, service) {
       if (e) return callback(e);
       callback(null, service);
     });
   };
 
-  var getClient = function(config, callback) {
+  var getClient = function (config, callback) {
     happn_client.create(config, callback);
   };
 
-  before('it creates 2 test dbs', function(callback) {
-    getService(serviceConfig1, function(e, serviceInstance) {
+  before('it creates 2 test dbs', function (callback) {
+    getService(serviceConfig1, function (e, serviceInstance) {
       if (e) return callback(e);
       serviceInstance1 = serviceInstance;
       testServices.push(serviceInstance1);
-      getService(serviceConfig2, function(e, serviceInstance) {
+      getService(serviceConfig2, function (e, serviceInstance) {
         if (e) return callback(e);
         serviceInstance2 = serviceInstance;
         testServices.push(serviceInstance2);
@@ -159,11 +159,11 @@ describe('longrunning/001_db_compaction', function() {
     });
   });
 
-  before('it creates 3 test clients', function(callback) {
-    getClient(clientConfig1, function(e, client) {
+  before('it creates 3 test clients', function (callback) {
+    getClient(clientConfig1, function (e, client) {
       if (e) return callback(e);
       client1 = client;
-      getClient(clientConfig2, function(e, client) {
+      getClient(clientConfig2, function (e, client) {
         if (e) return callback(e);
         client2 = client;
         callback();
@@ -171,16 +171,16 @@ describe('longrunning/001_db_compaction', function() {
     });
   });
 
-  after('it shuts down the test dbs, and unlinks their file', function(callback) {
+  after('it shuts down the test dbs, and unlinks their file', function (callback) {
     var afterErrors = [];
 
     //stop services
     async.eachSeries(
       testServices,
-      function(service, next) {
+      function (service, next) {
         service.stop(next);
       },
-      function(e) {
+      function (e) {
         if (e) {
           afterErrors.push(e);
           //eslint-disable-next-line no-console
@@ -190,11 +190,11 @@ describe('longrunning/001_db_compaction', function() {
         //unlink files
         async.eachSeries(
           testFiles,
-          function(filePath, next) {
+          function (filePath, next) {
             fs.unlinkSync(filePath);
             next();
           },
-          function(e) {
+          function (e) {
             if (e) afterErrors.push(e);
 
             if (afterErrors.length > 0) return callback(afterErrors);
@@ -217,20 +217,20 @@ describe('longrunning/001_db_compaction', function() {
 
   var fileSizeAfterActivity1;
 
-  it('for testfile1 creates data, measures the db size, compacts the db, checks the new db filesize is smaller than the original db', function(callback) {
+  it('for testfile1 creates data, measures the db size, compacts the db, checks the new db filesize is smaller than the original db', function (callback) {
     var fileSizeInitial = getFileSize(test_file1);
 
     randomActivity1 = new RandomActivityGenerator(client1);
-    randomActivity1.generateActivityStart('test', function() {
-      setTimeout(function() {
-        randomActivity1.generateActivityEnd('test', function() {
+    randomActivity1.generateActivityStart('test', function () {
+      setTimeout(function () {
+        randomActivity1.generateActivityEnd('test', function () {
           testFiles.push(test_file1);
 
           fileSizeAfterActivity1 = getFileSize(test_file1);
 
           expect(fileSizeAfterActivity1 > fileSizeInitial).to.be(true);
 
-          serviceInstance1.services.data.on('provider-event', function(data) {
+          serviceInstance1.services.data.on('provider-event', function (data) {
             expect(data.eventName).to.be('compaction-successful');
 
             expect(data.provider).to.be('default');
@@ -244,7 +244,7 @@ describe('longrunning/001_db_compaction', function() {
             callback();
           });
 
-          serviceInstance1.services.data.compact(function(e) {
+          serviceInstance1.services.data.compact(function (e) {
             if (e) return callback(e);
           });
         });
@@ -252,23 +252,23 @@ describe('longrunning/001_db_compaction', function() {
     });
   });
 
-  it('starts a db configured to compact, does a replay of random activity1, then verifies the data is smaller than the initial size of the uncompacted file', function(callback) {
-    getService(serviceConfig3, function(e) {
+  it('starts a db configured to compact, does a replay of random activity1, then verifies the data is smaller than the initial size of the uncompacted file', function (callback) {
+    getService(serviceConfig3, function (e) {
       if (e) return callback(e);
 
-      getClient(clientConfig3, function(e, client) {
+      getClient(clientConfig3, function (e, client) {
         if (e) return callback(e);
         client3 = client;
         randomActivity3 = new RandomActivityGenerator(client3);
 
-        randomActivity3.replay(randomActivity1, 'test', function(e) {
+        randomActivity3.replay(randomActivity1, 'test', function (e) {
           //we perform the same set of operations we did in the first test
 
           if (e) return callback(e);
 
           testFiles.push(test_file3);
 
-          setTimeout(function() {
+          setTimeout(function () {
             var fileSizeAfterActivity3 = getFileSize(test_file3);
             expect(fileSizeAfterActivity3 < fileSizeAfterActivity1).to.be(true);
             randomActivity3.verify(callback);
@@ -278,28 +278,28 @@ describe('longrunning/001_db_compaction', function() {
     });
   });
 
-  it('starts a db with 2 files, does some random activity, compacts the db, checks that both files have been compacted', function(callback) {
-    getService(serviceConfig4, function(e, serviceInstance) {
+  it('starts a db with 2 files, does some random activity, compacts the db, checks that both files have been compacted', function (callback) {
+    getService(serviceConfig4, function (e, serviceInstance) {
       if (e) return callback(e);
       const serviceInstance4 = serviceInstance;
       testServices.push(serviceInstance4);
-      getClient(clientConfig4, function(e, client) {
+      getClient(clientConfig4, function (e, client) {
         if (e) return callback(e);
         client4 = client;
 
         randomActivity4 = new RandomActivityGenerator(client4, {
           pathPrefix: [
             '/c7a_db_compaction/' + test_id + '/4/',
-            '/c7a_db_compaction/' + test_id + '/4a/'
-          ]
+            '/c7a_db_compaction/' + test_id + '/4a/',
+          ],
         });
 
         var fileSizeInitial4 = getFileSize(test_file4);
         var fileSizeInitial4a = getFileSize(test_file4a);
 
-        randomActivity4.generateActivityStart('test', function() {
-          setTimeout(function() {
-            randomActivity4.generateActivityEnd('test', function() {
+        randomActivity4.generateActivityStart('test', function () {
+          setTimeout(function () {
+            randomActivity4.generateActivityEnd('test', function () {
               var fileSizeAfterActivity4 = getFileSize(test_file4);
               var fileSizeAfterActivity4a = getFileSize(test_file4a);
 
@@ -309,7 +309,7 @@ describe('longrunning/001_db_compaction', function() {
               expect(fileSizeAfterActivity4 > fileSizeInitial4).to.be(true);
               expect(fileSizeAfterActivity4a > fileSizeInitial4a).to.be(true);
 
-              serviceInstance4.services.data.compact(function(e) {
+              serviceInstance4.services.data.compact(function (e) {
                 if (e) return callback(e);
 
                 var fileSizeAfterCompact4 = getFileSize(test_file4);
@@ -327,13 +327,13 @@ describe('longrunning/001_db_compaction', function() {
     });
   });
 
-  it('starts compaction for every n seconds, then do random inserts and deletes, then verify the data', function(callback) {
+  it('starts compaction for every n seconds, then do random inserts and deletes, then verify the data', function (callback) {
     randomActivity2 = new RandomActivityGenerator(client2, {
       interval: 3000,
-      verbose: true
+      verbose: true,
     });
 
-    randomActivity2.generateActivityStart('test', function(e) {
+    randomActivity2.generateActivityStart('test', function (e) {
       if (e) return callback(e);
 
       var compactionCount = 0;
@@ -342,17 +342,17 @@ describe('longrunning/001_db_compaction', function() {
 
       serviceInstance2.services.data.startCompacting(
         5000,
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           //DO NADA
         },
-        function() {
+        function () {
           compactionCount++;
           if (compactionCount === 2) {
             //we have compacted 2 times
             if (!verified) {
               verified = true;
-              randomActivity2.generateActivityEnd('test', function() {
+              randomActivity2.generateActivityEnd('test', function () {
                 //checks to see all the data that should be there exists and all the data that shouldnt be there doesnt
                 randomActivity2.verify(callback);
               });

@@ -9,7 +9,7 @@ const Happn = require('../../..'),
 
 if (process.env.RUNNING_IN_ACTIONS) return; //skip all tests in github actions CI
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   this.timeout(120e3);
 
   it('tests the secure cookie can be grabbed based on the proxies forward headers', async () => {
@@ -19,7 +19,7 @@ describe(testHelper.testName(__filename, 3), function() {
       protocol: 'https',
       port: 11235,
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
     await testClient(client.session.token);
     await client.disconnect();
@@ -33,7 +33,7 @@ describe(testHelper.testName(__filename, 3), function() {
     const client = await connectClient({
       protocol: 'https',
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
     await testClient(client.session.token, 55000);
     await client.disconnect();
@@ -46,7 +46,7 @@ describe(testHelper.testName(__filename, 3), function() {
     const client = await connectClient({
       protocol: 'https',
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
     await testClient(client.session.token, 55000);
     await client.disconnect();
@@ -59,7 +59,7 @@ describe(testHelper.testName(__filename, 3), function() {
     const client = await connectClient({
       protocol: 'https',
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
     let errorHappened = false;
     try {
@@ -79,7 +79,7 @@ describe(testHelper.testName(__filename, 3), function() {
     try {
       await connectClient({
         protocol: 'https',
-        useCookie: true
+        useCookie: true,
       });
     } catch (e) {
       testHelper.expect(e.message).to.eql('Logging in with cookie only valid in browser');
@@ -93,11 +93,11 @@ describe(testHelper.testName(__filename, 3), function() {
     var options = {
       url: `https://127.0.0.1:${port || 11235}` + path,
       method: 'POST',
-      data: { post: 'data' }
+      data: { post: 'data' },
     };
 
     options.headers = {
-      Cookie: ['happn_token_https=' + token]
+      Cookie: ['happn_token_https=' + token],
     };
 
     request(options, callback);
@@ -111,7 +111,7 @@ describe(testHelper.testName(__filename, 3), function() {
       '-h',
       protocol,
       '-c',
-      httpsCookie ? 'true' : 'false'
+      httpsCookie ? 'true' : 'false',
     ]);
     await delay(2e3);
     return serviceProc;
@@ -126,7 +126,7 @@ describe(testHelper.testName(__filename, 3), function() {
 
   function testClient(token, port) {
     return new Promise((resolve, reject) => {
-      doPost('/test/web/route', token, port, function(error, response) {
+      doPost('/test/web/route', token, port, function (error, response) {
         try {
           testHelper.expect(error).to.eql(null);
           testHelper.expect(response.statusCode).to.equal(200);
@@ -141,7 +141,7 @@ describe(testHelper.testName(__filename, 3), function() {
   function connectClient(opts) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
     return new Promise((resolve, reject) => {
-      HappnClient.create(opts, function(e, instance) {
+      HappnClient.create(opts, function (e, instance) {
         if (e) return reject(e);
         return resolve(instance);
       });

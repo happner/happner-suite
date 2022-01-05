@@ -9,7 +9,7 @@ function Publication(message, options, happn) {
   this.result = {
     successful: 0,
     failed: 0,
-    skipped: 0
+    skipped: 0,
   };
 
   if (!options) options = {};
@@ -41,7 +41,7 @@ function Publication(message, options, happn) {
   this.__configurePayload(message, message.response.data, 'payload');
 }
 
-Publication.create = function(message, options, happn) {
+Publication.create = function (message, options, happn) {
   return new Publication(message, options, happn);
 };
 
@@ -54,10 +54,10 @@ Publication.prototype.__reservedMetaKeys = [
   'published',
   'status',
   'eventId',
-  'sessionId'
+  'sessionId',
 ];
 
-Publication.prototype.__configurePayload = function(message, data, payloadType) {
+Publication.prototype.__configurePayload = function (message, data, payloadType) {
   var payload = {
     data: data,
     _meta: {
@@ -68,10 +68,10 @@ Publication.prototype.__configurePayload = function(message, data, payloadType) 
       publicationId: this.id,
       path: message.request.path,
       created: message.response._meta.created,
-      modified: message.response._meta.modified
+      modified: message.response._meta.modified,
     },
     protocol: message.protocol,
-    __outbound: true
+    __outbound: true,
   };
 
   if (this.origin && this.origin.user)
@@ -80,7 +80,7 @@ Publication.prototype.__configurePayload = function(message, data, payloadType) 
   if (message.request.options && typeof message.request.options.meta === 'object') {
     var _this = this;
 
-    Object.keys(message.request.options.meta).forEach(function(key) {
+    Object.keys(message.request.options.meta).forEach(function (key) {
       if (_this.__reservedMetaKeys.indexOf(key) >= 0) return;
       payload._meta[key] = message.request.options.meta[key];
     });
@@ -89,7 +89,7 @@ Publication.prototype.__configurePayload = function(message, data, payloadType) 
   this[payloadType] = payload;
 };
 
-Publication.prototype.acknowledge = function(sessionId) {
+Publication.prototype.acknowledge = function (sessionId) {
   this.unacknowledged_recipients.every((recipientSessionId, recipientSessionIdIndex) => {
     if (recipientSessionId === sessionId) {
       this.unacknowledged_recipients.splice(recipientSessionIdIndex, 1); //remove it
@@ -106,12 +106,12 @@ Publication.prototype.acknowledge = function(sessionId) {
   }
 };
 
-Publication.prototype.__waitForAck = function(callback) {
-  this.recipients.forEach(recipient => {
+Publication.prototype.__waitForAck = function (callback) {
+  this.recipients.forEach((recipient) => {
     this.unacknowledged_recipients.push(recipient.data.session.id);
   });
 
-  this.__onAcknowledgeComplete = function(e) {
+  this.__onAcknowledgeComplete = function (e) {
     clearTimeout(this.__unacknowledgedTimedout);
 
     if (e) {
@@ -130,11 +130,11 @@ Publication.prototype.__waitForAck = function(callback) {
   this.__checkAcknowledgeStatus(); //race condition, as we may have acknowledgements already
 };
 
-Publication.prototype.__checkAcknowledgeStatus = function() {
+Publication.prototype.__checkAcknowledgeStatus = function () {
   if (this.__acknowledgeStatus === 1) this.__onAcknowledgeComplete();
 };
 
-Publication.prototype.getRecipientMessage = function(recipient) {
+Publication.prototype.getRecipientMessage = function (recipient) {
   var recipientMessage,
     channel = '/' + recipient.data.action + '@' + recipient.data.path;
 
@@ -158,13 +158,13 @@ Publication.prototype.getRecipientMessage = function(recipient) {
     request: {
       publication: recipientMessage,
       options: recipient.data.options,
-      action: 'emit'
+      action: 'emit',
     },
-    session: recipient.data.session
+    session: recipient.data.session,
   };
 };
 
-Publication.prototype.publish = function(callback) {
+Publication.prototype.publish = function (callback) {
   const done = () => {
     if (this.options.consistency === CONSTANTS.CONSISTENCY.ACKNOWLEDGED)
       return this.__waitForAck(callback);
@@ -192,7 +192,7 @@ Publication.prototype.publish = function(callback) {
           return recipientCB();
         }
 
-        this.happn.services.protocol.processMessageOut(recipientMessage, e => {
+        this.happn.services.protocol.processMessageOut(recipientMessage, (e) => {
           if (e) {
             this.result.failed++;
             this.result.lastError = e;
@@ -201,7 +201,7 @@ Publication.prototype.publish = function(callback) {
           recipientCB();
         });
       },
-      e => {
+      (e) => {
         if (e || this.result.failed > 0) {
           this.message.response._meta.publishResults = this.result;
           return callback(e || this.result.lastError);
@@ -212,7 +212,7 @@ Publication.prototype.publish = function(callback) {
   });
 };
 
-Publication.prototype.resultsMessage = function(e) {
+Publication.prototype.resultsMessage = function (e) {
   var message = {
     request: {
       publication: {
@@ -222,11 +222,11 @@ Publication.prototype.resultsMessage = function(e) {
         status: 'ok',
         _meta: {
           type: 'ack',
-          eventId: this.message.request.eventId
-        }
-      }
+          eventId: this.message.request.eventId,
+        },
+      },
     },
-    session: this.origin
+    session: this.origin,
   };
 
   if (e) {

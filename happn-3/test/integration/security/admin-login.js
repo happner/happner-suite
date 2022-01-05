@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const testDbFile = test.newTestFile();
   let currentService = null;
 
@@ -16,7 +16,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   it('does an admin login, should modify the admin password, restart the service and do an admin login, then pull data from a restricted path', async () => {
     await currentService.services.security.users.__upsertUser({
       username: '_ADMIN',
-      password: modifiedPassword
+      password: modifiedPassword,
     });
     await test.createAdminSession(currentService);
     await initService(testDbFile, 'admin_login');
@@ -37,16 +37,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       services: {
         security: {
           config: {
-            adminUser: { password: originalPassword }
-          }
+            adminUser: { password: originalPassword },
+          },
         },
         data: {
           config: {
-            filename: filename
-          }
-        }
+            filename: filename,
+          },
+        },
       },
-      secure: true
+      secure: true,
     });
   }
 });

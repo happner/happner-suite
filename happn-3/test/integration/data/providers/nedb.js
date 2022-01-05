@@ -1,11 +1,11 @@
-require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const NEDBDataProvider = require('happn-db-provider-nedb');
   const testFileName = test.newTestFile();
   const mockLogger = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
-    trace: test.sinon.stub()
+    trace: test.sinon.stub(),
   };
   beforeEach('delete temp file', async () => {
     test.unlinkFiles([testFileName]);
@@ -26,17 +26,17 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
   });
   it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
     await testPersistence({
-      fsync: true
+      fsync: true,
     });
   });
   it('can count - fsync', async () => {
     await testCount({
-      fsync: true
+      fsync: true,
     });
   });
   it('can increment - fsync', async () => {
     await testIncrement({
-      fsync: true
+      fsync: true,
     });
   });
 
@@ -44,9 +44,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     const nedbProvider = new NEDBDataProvider(
       {
         ...{
-          filename: testFileName
+          filename: testFileName,
         },
-        ...settings
+        ...settings,
       },
       mockLogger
     );
@@ -54,7 +54,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     const results = [
       await nedbProvider.increment('test/increment', 'testGauge'),
       await nedbProvider.increment('test/increment', 'testGauge', 2),
-      await nedbProvider.increment('test/increment', 'testGauge')
+      await nedbProvider.increment('test/increment', 'testGauge'),
     ];
 
     test.expect(results).to.eql([1, 3, 4]);
@@ -68,9 +68,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     const nedbProvider = new NEDBDataProvider(
       {
         ...{
-          filename: testFileName
+          filename: testFileName,
         },
-        ...settings
+        ...settings,
       },
       mockLogger
     );
@@ -78,17 +78,17 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     await nedbProvider.upsert('test/path/1', {
       data: { test: 'test1' },
       created,
-      modified
+      modified,
     });
     await nedbProvider.upsert('test/path/2', {
       data: { test: 'test2' },
       created,
-      modified
+      modified,
     });
     await nedbProvider.upsert('test/path/3', {
       data: { test: 'test2' },
       created,
-      modified
+      modified,
     });
 
     test
@@ -96,9 +96,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
         await nedbProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test1'
-            }
-          }
+              $eq: 'test1',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 1 } });
@@ -108,9 +108,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
         await nedbProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test2'
-            }
-          }
+              $eq: 'test2',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 2 } });
@@ -120,9 +120,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     const nedbProvider = new NEDBDataProvider(
       {
         ...{
-          filename: testFileName
+          filename: testFileName,
         },
-        ...settings
+        ...settings,
       },
       mockLogger
     );
@@ -144,24 +144,16 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
 
     test
       .expect(
-        results.map(result => {
-          return result.document.modifiedBy;
+        results.map((result) => {
+          return result._meta.modifiedBy;
         })
       )
       .to.eql(['x', 'x', 'x', 'x']);
 
     test
       .expect(
-        results.map(result => {
-          return result.created;
-        })
-      )
-      .to.eql([true, true, true, false]);
-
-    test
-      .expect(
-        results.map(result => {
-          return result.document.data;
+        results.map((result) => {
+          return result.data;
         })
       )
       .to.eql(Array(4).fill({ test: 'test' }));
@@ -173,8 +165,8 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     found = await nedbProvider.find('test/path/*', {
       options: {
         sort: { path: -1 },
-        limit: 2
-      }
+        limit: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/3');
     test.expect(found[1].path).to.be('test/path/2');
@@ -183,8 +175,8 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
       options: {
         sort: { path: -1 },
         limit: 2,
-        skip: 2
-      }
+        skip: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/1');
     test.expect(found.length).to.be(1);

@@ -3,17 +3,15 @@ var Utils = require('../../../lib/services/utils/service');
 var utils = new Utils();
 
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
-    it('tests mergeObjects', function(done) {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
+    it('tests mergeObjects', function (done) {
       var test1 = utils.mergeObjects(
         {
-          test1: 1
+          test1: 1,
         },
         {
-          test2: 2
+          test2: 2,
         }
       );
 
@@ -22,32 +20,32 @@ describe(
 
       var test2 = utils.mergeObjects(
         {
-          test1: 1
+          test1: 1,
         },
         {
-          test1: 2
+          test1: 2,
         },
         {
-          overwrite: true
+          overwrite: true,
         }
       );
 
       expect(test2.test1).to.be(2);
 
       var obj1 = {
-        test: 1
+        test: 1,
       };
 
       var obj2 = {
         test: 2,
         test1: {
-          hello: 1
-        }
+          hello: 1,
+        },
       };
 
       var test3 = utils.mergeObjects(obj1, obj2, {
         overwrite: false,
-        clone: true
+        clone: true,
       });
 
       expect(test3.test).to.be(1);
@@ -57,18 +55,18 @@ describe(
       expect(obj2.test1.hello).to.be(1);
 
       obj1 = {
-        test: 1
+        test: 1,
       };
       obj2 = {
         test: 2,
         test1: {
-          hello: 1
-        }
+          hello: 1,
+        },
       };
 
       test3 = utils.mergeObjects(obj1, obj2, {
         overwrite: false,
-        clone: false
+        clone: false,
       });
 
       expect(test3.test).to.be(1);
@@ -80,33 +78,33 @@ describe(
       done();
     });
 
-    it('tests whilst', function(done) {
+    it('tests whilst', function (done) {
       var sharedUtils = require('happn-commons').utils;
 
       var keepGoing = true;
 
       sharedUtils.whilst(
-        function() {
+        function () {
           return keepGoing;
         },
-        function(attempt, next) {
+        function (attempt, next) {
           if (attempt === 5) keepGoing = false;
           next();
         },
-        function(e) {
+        function (e) {
           expect(e).to.be(null);
 
           var keepGoing = true;
 
           sharedUtils.whilst(
-            function() {
+            function () {
               return keepGoing;
             },
-            function(attempt, next) {
+            function (attempt, next) {
               if (attempt === 5) return next(new Error('TEST ERROR'));
               next();
             },
-            function(e) {
+            function (e) {
               expect(e).to.not.be(null);
               done();
             }
@@ -115,35 +113,35 @@ describe(
       );
     });
 
-    it('tests async', function(done) {
+    it('tests async', function (done) {
       var sharedUtils = require('happn-commons').utils;
 
       sharedUtils.async(
         [1, 2, 3],
-        function(number, index, next) {
+        function (number, index, next) {
           expect(number === index + 1).to.be(true);
           next();
         },
-        function(e) {
+        function (e) {
           expect(e).to.be(undefined);
 
           sharedUtils.async(
             [1, 2, 3],
-            function(number, index, next) {
+            function (number, index, next) {
               expect(number === index + 1).to.be(true);
               if (number === 2) return next(new Error('TEST ERROR'));
               next();
             },
-            function(e) {
+            function (e) {
               expect(e).to.not.be(null);
               sharedUtils.async(
                 [1, 2, 3],
                 1,
-                function(number, index, next) {
+                function (number, index, next) {
                   expect(number === index + 1).to.be(true);
                   next();
                 },
-                function(e) {
+                function (e) {
                   expect(e).to.be(undefined);
                   done();
                 }
@@ -154,7 +152,7 @@ describe(
       );
     });
 
-    it('tests wildcardMatch', function(done) {
+    it('tests wildcardMatch', function (done) {
       var sharedUtils = require('happn-commons').utils;
 
       expect(sharedUtils.prepareWildPath('/a/***/***/****/**/path/***/*/*')).to.be(
@@ -181,10 +179,10 @@ describe(
       done();
     });
 
-    it('tests checkPath', function(done) {
+    it('tests checkPath', function (done) {
       var sharedUtils = require('happn-commons').utils;
 
-      var checkPathTest = function(path, action) {
+      var checkPathTest = function (path, action) {
         try {
           sharedUtils.checkPath(path, action);
           return 'ok';
@@ -207,7 +205,7 @@ describe(
       done();
     });
 
-    it('test computeiv function', function(done) {
+    it('test computeiv function', function (done) {
       var secret = 'thirtytwobitsecret12345678901234';
       var iv2 = utils.computeiv(secret);
       expect(iv2).to.eql('tittoisce1357913');
@@ -231,7 +229,7 @@ describe(
       done();
     });
 
-    it('test removeLast function', function() {
+    it('test removeLast function', function () {
       expect(utils.removeLast('test', '/')).to.eql('test');
       expect(utils.removeLast('test/', '/')).to.eql('test');
       expect(utils.removeLast(null)).to.eql(null);
@@ -241,8 +239,8 @@ describe(
       expect(utils.removeLast('test', null)).to.eql('test');
     });
 
-    it('tests asyncCallback - client side dezalgo', function(done) {
-      var callback = function(param1, param2, param3) {
+    it('tests asyncCallback - client side dezalgo', function (done) {
+      var callback = function (param1, param2, param3) {
         expect(param1).to.be('param1');
         expect(param2).to.be('param2');
         expect(param3).to.be('param3');
@@ -251,8 +249,8 @@ describe(
       utils.asyncCallback(callback, 'param1', 'param2', 'param3');
     });
 
-    it('tests wrapImmediate', function(done) {
-      var callback = function(param1, param2, param3) {
+    it('tests wrapImmediate', function (done) {
+      var callback = function (param1, param2, param3) {
         expect(param1).to.be('param1');
         expect(param2).to.be('param2');
         expect(param3).to.be('param3');
@@ -262,9 +260,9 @@ describe(
       callback('param1', 'param2', 'param3');
     });
 
-    it('tests wrapImmediate', function(done) {
+    it('tests wrapImmediate', function (done) {
       var started = Date.now();
-      var callback = function(param1, param2, param3) {
+      var callback = function (param1, param2, param3) {
         expect(param1).to.be('param1');
         expect(param2).to.be('param2');
         expect(param3).to.be('param3');
@@ -274,7 +272,7 @@ describe(
       utils.wrapImmediate(callback, 1000)('param1', 'param2', 'param3');
     });
 
-    it('tests wildcardMatch utils service ', function(done) {
+    it('tests wildcardMatch utils service ', function (done) {
       expect(utils.wildcardMatch('/test/complex/*/short', '/test/complex/and/short')).to.be(true);
       expect(utils.wildcardMatch('/test/complex/*', '/test/complex/and/short')).to.be(true);
       expect(utils.wildcardMatch('/test/*/*/short', '/test/complex/and/short')).to.be(true);

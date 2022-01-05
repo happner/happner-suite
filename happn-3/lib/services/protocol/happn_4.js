@@ -34,7 +34,7 @@ class ProtocolHappn4 extends BaseHappnProtocol {
 
     if (response == null)
       response = {
-        data: null
+        data: null,
       };
     else {
       if (response._meta) _meta = response._meta;
@@ -61,7 +61,7 @@ class ProtocolHappn4 extends BaseHappnProtocol {
       else response._meta.error.name = e.name;
 
       if (typeof e === 'object') {
-        Object.keys(e).forEach(function(key) {
+        Object.keys(e).forEach(function (key) {
           response._meta.error[key] = e[key];
         });
 
@@ -86,8 +86,8 @@ class ProtocolHappn4 extends BaseHappnProtocol {
           eventId: response._meta.eventId,
           type: 'response',
           status: response._meta.status,
-          published: response._meta.published
-        }
+          published: response._meta.published,
+        },
       };
 
     if (Array.isArray(response)) {

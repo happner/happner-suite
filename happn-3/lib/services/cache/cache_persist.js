@@ -64,7 +64,7 @@ function set(key, data, opts, callback) {
 
   var cacheItem = {
     data: this.utilities.clone(data),
-    key: key
+    key: key,
   };
 
   // eslint-disable-next-line
@@ -72,7 +72,7 @@ function set(key, data, opts, callback) {
 
   if (opts.noPersist) return this.__setCallback(key, cacheItem, callback);
 
-  this.__persistData(key, cacheItem, e => {
+  this.__persistData(key, cacheItem, (e) => {
     if (e) return this.__tryCallback(callback, null, e);
     this.__setCallback(key, cacheItem, callback);
   });
@@ -98,9 +98,9 @@ function get(key, opts, callback) {
         item.data.data,
         {
           ttl: item.data.ttl,
-          noPersist: true
+          noPersist: true,
         },
-        e => {
+        (e) => {
           this.__tryCallback(callback, item, e, true);
         }
       );
@@ -111,7 +111,7 @@ function get(key, opts, callback) {
         if (e) return callback(e);
         // -1 and 0 are perfectly viable things to cache
         if (result == null) return this.__tryCallback(callback, null, null);
-        this.set(key, result, opts, e => {
+        this.set(key, result, opts, (e) => {
           return this.__tryCallback(callback, result, e, true);
         });
       });
@@ -120,7 +120,7 @@ function get(key, opts, callback) {
     if (opts.default) {
       var value = opts.default.value;
       delete opts.default.value;
-      return this.set(key, value, opts.default, e => {
+      return this.set(key, value, opts.default, (e) => {
         return this.__tryCallback(callback, value, e, true);
       });
     }
@@ -137,10 +137,10 @@ function increment(key, by, callback) {
 
     var dataItem = {
       data: this.__cache[key].data,
-      key: key
+      key: key,
     };
 
-    return _this.__persistData(key, dataItem, function(e) {
+    return _this.__persistData(key, dataItem, function (e) {
       if (e) _this.__tryCallback(callback, null, e);
       else _this.__tryCallback(callback, _this.__cache[key].data, null);
     });
@@ -154,7 +154,7 @@ function update(key, data, callback) {
   try {
     if (_this.__cache[key]) {
       _this.__cache[key].data = data;
-      return _this.__persistData(key, _this.__cache[key], function(e) {
+      return _this.__persistData(key, _this.__cache[key], function (e) {
         if (e) return _this.__tryCallback(callback, null, e);
         _this.__tryCallback(callback, _this.__cache[key], null);
       });
@@ -183,7 +183,7 @@ function remove(key, opts, callback) {
       return _this.__tryCallback(callback, true, null);
     }
 
-    return _this.__removeData(key, function(e) {
+    return _this.__removeData(key, function (e) {
       if (e) return callback(e);
       delete _this.__cache[key];
       _this.__emit('item-removed', key);
@@ -194,14 +194,14 @@ function remove(key, opts, callback) {
 }
 
 function stop() {
-  Object.keys(this.__timeouts).forEach(key => {
+  Object.keys(this.__timeouts).forEach((key) => {
     this.clearTimeout(key);
   });
 }
 
 function clear(callback) {
   this.stop();
-  this.dataStore.remove(this.opts.key_prefix + '/*', {}, e => {
+  this.dataStore.remove(this.opts.key_prefix + '/*', {}, (e) => {
     if (e) {
       if (callback) return callback(e);
       throw e;
@@ -217,14 +217,14 @@ function all(filter, callback) {
     filter = null;
   }
 
-  this.__all(function(e, items) {
+  this.__all(function (e, items) {
     if (e) return callback(e);
     if (filter)
       return callback(
         null,
         commons.mongoFilter(
           {
-            $and: [filter]
+            $and: [filter],
           },
           items
         )
@@ -236,7 +236,7 @@ function all(filter, callback) {
 function sync(callback) {
   var _this = this;
 
-  _this.dataStore.get(this.opts.key_prefix + '/*', {}, function(e, items) {
+  _this.dataStore.get(this.opts.key_prefix + '/*', {}, function (e, items) {
     if (e) return callback(e);
 
     if (!items || items.length === 0) {
@@ -246,7 +246,7 @@ function sync(callback) {
 
     async.eachSeries(
       items,
-      function(item, itemCB) {
+      function (item, itemCB) {
         if (item.data.ttl) {
           if (Date.now() - item._meta.modified > item.data.ttl) {
             return _this.__removeData(item.data.key, itemCB);
@@ -258,12 +258,12 @@ function sync(callback) {
           item.data.data,
           {
             ttl: item.data.ttl,
-            noPersist: true
+            noPersist: true,
           },
           itemCB
         );
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
         _this.__synced = true;
         callback();
@@ -284,10 +284,10 @@ function appendTimeout(data, ttl) {
   const dataKey = data.key;
   this.clearTimeout(dataKey);
   this.__timeouts[dataKey] = lt.setTimeout(() => {
-    this.remove(dataKey, e => {
+    this.remove(dataKey, (e) => {
       if (e) this.__emit('error', new Error('failed to remove timed out item'));
       this.__emit('item-timed-out', {
-        key: dataKey
+        key: dataKey,
       });
     });
   }, ttl);
@@ -302,7 +302,7 @@ function _clearTimeout(key) {
 function __returnAll(callback) {
   var allItems = [];
 
-  Object.keys(this.__cache).forEach(itemKey => {
+  Object.keys(this.__cache).forEach((itemKey) => {
     allItems.push(this.utilities.clone(this.__cache[itemKey].data));
   });
 
@@ -313,7 +313,7 @@ function __all(callback) {
   var _this = this;
 
   if (!_this.__synced)
-    _this.sync(function(e) {
+    _this.sync(function (e) {
       if (e) return callback(e);
 
       _this.__returnAll(callback);
@@ -329,7 +329,7 @@ function __getData(key, callback) {
   this.dataStore.get(this.opts.key_prefix + '/' + key, {}, (e, item) => {
     if (e) return callback(e);
     if (item && item.data.ttl && Date.now() - item._meta.modified > item.data.ttl)
-      return this.__removeData(item.data.key, e => {
+      return this.__removeData(item.data.key, (e) => {
         if (e) return callback(e);
         return callback(null, null);
       });
@@ -342,7 +342,7 @@ function __persistData(key, data, callback) {
     this.opts.key_prefix + '/' + key,
     data,
     {
-      merge: true
+      merge: true,
     },
     callback
   );

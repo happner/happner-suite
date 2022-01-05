@@ -1,8 +1,6 @@
 describe(
-  require('../../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     const path = require('path');
     const happn = require('../../../../lib/index');
     const expect = require('expect.js');
@@ -17,7 +15,7 @@ describe(
 
     async function stopService(instance) {
       return new Promise((res, rej) => {
-        instance.stop(e => {
+        instance.stop((e) => {
           if (e) rej(e);
           res();
         });
@@ -47,16 +45,16 @@ describe(
                 blankAuth: path.resolve(
                   __dirname,
                   '../../../__fixtures/test/integration/security/authentication/secondAuthProvider.js'
-                )
-              }
-            }
-          }
-        }
+                ),
+              },
+            },
+          },
+        },
       });
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
         'happn',
         'blankAuth',
-        'default'
+        'default',
       ]);
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.happn
@@ -70,15 +68,15 @@ describe(
           security: {
             config: {
               authProviders: { bad: 'bad-provider' },
-              defaultAuthProvider: 'happn'
-            }
-          }
-        }
+              defaultAuthProvider: 'happn',
+            },
+          },
+        },
       });
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
         'happn',
         'bad',
-        'default'
+        'default',
       ]);
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.happn

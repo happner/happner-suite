@@ -1,6 +1,6 @@
 const tests = require('../../__fixtures/utils/test_helper').create();
 
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   var happn = require('../../../lib/index');
   var service = happn.service;
   var happn_client = happn.client;
@@ -11,7 +11,7 @@ describe(tests.testName(__filename, 3), function() {
 
   this.timeout(10000);
 
-  var sessionEventsTest = function(serviceConfig, callback) {
+  var sessionEventsTest = function (serviceConfig, callback) {
     if (typeof serviceConfig === 'function') {
       callback = serviceConfig;
       serviceConfig = {};
@@ -20,7 +20,7 @@ describe(tests.testName(__filename, 3), function() {
     var serviceInstance;
     var stopped = false;
 
-    var checkEventEmitterStructure = function(eventData, protocol, username) {
+    var checkEventEmitterStructure = function (eventData, protocol, username) {
       tests.expect(eventData.id).to.be(eventEmitterClientSessionId);
       tests.expect(eventData.legacyPing).to.be(false);
       tests.expect(Number.isInteger(eventData.msgCount)).to.be(true);
@@ -30,7 +30,7 @@ describe(tests.testName(__filename, 3), function() {
       if (username) tests.expect(eventData.user.username).to.be(username);
     };
 
-    var checkSocketEventStructure = function(eventData, protocol, username) {
+    var checkSocketEventStructure = function (eventData, protocol, username) {
       tests.expect(eventData.id).to.be(socketClientSessionId);
       tests.expect(eventData.legacyPing).to.be(false);
       tests.expect(Number.isInteger(eventData.msgCount)).to.be(true);
@@ -43,7 +43,7 @@ describe(tests.testName(__filename, 3), function() {
       if (username) tests.expect(eventData.user.username).to.be(username);
     };
 
-    var checkAllEventsFired = function(callback) {
+    var checkAllEventsFired = function (callback) {
       return () => {
         checkSocketEventStructure(eventsFired['connect-socket'], 'happn');
         checkSocketEventStructure(eventsFired['session-configured-socket']);
@@ -82,27 +82,27 @@ describe(tests.testName(__filename, 3), function() {
     service.create(
       serviceConfig,
 
-      function(e, happnInst) {
+      function (e, happnInst) {
         if (e) return callback(e);
 
         serviceInstance = happnInst;
 
-        serviceInstance.services.session.on('connect', function(data) {
+        serviceInstance.services.session.on('connect', function (data) {
           if (data.intraProc) return (eventsFired['connect-eventemitter'] = data);
           eventsFired['connect-socket'] = data;
         });
 
-        serviceInstance.services.session.on('authentic', function(data) {
+        serviceInstance.services.session.on('authentic', function (data) {
           if (data.info._local) return (eventsFired['authentic-eventemitter'] = data);
           eventsFired['authentic-socket'] = data;
         });
 
-        serviceInstance.services.session.on('disconnect', function(data) {
+        serviceInstance.services.session.on('disconnect', function (data) {
           if (data.info._local) return (eventsFired['disconnect-eventemitter'] = data);
           eventsFired['disconnect-socket'] = data;
         });
 
-        serviceInstance.services.session.on('session-configured', function(data) {
+        serviceInstance.services.session.on('session-configured', function (data) {
           if (data.intraProc) return (eventsFired['session-configured-eventemitter'] = data);
           eventsFired['session-configured-socket'] = data;
         });
@@ -111,10 +111,10 @@ describe(tests.testName(__filename, 3), function() {
           {
             config: {
               username: '_ADMIN',
-              password: 'happn'
-            }
+              password: 'happn',
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
 
             socketClient = instance;
@@ -123,10 +123,10 @@ describe(tests.testName(__filename, 3), function() {
             serviceInstance.services.session
               .localClient({
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               })
 
-              .then(function(clientInstance) {
+              .then(function (clientInstance) {
                 eventEmitterClient = clientInstance;
                 eventEmitterClientSessionId = eventEmitterClient.session.id;
                 return disconnectClient(eventEmitterClient);
@@ -142,7 +142,7 @@ describe(tests.testName(__filename, 3), function() {
 
               .then(checkAllEventsFired(callback))
 
-              .catch(function(e) {
+              .catch(function (e) {
                 callback(e);
               });
           }
@@ -152,19 +152,19 @@ describe(tests.testName(__filename, 3), function() {
   };
 
   function disconnectClient(client) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       client.disconnect(resolve);
     });
   }
 
-  it('tests session events on an unsecured mesh', function(callback) {
+  it('tests session events on an unsecured mesh', function (callback) {
     sessionEventsTest(callback);
   });
 
-  it('tests session events on a secure mesh', function(callback) {
+  it('tests session events on a secure mesh', function (callback) {
     sessionEventsTest(
       {
-        secure: true
+        secure: true,
       },
       callback
     );

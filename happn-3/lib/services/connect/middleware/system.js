@@ -14,7 +14,7 @@ function _process(req, res, next) {
     res.setHeader('Content-Type', 'application/json');
     return res.end(
       JSON.stringify({
-        version: require('../../../../package.json').version
+        version: require('../../../../package.json').version,
       })
     );
   }

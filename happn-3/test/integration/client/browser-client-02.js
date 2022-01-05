@@ -1,6 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   if (process.env.RUNNING_IN_ACTIONS) return; //skip all tests in github actions CI
 
   let clientFolder = test.homedir() + test.path.sep + '.happner' + test.path.sep;
@@ -14,7 +14,7 @@ describe(test.testName(__filename, 3), function() {
 
   it('builds the happn browser client, returns the contents', async () => {
     var clientCode = await test.happn.packager.browserClient({
-      contentsOnly: true
+      contentsOnly: true,
     });
 
     test
@@ -38,29 +38,29 @@ describe(test.testName(__filename, 3), function() {
 
     var clientCode = await test.happn.packager.browserClient({
       contentsOnly: true,
-      id: 'TEST_UNIQUE_ID'
+      id: 'TEST_UNIQUE_ID',
     });
 
     test.expect(clientCode.indexOf('id TEST_UNIQUE_ID') > -1).to.be(true);
 
     var clientCodeAgain = await test.happn.packager.browserClient({
-      contentsOnly: true
+      contentsOnly: true,
     });
 
     test.expect(clientCodeAgain.indexOf('id TEST_UNIQUE_ID') > -1).to.be(true);
     process.env.NODE_ENV = 'test';
   });
 
-  it('tests the client middleware is able to fetch the contents', function(done) {
+  it('tests the client middleware is able to fetch the contents', function (done) {
     var Middleware = require('../../../lib/services/connect/middleware/client');
     var middleware = new Middleware();
     var req = {
-      url: '/browser_client'
+      url: '/browser_client',
     };
 
     var res = {
-      setHeader: function() {},
-      end: function(content) {
+      setHeader: function () {},
+      end: function (content) {
         test
           .expect(
             content.length >
@@ -68,7 +68,7 @@ describe(test.testName(__filename, 3), function() {
           )
           .to.be(true);
         done();
-      }
+      },
     };
 
     middleware.process(req, res);
@@ -87,7 +87,7 @@ describe(test.testName(__filename, 3), function() {
 
     var clientCode = await test.happn.packager.browserClient({
       contentsOnly: true,
-      id: 'TEST_UNIQUE_ID'
+      id: 'TEST_UNIQUE_ID',
     });
 
     test.expect(clientCode.indexOf('id TEST_UNIQUE_ID') > -1).to.be(true);
@@ -97,11 +97,11 @@ describe(test.testName(__filename, 3), function() {
 
     await new Promise((resolve, reject) => {
       var req = {
-        url: '/browser_client'
+        url: '/browser_client',
       };
       var res = {
-        setHeader: function() {},
-        end: function(content) {
+        setHeader: function () {},
+        end: function (content) {
           try {
             test
               .expect(
@@ -115,7 +115,7 @@ describe(test.testName(__filename, 3), function() {
           }
           process.env.NODE_ENV = 'test';
           resolve();
-        }
+        },
       };
       middleware.process(req, res);
     });
@@ -134,13 +134,13 @@ describe(test.testName(__filename, 3), function() {
 
     var clientCode = await test.happn.packager.browserClient({
       contentsOnly: true,
-      id: 'TEST_UNIQUE_ID'
+      id: 'TEST_UNIQUE_ID',
     });
 
     test.expect(clientCode.indexOf('id TEST_UNIQUE_ID') > -1).to.be(true);
 
     var clientCodeAgain = await test.happn.packager.browserClient({
-      contentsOnly: true
+      contentsOnly: true,
     });
 
     test.expect(clientCodeAgain.indexOf('id TEST_UNIQUE_ID') > -1).to.be(true);
@@ -157,7 +157,7 @@ describe(test.testName(__filename, 3), function() {
 
     clientCode = await test.happn.packager.browserClient({
       contentsOnly: true,
-      min: true
+      min: true,
     });
 
     test.expect(clientCodeAgain.length > clientCode.length).to.be(true);
@@ -176,7 +176,7 @@ describe(test.testName(__filename, 3), function() {
 
     var clientCode = await test.happn.packager.browserClient({
       contentsOnly: true,
-      overwrite: true
+      overwrite: true,
     });
 
     process.env.NODE_ENV = 'production';
@@ -195,11 +195,11 @@ describe(test.testName(__filename, 3), function() {
     await new Promise((resolve, reject) => {
       middleware.process(
         {
-          url: '/browser_client'
+          url: '/browser_client',
         },
         {
-          setHeader: function() {},
-          end: function(content) {
+          setHeader: function () {},
+          end: function (content) {
             try {
               test.expect(clientCode.length > content.length).to.be(true);
               process.env.NODE_ENV = 'test';
@@ -207,7 +207,7 @@ describe(test.testName(__filename, 3), function() {
             } catch (e) {
               reject(e);
             }
-          }
+          },
         }
       );
     });

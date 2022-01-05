@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var service = happn.service;
     var happn_client = happn.client;
@@ -10,9 +8,9 @@ describe(
     var happnInstance = null;
     this.timeout(5000);
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       try {
-        service.create(function(e, happnInst) {
+        service.create(function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -23,7 +21,7 @@ describe(
       }
     });
 
-    after(function(done) {
+    after(function (done) {
       happnInstance.stop(done);
     });
 
@@ -31,20 +29,20 @@ describe(
 
     function Tester() {}
 
-    it('create, then manually destroy ' + clientCount + ' clients', function(callback) {
+    it('create, then manually destroy ' + clientCount + ' clients', function (callback) {
       this.timeout(clientCount * 10000);
 
       async.times(
         clientCount,
-        function(counter, clientCB) {
+        function (counter, clientCB) {
           var tester = new Tester();
 
-          happn_client.create(function(e, instance) {
+          happn_client.create(function (e, instance) {
             if (e) return clientCB(e);
 
             tester.client = instance;
 
-            tester.client.socket.on('destroy', function() {
+            tester.client.socket.on('destroy', function () {
               clientCB();
             });
 

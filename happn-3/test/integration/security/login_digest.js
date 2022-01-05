@@ -2,51 +2,49 @@ var Happn = require('../../../');
 
 //checks info is stored next to login
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(60000);
 
     var server1;
 
-    before('starts the services', function(done) {
+    before('starts the services', function (done) {
       Happn.service
         .create({
-          secure: true
+          secure: true,
         })
-        .then(function(server) {
+        .then(function (server) {
           server1 = server;
           done();
         })
         .catch(done);
     });
 
-    after('stops the services', function(done) {
+    after('stops the services', function (done) {
       if (!server1) done();
-      server1.stop({ reconnect: false }, function(e) {
+      server1.stop({ reconnect: false }, function (e) {
         //eslint-disable-next-line no-console
         if (e) console.warn('failed to stop server1: ' + e.toString());
         done();
       });
     });
 
-    it('logs in with digest authentication', function(done) {
+    it('logs in with digest authentication', function (done) {
       var testGroup2 = {
         name: 'TEST GROUP2',
         custom_data: {
           customString: 'custom2',
-          customNumber: 0
-        }
+          customNumber: 0,
+        },
       };
 
       testGroup2.permissions = {
         '/@HTTP/secure/test/removed/user': {
-          actions: ['get']
+          actions: ['get'],
         },
         '/@HTTP/secure/test/not_removed/user': {
-          actions: ['get']
-        }
+          actions: ['get'],
+        },
       };
 
       var Crypto = require('happn-util-crypto');
@@ -57,7 +55,7 @@ describe(
       var testUser2 = {
         username: 'TEST USER2@blah.com',
         password: 'TEST PWD',
-        publicKey: keyPair.publicKey
+        publicKey: keyPair.publicKey,
       };
 
       var addedTestGroup2;
@@ -66,43 +64,45 @@ describe(
       server1.services.security.users.upsertGroup(
         testGroup2,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return done(e);
           addedTestGroup2 = result;
 
           server1.services.security.users.upsertUser(
             testUser2,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return done(e);
               addedTestuser2 = result;
 
-              server1.services.security.users.linkGroup(addedTestGroup2, addedTestuser2, function(
-                e
-              ) {
-                if (e) return done(e);
+              server1.services.security.users.linkGroup(
+                addedTestGroup2,
+                addedTestuser2,
+                function (e) {
+                  if (e) return done(e);
 
-                Happn.client
-                  .create({
-                    username: testUser2.username,
-                    publicKey: testUser2.publicKey,
-                    privateKey: keyPair.privateKey,
-                    loginType: 'digest'
-                  })
+                  Happn.client
+                    .create({
+                      username: testUser2.username,
+                      publicKey: testUser2.publicKey,
+                      privateKey: keyPair.privateKey,
+                      loginType: 'digest',
+                    })
 
-                  .then(function(clientInstance) {
-                    clientInstance.disconnect({ reconnect: false });
-                    done();
-                  })
+                    .then(function (clientInstance) {
+                      clientInstance.disconnect({ reconnect: false });
+                      done();
+                    })
 
-                  .catch(function(e) {
-                    done(e);
-                  });
-              });
+                    .catch(function (e) {
+                      done(e);
+                    });
+                }
+              );
             }
           );
         }

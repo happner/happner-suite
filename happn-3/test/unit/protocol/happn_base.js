@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
 
     function mockProtocol(callback) {
@@ -14,18 +12,18 @@ describe(
       protocol.protocolVersion = 'happn';
       protocol.happn = {
         services: {
-          utils: new UtilsService()
-        }
+          utils: new UtilsService(),
+        },
       };
 
-      protocol.__createResponse = function(e, message, response, opts) {
+      protocol.__createResponse = function (e, message, response, opts) {
         var _meta = {};
 
         var local = opts ? opts.local : false;
 
         if (response == null)
           response = {
-            data: null
+            data: null,
           };
         else {
           if (response._meta) _meta = response._meta;
@@ -59,7 +57,7 @@ describe(
           else response._meta.error.name = e.name;
 
           if (typeof e === 'object') {
-            Object.keys(e).forEach(function(key) {
+            Object.keys(e).forEach(function (key) {
               response._meta.error[key] = e[key];
             });
 
@@ -99,18 +97,18 @@ describe(
 
       protocol.happn = {
         services: {
-          utils: new UtilsService()
-        }
+          utils: new UtilsService(),
+        },
       };
 
-      protocol.__createResponse = function(e, message, response, opts) {
+      protocol.__createResponse = function (e, message, response, opts) {
         var _meta = {};
 
         var local = opts ? opts.local : false;
 
         if (response == null)
           response = {
-            data: null
+            data: null,
           };
         else {
           if (response._meta) _meta = response._meta;
@@ -144,7 +142,7 @@ describe(
           else response._meta.error.name = e.name;
 
           if (typeof e === 'object') {
-            Object.keys(e).forEach(function(key) {
+            Object.keys(e).forEach(function (key) {
               response._meta.error[key] = e[key];
             });
 
@@ -176,22 +174,22 @@ describe(
       return protocol;
     }
 
-    it('tests the fail method, login action', function(done) {
-      mockProtocol(function(e, protocol) {
+    it('tests the fail method, login action', function (done) {
+      mockProtocol(function (e, protocol) {
         if (e) return done(e);
 
         var failure = protocol.fail({
           session: {
             secret: '1898981',
-            protocol: 'happn'
+            protocol: 'happn',
           },
           error: new Error('test error'),
           request: {
-            action: 'login'
+            action: 'login',
           },
           response: {
-            data: 'test'
-          }
+            data: 'test',
+          },
         });
 
         expect(failure.response).to.eql({
@@ -202,33 +200,33 @@ describe(
             published: false,
             eventId: undefined,
             action: 'login',
-            error: { name: 'Error', message: 'test error' }
+            error: { name: 'Error', message: 'test error' },
           },
-          protocol: 'happn'
+          protocol: 'happn',
         });
 
         done();
       });
     });
 
-    it('tests the fail method, not login action', function(done) {
-      mockProtocol(function(e, protocol) {
+    it('tests the fail method, not login action', function (done) {
+      mockProtocol(function (e, protocol) {
         if (e) return done(e);
 
         var failure = protocol.fail({
           session: {
-            secret: '1898981'
+            secret: '1898981',
           },
           error: new Error('test error'),
           request: {
             action: 'set',
             eventId: 1,
             sessionId: 1,
-            protocol: 'happn'
+            protocol: 'happn',
           },
           response: {
-            data: 'test'
-          }
+            data: 'test',
+          },
         });
 
         expect(failure.response).to.eql({
@@ -242,31 +240,31 @@ describe(
             action: 'set',
             error: {
               name: 'Error',
-              message: 'test error'
-            }
+              message: 'test error',
+            },
           },
-          protocol: 'happn'
+          protocol: 'happn',
         });
 
         done();
       });
     });
 
-    it('tests the fail method', function(done) {
+    it('tests the fail method', function (done) {
       var inputMessage = {
         error: new Error('test error'),
         session: {
-          secret: '1898981'
+          secret: '1898981',
         },
         request: {
           action: 'set',
           eventId: 1,
           sessionId: 1,
-          protocol: 'happn'
+          protocol: 'happn',
         },
         response: {
-          data: 'test'
-        }
+          data: 'test',
+        },
       };
 
       var expectedOutputMessage = {
@@ -280,13 +278,13 @@ describe(
           action: 'set',
           error: {
             name: 'Error',
-            message: 'test error'
-          }
+            message: 'test error',
+          },
         },
-        protocol: 'happn'
+        protocol: 'happn',
       };
 
-      mockProtocol(function(e, protocol) {
+      mockProtocol(function (e, protocol) {
         if (e) return done(e);
 
         var fail = protocol.fail(inputMessage);
@@ -296,21 +294,21 @@ describe(
       });
     });
 
-    it('tests the fail method, no request', function(done) {
+    it('tests the fail method, no request', function (done) {
       var inputMessage = {
         error: new Error('test error'),
         session: {
-          secret: '1898981'
+          secret: '1898981',
         },
         request: {
           action: 'set',
           eventId: 1,
           sessionId: 1,
-          protocol: 'happn'
+          protocol: 'happn',
         },
         response: {
-          data: 'test'
-        }
+          data: 'test',
+        },
       };
 
       var expectedOutputMessage = {
@@ -324,13 +322,13 @@ describe(
           action: 'set',
           error: {
             name: 'Error',
-            message: 'test error'
-          }
+            message: 'test error',
+          },
         },
-        protocol: 'happn'
+        protocol: 'happn',
       };
 
-      mockProtocol(function(e, protocol) {
+      mockProtocol(function (e, protocol) {
         if (e) return done(e);
 
         inputMessage.raw = inputMessage.request;
@@ -343,7 +341,7 @@ describe(
       });
     });
 
-    it('tests the validate function', function() {
+    it('tests the validate function', function () {
       const protocol = mockProtocolMockCrypto();
       const badPathMessage =
         'Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*';
@@ -353,8 +351,8 @@ describe(
       var testMessage = {
         request: {
           action: 'on',
-          path: '/test/1'
-        }
+          path: '/test/1',
+        },
       };
 
       expect(protocol.validate(testMessage)).to.eql(testMessage);
@@ -362,8 +360,8 @@ describe(
       testMessage = {
         request: {
           action: 'on',
-          path: '\\test\\1'
-        }
+          path: '\\test\\1',
+        },
       };
 
       try {
@@ -373,7 +371,7 @@ describe(
       }
     });
 
-    it('tests the validate function', function() {
+    it('tests the validate function', function () {
       const protocol = mockProtocolMockCrypto();
       const badPathMessage =
         'Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*';
@@ -383,8 +381,8 @@ describe(
       var testMessage = {
         request: {
           action: 'on',
-          path: '/test/1'
-        }
+          path: '/test/1',
+        },
       };
 
       expect(protocol.validate(testMessage)).to.eql(testMessage);
@@ -392,8 +390,8 @@ describe(
       testMessage = {
         request: {
           action: 'on',
-          path: '\\test\\1'
-        }
+          path: '\\test\\1',
+        },
       };
 
       try {
@@ -403,23 +401,23 @@ describe(
       }
     });
 
-    it('tests the __formatReturnItem function', function() {
+    it('tests the __formatReturnItem function', function () {
       const protocol = mockProtocolMockCrypto();
       expect(
         protocol.__formatReturnItem({
           data: { test: 'data' },
-          _meta: 'test-meta'
+          _meta: 'test-meta',
         })
       ).to.eql({ test: 'data', _meta: 'test-meta' });
     });
 
-    it('tests the __formatReturnItems function', function() {
+    it('tests the __formatReturnItems function', function () {
       const protocol = mockProtocolMockCrypto();
 
       expect(
         protocol.__formatReturnItems({
           data: { test: 'data' },
-          _meta: 'test-meta'
+          _meta: 'test-meta',
         })
       ).to.eql([{ test: 'data', _meta: 'test-meta' }]);
 
@@ -427,16 +425,16 @@ describe(
         protocol.__formatReturnItems([
           {
             data: { test: 'data' },
-            _meta: 'test-meta'
+            _meta: 'test-meta',
           },
           {
             data: { test: 'data-1' },
-            _meta: 'test-meta-1'
-          }
+            _meta: 'test-meta-1',
+          },
         ])
       ).to.eql([
         { test: 'data', _meta: 'test-meta' },
-        { test: 'data-1', _meta: 'test-meta-1' }
+        { test: 'data-1', _meta: 'test-meta-1' },
       ]);
     });
   }

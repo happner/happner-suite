@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   let serviceInstance;
   let adminClient, testClient;
   let test_id = Date.now() + '_' + require('shortid').generate();
@@ -15,15 +15,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               {
                 name: 'persisted',
                 settings: {
-                  filename
-                }
-              }
-            ]
-          }
-        }
-      }
+                  filename,
+                },
+              },
+            ],
+          },
+        },
+      },
     });
-    serviceInstance.services.security.checkpoint.log.warn = function(message) {
+    serviceInstance.services.security.checkpoint.log.warn = function (message) {
       warnings.push(message);
     };
   });
@@ -35,43 +35,43 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     test.deleteFiles();
   });
 
-  context('resources access testing', function() {
+  context('resources access testing', function () {
     var testGroup = {
       name: 'TEST GROUP' + test_id,
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     testGroup.permissions = {
       '/explicit/test/*': {
-        actions: ['*']
+        actions: ['*'],
       },
       '/gauges/{{user.username}}': {
-        actions: ['*']
+        actions: ['*'],
       },
       '/gauges/{{user.username}}/*': {
-        actions: ['*']
+        actions: ['*'],
       },
       '/custom/{{user.custom_data.custom_field1}}': {
-        actions: ['get', 'set']
+        actions: ['get', 'set'],
       },
       '/custom/{{user.custom_data.custom_field2}}': {
-        actions: ['on', 'set']
+        actions: ['on', 'set'],
       },
       '/custom/{{user.custom_data.custom_field3}}': {
-        actions: ['on', 'set']
+        actions: ['on', 'set'],
       },
       '/custom/{{user.custom_data.custom_field4}}': {
-        actions: ['on', 'set']
+        actions: ['on', 'set'],
       },
       '/custom/{{user.custom_data.custom_field5}}': {
-        actions: ['on', 'set']
+        actions: ['on', 'set'],
       },
       '/forbidden/{{user.custom_data.custom_field_forbidden}}': {
-        actions: ['*']
-      }
+        actions: ['*'],
+      },
     };
 
     var testUser = {
@@ -83,50 +83,50 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         custom_field3: 'custom_field3_value',
         custom_field4: 'custom_field4_value',
         custom_field5: 'custom_field5_value',
-        custom_field_forbidden: '*'
-      }
+        custom_field_forbidden: '*',
+      },
     };
 
     var addedTestGroup;
     var addedTestuser;
 
-    before('logs in adminClient', function(done) {
+    before('logs in adminClient', function (done) {
       serviceInstance.services.session
         .localClient({
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         })
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           adminClient = clientInstance;
           done();
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });
 
     before(
       'creates a group and a user, adds the group to the user, logs in with test user',
-      function(done) {
+      function (done) {
         serviceInstance.services.security.groups
           .upsertGroup(testGroup)
-          .then(function(result) {
+          .then(function (result) {
             addedTestGroup = result;
             return serviceInstance.services.security.users.upsertUser(testUser);
           })
-          .then(function(result) {
+          .then(function (result) {
             addedTestuser = result;
             return serviceInstance.services.security.users.linkGroup(addedTestGroup, addedTestuser);
           })
-          .then(function() {
+          .then(function () {
             return serviceInstance.services.session.localClient({
               username: testUser.username,
-              password: 'TEST PWD'
+              password: 'TEST PWD',
             });
           })
-          .then(function(clientInstance) {
+          .then(function (clientInstance) {
             testClient = clientInstance;
             done();
           })
@@ -134,34 +134,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       }
     );
 
-    it('checks we are able to access templates using {{user.username}}', function(done) {
+    it('checks we are able to access templates using {{user.username}}', function (done) {
       var username = 'TEST USER@blah.com' + test_id;
 
       testClient.on(
         '/gauges/' + username,
-        function(data) {
+        function (data) {
           test.expect(data.value).to.be(1);
           test.expect(data.gauge).to.be('logins');
           done();
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          testClient.increment('/gauges/' + username, 'logins', 1, function(e) {
+          testClient.increment('/gauges/' + username, 'logins', 1, function (e) {
             if (e) return done(e);
           });
         }
       );
     });
 
-    it('checks we are able to access templates using {{user.custom_data.custom_field1}}', function(done) {
+    it('checks we are able to access templates using {{user.custom_data.custom_field1}}', function (done) {
       testClient.set(
         '/custom/custom_field1_value',
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          testClient.get('/custom/custom_field1_value', function(e, data) {
+          testClient.get('/custom/custom_field1_value', function (e, data) {
             if (e) return done(e);
             test.expect(data.test).to.be('data');
             done();
@@ -170,20 +170,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('checks we are able to access templates using {{user.custom_data.custom_field2}}', function(done) {
+    it('checks we are able to access templates using {{user.custom_data.custom_field2}}', function (done) {
       testClient.on(
         '/custom/custom_field2_value',
-        function(data) {
+        function (data) {
           test.expect(data.test).to.be('data');
           done();
         },
-        function() {
+        function () {
           testClient.set(
             '/custom/custom_field2_value',
             {
-              test: 'data'
+              test: 'data',
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
             }
           );
@@ -191,36 +191,36 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('checks we are able to access an explicit permission', function(done) {
+    it('checks we are able to access an explicit permission', function (done) {
       var username = 'TEST USER@blah.com' + test_id;
 
       testClient.on(
         '/explicit/test/*',
-        function(data) {
+        function (data) {
           test.expect(data.value).to.be(1);
           done();
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          testClient.set('/explicit/test/' + username, 1, function(e) {
+          testClient.set('/explicit/test/' + username, 1, function (e) {
             if (e) return done(e);
           });
         }
       );
     });
 
-    it('checks we are not able to access unspecified paths', function(done) {
+    it('checks we are not able to access unspecified paths', function (done) {
       var username = 'TEST USER@blah.com' + test_id;
 
       testClient.on(
         '/not_allowed/test/*',
-        function() {
+        function () {
           done(new Error('untest.expected access granted'));
         },
-        function(e) {
+        function (e) {
           if (!e) return done(new Error('untest.expected access granted'));
           test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-          testClient.set('/not_allowed/test/' + username, 1, function(e) {
+          testClient.set('/not_allowed/test/' + username, 1, function (e) {
             if (!e) return done(new Error('untest.expected access granted'));
             test.expect(e.toString()).to.be('AccessDenied: unauthorized');
             done();
@@ -229,16 +229,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('checks we are not able to access via a template, due to an illegal promotion exploit (* in a {{property}} of the session context)', function(done) {
+    it('checks we are not able to access via a template, due to an illegal promotion exploit (* in a {{property}} of the session context)', function (done) {
       testClient.on(
         '/forbidden/*',
-        function() {
+        function () {
           done(new Error('untest.expected access granted'));
         },
-        function(e) {
+        function (e) {
           if (!e) return done(new Error('untest.expected access granted'));
           test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-          testClient.set('/forbidden/1', 1, function(e) {
+          testClient.set('/forbidden/1', 1, function (e) {
             if (!e) return done(new Error('untest.expected access granted'));
             test.expect(e.toString()).to.be('AccessDenied: unauthorized');
             test
@@ -252,32 +252,32 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('changes a custom property on the user - which should update the session, checks we are no longer able to access the path the permission relates to, but are able to access based on the new property', function(done) {
+    it('changes a custom property on the user - which should update the session, checks we are no longer able to access the path the permission relates to, but are able to access based on the new property', function (done) {
       testUser.custom_data.custom_field2 = 'custom_field2_changed';
-      serviceInstance.services.security.users.upsertUser(testUser, function(e) {
+      serviceInstance.services.security.users.upsertUser(testUser, function (e) {
         if (e) return done(e);
         testClient.on(
           '/custom/custom_field2_changed',
-          function(data) {
+          function (data) {
             test.expect(data.test).to.be('data');
             testClient.set(
               '/custom/custom_field2_value',
               {
-                test: 'data'
+                test: 'data',
               },
-              function(e) {
+              function (e) {
                 test.expect(e.toString()).to.be('AccessDenied: unauthorized');
                 done();
               }
             );
           },
-          function() {
+          function () {
             testClient.set(
               '/custom/custom_field2_changed',
               {
-                test: 'data'
+                test: 'data',
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
               }
             );
@@ -286,23 +286,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('removes a custom property from the user - which should update the session, checks we are no longer able to access the path the combination of permission and property value relate to', function(done) {
+    it('removes a custom property from the user - which should update the session, checks we are no longer able to access the path the combination of permission and property value relate to', function (done) {
       testClient.set(
         '/custom/custom_field1_value',
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           delete testUser.custom_data.custom_field1;
-          serviceInstance.services.security.users.upsertUser(testUser, function(e) {
+          serviceInstance.services.security.users.upsertUser(testUser, function (e) {
             if (e) return done(e);
             testClient.set(
               '/custom/custom_field1_value',
               {
-                test: 'data'
+                test: 'data',
               },
-              function(e) {
+              function (e) {
                 test.expect(e.toString()).to.be('AccessDenied: unauthorized');
                 done();
               }
@@ -312,25 +312,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('subscribes to a templated path, checks we receive messages, modifies the custom data related to the path, we ensure we are unable to get messages on the path anymore', function(done) {
+    it('subscribes to a templated path, checks we receive messages, modifies the custom data related to the path, we ensure we are unable to get messages on the path anymore', function (done) {
       this.timeout(10000);
       var receivedCount = 0;
       testClient.on(
         '/custom/custom_field3_value',
-        function() {
+        function () {
           receivedCount++;
           if (receivedCount === 2) return;
           testUser.custom_data.custom_field3 = 'custom_field3_changed';
-          serviceInstance.services.security.users.upsertUser(testUser, function(e) {
+          serviceInstance.services.security.users.upsertUser(testUser, function (e) {
             if (e) return done(e);
             adminClient.set(
               '/custom/custom_field3_value',
               {
-                test: 'data'
+                test: 'data',
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
-                setTimeout(function() {
+                setTimeout(function () {
                   test.expect(receivedCount).to.be(1);
                   done();
                 }, 2000);
@@ -338,14 +338,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
             );
           });
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           testClient.set(
             '/custom/custom_field3_value',
             {
-              test: 'data'
+              test: 'data',
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
             }
           );
@@ -353,25 +353,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('subscribes to a templated path, checks we receive messages, removes the permission from the users group, we ensure we are unable to get messages on the path anymore', function(done) {
+    it('subscribes to a templated path, checks we receive messages, removes the permission from the users group, we ensure we are unable to get messages on the path anymore', function (done) {
       this.timeout(10000);
       var receivedCount = 0;
       testClient.on(
         '/custom/custom_field4_value',
-        function() {
+        function () {
           receivedCount++;
           if (receivedCount === 2) return;
           serviceInstance.services.security.groups
             .removePermission(testGroup.name, '/custom/{{user.custom_data.custom_field4}}', 'on')
-            .then(function() {
+            .then(function () {
               adminClient.set(
                 '/custom/custom_field4_value',
                 {
-                  test: 'data'
+                  test: 'data',
                 },
-                function(e) {
+                function (e) {
                   if (e) return done(e);
-                  setTimeout(function() {
+                  setTimeout(function () {
                     test.expect(receivedCount).to.be(1);
                     done();
                   }, 2000);
@@ -379,14 +379,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               );
             });
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           testClient.set(
             '/custom/custom_field4_value',
             {
-              test: 'data'
+              test: 'data',
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
             }
           );
@@ -394,35 +394,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('removes a templated permission from the group, checks we are no longer able to access the path the permission relates to', function(done) {
+    it('removes a templated permission from the group, checks we are no longer able to access the path the permission relates to', function (done) {
       this.timeout(10000);
 
       testClient.on(
         '/custom/custom_field5_value',
-        function() {
+        function () {
           serviceInstance.services.security.groups
             .removePermission(testGroup.name, '/custom/{{user.custom_data.custom_field5}}', 'set')
-            .then(function() {
+            .then(function () {
               testClient.set(
                 '/custom/custom_field5_value',
                 {
-                  test: 'data'
+                  test: 'data',
                 },
-                function(e) {
+                function (e) {
                   test.expect(e.toString()).to.be('AccessDenied: unauthorized');
                   done();
                 }
               );
             });
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           testClient.set(
             '/custom/custom_field5_value',
             {
-              test: 'data'
+              test: 'data',
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
             }
           );

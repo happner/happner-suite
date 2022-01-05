@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(30000);
     const delay = require('await-delay');
     const request = require('request');
@@ -21,17 +19,17 @@ describe(
                 name: 'short-session',
                 session: {
                   'user.username': {
-                    $eq: 'user-short-session'
-                  }
+                    $eq: 'user-short-session',
+                  },
                 },
                 policy: {
-                  ttl: '2 seconds'
-                }
-              }
-            ]
-          }
-        }
-      }
+                  ttl: '2 seconds',
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     it('logs in with a stateless (web based) request, we revoke the token and ensure the revocation expires with the token ttl', async () => {
@@ -39,7 +37,7 @@ describe(
 
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
 
       const result = await doRequest(
@@ -54,7 +52,7 @@ describe(
       delete revocation.timestamp;
       expect(revocation).to.eql({
         reason: 'test reason',
-        ttl: 2000
+        ttl: 2000,
       });
       await delay(3000);
       let revocationCheckedAgain = await server.services.security.__cache_revoked_tokens.get(token);
@@ -66,35 +64,35 @@ describe(
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const client1 = await getClient({
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const clientsSessionEvents = {};
-      client1.onEvent('session-ended', evt => {
+      client1.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-1'] = evt;
       });
       const client2 = await getClient({
         username: 'user-short-session',
-        token: client1.session.token
+        token: client1.session.token,
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClient({
         username: 'user-short-session',
-        token: client1.session.token
+        token: client1.session.token,
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClient({
         username: 'user-short-session',
-        token: client1.session.token
+        token: client1.session.token,
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -103,17 +101,17 @@ describe(
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-1': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-4': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
       stopServer(server);
     });
@@ -129,7 +127,7 @@ describe(
 
     function getServer(config) {
       return new Promise((resolve, reject) => {
-        service.create(config, function(e, instance) {
+        service.create(config, function (e, instance) {
           if (e) return reject(e);
           resolve(instance);
         });
@@ -138,7 +136,7 @@ describe(
 
     function stopServer(server) {
       return new Promise((resolve, reject) => {
-        server.stop(e => {
+        server.stop((e) => {
           if (e) return reject(e);
           resolve();
         });
@@ -156,7 +154,7 @@ describe(
 
     function revokeToken(server, token) {
       return new Promise((resolve, reject) => {
-        server.services.security.revokeToken(token, 'test reason', e => {
+        server.services.security.revokeToken(token, 'test reason', (e) => {
           if (e) return reject(e);
           resolve();
         });
@@ -165,17 +163,17 @@ describe(
 
     function doRequest(path, body, token) {
       var options = {
-        url: 'http://127.0.0.1:55000' + path
+        url: 'http://127.0.0.1:55000' + path,
       };
 
       if (!token) options.url += '?happn_token=' + token;
 
       return new Promise((resolve, reject) => {
-        request(options, function(error, response, body) {
+        request(options, function (error, response, body) {
           if (error) return reject(error);
           resolve({
             response,
-            body
+            body,
           });
         });
       });

@@ -1,5 +1,5 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
-  context('stopping and starting meshes', function() {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
+  context('stopping and starting meshes', function () {
     var happn = require('../../../lib/index');
 
     var default_timeout = 10000;
@@ -7,46 +7,46 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     var persistKey = '/persistence_test/' + require('shortid').generate();
     var currentService = null;
 
-    var stopService = function(callback) {
+    var stopService = function (callback) {
       if (currentService) {
-        currentService.stop(function(e) {
+        currentService.stop(function (e) {
           if (e && e.toString() !== 'Error: Not running') return callback(e);
           callback();
         });
       } else callback();
     };
 
-    var initService = function(filename, name, callback) {
-      var doInitService = function() {
+    var initService = function (filename, name, callback) {
+      var doInitService = function () {
         var serviceConfig = {
           name: name,
           services: {
             data: {
               config: {
-                filename: filename
-              }
-            }
-          }
+                filename: filename,
+              },
+            },
+          },
         };
 
-        happn.service.create(serviceConfig, function(e, happnService) {
+        happn.service.create(serviceConfig, function (e, happnService) {
           if (e) return callback(e);
           currentService = happnService;
           callback();
         });
       };
 
-      stopService(function(e) {
+      stopService(function (e) {
         if (e) return callback(e);
         doInitService();
       });
     };
 
-    var getClient = function(service, callback) {
+    var getClient = function (service, callback) {
       currentService.services.session.localClient(callback);
     };
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       this.timeout(20000);
       initService(testDbFile, '5_eventemitter_stoppingstarting', callback);
     });
@@ -55,17 +55,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       await test.cleanup([], [currentService]);
     });
 
-    it('should push some data into a permanent datastore', function(callback) {
+    it('should push some data into a permanent datastore', function (callback) {
       this.timeout(default_timeout);
 
-      getClient(currentService, function(e, testclient) {
+      getClient(currentService, function (e, testclient) {
         if (e) return callback(e);
 
         testclient.set(
           persistKey,
           {
             property1: 'prop1',
-            prop2: 'prop2'
+            prop2: 'prop2',
           },
           null,
           callback
@@ -73,16 +73,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('should disconnect then reconnect and reverify the data', function(callback) {
+    it('should disconnect then reconnect and reverify the data', function (callback) {
       this.timeout(default_timeout);
 
-      initService(testDbFile, '5_eventemitter_stoppingstarting', function(e) {
+      initService(testDbFile, '5_eventemitter_stoppingstarting', function (e) {
         if (e) return callback(e);
 
-        getClient(currentService, function(e, testclient) {
+        getClient(currentService, function (e, testclient) {
           if (e) return callback(e);
 
-          testclient.get(persistKey, null, function(e, response) {
+          testclient.get(persistKey, null, function (e, response) {
             if (e) return callback(e);
 
             test.expect(response.property1).to.be('prop1');
@@ -92,16 +92,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('should create a memory server - check for the data - shouldnt be any', function(callback) {
+    it('should create a memory server - check for the data - shouldnt be any', function (callback) {
       this.timeout(default_timeout);
 
-      initService(null, '5_eventemitter_stoppingstarting', function(e) {
+      initService(null, '5_eventemitter_stoppingstarting', function (e) {
         if (e) return callback(e);
 
-        getClient(currentService, function(e, testclient) {
+        getClient(currentService, function (e, testclient) {
           if (e) return callback(e);
 
-          testclient.get(persistKey, null, function(e, response) {
+          testclient.get(persistKey, null, function (e, response) {
             if (e) return callback(e);
 
             test.expect(response).to.eql(null);
@@ -111,21 +111,21 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('should stop then start and verify the server name', function(callback) {
+    it('should stop then start and verify the server name', function (callback) {
       this.timeout(default_timeout);
-      initService(testDbFile, '5_eventemitter_stoppingstarting', function(e) {
+      initService(testDbFile, '5_eventemitter_stoppingstarting', function (e) {
         if (e) return callback(e);
 
         var currentPersistedServiceName = currentService.services.system.name;
         test.expect(currentPersistedServiceName).to.be('5_eventemitter_stoppingstarting');
 
-        initService(null, null, function() {
+        initService(null, null, function () {
           var currentUnpersistedServiceName = currentService.services.system.name;
           test.expect(currentUnpersistedServiceName).to.not.be('5_eventemitter_stoppingstarting');
           test.expect(currentUnpersistedServiceName).to.not.be(null);
           test.expect(currentUnpersistedServiceName).to.not.be(undefined);
 
-          initService(testDbFile, null, function(e) {
+          initService(testDbFile, null, function (e) {
             if (e) return callback(e);
 
             var currentPersistedRestartedServiceName = currentService.services.system.name;

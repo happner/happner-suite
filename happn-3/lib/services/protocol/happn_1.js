@@ -15,7 +15,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
   }
 
   initialize() {
-    this.happn.services.session.on('client-disconnect', sessionId => {
+    this.happn.services.session.on('client-disconnect', (sessionId) => {
       //clear our reference cache
       delete this.__subscriptionMappingsReferenceId[sessionId];
       delete this.__subscriptionMappingsListenerId[sessionId];
@@ -38,9 +38,10 @@ class ProtocolHappn1 extends BaseHappnProtocol {
       ) {
         if (this.__subscriptionMappingsReferenceId[message.request.sessionId])
           //may be a full disconnect
-          message.request.options.referenceId = this.__subscriptionMappingsReferenceId[
-            message.request.sessionId
-          ][message.request.options.refCount];
+          message.request.options.referenceId =
+            this.__subscriptionMappingsReferenceId[message.request.sessionId][
+              message.request.options.refCount
+            ];
       }
       if (
         message.request.action === 'set' &&
@@ -62,11 +63,11 @@ class ProtocolHappn1 extends BaseHappnProtocol {
 
       message.response = {
         _meta: {
-          type: 'system'
+          type: 'system',
         },
         eventKey: 'server-side-disconnect',
         data: options.reason,
-        reconnect: options.reconnect
+        reconnect: options.reconnect,
       };
     }
 
@@ -86,7 +87,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
 
         var publication = {
           _meta: {},
-          data: itemData
+          data: itemData,
         };
 
         var initialMessage = {
@@ -100,26 +101,26 @@ class ProtocolHappn1 extends BaseHappnProtocol {
                 action: requestParts[0].replace('/', ''),
                 session: {
                   protocol: this.protocolVersion,
-                  id: session.id
+                  id: session.id,
                 },
-                path: requestParts[1]
-              }
-            }
+                path: requestParts[1],
+              },
+            },
           ],
           options: {
-            consistency: CONSTANTS.CONSISTENCY.TRANSACTIONAL
-          }
+            consistency: CONSTANTS.CONSISTENCY.TRANSACTIONAL,
+          },
         };
 
         this.happn.services.publisher.processPublish(initialMessage, itemDataCallback);
       },
-      e => {
+      (e) => {
         if (e)
           return this.happn.services.error.handleSystem(
             new Error('processInitialEmit failed', e),
             'PublisherService',
             CONSTANTS.ERROR_SEVERITY.MEDIUM,
-            function(e) {
+            function (e) {
               callback(e, message);
             }
           );
@@ -137,7 +138,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
     if (_this.__subscriptionMappingsListenerId[sessionId]) {
       //dont do anything if we are off * or path
 
-      references.forEach(function(reference) {
+      references.forEach(function (reference) {
         var refCount = _this.__subscriptionMappingsListenerId[sessionId][reference.id];
 
         delete _this.__subscriptionMappingsListenerId[sessionId][reference.id];
@@ -181,7 +182,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
         request.options.refCount;
 
       if (request.options.initialEmit && transformedData.length > 0) {
-        this.__initialEmit(message, transformedData, e => {
+        this.__initialEmit(message, transformedData, (e) => {
           if (e)
             return this.happn.services.error.handleSystem(
               new Error('initialEmit failed', e),
@@ -205,7 +206,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
 
     if (response == null)
       response = {
-        data: null
+        data: null,
       };
     else {
       if (response._meta) _meta = response._meta;
@@ -237,7 +238,7 @@ class ProtocolHappn1 extends BaseHappnProtocol {
       else response._meta.error.name = e.name;
 
       if (typeof e === 'object') {
-        Object.keys(e).forEach(function(key) {
+        Object.keys(e).forEach(function (key) {
           response._meta.error[key] = e[key];
         });
 

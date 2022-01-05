@@ -1,9 +1,9 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function (test) {
   let happnInstance = null;
   let publisherclient;
   let listenerclient;
 
-  ['websockets', 'eventemitter'].forEach(clientType => {
+  ['websockets', 'eventemitter'].forEach((clientType) => {
     context(`client type: ${clientType}`, () => {
       before('should initialize the service', async () => {
         happnInstance = await test.createInstance();
@@ -31,20 +31,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       var test_path_created_modified_update = `/test/meta/test_path_created_modified_update/${testId}`;
       var test_path_created_modified_update_notmerge = `/test/meta/test_path_created_modified_update_notmerge/${testId}`;
 
-      it('tests the set meta data', function(callback) {
+      it('tests the set meta data', function (callback) {
         try {
           //first listen for the change
           listenerclient.on(
             test_path,
             {
               event_type: 'set',
-              count: 1
+              count: 1,
             },
-            function(data, meta) {
+            function (data, meta) {
               test.expect(meta.path).to.be(test_path);
               callback();
             },
-            function(e) {
+            function (e) {
               if (!e) {
                 test.expect(listenerclient.state.events['/SET@' + test_path].length).to.be(1);
 
@@ -54,10 +54,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function(e, result) {
+                  function (e, result) {
                     if (e) return callback(e);
                     test.expect(result._meta.path).to.be(test_path);
                   }
@@ -70,16 +70,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         }
       });
 
-      it('tests the update meta data', function(callback) {
+      it('tests the update meta data', function (callback) {
         publisherclient.set(
           test_path,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.path).to.be(test_path);
@@ -89,16 +89,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         );
       });
 
-      it('tests the delete meta data', function(callback) {
+      it('tests the delete meta data', function (callback) {
         publisherclient.set(
           test_path_remove,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.path).to.be(test_path_remove);
@@ -107,16 +107,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
               test_path_remove,
               {
                 event_type: 'remove',
-                count: 1
+                count: 1,
               },
-              function(data, meta) {
+              function (data, meta) {
                 test.expect(meta.path).to.be(test_path_remove);
                 callback();
               },
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
 
-                publisherclient.remove(test_path_remove, {}, function(e, result) {
+                publisherclient.remove(test_path_remove, {}, function (e, result) {
                   if (e) return callback(e);
                   test.expect(result._meta.path).to.be(test_path_remove);
                 });
@@ -126,16 +126,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         );
       });
 
-      it('tests created and modified dates, merge', function(callback) {
+      it('tests created and modified dates, merge', function (callback) {
         publisherclient.set(
           test_path_created_modified,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.created).to.not.be(null);
@@ -146,19 +146,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
             test.expect(result._meta.modified.toString()).to.be(result._meta.created.toString());
 
-            setTimeout(function() {
+            setTimeout(function () {
               publisherclient.set(
                 test_path_created_modified,
                 {
-                  property4: 'property4'
+                  property4: 'property4',
                 },
                 {
-                  merge: true
+                  merge: true,
                 },
-                function(e /*, result*/) {
+                function (e /*, result*/) {
                   if (e) return callback(e);
 
-                  publisherclient.get(test_path_created_modified, function(e, result) {
+                  publisherclient.get(test_path_created_modified, function (e, result) {
                     test.expect(result._meta.modified > result._meta.created).to.be(true);
                     callback();
                   });
@@ -169,16 +169,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         );
       });
 
-      it('tests created and modified dates, not merge', function(callback) {
+      it('tests created and modified dates, not merge', function (callback) {
         publisherclient.set(
           test_path_created_modified_notmerge,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.created).to.not.be(null);
@@ -189,17 +189,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
             test.expect(result._meta.modified.toString()).to.be(result._meta.created.toString());
 
-            setTimeout(function() {
+            setTimeout(function () {
               publisherclient.set(
                 test_path_created_modified_notmerge,
                 {
-                  property4: 'property4'
+                  property4: 'property4',
                 },
                 {},
-                function(e /*, result*/) {
+                function (e /*, result*/) {
                   if (e) return callback(e);
 
-                  publisherclient.get(test_path_created_modified_notmerge, function(e, result) {
+                  publisherclient.get(test_path_created_modified_notmerge, function (e, result) {
                     test.expect(result._meta.modified > result._meta.created).to.be(true);
                     callback();
                   });
@@ -210,16 +210,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         );
       });
 
-      it('tests created and modified dates for an update, merge', function(callback) {
+      it('tests created and modified dates for an update, merge', function (callback) {
         publisherclient.set(
           test_path_created_modified_update,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.created).to.not.be(null);
@@ -235,16 +235,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
             var firstCreated = result._meta.created;
 
-            setTimeout(function() {
+            setTimeout(function () {
               publisherclient.set(
                 test_path_created_modified_update,
                 {
-                  property4: 'property4'
+                  property4: 'property4',
                 },
                 {
-                  merge: true
+                  merge: true,
                 },
-                function(e, result) {
+                function (e, result) {
                   if (e) return callback(e);
 
                   test.expect(result._meta.created.toString()).to.be(firstCreated.toString());
@@ -258,7 +258,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
                   test.expect(result._meta.path).to.not.be(null);
                   test.expect(result._meta.path).to.not.be(undefined);
 
-                  publisherclient.get(test_path_created_modified_update, function(e, result) {
+                  publisherclient.get(test_path_created_modified_update, function (e, result) {
                     test.expect(result._meta.created).to.not.be(null);
                     test.expect(result._meta.created).to.not.be(undefined);
 
@@ -278,16 +278,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         );
       });
 
-      it('tests created and modified dates for an update, not merge', function(callback) {
+      it('tests created and modified dates for an update, not merge', function (callback) {
         publisherclient.set(
           test_path_created_modified_update_notmerge,
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result._meta.created).to.not.be(null);
@@ -303,14 +303,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
             test.expect(result._meta.modified.toString()).to.be(result._meta.created.toString());
 
-            setTimeout(function() {
+            setTimeout(function () {
               publisherclient.set(
                 test_path_created_modified_update_notmerge,
                 {
-                  property4: 'property4'
+                  property4: 'property4',
                 },
                 {},
-                function(e, updateResult) {
+                function (e, updateResult) {
                   if (e) return callback(e);
 
                   test.expect(updateResult._meta.created).to.not.be(null);
@@ -324,22 +324,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
                   test.expect(updateResult._meta.created.toString()).to.be(firstCreated.toString());
 
-                  publisherclient.get(test_path_created_modified_update_notmerge, function(
-                    e,
-                    result
-                  ) {
-                    test.expect(result._meta.created).to.not.be(null);
-                    test.expect(result._meta.created).to.not.be(undefined);
+                  publisherclient.get(
+                    test_path_created_modified_update_notmerge,
+                    function (e, result) {
+                      test.expect(result._meta.created).to.not.be(null);
+                      test.expect(result._meta.created).to.not.be(undefined);
 
-                    test.expect(result._meta.modified).to.not.be(null);
-                    test.expect(result._meta.modified).to.not.be(undefined);
+                      test.expect(result._meta.modified).to.not.be(null);
+                      test.expect(result._meta.modified).to.not.be(undefined);
 
-                    test.expect(result._meta.path).to.not.be(null);
-                    test.expect(result._meta.path).to.not.be(undefined);
+                      test.expect(result._meta.path).to.not.be(null);
+                      test.expect(result._meta.path).to.not.be(undefined);
 
-                    test.expect(result._meta.modified > result._meta.created).to.be(true);
-                    callback();
-                  });
+                      test.expect(result._meta.modified > result._meta.created).to.be(true);
+                      callback();
+                    }
+                  );
                 }
               );
             }, 1000);
@@ -355,19 +355,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         const insertMultiple = new Promise((resolve, reject) => {
           test.async.eachSeries(
             itemIndexes,
-            function(index, eachCallback) {
+            function (index, eachCallback) {
               publisherclient.set(
                 `${testPath}/${index}`,
                 {
                   property4: 'property4',
-                  ind: index
+                  ind: index,
                 },
                 () => {
                   setTimeout(eachCallback, 10);
                 }
               );
             },
-            function(e) {
+            function (e) {
               if (e) return reject(e);
               resolve();
             }
@@ -378,7 +378,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         const windowEnd = Date.now();
         await publisherclient.set(`${testPath}/10`, {
           property4: 'property4',
-          ind: 10
+          ind: 10,
         });
 
         let items = await publisherclient.get(`${testPath}/*`, {
@@ -386,25 +386,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
             $and: [
               {
                 '_meta.created': {
-                  $gte: windowStart
-                }
+                  $gte: windowStart,
+                },
               },
               {
                 '_meta.created': {
-                  $lt: windowEnd
-                }
-              }
-            ]
-          }
+                  $lt: windowEnd,
+                },
+              },
+            ],
+          },
         });
         test.expect(items.length === 10).to.be(true);
 
         items = await publisherclient.get(`${testPath}/*`, {
           criteria: {
             '_meta.created': {
-              $gte: windowEnd
-            }
-          }
+              $gte: windowEnd,
+            },
+          },
         });
 
         test.expect(items.length === 1).to.be(true);
@@ -419,19 +419,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         const insertMultiple = new Promise((resolve, reject) => {
           test.async.eachSeries(
             itemIndexes,
-            function(index, eachCallback) {
+            function (index, eachCallback) {
               publisherclient.set(
                 `${testPath}/${index}`,
                 {
                   property4: 'property4',
-                  ind: index
+                  ind: index,
                 },
                 () => {
                   setTimeout(eachCallback, 10);
                 }
               );
             },
-            function(e) {
+            function (e) {
               if (e) return reject(e);
               resolve();
             }
@@ -443,7 +443,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         await test.delay(10);
         await publisherclient.set(`${testPath}/10`, {
           property4: 'property4',
-          ind: 10
+          ind: 10,
         });
 
         let items = await publisherclient.getCreatedBetween(
@@ -456,9 +456,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         items = await publisherclient.get(`${testPath}/*`, {
           criteria: {
             '_meta.created': {
-              $gte: windowEnd
-            }
-          }
+              $gte: windowEnd,
+            },
+          },
         });
 
         test.expect(items.length === 1).to.be(true);
@@ -485,20 +485,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
           .to.eql([
             'to is null or not a timestamp',
             'from is null or not a timestamp',
-            'handler is null or not a function'
+            'handler is null or not a function',
           ]);
       });
 
-      it('tests the all meta data', function(callback) {
+      it('tests the all meta data', function (callback) {
         try {
           //first listen for the change
           listenerclient.onAll(
-            function(_data, meta) {
+            function (_data, meta) {
               test.expect(meta.path).to.be(test_path_all);
               test.expect(meta.channel).to.be('/ALL@*');
               listenerclient.offAll(callback);
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
 
               //then make the change
@@ -507,10 +507,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e, result) {
+                function (e, result) {
                   if (e) return callback(e);
 
                   test.expect(result._meta.path).to.be(test_path_all);

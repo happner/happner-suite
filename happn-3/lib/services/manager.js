@@ -3,7 +3,7 @@ const async = commons.async;
 const util = commons.utils;
 function ServiceManager() {}
 
-ServiceManager.prototype.initialize = function(config, happn, callback) {
+ServiceManager.prototype.initialize = function (config, happn, callback) {
   this.happn = happn;
 
   if (!config.services) config.services = {};
@@ -14,7 +14,7 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
 
   if (config.name) config.services.system.config.name = config.name;
 
-  var loadService = function(serviceName, serviceLoaded) {
+  var loadService = function (serviceName, serviceLoaded) {
     happn.log.$$TRACE('loadService( ' + serviceName);
 
     if (!config.services[serviceName]) config.services[serviceName] = {};
@@ -43,7 +43,7 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
       try {
         ServiceDefinition = require(serviceConfig.path);
         serviceInstance = new ServiceDefinition({
-          logger: happn.log
+          logger: happn.log,
         });
       } catch (e) {
         return doServiceLoaded(e);
@@ -65,12 +65,12 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
 
   var _this = this;
 
-  var initializeServices = function(e, serviceNames) {
+  var initializeServices = function (e, serviceNames) {
     if (e) return callback(e);
 
     async.eachSeries(
       serviceNames,
-      function(serviceName, serviceInstanceCB) {
+      function (serviceName, serviceInstanceCB) {
         var serviceInstance = _this.happn.services[serviceName];
 
         if (typeof serviceInstance.initialize === 'function') {
@@ -103,26 +103,26 @@ ServiceManager.prototype.initialize = function(config, happn, callback) {
     'security',
     'subscription',
     'publisher',
-    'stats'
+    'stats',
   ];
 
   //these are supplementary services defiend in app-land, will always start after system services
   var appServices = [];
 
-  Object.keys(config.services).forEach(function(serviceName) {
+  Object.keys(config.services).forEach(function (serviceName) {
     if (systemServices.indexOf(serviceName) === -1) appServices.push(serviceName);
   });
 
-  async.eachSeries(systemServices, loadService, function(e) {
+  async.eachSeries(systemServices, loadService, function (e) {
     if (e) return callback(e);
 
-    async.eachSeries(appServices, loadService, function(e) {
+    async.eachSeries(appServices, loadService, function (e) {
       initializeServices(e, _this.__loaded); //so that circular dependancies can be met
     });
   });
 };
 
-ServiceManager.prototype.stop = util.maybePromisify(function(options, callback) {
+ServiceManager.prototype.stop = util.maybePromisify(function (options, callback) {
   var _this = this;
 
   if (typeof options === 'function') {
@@ -132,12 +132,12 @@ ServiceManager.prototype.stop = util.maybePromisify(function(options, callback) 
 
   if (options.kill && !options.wait) options.wait = 10000;
 
-  var kill = function() {
+  var kill = function () {
     process.exit(options.exitCode || 1);
   };
 
   if (options.kill) {
-    setTimeout(function() {
+    setTimeout(function () {
       _this.happn.services.log.error('failed to stop happn, force true');
       kill();
     }, options.wait);
@@ -147,7 +147,7 @@ ServiceManager.prototype.stop = util.maybePromisify(function(options, callback) 
   async.eachSeries(
     _this.__loaded.reverse(),
 
-    function(serviceName, stopServiceCB) {
+    function (serviceName, stopServiceCB) {
       var serviceInstance = _this.happn.services[serviceName];
 
       if (serviceInstance.stop) serviceInstance.stop(options, stopServiceCB);

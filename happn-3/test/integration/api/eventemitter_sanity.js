@@ -1,5 +1,5 @@
 let test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   var happn = require('../../../lib/index');
   var service = happn.service;
   var async = require('async');
@@ -10,9 +10,9 @@ describe(test.testName(__filename, 3), function() {
   this.timeout(120000);
   var config = {};
 
-  before('should initialize the service', function(callback) {
+  before('should initialize the service', function (callback) {
     test_id = Date.now() + '_' + require('shortid').generate();
-    service.create(config, function(e, happnInst) {
+    service.create(config, function (e, happnInst) {
       if (e) return callback(e);
 
       happnInstance = happnInst;
@@ -20,7 +20,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  after(function(done) {
+  after(function (done) {
     happnInstance.stop({}, done);
   });
 
@@ -31,13 +31,13 @@ describe(test.testName(__filename, 3), function() {
    We are initializing 2 clients to test saving data against the database, one client will push data into the
    database whilst another listens for changes.
    */
-  before('should initialize the clients', function(callback) {
+  before('should initialize the clients', function (callback) {
     try {
-      happnInstance.services.session.localClient(function(e, instance) {
+      happnInstance.services.session.localClient(function (e, instance) {
         if (e) return callback(e);
         publisherclient = instance;
 
-        happnInstance.services.session.localClient(function(e, instance) {
+        happnInstance.services.session.localClient(function (e, instance) {
           if (e) return callback(e);
           listenerclient = instance;
 
@@ -56,10 +56,10 @@ describe(test.testName(__filename, 3), function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {
-        noPublish: true
+        noPublish: true,
       }
     );
     const retrieved = await publisherclient.get(path);
@@ -76,7 +76,7 @@ describe(test.testName(__filename, 3), function() {
       onPath,
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
       (data, meta) => {
         eventData.push({ data, meta });
@@ -85,7 +85,7 @@ describe(test.testName(__filename, 3), function() {
     await publisherclient.set(setPath, {
       property1: 'property1',
       property2: 'property2',
-      property3: 'property3'
+      property3: 'property3',
     });
     await test.delay(2000);
     test.expect(eventData[0].data.property1).to.be('property1');
@@ -102,26 +102,26 @@ describe(test.testName(__filename, 3), function() {
     await publisherclient.set(setPath, {
       property1: 'property1',
       property2: 'property2',
-      property3: 'property3'
+      property3: 'property3',
     });
     await test.delay(2000);
     test.expect(eventData[0].data.property1).to.be('property1');
     test.expect(eventData[0].meta.path).to.be(setPath);
   });
 
-  it('the uses the onPublished event handler', function(callback) {
+  it('the uses the onPublished event handler', function (callback) {
     let basePath = `/1_eventemitter_embedded_sanity/${test_id}/testsubscribe/data/onPublished`;
     let onPath = `${basePath}/*`;
     let setPath = `${basePath}/${test.shortid()}`;
     listenerclient
       .on(onPath, {
-        onPublished: function(message, meta) {
+        onPublished: function (message, meta) {
           test.expect(message.property1).to.be('property1');
           test.expect(meta.created <= Date.now()).to.be(true);
           callback();
-        }
+        },
       })
-      .then(function(eventId) {
+      .then(function (eventId) {
         test.expect(eventId >= 0).to.be(true);
         test.expect(listenerclient.state.events[`/ALL@${onPath}`].length).to.be(1);
         publisherclient.set(
@@ -129,10 +129,10 @@ describe(test.testName(__filename, 3), function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             if (e) return callback(e);
           }
         );
@@ -140,8 +140,8 @@ describe(test.testName(__filename, 3), function() {
       .catch(callback);
   });
 
-  it('the publisher should get null for unfound data, exact path', function(callback) {
-    publisherclient.get(`${test.shortid()}`, null, function(e, results) {
+  it('the publisher should get null for unfound data, exact path', function (callback) {
+    publisherclient.get(`${test.shortid()}`, null, function (e, results) {
       test.expect(e).to.be(null);
       test.expect(results).to.be(null);
       callback(e);
@@ -153,32 +153,32 @@ describe(test.testName(__filename, 3), function() {
     test.expect(results.length).to.be(0);
   });
 
-  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function(callback) {
+  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function (callback) {
     const timesCount = 10;
     const testBasePath = `/1_eventemitter_embedded_sanity/${test.shortid()}/set_multiple`;
     async.times(
       timesCount,
-      function(count, timesCallback) {
+      function (count, timesCallback) {
         publisherclient.set(
           `${testBasePath}/${test.shortid()}`,
           {
             property1: 'property1',
             property2: 'property2',
             property3: 'property3',
-            count
+            count,
           },
           {
-            noPublish: true
+            noPublish: true,
           },
           timesCallback
         );
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
-        listenerclient.get(testBasePath + '/' + '*', null, function(e, results) {
+        listenerclient.get(testBasePath + '/' + '*', null, function (e, results) {
           if (e) return callback(e);
           test.expect(results.length).to.be(timesCount);
-          results.every(function(result) {
+          results.every(function (result) {
             test.expect(result.property1).to.be('property1');
             test.expect(result._meta.path.indexOf(testBasePath) === 0).to.be(true);
             return true;
@@ -189,7 +189,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
+  it('should set data, and then merge a new document into the data without overwriting old fields', function (callback) {
     const testPath = `/1_eventemitter_embedded_sanity/${test_id}/testsubscribe/data/merge/${test.shortid()}`;
 
     publisherclient.set(
@@ -198,25 +198,25 @@ describe(test.testName(__filename, 3), function() {
         property1: 'property1',
         property2: 'property2',
         property3: 'property3',
-        property5: 'property5'
+        property5: 'property5',
       },
       null,
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set(
           testPath,
           {
             property4: 'property4',
-            property5: 'property5-new'
+            property5: 'property5-new',
           },
           {
-            merge: true
+            merge: true,
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            publisherclient.get(testPath, null, function(e, results) {
+            publisherclient.get(testPath, null, function (e, results) {
               if (e) return callback(e);
 
               test.expect(results.property4).to.be('property4');
@@ -231,7 +231,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should set data, and then merge a new document into the data without mutating the input object', function(callback) {
+  it('should set data, and then merge a new document into the data without mutating the input object', function (callback) {
     try {
       const testPath = `/1_eventemitter_embedded_sanity/${test_id}/testsubscribe/data/merge/${test.shortid()}`;
       publisherclient.set(
@@ -239,19 +239,19 @@ describe(test.testName(__filename, 3), function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           var mergeObject = { data: { property4: 'property4' } };
           publisherclient.set(
             testPath,
             mergeObject.data,
             {
-              merge: true
+              merge: true,
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
               test.expect(mergeObject.data).to.eql({ property4: 'property4' });
               callback();
@@ -264,10 +264,10 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('should contain the same payload between 2 non-merging consecutive stores', function(done) {
+  it('should contain the same payload between 2 non-merging consecutive stores', function (done) {
     var object = {
       param1: 10,
-      param2: 20
+      param2: 20,
     };
     var firstTimeNonMergeConsecutive;
 
@@ -275,9 +275,9 @@ describe(test.testName(__filename, 3), function() {
       'setTest/nonMergeConsecutive',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function(message) {
+      function (message) {
         if (firstTimeNonMergeConsecutive === undefined) {
           firstTimeNonMergeConsecutive = message;
         } else {
@@ -285,11 +285,11 @@ describe(test.testName(__filename, 3), function() {
           done();
         }
       },
-      function(err) {
+      function (err) {
         if (err) return done(err);
-        publisherclient.set('setTest/nonMergeConsecutive', object, {}, function(err) {
+        publisherclient.set('setTest/nonMergeConsecutive', object, {}, function (err) {
           test.expect(err).to.not.be.ok();
-          publisherclient.set('setTest/nonMergeConsecutive', object, {}, function(err) {
+          publisherclient.set('setTest/nonMergeConsecutive', object, {}, function (err) {
             test.expect(err).to.not.be.ok();
           });
         });
@@ -297,12 +297,12 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should contain the same payload between a merge and a normal store for first store', function(done) {
+  it('should contain the same payload between a merge and a normal store for first store', function (done) {
     this.timeout(5000);
 
     var object = {
       param1: 10,
-      param2: 20
+      param2: 20,
     };
 
     var firstTime = true;
@@ -311,9 +311,9 @@ describe(test.testName(__filename, 3), function() {
       'mergeTest/object',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function(message) {
+      function (message) {
         if (firstTime) {
           firstTime = false;
           return;
@@ -324,23 +324,23 @@ describe(test.testName(__filename, 3), function() {
           done();
         }, 2000);
       },
-      function(err) {
+      function (err) {
         test.expect(err).to.not.be.ok();
         publisherclient.set(
           'mergeTest/object',
           object,
           {
-            merge: true
+            merge: true,
           },
-          function(err) {
+          function (err) {
             test.expect(err).to.not.be.ok();
             publisherclient.set(
               'mergeTest/object',
               object,
               {
-                merge: true
+                merge: true,
               },
-              function(err) {
+              function (err) {
                 test.expect(err).to.not.be.ok();
               }
             );
@@ -357,38 +357,38 @@ describe(test.testName(__filename, 3), function() {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var criteria1 = {
       $or: [
         {
           regions: {
-            $containsAny: ['North', 'South', 'East', 'West']
-          }
+            $containsAny: ['North', 'South', 'East', 'West'],
+          },
         },
         {
           towns: {
-            $containsAny: ['North.Cape Town', 'South.East London']
-          }
+            $containsAny: ['North.Cape Town', 'South.East London'],
+          },
         },
         {
           categories: {
-            $containsAny: ['Action', 'History']
-          }
-        }
+            $containsAny: ['Action', 'History'],
+          },
+        },
       ],
       keywords: {
-        $containsAny: ['bass', 'Penny Siopis']
+        $containsAny: ['bass', 'Penny Siopis'],
       },
-      field1: { $in: ['field1'] }
+      field1: { $in: ['field1'] },
     };
 
     var options1 = {
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
@@ -396,12 +396,12 @@ describe(test.testName(__filename, 3), function() {
     var options2 = {
       fields: {
         towns: 1,
-        keywords: 1
+        keywords: 1,
       },
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 2
+      limit: 2,
     };
 
     const basePath = `complex/search`;
@@ -413,19 +413,19 @@ describe(test.testName(__filename, 3), function() {
 
     const result1 = await publisherclient.get('complex/search/*', {
       criteria: criteria1,
-      options: options1
+      options: options1,
     });
 
     const result2 = await publisherclient.get('complex/search/*', {
       criteria: criteria2,
-      options: options2
+      options: options2,
     });
 
     test.expect(result1.length === 1).to.be(true);
     test.expect(result2.length === 2).to.be(true);
   });
 
-  it('should search for a complex object - $or in more detail', function(callback) {
+  it('should search for a complex object - $or in more detail', function (callback) {
     const count = 100;
 
     async.timesSeries(
@@ -435,54 +435,54 @@ describe(test.testName(__filename, 3), function() {
         publisherclient.set(
           path,
           {
-            time: time
+            time: time,
           },
           null,
           timeCb
         );
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
 
         const criteria = {
           $or: [
             {
               '_meta.path': {
-                $regex: '.*detail-or/10/.*'
-              }
+                $regex: '.*detail-or/10/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/20/.*'
-              }
+                $regex: '.*detail-or/20/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/30/.*'
-              }
+                $regex: '.*detail-or/30/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/40/.*'
-              }
-            }
-          ]
+                $regex: '.*detail-or/40/.*',
+              },
+            },
+          ],
         };
 
         const options = {
           sort: {
-            field1: 1
+            field1: 1,
           },
-          limit: 10
+          limit: 10,
         };
 
         listenerclient.get(
           `/1_eventemitter_embedded_sanity/${test_id}/testsubscribe/data/detail-or/*`,
           {
             criteria,
-            options
+            options,
           },
-          function(e, search_result) {
+          function (e, search_result) {
             if (e) return callback(e);
             test.expect(search_result.length).to.be(4);
             callback(e);
@@ -492,7 +492,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should search for a complex object - $or in more detail - not $regex', function(callback) {
+  it('should search for a complex object - $or in more detail - not $regex', function (callback) {
     const count = 100;
 
     async.timesSeries(
@@ -502,46 +502,46 @@ describe(test.testName(__filename, 3), function() {
         publisherclient.set(
           path,
           {
-            time: time
+            time: time,
           },
           null,
           timeCb
         );
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
 
         const criteria = {
           $or: [
             {
-              time: 10
+              time: 10,
             },
             {
-              time: 20
+              time: 20,
             },
             {
-              time: 30
+              time: 30,
             },
             {
-              time: 40
-            }
-          ]
+              time: 40,
+            },
+          ],
         };
 
         const options = {
           sort: {
-            field1: 1
+            field1: 1,
           },
-          limit: 10
+          limit: 10,
         };
 
         listenerclient.get(
           `/1_eventemitter_embedded_sanity/${test_id}/testsubscribe/data/detail-or-no-regex/*`,
           {
             criteria,
-            options
+            options,
           },
-          function(e, search_result) {
+          function (e, search_result) {
             if (e) return callback(e);
             test.expect(search_result.length).to.be(4);
             callback(e);
@@ -551,7 +551,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should search for a complex object by dates', function(callback) {
+  it('should search for a complex object by dates', function (callback) {
     var test_path_end = require('shortid').generate();
 
     var complex_obj = {
@@ -560,7 +560,7 @@ describe(test.testName(__filename, 3), function() {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var from = Date.now();
@@ -570,25 +570,25 @@ describe(test.testName(__filename, 3), function() {
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
 
-        setTimeout(function() {
+        setTimeout(function () {
           to = Date.now();
 
           var criteria = {
             '_meta.created': {
               $gte: from,
-              $lte: to
-            }
+              $lte: to,
+            },
           };
 
           var options = {
             fields: null,
             sort: {
-              field1: 1
+              field1: 1,
             },
-            limit: 2
+            limit: 2,
           };
 
           ////////////console.log('searching');
@@ -596,9 +596,9 @@ describe(test.testName(__filename, 3), function() {
             '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex*',
             {
               criteria: criteria,
-              options: options
+              options: options,
             },
-            function(e, search_result) {
+            function (e, search_result) {
               test.expect(e == null).to.be(true);
 
               if (search_result.length === 0) {
@@ -607,7 +607,7 @@ describe(test.testName(__filename, 3), function() {
                     test_id +
                     '/testsubscribe/data/complex/' +
                     test_path_end,
-                  function() {
+                  function () {
                     callback(new Error('no items found in the date range'));
                   }
                 );
@@ -617,7 +617,7 @@ describe(test.testName(__filename, 3), function() {
                     test_id +
                     '/testsubscribe/data/complex/' +
                     test_path_end,
-                  function() {
+                  function () {
                     callback();
                   }
                 );
@@ -636,17 +636,17 @@ describe(test.testName(__filename, 3), function() {
     await publisherclient.set(
       removePath,
       {
-        please: 'remove me'
+        please: 'remove me',
       },
       {
-        noPublish: true
+        noPublish: true,
       }
     );
 
     test.expect((await listenerclient.get(findPath)).length).to.be(1);
 
     const result = await publisherclient.remove(removePath, {
-      noPublish: true
+      noPublish: true,
     });
 
     test.expect(result._meta.status).to.be('ok');
@@ -660,26 +660,26 @@ describe(test.testName(__filename, 3), function() {
     await publisherclient.set(
       `${basePath}/1`,
       {
-        please: 'remove me'
+        please: 'remove me',
       },
       {
-        noPublish: true
+        noPublish: true,
       }
     );
     await publisherclient.set(
       `${basePath}/2`,
       {
-        please: 'remove me too'
+        please: 'remove me too',
       },
       {
-        noPublish: true
+        noPublish: true,
       }
     );
 
     test.expect((await listenerclient.get(removePath)).length).to.be(2);
 
     const result = await publisherclient.remove(removePath, {
-      noPublish: true
+      noPublish: true,
     });
 
     test.expect(result._meta.status).to.be('ok');
@@ -687,7 +687,7 @@ describe(test.testName(__filename, 3), function() {
     test.expect((await listenerclient.get(removePath)).length).to.be(0);
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = require('shortid').generate();
 
@@ -696,12 +696,12 @@ describe(test.testName(__filename, 3), function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e).to.be(null);
 
           publisherclient.set(
@@ -710,12 +710,12 @@ describe(test.testName(__filename, 3), function() {
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              noPublish: true
+              noPublish: true,
             },
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e).to.be(null);
               test.expect(updateResult._meta.id === insertResult._meta.id).to.be(true);
               callback();
@@ -728,16 +728,16 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       listenerclient.on(
         '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
-          setTimeout(function() {
+        function () {
+          setTimeout(function () {
             test
               .expect(
                 listenerclient.state.events[
@@ -748,7 +748,7 @@ describe(test.testName(__filename, 3), function() {
             callback();
           }, 2000);
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -762,10 +762,10 @@ describe(test.testName(__filename, 3), function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {
+              function () {
                 // do nothing
               }
             );
@@ -777,7 +777,7 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     try {
       var test_path_end = require('shortid').generate();
 
@@ -786,15 +786,15 @@ describe(test.testName(__filename, 3), function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (!e) {
             publisherclient.get(
               '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
               null,
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
 
                 if (mode !== 'embedded')
@@ -813,7 +813,7 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = require('shortid').generate();
 
@@ -822,10 +822,10 @@ describe(test.testName(__filename, 3), function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e == null).to.be(true);
 
           publisherclient.set(
@@ -834,10 +834,10 @@ describe(test.testName(__filename, 3), function() {
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             null,
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e == null).to.be(true);
               test.expect(updateResult._meta._id === insertResult._meta._id).to.be(true);
               callback();
@@ -850,17 +850,17 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
-          setTimeout(function() {
+        function () {
+          setTimeout(function () {
             test
               .expect(
                 listenerclient.state.events[
@@ -871,7 +871,7 @@ describe(test.testName(__filename, 3), function() {
             callback();
           }, 2000);
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -886,10 +886,10 @@ describe(test.testName(__filename, 3), function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {
+              function () {
                 // do nothing
               }
             );
@@ -901,7 +901,7 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('should get using a wildcard', function(callback) {
+  it('should get using a wildcard', function (callback) {
     var test_path_end = require('shortid').generate();
 
     publisherclient.set(
@@ -909,25 +909,25 @@ describe(test.testName(__filename, 3), function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
             publisherclient.get(
               '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '*',
               null,
-              function(e, results) {
+              function (e, results) {
                 if (e) return callback();
                 test.expect(results.length === 2).to.be(true);
                 callback(e);
@@ -939,7 +939,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should get paths', function(callback) {
+  it('should get paths', function (callback) {
     var test_path_end = require('shortid').generate();
 
     publisherclient.set(
@@ -947,25 +947,25 @@ describe(test.testName(__filename, 3), function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
 
             publisherclient.getPaths(
               '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '*',
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.length === 2).to.be(true);
                 callback(e);
               }
@@ -976,23 +976,23 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('the listener should pick up a single delete event', function(callback) {
+  it('the listener should pick up a single delete event', function (callback) {
     publisherclient.set(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function() {
+      function () {
         listenerclient.on(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
           {
             event_type: 'remove',
-            count: 1
+            count: 1,
           },
-          function(eventData) {
+          function (eventData) {
             test
               .expect(
                 listenerclient.state.events[
@@ -1005,7 +1005,7 @@ describe(test.testName(__filename, 3), function() {
             test.expect(eventData.payload.removed).to.be(1);
             callback();
           },
-          function(e) {
+          function (e) {
             if (!e) return callback(e);
 
             test
@@ -1022,7 +1022,7 @@ describe(test.testName(__filename, 3), function() {
             publisherclient.remove(
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
               null,
-              function() {
+              function () {
                 //do nothing
               }
             );
@@ -1032,34 +1032,34 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should unsubscribe from an event', function(callback) {
+  it('should unsubscribe from an event', function (callback) {
     var currentListenerId;
 
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function() {
+      function () {
         listenerclient.offPath(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
 
             listenerclient.on(
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
               {
                 event_type: 'set',
-                count: 0
+                count: 0,
               },
-              function() {
-                listenerclient.off(currentListenerId, function(e) {
+              function () {
+                listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
                 });
               },
-              function(e, listenerId) {
+              function (e, listenerId) {
                 if (e) return callback(new Error(e));
 
                 currentListenerId = listenerId;
@@ -1069,10 +1069,10 @@ describe(test.testName(__filename, 3), function() {
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   {},
-                  function(e) {
+                  function (e) {
                     if (e) return callback(new Error(e));
                   }
                 );
@@ -1081,7 +1081,7 @@ describe(test.testName(__filename, 3), function() {
           }
         );
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (e) return callback(new Error(e));
 
         currentListenerId = listenerId;
@@ -1091,10 +1091,10 @@ describe(test.testName(__filename, 3), function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
           }
         );
@@ -1106,13 +1106,13 @@ describe(test.testName(__filename, 3), function() {
     this.timeout(10000);
     let caughtCount = 0;
     const testPath = `/${test.shortid()}/catch_all`;
-    await listenerclient.onAll(function(_eventData, meta) {
+    await listenerclient.onAll(function (_eventData, meta) {
       if (meta.action === `/REMOVE@${testPath}` || meta.action === `/SET@${testPath}`) {
         caughtCount++;
       }
     });
     await publisherclient.set(testPath, {
-      please: 'remove me'
+      please: 'remove me',
     });
     test.expect(await listenerclient.get(testPath)).to.not.be(null);
     await publisherclient.remove(testPath);
@@ -1120,33 +1120,33 @@ describe(test.testName(__filename, 3), function() {
     test.expect(caughtCount).to.be(2);
   });
 
-  it('should unsubscribe from all events', function(callback) {
+  it('should unsubscribe from all events', function (callback) {
     this.timeout(10000);
 
     var onHappened = false;
 
     listenerclient.onAll(
-      function() {
+      function () {
         onHappened = true;
         callback(new Error('this wasnt meant to happen'));
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.on(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function() {
+          function () {
             onHappened = true;
             callback(new Error('this wasnt meant to happen'));
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            listenerclient.offAll(function(e) {
+            listenerclient.offAll(function (e) {
               if (e) return callback(e);
 
               publisherclient.set(
@@ -1154,13 +1154,13 @@ describe(test.testName(__filename, 3), function() {
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
-                  setTimeout(function() {
+                  setTimeout(function () {
                     if (!onHappened) callback();
                   }, 3000);
                 }
@@ -1172,28 +1172,28 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should not publish with noPublish set', function(done) {
+  it('should not publish with noPublish set', function (done) {
     var timeout;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testNoPublish',
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
-      function(message) {
+      function (message) {
         clearTimeout(timeout);
-        setImmediate(function() {
+        setImmediate(function () {
           test.expect(message).to.not.be.ok();
         });
       },
-      function(e) {
+      function (e) {
         test.expect(e).to.not.be.ok();
 
-        timeout = setTimeout(function() {
+        timeout = setTimeout(function () {
           listenerclient.offPath(
             '/1_eventemitter_embedded_sanity/' + test_id + '/testNoPublish',
-            function() {
+            function () {
               done();
             }
           );
@@ -1203,12 +1203,12 @@ describe(test.testName(__filename, 3), function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {
-            noPublish: true
+            noPublish: true,
           },
-          function(e) {
+          function (e) {
             test.expect(e).to.not.be.ok();
           }
         );
@@ -1216,21 +1216,21 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('will do events in the order they are passed', function(done) {
+  it('will do events in the order they are passed', function (done) {
     publisherclient.set(
       '/test_event_order',
       {
-        property1: 'property1Value'
+        property1: 'property1Value',
       },
       {},
-      function() {
+      function () {
         publisherclient.log.info('Done setting');
       }
     );
-    publisherclient.remove('/test_event_order', function() {
+    publisherclient.remove('/test_event_order', function () {
       publisherclient.log.info('Done removing');
-      setTimeout(function() {
-        publisherclient.get('/test_event_order', null, function(e, result) {
+      setTimeout(function () {
+        publisherclient.get('/test_event_order', null, function (e, result) {
           test.expect(result).to.be(null);
           done();
         });
@@ -1252,8 +1252,8 @@ describe(test.testName(__filename, 3), function() {
         subcategories: ['Action.angling', 'History.art'],
         keywords: ['bass', 'Penny Siopis'],
         field1: 'field1',
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     };
 
     let from = Date.now() - 1000;
@@ -1266,25 +1266,25 @@ describe(test.testName(__filename, 3), function() {
     let criteria = {
       'data.data.timestamp': {
         $gte: from,
-        $lte: to
-      }
+        $lte: to,
+      },
     };
 
     let options = {
       fields: null,
       sort: {
-        'data.data.field1': 1
+        'data.data.field1': 1,
       },
-      limit: 2
+      limit: 2,
     };
     let results = await publisherclient.get(searchPath, {
       criteria: criteria,
-      options: options
+      options: options,
     });
     test.expect(results.length).to.be(1);
   });
 
-  it('should search for a complex object with a data property, using _data', function(callback) {
+  it('should search for a complex object with a data property, using _data', function (callback) {
     this.timeout(10000);
 
     var test_path_end = require('shortid').generate();
@@ -1297,8 +1297,8 @@ describe(test.testName(__filename, 3), function() {
         subcategories: ['Action.angling', 'History.art'],
         keywords: ['bass', 'Penny Siopis'],
         field1: 'field1',
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     };
 
     var from = Date.now() - 1000;
@@ -1308,33 +1308,33 @@ describe(test.testName(__filename, 3), function() {
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
 
-        setTimeout(function() {
+        setTimeout(function () {
           to = Date.now() + 1000;
 
           var criteria = {
             '_data.data.timestamp': {
               $gte: from,
-              $lte: to
-            }
+              $lte: to,
+            },
           };
 
           var options = {
             fields: null,
             sort: {
-              '_data.data.field1': 1
+              '_data.data.field1': 1,
             },
-            limit: 2
+            limit: 2,
           };
           publisherclient.get(
             '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex*',
             {
               criteria: criteria,
-              options: options
+              options: options,
             },
-            function(e, search_result) {
+            function (e, search_result) {
               if (e) return callback(e);
 
               if (search_result.length === 0) {
@@ -1347,39 +1347,39 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts', function(callback) {
+  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts', function (callback) {
     var hits = 0;
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/count/2/*',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function() {
+      function () {
         hits++;
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/1', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
-        setTimeout(function() {
+        setTimeout(function () {
           if (hits !== 2) return callback(new Error('hits were over the agreed on 2'));
           callback();
         }, 1500);
@@ -1387,7 +1387,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should unsubscribe from a specific event', function(done) {
+  it('should unsubscribe from a specific event', function (done) {
     var emitted = {};
 
     var reference1;
@@ -1400,46 +1400,46 @@ describe(test.testName(__filename, 3), function() {
       path,
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function(message) {
+      function (message) {
         if (!emitted[reference1]) emitted[reference1] = [];
         emitted[reference1].push(message);
       },
-      function(e, eventReference) {
+      function (e, eventReference) {
         reference1 = eventReference;
 
         return listenerclient.on(
           path,
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function(message) {
+          function (message) {
             if (!emitted[reference2]) emitted[reference2] = [];
             emitted[reference2].push(message);
           },
-          function(e, eventReference) {
+          function (e, eventReference) {
             reference2 = eventReference;
 
             listenerclient
               .set(path, {
-                test: 'data1'
+                test: 'data1',
               })
-              .then(function() {
+              .then(function () {
                 return listenerclient.set(path, {
-                  test: 'data2'
+                  test: 'data2',
                 });
               })
-              .then(function() {
+              .then(function () {
                 return listenerclient.off(reference2);
               })
-              .then(function() {
+              .then(function () {
                 return listenerclient.set(path, {
-                  test: 'data3'
+                  test: 'data3',
                 });
               })
-              .then(function() {
+              .then(function () {
                 test.expect(emitted[reference1].length).to.be(3);
                 test.expect(emitted[reference2].length).to.be(2);
                 done();
@@ -1451,40 +1451,40 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts - negative test', function(callback) {
+  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts - negative test', function (callback) {
     var hits = 0;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/count/2/*',
       {
         event_type: 'set',
-        count: 3
+        count: 3,
       },
-      function() {
+      function () {
         hits++;
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/1', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
-        setTimeout(function() {
+        setTimeout(function () {
           if (hits < 3) return callback(new Error('hits were under the agreed on 3'));
           if (hits > 3) return callback(new Error('hits were under the agreed on 3'));
 
@@ -1494,17 +1494,17 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('subscribe, then does an off with a bad handle', function(done) {
+  it('subscribe, then does an off with a bad handle', function (done) {
     var currentEventId;
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/*',
       {
-        event_type: 'set'
+        event_type: 'set',
       },
-      function() {
+      function () {
         //do nothing
       },
-      function(e, eventId) {
+      function (e, eventId) {
         if (e) return done(e);
 
         currentEventId = eventId;
@@ -1512,25 +1512,25 @@ describe(test.testName(__filename, 3), function() {
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/1', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
-        setTimeout(function() {
-          publisherclient.off('/1_eventemitter_embedded_sanity/*', function(e) {
+        setTimeout(function () {
+          publisherclient.off('/1_eventemitter_embedded_sanity/*', function (e) {
             test.expect(e.toString()).to.be('Error: handle must be a number');
-            publisherclient.off(null, function(e) {
+            publisherclient.off(null, function (e) {
               test.expect(e.toString()).to.be('Error: handle cannot be null');
               publisherclient.off(currentEventId, done);
             });
@@ -1540,15 +1540,15 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('fails to set data with a wildcard', function(done) {
+  it('fails to set data with a wildcard', function (done) {
     publisherclient.set(
       '/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/*',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be(
@@ -1559,11 +1559,11 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('fails to set data with a wildcard, fails on server', function(done) {
+  it('fails to set data with a wildcard, fails on server', function (done) {
     publisherclient.__oldUtils = publisherclient.utils;
 
     publisherclient.utils = {
-      checkPath: function() {}
+      checkPath: function () {},
     };
 
     publisherclient.set(
@@ -1571,9 +1571,9 @@ describe(test.testName(__filename, 3), function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be(
@@ -1588,15 +1588,15 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('fails to set data with a wildcard, again - check utils reset worked', function(done) {
+  it('fails to set data with a wildcard, again - check utils reset worked', function (done) {
     publisherclient.set(
       '/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/*',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be(
@@ -1608,7 +1608,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path', function(done) {
+  it('increments a value on a path', function (done) {
     var async = require('async');
 
     var test_string = require('shortid').generate();
@@ -1616,22 +1616,22 @@ describe(test.testName(__filename, 3), function() {
 
     async.timesSeries(
       10,
-      function(time, timeCB) {
+      function (time, timeCB) {
         publisherclient.set(
           test_base_url,
           'counter',
           {
             increment: 1,
-            noPublish: true
+            noPublish: true,
           },
-          function(e) {
+          function (e) {
             timeCB(e);
           }
         );
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
-        listenerclient.get(test_base_url, function(e, result) {
+        listenerclient.get(test_base_url, function (e, result) {
           if (e) return done(e);
           test.expect(result.counter.value).to.be(10);
           done();
@@ -1640,7 +1640,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path, multiple gauges', function(done) {
+  it('increments a value on a path, multiple gauges', function (done) {
     var async = require('async');
 
     var test_string = require('shortid').generate();
@@ -1648,23 +1648,23 @@ describe(test.testName(__filename, 3), function() {
 
     async.timesSeries(
       10,
-      function(time, timeCB) {
+      function (time, timeCB) {
         publisherclient.set(
           test_base_url,
           'counter-' + time,
           {
             increment: 1,
-            noPublish: true
+            noPublish: true,
           },
-          function(e) {
+          function (e) {
             timeCB(e);
           }
         );
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        listenerclient.get(test_base_url, function(e, result) {
+        listenerclient.get(test_base_url, function (e, result) {
           if (e) return done(e);
 
           test.expect(result['counter-0'].value).to.be(1);
@@ -1684,7 +1684,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path, convenience method, multiple gauges', function(done) {
+  it('increments a value on a path, convenience method, multiple gauges', function (done) {
     var async = require('async');
 
     var test_string = require('shortid').generate();
@@ -1692,15 +1692,15 @@ describe(test.testName(__filename, 3), function() {
 
     async.timesSeries(
       10,
-      function(time, timeCB) {
-        publisherclient.increment(test_base_url, 'counter-' + time, 1, function(e) {
+      function (time, timeCB) {
+        publisherclient.increment(test_base_url, 'counter-' + time, 1, function (e) {
           timeCB(e);
         });
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        listenerclient.get(test_base_url, function(e, result) {
+        listenerclient.get(test_base_url, function (e, result) {
           if (e) return done(e);
 
           test.expect(result['counter-0'].value).to.be(1);
@@ -1720,22 +1720,22 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path, convenience method, listens on path receives event', function(done) {
+  it('increments a value on a path, convenience method, listens on path receives event', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
     listenerclient.on(
       test_base_url,
-      function(data) {
+      function (data) {
         test.expect(data.value).to.be(1);
         test.expect(data.gauge).to.be('counter');
 
         done();
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        publisherclient.increment(test_base_url, 1, function(e, incResult) {
+        publisherclient.increment(test_base_url, 1, function (e, incResult) {
           test.expect(incResult.value).to.be(1);
           test.expect(incResult.gauge).to.be('counter');
 
@@ -1745,29 +1745,29 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path, convenience method with custom gauge and increment, listens on path receives event', function(done) {
+  it('increments a value on a path, convenience method with custom gauge and increment, listens on path receives event', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
     listenerclient.on(
       test_base_url,
-      function(data) {
+      function (data) {
         test.expect(data.value).to.be(3);
         test.expect(data.gauge).to.be('custom');
 
         done();
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        publisherclient.increment(test_base_url, 'custom', 3, function(e) {
+        publisherclient.increment(test_base_url, 'custom', 3, function (e) {
           if (e) return done(e);
         });
       }
     );
   });
 
-  it('increments and decrements a value on a path, convenience method with custom gauge and increment and decrement, listens on path receives event', function(done) {
+  it('increments and decrements a value on a path, convenience method with custom gauge and increment and decrement, listens on path receives event', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
@@ -1775,7 +1775,7 @@ describe(test.testName(__filename, 3), function() {
 
     listenerclient.on(
       test_base_url,
-      function(data) {
+      function (data) {
         incrementCount++;
 
         if (incrementCount === 1) {
@@ -1789,13 +1789,13 @@ describe(test.testName(__filename, 3), function() {
           done();
         }
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        publisherclient.increment(test_base_url, 'custom', 3, function(e) {
+        publisherclient.increment(test_base_url, 'custom', 3, function (e) {
           if (e) return done(e);
 
-          publisherclient.increment(test_base_url, 'custom', -2, function(e) {
+          publisherclient.increment(test_base_url, 'custom', -2, function (e) {
             if (e) return done(e);
           });
         });
@@ -1803,49 +1803,49 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value on a path, convenience method, no counter so defaults to 1, listens on path receives event', function(done) {
+  it('increments a value on a path, convenience method, no counter so defaults to 1, listens on path receives event', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
     listenerclient.on(
       test_base_url,
-      function(data) {
+      function (data) {
         test.expect(data.value).to.be(1);
         test.expect(data.gauge).to.be('counter');
 
         done();
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        publisherclient.increment(test_base_url, function(e) {
+        publisherclient.increment(test_base_url, function (e) {
           if (e) return done(e);
         });
       }
     );
   });
 
-  it('tests an aggregated search fails, due to unimplemented error', function(callback) {
+  it('tests an aggregated search fails, due to unimplemented error', function (callback) {
     listenerclient.get(
       '/searches-and-aggregation/*',
       {
         criteria: {
           'data.group': {
-            $eq: 'odd'
-          }
+            $eq: 'odd',
+          },
         },
         aggregate: [
           {
             $group: {
               _id: '$data.custom',
               total: {
-                $sum: '$data.id'
-              }
-            }
-          }
-        ]
+                $sum: '$data.id',
+              },
+            },
+          },
+        ],
       },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be(
@@ -1856,23 +1856,23 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests a search with a case-insensitive collation fails, due to unimplemented error', function(callback) {
+  it('tests a search with a case-insensitive collation fails, due to unimplemented error', function (callback) {
     listenerclient.get(
       '/searches-and-aggregation/*',
       {
         criteria: {
           'data.group': {
-            $eq: 'odd'
-          }
+            $eq: 'odd',
+          },
         },
         options: {
           collation: {
             locale: 'en_US',
-            strength: 1
-          }
-        }
+            strength: 1,
+          },
+        },
       },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be(
@@ -1883,31 +1883,31 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('should publish and receive the published data, the publish response should be lean', function(callback) {
+  it('should publish and receive the published data, the publish response should be lean', function (callback) {
     listenerclient.on(
       '/2_websockets_embedded_sanity/' + test_id + '/testpublish/data/event/*',
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
-      function(data) {
+      function (data) {
         test.expect(data).to.eql({
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
         callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
         publisherclient.publish(
           '/2_websockets_embedded_sanity/' + test_id + '/testpublish/data/event/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
             delete result._meta.eventId;
             delete result._meta.sessionId;
@@ -1916,8 +1916,8 @@ describe(test.testName(__filename, 3), function() {
                 path: '/2_websockets_embedded_sanity/' + test_id + '/testpublish/data/event/1',
                 type: 'response',
                 status: 'ok',
-                published: true
-              }
+                published: true,
+              },
             });
           }
         );

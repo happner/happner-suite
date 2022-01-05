@@ -3,17 +3,15 @@ const Happn = require('../../../');
 const delay = require('await-delay');
 
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(10000);
     var server;
-    var startServer = function(config) {
+    var startServer = function (config) {
       return new Promise((resolve, reject) => {
         Happn.service
           .create(config)
-          .then(function(_server) {
+          .then(function (_server) {
             server = _server;
           })
           .then(resolve)
@@ -21,14 +19,14 @@ describe(
       });
     };
 
-    var stopServer = function() {
+    var stopServer = function () {
       return new Promise((resolve, reject) => {
         if (!server) return resolve();
         server.stop(
           {
-            reconnect: false
+            reconnect: false,
           },
-          function(e) {
+          function (e) {
             if (e) return reject(e);
             server = undefined; // ?? perhaps also on e, messy
             resolve();
@@ -48,21 +46,21 @@ describe(
                   name: 'short-session',
                   session: {
                     'user.username': {
-                      $eq: '_ADMIN'
-                    }
+                      $eq: '_ADMIN',
+                    },
                   },
                   policy: {
-                    ttl: '3 seconds'
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    ttl: '3 seconds',
+                  },
+                },
+              ],
+            },
+          },
+        },
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
@@ -70,7 +68,7 @@ describe(
       expect(server.services.session.__sessionExpiryWatchers[client.session.id] != null).to.be(
         true
       );
-      client.onEvent('session-ended', function(evt) {
+      client.onEvent('session-ended', function (evt) {
         reason = evt.reason;
       });
       await delay(4000);
@@ -93,27 +91,27 @@ describe(
                   name: 'short-session',
                   session: {
                     'user.username': {
-                      $eq: '_ADMIN'
-                    }
+                      $eq: '_ADMIN',
+                    },
                   },
                   policy: {
-                    ttl: '3 seconds'
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    ttl: '3 seconds',
+                  },
+                },
+              ],
+            },
+          },
+        },
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
 
       var reason = false;
-      client.onEvent('session-ended', function(evt) {
+      client.onEvent('session-ended', function (evt) {
         reason = evt.reason;
       });
       await delay(500);
@@ -142,21 +140,21 @@ describe(
                   name: 'short-session',
                   session: {
                     'user.username': {
-                      $eq: '_ADMIN'
-                    }
+                      $eq: '_ADMIN',
+                    },
                   },
                   policy: {
-                    ttl: '3 seconds'
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    ttl: '3 seconds',
+                  },
+                },
+              ],
+            },
+          },
+        },
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
@@ -184,33 +182,33 @@ describe(
                   name: 'short-activity-ttl',
                   session: {
                     'user.username': {
-                      $eq: '_ADMIN'
-                    }
+                      $eq: '_ADMIN',
+                    },
                   },
                   policy: {
                     ttl: '10 seconds',
-                    inactivity_threshold: '3 seconds'
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    inactivity_threshold: '3 seconds',
+                  },
+                },
+              ],
+            },
+          },
+        },
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
       var reason = false;
-      client.onEvent('session-ended', function(evt) {
+      client.onEvent('session-ended', function (evt) {
         reason = evt.reason;
       });
       await delay(4000);
       try {
         await client.set('test/data', {
-          test: 'data'
+          test: 'data',
         });
       } catch (e) {
         // do nothing
@@ -223,16 +221,16 @@ describe(
 
     it('emits session/ended/token-revoked', async () => {
       let serverConfig = {
-        secure: true
+        secure: true,
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
       var reason = false;
-      client.onEvent('session-ended', function(evt) {
+      client.onEvent('session-ended', function (evt) {
         reason = evt.reason;
       });
       server.services.security.revokeToken(client.session.token, 'test', () => {
@@ -254,38 +252,38 @@ describe(
                   name: 'short-session',
                   session: {
                     'user.username': {
-                      $eq: '_ADMIN'
-                    }
+                      $eq: '_ADMIN',
+                    },
                   },
                   policy: {
-                    ttl: '10 seconds'
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    ttl: '10 seconds',
+                  },
+                },
+              ],
+            },
+          },
+        },
       };
       let clientConfig = {
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       };
       await startServer(serverConfig);
       let client = await Happn.client.create(clientConfig);
       let tokenClient = await Happn.client.create({ token: client.session.token });
 
       Date.__oldNow = Date.now;
-      Date.now = function() {
+      Date.now = function () {
         return Date.__oldNow() + 20000;
       };
 
       var reason = false;
-      tokenClient.onEvent('session-ended', function(evt) {
+      tokenClient.onEvent('session-ended', function (evt) {
         reason = evt.reason;
       });
 
       var error = false;
-      tokenClient.set('/test/path', {}, function(e) {
+      tokenClient.set('/test/path', {}, function (e) {
         error = e.message;
       });
 

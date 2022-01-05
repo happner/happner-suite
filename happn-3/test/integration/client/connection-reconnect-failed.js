@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var delay = require('await-delay');
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
@@ -11,8 +9,8 @@ describe(
     this.timeout(40000);
 
     async function createService() {
-      return new Promise(function(resolve, reject) {
-        service.create(function(e, happnInst) {
+      return new Promise(function (resolve, reject) {
+        service.create(function (e, happnInst) {
           if (e) return reject(e);
           resolve(happnInst);
         });
@@ -28,14 +26,14 @@ describe(
     }
 
     async function createClient() {
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         happn_client.create(
           {
             config: {
-              connectTimeout: 1000
-            }
+              connectTimeout: 1000,
+            },
           },
-          function(e, client) {
+          function (e, client) {
             if (e) return reject(e);
             resolve(client);
           }
@@ -55,15 +53,15 @@ describe(
       var reconnectSuccessfulCount = 0;
       var reconnectErrorCounts = {};
 
-      client.onEvent('reconnect-successful', function() {
+      client.onEvent('reconnect-successful', function () {
         reconnectSuccessfulCount++;
       });
 
-      client.onEvent('reconnect-scheduled', function() {
+      client.onEvent('reconnect-scheduled', function () {
         reconnectCount++;
       });
 
-      client.onEvent('reconnect-error', function(evt) {
+      client.onEvent('reconnect-error', function (evt) {
         if (!reconnectErrorCounts[evt.reason]) reconnectErrorCounts[evt.reason] = 0;
         reconnectErrorCounts[evt.reason]++;
       });
@@ -74,7 +72,7 @@ describe(
 
       client.__oldAuthenticate = client.authenticate.bind(client);
 
-      client.authenticate = function(callback) {
+      client.authenticate = function (callback) {
         callback(new Error('test failure'));
       }.bind(client);
 
@@ -98,15 +96,15 @@ describe(
       var reconnectSuccessfulCount = 0;
       var reconnectErrorCounts = {};
 
-      client.onEvent('reconnect-successful', function() {
+      client.onEvent('reconnect-successful', function () {
         reconnectSuccessfulCount++;
       });
 
-      client.onEvent('reconnect-scheduled', function() {
+      client.onEvent('reconnect-scheduled', function () {
         reconnectCount++;
       });
 
-      client.onEvent('reconnect-error', function(evt) {
+      client.onEvent('reconnect-error', function (evt) {
         if (!reconnectErrorCounts[evt.reason]) reconnectErrorCounts[evt.reason] = 0;
         reconnectErrorCounts[evt.reason]++;
       });
@@ -117,7 +115,7 @@ describe(
 
       client.__oldAuthenticate = client.authenticate.bind(client);
 
-      client.__reattachListeners = function(callback) {
+      client.__reattachListeners = function (callback) {
         callback(new Error('test failure'));
       }.bind(client);
 

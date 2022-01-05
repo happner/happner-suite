@@ -15,6 +15,11 @@ module.exports = class BaseDataProvider extends require('events').EventEmitter {
       }
     };
   }
+  transformAll(items, fields) {
+    return items.map(item => {
+      return this.transform(item, null, fields);
+    });
+  }
   getMeta(document) {
     return {
       created: document.created,
@@ -31,7 +36,11 @@ module.exports = class BaseDataProvider extends require('events').EventEmitter {
       return { path };
     }
     return {
-      path: { $regex: '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$' }
+      path: {
+        $regex: new RegExp(
+          '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$'
+        )
+      }
     };
   }
   preparePath(path) {

@@ -49,7 +49,7 @@ function set(key, data, opts, callback) {
   var cacheItem = {
     data: opts.clone === false ? data : this.utilities.clone(data),
     key: key,
-    noclone: opts.clone === false
+    noclone: opts.clone === false,
   };
 
   // eslint-disable-next-line
@@ -77,7 +77,7 @@ function setSync(key, data, opts) {
   var cacheItem = {
     data: opts.clone === false ? data : this.utilities.clone(data),
     key: key,
-    noclone: opts.clone === false
+    noclone: opts.clone === false,
   };
 
   if (opts.ttl > 0) {
@@ -124,11 +124,11 @@ function get(key, opts, callback) {
   var _this = this;
 
   if (opts.retrieveMethod)
-    return opts.retrieveMethod.call(opts.retrieveMethod, function(e, result) {
+    return opts.retrieveMethod.call(opts.retrieveMethod, function (e, result) {
       if (e) return callback(e);
       // -1 and 0 are perfectly viable things to cache
       if (result == null) return _this.__tryCallback(callback, null, null);
-      _this.set(key, result, opts, function(e) {
+      _this.set(key, result, opts, function (e) {
         return _this.__tryCallback(callback, result, e, opts.clone);
       });
     });
@@ -136,7 +136,7 @@ function get(key, opts, callback) {
   if (opts.default) {
     var value = opts.default.value;
     delete opts.default.value;
-    return _this.set(key, value, opts.default, function(e) {
+    return _this.set(key, value, opts.default, function (e) {
       return _this.__tryCallback(callback, value, e, opts.clone);
     });
   }
@@ -180,7 +180,7 @@ function remove(key, opts, callback) {
 }
 
 function stop() {
-  Object.keys(this.__timeouts).forEach(key => {
+  Object.keys(this.__timeouts).forEach((key) => {
     this.clearTimeout(key);
   });
 }
@@ -197,14 +197,14 @@ function all(filter, callback) {
     filter = null;
   }
 
-  this.__all(function(e, items) {
+  this.__all(function (e, items) {
     if (e) return callback(e);
     if (filter)
       return callback(
         null,
         commons.mongoFilter(
           {
-            $and: [filter]
+            $and: [filter],
           },
           items
         )
@@ -226,10 +226,10 @@ function appendTimeout(data, ttl) {
   data.ttl = ttl;
   this.__timeouts[data.key] = setTimeout(() => {
     var thisKey = data.key;
-    this.remove(data.key, e => {
+    this.remove(data.key, (e) => {
       if (e) this.__emit('error', new Error('failed to remove timed out item'));
       this.__emit('item-timed-out', {
-        key: thisKey
+        key: thisKey,
       });
     });
   }, ttl);
@@ -264,7 +264,7 @@ function __all(callback) {
   try {
     callback(
       null,
-      Object.keys(this.__cache).map(itemKey => {
+      Object.keys(this.__cache).map((itemKey) => {
         return this.utilities.clone(this.__cache[itemKey].data);
       })
     );

@@ -6,21 +6,19 @@ var service2Name;
 
 //checks info is stored next to login
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(60000);
 
     var server1;
     var server2;
 
-    before('starts the services', function(done) {
+    before('starts the services', function (done) {
       Happn.service
         .create({
-          port: 55005
+          port: 55005,
         })
-        .then(function(server) {
+        .then(function (server) {
           server1 = server;
           service1Name = server.name;
           Happn.service
@@ -32,13 +30,13 @@ describe(
                   config: {
                     adminUser: {
                       username: '_ADMIN',
-                      password: 'secret'
-                    }
-                  }
-                }
-              }
+                      password: 'secret',
+                    },
+                  },
+                },
+              },
             })
-            .then(function(server) {
+            .then(function (server) {
               server2 = server;
               service2Name = server.name;
               done();
@@ -48,14 +46,14 @@ describe(
         .catch(done);
     });
 
-    after('stops the services', function(done) {
+    after('stops the services', function (done) {
       if (!server1) done();
-      server1.stop(function(e) {
+      server1.stop(function (e) {
         //eslint-disable-next-line no-console
         if (e) console.warn('failed to stop server1: ' + e.toString());
 
         if (!server2) done();
-        server2.stop(function(e) {
+        server2.stop(function (e) {
           //eslint-disable-next-line no-console
           if (e) console.warn('failed to stop server2: ' + e.toString());
           done();
@@ -63,35 +61,35 @@ describe(
       });
     });
 
-    context('insecure server', function() {
+    context('insecure server', function () {
       var sessionId;
 
-      it('login info is carried across login', function(done) {
+      it('login info is carried across login', function (done) {
         var events = {};
 
-        server1.services.session.on('connect', function(evt) {
+        server1.services.session.on('connect', function (evt) {
           sessionId = evt.id;
           events.connect = evt;
         });
 
-        server1.services.session.on('authentic', function(evt) {
+        server1.services.session.on('authentic', function (evt) {
           events.authentic = evt;
         });
 
-        server1.services.session.on('disconnect', function(evt) {
+        server1.services.session.on('disconnect', function (evt) {
           events.disconnect = evt;
         });
 
         Happn.client
           .create({
             info: {
-              KEY: 'VALUE'
+              KEY: 'VALUE',
             },
             config: {
-              port: 55005
-            }
+              port: 55005,
+            },
           })
-          .then(function(client) {
+          .then(function (client) {
             client.disconnect();
           })
           .catch(done);
@@ -109,22 +107,22 @@ describe(
       });
     });
 
-    context('secure server', function() {
+    context('secure server', function () {
       var sessionId;
 
-      it('login info is carried across login', function(done) {
+      it('login info is carried across login', function (done) {
         var events = {};
 
-        server2.services.session.on('authentic', function(evt) {
+        server2.services.session.on('authentic', function (evt) {
           sessionId = evt.id;
           events.authentic = evt;
         });
 
-        server2.services.session.on('connect', function(evt) {
+        server2.services.session.on('connect', function (evt) {
           events.connect = evt;
         });
 
-        server2.services.session.on('disconnect', function(evt) {
+        server2.services.session.on('disconnect', function (evt) {
           events.disconnect = evt;
         });
 
@@ -133,13 +131,13 @@ describe(
             config: {
               username: '_ADMIN',
               password: 'secret',
-              port: 55006
+              port: 55006,
             },
             info: {
-              KEY: 'VALUE'
-            }
+              KEY: 'VALUE',
+            },
           })
-          .then(function(client) {
+          .then(function (client) {
             expect(server2.services.security.decodeToken(client.session.token).info._browser).to.be(
               false
             );
@@ -169,19 +167,19 @@ describe(
         // from previous tests are attaching to this test's server
       });
 
-      it('groups are not carried over login session', function(done) {
+      it('groups are not carried over login session', function (done) {
         Happn.client
           .create({
             config: {
               username: '_ADMIN',
               password: 'secret',
-              port: 55006
+              port: 55006,
             },
             info: {
-              KEY: 'VALUE'
-            }
+              KEY: 'VALUE',
+            },
           })
-          .then(function(client) {
+          .then(function (client) {
             expect(client.session.user.groups).to.be(undefined);
 
             client.disconnect();

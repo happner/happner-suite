@@ -28,10 +28,10 @@ async function startServer() {
   return new Promise((resolve, reject) => {
     Service.create({ secure: true }, (e, instance) => {
       if (e) return reject(e);
-      instance.services.session.on('disconnect', ev => {
+      instance.services.session.on('disconnect', (ev) => {
         console.log(`disconnect: ${JSON.stringify(ev)}`);
       });
-      instance.services.session.on('authentic', ev => {
+      instance.services.session.on('authentic', (ev) => {
         console.log(`authentic: ${JSON.stringify(ev)}`);
       });
       resolve();
@@ -54,9 +54,9 @@ async function connectClient(i, old) {
       return OldClient.create(
         {
           config: { username: '_ADMIN', password: 'happn' },
-          secure: true
+          secure: true,
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return reject(e);
           console.log(`${old ? 'old' : 'new'} client ${i} started...`);
           instance.on(
@@ -64,7 +64,7 @@ async function connectClient(i, old) {
             () => {
               console.log(`hit event handler for client ${i}`);
             },
-            e => {
+            (e) => {
               if (e) return reject(e);
               resolve(instance);
             }
@@ -74,9 +74,9 @@ async function connectClient(i, old) {
     Client.create(
       {
         config: { username: '_ADMIN', password: 'happn' },
-        secure: true
+        secure: true,
       },
-      function(e, instance) {
+      function (e, instance) {
         if (e) return reject(e);
         console.log(`${old ? 'old' : 'new'} client ${i} started...`);
         instance.on(
@@ -84,7 +84,7 @@ async function connectClient(i, old) {
           () => {
             console.log(`hit event handler for client ${i}`);
           },
-          e => {
+          (e) => {
             if (e) return reject(e);
             resolve(instance);
           }
@@ -105,7 +105,7 @@ function startOldActivity(clientCount) {
       const clientId1 = Math.floor(Math.random() * clientCount);
       const clientId2 = Math.floor(Math.random() * clientCount);
       console.log(`doing set: ${clientId1} to ${clientId2}`);
-      existingOldClients[clientId1].set(`/event/${clientId2}`, clientId1, e => {
+      existingOldClients[clientId1].set(`/event/${clientId2}`, clientId1, (e) => {
         if (!e) console.log(`did set: ${clientId1} to ${clientId2}`);
       });
     }
@@ -121,7 +121,7 @@ function startNewActivity(clientCount) {
       const clientId1 = Math.floor(Math.random() * clientCount);
       const clientId2 = Math.floor(Math.random() * clientCount);
       console.log(`doing set: ${clientId1} to ${clientId2}`);
-      existingNewClients[clientId1].set(`/event/${clientId2}`, clientId1, e => {
+      existingNewClients[clientId1].set(`/event/${clientId2}`, clientId1, (e) => {
         if (!e) console.log(`did set: ${clientId1} to ${clientId2}`);
       });
     }

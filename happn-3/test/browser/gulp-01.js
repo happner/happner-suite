@@ -10,10 +10,10 @@ var serverHelper = new ServerHelper();
 /**
  * Run test once and exit
  */
-task('default', async function(done) {
+task('default', async function (done) {
   var client_code = await happn.packager.browserClient({
     contentsOnly: true,
-    overwrite: true
+    overwrite: true,
   });
 
   fs.writeFileSync(__dirname + path.sep + 'browser-client-02.js', client_code, 'utf8');
@@ -25,11 +25,11 @@ task('default', async function(done) {
         config: {
           keyPair: {
             privateKey: 'Kd9FQzddR7G6S9nJ/BK8vLF83AzOphW2lqDOQ/LjU4M=',
-            publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2'
-          }
-        }
-      }
-    }
+            publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2',
+          },
+        },
+      },
+    },
   });
 
   await serverHelper.createServer({
@@ -38,10 +38,10 @@ task('default', async function(done) {
     services: {
       transport: {
         config: {
-          mode: 'https'
-        }
-      }
-    }
+          mode: 'https',
+        },
+      },
+    },
   });
 
   await serverHelper.createServer({
@@ -51,11 +51,11 @@ task('default', async function(done) {
       session: {
         config: {
           primusOpts: {
-            pingInterval: 2000
-          }
-        }
-      }
-    }
+            pingInterval: 2000,
+          },
+        },
+      },
+    },
   });
 
   (
@@ -65,21 +65,21 @@ task('default', async function(done) {
       services: {
         transport: {
           config: {
-            mode: 'https'
-          }
+            mode: 'https',
+          },
         },
         security: {
           config: {
-            httpsCookie: true
-          }
-        }
-      }
+            httpsCookie: true,
+          },
+        },
+      },
     })
-  ).connect.use('/test/web/route', function(req, res) {
+  ).connect.use('/test/web/route', function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.end(
       JSON.stringify({
-        received: 1
+        received: 1,
       })
     );
   });
@@ -90,15 +90,15 @@ task('default', async function(done) {
     services: {
       security: {
         config: {
-          cookieName: 'test-cookie'
-        }
-      }
-    }
+          cookieName: 'test-cookie',
+        },
+      },
+    },
   });
 
   var karmaServer = new Server({
     configFile: __dirname + path.sep + '01.karma.conf.js',
-    singleRun: true
+    singleRun: true,
   });
 
   karmaServer.on('run_complete', async (_browsers, results) => {

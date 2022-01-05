@@ -1,26 +1,24 @@
 var expect = require('expect.js');
 
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 4),
-  function() {
-    it('tests the fail method, login action', function(done) {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 4),
+  function () {
+    it('tests the fail method, login action', function (done) {
       const Protocol = require('../../../lib/services/protocol/happn_4');
       const protocol = new Protocol();
 
       var failure = protocol.fail({
         session: {
           secret: '18989811111111111111111111111111',
-          protocol: 'happn'
+          protocol: 'happn',
         },
         error: new Error('test error'),
         request: {
-          action: 'login'
+          action: 'login',
         },
         response: {
-          data: 'test'
-        }
+          data: 'test',
+        },
       });
 
       expect(failure.response).to.eql({
@@ -32,15 +30,15 @@ describe(
           sessionId: undefined,
           eventId: undefined,
           action: 'login',
-          error: { name: 'Error', message: 'test error' }
+          error: { name: 'Error', message: 'test error' },
         },
-        protocol: undefined
+        protocol: undefined,
       });
 
       done();
     });
 
-    it('tests the fail method, not login action', function(done) {
+    it('tests the fail method, not login action', function (done) {
       const Protocol = require('../../../lib/services/protocol/happn_4');
       const protocol = new Protocol();
 
@@ -48,18 +46,18 @@ describe(
 
       var failure = protocol.fail({
         session: {
-          secret: '18989811111111111111111111111111'
+          secret: '18989811111111111111111111111111',
         },
         error: new Error('test error'),
         request: {
           action: 'set',
           eventId: 1,
           sessionId: 1,
-          protocol: 'happn'
+          protocol: 'happn',
         },
         response: {
-          data: 'test'
-        }
+          data: 'test',
+        },
       });
 
       expect(failure.response).to.eql({
@@ -73,16 +71,16 @@ describe(
           action: 'set',
           error: {
             name: 'Error',
-            message: 'test error'
-          }
+            message: 'test error',
+          },
         },
-        protocol: 'happn'
+        protocol: 'happn',
       });
 
       done();
     });
 
-    it('tests the success method', function(done) {
+    it('tests the success method', function (done) {
       const Protocol = require('../../../lib/services/protocol/happn_4');
       const protocol = new Protocol();
 
@@ -90,17 +88,17 @@ describe(
 
       var success = protocol.success({
         session: {
-          secret: '18989811111111111111111111111111'
+          secret: '18989811111111111111111111111111',
         },
         request: {
           action: 'set',
           eventId: 1,
           sessionId: 1,
-          protocol: 'happn'
+          protocol: 'happn',
         },
         response: {
-          data: 'test'
-        }
+          data: 'test',
+        },
       });
 
       expect(success.response).to.eql({
@@ -111,15 +109,15 @@ describe(
           published: false,
           eventId: 1,
           sessionId: 1,
-          action: 'set'
+          action: 'set',
         },
-        protocol: 'happn'
+        protocol: 'happn',
       });
 
       done();
     });
 
-    it('tests the validate function', function() {
+    it('tests the validate function', function () {
       const Protocol = require('../../../lib/services/protocol/happn_4');
       const protocol = new Protocol();
 
@@ -131,8 +129,8 @@ describe(
 
       protocol.happn = {
         services: {
-          utils: new UtilsService()
-        }
+          utils: new UtilsService(),
+        },
       };
 
       expect(protocol.validate({})).to.eql({});
@@ -140,8 +138,8 @@ describe(
       var testMessage = {
         request: {
           action: 'on',
-          path: '/test/1'
-        }
+          path: '/test/1',
+        },
       };
 
       expect(protocol.validate(testMessage)).to.eql(testMessage);
@@ -149,8 +147,8 @@ describe(
       testMessage = {
         request: {
           action: 'on',
-          path: '\\test\\1'
-        }
+          path: '\\test\\1',
+        },
       };
 
       try {
@@ -173,124 +171,124 @@ describe(
           utils: new UtilsService(),
           security: {
             _keyPair: {
-              privateKey: 'mock-priv-key'
-            }
-          }
-        }
+              privateKey: 'mock-priv-key',
+            },
+          },
+        },
       };
 
       return protocol;
     }
 
-    it('tests the transformIn method,  message', function(done) {
+    it('tests the transformIn method,  message', function (done) {
       var protocol = mockProtocol();
 
       expect(
         protocol.transformIn({
-          raw: 'test'
+          raw: 'test',
         })
       ).to.eql({
-        request: 'test'
+        request: 'test',
       });
 
       expect(
         protocol.transformIn({
           session: {
-            secret: 'test-secretbhetshwyer342638shete'
+            secret: 'test-secretbhetshwyer342638shete',
           },
-          raw: 'test'
+          raw: 'test',
         })
       ).to.eql({
         request: 'test',
         session: {
-          secret: 'test-secretbhetshwyer342638shete'
-        }
+          secret: 'test-secretbhetshwyer342638shete',
+        },
       });
 
       done();
     });
 
-    it('tests the transformIn method,  login', function(done) {
+    it('tests the transformIn method,  login', function (done) {
       var protocol = mockProtocol();
 
       var transformed = protocol.transformIn({
         session: {
-          secret: 'test-secret'
+          secret: 'test-secret',
         },
         raw: {
           action: 'login',
           data: {
-            test: 'object'
-          }
-        }
+            test: 'object',
+          },
+        },
       });
 
       expect(transformed).to.eql({
         session: { secret: 'test-secret' },
-        request: { action: 'login', data: { test: 'object' } }
+        request: { action: 'login', data: { test: 'object' } },
       });
 
       done();
     });
 
-    it('tests the transformSystem method, disconnect no options', function(done) {
+    it('tests the transformSystem method, disconnect no options', function (done) {
       var protocol = mockProtocol();
 
       var transformed = protocol.transformSystem({
-        action: 'disconnect'
+        action: 'disconnect',
       });
 
       expect(transformed).to.eql({
         action: 'disconnect',
         response: {
           _meta: {
-            type: 'system'
+            type: 'system',
           },
           eventKey: 'server-side-disconnect',
           data: 'server side disconnect',
-          reconnect: true
-        }
+          reconnect: true,
+        },
       });
 
       done();
     });
 
-    it('tests the transformSystem method, disconnect with options', function(done) {
+    it('tests the transformSystem method, disconnect with options', function (done) {
       var protocol = mockProtocol();
 
       var transformed = protocol.transformSystem({
         action: 'disconnect',
         options: {
           reconnect: false,
-          reason: 'just die'
-        }
+          reason: 'just die',
+        },
       });
 
       expect(transformed).to.eql({
         action: 'disconnect',
         options: {
           reason: 'just die',
-          reconnect: false
+          reconnect: false,
         },
         response: {
           _meta: {
-            type: 'system'
+            type: 'system',
           },
           eventKey: 'server-side-disconnect',
           data: 'just die',
-          reconnect: false
-        }
+          reconnect: false,
+        },
       });
 
       done();
     });
 
-    it('tests the transformSystem method, security-data-changed', function(done) {
+    it('tests the transformSystem method, security-data-changed', function (done) {
       var protocol = mockProtocol();
 
       var transformed = protocol.transformSystem({
         eventKey: 'security-data-changed',
-        data: 'something happened'
+        data: 'something happened',
       });
 
       expect(transformed).to.eql({
@@ -299,12 +297,12 @@ describe(
         request: {
           publication: {
             _meta: {
-              type: 'system'
+              type: 'system',
             },
             data: 'something happened',
-            eventKey: 'security-data-changed'
-          }
-        }
+            eventKey: 'security-data-changed',
+          },
+        },
       });
       done();
     });

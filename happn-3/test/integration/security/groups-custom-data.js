@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(5000);
     var happn = require('../../../lib/index');
     var serviceInstance;
@@ -10,16 +8,16 @@ describe(
     var expect = require('expect.js');
     var test_id = Date.now() + '_' + require('shortid').generate();
 
-    var getService = function(config, callback) {
+    var getService = function (config, callback) {
       happn.service.create(config, callback);
     };
 
-    before('it starts completely defaulted service', function(done) {
+    before('it starts completely defaulted service', function (done) {
       getService(
         {
-          secure: true
+          secure: true,
         },
-        function(e, service) {
+        function (e, service) {
           if (e) return done(e);
 
           serviceInstance = service;
@@ -28,30 +26,30 @@ describe(
       );
     });
 
-    before('authenticates with the _ADMIN user, using the default password', function(done) {
+    before('authenticates with the _ADMIN user, using the default password', function (done) {
       serviceInstance.services.session
         .localClient({
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         })
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           adminClient = clientInstance;
           done();
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });
 
-    after('should delete the temp data file', function(callback) {
+    after('should delete the temp data file', function (callback) {
       this.timeout(15000);
 
       if (adminClient) adminClient.disconnect({ reconnect: false });
 
-      setTimeout(function() {
-        serviceInstance.stop(function() {
+      setTimeout(function () {
+        serviceInstance.stop(function () {
           callback();
         });
       }, 3000);
@@ -62,67 +60,67 @@ describe(
       custom_data: {
         customString: 'custom1',
         customNumber: 0,
-        customArray: [1, 2, 3, 4, 5]
-      }
+        customArray: [1, 2, 3, 4, 5],
+      },
     };
 
     testGroup.permissions = {};
 
     testGroup.permissions['/TEST/groups_custom_data/' + test_id + '/all_access'] = {
-      actions: ['*']
+      actions: ['*'],
     };
 
     var testUser = {
       username: 'TEST USER@blah.com' + test_id,
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     var addedTestGroup;
     var addedTestuser;
 
-    it('creates a group and a user, adds the group to the user, logs in with test user', function(done) {
+    it('creates a group and a user, adds the group to the user, logs in with test user', function (done) {
       serviceInstance.services.security.groups.upsertGroup(
         testGroup,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return done(e);
           addedTestGroup = result;
 
           serviceInstance.services.security.users.upsertUser(
             testUser,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return done(e);
               addedTestuser = result;
 
               serviceInstance.services.security.groups.linkGroup(
                 addedTestGroup,
                 addedTestuser,
-                function(e) {
+                function (e) {
                   if (e) return done(e);
 
                   //clear the groups cache in the users module
                   serviceInstance.services.security.groups.__cache_groups.clear();
 
-                  serviceInstance.services.security.groups.getGroup(testGroup.name, function(
-                    e,
-                    groupData
-                  ) {
-                    if (e) return done(e);
+                  serviceInstance.services.security.groups.getGroup(
+                    testGroup.name,
+                    function (e, groupData) {
+                      if (e) return done(e);
 
-                    expect(groupData.custom_data.customString).to.be('custom1');
-                    expect(groupData.custom_data.customNumber).to.be(0);
-                    expect(groupData.custom_data.customArray).to.eql([1, 2, 3, 4, 5]);
+                      expect(groupData.custom_data.customString).to.be('custom1');
+                      expect(groupData.custom_data.customNumber).to.be(0);
+                      expect(groupData.custom_data.customArray).to.eql([1, 2, 3, 4, 5]);
 
-                    done();
-                  });
+                      done();
+                    }
+                  );
                 }
               );
             }

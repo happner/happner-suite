@@ -2,32 +2,32 @@ var expect = require('expect.js');
 var Happn = require('../../../');
 const util = require('util');
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   let server;
   let clients = [];
 
-  var startServer = function(callback) {
+  var startServer = function (callback) {
     Happn.service
       .create()
-      .then(function(_server) {
+      .then(function (_server) {
         server = _server;
       })
       .then(callback)
       .catch(callback);
   };
 
-  var stopServerDisconnect = async function() {
+  var stopServerDisconnect = async function () {
     await test.destroySessions(clients);
     await test.destroyInstance(server);
   };
 
-  var stopServerReconnect = function(callback) {
+  var stopServerReconnect = function (callback) {
     if (!server) return callback();
     server.stop(
       {
-        reconnect: true
+        reconnect: true,
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
         server = undefined;
         callback();
@@ -39,42 +39,42 @@ describe(test.testName(__filename, 3), function() {
 
   after('stop server', stopServerDisconnect);
 
-  it('emits reconnect-scheduled', function(done) {
+  it('emits reconnect-scheduled', function (done) {
     var client;
     var reconnectScheduledFired = false;
 
     Promise.resolve()
 
-      .then(function() {
+      .then(function () {
         // other test may have left the server stopped.
         if (server) return;
         return util.promisify(startServer)();
       })
 
-      .then(function() {
+      .then(function () {
         return Happn.client.create();
       })
 
-      .then(function(_client) {
+      .then(function (_client) {
         clients.push(_client);
         client = _client;
       })
 
-      .then(function() {
-        client.onEvent('reconnect-scheduled', function() {
+      .then(function () {
+        client.onEvent('reconnect-scheduled', function () {
           reconnectScheduledFired = true;
         });
       })
 
-      .then(function() {
+      .then(function () {
         return util.promisify(stopServerReconnect)();
       })
 
-      .then(function() {
+      .then(function () {
         return test.delay(500);
       })
 
-      .then(function() {
+      .then(function () {
         expect(reconnectScheduledFired).to.eql(true);
       })
 
@@ -83,46 +83,46 @@ describe(test.testName(__filename, 3), function() {
       .catch(done);
   });
 
-  it('emits reconnect-successful', function(done) {
+  it('emits reconnect-successful', function (done) {
     var client;
     var reconnectSuccessfulFired = false;
 
     Promise.resolve()
 
-      .then(function() {
+      .then(function () {
         // other test may have left the server stopped.
         if (server) return;
         return util.promisify(startServer)();
       })
 
-      .then(function() {
+      .then(function () {
         return Happn.client.create();
       })
 
-      .then(function(_client) {
+      .then(function (_client) {
         clients.push(_client);
         client = _client;
       })
 
-      .then(function() {
-        client.onEvent('reconnect-successful', function() {
+      .then(function () {
+        client.onEvent('reconnect-successful', function () {
           reconnectSuccessfulFired = true;
         });
       })
 
-      .then(function() {
+      .then(function () {
         return util.promisify(stopServerReconnect)();
       })
 
-      .then(function() {
+      .then(function () {
         return util.promisify(startServer)();
       })
 
-      .then(function() {
+      .then(function () {
         return test.delay(1000);
       })
 
-      .then(function() {
+      .then(function () {
         expect(reconnectSuccessfulFired).to.eql(true);
       })
 
@@ -131,64 +131,64 @@ describe(test.testName(__filename, 3), function() {
       .catch(done);
   }).timeout(10000);
 
-  it('enables subscribe and unsubscribe', function(done) {
+  it('enables subscribe and unsubscribe', function (done) {
     var client;
     var events = {};
     var expectedEvents;
 
     Promise.resolve()
 
-      .then(function() {
+      .then(function () {
         // other test may have left the server stopped.
         if (server) return;
         return util.promisify(startServer)();
       })
 
-      .then(function() {
+      .then(function () {
         return Happn.client.create();
       })
 
-      .then(function(_client) {
+      .then(function (_client) {
         clients.push(_client);
         client = _client;
       })
 
-      .then(function() {
-        var subscriptionId = client.onEvent('reconnect-successful', function() {});
+      .then(function () {
+        var subscriptionId = client.onEvent('reconnect-successful', function () {});
         // expect(subscriptionId).to.equal('reconnect-successful|0');
         expect(typeof subscriptionId).to.equal('string');
       })
 
-      .then(function() {
-        client.onEvent('reconnect-scheduled', function() {
+      .then(function () {
+        client.onEvent('reconnect-scheduled', function () {
           events[1] = true;
         });
-        var subscription2 = client.onEvent('reconnect-scheduled', function() {
+        var subscription2 = client.onEvent('reconnect-scheduled', function () {
           events[2] = true;
         });
-        var subscription3 = client.onEvent('reconnect-scheduled', function() {
+        var subscription3 = client.onEvent('reconnect-scheduled', function () {
           events[3] = true;
         });
-        client.onEvent('reconnect-scheduled', function() {
+        client.onEvent('reconnect-scheduled', function () {
           events[4] = true;
         });
         client.offEvent(subscription2);
         client.offEvent(subscription3);
         expectedEvents = {
           1: true,
-          4: true
+          4: true,
         };
       })
 
-      .then(function() {
+      .then(function () {
         return util.promisify(stopServerReconnect)();
       })
 
-      .then(function() {
+      .then(function () {
         return test.delay(500);
       })
 
-      .then(function() {
+      .then(function () {
         expect(events).to.eql(expectedEvents);
       })
 

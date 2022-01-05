@@ -26,7 +26,7 @@ module.exports = class HappnAuthProvider extends AuthProvider {
 
       return this.__loginOK(credentials, user, sessionId, callback, {
         session: previousSession,
-        token: credentials.token
+        token: credentials.token,
       });
     } catch (e) {
       return this.invalidCredentials('Invalid credentials', callback);

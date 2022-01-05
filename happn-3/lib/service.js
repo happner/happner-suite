@@ -5,14 +5,14 @@ const Logger = require('happn-logger'),
   util = commons.utils,
   _ = commons._;
 module.exports = {
-  initialize: function(config, done) {
+  initialize: function (config, done) {
     console.warn(
       'use of initialize when creating happn service is deprecated. use happn.service.create'
     );
     return this.create(config, done);
   },
 
-  create: util.maybePromisify(function(config, done) {
+  create: util.maybePromisify(function (config, done) {
     if (typeof config === 'function') {
       done = config;
       config = {};
@@ -37,7 +37,7 @@ module.exports = {
       services: {},
       config: config,
       connections: {},
-      __initialized: false
+      __initialized: false,
     };
 
     var log = (config.Logger || Logger).createLogger('HappnServer');
@@ -47,7 +47,7 @@ module.exports = {
 
     happn.services = new Services();
 
-    happn.stop = util.maybePromisify(function(options, stopCB) {
+    happn.stop = util.maybePromisify(function (options, stopCB) {
       if (!happn.__initialized)
         log.warn('not initialized yet, trying to stop services nevertheless');
 
@@ -58,14 +58,14 @@ module.exports = {
         options = {};
       }
 
-      return happn.services.stop(options, e => {
+      return happn.services.stop(options, (e) => {
         if (e) return stopCB(e); // not stopping network
         log.$$DEBUG('stopped services');
         return stopCB();
       });
     });
 
-    happn.listen = function(host, port, options, listenCB) {
+    happn.listen = function (host, port, options, listenCB) {
       if (typeof options === 'function') {
         listenCB = options;
         options = null;
@@ -90,7 +90,7 @@ module.exports = {
       return happn.services.transport.listen(host, port, options, listenCB);
     };
 
-    happn.services.initialize(config, happn, function(e) {
+    happn.services.initialize(config, happn, function (e) {
       if (e) {
         console.log('Failed to initialize services', e);
         return done(e);
@@ -100,5 +100,5 @@ module.exports = {
       if (!config.deferListen) happn.listen(happn.config.host, happn.config.port, done);
       else done(null, happn);
     });
-  })
+  }),
 };

@@ -36,7 +36,7 @@ function CacheService(opts) {
   } else {
     Logger = require('happn-logger');
     Logger.configure({
-      logLevel: 'info'
+      logLevel: 'info',
     });
   }
 
@@ -62,7 +62,7 @@ function initialize(config, callback) {
     if (!config.defaultCacheOpts)
       config.defaultCacheOpts = {
         type: 'static',
-        cache: {}
+        cache: {},
       };
 
     this.config = config;
@@ -100,54 +100,54 @@ function _new(name, opts) {
   var _this = this;
 
   Object.defineProperty(this.__caches[name], 'utilities', {
-    value: _this.happn.services.utils
+    value: _this.happn.services.utils,
   });
 
   this.__caches[name].on(
     'error',
-    function(e) {
+    function (e) {
       _this.__emit('error', {
         cache: this.cache,
-        error: e
+        error: e,
       });
     }.bind({
-      cache: name
+      cache: name,
     })
   );
 
   this.__caches[name].on(
     'item-timed-out',
-    function(item) {
+    function (item) {
       _this.__emit('item-timed-out', {
         cache: this.cache,
-        item: item
+        item: item,
       });
     }.bind({
-      cache: name
+      cache: name,
     })
   );
 
   this.__caches[name].on(
     'item-set',
-    function(item) {
+    function (item) {
       _this.__emit('item-set', {
         cache: this.cache,
-        item: item
+        item: item,
       });
     }.bind({
-      cache: name
+      cache: name,
     })
   );
 
   this.__caches[name].on(
     'item-removed',
-    function(item) {
+    function (item) {
       _this.__emit('item-removed', {
         cache: this.cache,
-        item: item
+        item: item,
       });
     }.bind({
-      cache: name
+      cache: name,
     })
   );
 
@@ -215,7 +215,7 @@ function clear(cache, callback) {
 
   if (!cacheToClear) return callback();
 
-  cacheToClear.clear(e => {
+  cacheToClear.clear((e) => {
     if (e) return callback(e);
     delete this.__caches[cache];
     this.__emit('cache-cleared', cache);
@@ -224,7 +224,7 @@ function clear(cache, callback) {
 }
 
 function stopAll() {
-  Object.keys(this.__caches).forEach(cacheKey => {
+  Object.keys(this.__caches).forEach((cacheKey) => {
     this.stopCache(cacheKey);
   });
 }
@@ -256,7 +256,7 @@ function filterCacheItems(filter, items) {
 
   return commons.mongoFilter(
     {
-      $and: [filter]
+      $and: [filter],
     },
     items
   );
@@ -267,7 +267,7 @@ function filterCache(filter, cache, callback) {
 
   if (!filter) return callback(_this.happn.services.error.SystemError('filter is missing'));
 
-  cache.all(function(e, allItems) {
+  cache.all(function (e, allItems) {
     if (e) return callback(e);
 
     try {

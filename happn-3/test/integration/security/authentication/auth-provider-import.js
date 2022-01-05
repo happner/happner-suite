@@ -1,8 +1,6 @@
 describe(
-  require('../../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     const happn = require('../../../../lib/index');
     const expect = require('expect.js');
     const path = require('path');
@@ -17,7 +15,7 @@ describe(
 
     async function stopService(instance) {
       return new Promise((res, rej) => {
-        instance.stop(e => {
+        instance.stop((e) => {
           if (e) rej(e);
           res();
         });
@@ -33,18 +31,18 @@ describe(
                 blankAuth: path.resolve(
                   __dirname,
                   '../../../__fixtures/test/integration/security/authentication/secondAuthProvider.js'
-                )
+                ),
               },
-              defaultAuthProvider: 'blankAuth'
-            }
-          }
-        }
+              defaultAuthProvider: 'blankAuth',
+            },
+          },
+        },
       });
 
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
         'happn',
         'blankAuth',
-        'default'
+        'default',
       ]);
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
@@ -54,7 +52,7 @@ describe(
         'Login called in second auth provider'
       );
       //Base class function
-      instance.services.security.authProviders.default.accessDenied('Error Message', async e => {
+      instance.services.security.authProviders.default.accessDenied('Error Message', async (e) => {
         expect(e.toString()).to.be('AccessDenied: Error Message');
         await stopService(instance);
       });
@@ -70,17 +68,17 @@ describe(
                   __dirname,
                   '../../../__fixtures/test/integration/security/authentication/secondAuthProvider.js'
                 ),
-                happn: false
+                happn: false,
               },
-              defaultAuthProvider: 'blankAuth'
-            }
-          }
-        }
+              defaultAuthProvider: 'blankAuth',
+            },
+          },
+        },
       });
 
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
         'blankAuth',
-        'default'
+        'default',
       ]); //No happn
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
@@ -90,7 +88,7 @@ describe(
         'Login called in second auth provider'
       );
       //Base class function
-      instance.services.security.authProviders.default.accessDenied('Error Message', async e => {
+      instance.services.security.authProviders.default.accessDenied('Error Message', async (e) => {
         expect(e.toString()).to.be('AccessDenied: Error Message');
         await stopService(instance);
       });

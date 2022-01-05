@@ -1,49 +1,47 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     const Protocol = require('../../../lib/services/protocol/service');
     const delay = require('await-delay');
     this.timeout(5000);
-    it('tests the processMessageIn method, happn_1.3.0 protocol', function(done) {
+    it('tests the processMessageIn method, happn_1.3.0 protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_1'] = {
-          success: function() {
+          success: function () {
             done();
-          }
+          },
         };
 
-        protocolMock.processInboundStack = function(message, protocol, callback) {
+        protocolMock.processInboundStack = function (message, protocol, callback) {
           expect(message.session.protocol).to.be('happn_1.3.0');
           callback(null, message);
         };
@@ -51,64 +49,64 @@ describe(
         protocolMock.processMessageIn(
           {
             session: {
-              protocol: 'happn_1.3.0'
-            }
+              protocol: 'happn_1.3.0',
+            },
           },
-          function() {}
+          function () {}
         );
       });
     });
 
-    it('tests the processInboundStack method, __suppress', function(done) {
+    it('tests the processInboundStack method, __suppress', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function() {
+            processAuthorize: function () {
               done(new Error('this should not have happened'));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             message.__suppress = true;
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
-            }
+              protocol: 'happn_4',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e, message) {
+          function (e, message) {
             if (e) return done(e);
             expect(message.__suppress).to.be(true);
             done();
@@ -117,116 +115,116 @@ describe(
       });
     });
 
-    it('tests the processInboundStack method, __suppress, negative test', function(done) {
+    it('tests the processInboundStack method, __suppress, negative test', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function() {
+            processAuthorize: function () {
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
-            }
+              protocol: 'happn_4',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function() {}
+          function () {}
         );
       });
     });
 
-    it('tests the processInboundStack method, action set, processStore fails', function(done) {
+    it('tests the processInboundStack method, action set, processStore fails', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           data: {
-            processStore: function(authorized, callback) {
+            processStore: function (authorized, callback) {
               callback(new Error('a data set error happened'));
-            }
+            },
           },
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function(message, cb) {
+            processAuthorize: function (message, cb) {
               cb(null, message);
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
+              protocol: 'happn_4',
             },
             request: {
-              action: 'set'
-            }
+              action: 'set',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: a data set error happened');
             done();
           }
@@ -234,66 +232,66 @@ describe(
       });
     });
 
-    it('tests the processInboundStack method, action remove, processStore fails', function(done) {
+    it('tests the processInboundStack method, action remove, processStore fails', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           data: {
-            processStore: function(authorized, callback) {
+            processStore: function (authorized, callback) {
               callback(new Error('a data set error happened'));
             },
-            processRemove: function(authorized, callback) {
+            processRemove: function (authorized, callback) {
               callback(new Error('a data remove error happened'));
-            }
+            },
           },
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function(message, cb) {
+            processAuthorize: function (message, cb) {
               cb(null, message);
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
+              protocol: 'happn_4',
             },
             request: {
-              action: 'remove'
-            }
+              action: 'remove',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: a data remove error happened');
             done();
           }
@@ -301,70 +299,70 @@ describe(
       });
     });
 
-    it('tests the processInboundStack method, action remove, processPublish fails', function(done) {
+    it('tests the processInboundStack method, action remove, processPublish fails', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           data: {
-            processStore: function(authorized, callback) {
+            processStore: function (authorized, callback) {
               callback(new Error('a data set error happened'));
             },
-            processRemove: function(authorized, callback) {
+            processRemove: function (authorized, callback) {
               callback(null, authorized);
-            }
+            },
           },
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function(message, cb) {
+            processAuthorize: function (message, cb) {
               cb(null, message);
-            }
+            },
           },
           publisher: {
-            processPublish: function(message, cb) {
+            processPublish: function (message, cb) {
               cb(new Error('a publish error happened'));
-            }
-          }
-        }
+            },
+          },
+        },
       };
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
+              protocol: 'happn_4',
             },
             request: {
-              action: 'remove'
-            }
+              action: 'remove',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: a publish error happened');
             done();
           }
@@ -372,63 +370,63 @@ describe(
       });
     });
 
-    it('tests the processInboundStack method, action get, processGet fails', function(done) {
+    it('tests the processInboundStack method, action get, processGet fails', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           data: {
-            processGet: function(authorized, callback) {
+            processGet: function (authorized, callback) {
               callback(new Error('a data get error happened'));
-            }
+            },
           },
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function(message, cb) {
+            processAuthorize: function (message, cb) {
               cb(null, message);
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
+              protocol: 'happn_4',
             },
             request: {
-              action: 'get'
-            }
+              action: 'get',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: a data get error happened');
             done();
           }
@@ -436,71 +434,71 @@ describe(
       });
     });
 
-    it('tests the processInboundStack method, action on, processSubscribe fails', function(done) {
+    it('tests the processInboundStack method, action on, processSubscribe fails', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           subscription: {
-            prepareSubscribeMessage: function(authorized) {
+            prepareSubscribeMessage: function (authorized) {
               return authorized;
             },
-            processSubscribe: function(authorized, callback) {
+            processSubscribe: function (authorized, callback) {
               callback(new Error('a subscribe broke'));
-            }
+            },
           },
           data: {
-            processGet: function(authorized, callback) {
+            processGet: function (authorized, callback) {
               callback(new Error('a data get error happened'));
-            }
+            },
           },
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
+            },
           },
           security: {
-            processAuthorize: function(message, cb) {
+            processAuthorize: function (message, cb) {
               cb(null, message);
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_4'] = {
-          transformIn: function(message) {
+          transformIn: function (message) {
             return message;
-          }
+          },
         };
 
         protocolMock.processInboundStack(
           {
             session: {
-              protocol: 'happn_4'
+              protocol: 'happn_4',
             },
             request: {
-              action: 'on'
-            }
+              action: 'on',
+            },
           },
           protocolMock.config.protocols['happn_4'],
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: a subscribe broke');
             done();
           }
@@ -508,43 +506,43 @@ describe(
       });
     });
 
-    it('tests the processMessageIn method, happn_2 protocol', function(done) {
+    it('tests the processMessageIn method, happn_2 protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_2'] = {
-          success: function() {
+          success: function () {
             done();
-          }
+          },
         };
 
-        protocolMock.processInboundStack = function(message, protocol, callback) {
+        protocolMock.processInboundStack = function (message, protocol, callback) {
           expect(message.session.protocol).to.be('happn_2');
           callback(null, message);
         };
@@ -552,44 +550,44 @@ describe(
         protocolMock.processMessageIn(
           {
             session: {
-              protocol: 'happn_2'
-            }
+              protocol: 'happn_2',
+            },
           },
-          function() {}
+          function () {}
         );
       });
     });
 
-    it('tests the processMessageIn method, negative test', function(done) {
+    it('tests the processMessageIn method, negative test', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            SystemError: function(message) {
+            SystemError: function (message) {
               expect(message).to.be('unknown inbound protocol: happn_1.3.0');
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.processMessageIn = function processMessageIn(message, callback) {
           var _this = this;
 
@@ -604,97 +602,97 @@ describe(
 
           _this
             .processInboundStack(message, protocol)
-            .then(function(processed) {
+            .then(function (processed) {
               callback(null, protocol.success(processed));
             })
-            .catch(function(e) {
+            .catch(function (e) {
               _this.__handleProtocolError(protocol, message, e, callback);
             });
         }.bind(protocolMock);
 
         protocolMock.processMessageIn({
           session: {
-            protocol: 'happn_1.3.0'
-          }
+            protocol: 'happn_1.3.0',
+          },
         });
       });
     });
 
-    it('tests the processMessageIn method, bad protocol', function(done) {
+    it('tests the processMessageIn method, bad protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            SystemError: function(message) {
+            SystemError: function (message) {
               expect(message).to.be('unknown inbound protocol: bad');
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.processMessageIn({
           session: {
-            protocol: 'bad'
-          }
+            protocol: 'bad',
+          },
         });
       });
     });
 
-    it('tests the processMessageInLayers method, happn_1.3.0 protocol', function(done) {
+    it('tests the processMessageInLayers method, happn_1.3.0 protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_1'] = {
-          success: function() {
+          success: function () {
             done();
-          }
+          },
         };
 
-        protocolMock.processInboundStack = function(message, protocol, callback) {
+        protocolMock.processInboundStack = function (message, protocol, callback) {
           expect(message.session.protocol).to.be('happn_1.3.0');
           callback(null, message);
         };
@@ -702,196 +700,196 @@ describe(
         protocolMock.processMessageInLayers(
           {
             session: {
-              protocol: 'happn_1.3.0'
-            }
+              protocol: 'happn_1.3.0',
+            },
           },
-          function() {}
+          function () {}
         );
       });
     });
 
-    it('tests the processMessageOutLayers method, happn_1.3.0 protocol', function(done) {
+    it('tests the processMessageOutLayers method, happn_1.3.0 protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            handleSystem: function() {},
-            SystemError: function(message) {
+            handleSystem: function () {},
+            SystemError: function (message) {
               done(new Error(message));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config.protocols['happn_1'] = {
-          transformOut: function(message) {
+          transformOut: function (message) {
             return message;
           },
-          emit: function(transformedPublication, session) {
+          emit: function (transformedPublication, session) {
             expect(session.protocol).to.be('happn_1.3.0');
             done();
-          }
+          },
         };
 
-        protocolMock.processLayers = function(message, layers, callback) {
+        protocolMock.processLayers = function (message, layers, callback) {
           callback(null, message);
         };
 
         protocolMock.processMessageOutLayers(
           {
             session: {
-              protocol: 'happn_1.3.0'
-            }
+              protocol: 'happn_1.3.0',
+            },
           },
-          function() {}
+          function () {}
         );
       });
     });
 
-    it('tests the processMessageInLayers method, bad protocol', function(done) {
+    it('tests the processMessageInLayers method, bad protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            SystemError: function(message) {
+            SystemError: function (message) {
               expect(message).to.be('unknown inbound protocol: bad');
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.processInboundStack = function(message, protocol, callback) {
+      protocolMock.processInboundStack = function (message, protocol, callback) {
         expect(message.session.protocol).to.be('bad');
         callback(null, message);
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.processMessageInLayers({
           session: {
-            protocol: 'bad'
-          }
+            protocol: 'bad',
+          },
         });
       });
     });
 
-    it('tests the processSystem method, bad protocol', function(done) {
+    it('tests the processSystem method, bad protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            SystemError: function(message) {
+            SystemError: function (message) {
               expect(message).to.be('unknown system protocol: bad');
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.processSystem(
           {
             session: {
-              protocol: 'bad'
-            }
+              protocol: 'bad',
+            },
           },
-          function(e) {
+          function (e) {
             expect(e).to.be(undefined);
           }
         );
       });
     });
 
-    it('tests the processSystem method', function(done) {
+    it('tests the processSystem method', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {}
+            on: function () {},
           },
           error: {
-            SystemError: function() {
+            SystemError: function () {
               done(new Error('was not meant to happn'));
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.processSystem(
           {
             session: {
-              protocol: 'happn_4'
-            }
+              protocol: 'happn_4',
+            },
           },
-          function(e, message) {
+          function (e, message) {
             expect(e).to.be(null);
             expect(message).to.eql({
               session: {
-                protocol: 'happn_4'
-              }
+                protocol: 'happn_4',
+              },
             });
             done();
           }
@@ -899,61 +897,61 @@ describe(
       });
     });
 
-    it('tests the processSystemOut method, error', function(done) {
+    it('tests the processSystemOut method, error', function (done) {
       var protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           session: {
-            on: function() {},
-            getClient: function() {}
+            on: function () {},
+            getClient: function () {},
           },
           error: {
-            handleSystem: function(error) {
+            handleSystem: function (error) {
               expect(error.toString()).to.be('Error: test emit error');
               done();
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
-      protocolMock.initialize({}, function() {
+      protocolMock.initialize({}, function () {
         protocolMock.config = {
           protocols: {
             happn_4: {
-              transformSystem: function(message) {
+              transformSystem: function (message) {
                 return message;
               },
-              emit: function() {
+              emit: function () {
                 throw new Error('test emit error');
-              }
-            }
-          }
+              },
+            },
+          },
         };
 
         protocolMock.processSystemOut(
           {
             session: {
-              protocol: 'happn_4'
-            }
+              protocol: 'happn_4',
+            },
           },
-          function(e, message) {
+          function (e, message) {
             expect(message).to.eql({
               session: {
-                protocol: 'happn_4'
-              }
+                protocol: 'happn_4',
+              },
             });
             done();
           }
@@ -961,15 +959,15 @@ describe(
       });
     });
 
-    it('tests the __cleanseRequestForLogs method', function() {
+    it('tests the __cleanseRequestForLogs method', function () {
       const protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       //undefined request and session
@@ -980,12 +978,12 @@ describe(
         JSON.parse(
           protocolMock.__cleanseRequestForLogs(undefined, {
             user: {
-              username: 'test'
-            }
+              username: 'test',
+            },
           })
         )
       ).to.eql({
-        username: 'test'
+        username: 'test',
       });
       //existing request and existing session
       expect(
@@ -994,12 +992,12 @@ describe(
             {
               path: 'test-path',
               action: 'test-action',
-              sessionId: 'test-session-id'
+              sessionId: 'test-session-id',
             },
             {
               user: {
-                username: 'test'
-              }
+                username: 'test',
+              },
             }
           )
         )
@@ -1007,19 +1005,19 @@ describe(
         username: 'test',
         path: 'test-path',
         action: 'test-action',
-        sessionId: 'test-session-id'
+        sessionId: 'test-session-id',
       });
     });
 
     it('tests the __disconnectUnauthorizedSession method', async () => {
       const protocolMock = new Protocol({
         logger: {
-          createLogger: function() {
+          createLogger: function () {
             return {
-              $$TRACE: function() {}
+              $$TRACE: function () {},
             };
-          }
-        }
+          },
+        },
       });
 
       const disconnectSessionArgs = [];
@@ -1027,26 +1025,26 @@ describe(
       protocolMock.happn = {
         connect: {},
         log: {
-          warn: function() {}
+          warn: function () {},
         },
         services: {
           log: {
-            warn: function() {}
+            warn: function () {},
           },
           session: {
-            disconnectSession: function(sessionId, callback, reason) {
+            disconnectSession: function (sessionId, callback, reason) {
               disconnectSessionArgs.push({ sessionId, reason });
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
       //message, errorMessage, cleansedRequest
       protocolMock.__disconnectUnauthorizedSession(
         {
           session: {
-            id: 1
-          }
+            id: 1,
+          },
         },
         'expired session token',
         {}
@@ -1054,8 +1052,8 @@ describe(
       protocolMock.__disconnectUnauthorizedSession(
         {
           session: {
-            id: 2
-          }
+            id: 2,
+          },
         },
         'session inactivity threshold reached',
         {}
@@ -1063,8 +1061,8 @@ describe(
       protocolMock.__disconnectUnauthorizedSession(
         {
           session: {
-            id: 3
-          }
+            id: 3,
+          },
         },
         'session usage limit reached',
         {}
@@ -1072,8 +1070,8 @@ describe(
       protocolMock.__disconnectUnauthorizedSession(
         {
           session: {
-            id: 4
-          }
+            id: 4,
+          },
         },
         'some arbitrary reason',
         {}
@@ -1084,7 +1082,7 @@ describe(
         { sessionId: 1, reason: { reason: 'token-expired' } },
         { sessionId: 2, reason: { reason: 'inactivity-threshold' } },
         { sessionId: 3, reason: { reason: 'usage-limit' } },
-        { sessionId: 4, reason: { reason: 'unauthorized-request' } }
+        { sessionId: 4, reason: { reason: 'unauthorized-request' } },
       ]);
     });
   }

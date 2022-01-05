@@ -1,53 +1,53 @@
 const expect = require('expect.js');
 const test = require('../../__fixtures/utils/test_helper').create();
 const sinon = test.sinon;
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   const Subscription = require('../../../lib/services/subscription/service');
   let subscriptionMock = new Subscription({
     logger: {
-      createLogger: function() {
+      createLogger: function () {
         return {
-          $$TRACE: function() {}
+          $$TRACE: function () {},
         };
-      }
-    }
+      },
+    },
   });
 
-  it('tests the subscripition services __removeInvalidProhibitions method', done => {
+  it('tests the subscripition services __removeInvalidProhibitions method', (done) => {
     subscriptionMock.removeListenerExtended = sinon.stub();
     let effectedSession = { id: 'testSession' };
     let prohibitedPaths = {
       explicit: ['/1/2/3', '/4/5/*'],
-      wild: ['/4/5/']
+      wild: ['/4/5/'],
     };
-    let prohibitedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map(path => ({
+    let prohibitedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map((path) => ({
       ...prohibitSubscriberTemplate,
       data: {
         ...prohibitSubscriberTemplate.data,
-        searchPath: path
-      }
+        searchPath: path,
+      },
     }));
     subscriptionMock.__removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths);
     expect(subscriptionMock.removeListenerExtended.callCount).to.be(2);
     expect(subscriptionMock.removeListenerExtended.args).to.eql(
-      ['/1/3/5', '/2/3/4/5'].map(path => [...prohibitSubscriberArgs, path])
+      ['/1/3/5', '/2/3/4/5'].map((path) => [...prohibitSubscriberArgs, path])
     );
     done();
   });
 
-  it('tests the subscripition services __removeInvalidSubscriptions method', done => {
+  it('tests the subscripition services __removeInvalidSubscriptions method', (done) => {
     subscriptionMock.removeListenerExtended = sinon.stub();
     let effectedSession = { id: 'testSession' };
     let allowedPaths = {
       explicit: ['/1/2/3', '/4/5/*'],
-      wild: ['/4/5/']
+      wild: ['/4/5/'],
     };
-    let allowedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map(path => ({
+    let allowedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map((path) => ({
       ...standardSubscriberTemplate,
       data: {
         ...standardSubscriberTemplate.data,
-        searchPath: path
-      }
+        searchPath: path,
+      },
     }));
     subscriptionMock.__removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths);
     expect(subscriptionMock.removeListenerExtended.callCount).to.be(2);
@@ -57,19 +57,19 @@ describe(test.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the subscripition services __removeExplicitlyRevokedSubscriptions method', done => {
+  it('tests the subscripition services __removeExplicitlyRevokedSubscriptions method', (done) => {
     subscriptionMock.removeListenerExtended = sinon.stub();
     let effectedSession = { id: 'testSession' };
     let prohibitedPaths = {
       explicit: ['/1/2/3', '/4/5/*'],
-      wild: ['/4/5/']
+      wild: ['/4/5/'],
     };
-    let allowedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map(path => ({
+    let allowedSubs = ['/1/2/3', '/4/5/6/5', '/1/3/5', '/2/3/4/5'].map((path) => ({
       ...standardSubscriberTemplate,
       data: {
         ...standardSubscriberTemplate.data,
-        searchPath: path
-      }
+        searchPath: path,
+      },
     }));
     subscriptionMock.__removeExplicitlyRevokedSubscriptions(
       effectedSession,
@@ -83,21 +83,21 @@ describe(test.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the subscripition services __addNewProhibitions method', done => {
+  it('tests the subscripition services __addNewProhibitions method', (done) => {
     //effectedSession, prohibitedPaths, wildSubPaths, prohibitedSubs)
     subscriptionMock.addListener = sinon.stub();
     let effectedSession = { id: 'testSession' };
     let prohibitedPaths = {
       explicit: ['/1/2/3', '/4/5/*', '/2/3/4/5', '/2/3/7/8'],
-      wild: ['/4/5/']
+      wild: ['/4/5/'],
     };
     let wildSubPaths = ['/2/3', '/1/2'];
-    let prohibitedSubs = ['/2/3/7/8', '/1/2/3'].map(path => ({
+    let prohibitedSubs = ['/2/3/7/8', '/1/2/3'].map((path) => ({
       ...prohibitSubscriberTemplate,
       data: {
         ...prohibitSubscriberTemplate.data,
-        searchPath: path
-      }
+        searchPath: path,
+      },
     }));
     subscriptionMock.__addNewProhibitions(
       effectedSession,
@@ -107,43 +107,43 @@ describe(test.testName(__filename, 3), function() {
     );
     expect(subscriptionMock.addListener.callCount).to.be(1);
     expect(subscriptionMock.addListener.args).to.eql(
-      ['/2/3/4/5'].map(path => ['ALL', path, ...addedProhibitionArgs])
+      ['/2/3/4/5'].map((path) => ['ALL', path, ...addedProhibitionArgs])
     );
     done();
   });
 
-  it('tests the subscripition services __addNewSubscriptions method', done => {
+  it('tests the subscripition services __addNewSubscriptions method', (done) => {
     //(effectedSession, allowedPaths, prohibitedPaths, allowedSubs, wildSubs, wildSubPaths)
     subscriptionMock.addListener = sinon.stub();
     let effectedSession = { id: 'testSession' };
     let allowedPaths = {
       explicit: ['/4/**', '/4/1', '/6/7/**', '/7/8/9', '/6/7/8/9'],
-      wild: ['/4/', '/6/7/']
+      wild: ['/4/', '/6/7/'],
     };
     let prohibitedPaths = {
       explicit: ['/1/2/3', '/4/5/*', '/2/3/4/5', '/2/3/7/8'],
-      wild: ['/4/5/']
+      wild: ['/4/5/'],
     };
     let wildSubPaths = ['/4/', '/6/7/'];
     let allowedSubs = [
       { path: '/4/**', searchPath: '/4/**' },
       { path: '/6/7/**', searchPath: '/6/7/**' },
-      { path: '/7/8/9', searchPath: '/7/8/9' }
+      { path: '/7/8/9', searchPath: '/7/8/9' },
     ].map(({ path, searchPath }) => ({
       ...standardSubscriberTemplate,
       data: {
         ...standardSubscriberTemplate.data,
         path,
-        searchPath
-      }
+        searchPath,
+      },
     }));
-    let wildSubs = wildSubPaths.map(path => ({
+    let wildSubs = wildSubPaths.map((path) => ({
       ...wildSubscriberTemplate,
       data: {
         ...wildSubscriberTemplate.data,
         searchPath: path + '**',
-        path: path + '**'
-      }
+        path: path + '**',
+      },
     }));
     subscriptionMock.__addNewSubscriptions(
       effectedSession,
@@ -157,18 +157,18 @@ describe(test.testName(__filename, 3), function() {
     expect(subscriptionMock.addListener.args).to.eql(
       mapNewlistenerArgs([
         { searchPath: '/4/1', path: '/4/**' },
-        { searchPath: '/6/7/8/9', path: '/6/7/**' }
+        { searchPath: '/6/7/8/9', path: '/6/7/**' },
       ])
     );
     done();
   });
 
-  it('tests the __processChangedSubscriptions method partitions data correctly, and calls the correct methods', done => {
+  it('tests the __processChangedSubscriptions method partitions data correctly, and calls the correct methods', (done) => {
     subscriptionMock.allListeners = sinon.stub().callsFake(getFakeListeners);
     subscriptionMock.securityService = {
       checkpoint: {
-        listRelevantPermissions: sinon.stub().callsArgWith(3, null, returnPaths)
-      }
+        listRelevantPermissions: sinon.stub().callsArgWith(3, null, returnPaths),
+      },
     };
     subscriptionMock.__removeInvalidProhibitions = sinon.stub();
     subscriptionMock.__removeInvalidSubscriptions = sinon.stub();
@@ -184,33 +184,33 @@ describe(test.testName(__filename, 3), function() {
 
       expect(subscriptionMock.__removeInvalidProhibitions.args[0].slice(1)).to.eql([
         getProhibitedSubs(),
-        returnProhibitedPaths
+        returnProhibitedPaths,
       ]);
       expect(subscriptionMock.__removeInvalidSubscriptions.args[0].slice(1)).to.eql([
         getAllowedSubs(),
-        returnAllowedPaths
+        returnAllowedPaths,
       ]);
       expect(subscriptionMock.__removeExplicitlyRevokedSubscriptions.args[0].slice(1)).to.eql([
         getAllowedSubs(),
-        returnProhibitedPaths
+        returnProhibitedPaths,
       ]);
       expect(subscriptionMock.__addNewProhibitions.args[0].slice(1)).to.eql([
         getProhibitedSubs(),
         returnProhibitedPaths,
-        returnWildPaths
+        returnWildPaths,
       ]);
       expect(subscriptionMock.__addNewSubscriptions.args[0].slice(1)).to.eql([
         getAllowedSubs(),
         getNestedWildSubs(),
         returnAllowedPaths,
         returnProhibitedPaths,
-        returnNestedWildPaths
+        returnNestedWildPaths,
       ]);
       done();
     });
   });
 
-  it('tests the __filterRecipients method', done => {
+  it('tests the __filterRecipients method', (done) => {
     // Note, in this test there are subscriptions that don't match the message path, because we are passing those in and just testing filtering
     let allowedSubs1 = ['/1/2', '/3/4/*', '/3/4/7/8', '/5/6/7'];
     let prohibitedSubs1 = ['/3/4/5/6', '/3/4/7/*'];
@@ -222,50 +222,50 @@ describe(test.testName(__filename, 3), function() {
     let recipients = [...recipients1, ...recipients2];
     let message = { request: { path: '/1/2' } };
     let filtered = subscriptionMock.filterRecipients(message, recipients);
-    expect(filtered.every(item => item.data.options === undefined)).to.be(true); //i.e none are prohibited or wild
+    expect(filtered.every((item) => item.data.options === undefined)).to.be(true); //i.e none are prohibited or wild
     expect(
       filtered
-        .filter(rec => rec.data.session.id === 'test-session1')
-        .map(rec => rec.data.path)
+        .filter((rec) => rec.data.session.id === 'test-session1')
+        .map((rec) => rec.data.path)
         .sort()
     ).to.eql(['/1/2', '/3/4/*', '/5/6/7'].sort()); //allowedSubs1 - '/3/4/7/8' - filtered because of prohibitions
     expect(
       filtered
-        .filter(rec => rec.data.session.id === 'test-session2')
-        .map(rec => rec.data.path)
+        .filter((rec) => rec.data.session.id === 'test-session2')
+        .map((rec) => rec.data.path)
         .sort()
     ).to.eql(allowedSubs2.sort());
 
     message = { request: { path: '/8/9/10/11' } };
     filtered = subscriptionMock.filterRecipients(message, recipients);
-    expect(filtered.every(item => item.data.options === undefined)).to.be(true); //i.e none are prohibited or wild
+    expect(filtered.every((item) => item.data.options === undefined)).to.be(true); //i.e none are prohibited or wild
     expect(
       filtered
-        .filter(rec => rec.data.session.id === 'test-session1')
-        .map(rec => rec.data.path)
+        .filter((rec) => rec.data.session.id === 'test-session1')
+        .map((rec) => rec.data.path)
         .sort()
     ).to.eql(['/1/2', '/3/4/*', '/5/6/7'].sort()); //allowedSubs1 - '/3/4/7/8' - filtered because of prohibitions
     expect(
       filtered
-        .filter(rec => rec.data.session.id === 'test-session2')
-        .map(rec => rec.data.path)
+        .filter((rec) => rec.data.session.id === 'test-session2')
+        .map((rec) => rec.data.path)
         .sort()
     ).to.eql([]); //Filtered because of message.request.path being prohibited
     done();
   });
 });
 
-let getFakeListeners = function() {
+let getFakeListeners = function () {
   return [...getAllowedSubs(), ...getWildSubs(), ...getProhibitedSubs()];
 };
 
 let getProhibitedSubs = () => {
-  return ['/5/6/7', '5/1/2', '5/2/*'].map(path => ({
+  return ['/5/6/7', '5/1/2', '5/2/*'].map((path) => ({
     ...prohibitSubscriberTemplate,
     data: {
       ...prohibitSubscriberTemplate.data,
-      searchPath: path
-    }
+      searchPath: path,
+    },
   }));
 };
 let getAllowedSubs = () => {
@@ -274,52 +274,52 @@ let getAllowedSubs = () => {
     { path: '/4/**', searchPath: '/4/1' },
     { path: '/5/*', searchPath: '/5/*' },
     { path: '/6/7/**', searchPath: '/6/7/**' },
-    { path: '/7/8/9', searchPath: '/7/8/9' }
+    { path: '/7/8/9', searchPath: '/7/8/9' },
   ].map(({ path, searchPath }) => ({
     ...standardSubscriberTemplate,
     data: {
       ...standardSubscriberTemplate.data,
       path,
-      searchPath
-    }
+      searchPath,
+    },
   }));
 };
 
 let getWildSubs = () => {
-  return ['/4/**', '/6/7/**', '/5/*'].map(path => ({
+  return ['/4/**', '/6/7/**', '/5/*'].map((path) => ({
     ...wildSubscriberTemplate,
     data: {
       ...wildSubscriberTemplate.data,
       searchPath: path,
-      path: path
-    }
+      path: path,
+    },
   }));
 };
 
 let getNestedWildSubs = () => {
-  return ['/4/**', '/6/7/**'].map(path => ({
+  return ['/4/**', '/6/7/**'].map((path) => ({
     ...wildSubscriberTemplate,
     data: {
       ...wildSubscriberTemplate.data,
       searchPath: path,
-      path: path
-    }
+      path: path,
+    },
   }));
 };
 
 let returnPaths = {
   allowed: ['/4/1', '/5/*', '/7/8/9'],
-  prohibited: ['/5/6/7', '/5/1/2', '/5/2/*']
+  prohibited: ['/5/6/7', '/5/1/2', '/5/2/*'],
 };
 
 let returnAllowedPaths = {
   explicit: ['/4/1', '/5/*', '/7/8/9'],
-  wild: ['/5/']
+  wild: ['/5/'],
 };
 
 let returnProhibitedPaths = {
   explicit: ['/5/6/7', '/5/1/2', '/5/2/*'],
-  wild: ['/5/2/']
+  wild: ['/5/2/'],
 };
 
 let returnWildPaths = ['/4/', '/6/7/', '/5/'];
@@ -330,50 +330,50 @@ let prohibitSubscriberTemplate = {
   data: {
     options: {
       event_type: 'all',
-      prohibited: true
+      prohibited: true,
     },
     session: {
       id: 'test-id',
       protocol: 'happn_4',
       info: {
         _browser: false,
-        _local: true
-      }
+        _local: true,
+      },
     },
     ref: 'test-ref',
-    action: 'ALL'
-  }
+    action: 'ALL',
+  },
 };
 let prohibitSubscriberArgs = [
   {
     data: {
       ref: 'test-ref',
       options: {
-        prohibited: true
-      }
-    }
+        prohibited: true,
+      },
+    },
   },
   'testSession',
-  'ALL'
+  'ALL',
 ];
 
 let standardSubscriberTemplate = {
   subscriberKey: 'testsubscriberKey',
   data: {
     options: {
-      event_type: 'all'
+      event_type: 'all',
     },
     session: {
       id: 'test-id',
       protocol: 'happn_4',
       info: {
         _browser: false,
-        _local: true
-      }
+        _local: true,
+      },
     },
     ref: 'test-ref',
-    action: 'ALL'
-  }
+    action: 'ALL',
+  },
 };
 
 let wildSubscriberTemplate = {
@@ -381,53 +381,53 @@ let wildSubscriberTemplate = {
   data: {
     options: {
       event_type: 'all',
-      wild: true
+      wild: true,
     },
     session: {
       id: 'test-id',
       protocol: 'happn_4',
       info: {
         _browser: false,
-        _local: true
-      }
+        _local: true,
+      },
     },
     ref: 'test-ref',
-    action: 'ALL'
-  }
+    action: 'ALL',
+  },
 };
-let mapInvalidSubscriberArgs = paths => {
-  return paths.map(path => [
+let mapInvalidSubscriberArgs = (paths) => {
+  return paths.map((path) => [
     {
       data: {
         ref: 'test-ref',
         searchPath: path,
         options: {
           prohibited: {
-            $ne: true
-          }
-        }
-      }
+            $ne: true,
+          },
+        },
+      },
     },
     'testSession',
     'ALL',
-    '*'
+    '*',
   ]);
 };
-let mapRevokedSubscriberArgs = paths => {
-  return paths.map(path => [
+let mapRevokedSubscriberArgs = (paths) => {
+  return paths.map((path) => [
     { data: { options: { prohibited: { $ne: true } }, ref: 'test-ref', searchPath: path } },
     'testSession',
     'ALL',
-    '*'
+    '*',
   ]);
 };
 
 let addedProhibitionArgs = [
   'testSession',
-  { options: { prohibited: true }, session: { id: 'testSession' } }
+  { options: { prohibited: true }, session: { id: 'testSession' } },
 ];
 
-let mapNewlistenerArgs = paths => {
+let mapNewlistenerArgs = (paths) => {
   let argsArray = [];
   paths.forEach(({ path, searchPath }) => {
     let funcArguments = [...newListenerArgs];
@@ -435,7 +435,7 @@ let mapNewlistenerArgs = paths => {
     funcArguments[3] = {
       ...funcArguments[3],
       searchPath,
-      path
+      path,
     };
     funcArguments[4] = path;
     argsArray.push(funcArguments);
@@ -450,51 +450,51 @@ let newListenerArgs = [
   {
     options: {
       event_type: 'all',
-      wild: false
+      wild: false,
     },
     session: {
       id: 'test-id',
       protocol: 'happn_4',
       info: {
         _browser: false,
-        _local: true
-      }
+        _local: true,
+      },
     },
     ref: 'test-ref',
     action: 'ALL',
     searchPath: '',
-    path: ''
+    path: '',
   },
-  null
+  null,
 ];
 
 let mapRecipients = (sessionId, allowed, prohibited, wild) => {
-  let allowedSubs = allowed.map(path => ({
+  let allowedSubs = allowed.map((path) => ({
     data: {
       session: { id: sessionId },
       searchPath: path,
-      path
-    }
+      path,
+    },
   }));
-  let prohibitedSubs = prohibited.map(path => ({
+  let prohibitedSubs = prohibited.map((path) => ({
     data: {
       session: { id: sessionId },
       searchPath: path,
       path,
       options: {
-        prohibited: true
-      }
-    }
+        prohibited: true,
+      },
+    },
   }));
-  let wildSubs = wild.map(path => ({
+  let wildSubs = wild.map((path) => ({
     data: {
       session: { id: sessionId },
       searchPath: path,
       path,
       options: {
-        wild: true
-      }
-    }
+        wild: true,
+      },
+    },
   }));
   return [...allowedSubs, ...prohibitedSubs, ...wildSubs];
 };

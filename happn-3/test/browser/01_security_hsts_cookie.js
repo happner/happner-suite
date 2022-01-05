@@ -1,4 +1,4 @@
-describe('01_security_hsts_cookie', function() {
+describe('01_security_hsts_cookie', function () {
   var expect, happn_client;
 
   if (typeof window === 'undefined') {
@@ -14,7 +14,7 @@ describe('01_security_hsts_cookie', function() {
   var socketClient;
   var socketClientHttp;
 
-  it('should initialize the https client', function(callback) {
+  it('should initialize the https client', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -24,10 +24,10 @@ describe('01_security_hsts_cookie', function() {
             username: '_ADMIN',
             password: 'happn',
             port: 55001,
-            protocol: 'https'
-          }
+            protocol: 'https',
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
 
           socketClient = instance;
@@ -39,7 +39,7 @@ describe('01_security_hsts_cookie', function() {
     }
   });
 
-  it('should initialize the http client', function(callback) {
+  it('should initialize the http client', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -50,12 +50,12 @@ describe('01_security_hsts_cookie', function() {
             password: 'happn',
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
             },
-            port: 55000
-          }
+            port: 55000,
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
 
           socketClientHttp = instance;
@@ -67,23 +67,23 @@ describe('01_security_hsts_cookie', function() {
     }
   });
 
-  it('checks our cookie is not set to secure on socket login', function(done) {
+  it('checks our cookie is not set to secure on socket login', function (done) {
     if (!document.cookie) return done(new Error('cookie should not be blank'));
     done();
   });
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(10000);
 
-    if (socketClient) socketClient.disconnect(function() {});
-    if (socketClientHttp) socketClientHttp.disconnect(function() {});
+    if (socketClient) socketClient.disconnect(function () {});
+    if (socketClientHttp) socketClientHttp.disconnect(function () {});
 
     setTimeout(done, 5000);
   });
 
   var default_timeout = 10000;
 
-  it('checks for the hsts headers', function(done) {
+  it('checks for the hsts headers', function (done) {
     this.timeout(default_timeout);
 
     var oReq = new XMLHttpRequest();

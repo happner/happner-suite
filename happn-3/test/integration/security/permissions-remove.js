@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   const happn = require('../../../lib/index');
   const wait = require('await-delay');
   let serviceInstance;
@@ -10,7 +10,7 @@ describe(test.testName(__filename, 3), function() {
     happn.service.create(config, callback);
   }
 
-  before('it starts secure service, with lockTokenToUserId switched on', function(done) {
+  before('it starts secure service, with lockTokenToUserId switched on', function (done) {
     this.timeout(5000);
     getService(
       {
@@ -18,17 +18,17 @@ describe(test.testName(__filename, 3), function() {
         allowNestedPermissions: true,
         services: {
           security: {
-            config: {}
+            config: {},
           },
           protocol: {
-            config: { allowNestedPermissions: true }
+            config: { allowNestedPermissions: true },
           },
           subscription: {
-            config: { allowNestedPermissions: true }
-          }
-        }
+            config: { allowNestedPermissions: true },
+          },
+        },
       },
-      function(e, service) {
+      function (e, service) {
         if (e) return done(e);
         serviceInstance = service;
         done();
@@ -39,24 +39,24 @@ describe(test.testName(__filename, 3), function() {
   before('creates an admin client', async () => {
     adminClient = await serviceInstance.services.session.localClient({
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
   });
 
-  after('should disconnect', function(callback) {
+  after('should disconnect', function (callback) {
     this.timeout(15000);
 
     if (testClient)
       testClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
     if (adminClient)
       adminClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
 
-    setTimeout(function() {
-      serviceInstance.stop(function() {
+    setTimeout(function () {
+      serviceInstance.stop(function () {
         callback();
       });
     }, 3000);
@@ -66,14 +66,14 @@ describe(test.testName(__filename, 3), function() {
     let testUser = {
       username: 'TEST' + userSeq.toString(),
       password: 'TEST PWD',
-      permissions: userPermissions
+      permissions: userPermissions,
     };
     let addedTestuser = await serviceInstance.services.security.users.upsertUser(testUser, {
-      overwrite: true
+      overwrite: true,
     });
     for (let group of groups) {
       let addedGroup = await serviceInstance.services.security.users.upsertGroup(group, {
-        overwrite: true
+        overwrite: true,
       });
       await serviceInstance.services.security.users.linkGroup(addedGroup, addedTestuser);
     }
@@ -84,7 +84,7 @@ describe(test.testName(__filename, 3), function() {
     let user = await initializeSecutiy(groups, userSeq, userPermissions);
     let testClient = await serviceInstance.services.session.localClient({
       username: user.username,
-      password: 'TEST PWD'
+      password: 'TEST PWD',
     });
     return [testClient, user];
   }
@@ -95,21 +95,21 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       [testClient] = await getTestClient([testGroup, testGroup2], 1);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup.name,
           '/TEST/1/2/3',
@@ -124,7 +124,7 @@ describe(test.testName(__filename, 3), function() {
       await wait(1000);
       await adminClient.set('/TEST/1/2/3', { test: 'should still be allowed' });
       test.expect(events[0].test).to.be('should still be allowed');
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup2.name,
           '/TEST/1/2/3',
@@ -147,33 +147,33 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP3',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       let testGroup4 = {
         name: 'TEST GROUP4',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup3, testGroup4], 2);
 
       const events = [];
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup3.name,
           '/TEST/1/2/3',
           action
         )
       );
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup4.name,
           '/TEST/1/2/3',
@@ -195,17 +195,17 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP5',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       let testGroup6 = {
         name: 'TEST GROUP6',
         permissions: {
           '/TEST/1/2/3': {
-            prohibit: ['on', 'get']
-          }
-        }
+            prohibit: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup5, testGroup6], 3);
@@ -219,7 +219,7 @@ describe(test.testName(__filename, 3), function() {
       await wait(1000);
       await adminClient.set('/TEST/1/2/3', { test: 'should not be allowed' });
       test.expect(Array.isArray(events) && events.length === 0).to.be(true);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup6.name,
           '/TEST/1/2/3',
@@ -237,19 +237,19 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP7',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       [testClient] = await getTestClient([testGroup], 4, userPermissions);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup.name,
           '/TEST/1/2/3',
@@ -269,23 +269,23 @@ describe(test.testName(__filename, 3), function() {
     it('we remove a duplicated permisison from one of the users groups, check user still has access, subscription on /**', async () => {
       let userPermissions = {
         '/TEST/1/2/*': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP8',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup2], 5, userPermissions);
 
       const events = [];
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup2.name,
           '/TEST/1/2/3',
@@ -305,16 +305,16 @@ describe(test.testName(__filename, 3), function() {
       // tbd - possible corner cases, but we should not really neded to remove prohibitions - we can just upsert authorized: true
       let userPermissions = {
         '/TEST/1/2/*': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
       let testGroup3 = {
         name: 'TEST GROUP9',
         permissions: {
           '/TEST/1/2/3': {
-            prohibit: ['on', 'get']
-          }
-        }
+            prohibit: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup3], 6, userPermissions);
@@ -328,7 +328,7 @@ describe(test.testName(__filename, 3), function() {
       await wait(1000);
       await adminClient.set('/TEST/1/2/3', { test: 'should not be allowed' });
       test.expect(Array.isArray(events) && events.length === 0).to.be(true);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup3.name,
           '/TEST/1/2/3',
@@ -346,19 +346,19 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup], 7, userPermissions);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission(
           user.username,
           '/TEST/1/2/3',
@@ -378,23 +378,23 @@ describe(test.testName(__filename, 3), function() {
     it('we remove a duplicated permisison the users, check user still has access, subscription on /**', async () => {
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup2], 8, userPermissions);
 
       const events = [];
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission('TEST', '/TEST/1/2/3', action)
       );
       function handler(data) {
@@ -410,16 +410,16 @@ describe(test.testName(__filename, 3), function() {
       // tbd - possible corner cases, but we should not really neded to remove prohibitions - we can just upsert authorized: true
       let userPermissions = {
         '/TEST/1/2/3': {
-          prohibit: ['on', 'get']
-        }
+          prohibit: ['on', 'get'],
+        },
       };
       let testGroup3 = {
         name: 'TEST GROUP6',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup3], 9, userPermissions);
@@ -433,7 +433,7 @@ describe(test.testName(__filename, 3), function() {
       await wait(1000);
       await adminClient.set('/TEST/1/2/3', { test: 'should not be allowed' });
       test.expect(Array.isArray(events) && events.length === 0).to.be(true);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission(
           user.username,
           '/TEST/1/2/3',
@@ -452,23 +452,23 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       [testClient] = await getTestClient([testGroup, testGroup2], 10);
       let result = await testClient.get('/TEST/1/2/3');
       test.expect(result.test).to.be(1);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup.name,
           '/TEST/1/2/3',
@@ -488,20 +488,20 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP3',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       let testGroup4 = {
         name: 'TEST GROUP4',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup3, testGroup4], 11);
@@ -509,14 +509,14 @@ describe(test.testName(__filename, 3), function() {
       let result = await testClient.get('/TEST/1/2/*');
       test.expect(result[0].test).to.be(2);
 
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup3.name,
           '/TEST/1/2/3',
           action
         )
       );
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup4.name,
           '/TEST/1/2/3',
@@ -538,17 +538,17 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP5',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       let testGroup6 = {
         name: 'TEST GROUP6',
         permissions: {
           '/TEST/1/2/3': {
-            prohibit: ['on', 'get']
-          }
-        }
+            prohibit: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup5, testGroup6], 12);
@@ -560,7 +560,7 @@ describe(test.testName(__filename, 3), function() {
         test.expect(e.toString()).to.be('AccessDenied: unauthorized');
         errored++;
       }
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup6.name,
           '/TEST/1/2/3',
@@ -587,15 +587,15 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP7',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       [testClient] = await getTestClient([testGroup], 13, userPermissions);
@@ -603,7 +603,7 @@ describe(test.testName(__filename, 3), function() {
       let result = await testClient.get('/TEST/1/2/3');
       test.expect(result.test).to.be(1);
 
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup.name,
           '/TEST/1/2/3',
@@ -620,23 +620,23 @@ describe(test.testName(__filename, 3), function() {
       await adminClient.set('/TEST/1/2/3', { test: 2 });
       let userPermissions = {
         '/TEST/1/2/*': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup2], 14, userPermissions);
       let result = await testClient.get('/TEST/1/2/**');
       test.expect(result[0].test).to.be(2);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup2.name,
           '/TEST/1/2/3',
@@ -656,16 +656,16 @@ describe(test.testName(__filename, 3), function() {
       // tbd - possible corner cases, but we should not really neded to remove prohibitions - we can just upsert authorized: true
       let userPermissions = {
         '/TEST/1/2/*': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
       let testGroup3 = {
         name: 'TEST GROUP6',
         permissions: {
           '/TEST/1/2/3': {
-            prohibit: ['on', 'get']
-          }
-        }
+            prohibit: ['on', 'get'],
+          },
+        },
       };
 
       [testClient] = await getTestClient([testGroup3], 15, userPermissions);
@@ -676,7 +676,7 @@ describe(test.testName(__filename, 3), function() {
         test.expect(e.toString()).to.be('AccessDenied: unauthorized');
         errored++;
       }
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.groups.removePermission(
           testGroup3.name,
           '/TEST/1/2/3',
@@ -703,19 +703,19 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup], 16, userPermissions);
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission(
           user.username,
           '/TEST/1/2/3',
@@ -736,23 +736,23 @@ describe(test.testName(__filename, 3), function() {
       await adminClient.set('/TEST/1/2/3', { test: 2 });
       let userPermissions = {
         '/TEST/1/2/3': {
-          actions: ['on', 'get']
-        }
+          actions: ['on', 'get'],
+        },
       };
 
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup2], 17, userPermissions);
 
       const events = [];
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission(
           user.username,
           '/TEST/1/2/3',
@@ -774,16 +774,16 @@ describe(test.testName(__filename, 3), function() {
       // tbd - possible corner cases, but we should not really neded to remove prohibitions - we can just upsert authorized: true
       let userPermissions = {
         '/TEST/1/2/3': {
-          prohibit: ['on', 'get']
-        }
+          prohibit: ['on', 'get'],
+        },
       };
       let testGroup3 = {
         name: 'TEST GROUP6',
         permissions: {
           '/TEST/1/2/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       [testClient, user] = await getTestClient([testGroup3], 18, userPermissions);
@@ -795,7 +795,7 @@ describe(test.testName(__filename, 3), function() {
         errored++;
       }
 
-      ['on', 'get'].forEach(action =>
+      ['on', 'get'].forEach((action) =>
         serviceInstance.services.security.users.removePermission(
           user.username,
           '/TEST/1/2/3',

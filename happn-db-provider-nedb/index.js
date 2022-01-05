@@ -1,20 +1,16 @@
 const db = require('happn-nedb'),
-  EventEmitter = require('events').EventEmitter,
   commons = require('happn-commons'),
   fs = commons.fs,
   utils = commons.utils;
 
-module.exports = class NedbProvider extends EventEmitter {
-  constructor(settings = {}, logger) {
-    super();
+module.exports = class NedbProvider extends commons.BaseDataProvider {
+  constructor(settings, logger) {
     if (settings.dbfile) settings.filename = settings.dbfile; //backward compatable
     if (settings.filename) {
       settings.autoload = true; //we definately autoloading
     }
     if (settings.timestampData == null) settings.timestampData = true;
-    this.settings = settings;
-    this.log = logger;
-
+    super(settings, logger);
     this.initialize = utils.maybePromisify(this.initialize);
     this.stop = utils.maybePromisify(this.stop);
     this.upsert = utils.maybePromisify(this.upsert);
@@ -25,9 +21,7 @@ module.exports = class NedbProvider extends EventEmitter {
     this.findOne = utils.maybePromisify(this.findOne);
     this.remove = utils.maybePromisify(this.remove);
     this.count = utils.maybePromisify(this.count);
-
     this.db = null;
-    this.batchData = {};
   }
   static create(settings) {
     return new NedbProvider(settings);
@@ -128,7 +122,7 @@ module.exports = class NedbProvider extends EventEmitter {
       setParameters,
       options,
       //err, response, created, upserted, meta
-      this.__ensureFileSync((err, result) => {
+      this.__ensureFileSync((err, _result, document) => {
         if (err) {
           //data with circular references can cause callstack exceeded errors
           if (err.toString() === 'RangeError: Maximum call stack size exceeded')
@@ -138,8 +132,8 @@ module.exports = class NedbProvider extends EventEmitter {
           return callback(err);
         }
 
-        const data = result || setParameters.$set;
-        const meta = this.__getMeta(data);
+        let data = document || setParameters.$set;
+        let meta = this.getMeta(data);
 
         if (setParameters.$set.modifiedBy != null) {
           meta.modifiedBy = setParameters.$set.modifiedBy;
@@ -180,7 +174,10 @@ module.exports = class NedbProvider extends EventEmitter {
     if (parameters == null) {
       parameters = {};
     }
-    const pathCriteria = this.getPathCriteria(path, parameters);
+    let pathCriteria = this.getPathCriteria(path);
+    if (parameters.criteria) {
+      pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
+    }
     const sortOptions = parameters.options ? parameters.options.sort : null;
     const searchOptions = {};
     if (parameters.options) {
@@ -232,90 +229,6 @@ module.exports = class NedbProvider extends EventEmitter {
 
   findOne(criteria, fields, callback) {
     return this.db.findOne(criteria, fields, callback);
-  }
-
-  transform(dataObj, meta) {
-    const transformed = {
-      data: dataObj.data,
-      _meta: meta || {
-        path: dataObj.path,
-        created: dataObj.created,
-        modified: dataObj.modified,
-        modifiedBy: dataObj.modifiedBy
-      }
-    };
-
-    if (!dataObj._id) {
-      transformed._meta._id = transformed.path;
-    } else {
-      transformed._meta.path = dataObj._id;
-      transformed._meta._id = dataObj._id;
-    }
-
-    return transformed;
-  }
-
-  transformAll(items, fields) {
-    return items.map(item => {
-      return this.transform(item, null, fields);
-    });
-  }
-
-  escapeRegex(str) {
-    if (typeof str !== 'string') throw new TypeError('Expected a string');
-
-    return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-  }
-
-  preparePath(path) {
-    //strips out duplicate sequential wildcards, ie simon***bishop -> simon*bishop
-
-    if (!path) return '*';
-
-    var prepared = '';
-
-    var lastChar = null;
-
-    for (var i = 0; i < path.length; i++) {
-      if (path[i] === '*' && lastChar === '*') continue;
-
-      prepared += path[i];
-
-      lastChar = path[i];
-    }
-
-    return prepared;
-  }
-
-  addCriteria(pathObject, criteria) {
-    return { $and: [pathObject, criteria] };
-  }
-
-  getPathCriteria(path, parameters) {
-    let pathCriteria =
-      path.indexOf('*') === -1
-        ? { path }
-        : {
-            path: {
-              $regex: new RegExp(
-                '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$'
-              )
-            }
-          };
-    if (parameters && parameters.criteria) {
-      return this.addCriteria(pathCriteria, parameters.criteria);
-    }
-    return pathCriteria;
-  }
-
-  __getMeta(response) {
-    return {
-      created: response.created,
-      modified: response.modified,
-      modifiedBy: response.modifiedBy,
-      path: response._id || response.path,
-      _id: response._id || response.path
-    };
   }
 
   startCompacting(interval, callback, compactionHandler) {

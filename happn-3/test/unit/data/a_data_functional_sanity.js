@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(20000);
   const Utils = require('../../../lib/services/utils/service');
   const utils = new Utils();
@@ -12,34 +12,34 @@ describe(test.testName(__filename, 3), function() {
     test.sinon.restore();
   });
 
-  before('should initialize the service', function(callback) {
+  before('should initialize the service', function (callback) {
     serviceInstance.happn = {
       services: {
         utils: utils,
         system: {
-          package: require('../../../package.json')
-        }
-      }
+          package: require('../../../package.json'),
+        },
+      },
     };
 
     serviceInstance.initialize(empty_config, callback);
   });
 
-  after(function(done) {
+  after(function (done) {
     serviceInstance.stop(done);
   });
 
-  it('sets data', function(callback) {
+  it('sets data', function (callback) {
     var beforeCreatedOrModified = Date.now();
 
-    setTimeout(function() {
+    setTimeout(function () {
       serviceInstance.upsert(
         '/set/' + testId,
         {
-          test: 'data'
+          test: 'data',
         },
         {},
-        function(e, response) {
+        function (e, response) {
           if (e) return callback(e);
 
           test.expect(response.data.test).to.equal('data');
@@ -53,32 +53,32 @@ describe(test.testName(__filename, 3), function() {
     }, 100);
   });
 
-  it('sets data and gets an error from __upsertInternal', function(callback) {
+  it('sets data and gets an error from __upsertInternal', function (callback) {
     const db = serviceInstance.db('/set/' + testId);
     test.sinon.stub(db, 'upsert').callsFake((path, setData, options, cb) => {
       return cb(new Error('test error'));
     });
 
-    serviceInstance.upsert('/set/' + testId, { test: 'data' }, {}, function(e) {
+    serviceInstance.upsert('/set/' + testId, { test: 'data' }, {}, function (e) {
       test.expect(e).to.not.be(null);
       test.expect(e.toString()).to.be('Error: test error');
       callback();
     });
   });
 
-  it('gets data', function(callback) {
+  it('gets data', function (callback) {
     serviceInstance.upsert(
       '/get/' + testId,
       {
-        test: 'data'
+        test: 'data',
       },
       {},
-      function(e, response) {
+      function (e, response) {
         if (e) return callback(e);
 
         test.expect(response.data.test).to.equal('data');
 
-        serviceInstance.get('/get/' + testId, {}, function(e, response) {
+        serviceInstance.get('/get/' + testId, {}, function (e, response) {
           if (e) return callback(e);
 
           test.expect(response._meta.path).to.equal('/get/' + testId);
@@ -90,10 +90,10 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('pass an error back if the provider does not implement a count', function(callback) {
+  it('pass an error back if the provider does not implement a count', function (callback) {
     let oldProviderCount = serviceInstance.defaultProvider.count;
     serviceInstance.defaultProvider.count = undefined;
-    serviceInstance.count('/count/**', function(err) {
+    serviceInstance.count('/count/**', function (err) {
       test.expect(err.message).to.eql('Database provider does not support count');
       serviceInstance.defaultProvider.count = oldProviderCount.bind(
         serviceInstance.defaultProvider
@@ -102,12 +102,12 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('pass provider error back', function(callback) {
+  it('pass provider error back', function (callback) {
     let oldProviderCount = serviceInstance.defaultProvider.count;
-    serviceInstance.defaultProvider.count = function(path, options, cb) {
+    serviceInstance.defaultProvider.count = function (path, options, cb) {
       cb(new Error('Provider error'));
     }.bind(serviceInstance.defaultProvider);
-    serviceInstance.count('/count/**', {}, function(err) {
+    serviceInstance.count('/count/**', {}, function (err) {
       test.expect(err.message).to.eql('Provider error');
       serviceInstance.defaultProvider.count = oldProviderCount.bind(
         serviceInstance.defaultProvider
@@ -116,12 +116,12 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('catches exception in provider', function(callback) {
+  it('catches exception in provider', function (callback) {
     let oldProviderCount = serviceInstance.defaultProvider.count;
-    serviceInstance.defaultProvider.count = function() {
+    serviceInstance.defaultProvider.count = function () {
       throw new Error('Provider exception');
     }.bind(serviceInstance.defaultProvider);
-    serviceInstance.count('/count/**', {}, function(err) {
+    serviceInstance.count('/count/**', {}, function (err) {
       test.expect(err.message).to.eql('Provider exception');
       serviceInstance.defaultProvider.count = oldProviderCount.bind(
         serviceInstance.defaultProvider
@@ -130,28 +130,28 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('counts data', function(callback) {
+  it('counts data', function (callback) {
     let count = 10;
 
     test.async.times(
       10,
-      function(n, cb) {
+      function (n, cb) {
         serviceInstance.upsert(
           '/count/' + testId + '/' + n,
           {
-            test: 'data'
+            test: 'data',
           },
           {},
-          function(e, response) {
+          function (e, response) {
             if (e) return cb(e);
             test.expect(response.data.test).to.equal('data');
             cb();
           }
         );
       },
-      function(err) {
+      function (err) {
         if (err) return callback(err);
-        serviceInstance.count('/count/**', function(err, result) {
+        serviceInstance.count('/count/**', function (err, result) {
           if (err) return callback(err);
           test.expect(result.data.value).to.eql(count);
           callback();
@@ -160,10 +160,10 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('gets no data', function(callback) {
+  it('gets no data', function (callback) {
     var random = require('shortid').generate();
 
-    serviceInstance.get('/wontfind/' + random, {}, function(e, response) {
+    serviceInstance.get('/wontfind/' + random, {}, function (e, response) {
       if (e) return callback(e);
 
       test.expect(response).to.equal(null);
@@ -171,7 +171,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('merges data', function(callback) {
+  it('merges data', function (callback) {
     this.timeout(10000);
 
     var initialCreated;
@@ -179,29 +179,29 @@ describe(test.testName(__filename, 3), function() {
     serviceInstance.upsert(
       '/merge/' + testId,
       {
-        test: 'data'
+        test: 'data',
       },
       {},
-      function(e, response) {
+      function (e, response) {
         if (e) return callback(e);
 
         initialCreated = response._meta.created;
 
-        setTimeout(function() {
+        setTimeout(function () {
           serviceInstance.upsert(
             '/merge/' + testId,
             {
-              test1: 'data1'
+              test1: 'data1',
             },
             {
-              merge: true
+              merge: true,
             },
-            function(e, response) {
+            function (e, response) {
               if (e) return callback(e);
 
               test.expect(response._meta.modified >= initialCreated).to.equal(true);
 
-              serviceInstance.get('/merge/' + testId, {}, function(e, response) {
+              serviceInstance.get('/merge/' + testId, {}, function (e, response) {
                 if (e) return callback(e);
 
                 test.expect(response.data.test).to.equal('data');
@@ -218,17 +218,17 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('removes data', function(callback) {
+  it('removes data', function (callback) {
     serviceInstance.upsert(
       '/remove/' + testId,
       {
-        test: 'data'
+        test: 'data',
       },
       {},
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
-        serviceInstance.remove('/remove/' + testId, {}, function(e, response) {
+        serviceInstance.remove('/remove/' + testId, {}, function (e, response) {
           if (e) return callback(e);
 
           test.expect(response._meta.path).to.equal('/remove/' + testId);
@@ -240,26 +240,26 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('removes multiple data', function(callback) {
+  it('removes multiple data', function (callback) {
     serviceInstance.upsert(
       '/remove/multiple/1/' + testId,
       {
-        test: 'data'
+        test: 'data',
       },
       {},
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         serviceInstance.upsert(
           '/remove/multiple/2/' + testId,
           {
-            test: 'data'
+            test: 'data',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            serviceInstance.remove('/remove/multiple/*', {}, function(e, response) {
+            serviceInstance.remove('/remove/multiple/*', {}, function (e, response) {
               if (e) return callback(e);
 
               test.expect(response._meta.path).to.equal('/remove/multiple/*');
@@ -273,26 +273,26 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('gets data with wildcard', function(callback) {
+  it('gets data with wildcard', function (callback) {
     serviceInstance.upsert(
       '/get/multiple/1/' + testId,
       {
-        test: 'data'
+        test: 'data',
       },
       {},
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         serviceInstance.upsert(
           '/get/multiple/2/' + testId,
           {
-            test: 'data'
+            test: 'data',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            serviceInstance.get('/get/multiple/*/' + testId, {}, function(e, response) {
+            serviceInstance.get('/get/multiple/*/' + testId, {}, function (e, response) {
               test.expect(response.length).to.equal(2);
               test.expect(response[0].data.test).to.equal('data');
               test.expect(response[0]._meta.path).to.equal('/get/multiple/1/' + testId);
@@ -307,7 +307,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('gets data with complex search', function(callback) {
+  it('gets data with complex search', function (callback) {
     var test_path_end = require('shortid').generate();
 
     var complex_obj = {
@@ -316,37 +316,37 @@ describe(test.testName(__filename, 3), function() {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var criteria1 = {
       $or: [
         {
           regions: {
-            $containsAny: ['North', 'South', 'East', 'West']
-          }
+            $containsAny: ['North', 'South', 'East', 'West'],
+          },
         },
         {
           towns: {
-            $containsAny: ['North.Cape Town', 'South.East London']
-          }
+            $containsAny: ['North.Cape Town', 'South.East London'],
+          },
         },
         {
           categories: {
-            $containsAny: ['Action', 'History']
-          }
-        }
+            $containsAny: ['Action', 'History'],
+          },
+        },
       ],
       keywords: {
-        $containsAny: ['bass', 'Penny Siopis']
-      }
+        $containsAny: ['bass', 'Penny Siopis'],
+      },
     };
 
     var options1 = {
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
@@ -354,16 +354,16 @@ describe(test.testName(__filename, 3), function() {
     var options2 = {
       fields: null,
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 2
+      limit: 2,
     };
 
     serviceInstance.upsert(
       '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         serviceInstance.upsert(
           '/1_eventemitter_embedded_sanity/' +
@@ -373,15 +373,15 @@ describe(test.testName(__filename, 3), function() {
             '/1',
           complex_obj,
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
             serviceInstance.get(
               '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex*',
               {
                 criteria: criteria1,
-                options: options1
+                options: options1,
               },
-              function(e, search_result) {
+              function (e, search_result) {
                 test.expect(e == null).to.be(true);
                 test.expect(search_result.length === 1).to.be(true);
 
@@ -389,9 +389,9 @@ describe(test.testName(__filename, 3), function() {
                   '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex*',
                   {
                     criteria: criteria2,
-                    options: options2
+                    options: options2,
                   },
-                  function(e, search_result) {
+                  function (e, search_result) {
                     test.expect(e == null).to.be(true);
                     test.expect(search_result.length === 2).to.be(true);
                     callback(e);
@@ -405,7 +405,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('sets value data', function(callback) {
+  it('sets value data', function (callback) {
     try {
       var test_string = require('shortid').generate();
       var test_base_url =
@@ -415,13 +415,13 @@ describe(test.testName(__filename, 3), function() {
         test_base_url,
         test_string,
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, result) {
+        function (e, result) {
           if (!e) {
             test.expect(result.data.value).to.be(test_string);
 
-            serviceInstance.get(test_base_url, null, function(e, result) {
+            serviceInstance.get(test_base_url, null, function (e, result) {
               if (e) return callback(e);
 
               test.expect(result.data.value).to.be(test_string);
@@ -436,7 +436,7 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('does a sort and limit', function(done) {
+  it('does a sort and limit', function (done) {
     var itemCount = 100;
     var randomItems = [];
     var test_string = require('shortid').generate();
@@ -444,7 +444,7 @@ describe(test.testName(__filename, 3), function() {
 
     for (var i = 0; i < itemCount; i++) {
       var item = {
-        item_sort_id: i + Math.floor(Math.random() * 1000000)
+        item_sort_id: i + Math.floor(Math.random() * 1000000),
       };
 
       randomItems.push(item);
@@ -453,16 +453,16 @@ describe(test.testName(__filename, 3), function() {
     test.async.eachSeries(
       randomItems,
 
-      function(item, callback) {
+      function (item, callback) {
         var testPath = base_path + item.item_sort_id;
 
         serviceInstance.upsert(
           testPath,
           item,
           {
-            noPublish: true
+            noPublish: true,
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             callback();
@@ -470,11 +470,11 @@ describe(test.testName(__filename, 3), function() {
         );
       },
 
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         //ascending
-        randomItems.sort(function(a, b) {
+        randomItems.sort(function (a, b) {
           return a.item_sort_id - b.item_sort_id;
         });
 
@@ -483,12 +483,12 @@ describe(test.testName(__filename, 3), function() {
           {
             options: {
               sort: {
-                item_sort_id: 1
+                item_sort_id: 1,
               },
-              limit: 50
-            }
+              limit: 50,
+            },
           },
-          function(e, items) {
+          function (e, items) {
             if (e) return done(e);
 
             for (var itemIndex in items) {
@@ -503,7 +503,7 @@ describe(test.testName(__filename, 3), function() {
             }
 
             //descending
-            randomItems.sort(function(a, b) {
+            randomItems.sort(function (a, b) {
               return b.item_sort_id - a.item_sort_id;
             });
 
@@ -512,12 +512,12 @@ describe(test.testName(__filename, 3), function() {
               {
                 options: {
                   sort: {
-                    item_sort_id: -1
+                    item_sort_id: -1,
                   },
-                  limit: 50
-                }
+                  limit: 50,
+                },
               },
-              function(e, items) {
+              function (e, items) {
                 if (e) return done(e);
 
                 for (var itemIndex in items) {
@@ -550,19 +550,19 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('increments a value', function(done) {
+  it('increments a value', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
     test.async.timesSeries(
       10,
-      function(time, timeCB) {
+      function (time, timeCB) {
         serviceInstance.upsert(test_base_url, 'counter', { increment: 1, noPublish: true }, timeCB);
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
-        serviceInstance.get(test_base_url, null, function(e, result) {
+        serviceInstance.get(test_base_url, null, function (e, result) {
           if (e) return done(e);
 
           test.expect(result.data.counter.value).to.be(10);
@@ -573,7 +573,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('fails to increment a value, bad provider', function(done) {
+  it('fails to increment a value, bad provider', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
 
@@ -583,22 +583,25 @@ describe(test.testName(__filename, 3), function() {
 
     provider.increment = undefined;
 
-    serviceInstance.upsert(test_base_url, 'counter', { increment: 1, noPublish: true }, function(
-      e
-    ) {
-      test.expect(e.toString()).to.be('Error: db provider does not have an increment function');
+    serviceInstance.upsert(
+      test_base_url,
+      'counter',
+      { increment: 1, noPublish: true },
+      function (e) {
+        test.expect(e.toString()).to.be('Error: db provider does not have an increment function');
 
-      provider.increment = provider.__oldIncrement;
+        provider.increment = provider.__oldIncrement;
 
-      done();
-    });
+        done();
+      }
+    );
   });
 
-  it('fails to increment a value, null fieldname', function(done) {
+  it('fails to increment a value, null fieldname', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
 
-    serviceInstance.upsert(test_base_url, null, { increment: 1, noPublish: true }, function(e) {
+    serviceInstance.upsert(test_base_url, null, { increment: 1, noPublish: true }, function (e) {
       test
         .expect(e.toString())
         .to.be('Error: invalid increment counter field name, must be a string');
@@ -607,30 +610,15 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('fails to increment a value, undefined fieldname', function(done) {
-    var test_string = require('shortid').generate();
-    var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
-
-    serviceInstance.upsert(test_base_url, undefined, { increment: 1, noPublish: true }, function(
-      e
-    ) {
-      test
-        .expect(e.toString())
-        .to.be('Error: invalid increment counter field name, must be a string');
-
-      done();
-    });
-  });
-
-  it('fails to increment a value, object fieldname', function(done) {
+  it('fails to increment a value, undefined fieldname', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
 
     serviceInstance.upsert(
       test_base_url,
-      { test: 'fieldname' },
+      undefined,
       { increment: 1, noPublish: true },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be('Error: invalid increment counter field name, must be a string');
@@ -640,7 +628,25 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('fails to increment a value, bad increment argument in options', function(done) {
+  it('fails to increment a value, object fieldname', function (done) {
+    var test_string = require('shortid').generate();
+    var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
+
+    serviceInstance.upsert(
+      test_base_url,
+      { test: 'fieldname' },
+      { increment: 1, noPublish: true },
+      function (e) {
+        test
+          .expect(e.toString())
+          .to.be('Error: invalid increment counter field name, must be a string');
+
+        done();
+      }
+    );
+  });
+
+  it('fails to increment a value, bad increment argument in options', function (done) {
     var test_string = require('shortid').generate();
     var test_base_url = '/increment/bad/provider/' + testId + '/' + test_string;
 
@@ -648,7 +654,7 @@ describe(test.testName(__filename, 3), function() {
       test_base_url,
       'counter',
       { increment: 'blah', noPublish: true },
-      function(e) {
+      function (e) {
         test.expect(e.toString()).to.be('Error: increment option value must be a number');
 
         done();

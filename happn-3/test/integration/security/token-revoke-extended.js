@@ -1,17 +1,15 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var serviceInstance;
     var expect = require('expect.js');
     var delay = require('await-delay');
     this.timeout(10000);
 
-    var getService = function(config, callback) {
+    var getService = function (config, callback) {
       if (serviceInstance)
-        return serviceInstance.stop(function() {
+        return serviceInstance.stop(function () {
           happn.service.create(config, callback);
         });
 
@@ -29,14 +27,14 @@ describe(
         }, 3000);
         client.on(
           'client-revoke-session-sanity',
-          data => {
+          (data) => {
             this.clearTimeout(timeout);
             expect(data).to.eql({ test: 'data' });
             resolve();
           },
-          e => {
+          (e) => {
             if (e) return reject(e);
-            client.set('client-revoke-session-sanity', { test: 'data' }, e => {
+            client.set('client-revoke-session-sanity', { test: 'data' }, (e) => {
               if (e) return reject(e);
             });
           }
@@ -48,24 +46,24 @@ describe(
       happn.client
         .create({
           config: {
-            token
+            token,
           },
-          secure: true
+          secure: true,
         })
-        .then(function(client) {
+        .then(function (client) {
           var timeout = this.setTimeout(() => {
             callback(new Error('timed out'));
           }, 3000);
           client.on(
             'client-revoke-session-sanity',
-            data => {
+            (data) => {
               this.clearTimeout(timeout);
               expect(data).to.eql({ test: 'data' });
               callback();
             },
-            e => {
+            (e) => {
               if (e) return callback(e);
-              client.set('client-revoke-session-sanity', { test: 'data' }, e => {
+              client.set('client-revoke-session-sanity', { test: 'data' }, (e) => {
                 if (e) return callback(e);
               });
             }
@@ -78,23 +76,23 @@ describe(
       var request = require('request');
 
       var options = {
-        url: 'http://127.0.0.1:55000' + path
+        url: 'http://127.0.0.1:55000' + path,
       };
 
       if (!excludeToken) {
         if (!query)
           options.headers = {
-            Cookie: ['happn_token=' + token]
+            Cookie: ['happn_token=' + token],
           };
         else options.url += '?happn_token=' + token;
       }
 
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         callback(response, body);
       });
     }
 
-    before('it starts completely defaulted service', function(done) {
+    before('it starts completely defaulted service', function (done) {
       getService(
         {
           secure: true,
@@ -106,28 +104,28 @@ describe(
                     name: 'test-session',
                     session: {
                       'user.username': {
-                        $eq: 'TEST_SESSION'
-                      }
+                        $eq: 'TEST_SESSION',
+                      },
                     },
                     policy: {
                       ttl: '2 seconds',
-                      inactivity_threshold: '2 seconds'
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                      inactivity_threshold: '2 seconds',
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
-        function(e, service) {
+        function (e, service) {
           if (e) return done(e);
 
           serviceInstance = service;
-          serviceInstance.connect.use('/TEST/WEB/ROUTE', function(req, res) {
+          serviceInstance.connect.use('/TEST/WEB/ROUTE', function (req, res) {
             res.setHeader('Content-Type', 'application/json');
             res.end(
               JSON.stringify({
-                secure: 'value'
+                secure: 'value',
               })
             );
           });
@@ -136,7 +134,7 @@ describe(
       );
     });
 
-    after('stop the test service', function(callback) {
+    after('stop the test service', function (callback) {
       serviceInstance.stop(callback);
     });
 
@@ -144,20 +142,20 @@ describe(
       name: 'TEST GROUP',
       permissions: {
         'client-revoke-session-sanity': {
-          actions: ['*']
+          actions: ['*'],
         },
         '/TEST/DATA/*': {
-          actions: ['*']
+          actions: ['*'],
         },
         '/@HTTP/TEST/WEB/ROUTE': {
-          actions: ['get']
-        }
-      }
+          actions: ['get'],
+        },
+      },
     };
 
     var testUser = {
       username: 'TEST_SESSION',
-      password: 'TEST PWD'
+      password: 'TEST PWD',
     };
 
     var addedTestGroup;
@@ -167,22 +165,22 @@ describe(
 
     before(
       'creates a group and a user, adds the group to the user, logs in with test user',
-      function(done) {
+      function (done) {
         serviceInstance.services.security.users.upsertGroup(
           testGroup,
           {
-            overwrite: false
+            overwrite: false,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             addedTestGroup = result;
 
             serviceInstance.services.security.users.upsertUser(
               testUser,
               {
-                overwrite: false
+                overwrite: false,
               },
-              function(e, result) {
+              function (e, result) {
                 if (e) return done(e);
                 addedTestuser = result;
 
@@ -198,31 +196,31 @@ describe(
       }
     );
 
-    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to true, we try and reuse the token and ensure that it fails', function(done) {
+    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to true, we try and reuse the token and ensure that it fails', function (done) {
       this.timeout(4000);
       happn.client
         .create({
           config: {
             username: testUser.username,
-            password: 'TEST PWD'
+            password: 'TEST PWD',
           },
-          secure: true
+          secure: true,
         })
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           testClient = clientInstance;
           var sessionToken = testClient.session.token;
-          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
             expect(response.statusCode).to.equal(200);
             testClient.disconnect(
               {
-                revokeToken: true
+                revokeToken: true,
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
-                setTimeout(function() {
-                  doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+                setTimeout(function () {
+                  doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
                     expect(response.statusCode).to.equal(403);
-                    doEventRoundTripToken(sessionToken, function(e) {
+                    doEventRoundTripToken(sessionToken, function (e) {
                       expect(e.message).to.be(`token has been revoked`);
                       done();
                     });
@@ -232,33 +230,33 @@ describe(
             );
           });
         })
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });
 
-    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to false, we try and reuse the token and ensure that it succeeds', function(done) {
+    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to false, we try and reuse the token and ensure that it succeeds', function (done) {
       happn.client
         .create({
           config: {
             username: testUser.username,
-            password: 'TEST PWD'
+            password: 'TEST PWD',
           },
-          secure: true
+          secure: true,
         })
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           testClient = clientInstance;
           var sessionToken = testClient.session.token;
-          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
             expect(response.statusCode).to.equal(200);
             testClient.disconnect(
               {
-                revokeToken: false
+                revokeToken: false,
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
 
-                doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+                doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
                   expect(response.statusCode).to.equal(200);
 
                   done();
@@ -267,49 +265,49 @@ describe(
             );
           });
         })
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });
 
-    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to true, we try and reuse the token and ensure that it fails, then wait longer and ensure even after the token is times out it still fails', function(done) {
+    it('logs in with the ws user - we then test a call to a web-method, then disconnects with the revokeToken flag set to true, we try and reuse the token and ensure that it fails, then wait longer and ensure even after the token is times out it still fails', function (done) {
       this.timeout(15000);
 
       happn.client
         .create({
           config: {
             username: testUser.username,
-            password: 'TEST PWD'
+            password: 'TEST PWD',
           },
-          secure: true
+          secure: true,
         })
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           testClient = clientInstance;
 
           var sessionToken = testClient.session.token;
 
-          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
             expect(response.statusCode).to.equal(200);
             testClient.disconnect(
               {
-                revokeToken: true
+                revokeToken: true,
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
-                setTimeout(function() {
+                setTimeout(function () {
                   serviceInstance.services.security.__cache_revoked_tokens.get(
                     sessionToken,
-                    function(e, cachedToken) {
+                    function (e, cachedToken) {
                       expect(cachedToken.reason).to.equal('CLIENT');
 
-                      setTimeout(function() {
+                      setTimeout(function () {
                         serviceInstance.services.security.__cache_revoked_tokens.get(
                           sessionToken,
-                          function(e, cachedToken) {
+                          function (e, cachedToken) {
                             expect(cachedToken).to.be(null);
 
-                            doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+                            doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
                               expect(response.statusCode).to.equal(401);
 
                               done();
@@ -325,33 +323,33 @@ describe(
           });
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });
 
-    it('logs in with the ws user - we then test a call to a web-method, we revoke the session explicitly via a client call, test it has the desired effect', function(done) {
+    it('logs in with the ws user - we then test a call to a web-method, we revoke the session explicitly via a client call, test it has the desired effect', function (done) {
       this.timeout(10000);
 
       happn.client
         .create({
           username: testUser.username,
           password: 'TEST PWD',
-          secure: true
+          secure: true,
         })
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           testClient = clientInstance;
 
           var sessionToken = testClient.session.token;
 
-          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+          doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
             expect(response.statusCode).to.equal(200);
 
-            testClient.revokeToken(function(e) {
+            testClient.revokeToken(function (e) {
               if (e) return done(e);
 
-              doRequest('/TEST/WEB/ROUTE', sessionToken, false, function(response) {
+              doRequest('/TEST/WEB/ROUTE', sessionToken, false, function (response) {
                 expect(response.statusCode).to.equal(403);
 
                 testClient.disconnect({ reconnect: false });
@@ -362,7 +360,7 @@ describe(
           });
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           done(e);
         });
     });

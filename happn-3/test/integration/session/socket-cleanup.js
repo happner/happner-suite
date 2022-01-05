@@ -1,5 +1,5 @@
 const testHelper = require('../../__fixtures/utils/test_helper').create();
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   const expect = require('expect.js');
   const happn = require('../../../lib/index');
   const service = happn.service;
@@ -71,10 +71,10 @@ describe(testHelper.testName(__filename, 3), function() {
 
   function zombieSocket() {
     var Socket = Primus.createSocket({
-      manual: true
+      manual: true,
     });
     const socket = new Socket('http://127.0.0.1:55000', {
-      strategy: 'disconnect,online'
+      strategy: 'disconnect,online',
     });
     socket.once('close', destroyZombie(socket));
     zombies.push(socket);
@@ -101,7 +101,7 @@ describe(testHelper.testName(__filename, 3), function() {
   function disconnectClient() {
     return new Promise((resolve, reject) => {
       if (clientInstance)
-        clientInstance.disconnect(e => {
+        clientInstance.disconnect((e) => {
           if (e) return reject(e);
           resolve();
           clientInstance = null;
@@ -114,7 +114,7 @@ describe(testHelper.testName(__filename, 3), function() {
     return new Promise((resolve, reject) => {
       if (serviceInstance) {
         let intervalCheck = !!serviceInstance.services.session.__unconfiguredSessionCleanupInterval;
-        serviceInstance.stop(e => {
+        serviceInstance.stop((e) => {
           if (e) return reject(e);
           if (
             intervalCheck &&
@@ -134,33 +134,33 @@ describe(testHelper.testName(__filename, 3), function() {
         secure: secureInstance === undefined ? true : secureInstance,
         services: {
           session: {
-            config: {}
-          }
-        }
+            config: {},
+          },
+        },
       };
 
       if (cleanupInterval) {
         serviceConfig.services.session.config.unconfiguredSessionCleanup = {
           interval: cleanupInterval, //check every N milliseconds
           threshold: cleanupThreshold || 10e3, //sessions are cleaned up if they remain unconfigured for 10 seconds
-          verbose: cleanupVerbose //cleanups are logged
+          verbose: cleanupVerbose, //cleanups are logged
         };
       }
 
-      service.create(serviceConfig, function(e, happnInst) {
+      service.create(serviceConfig, function (e, happnInst) {
         if (e) return reject(e);
         serviceInstance = happnInst;
         happn_client.create(
           {
             config: {
               username: '_ADMIN',
-              password: 'happn'
+              password: 'happn',
             },
             info: {
-              from: 'startup'
-            }
+              from: 'startup',
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return reject(e);
             clientInstance = instance;
             resolve();

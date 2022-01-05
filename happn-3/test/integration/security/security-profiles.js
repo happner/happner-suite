@@ -1,7 +1,7 @@
 const tests = require('../../__fixtures/utils/test_helper').create(),
   ChildProcess = require('child_process'),
   path = require('path');
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   this.timeout(30000);
   var happn = require('../../../lib/index');
   var service = happn.service;
@@ -14,13 +14,13 @@ describe(tests.testName(__filename, 3), function() {
           accountLockout: {
             enabled: true,
             attempts: 3,
-            retryInterval: 20000
+            retryInterval: 20000,
           },
           disableDefaultAdminNetworkConnections: true,
           sessionTokenSecret: 'h1_test-secret',
           keyPair: {
             privateKey: 'Kd9FQzddR7G6S9nJ/BK8vLF83AzOphW2lqDOQ/LjU4M=',
-            publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2'
+            publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2',
           },
           profiles: [
             //profiles are in an array, in descending order of priority, so if you fit more than one profile, the top profile is chosen
@@ -28,109 +28,109 @@ describe(tests.testName(__filename, 3), function() {
               name: 'token-not-allowed',
               session: {
                 'user.username': {
-                  $eq: 'TOKEN-NOT-ALLOWED'
+                  $eq: 'TOKEN-NOT-ALLOWED',
                 },
                 'info.tokenNotAllowedForLogin': {
-                  $eq: true
-                }
+                  $eq: true,
+                },
               },
               policy: {
-                disallowTokenLogins: true
-              }
+                disallowTokenLogins: true,
+              },
             },
             {
               name: 'short-session',
               session: {
                 'user.username': {
-                  $eq: 'SHORT-SESSION'
+                  $eq: 'SHORT-SESSION',
                 },
                 'info.shortSession': {
-                  $eq: true
-                }
+                  $eq: true,
+                },
               },
               policy: {
-                ttl: '2 seconds'
-              }
+                ttl: '2 seconds',
+              },
             },
             {
               name: 'browser-session',
               session: {
                 'user.username': {
-                  $eq: 'BROWSER-SESSION'
+                  $eq: 'BROWSER-SESSION',
                 },
                 'info._browser': {
-                  $eq: true
-                }
+                  $eq: true,
+                },
               },
               policy: {
-                ttl: '7 days'
-              }
+                ttl: '7 days',
+              },
             },
             {
               name: 'locked-session',
               session: {
                 'user.username': {
-                  $eq: 'LOCKED-SESSION'
+                  $eq: 'LOCKED-SESSION',
                 },
                 'info.tokenOriginLocked': {
-                  $eq: true
-                }
+                  $eq: true,
+                },
               },
               policy: {
                 ttl: 0, // no ttl
-                lockTokenToOrigin: true
-              }
+                lockTokenToOrigin: true,
+              },
             },
             {
               name: 'node-session',
               session: {
                 'user.username': {
-                  $eq: 'NODE-SESSION'
+                  $eq: 'NODE-SESSION',
                 },
-                _browser: false
+                _browser: false,
               },
               policy: {
-                ttl: 0 // no ttl
-              }
+                ttl: 0, // no ttl
+              },
             },
             {
               name: 'source IP whitelist',
               session: {
                 'user.username': {
-                  $eq: 'TEST-ALLOWED-IP'
-                }
+                  $eq: 'TEST-ALLOWED-IP',
+                },
               },
               policy: {
                 sourceIPWhitelist: [
                   '127.0.0.1',
                   'localhost',
                   '::ffff:127.0.0.1',
-                  '::ffff:localhost'
-                ]
-              }
+                  '::ffff:localhost',
+                ],
+              },
             },
             {
               name: 'source IP whitelist fail',
               session: {
                 'user.username': {
-                  $eq: 'TEST-NOT-ALLOWED-IP'
-                }
+                  $eq: 'TEST-NOT-ALLOWED-IP',
+                },
               },
               policy: {
-                sourceIPWhitelist: ['240.0.0.1', '::ffff:240.0.0.1']
-              }
-            }
-          ]
-        }
-      }
-    }
+                sourceIPWhitelist: ['240.0.0.1', '::ffff:240.0.0.1'],
+              },
+            },
+          ],
+        },
+      },
+    },
   };
 
-  before('should initialize the service', function(callback) {
+  before('should initialize the service', function (callback) {
     this.timeout(20000);
 
     try {
-      service.create(serviceConfig1, function(e, happnInst1) {
+      service.create(serviceConfig1, function (e, happnInst1) {
         if (e) return callback(e);
 
         happnInstance1 = happnInst1;
@@ -142,20 +142,16 @@ describe(tests.testName(__filename, 3), function() {
     }
   });
 
-  after(function(done) {
-    if (happnInstance1)
-      happnInstance1
-        .stop()
-        .then(done)
-        .catch(done);
+  after(function (done) {
+    if (happnInstance1) happnInstance1.stop().then(done).catch(done);
     else done();
   });
 
-  it('tests the default browser profile', function(done) {
+  it('tests the default browser profile', function (done) {
     var session = {
       info: {
-        _browser: true
-      }
+        _browser: true,
+      },
     };
 
     happnInstance1.services.security.__profileSession(session);
@@ -171,9 +167,9 @@ describe(tests.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the default stateful profile', function(done) {
+  it('tests the default stateful profile', function (done) {
     var session = {
-      type: 1
+      type: 1,
     };
 
     happnInstance1.services.security.__profileSession(session);
@@ -185,9 +181,9 @@ describe(tests.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the default stateless profile', function(done) {
+  it('tests the default stateless profile', function (done) {
     var session = {
-      type: 0
+      type: 0,
     };
 
     happnInstance1.services.security.__profileSession(session);
@@ -196,12 +192,12 @@ describe(tests.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the source IP whitelist profile, type 0', function(done) {
+  it('tests the source IP whitelist profile, type 0', function (done) {
     var session = {
       type: 0,
       user: {
-        username: 'TEST-ALLOWED-IP'
-      }
+        username: 'TEST-ALLOWED-IP',
+      },
     };
     happnInstance1.services.security.__profileSession(session);
     tests
@@ -210,12 +206,12 @@ describe(tests.testName(__filename, 3), function() {
     done();
   });
 
-  it('tests the source IP whitelist profile, type 1', function(done) {
+  it('tests the source IP whitelist profile, type 1', function (done) {
     var session = {
       type: 1,
       user: {
-        username: 'TEST-ALLOWED-IP'
-      }
+        username: 'TEST-ALLOWED-IP',
+      },
     };
     happnInstance1.services.security.__profileSession(session);
     tests
@@ -282,13 +278,13 @@ describe(tests.testName(__filename, 3), function() {
 
   function checkLocks(username) {
     return new Promise((resolve, reject) => {
-      happnInstance1.services.security.authProviders.default.__locks.get(username, function(
-        e,
-        lock
-      ) {
-        if (e) reject(e);
-        resolve(lock);
-      });
+      happnInstance1.services.security.authProviders.default.__locks.get(
+        username,
+        function (e, lock) {
+          if (e) reject(e);
+          resolve(lock);
+        }
+      );
     });
   }
 
@@ -302,7 +298,7 @@ describe(tests.testName(__filename, 3), function() {
   async function createUser(username) {
     return await happnInstance1.services.security.users.upsertUser({
       username,
-      password: 'happn'
+      password: 'happn',
     });
   }
 
@@ -312,7 +308,7 @@ describe(tests.testName(__filename, 3), function() {
       clientInstance = await happn.client.create({
         username: user.username,
         password: 'happn',
-        port: port || 55000
+        port: port || 55000,
       });
     } catch (e) {
       return e.message;
@@ -325,29 +321,29 @@ describe(tests.testName(__filename, 3), function() {
     var request = require('request');
 
     var options = {
-      url: `http://127.0.0.1:${port || 55000}${path}`
+      url: `http://127.0.0.1:${port || 55000}${path}`,
     };
 
     if (!excludeToken) {
       if (!query)
         options.headers = {
-          Cookie: ['happn_token=' + token]
+          Cookie: ['happn_token=' + token],
         };
       else options.url += '?happn_token=' + token;
     }
 
-    request(options, function(error, response, body) {
+    request(options, function (error, response, body) {
       callback(response, body);
     });
   }
 
   async function postLoginWithUser(user, expectedStatus, port) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       doRequest(
         `/auth/login?username=${user.username}&password=happn`,
         null,
         true,
-        function(response) {
+        function (response) {
           if (response.statusCode === 200) return resolve('OK');
           tests.expect(response.statusCode).to.be(expectedStatus || 401);
           resolve(JSON.parse(response.body).error.message);

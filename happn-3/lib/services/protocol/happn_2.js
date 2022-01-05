@@ -46,7 +46,7 @@ class ProtocolHappn2 extends BaseHappnProtocol {
 
     if (response == null) {
       response = {
-        data: null
+        data: null,
       };
     } else {
       if (response._meta) _meta = response._meta;
@@ -80,7 +80,7 @@ class ProtocolHappn2 extends BaseHappnProtocol {
       else response._meta.error.name = e.name;
 
       if (typeof e === 'object') {
-        Object.keys(e).forEach(function(key) {
+        Object.keys(e).forEach(function (key) {
           response._meta.error[key] = e[key];
         });
 

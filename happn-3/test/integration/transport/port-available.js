@@ -3,7 +3,7 @@ const Service = Happn.service;
 const port = 55555;
 const testHelper = require('../../__fixtures/utils/test_helper').create();
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   this.timeout(20000);
   let blocker;
 

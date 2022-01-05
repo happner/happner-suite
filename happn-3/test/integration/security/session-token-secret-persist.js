@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   var testDbFile = test.newTestFile();
   var currentService = null;
 
@@ -14,17 +14,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       services: {
         security: {
           config: {
-            sessionTokenSecret
-          }
+            sessionTokenSecret,
+          },
         },
         data: {
           config: {
-            filename
-          }
-        }
+            filename,
+          },
+        },
       },
       secure: true,
-      encryptPayloads: true
+      encryptPayloads: true,
     });
   }
 

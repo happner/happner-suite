@@ -19,7 +19,7 @@ async function _process(req, res, next) {
     res.setHeader('Content-Type', 'application/javascript');
 
     var browserOptions = {
-      contentsOnly: true
+      contentsOnly: true,
     };
 
     if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production') {

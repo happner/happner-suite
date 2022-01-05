@@ -1,6 +1,6 @@
 const tests = require('../../__fixtures/utils/test_helper').create();
 
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   const happn = require('../../../lib/index');
   const service = happn.service;
   const happn_client = happn.client;
@@ -9,14 +9,14 @@ describe(tests.testName(__filename, 3), function() {
 
   this.timeout(10000);
 
-  it('tests it does not log attach detach events', function(callback) {
+  it('tests it does not log attach detach events', function (callback) {
     const messages = [];
     attachDetachTest(
       true,
-      msg => {
+      (msg) => {
         messages.push(msg);
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
         tests.expect(messages.length).to.be(0);
         callback();
@@ -24,14 +24,14 @@ describe(tests.testName(__filename, 3), function() {
     );
   });
 
-  it('tests it does log attach detach events', function(callback) {
+  it('tests it does log attach detach events', function (callback) {
     const messages = [];
     attachDetachTest(
       false,
-      msg => {
+      (msg) => {
         messages.push(msg);
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
         tests.expect(messages.length).to.be(4);
         callback();
@@ -44,14 +44,14 @@ describe(tests.testName(__filename, 3), function() {
       services: {
         session: {
           config: {
-            disableSessionEventLogging
-          }
-        }
-      }
+            disableSessionEventLogging,
+          },
+        },
+      },
     };
     var serviceInstance;
 
-    service.create(serviceConfig, function(e, happnInst) {
+    service.create(serviceConfig, function (e, happnInst) {
       if (e) return callback(e);
 
       serviceInstance = happnInst;
@@ -61,19 +61,19 @@ describe(tests.testName(__filename, 3), function() {
         {
           config: {
             username: '_ADMIN',
-            password: 'happn'
-          }
+            password: 'happn',
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
           socketClient = instance;
           serviceInstance.services.session
             .localClient({
               username: '_ADMIN',
-              password: 'happn'
+              password: 'happn',
             })
 
-            .then(function(clientInstance) {
+            .then(function (clientInstance) {
               eventEmitterClient = clientInstance;
               return disconnectClient(eventEmitterClient);
             })
@@ -90,7 +90,7 @@ describe(tests.testName(__filename, 3), function() {
               serviceInstance.stop(callback);
             })
 
-            .catch(function(e) {
+            .catch(function (e) {
               callback(e);
             });
         }
@@ -99,7 +99,7 @@ describe(tests.testName(__filename, 3), function() {
   }
 
   function disconnectClient(client) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       client.disconnect(resolve);
     });
   }

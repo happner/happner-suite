@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var path = require('path');
     var shortid = require('shortid');
     var expect = require('expect.js');
@@ -15,22 +13,22 @@ describe(
       mockTransport.http = {
         createServer:
           createServerHttp ||
-          function(app) {
+          function (app) {
             return {
-              app: app
+              app: app,
             };
-          }
+          },
       };
 
       mockTransport.https = {
         createServer:
           createServerHttps ||
-          function(options, app) {
+          function (options, app) {
             return {
               app: app,
-              options: options
+              options: options,
             };
-          }
+          },
       };
 
       mockTransport.happn = {
@@ -38,11 +36,11 @@ describe(
           utils: {
             fileExists:
               fileExists ||
-              function() {
+              function () {
                 return true;
-              }
-          }
-        }
+              },
+          },
+        },
       };
 
       return mockTransport;
@@ -50,9 +48,9 @@ describe(
 
     function logMock(warn, info, error) {
       return {
-        warn: warn || function() {},
-        info: info || function() {},
-        error: error || function() {}
+        warn: warn || function () {},
+        info: info || function () {},
+        error: error || function () {},
       };
     }
 
@@ -64,18 +62,18 @@ describe(
       return {
         writeFileSync:
           writeFileSync ||
-          function() {
+          function () {
             return {};
           },
         readFileSync:
           readFileSync ||
-          function() {
+          function () {
             return {};
-          }
+          },
       };
     }
 
-    it('transport service createServer method, empty config', function(done) {
+    it('transport service createServer method, empty config', function (done) {
       //config, app, log, callback
       var transport = transportMock();
 
@@ -87,11 +85,11 @@ describe(
       transport.createServer(config, app, log, done);
     });
 
-    it('transport service createServer method, no cert file', function(done) {
+    it('transport service createServer method, no cert file', function (done) {
       this.timeout(5000);
 
       //config, app, log, callback
-      var transport = transportMock(null, null, function(path) {
+      var transport = transportMock(null, null, function (path) {
         return path === 'key-file-path';
       });
 
@@ -100,17 +98,17 @@ describe(
 
       var config = {
         mode: 'https',
-        keyPath: 'key-file-path'
+        keyPath: 'key-file-path',
       };
 
       transport.createServer(config, app, log, done);
     });
 
-    it('transport service createServer method, no key file', function(done) {
+    it('transport service createServer method, no key file', function (done) {
       this.timeout(5000);
 
       //config, app, log, callback
-      var transport = transportMock(null, null, function(path) {
+      var transport = transportMock(null, null, function (path) {
         return path === 'cert-file-path';
       });
 
@@ -119,20 +117,20 @@ describe(
 
       var config = {
         mode: 'https',
-        certPath: 'cert-file-path'
+        certPath: 'cert-file-path',
       };
 
-      transport.createServer(config, app, log, function(e) {
+      transport.createServer(config, app, log, function (e) {
         expect(e.message).to.be('missing key file: undefined');
         done();
       });
     });
 
-    it('transport service createServer method, key file and cert file', function(done) {
+    it('transport service createServer method, key file and cert file', function (done) {
       this.timeout(5000);
 
       //config, app, log, callback
-      var transport = transportMock(null, null, function(path) {
+      var transport = transportMock(null, null, function (path) {
         return path === 'cert-file-path' || path === 'key-file-path';
       });
 
@@ -144,27 +142,27 @@ describe(
       var config = {
         mode: 'https',
         certPath: 'cert-file-path',
-        keyPath: 'key-file-path'
+        keyPath: 'key-file-path',
       };
 
       transport.createServer(config, app, log, done);
     });
 
-    it('transport service createServer method, key file and cert file dont exist', function(done) {
+    it('transport service createServer method, key file and cert file dont exist', function (done) {
       this.timeout(5000);
 
       //config, app, log, callback
-      var transport = transportMock(null, null, function() {
+      var transport = transportMock(null, null, function () {
         return false;
       });
 
       transport.fs = fsMock();
 
-      transportMock.createCertificate = function(keyPath, certPath, callback) {
+      transportMock.createCertificate = function (keyPath, certPath, callback) {
         return callback();
       };
 
-      var log = logMock(function(message) {
+      var log = logMock(function (message) {
         expect(message).to.be('cert file cert-file-path is missing, trying to generate...');
         done();
       });
@@ -174,28 +172,28 @@ describe(
       var config = {
         mode: 'https',
         certPath: 'cert-file-path',
-        keyPath: 'key-file-path'
+        keyPath: 'key-file-path',
       };
 
-      transport.createServer(config, app, log, function() {
+      transport.createServer(config, app, log, function () {
         //do nothing
       });
     });
 
-    it('fails to initialize the transport service, createCertificate method raises error', function(done) {
+    it('fails to initialize the transport service, createCertificate method raises error', function (done) {
       var transportMock = new Transport();
 
       transportMock.happn = {
         services: {
-          utils: new Utils()
+          utils: new Utils(),
         },
         connect: {},
         log: {
-          warn: function() {}
-        }
+          warn: function () {},
+        },
       };
 
-      transportMock.createCertificate = function(keyPath, certPath, callback) {
+      transportMock.createCertificate = function (keyPath, certPath, callback) {
         return callback(new Error('test error'));
       };
 
@@ -213,9 +211,9 @@ describe(
             path.sep +
             'https_initialization' +
             shortid.generate() +
-            '.rsa'
+            '.rsa',
         },
-        function(e) {
+        function (e) {
           expect(e.toString()).to.be('Error: test error');
           done();
         }

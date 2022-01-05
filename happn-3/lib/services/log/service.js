@@ -17,7 +17,7 @@ function LogService() {}
 
 function initialize(config, callback) {
   this.__stats = {
-    errors: {}
+    errors: {},
   };
 
   this.__logs = {};

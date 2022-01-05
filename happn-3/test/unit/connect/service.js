@@ -1,39 +1,37 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
 
     function happnMock(config) {
       return {
-        log: function() {},
+        log: function () {},
         config: {
           port: config.port,
           secure: config.secure,
           services: {
             transport: {
-              config: {}
-            }
-          }
-        }
+              config: {},
+            },
+          },
+        },
       };
     }
 
     async function newConnect(config) {
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         var Connect = require('../../../lib/services/connect/service.js');
         var instance = new Connect({
           logger: {
-            createLogger: function() {
+            createLogger: function () {
               return {
-                $$TRACE: function() {}
+                $$TRACE: function () {},
               };
-            }
-          }
+            },
+          },
         });
         instance.happn = happnMock(config);
-        instance.initialize(config, function(e) {
+        instance.initialize(config, function (e) {
           if (e) return reject(e);
           resolve(instance);
         });
@@ -50,27 +48,27 @@ describe(
         port: 55001,
         services: {
           transport: {
-            config: {}
-          }
-        }
+            config: {},
+          },
+        },
       });
       expect(connect2.middleware['system'].happn.config).to.eql({
         secure: true,
         port: 55002,
         services: {
           transport: {
-            config: {}
-          }
-        }
+            config: {},
+          },
+        },
       });
       expect(connect3.middleware['system'].happn.config).to.eql({
         secure: true,
         port: 55003,
         services: {
           transport: {
-            config: {}
-          }
-        }
+            config: {},
+          },
+        },
       });
     });
   }

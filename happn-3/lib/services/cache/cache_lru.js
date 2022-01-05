@@ -47,7 +47,7 @@ function setSync(key, data, opts) {
     data: opts.clone === false ? data : this.utilities.clone(data),
     key: key,
     ttl: opts.ttl,
-    noclone: opts.clone === false
+    noclone: opts.clone === false,
   };
 
   this.__cache.set(key, cacheItem, maxAge);
@@ -84,7 +84,7 @@ function set(key, data, opts, callback) {
     data: opts.clone === false ? data : this.utilities.clone(data),
     key: key,
     ttl: opts.ttl,
-    noclone: opts.clone === false
+    noclone: opts.clone === false,
   };
 
   this.__cache.set(key, cacheItem, maxAge);
@@ -114,11 +114,11 @@ function get(key, opts, callback) {
   var _this = this;
 
   if (opts.retrieveMethod)
-    return opts.retrieveMethod.call(opts.retrieveMethod, function(e, result) {
+    return opts.retrieveMethod.call(opts.retrieveMethod, function (e, result) {
       if (e) return callback(e);
       // -1 and 0 are perfectly viable things to cache
       if (result == null) return _this.__tryCallback(callback, null, null);
-      _this.set(key, result, opts, function(e) {
+      _this.set(key, result, opts, function (e) {
         return _this.__tryCallback(callback, result, e, opts.clone);
       });
     });
@@ -126,7 +126,7 @@ function get(key, opts, callback) {
   if (opts.default) {
     var value = opts.default.value;
     delete opts.default.value;
-    return _this.set(key, value, opts.default, function(e) {
+    return _this.set(key, value, opts.default, function (e) {
       return _this.__tryCallback(callback, value, e, opts.clone);
     });
   }
@@ -220,7 +220,7 @@ function all(filter, callback) {
           null,
           commons.mongoFilter(
             {
-              $and: [filter]
+              $and: [filter],
             },
             this.__all()
           )
@@ -261,7 +261,7 @@ function __tryCallback(callback, data, e, clone) {
 }
 
 function _all() {
-  return this.__cache.values().map(function(value) {
+  return this.__cache.values().map(function (value) {
     //dont clone as these may not be POJOS, and may hold volatile state
     return value.data;
   });

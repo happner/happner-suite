@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var async = require('async');
     var Logger = require('happn-logger');
@@ -27,35 +25,35 @@ describe(
 
     var checkpoint = require('../../../lib/services/security/checkpoint');
     testServices.checkpoint = new checkpoint({
-      logger: Logger
+      logger: Logger,
     });
 
-    var initializeMockServices = function(callback) {
+    var initializeMockServices = function (callback) {
       var happnMock = {
         config: {
           services: {
-            security: {}
-          }
+            security: {},
+          },
         },
         services: {
           system: {
-            package: require('../../../package.json')
-          }
-        }
+            package: require('../../../package.json'),
+          },
+        },
       };
 
       async.eachSeries(
         ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security', 'subscription'],
-        function(serviceName, eachServiceCB) {
+        function (serviceName, eachServiceCB) {
           testServices[serviceName] = new testServices[serviceName]({
-            logger: Logger
+            logger: Logger,
           });
           testServices[serviceName].happn = happnMock;
 
           happnMock.services[serviceName] = testServices[serviceName];
 
           if (serviceName === 'error')
-            happnMock.services[serviceName].handleFatal = function(message, e) {
+            happnMock.services[serviceName].handleFatal = function (message, e) {
               //eslint-disable-next-line no-console
               console.log('FATAL FAILURE:', message);
               throw e;
@@ -75,13 +73,13 @@ describe(
 
     before('should initialize the service', initializeMockServices);
 
-    it('should have a default keypair in memory', function(callback) {
+    it('should have a default keypair in memory', function (callback) {
       expect(testServices.security._keyPair !== undefined).to.be(true);
       callback();
     });
 
-    it('the default keypair in memory must exist in the system security leaf', function(callback) {
-      testServices.data.get('/_SYSTEM/_SECURITY/_SETTINGS/KEYPAIR', {}, function(e, response) {
+    it('the default keypair in memory must exist in the system security leaf', function (callback) {
+      testServices.data.get('/_SYSTEM/_SECURITY/_SETTINGS/KEYPAIR', {}, function (e, response) {
         if (e) return callback(e);
 
         if (!response) return callback(new Error('keypair doesnt exist in database'));
@@ -100,13 +98,13 @@ describe(
       });
     });
 
-    it('should have a default admin group', function(callback) {
-      testServices.data.get('/_SYSTEM/_SECURITY/_GROUP/_ADMIN', {}, function(e, response) {
+    it('should have a default admin group', function (callback) {
+      testServices.data.get('/_SYSTEM/_SECURITY/_GROUP/_ADMIN', {}, function (e, response) {
         if (e) return callback(e);
 
         if (!response) return callback(new Error('admin group doesnt exist in database'));
 
-        testServices.security.groups.getGroup('_ADMIN', function(e, group) {
+        testServices.security.groups.getGroup('_ADMIN', function (e, group) {
           if (e) return callback(e);
 
           expect(group.permissions['*'].actions[0]).to.be('*');
@@ -116,8 +114,8 @@ describe(
       });
     });
 
-    it('should have a default admin user', function(callback) {
-      testServices.data.get('/_SYSTEM/_SECURITY/_USER/_ADMIN*', {}, function(e, response) {
+    it('should have a default admin user', function (callback) {
+      testServices.data.get('/_SYSTEM/_SECURITY/_USER/_ADMIN*', {}, function (e, response) {
         if (e) return callback(e);
 
         if (!response) return callback(new Error('admin user doesnt exist in database'));

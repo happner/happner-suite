@@ -1,6 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(120000);
 
   var expect = require('expect.js');
@@ -16,7 +16,7 @@ describe(test.testName(__filename, 3), function() {
     await dropMongoDb(DB_NAME);
   });
 
-  before(function(done) {
+  before(function (done) {
     Happn.service.create(
       {
         secure: true,
@@ -32,13 +32,13 @@ describe(test.testName(__filename, 3), function() {
                   isDefault: true,
                   settings: {
                     database: DB_NAME,
-                    collection: COLL_NAME
-                  }
-                }
-              ]
-            }
-          }
-        }
+                    collection: COLL_NAME,
+                  },
+                },
+              ],
+            },
+          },
+        },
       },
       (e, instance) => {
         if (e) return done(e);
@@ -48,7 +48,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  after(function(done) {
+  after(function (done) {
     happnInstance.stop({ reconnect: false }, done);
   });
 
@@ -57,38 +57,38 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LIST1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_LIST2',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_LIST3',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_LIST4',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     let usersFiltered = await happnInstance.services.security.users.listUsers('TESTUSER_LIST*', {
       criteria: {
-        'custom_data.something': { $eq: 'useful' }
-      }
+        'custom_data.something': { $eq: 'useful' },
+      },
     });
 
     let usersUnFiltered = await happnInstance.services.security.users.listUsers('TESTUSER_LIST*');
@@ -101,16 +101,16 @@ describe(test.testName(__filename, 3), function() {
     const group = await happnInstance.services.security.users.upsertGroup({
       name: 'TESTUSER_LST_BY-GROUP1',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     const user1 = await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_LST_BY-GROUP1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user1);
@@ -119,8 +119,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LIST_BY-GROUP2',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user2);
@@ -129,8 +129,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LST_BY-GROUP3',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user3);
@@ -139,8 +139,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LST_BY-GROUP4',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user4);
@@ -149,8 +149,8 @@ describe(test.testName(__filename, 3), function() {
       'TESTUSER_LST_BY-GROUP1',
       {
         criteria: {
-          'custom_data.something': { $eq: 'useful' }
-        }
+          'custom_data.something': { $eq: 'useful' },
+        },
       }
     );
 
@@ -165,8 +165,8 @@ describe(test.testName(__filename, 3), function() {
       'TESTUSER_LST_BY-GROUP1',
       {
         criteria: {
-          'custom_data.something': { $eq: 'useful' }
-        }
+          'custom_data.something': { $eq: 'useful' },
+        },
       }
     );
 
@@ -188,16 +188,16 @@ describe(test.testName(__filename, 3), function() {
     const group = await happnInstance.services.security.users.upsertGroup({
       name: 'TESTUSER_LST_BY-GROUP1-1',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     const user1 = await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_LST_BY-GROUP1-1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user1);
@@ -206,8 +206,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LIST_BY-GROUP2-1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user2);
@@ -216,8 +216,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LST_BY-GROUP3-1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user3);
@@ -226,8 +226,8 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_LST_BY-GROUP4-1',
       password: 'TEST PWD',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.linkGroup(group, user4);
@@ -236,8 +236,8 @@ describe(test.testName(__filename, 3), function() {
       'TESTUSER_LST_BY-GROUP1-1',
       {
         criteria: {
-          'custom_data.something': { $eq: 'useful' }
-        }
+          'custom_data.something': { $eq: 'useful' },
+        },
       }
     );
 
@@ -252,8 +252,8 @@ describe(test.testName(__filename, 3), function() {
       'TESTUSER_LST_BY-GROUP1-1',
       {
         criteria: {
-          'custom_data.something': { $eq: 'useful' }
-        }
+          'custom_data.something': { $eq: 'useful' },
+        },
       }
     );
 
@@ -280,35 +280,35 @@ describe(test.testName(__filename, 3), function() {
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_LIST1',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_LIST2',
       custom_data: {
-        something: 'useful'
-      }
+        something: 'useful',
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_LIST3',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_LIST4',
       custom_data: {
-        something: 'else'
-      }
+        something: 'else',
+      },
     });
 
     let groupsFiltered = await happnInstance.services.security.users.listGroups('TESTGROUP_LIST*', {
       criteria: {
-        'custom_data.something': { $eq: 'useful' }
-      }
+        'custom_data.something': { $eq: 'useful' },
+      },
     });
 
     let groupsUnFiltered = await happnInstance.services.security.users.listGroups(
@@ -323,59 +323,59 @@ describe(test.testName(__filename, 3), function() {
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_SEARCH1',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_SEARCH2',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_SEARCH3',
       custom_data: {
-        cadre: 1
-      }
+        cadre: 1,
+      },
     });
 
     await happnInstance.services.security.users.upsertGroup({
       name: 'TESTGROUP_SEARCH4',
       custom_data: {
-        cadre: 2
-      }
+        cadre: 2,
+      },
     });
 
     let results1 = await happnInstance.services.security.users.listGroups('TESTGROUP_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      limit: 1
+      limit: 1,
     });
 
     let results2 = await happnInstance.services.security.users.listGroups('TESTGROUP_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      skip: 1
+      skip: 1,
     });
 
     let resultscontrol = await happnInstance.services.security.users.listGroups(
       'TESTGROUP_SEARCH*',
       {
         criteria: {
-          'custom_data.cadre': { $gt: 0 }
-        }
+          'custom_data.cadre': { $gt: 0 },
+        },
       }
     );
 
     let results3 = await happnInstance.services.security.users.listGroups('TESTGROUP_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      count: true
+      count: true,
     });
 
     expect(results1.length).to.be(1);
@@ -390,59 +390,59 @@ describe(test.testName(__filename, 3), function() {
       username: 'TESTUSER_SEARCH1',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_SEARCH2',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_SEARCH3',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 1
-      }
+        cadre: 1,
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TESTUSER_SEARCH4',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 2
-      }
+        cadre: 2,
+      },
     });
 
     let results1 = await happnInstance.services.security.users.listUsers('TESTUSER_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      limit: 1
+      limit: 1,
     });
 
     let results2 = await happnInstance.services.security.users.listUsers('TESTUSER_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      skip: 1
+      skip: 1,
     });
 
     let resultscontrol = await happnInstance.services.security.users.listUsers('TESTUSER_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
-      }
+        'custom_data.cadre': { $gt: 0 },
+      },
     });
 
     let results3 = await happnInstance.services.security.users.listUsers('TESTUSER_SEARCH*', {
       criteria: {
-        'custom_data.cadre': { $gt: 0 }
+        'custom_data.cadre': { $gt: 0 },
       },
-      count: true
+      count: true,
     });
 
     expect(results1.length).to.be(1);
@@ -457,32 +457,32 @@ describe(test.testName(__filename, 3), function() {
       username: 'TEST_user_COLLATION1',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     await happnInstance.services.security.users.upsertUser({
       username: 'TEST_USER_COLLATION1',
       password: 'TEST PWD',
       custom_data: {
-        cadre: 0
-      }
+        cadre: 0,
+      },
     });
 
     let results1 = await happnInstance.services.security.users.listUsers('*', {
       criteria: {
-        username: 'TEST_USER_COLLATION1'
+        username: 'TEST_USER_COLLATION1',
       },
       collation: {
         locale: 'en_US',
-        strength: 1
-      }
+        strength: 1,
+      },
     });
 
     let results2 = await happnInstance.services.security.users.listUsers('*', {
       criteria: {
-        username: 'TEST_USER_COLLATION1'
-      }
+        username: 'TEST_USER_COLLATION1',
+      },
     });
 
     expect(results1.length).to.be(2);

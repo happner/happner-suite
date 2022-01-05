@@ -1,4 +1,4 @@
-require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
+require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function (test) {
   var happn = require('../../lib/index');
   var old_happn = require('happn');
   var service = happn.service;
@@ -6,9 +6,9 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
   const test_id = Date.now() + '_' + require('shortid').generate();
   var happnInstance = null;
 
-  before('should initialize the service', function(callback) {
+  before('should initialize the service', function (callback) {
     try {
-      service.create(function(e, happnInst) {
+      service.create(function (e, happnInst) {
         if (e) return callback(e);
 
         happnInstance = happnInst;
@@ -19,21 +19,21 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     }
   });
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(20000);
 
     publisherclient.disconnect(
       {
-        timeout: 2000
+        timeout: 2000,
       },
-      function(e) {
+      function (e) {
         //eslint-disable-next-line no-console
         if (e) console.warn('failed disconnecting publisher client');
         listenerclient.disconnect(
           {
-            timeout: 2000
+            timeout: 2000,
           },
-          function(e) {
+          function (e) {
             //eslint-disable-next-line no-console
             if (e) console.warn('failed disconnecting listener client');
             happnInstance.stop(done);
@@ -47,17 +47,17 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
   var listenerclient;
   var disconnectclient;
 
-  before('should initialize the clients', function(callback) {
+  before('should initialize the clients', function (callback) {
     try {
-      happn_client.create(function(e, instance) {
+      happn_client.create(function (e, instance) {
         if (e) return callback(e);
         publisherclient = instance;
 
-        happn_client.create(function(e, instance) {
+        happn_client.create(function (e, instance) {
           if (e) return callback(e);
           listenerclient = instance;
 
-          happn_client.create(function(e, instance) {
+          happn_client.create(function (e, instance) {
             if (e) return callback(e);
             disconnectclient = instance;
             callback();
@@ -69,20 +69,20 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     }
   });
 
-  it('should disconnect the disconnect client', function(callback) {
+  it('should disconnect the disconnect client', function (callback) {
     disconnectclient.disconnect().then(callback);
   });
 
-  it('the listener should pick up a single wildcard event', function(callback) {
+  it('the listener should pick up a single wildcard event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/event/*',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           test
             .expect(
               listenerclient.events[
@@ -92,7 +92,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -108,10 +108,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
               }
             );
@@ -125,16 +125,16 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
 
   //	We set the listener client to listen for a PUT event according to a path, then we set a value with the publisher client.
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           test
             .expect(
               listenerclient.events[
@@ -144,7 +144,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -160,10 +160,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {}
+              function () {}
             );
           } else callback(e);
         }
@@ -175,7 +175,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
 
   //We are testing setting data at a specific path
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     try {
       var test_path_end = require('shortid').generate();
 
@@ -184,15 +184,15 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (!e) {
             publisherclient.get(
               '2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
               null,
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
                 callback(e);
               }
@@ -205,7 +205,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = require('shortid').generate();
 
@@ -214,10 +214,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e == null).to.be(true);
 
           publisherclient.set(
@@ -226,10 +226,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             null,
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e == null).to.be(true);
               test.expect(updateResult._meta._id === insertResult._meta._id).to.be(true);
               callback();
@@ -242,16 +242,16 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           test
             .expect(
               listenerclient.events[
@@ -261,7 +261,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -276,10 +276,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {}
+              function () {}
             );
           } else callback(e);
         }
@@ -289,24 +289,24 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     }
   });
 
-  it('the listener should pick up a single delete event', function(callback) {
+  it('the listener should pick up a single delete event', function (callback) {
     //We put the data we want to delete into the database
     publisherclient.set(
       '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function() {
+      function () {
         listenerclient.on(
           '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
           {
             event_type: 'remove',
-            count: 1
+            count: 1,
           },
-          function(eventData) {
+          function (eventData) {
             test
               .expect(
                 listenerclient.events[
@@ -319,7 +319,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
             test.expect(eventData.payload.removed).to.be(1);
             callback();
           },
-          function(e) {
+          function (e) {
             if (!e) return callback(e);
 
             test
@@ -336,7 +336,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
             publisherclient.remove(
               '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
               null,
-              function() {}
+              function () {}
             );
           }
         );
@@ -344,35 +344,35 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('the listener should pick up wildcard remove events', function(callback) {
+  it('the listener should pick up wildcard remove events', function (callback) {
     //We put the data we want to delete into the database
     publisherclient.set(
       '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/wildcard_delete_me/1',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function() {
+      function () {
         publisherclient.set(
           '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/wildcard_delete_me/2',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function() {
+          function () {
             listenerclient.on(
               '/2_websockets_embedded_sanity/' +
                 test_id +
                 '/testsubscribe/data/wildcard_delete_me/*',
               {
                 event_type: 'remove',
-                count: 1
+                count: 1,
               },
-              function(eventData) {
+              function (eventData) {
                 test
                   .expect(
                     listenerclient.events[
@@ -386,7 +386,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
 
                 callback();
               },
-              function(e) {
+              function (e) {
                 if (!e) return callback(e);
 
                 test
@@ -405,7 +405,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
                     test_id +
                     '/testsubscribe/*/wildcard_delete_me/*',
                   null,
-                  function() {}
+                  function () {}
                 );
               }
             );
@@ -415,34 +415,34 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should unsubscribe from an event', function(callback) {
+  it('should unsubscribe from an event', function (callback) {
     var currentListenerId;
 
     listenerclient.on(
       '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function() {
+      function () {
         listenerclient.offPath(
           '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
 
             listenerclient.on(
               '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
               {
                 event_type: 'set',
-                count: 0
+                count: 0,
               },
-              function() {
-                listenerclient.off(currentListenerId, function(e) {
+              function () {
+                listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
                 });
               },
-              function(e, listenerId) {
+              function (e, listenerId) {
                 if (e) return callback(new Error(e));
                 currentListenerId = listenerId;
                 publisherclient.set(
@@ -450,10 +450,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   {},
-                  function(e) {
+                  function (e) {
                     if (e) return callback(new Error(e));
                   }
                 );
@@ -462,7 +462,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
           }
         );
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (e) return callback(new Error(e));
 
         currentListenerId = listenerId;
@@ -472,10 +472,10 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
           }
         );
@@ -483,7 +483,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should unsubscribe from a specific event', function(done) {
+  it('should unsubscribe from a specific event', function (done) {
     this.timeout(10000);
 
     var emitted = {};
@@ -498,41 +498,41 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
       path,
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function(message) {
+      function (message) {
         if (!emitted[reference1]) emitted[reference1] = [];
         emitted[reference1].push(message);
       },
-      function(e, eventReference1) {
+      function (e, eventReference1) {
         reference1 = eventReference1;
 
         return listenerclient.on(
           path,
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function(message) {
+          function (message) {
             if (!emitted[reference2]) emitted[reference2] = [];
             emitted[reference2].push(message);
           },
-          function(e, eventReference2) {
+          function (e, eventReference2) {
             reference2 = eventReference2;
 
             listenerclient
               .set(path, { test: 'data1' })
-              .then(function() {
+              .then(function () {
                 return listenerclient.set(path, { test: 'data2' });
               })
-              .then(function() {
+              .then(function () {
                 return listenerclient.off(reference2);
               })
-              .then(function() {
+              .then(function () {
                 return listenerclient.set(path, { test: 'data3' });
               })
-              .then(function() {
-                setTimeout(function() {
+              .then(function () {
+                setTimeout(function () {
                   test.expect(emitted[reference1].length).to.be(3);
                   test.expect(emitted[reference2].length).to.be(2);
                   done();
@@ -545,12 +545,12 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should subscribe to the catch all notification', function(callback) {
+  it('should subscribe to the catch all notification', function (callback) {
     this.timeout(10000);
     var caughtCount = 0;
 
     listenerclient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action ===
             '/REMOVE@/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/catch_all' ||
@@ -561,7 +561,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
 
         if (caughtCount === 2) callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set(
@@ -569,14 +569,14 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function() {
+          function () {
             publisherclient.remove(
               '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/catch_all',
               null,
-              function() {}
+              function () {}
             );
           }
         );
@@ -584,33 +584,33 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should unsubscribe from all events', function(callback) {
+  it('should unsubscribe from all events', function (callback) {
     this.timeout(10000);
 
     var onHappened = false;
 
     listenerclient.onAll(
-      function() {
+      function () {
         onHappened = true;
         callback(new Error('this wasnt meant to happen'));
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.on(
           '/2_websockets_embedded_sanity/' + test_id + '/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function() {
+          function () {
             onHappened = true;
             callback(new Error('this wasnt meant to happen'));
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            listenerclient.offAll(function(e) {
+            listenerclient.offAll(function (e) {
               if (e) return callback(e);
 
               publisherclient.set(
@@ -618,13 +618,13 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
-                  setTimeout(function() {
+                  setTimeout(function () {
                     if (!onHappened) callback();
                   }, 3000);
                 }
@@ -636,21 +636,21 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('will do events in the order they are passed', function(done) {
+  it('will do events in the order they are passed', function (done) {
     publisherclient.set(
       '/test_event_order',
       {
-        property1: 'property1Value'
+        property1: 'property1Value',
       },
       {},
-      function() {
+      function () {
         publisherclient.log.info('Done setting');
       }
     );
-    publisherclient.remove('/test_event_order', function() {
+    publisherclient.remove('/test_event_order', function () {
       publisherclient.log.info('Done removing');
-      setTimeout(function() {
-        publisherclient.get('/test_event_order', null, function(e, result) {
+      setTimeout(function () {
+        publisherclient.get('/test_event_order', null, function (e, result) {
           test.expect(result).to.be(null);
           done();
         });
@@ -658,40 +658,40 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     });
   });
 
-  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts - negative test', function(callback) {
+  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts - negative test', function (callback) {
     var hits = 0;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/count/2/*',
       {
         event_type: 'set',
-        count: 3
+        count: 3,
       },
-      function() {
+      function () {
         hits++;
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/1', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/count/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
-        setTimeout(function() {
+        setTimeout(function () {
           if (hits !== 3) return callback(new Error('hits were over the agreed on 2'));
           callback();
         }, 1500);
@@ -699,19 +699,19 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts (2)', function(callback) {
+  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts (2)', function (callback) {
     var hits = 0;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/count/2/*',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function() {
+      function () {
         hits++;
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         test.async.timesSeries(
@@ -724,15 +724,15 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
-              e => {
+              (e) => {
                 if (e) return cb(e);
                 setTimeout(cb, 100);
               }
             );
           },
-          e => {
+          (e) => {
             if (e) return callback(e);
             if (hits !== 2) return callback(new Error('hits should be 2'));
             callback();
@@ -742,19 +742,19 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts (3)', function(callback) {
+  it('subscribes with a count - we ensure the event only gets kicked off for the correct amounts (3)', function (callback) {
     var hits = 0;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/count/3/*',
       {
         event_type: 'set',
-        count: 3
+        count: 3,
       },
-      function() {
+      function () {
         hits++;
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         test.async.timesSeries(
@@ -767,15 +767,15 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
-              e => {
+              (e) => {
                 if (e) return cb(e);
                 setTimeout(cb, 100);
               }
             );
           },
-          e => {
+          (e) => {
             if (e) return callback(e);
             if (hits !== 3) return callback(new Error('hits should be 3'));
             callback();
@@ -785,16 +785,16 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('subscribe, then does an off with a bad handle', function(done) {
+  it('subscribe, then does an off with a bad handle', function (done) {
     var currentEventId;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/*',
       {
-        event_type: 'set'
+        event_type: 'set',
       },
-      function() {},
-      function(e, eventId) {
+      function () {},
+      function (e, eventId) {
         if (e) return done(e);
 
         currentEventId = eventId;
@@ -802,23 +802,23 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/1', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         publisherclient.set('/1_eventemitter_embedded_sanity/' + test_id + '/off-handle/2/2', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
-        setTimeout(function() {
-          publisherclient.off(null, function(e) {
+        setTimeout(function () {
+          publisherclient.off(null, function (e) {
             test.expect(e.toString()).to.be('Error: handle or callback cannot be null');
             publisherclient.off(currentEventId, done);
           });
@@ -827,34 +827,34 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should subscribe and get initial values on the callback', function(callback) {
+  it('should subscribe and get initial values on the callback', function (callback) {
     listenerclient.set(
       '/e2e_test1/testsubscribe/data/values_on_callback_test/1',
       {
-        test: 'data'
+        test: 'data',
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.set(
           '/e2e_test1/testsubscribe/data/values_on_callback_test/2',
           {
-            test: 'data1'
+            test: 'data1',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             listenerclient.on(
               '/e2e_test1/testsubscribe/data/values_on_callback_test/*',
               {
                 event_type: 'set',
-                initialCallback: true
+                initialCallback: true,
               },
-              function(message) {
+              function (message) {
                 test.expect(message.updated).to.be(true);
                 callback();
               },
-              function(e, reference, response) {
+              function (e, reference, response) {
                 if (e) return callback(e);
                 try {
                   test.expect(response.length).to.be(2);
@@ -865,9 +865,9 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
                     '/e2e_test1/testsubscribe/data/values_on_callback_test/1',
                     {
                       test: 'data',
-                      updated: true
+                      updated: true,
                     },
-                    function(e) {
+                    function (e) {
                       if (e) return callback(e);
                     }
                   );
@@ -882,32 +882,32 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
     );
   });
 
-  it('should subscribe and get initial values emitted immediately', function(callback) {
+  it('should subscribe and get initial values emitted immediately', function (callback) {
     var caughtEmitted = 0;
 
     listenerclient.set(
       '/e2e_test1/testsubscribe/data/values_emitted_test/1',
       {
-        test: 'data'
+        test: 'data',
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.set(
           '/e2e_test1/testsubscribe/data/values_emitted_test/2',
           {
-            test: 'data1'
+            test: 'data1',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             listenerclient.on(
               '/e2e_test1/testsubscribe/data/values_emitted_test/*',
               {
                 event_type: 'set',
-                initialEmit: true
+                initialEmit: true,
               },
-              function(message) {
+              function (message) {
                 caughtEmitted++;
 
                 if (caughtEmitted === 2) {
@@ -915,7 +915,7 @@ require('../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function
                   callback();
                 }
               },
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
               }
             );

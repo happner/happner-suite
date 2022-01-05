@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(20000);
 
     var expect = require('expect.js');
@@ -17,29 +15,29 @@ describe(
         type: 'LRU',
         cache: {
           max: 300,
-          maxAge: 0
-        }
-      }
+          maxAge: 0,
+        },
+      },
     };
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       var UtilService = require('../../../lib/services/utils/service');
       var utilService = new UtilService();
 
       serviceInstance.happn = {
         services: {
-          utils: utilService
-        }
+          utils: utilService,
+        },
       };
 
       serviceInstance.initialize(lru_config, callback);
     });
 
-    after(function(done) {
+    after(function (done) {
       serviceInstance.stop(done);
     });
 
-    it('sets data, ensures when we get a value back it is cloned by default', function(done) {
+    it('sets data, ensures when we get a value back it is cloned by default', function (done) {
       var key = testId + 'test1';
 
       var data = { dkey: key };
@@ -47,10 +45,10 @@ describe(
       serviceInstance
         .set(key, data)
 
-        .then(function() {
+        .then(function () {
           serviceInstance.__defaultCache
             .get(key)
-            .then(function(result) {
+            .then(function (result) {
               expect(result === data).to.be(false);
               done();
             })
@@ -60,7 +58,7 @@ describe(
         .catch(done);
     });
 
-    it('sets data with clone: false, ensures when we get a value back it is not cloned', function(done) {
+    it('sets data with clone: false, ensures when we get a value back it is not cloned', function (done) {
       var key = testId + 'test1';
 
       var data = { dkey: key };
@@ -68,10 +66,10 @@ describe(
       serviceInstance
         .set(key, data, { clone: false })
 
-        .then(function() {
+        .then(function () {
           serviceInstance.__defaultCache
             .get(key)
-            .then(function(result) {
+            .then(function (result) {
               expect(result === data).to.be(true);
               done();
             })
@@ -81,7 +79,7 @@ describe(
         .catch(done);
     });
 
-    it('specific cache, sets data, ensures when we get a value back it is cloned by default', function(done) {
+    it('specific cache, sets data, ensures when we get a value back it is cloned by default', function (done) {
       var key = testId + 'test1';
 
       var data = { dkey: key };
@@ -95,10 +93,10 @@ describe(
       cache
         .set(key, data)
 
-        .then(function() {
+        .then(function () {
           cache
             .get(key)
-            .then(function(result) {
+            .then(function (result) {
               expect(result === data).to.be(false);
               done();
             })
@@ -108,7 +106,7 @@ describe(
         .catch(done);
     });
 
-    it('specific cache, sets data with clone: false, ensures when we get a value back it is not cloned', function(done) {
+    it('specific cache, sets data with clone: false, ensures when we get a value back it is not cloned', function (done) {
       var key = testId + 'test1';
 
       var data = { dkey: key };
@@ -120,10 +118,10 @@ describe(
       cache
         .set(key, data, { clone: false })
 
-        .then(function() {
+        .then(function () {
           cache
             .get(key)
-            .then(function(result) {
+            .then(function (result) {
               expect(result === data).to.be(true);
               done();
             })
@@ -133,7 +131,7 @@ describe(
         .catch(done);
     });
 
-    it('gets the cache keys', function() {
+    it('gets the cache keys', function () {
       var key = testId + 'test1';
 
       var data = { dkey: key };

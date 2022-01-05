@@ -30,7 +30,7 @@ function CryptoService(opts) {
   } else {
     Logger = require('happn-logger');
     Logger.configure({
-      logLevel: 'info'
+      logLevel: 'info',
     });
   }
 

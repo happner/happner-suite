@@ -1,4 +1,4 @@
-describe('longrunning/002_session_management_sanity', function() {
+describe('longrunning/002_session_management_sanity', function () {
   var expect = require('expect.js');
   var happn = require('../../lib/index');
   var service = happn.service;
@@ -8,17 +8,17 @@ describe('longrunning/002_session_management_sanity', function() {
   var serviceInstance;
   var clientInstance;
 
-  var disconnectClient = function(callback) {
+  var disconnectClient = function (callback) {
     if (clientInstance) clientInstance.disconnect(callback);
     else callback();
   };
 
-  var stopService = function(callback) {
+  var stopService = function (callback) {
     if (serviceInstance) serviceInstance.stop(callback);
     else callback();
   };
 
-  var getService = function(activateSessionManagement, sessionActivityTTL, callback, port) {
+  var getService = function (activateSessionManagement, sessionActivityTTL, callback, port) {
     if (!port) port = 55556;
 
     if (typeof activateSessionManagement === 'function') {
@@ -27,10 +27,10 @@ describe('longrunning/002_session_management_sanity', function() {
       sessionActivityTTL = 60000 * 60 * 24 * 30;
     }
 
-    disconnectClient(function(e) {
+    disconnectClient(function (e) {
       if (e) return callback(e);
 
-      stopService(function(e) {
+      stopService(function (e) {
         if (e) return callback(e);
 
         var serviceConfig = {
@@ -41,13 +41,13 @@ describe('longrunning/002_session_management_sanity', function() {
               config: {
                 activateSessionManagement: activateSessionManagement,
                 logSessionActivity: true,
-                sessionActivityTTL: sessionActivityTTL
-              }
-            }
-          }
+                sessionActivityTTL: sessionActivityTTL,
+              },
+            },
+          },
         };
 
-        service.create(serviceConfig, function(e, happnInst) {
+        service.create(serviceConfig, function (e, happnInst) {
           if (e) return callback(e);
 
           serviceInstance = happnInst;
@@ -57,13 +57,13 @@ describe('longrunning/002_session_management_sanity', function() {
               config: {
                 port: port,
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               },
               info: {
-                from: 'startup'
-              }
+                from: 'startup',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               clientInstance = instance;
@@ -76,26 +76,26 @@ describe('longrunning/002_session_management_sanity', function() {
     });
   };
 
-  it('tests session management, multiple clients in series', function(callback) {
+  it('tests session management, multiple clients in series', function (callback) {
     var times = 20;
 
     this.timeout(times * 6000 + 10000);
 
     var session_results = [];
 
-    getService(true, 500000, function() {
+    getService(true, 500000, function () {
       async.timesSeries(
         times,
-        function(timeIndex, timeCB) {
+        function (timeIndex, timeCB) {
           happn_client.create(
             {
               config: {
                 port: 55556,
                 username: '_ADMIN',
-                password: 'happn'
-              }
+                password: 'happn',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               var sessionData = {};
@@ -107,9 +107,9 @@ describe('longrunning/002_session_management_sanity', function() {
 
               sessionData.random = randomActivity;
 
-              randomActivity.generateActivityStart('test', function() {
-                setTimeout(function() {
-                  randomActivity.generateActivityEnd('test', function(aggregatedLog) {
+              randomActivity.generateActivityStart('test', function () {
+                setTimeout(function () {
+                  randomActivity.generateActivityEnd('test', function (aggregatedLog) {
                     sessionData.results = aggregatedLog;
                     sessionData.client = instance;
                     session_results.push(sessionData);
@@ -120,16 +120,16 @@ describe('longrunning/002_session_management_sanity', function() {
             }
           );
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
 
-          setTimeout(function() {
-            serviceInstance.services.security.listActiveSessions(function(e, list) {
+          setTimeout(function () {
+            serviceInstance.services.security.listActiveSessions(function (e, list) {
               if (e) return callback(e);
 
               expect(list.length).to.be(times + 1); //+1 for connected client
 
-              serviceInstance.services.security.listSessionActivity(function(e, list) {
+              serviceInstance.services.security.listSessionActivity(function (e, list) {
                 if (e) return callback(e);
 
                 expect(list.length).to.be(times);
@@ -143,7 +143,7 @@ describe('longrunning/002_session_management_sanity', function() {
     });
   });
 
-  it('tests session management, multiple clients in parallel', function(callback) {
+  it('tests session management, multiple clients in parallel', function (callback) {
     var times = 20;
 
     this.timeout(times * 6000 + 10000);
@@ -153,19 +153,19 @@ describe('longrunning/002_session_management_sanity', function() {
     getService(
       true,
       500000,
-      function() {
+      function () {
         async.times(
           times,
-          function(timeIndex, timeCB) {
+          function (timeIndex, timeCB) {
             happn_client.create(
               {
                 config: {
                   port: 55557,
                   username: '_ADMIN',
-                  password: 'happn'
-                }
+                  password: 'happn',
+                },
               },
-              function(e, instance) {
+              function (e, instance) {
                 if (e) return callback(e);
 
                 var sessionData = {};
@@ -177,9 +177,9 @@ describe('longrunning/002_session_management_sanity', function() {
 
                 sessionData.random = randomActivity;
 
-                randomActivity.generateActivityStart('test', function() {
-                  setTimeout(function() {
-                    randomActivity.generateActivityEnd('test', function(aggregatedLog) {
+                randomActivity.generateActivityStart('test', function () {
+                  setTimeout(function () {
+                    randomActivity.generateActivityEnd('test', function (aggregatedLog) {
                       sessionData.results = aggregatedLog;
                       sessionData.client = instance;
                       //eslint-disable-next-line no-console
@@ -192,14 +192,14 @@ describe('longrunning/002_session_management_sanity', function() {
               }
             );
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            setTimeout(function() {
-              serviceInstance.services.security.listActiveSessions(function(e, list) {
+            setTimeout(function () {
+              serviceInstance.services.security.listActiveSessions(function (e, list) {
                 if (e) return callback(e);
                 expect(list.length).to.be(times + 1); //+1 for connected client
-                serviceInstance.services.security.listSessionActivity(function(e, list) {
+                serviceInstance.services.security.listSessionActivity(function (e, list) {
                   if (e) return callback(e);
                   expect(list.length).to.be(times);
                   callback();

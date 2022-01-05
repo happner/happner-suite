@@ -3,23 +3,23 @@ var Happn = require('../../..'),
   expect = require('expect.js'),
   tests = require('../../__fixtures/utils/test_helper').create();
 
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   var serviceInstance;
   var clientInstance;
 
-  afterEach('stop the client', function(done) {
+  afterEach('stop the client', function (done) {
     if (clientInstance) clientInstance.disconnect(done);
     else done();
   });
 
-  afterEach('stop the server', function(done) {
+  afterEach('stop the server', function (done) {
     if (serviceInstance) serviceInstance.stop(done);
     else done();
   });
 
-  it('should instantiate a service with a piece of middleware', function(done) {
-    var recipientFilterFunction = function(message, recipients) {
-      return recipients.filter(function(recipient) {
+  it('should instantiate a service with a piece of middleware', function (done) {
+    var recipientFilterFunction = function (message, recipients) {
+      return recipients.filter(function (recipient) {
         return recipient.data.options.meta.publish;
       });
     };
@@ -30,10 +30,10 @@ describe(tests.testName(__filename, 3), function() {
       services: {
         subscription: {
           config: {
-            filter: recipientFilterFunction
-          }
-        }
-      }
+            filter: recipientFilterFunction,
+          },
+        },
+      },
     };
 
     var ran1 = false,
@@ -41,67 +41,67 @@ describe(tests.testName(__filename, 3), function() {
 
     service
       .create(config)
-      .then(function(instance) {
+      .then(function (instance) {
         serviceInstance = instance;
         return Happn.client.create(clientConfig);
       })
-      .then(function(client) {
+      .then(function (client) {
         clientInstance = client;
 
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
           clientInstance.on(
             '/test/path/*/*',
             {
               meta: {
-                publish: true
-              }
+                publish: true,
+              },
             },
-            function(/*data*/) {
+            function (/*data*/) {
               ran1 = true;
             },
-            function(e /*, eventId*/) {
+            function (e /*, eventId*/) {
               if (e) return reject(e);
               resolve();
             }
           );
         });
       })
-      .then(function() {
-        return new Promise(function(resolve, reject) {
+      .then(function () {
+        return new Promise(function (resolve, reject) {
           clientInstance.on(
             '/test/path/1/*',
             {
               meta: {
-                publish: false
-              }
+                publish: false,
+              },
             },
-            function(/*data*/) {
+            function (/*data*/) {
               ran2 = true;
             },
-            function(e /*, eventId*/) {
+            function (e /*, eventId*/) {
               if (e) return reject(e);
               resolve();
             }
           );
         });
       })
-      .then(function() {
+      .then(function () {
         return clientInstance.set(
           '/test/path/1/1',
           {
-            test: 'data'
+            test: 'data',
           },
           {
             meta: {
-              filter: true
-            }
+              filter: true,
+            },
           }
         );
       })
-      .then(function() {
+      .then(function () {
         return tests.delay(300);
       })
-      .then(function() {
+      .then(function () {
         expect(ran1).to.be(true);
         expect(ran2).to.be(false);
       })

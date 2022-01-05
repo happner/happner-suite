@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     const happn = require('../../../lib/index');
     const service = happn.service;
@@ -33,9 +31,9 @@ describe(
     before('creates a group and a user for session expiry tests', createInactivityUserAndGroup);
     after(stopService);
 
-    it('the server should set up a secure route, the admin client should connect ok', function(callback) {
+    it('the server should set up a secure route, the admin client should connect ok', function (callback) {
       try {
-        doRequest('/secure/route', adminClient.session.token, false, function(response) {
+        doRequest('/secure/route', adminClient.session.token, false, function (response) {
           expect(response.statusCode).to.equal(200);
           callback();
         });
@@ -44,9 +42,9 @@ describe(
       }
     });
 
-    it('the server should set up a secure route, the admin client should connect ok passing the token on the querystring', function(callback) {
+    it('the server should set up a secure route, the admin client should connect ok passing the token on the querystring', function (callback) {
       try {
-        doRequest('/secure/route/qs', adminClient.session.token, true, function(response) {
+        doRequest('/secure/route/qs', adminClient.session.token, true, function (response) {
           expect(response.statusCode).to.equal(200);
           callback();
         });
@@ -55,9 +53,9 @@ describe(
       }
     });
 
-    it('the server should set up another secure route, the test client should fail to connect', function(callback) {
+    it('the server should set up another secure route, the test client should fail to connect', function (callback) {
       try {
-        doRequest('/secure/route/test', testClient.session.token, false, function(response) {
+        doRequest('/secure/route/test', testClient.session.token, false, function (response) {
           expect(response.statusCode).to.equal(403);
           callback();
         });
@@ -66,24 +64,24 @@ describe(
       }
     });
 
-    it('updates the group associated with the test user to allow gets to the path, the user should succeed in connecting to the url', function(callback) {
+    it('updates the group associated with the test user to allow gets to the path, the user should succeed in connecting to the url', function (callback) {
       this.timeout(10000);
 
       try {
         testGroup.permissions = {
           '/@HTTP/secure/route/test': {
-            actions: ['get']
-          }
+            actions: ['get'],
+          },
         };
 
-        happnInstance.services.security.users.upsertGroup(testGroup, {}, function(e, group) {
+        happnInstance.services.security.users.upsertGroup(testGroup, {}, function (e, group) {
           if (e) return callback(e);
 
           expect(group.permissions['/@HTTP/secure/route/test']).to.eql({
-            actions: ['get']
+            actions: ['get'],
           });
 
-          doRequest('/secure/route/test', testClient.session.token, false, function(response) {
+          doRequest('/secure/route/test', testClient.session.token, false, function (response) {
             expect(response.statusCode).to.equal(200);
             callback();
           });
@@ -93,21 +91,21 @@ describe(
       }
     });
 
-    it('updates the group associated with the test user to allow gets to the path, the user should succeed in connecting to the url with the query string', function(callback) {
+    it('updates the group associated with the test user to allow gets to the path, the user should succeed in connecting to the url with the query string', function (callback) {
       try {
         testGroup.permissions = {
           '/@HTTP/secure/route/test': {
-            actions: ['get']
-          }
+            actions: ['get'],
+          },
         };
 
-        happnInstance.services.security.users.upsertGroup(testGroup, {}, function(e, group) {
+        happnInstance.services.security.users.upsertGroup(testGroup, {}, function (e, group) {
           if (e) return callback(e);
           expect(group.permissions['/@HTTP/secure/route/test']).to.eql({
-            actions: ['get']
+            actions: ['get'],
           });
 
-          doRequest('/secure/route/test', testClient.session.token, true, function(response) {
+          doRequest('/secure/route/test', testClient.session.token, true, function (response) {
             expect(response.statusCode).to.equal(200);
             callback();
           });
@@ -117,25 +115,25 @@ describe(
       }
     });
 
-    it('updates the group associated with the test user to allow posts to the a post path, the user should succeed in connecting to the url with the query string', function(callback) {
+    it('updates the group associated with the test user to allow posts to the a post path, the user should succeed in connecting to the url with the query string', function (callback) {
       try {
-        doPost('/secure/route/post', testClient.session.token, true, function(response) {
+        doPost('/secure/route/post', testClient.session.token, true, function (response) {
           expect(response.statusCode).to.equal(403);
 
           testGroup.permissions = {
             '/@HTTP/secure/route/post': {
               actions: ['post'],
-              prohibit: ['get']
-            }
+              prohibit: ['get'],
+            },
           };
 
-          happnInstance.services.security.users.upsertGroup(testGroup, {}, function(e) {
+          happnInstance.services.security.users.upsertGroup(testGroup, {}, function (e) {
             if (e) return callback(e);
 
-            doPost('/secure/route/post', testClient.session.token, true, function(response) {
+            doPost('/secure/route/post', testClient.session.token, true, function (response) {
               expect(response.statusCode).to.equal(200);
 
-              doRequest('/secure/route/post', testClient.session.token, true, function(response) {
+              doRequest('/secure/route/post', testClient.session.token, true, function (response) {
                 expect(response.statusCode).to.equal(403);
 
                 callback();
@@ -148,33 +146,33 @@ describe(
       }
     });
 
-    it('tests the excluded wildcard route to ensure anyone can access it', function(callback) {
-      doRequest('/test/excluded/wildcard/blah', null, false, function(response) {
+    it('tests the excluded wildcard route to ensure anyone can access it', function (callback) {
+      doRequest('/test/excluded/wildcard/blah', null, false, function (response) {
         expect(response.statusCode).to.equal(200);
         callback();
       });
     });
 
-    it('tests the excluded specific route to ensure anyone can access it', function(callback) {
+    it('tests the excluded specific route to ensure anyone can access it', function (callback) {
       this.timeout(20000);
 
-      doRequest('/test/excluded/specific', null, true, function(response) {
+      doRequest('/test/excluded/specific', null, true, function (response) {
         expect(response.statusCode).to.equal(200);
         callback();
       });
     });
 
-    it('tests doing a request for a token using a GET with a username and password', function(callback) {
+    it('tests doing a request for a token using a GET with a username and password', function (callback) {
       doRequest(
         '/auth/login?username=_ADMIN&password=happn',
         null,
         true,
-        function(response, body) {
+        function (response, body) {
           expect(response.statusCode).to.equal(200);
 
           var token = JSON.parse(body).data;
 
-          doRequest('/secure/route/qs', token, true, function(response) {
+          doRequest('/secure/route/qs', token, true, function (response) {
             expect(response.statusCode).to.equal(200);
             callback();
           });
@@ -183,14 +181,14 @@ describe(
       );
     });
 
-    it('tests doing a request for a nonce using a GET with a username and password, nonce is encrypted for a login', function(callback) {
+    it('tests doing a request for a nonce using a GET with a username and password, nonce is encrypted for a login', function (callback) {
       var encodedPublicKey = encodeURIComponent(keyPair.publicKey);
 
       doRequest(
         '/auth/request-nonce?publicKey=' + encodedPublicKey + '&user=_ADMIN',
         null,
         true,
-        function(response, body) {
+        function (response, body) {
           expect(response.statusCode).to.equal(200);
 
           var nonce = JSON.parse(body).data;
@@ -206,7 +204,7 @@ describe(
               encodedPublicKey,
             null,
             true,
-            function(response) {
+            function (response) {
               expect(response.statusCode).to.equal(200);
               callback();
             },
@@ -217,30 +215,30 @@ describe(
       );
     });
 
-    it('removes the permission from the test group - we ensure we can not access the resource with the token', function(callback) {
+    it('removes the permission from the test group - we ensure we can not access the resource with the token', function (callback) {
       var testGroup1 = {
         name: 'TEST GROUP1' + test_id,
         custom_data: {
           customString: 'custom1',
-          customNumber: 0
-        }
+          customNumber: 0,
+        },
       };
 
       testGroup1.permissions = {
         '/@HTTP/secure/test/removed/group': {
-          actions: ['get']
+          actions: ['get'],
         },
         '/@HTTP/secure/test/not_removed/group': {
-          actions: ['get']
-        }
+          actions: ['get'],
+        },
       };
 
       var testUser1 = {
         username: 'TEST USER1@blah.com' + test_id,
         password: 'TEST PWD',
         custom_data: {
-          something: 'usefull'
-        }
+          something: 'usefull',
+        },
       };
 
       var addedTestGroup1;
@@ -249,44 +247,44 @@ describe(
       happnInstance.services.security.users.upsertGroup(
         testGroup1,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
           addedTestGroup1 = result;
 
           happnInstance.services.security.users.upsertUser(
             testUser1,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
               addedTestuser1 = result;
 
               happnInstance.services.security.users.linkGroup(
                 addedTestGroup1,
                 addedTestuser1,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
                   happn.client
                     .create({
                       config: {
                         username: testUser1.username,
-                        password: 'TEST PWD'
+                        password: 'TEST PWD',
                       },
-                      secure: true
+                      secure: true,
                     })
 
-                    .then(function(clientInstance) {
+                    .then(function (clientInstance) {
                       testClient1 = clientInstance;
 
                       doRequest(
                         '/secure/test/removed/group',
                         testClient1.session.token,
                         false,
-                        function(response) {
+                        function (response) {
                           expect(response.statusCode).to.equal(200);
 
                           happnInstance.services.security.groups
@@ -295,12 +293,12 @@ describe(
                               '/@HTTP/secure/test/removed/group',
                               'get'
                             )
-                            .then(function() {
+                            .then(function () {
                               doRequest(
                                 '/secure/test/removed/group',
                                 testClient1.session.token,
                                 false,
-                                function(response) {
+                                function (response) {
                                   expect(response.statusCode).to.equal(403);
                                   callback();
                                 }
@@ -311,7 +309,7 @@ describe(
                       );
                     })
 
-                    .catch(function(e) {
+                    .catch(function (e) {
                       callback(e);
                     });
                 }
@@ -322,30 +320,30 @@ describe(
       );
     });
 
-    it('removes the user associated with the token - we ensure we can not access the resource with the token', function(done) {
+    it('removes the user associated with the token - we ensure we can not access the resource with the token', function (done) {
       var testGroup2 = {
         name: 'TEST GROUP2' + test_id,
         custom_data: {
           customString: 'custom2',
-          customNumber: 0
-        }
+          customNumber: 0,
+        },
       };
 
       testGroup2.permissions = {
         '/@HTTP/secure/test/removed/user': {
-          actions: ['get']
+          actions: ['get'],
         },
         '/@HTTP/secure/test/not_removed/user': {
-          actions: ['get']
-        }
+          actions: ['get'],
+        },
       };
 
       var testUser2 = {
         username: 'TEST USER2@blah.com' + test_id,
         password: 'TEST PWD',
         custom_data: {
-          something: 'usefull'
-        }
+          something: 'usefull',
+        },
       };
 
       var addedTestGroup2;
@@ -354,66 +352,67 @@ describe(
       happnInstance.services.security.users.upsertGroup(
         testGroup2,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return done(e);
           addedTestGroup2 = result;
 
           happnInstance.services.security.users.upsertUser(
             testUser2,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return done(e);
               addedTestuser2 = result;
 
               happnInstance.services.security.users.linkGroup(
                 addedTestGroup2,
                 addedTestuser2,
-                function(e) {
+                function (e) {
                   if (e) return done(e);
 
                   happn.client
                     .create({
                       config: {
                         username: testUser2.username,
-                        password: 'TEST PWD'
+                        password: 'TEST PWD',
                       },
-                      secure: true
+                      secure: true,
                     })
 
-                    .then(function(clientInstance) {
+                    .then(function (clientInstance) {
                       testClient2 = clientInstance;
 
                       doRequest(
                         '/secure/test/removed/user',
                         testClient2.session.token,
                         false,
-                        function(response) {
+                        function (response) {
                           expect(response.statusCode).to.equal(200);
 
-                          happnInstance.services.security.users.deleteUser(addedTestuser2, function(
-                            e
-                          ) {
-                            if (e) return done(e);
+                          happnInstance.services.security.users.deleteUser(
+                            addedTestuser2,
+                            function (e) {
+                              if (e) return done(e);
 
-                            doRequest(
-                              '/secure/test/removed/user',
-                              testClient2.session.token,
-                              false,
-                              function(response) {
-                                expect(response.statusCode).to.equal(403);
-                                done();
-                              }
-                            );
-                          });
+                              doRequest(
+                                '/secure/test/removed/user',
+                                testClient2.session.token,
+                                false,
+                                function (response) {
+                                  expect(response.statusCode).to.equal(403);
+                                  done();
+                                }
+                              );
+                            }
+                          );
                         }
                       );
                     })
 
-                    .catch(function(e) {
+                    .catch(function (e) {
                       done(e);
                     });
                 }
@@ -424,9 +423,9 @@ describe(
       );
     });
 
-    it('the server should set up a secure route, the admin client should connect ok using a bearer token', function(callback) {
+    it('the server should set up a secure route, the admin client should connect ok using a bearer token', function (callback) {
       try {
-        doBearerTokenRequest('/secure/route', adminClient.session.token, function(response) {
+        doBearerTokenRequest('/secure/route', adminClient.session.token, function (response) {
           expect(response.statusCode).to.equal(200);
           callback();
         });
@@ -435,9 +434,9 @@ describe(
       }
     });
 
-    it('the server should set up another secure route, the test client should fail to connect using a bad bearer token', function(callback) {
+    it('the server should set up another secure route, the test client should fail to connect using a bad bearer token', function (callback) {
       try {
-        doBearerTokenRequest('/secure/route/test', 'crap token', function(response) {
+        doBearerTokenRequest('/secure/route/test', 'crap token', function (response) {
           expect(response.statusCode).to.equal(401);
           callback();
         });
@@ -446,25 +445,29 @@ describe(
       }
     });
 
-    it('ensures a token expiry causes a 401 error', function(callback) {
+    it('ensures a token expiry causes a 401 error', function (callback) {
       setTimeout(() => {
-        doBearerTokenRequest('/short/permissions/allowed', testTokenShortSession, function(
-          response
-        ) {
-          expect(response.statusCode).to.equal(401);
-          callback();
-        });
+        doBearerTokenRequest(
+          '/short/permissions/allowed',
+          testTokenShortSession,
+          function (response) {
+            expect(response.statusCode).to.equal(401);
+            callback();
+          }
+        );
       }, 3000);
     });
 
-    it('ensures session inactivity causes a 401 error', function(callback) {
+    it('ensures session inactivity causes a 401 error', function (callback) {
       setTimeout(() => {
-        doBearerTokenRequest('/inactivity/permissions/allowed', testTokenInactivity, function(
-          response
-        ) {
-          expect(response.statusCode).to.equal(401);
-          callback();
-        });
+        doBearerTokenRequest(
+          '/inactivity/permissions/allowed',
+          testTokenInactivity,
+          function (response) {
+            expect(response.statusCode).to.equal(401);
+            callback();
+          }
+        );
       }, 5000);
     });
 
@@ -472,18 +475,18 @@ describe(
       var request = require('request');
 
       var options = {
-        url: 'http://127.0.0.1:55000' + path
+        url: 'http://127.0.0.1:55000' + path,
       };
 
       if (!excludeToken) {
         if (!query)
           options.headers = {
-            Cookie: ['happn_token=' + token]
+            Cookie: ['happn_token=' + token],
           };
         else options.url += '?happn_token=' + token;
       }
 
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         callback(response, body);
       });
     }
@@ -494,18 +497,18 @@ describe(
       var options = {
         url: 'http://127.0.0.1:55000' + path,
         method: 'POST',
-        data: { post: 'data' }
+        data: { post: 'data' },
       };
 
       if (!excludeToken) {
         if (!query)
           options.headers = {
-            Cookie: ['happn_token=' + token]
+            Cookie: ['happn_token=' + token],
           };
         else options.url += '?happn_token=' + token;
       }
 
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         callback(response, body);
       });
     }
@@ -514,15 +517,15 @@ describe(
       var request = require('request');
 
       var options = {
-        url: 'http://127.0.0.1:55000' + path
+        url: 'http://127.0.0.1:55000' + path,
       };
 
       if (!excludeToken)
         options.headers = {
-          Authorization: ['Bearer ' + token]
+          Authorization: ['Bearer ' + token],
         };
 
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         callback(response, body);
       });
     }
@@ -534,15 +537,15 @@ describe(
           config: {
             middleware: {
               security: {
-                exclusions: ['/test/excluded/specific', '/test/excluded/wildcard/*']
-              }
-            }
-          }
+                exclusions: ['/test/excluded/specific', '/test/excluded/wildcard/*'],
+              },
+            },
+          },
         },
         security: {
           config: {
             adminUser: {
-              publicKey: keyPair.publicKey
+              publicKey: keyPair.publicKey,
             },
             profiles: [
               //profiles are in an array, in descending order of priority, so if you fit more than one profile, the top profile is chosen
@@ -550,105 +553,105 @@ describe(
                 name: 'short-session',
                 session: {
                   'user.username': {
-                    $eq: 'TEST USER SHORT'
-                  }
+                    $eq: 'TEST USER SHORT',
+                  },
                 },
                 policy: {
-                  ttl: '2 seconds'
-                }
+                  ttl: '2 seconds',
+                },
               },
               {
                 name: 'usage-limit',
                 session: {
                   'user.username': {
-                    $eq: 'TEST USER INACTIVE'
-                  }
+                    $eq: 'TEST USER INACTIVE',
+                  },
                 },
                 policy: {
-                  inactivity_threshold: '1 seconds'
-                }
-              }
-            ]
-          }
-        }
-      }
+                  inactivity_threshold: '1 seconds',
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     function startService(callback) {
-      service.create(testConfig, function(e, happnInst) {
+      service.create(testConfig, function (e, happnInst) {
         if (e) return callback(e);
 
         happnInstance = happnInst;
 
-        happnInstance.connect.use('/secure/route/test', function(req, res) {
+        happnInstance.connect.use('/secure/route/test', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/secure/route', function(req, res) {
+        happnInstance.connect.use('/secure/route', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/secure/route/qs', function(req, res) {
+        happnInstance.connect.use('/secure/route/qs', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/test/excluded/wildcard/blah', function(req, res) {
+        happnInstance.connect.use('/test/excluded/wildcard/blah', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/test/excluded/specific', function(req, res) {
+        happnInstance.connect.use('/test/excluded/specific', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/secure/test/removed/group', function(req, res) {
+        happnInstance.connect.use('/secure/test/removed/group', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/secure/test/removed/user', function(req, res) {
+        happnInstance.connect.use('/secure/test/removed/user', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
 
-        happnInstance.connect.use('/secure/route/post', function(req, res) {
+        happnInstance.connect.use('/secure/route/post', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
 
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
@@ -667,7 +670,7 @@ describe(
       if (testClientShortSession) testClientShortSession.disconnect({ reconnect: false });
       if (testClientInactivity) testClientInactivity.disconnect({ reconnect: false });
 
-      setTimeout(function() {
+      setTimeout(function () {
         happnInstance.stop({ reconnect: false }, callback);
       }, 5000);
     }
@@ -677,17 +680,17 @@ describe(
         .create({
           config: {
             username: '_ADMIN',
-            password: 'happn'
+            password: 'happn',
           },
-          secure: true
+          secure: true,
         })
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           adminClient = clientInstance;
           callback();
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           callback(e);
         });
     }
@@ -696,16 +699,16 @@ describe(
       name: 'TEST GROUP' + test_id,
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     var testUser = {
       username: 'TEST USER@blah.com' + test_id,
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     var addedTestGroup;
@@ -715,42 +718,42 @@ describe(
       happnInstance.services.security.users.upsertGroup(
         testGroup,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
           addedTestGroup = result;
 
           happnInstance.services.security.users.upsertUser(
             testUser,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
               addedTestuser = result;
 
               happnInstance.services.security.users.linkGroup(
                 addedTestGroup,
                 addedTestuser,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
                   happn.client
                     .create({
                       config: {
                         username: testUser.username,
-                        password: 'TEST PWD'
+                        password: 'TEST PWD',
                       },
-                      secure: true
+                      secure: true,
                     })
 
-                    .then(function(clientInstance) {
+                    .then(function (clientInstance) {
                       testClient = clientInstance;
                       callback();
                     })
 
-                    .catch(function(e) {
+                    .catch(function (e) {
                       callback(e);
                     });
                 }
@@ -765,22 +768,22 @@ describe(
       name: 'TEST GROUP SHORT',
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     testGroupShortSession.permissions = {
       '/@HTTP/short/permissions/allowed': {
-        actions: ['get']
-      }
+        actions: ['get'],
+      },
     };
 
     var testUserShortSession = {
       username: 'TEST USER SHORT',
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     function createShortSessionUserAndGroup(callback) {
@@ -796,22 +799,22 @@ describe(
       name: 'TEST GROUP INACTIVE',
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     testGroupInactivity.permissions = {
       '/@HTTP/inactivity/permissions/allowed': {
-        actions: ['get']
-      }
+        actions: ['get'],
+      },
     };
 
     var testUserInactivity = {
       username: 'TEST USER INACTIVE',
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     function createInactivityUserAndGroup(callback) {
@@ -828,38 +831,38 @@ describe(
       happnInstance.services.security.users.upsertGroup(
         group,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
           addedGroup = result;
 
           happnInstance.services.security.users.upsertUser(
             user,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
               addedUser = result;
 
-              happnInstance.services.security.users.linkGroup(addedGroup, addedUser, function(e) {
+              happnInstance.services.security.users.linkGroup(addedGroup, addedUser, function (e) {
                 if (e) return callback(e);
 
                 happn.client
                   .create({
                     config: {
                       username: user.username,
-                      password: user.password
+                      password: user.password,
                     },
-                    secure: true
+                    secure: true,
                   })
 
-                  .then(function(clientInstance) {
+                  .then(function (clientInstance) {
                     callback(null, clientInstance, clientInstance.session.token);
                   })
 
-                  .catch(function(e) {
+                  .catch(function (e) {
                     callback(e);
                   });
               });

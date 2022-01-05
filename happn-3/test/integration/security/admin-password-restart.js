@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const filename = test.newTestFile();
   let currentService = null;
 
@@ -16,23 +16,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       services: {
         security: {
           config: {
-            adminUser: { password: originalPassword }
-          }
+            adminUser: { password: originalPassword },
+          },
         },
         data: {
           config: {
-            filename
-          }
-        }
+            filename,
+          },
+        },
       },
-      secure: true
+      secure: true,
     });
   }
 
   function getClient(service, password) {
     return service.services.session.localClient({
       username: '_ADMIN',
-      password: password
+      password: password,
     });
   }
 
@@ -48,7 +48,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     await getClient(currentService, originalPassword);
     await currentService.services.security.users.__upsertUser({
       username: '_ADMIN',
-      password: modifiedPassword
+      password: modifiedPassword,
     });
     await getClient(currentService, modifiedPassword);
     await initService();

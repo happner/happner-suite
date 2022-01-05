@@ -1,5 +1,5 @@
 const test = require('../../../__fixtures/utils/test_helper').create();
-describe(test.testName(), function() {
+describe(test.testName(), function () {
   const Logger = require('happn-logger');
   const BaseAuthProvider = require('../../../../lib/services/security/authentication/provider-base');
   const dummyAuthProvider = test.path.resolve(
@@ -15,20 +15,22 @@ describe(test.testName(), function() {
     await stopServices(mockHappn);
   });
 
-  it('tests the create method, no provider', done => {
+  it('tests the create method, no provider', (done) => {
     mockHappn.services.security.log.error = test.sinon.spy();
     let baseProvider = BaseAuthProvider.create(mockHappn, {});
     test.expect(mockHappn.services.security.log.error.calledOnce).to.be(true);
-    test.expect(
-      mockHappn.services.security.log.error.calledWith(
-        'No auth provider specified, returning base auth provider with limited functionality.'
+    test
+      .expect(
+        mockHappn.services.security.log.error.calledWith(
+          'No auth provider specified, returning base auth provider with limited functionality.'
+        )
       )
-    ).to.be(true);
+      .to.be(true);
     test.expect(baseProvider).to.be.ok();
     done();
   });
 
-  it('tests the create method, other auth provider', done => {
+  it('tests the create method, other auth provider', (done) => {
     mockHappn.services.security.log.error = test.sinon.spy();
     let baseProvider = BaseAuthProvider.create(mockHappn, {}, dummyAuthProvider);
     test.expect(mockHappn.services.security.log.error.callCount).to.be(0);
@@ -37,61 +39,65 @@ describe(test.testName(), function() {
     done();
   });
 
-  it('tests the create method, bad auth provider', done => {
+  it('tests the create method, bad auth provider', (done) => {
     mockHappn.services.security.log.error = test.sinon.spy();
     let baseProvider = BaseAuthProvider.create(mockHappn, {}, noAuthProvider);
     test.expect(mockHappn.services.security.log.error.calledOnce).to.be(true);
-    test.expect(
-      mockHappn.services.security.log.error.calledWith(
-        `Could not configure auth provider ${noAuthProvider}, returning base auth provider with limited functionality.`
+    test
+      .expect(
+        mockHappn.services.security.log.error.calledWith(
+          `Could not configure auth provider ${noAuthProvider}, returning base auth provider with limited functionality.`
+        )
       )
-    ).to.be(true);
+      .to.be(true);
     test.expect(baseProvider).to.be.ok();
     done();
   });
 
-  it('tests the login method, no sessionId or request, invalidCredentials', done => {
+  it('tests the login method, no sessionId or request, invalidCredentials', (done) => {
     let baseProvider = BaseAuthProvider.create(mockHappn, {});
-    baseProvider.login({}, e => {
+    baseProvider.login({}, (e) => {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
       done();
     });
   });
 
-  it('tests the __providerCredsLogin method, when no provider is configured', done => {
+  it('tests the __providerCredsLogin method, when no provider is configured', (done) => {
     let baseProvider = BaseAuthProvider.create(mockHappn, {});
-    baseProvider.__providerCredsLogin(null, null, e => {
+    baseProvider.__providerCredsLogin(null, null, (e) => {
       test.expect(e.toString()).to.be('AccessDenied: __providerCredsLogin not implemented.');
       done();
     });
   });
 
-  it('tests the __providerCredsLogin method, when no provider is configured', done => {
+  it('tests the __providerCredsLogin method, when no provider is configured', (done) => {
     let baseProvider = BaseAuthProvider.create(mockHappn, {});
-    baseProvider.__providerTokenLogin(null, null, e => {
+    baseProvider.__providerTokenLogin(null, null, (e) => {
       test.expect(e.toString()).to.be('AccessDenied: __providerTokenLogin not implemented.');
       done();
     });
   });
-  it('tests the tokenlogin method, tocken locked to login type, not matched', done => {
+  it('tests the tokenlogin method, tocken locked to login type, not matched', (done) => {
     let baseProvider = BaseAuthProvider.create(mockHappn, { lockTokenToLoginType: true });
     baseProvider.__checkRevocations = () => true;
     let token = baseProvider.generateToken({ policy: ['whatever', 'stateful'] }, 'some type');
-    baseProvider.tokenLogin({ token, type: 'some other type' }, null, null, e => {
-      test.expect(e.toString()).to.be(
-        'AccessDenied: token was created using the login type some type, which does not match how the new token is to be created'
-      );
+    baseProvider.tokenLogin({ token, type: 'some other type' }, null, null, (e) => {
+      test
+        .expect(e.toString())
+        .to.be(
+          'AccessDenied: token was created using the login type some type, which does not match how the new token is to be created'
+        );
       done();
     });
   });
 
-  it('tests the tokenlogin method, when an error is thrown', done => {
+  it('tests the tokenlogin method, when an error is thrown', (done) => {
     let baseProvider = BaseAuthProvider.create(mockHappn, { lockTokenToLoginType: true });
     baseProvider.__checkRevocations = () => {
       return new Promise((res, rej) => rej('BAD'));
     };
     let token = baseProvider.generateToken({ policy: ['whatever', 'stateful'] }, 'some type');
-    baseProvider.tokenLogin({ token, type: 'some other type' }, null, null, e => {
+    baseProvider.tokenLogin({ token, type: 'some other type' }, null, null, (e) => {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials: BAD');
       done();
     });
@@ -101,11 +107,11 @@ describe(test.testName(), function() {
     return new Promise((res, rej) => {
       test.async.eachSeries(
         ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-        function(serviceName, eachServiceCB) {
+        function (serviceName, eachServiceCB) {
           if (!happnMock.services[serviceName].stop) return eachServiceCB();
           happnMock.services[serviceName].stop(eachServiceCB);
         },
-        e => {
+        (e) => {
           if (e) return rej(e);
           res();
         }
@@ -121,8 +127,8 @@ describe(test.testName(), function() {
           cache: {},
           data: {},
           crypto: {},
-          security: {}
-        }
+          security: {},
+        },
       };
 
       var testServices = {};
@@ -139,29 +145,29 @@ describe(test.testName(), function() {
       var checkpoint = require('../../../../lib/services/security/checkpoint');
 
       testServices.checkpoint = new checkpoint({
-        logger: Logger
+        logger: Logger,
       });
 
       var happnMock = {
         config: {
           services: {
-            security: {}
-          }
+            security: {},
+          },
         },
         services: {
           system: {
-            package: require('../../../../package.json')
-          }
-        }
+            package: require('../../../../package.json'),
+          },
+        },
       };
 
       if (servicesConfig) testConfig = servicesConfig;
 
       test.async.eachSeries(
         ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-        function(serviceName, eachServiceCB) {
+        function (serviceName, eachServiceCB) {
           testServices[serviceName] = new testServices[serviceName]({
-            logger: Logger
+            logger: Logger,
           });
 
           testServices[serviceName].happn = happnMock;
@@ -169,7 +175,7 @@ describe(test.testName(), function() {
           happnMock.services[serviceName] = testServices[serviceName];
 
           if (serviceName === 'error')
-            happnMock.services[serviceName].handleFatal = function(message, e) {
+            happnMock.services[serviceName].handleFatal = function (message, e) {
               throw e;
             };
 
@@ -185,7 +191,7 @@ describe(test.testName(), function() {
               eachServiceCB
             );
         },
-        function(e) {
+        function (e) {
           if (e) return rej(e);
 
           res(happnMock);

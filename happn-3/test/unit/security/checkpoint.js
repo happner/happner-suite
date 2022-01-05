@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(5000);
   const sinon = test.sinon;
   var expect = require('expect.js');
@@ -8,23 +8,19 @@ describe(test.testName(__filename, 3), function() {
   var EventEmitter = require('events').EventEmitter;
   var Checkpoint = require('../../../lib/services/security/checkpoint');
 
-  const generatePermissionSetKey = user => {
+  const generatePermissionSetKey = (user) => {
     const permissionSetKey = require('crypto')
       .createHash('sha1')
-      .update(
-        Object.keys(user.groups)
-          .sort()
-          .join('/')
-      )
+      .update(Object.keys(user.groups).sort().join('/'))
       .digest('base64');
     return permissionSetKey;
   };
 
-  var initializeCheckpoint = function(callback, config) {
+  var initializeCheckpoint = function (callback, config) {
     if (!config) config = {};
 
     var checkpoint = new Checkpoint({
-      logger: Logger
+      logger: Logger,
     });
 
     var CacheService = require('../../../lib/services/cache/service');
@@ -33,7 +29,7 @@ describe(test.testName(__filename, 3), function() {
     var cacheServiceInst = new CacheService();
     var utilsServiceInst = new UtilsService();
 
-    cacheServiceInst.initialize(function() {
+    cacheServiceInst.initialize(function () {
       var happn = {
         services: {
           session: new EventEmitter(),
@@ -41,35 +37,35 @@ describe(test.testName(__filename, 3), function() {
           security: {
             happn: {
               services: {
-                utils: new UtilsService()
-              }
+                utils: new UtilsService(),
+              },
             },
             generatePermissionSetKey,
             users: {
-              getUser: function(name, callback) {
+              getUser: function (name, callback) {
                 return callback(null, {
                   username: name,
                   groups: {
                     TEST1: {
-                      permissions: {}
+                      permissions: {},
                     },
                     TEST2: {
-                      permissions: {}
-                    }
-                  }
+                      permissions: {},
+                    },
+                  },
                 });
               },
-              attachPermissions: function(user) {
-                return new Promise(resolve => {
+              attachPermissions: function (user) {
+                return new Promise((resolve) => {
                   return resolve(user);
                 });
-              }
+              },
             },
             groups: {
-              getGroup: function(name, opts, callback) {
+              getGroup: function (name, opts, callback) {
                 var returnGroup = {
                   name: name,
-                  permissions: {}
+                  permissions: {},
                 };
 
                 if (name === 'TEST_GROUP')
@@ -77,12 +73,12 @@ describe(test.testName(__filename, 3), function() {
                     name: 'TEST_GROUP',
                     permissions: {
                       '/test/group/explicit': {
-                        action: ['set']
+                        action: ['set'],
                       },
                       '/test/group/*': {
-                        action: ['*']
-                      }
-                    }
+                        action: ['*'],
+                      },
+                    },
                   };
 
                 if (name === 'TEST_GROUP_1')
@@ -90,9 +86,9 @@ describe(test.testName(__filename, 3), function() {
                     name: 'TEST_GROUP_1',
                     permissions: {
                       '/test/group/*': {
-                        action: ['*']
-                      }
-                    }
+                        action: ['*'],
+                      },
+                    },
                   };
 
                 if (name === 'TEST_GROUP_2')
@@ -100,12 +96,12 @@ describe(test.testName(__filename, 3), function() {
                     name: 'TEST_GROUP_2',
                     permissions: {
                       '/test/explicit': {
-                        actions: ['set']
+                        actions: ['set'],
                       },
                       '/test/wild/*': {
-                        actions: ['*']
-                      }
-                    }
+                        actions: ['*'],
+                      },
+                    },
                   };
 
                 if (name === 'TEST_GROUP_3')
@@ -113,28 +109,28 @@ describe(test.testName(__filename, 3), function() {
                     name: 'TEST_GROUP_3',
                     permissions: {
                       '/test/wild/*': {
-                        actions: ['*']
-                      }
-                    }
+                        actions: ['*'],
+                      },
+                    },
                   };
 
                 return callback(null, returnGroup);
-              }
-            }
+              },
+            },
           },
-          cache: cacheServiceInst
-        }
+          cache: cacheServiceInst,
+        },
       };
 
       Object.defineProperty(checkpoint, 'happn', {
-        value: happn
+        value: happn,
       });
 
       Object.defineProperty(cacheServiceInst, 'happn', {
-        value: happn
+        value: happn,
       });
 
-      checkpoint.initialize(config, happn.services.security, function(e) {
+      checkpoint.initialize(config, happn.services.security, function (e) {
         if (e) return callback(e);
 
         callback(null, checkpoint);
@@ -142,36 +138,36 @@ describe(test.testName(__filename, 3), function() {
     });
   };
 
-  it('tests the security checkpoints __loadPermissionSet function', function(done) {
+  it('tests the security checkpoints __loadPermissionSet function', function (done) {
     var groups = {
       TEST_GROUP: {
         permissions: {
           '/test/group/explicit': {
-            actions: ['set']
+            actions: ['set'],
           },
           '/test/group/*': {
-            actions: ['*']
-          }
-        }
+            actions: ['*'],
+          },
+        },
       },
       TEST_GROUP_1: {
         permissions: {
           '/test/group/*': {
-            actions: ['*']
-          }
-        }
-      }
+            actions: ['*'],
+          },
+        },
+      },
     };
 
     var identity = {
       user: {
-        groups: groups
-      }
+        groups: groups,
+      },
     };
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
-      checkpoint.__loadPermissionSet(identity, function(e, permissionSet) {
+      checkpoint.__loadPermissionSet(identity, function (e, permissionSet) {
         if (e) return done(e);
         expect(permissionSet.search('/test/group/explicit')).to.eql(['*', 'set']);
         expect(permissionSet.search('/test/group/*')).to.eql(['*']);
@@ -180,17 +176,17 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the security checkpoints __createPermissionSet function', function(done) {
+  it('tests the security checkpoints __createPermissionSet function', function (done) {
     var permissions = {
       '/test/group/explicit': {
-        action: ['set']
+        action: ['set'],
       },
       '/test/group/*': {
-        action: ['*']
-      }
+        action: ['*'],
+      },
     };
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
 
       var permissionSet = checkpoint.__createPermissionSet(permissions);
@@ -201,37 +197,37 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the security checkpoints __authorized function', function(done) {
+  it('tests the security checkpoints __authorized function', function (done) {
     var groups = {
       TEST_GROUP_2: {
         permissions: {
           '/test/explicit': {
-            actions: ['set']
+            actions: ['set'],
           },
           '/test/wild/*': {
-            actions: ['*']
-          }
-        }
+            actions: ['*'],
+          },
+        },
       },
       TEST_GROUP_3: {
         permissions: {
           '/test/wild/*': {
-            actions: ['*']
-          }
-        }
-      }
+            actions: ['*'],
+          },
+        },
+      },
     };
 
     var identity = {
       user: {
-        groups: groups
-      }
+        groups: groups,
+      },
     };
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
 
-      checkpoint.__loadPermissionSet(identity, function(e, permissionSet) {
+      checkpoint.__loadPermissionSet(identity, function (e, permissionSet) {
         if (e) return done(e);
 
         expect(permissionSet.search('/test/explicit')).to.eql(['set']);
@@ -246,8 +242,8 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, __permissionCache', function(done) {
-    initializeCheckpoint(function(e, checkpoint) {
+  it('tests caching in checkpoint, __permissionCache', function (done) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(
@@ -264,17 +260,17 @@ describe(test.testName(__filename, 3), function() {
           user: {
             groups: {
               TEST1: {
-                permissions: {}
+                permissions: {},
               },
               TEST2: {
-                permissions: {}
-              }
-            }
-          }
+                permissions: {},
+              },
+            },
+          },
         },
         '/test/path',
         'set',
-        function(e, authorized) {
+        function (e, authorized) {
           if (e) return done(e);
 
           expect(authorized).to.be(false);
@@ -287,8 +283,8 @@ describe(test.testName(__filename, 3), function() {
 
           checkpoint.clearCaches([
             {
-              id: 'TEST-SESSION-ID'
-            }
+              id: 'TEST-SESSION-ID',
+            },
           ]);
 
           expect(
@@ -303,13 +299,13 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, __permissionSets', function(done) {
+  it('tests caching in checkpoint, __permissionSets', function (done) {
     var testPermissionSetKey = require('crypto')
       .createHash('sha1')
       .update(['TEST1', 'TEST2'].join('/'))
       .digest('base64');
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(checkpoint.__cache_checkpoint_permissionset.getSync(testPermissionSetKey)).to.be(null);
@@ -326,17 +322,17 @@ describe(test.testName(__filename, 3), function() {
           user: {
             groups: {
               TEST1: {
-                permissions: {}
+                permissions: {},
               },
               TEST2: {
-                permissions: {}
-              }
-            }
-          }
+                permissions: {},
+              },
+            },
+          },
         },
         '/test/path',
         'set',
-        function(e, authorized) {
+        function (e, authorized) {
           if (e) return done(e);
 
           expect(authorized).to.be(false);
@@ -357,21 +353,21 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, __permissionSets: isToken', function(done) {
+  it('tests caching in checkpoint, __permissionSets: isToken', function (done) {
     const user = {
       groups: {
         TEST1: {
-          permissions: {}
+          permissions: {},
         },
         TEST2: {
-          permissions: {}
-        }
-      }
+          permissions: {},
+        },
+      },
     };
 
     var testPermissionSetKey = generatePermissionSetKey(user);
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(checkpoint.__cache_checkpoint_permissionset.getSync(testPermissionSetKey)).to.be(null);
@@ -381,11 +377,11 @@ describe(test.testName(__filename, 3), function() {
           testPermissionSetKey,
           id: 'TEST-SESSION-ID',
           username: 'TEST',
-          user
+          user,
         },
         '/test/path',
         'set',
-        function(e, authorized) {
+        function (e, authorized) {
           if (e) return done(e);
 
           expect(authorized).to.be(false);
@@ -407,20 +403,20 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, authorization', function(done) {
+  it('tests caching in checkpoint, authorization', function (done) {
     const authorizationKey = `TEST-SESSION-ID:/test/path:set`;
     const user = {
       groups: {
         TEST1: {
-          permissions: {}
+          permissions: {},
         },
         TEST2: {
-          permissions: {}
-        }
-      }
+          permissions: {},
+        },
+      },
     };
     var testPermissionSetKey = generatePermissionSetKey(user);
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey)).to.be(null);
@@ -433,17 +429,17 @@ describe(test.testName(__filename, 3), function() {
           user: {
             groups: {
               TEST1: {
-                permissions: {}
+                permissions: {},
               },
               TEST2: {
-                permissions: {}
-              }
-            }
-          }
+                permissions: {},
+              },
+            },
+          },
         },
         '/test/path',
         'set',
-        function(e, authorized) {
+        function (e, authorized) {
           if (e) return done(e);
           expect(authorized).to.be(false);
           var cached = checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey);
@@ -456,20 +452,20 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, authorization: isToken', function(done) {
+  it('tests caching in checkpoint, authorization: isToken', function (done) {
     const authorizationKey = `TEST-SESSION-ID:/test/path:set`;
     const user = {
       groups: {
         TEST1: {
-          permissions: {}
+          permissions: {},
         },
         TEST2: {
-          permissions: {}
-        }
-      }
+          permissions: {},
+        },
+      },
     };
     var testPermissionSetKey = generatePermissionSetKey(user);
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(checkpoint.__cache_checkpoint_authorization_token.getSync(authorizationKey)).to.be(
@@ -481,11 +477,11 @@ describe(test.testName(__filename, 3), function() {
           testPermissionSetKey,
           id: 'TEST-SESSION-ID',
           username: 'TEST',
-          user
+          user,
         },
         '/test/path',
         'set',
-        function(e, authorized) {
+        function (e, authorized) {
           if (e) return done(e);
 
           expect(authorized).to.be(false);
@@ -507,15 +503,15 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests caching in checkpoint, cache size 5', function(done) {
+  it('tests caching in checkpoint, cache size 5', function (done) {
     initializeCheckpoint(
-      function(e, checkpoint) {
+      function (e, checkpoint) {
         if (e) return done(e);
         mockLookup(checkpoint, null, false);
 
         async.timesSeries(
           10,
-          function(time, timeCB) {
+          function (time, timeCB) {
             var testPermissionSetKey = require('crypto')
               .createHash('sha1')
               .update(['TEST1', 'TEST2', 'TEST_TIME' + time].join('/'))
@@ -530,17 +526,17 @@ describe(test.testName(__filename, 3), function() {
                 user: {
                   groups: {
                     TEST1: {
-                      permissions: {}
+                      permissions: {},
                     },
                     TEST2: {
-                      permissions: {}
-                    }
-                  }
-                }
+                      permissions: {},
+                    },
+                  },
+                },
               },
               '/test/path',
               'set',
-              function(e, authorized) {
+              function (e, authorized) {
                 if (e) return done(e);
 
                 expect(authorized).to.be(false);
@@ -553,7 +549,7 @@ describe(test.testName(__filename, 3), function() {
               }
             );
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
             expect(checkpoint.__cache_checkpoint_permissionset.values().length).to.be(5);
@@ -565,24 +561,24 @@ describe(test.testName(__filename, 3), function() {
       },
       {
         __cache_checkpoint_permissionset: {
-          max: 5
+          max: 5,
         },
         __cache_checkpoint_authorization: {
-          max: 5
-        }
+          max: 5,
+        },
       }
     );
   });
 
-  it('tests caching in checkpoint, cache size 10', function(done) {
+  it('tests caching in checkpoint, cache size 10', function (done) {
     initializeCheckpoint(
-      function(e, checkpoint) {
+      function (e, checkpoint) {
         if (e) return done(e);
         mockLookup(checkpoint, null, false);
 
         async.timesSeries(
           10,
-          function(time, timeCB) {
+          function (time, timeCB) {
             var testPermissionSetKey = require('crypto')
               .createHash('sha1')
               .update(['TEST1', 'TEST2', 'TEST_TIME' + time].join('/'))
@@ -597,17 +593,17 @@ describe(test.testName(__filename, 3), function() {
                 user: {
                   groups: {
                     TEST1: {
-                      permissions: {}
+                      permissions: {},
                     },
                     TEST2: {
-                      permissions: {}
-                    }
-                  }
-                }
+                      permissions: {},
+                    },
+                  },
+                },
               },
               '/test/path',
               'set',
-              function(e, authorized) {
+              function (e, authorized) {
                 if (e) return done(e);
 
                 expect(authorized).to.be(false);
@@ -620,7 +616,7 @@ describe(test.testName(__filename, 3), function() {
               }
             );
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
             expect(checkpoint.__cache_checkpoint_permissionset.values().length).to.be(10);
@@ -632,16 +628,16 @@ describe(test.testName(__filename, 3), function() {
       },
       {
         __cache_checkpoint_permissionset: {
-          max: 10
+          max: 10,
         },
         __cache_checkpoint_authorization: {
-          max: 10
-        }
+          max: 10,
+        },
       }
     );
   });
 
-  xit('it tests _authorizeSession function, early sync return on async callback', function(done) {
+  xit('it tests _authorizeSession function, early sync return on async callback', function (done) {
     this.timeout(60000);
 
     var checks = [];
@@ -649,30 +645,30 @@ describe(test.testName(__filename, 3), function() {
     for (var i = 0; i < 1000000; i++) {
       checks.push({
         session: {
-          policy: {}
+          policy: {},
         },
         path: 'test/path' + i,
-        action: 'SET'
+        action: 'SET',
       });
     }
 
     var okCount = 0;
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) {
         return done(e);
       }
 
       checkpoint.__cache_checkpoint_authorization = {
-        getSync: function() {
+        getSync: function () {
           return false;
-        }
+        },
       };
 
       async.each(
         checks,
-        function(check, checkCB) {
-          checkpoint._authorizeSession(check.session, check.path, check.action, function(e) {
+        function (check, checkCB) {
+          checkpoint._authorizeSession(check.session, check.path, check.action, function (e) {
             if (e) {
               // do nothing
             } else {
@@ -681,7 +677,7 @@ describe(test.testName(__filename, 3), function() {
             checkCB();
           });
         },
-        function() {
+        function () {
           expect(okCount).to.be(1000000);
           done();
         }
@@ -689,36 +685,36 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('it tests race condition in loadPermissionSet', function(done) {
+  it('it tests race condition in loadPermissionSet', function (done) {
     const identity = {
       user: {
         groups: {
           group1: {},
           group2: {},
           group3: {},
-          group4: {}
-        }
-      }
+          group4: {},
+        },
+      },
     };
     const groups = [
       {
         permissions: {
-          'test/1': {}
-        }
+          'test/1': {},
+        },
       },
       null,
       {
         permissions: {
-          'test/2': {}
-        }
+          'test/2': {},
+        },
       },
       {
         permissions: {
-          'test/3': {}
-        }
-      }
+          'test/3': {},
+        },
+      },
     ];
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       checkpoint.__cache_checkpoint_permissionset.getSync = () => {
         return null;
@@ -729,90 +725,91 @@ describe(test.testName(__filename, 3), function() {
       checkpoint.__loadPermissionSet(identity, (e, permissionSet) => {
         if (e) return done(e);
         expect(JSON.parse(JSON.stringify(permissionSet.tree))).to.eql({
-          test: { 1: { $leaf: 'test/1' }, 2: { $leaf: 'test/2' }, 3: { $leaf: 'test/3' } }
+          test: { 1: { $leaf: 'test/1' }, 2: { $leaf: 'test/2' }, 3: { $leaf: 'test/3' } },
         });
         done();
       });
     });
   });
 
-  it('it tests _authorizeSession function, session has no policy', function(done) {
+  it('it tests _authorizeSession function, session has no policy', function (done) {
     this.timeout(60000);
 
-    initializeCheckpoint(function(e, checkpoint) {
+    initializeCheckpoint(function (e, checkpoint) {
       if (e) {
         return done(e);
       }
 
       var testData = {
         session: {
-          policy: {}
+          policy: {},
         },
         sessionNoPolicy: {},
         sessionWithType: {
           type: 1,
           policy: {
-            '1': {}
-          }
+            1: {},
+          },
         },
         sessionWithTtl: {
           timestamp: Date.now(),
           type: 1,
           policy: {
-            '1': { ttl: 1 }
-          }
+            1: { ttl: 1 },
+          },
         },
         path: 'test/path',
-        action: 'SET'
+        action: 'SET',
       };
 
       checkpoint.__cache_checkpoint_authorization = {
-        getSync: function() {
+        getSync: function () {
           return false;
-        }
+        },
       };
 
-      checkpoint._authorizeSession(testData.session, testData.path, testData.action, function(
-        e,
-        authorised,
-        reason
-      ) {
-        expect(e).to.be(null);
-        expect(authorised).to.be(false);
-        expect(reason).to.be('no policy for session type');
-        checkpoint._authorizeSession(
-          testData.sessionNoPolicy,
-          testData.path,
-          testData.action,
-          function(e, authorised, reason) {
-            expect(e).to.be(null);
-            expect(authorised).to.be(false);
-            expect(reason).to.be('no policy attached to session');
-            setTimeout(function() {
-              checkpoint._authorizeSession(
-                testData.sessionWithTtl,
-                testData.path,
-                testData.action,
-                function(e, authorised, reason) {
-                  expect(e).to.be(null);
-                  expect(authorised).to.be(false);
-                  expect(reason).to.be('expired session token');
-                  checkpoint._authorizeSession(
-                    testData.sessionWithType,
-                    testData.path,
-                    testData.action,
-                    function(e, authorised) {
-                      expect(e).to.be(null);
-                      expect(authorised).to.be(true);
-                      done();
-                    }
-                  );
-                }
-              );
-            }, 100);
-          }
-        );
-      });
+      checkpoint._authorizeSession(
+        testData.session,
+        testData.path,
+        testData.action,
+        function (e, authorised, reason) {
+          expect(e).to.be(null);
+          expect(authorised).to.be(false);
+          expect(reason).to.be('no policy for session type');
+          checkpoint._authorizeSession(
+            testData.sessionNoPolicy,
+            testData.path,
+            testData.action,
+            function (e, authorised, reason) {
+              expect(e).to.be(null);
+              expect(authorised).to.be(false);
+              expect(reason).to.be('no policy attached to session');
+              setTimeout(function () {
+                checkpoint._authorizeSession(
+                  testData.sessionWithTtl,
+                  testData.path,
+                  testData.action,
+                  function (e, authorised, reason) {
+                    expect(e).to.be(null);
+                    expect(authorised).to.be(false);
+                    expect(reason).to.be('expired session token');
+                    checkpoint._authorizeSession(
+                      testData.sessionWithType,
+                      testData.path,
+                      testData.action,
+                      function (e, authorised) {
+                        expect(e).to.be(null);
+                        expect(authorised).to.be(true);
+                        done();
+                      }
+                    );
+                  }
+                );
+              }, 100);
+            }
+          );
+        }
+      );
     });
   });
 

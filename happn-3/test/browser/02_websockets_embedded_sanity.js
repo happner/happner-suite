@@ -1,4 +1,4 @@
-describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
+describe('02_websockets_embedded_sanity_encrypted_payloads', function () {
   var expect, happn_client;
 
   if (typeof window === 'undefined') {
@@ -11,7 +11,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     happn_client = window.HappnClient;
   }
 
-  after(function(done) {
+  after(function (done) {
     if (socketClient) {
       socketClient.disconnect(done);
     } else done();
@@ -20,20 +20,20 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
   var socketClient;
   var default_timeout = 10000;
 
-  beforeEach('should initialize the client', function(callback) {
+  beforeEach('should initialize the client', function (callback) {
     this.timeout(default_timeout);
 
-    var createClient = function(e) {
+    var createClient = function (e) {
       if (e) return callback(e);
       try {
         happn_client.create(
           {
             config: {
               username: '_ADMIN',
-              password: 'happn'
-            }
+              password: 'happn',
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
 
             socketClient = instance;
@@ -50,22 +50,22 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     createClient();
   });
 
-  it('the listener should pick up a single published event, eventemitter listening', function(callback) {
+  it('the listener should pick up a single published event, eventemitter listening', function (callback) {
     this.timeout(default_timeout);
     try {
       socketClient.on(
         '/e2e_test1/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           expect(socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event']).to.equal(
             undefined
           );
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             expect(
               socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event'].length
@@ -75,10 +75,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {}
+              function () {}
             );
           } else callback(e);
         }
@@ -88,7 +88,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('the listener should pick up a single published event, eventemitter publishing', function(callback) {
+  it('the listener should pick up a single published event, eventemitter publishing', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -96,15 +96,15 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
         '/e2e_test1/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           expect(socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event']).to.equal(
             undefined
           );
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             expect(
               socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event'].length
@@ -114,10 +114,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {}
+              function () {}
             );
           } else callback(e);
         }
@@ -127,7 +127,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -138,21 +138,22 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e) {
+        function (e) {
           if (!e) {
-            socketClient.get('e2e_test1/testsubscribe/data/' + test_path_end, null, function(
-              e,
-              results
-            ) {
-              expect(results.property1 === 'property1').to.equal(true);
-              expect(results.created === results.modified).to.equal(true);
-              callback(e);
-            });
+            socketClient.get(
+              'e2e_test1/testsubscribe/data/' + test_path_end,
+              null,
+              function (e, results) {
+                expect(results.property1 === 'property1').to.equal(true);
+                expect(results.created === results.modified).to.equal(true);
+                callback(e);
+              }
+            );
           } else callback(e);
         }
       );
@@ -161,7 +162,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
+  it('should set data, and then merge a new document into the data without overwriting old fields', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -172,25 +173,25 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           socketClient.set(
             'e2e_test1/testsubscribe/data/merge/' + test_path_end,
             {
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              merge: true
+              merge: true,
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
               socketClient.get(
                 'e2e_test1/testsubscribe/data/merge/' + test_path_end,
                 null,
-                function(e, results) {
+                function (e, results) {
                   if (e) return callback(e);
                   expect(results.property4).to.equal('property4');
                   expect(results.property1).to.equal('property1');
@@ -206,7 +207,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('should search for a complex object', function(callback) {
+  it('should search for a complex object', function (callback) {
     var test_path_end = '3';
     var complex_obj = {
       regions: ['North', 'South'],
@@ -214,40 +215,40 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var criteria1 = {
       $or: [
         {
           regions: {
-            $containsAny: ['North', 'South', 'East', 'West']
-          }
+            $containsAny: ['North', 'South', 'East', 'West'],
+          },
         },
         {
           towns: {
-            $containsAny: ['North.Cape Town', 'South.East London']
-          }
+            $containsAny: ['North.Cape Town', 'South.East London'],
+          },
         },
         {
           categories: {
-            $containsAny: ['Action', 'History']
-          }
-        }
+            $containsAny: ['Action', 'History'],
+          },
+        },
       ],
       keywords: {
-        $containsAny: ['bass', 'Penny Siopis']
-      }
+        $containsAny: ['bass', 'Penny Siopis'],
+      },
     };
 
     var options1 = {
       fields: {
-        data: 1
+        data: 1,
       },
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
@@ -255,39 +256,39 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     var options2 = {
       fields: null,
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 2
+      limit: 2,
     };
 
     socketClient.set(
       '/e2e_test1/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e) {
+      function (e) {
         expect(e == null).to.equal(true);
         socketClient.set(
           '/e2e_test1/testsubscribe/data/complex/' + test_path_end + '/1',
           complex_obj,
           null,
-          function(e) {
+          function (e) {
             expect(e == null).to.equal(true);
             socketClient.get(
               '/e2e_test1/testsubscribe/data/complex*',
               {
                 criteria: criteria1,
-                options: options1
+                options: options1,
               },
-              function(e, search_result) {
+              function (e, search_result) {
                 expect(e == null).to.equal(true);
                 expect(search_result.length === 1).to.equal(true);
                 socketClient.get(
                   '/e2e_test1/testsubscribe/data/complex*',
                   {
                     criteria: criteria2,
-                    options: options2
+                    options: options2,
                   },
-                  function(e, search_result) {
+                  function (e, search_result) {
                     expect(e == null).to.equal(true);
                     expect(search_result.length === 2).to.equal(true);
                     callback(e);
@@ -301,26 +302,26 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('should delete some test data', function(callback) {
+  it('should delete some test data', function (callback) {
     this.timeout(default_timeout);
     socketClient.set(
       '/e2e_test1/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {
-        noPublish: true
+        noPublish: true,
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
         socketClient.remove(
           '/e2e_test1/testsubscribe/data/delete_me',
           {
-            noPublish: true
+            noPublish: true,
           },
-          function(e, result) {
+          function (e, result) {
             expect(e).to.equal(null);
             expect(result._meta.status).to.equal('ok');
             callback();
@@ -330,7 +331,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     this.timeout(default_timeout);
 
     var test_path_end = '4';
@@ -339,12 +340,12 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {
-        noPublish: true
+        noPublish: true,
       },
-      function(e, insertResult) {
+      function (e, insertResult) {
         expect(e).to.equal(null);
 
         socketClient.set(
@@ -353,12 +354,12 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
             property1: 'property1',
             property2: 'property2',
             property3: 'property3',
-            property4: 'property4'
+            property4: 'property4',
           },
           {
-            noPublish: true
+            noPublish: true,
           },
-          function(e, updateResult) {
+          function (e, updateResult) {
             expect(e).to.equal(null);
             expect(updateResult._id === insertResult._id).to.equal(true);
             callback();
@@ -368,7 +369,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     this.timeout(default_timeout);
     var test_path_end = '5';
     socketClient.set(
@@ -376,24 +377,25 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         if (!e) {
-          socketClient.get('e2e_test1/testsubscribe/data/' + test_path_end, null, function(
-            e,
-            results
-          ) {
-            expect(results.property1).to.equal('property1');
-            callback(e);
-          });
+          socketClient.get(
+            'e2e_test1/testsubscribe/data/' + test_path_end,
+            null,
+            function (e, results) {
+              expect(results.property1).to.equal('property1');
+              callback(e);
+            }
+          );
         } else callback(e);
       }
     );
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -404,10 +406,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, insertResult) {
+        function (e, insertResult) {
           expect(e == null).to.equal(true);
           socketClient.set(
             'e2e_test1/testsubscribe/data/' + test_path_end,
@@ -415,10 +417,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             null,
-            function(e, updateResult) {
+            function (e, updateResult) {
               expect(e == null).to.equal(true);
               expect(updateResult._id === insertResult._id).to.equal(true);
               callback();
@@ -431,7 +433,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     this.timeout(default_timeout);
 
     try {
@@ -440,15 +442,15 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
         '/e2e_test1/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           expect(socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event']).to.equal(
             undefined
           );
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             expect(
               socketClient.state.events['/SET@/e2e_test1/testsubscribe/data/event'].length
@@ -458,10 +460,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {}
+              function () {}
             );
           } else callback(e);
         }
@@ -471,7 +473,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     }
   });
 
-  it('should get using a wildcard', function(callback) {
+  it('should get using a wildcard', function (callback) {
     var test_path_end = '8';
 
     socketClient.set(
@@ -479,104 +481,105 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         expect(e == null).to.equal(true);
         socketClient.set(
           'e2e_test1/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             expect(e == null).to.equal(true);
 
-            socketClient.get('e2e_test1/testwildcard/' + test_path_end + '*', null, function(
-              e,
-              results
-            ) {
-              expect(results.length).to.equal(2);
-
-              socketClient.getPaths('e2e_test1/testwildcard/' + test_path_end + '*', function(
-                e,
-                results
-              ) {
+            socketClient.get(
+              'e2e_test1/testwildcard/' + test_path_end + '*',
+              null,
+              function (e, results) {
                 expect(results.length).to.equal(2);
-                callback(e);
-              });
-            });
+
+                socketClient.getPaths(
+                  'e2e_test1/testwildcard/' + test_path_end + '*',
+                  function (e, results) {
+                    expect(results.length).to.equal(2);
+                    callback(e);
+                  }
+                );
+              }
+            );
           }
         );
       }
     );
   });
 
-  it('the listener should pick up a single delete event', function(callback) {
+  it('the listener should pick up a single delete event', function (callback) {
     this.timeout(default_timeout);
     socketClient.set(
       '/e2e_test1/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function() {
+      function () {
         socketClient.on(
           '/e2e_test1/testsubscribe/data/delete_me',
           {
             event_type: 'remove',
-            count: 1
+            count: 1,
           },
-          function(eventData) {
+          function (eventData) {
             expect(
               socketClient.state.events['/REMOVE@/e2e_test1/testsubscribe/data/delete_me']
             ).to.equal(undefined);
             expect(eventData.removed).to.equal(1);
             callback();
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
             expect(
               socketClient.state.events['/REMOVE@/e2e_test1/testsubscribe/data/delete_me'].length
             ).to.equal(1);
-            socketClient.remove('/e2e_test1/testsubscribe/data/delete_me', null, function() {});
+            socketClient.remove('/e2e_test1/testsubscribe/data/delete_me', null, function () {});
           }
         );
       }
     );
   });
 
-  it('should unsubscribe from an event', function(callback) {
+  it('should unsubscribe from an event', function (callback) {
     var currentListenerId;
 
     socketClient.on(
       '/e2e_test1/testsubscribe/data/on_off_test',
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function() {
-        socketClient.offPath('/e2e_test1/testsubscribe/data/on_off_test', function(e) {
+      function () {
+        socketClient.offPath('/e2e_test1/testsubscribe/data/on_off_test', function (e) {
           if (e) return callback(new Error(e));
 
           socketClient.on(
             '/e2e_test1/testsubscribe/data/on_off_test',
             {
               event_type: 'set',
-              count: 0
+              count: 0,
             },
-            function() {
-              socketClient.off(currentListenerId, function(e) {
+            function () {
+              socketClient.off(currentListenerId, function (e) {
                 if (e) return callback(new Error(e));
                 else return callback();
               });
             },
-            function(e, listenerId) {
+            function (e, listenerId) {
               if (e) return callback(new Error(e));
               currentListenerId = listenerId;
               socketClient.set(
@@ -584,10 +587,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 {},
-                function(e) {
+                function (e) {
                   if (e) return callback(new Error(e));
                 }
               );
@@ -595,7 +598,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
           );
         });
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (e) return callback(new Error(e));
         currentListenerId = listenerId;
         socketClient.set(
@@ -603,10 +606,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
           }
         );
@@ -615,10 +618,10 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
   });
 
   var caughtCount = 0;
-  it('should subscribe to the catch all notification', function(callback) {
+  it('should subscribe to the catch all notification', function (callback) {
     this.timeout(10000);
     socketClient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action === '/REMOVE@/e2e_test1/testsubscribe/data/catch_all' ||
           meta.action === '/SET@/e2e_test1/testsubscribe/data/catch_all'
@@ -627,7 +630,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
 
         if (caughtCount === 2) callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         socketClient.set(
@@ -635,44 +638,44 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function() {
-            socketClient.remove('/e2e_test1/testsubscribe/data/catch_all', null, function() {});
+          function () {
+            socketClient.remove('/e2e_test1/testsubscribe/data/catch_all', null, function () {});
           }
         );
       }
     );
   });
 
-  it('should unsubscribe from all events', function(callback) {
+  it('should unsubscribe from all events', function (callback) {
     this.timeout(10000);
 
     var onHappened = false;
 
     socketClient.onAll(
-      function() {
+      function () {
         onHappened = true;
         callback(new Error('this wasnt meant to happen'));
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         socketClient.on(
           '/e2e_test1/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function() {
+          function () {
             onHappened = true;
             callback(new Error('this wasnt meant to happen'));
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            socketClient.offAll(function(e) {
+            socketClient.offAll(function (e) {
               if (e) return callback(e);
 
               socketClient.set(
@@ -680,13 +683,13 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
-                  setTimeout(function() {
+                  setTimeout(function () {
                     if (!onHappened) callback();
                   }, 3000);
                 }
@@ -698,16 +701,16 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('does a variable depth on, ensure the client state items are correct', function(done) {
+  it('does a variable depth on, ensure the client state items are correct', function (done) {
     var variableDepthHandle;
 
     socketClient.on(
       '/test/path/**',
       { depth: 4 },
-      function(data) {
+      function (data) {
         expect(data).to.eql({ set: 'data' });
 
-        socketClient.off(variableDepthHandle, function(e) {
+        socketClient.off(variableDepthHandle, function (e) {
           if (e) return done(e);
 
           expect(socketClient.state.listenerRefs[variableDepthHandle]).to.eql(undefined);
@@ -716,7 +719,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
           done();
         });
       },
-      function(e, handle) {
+      function (e, handle) {
         if (e) return done(e);
 
         expect(handle).to.equal(0);
@@ -725,23 +728,23 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
 
         variableDepthHandle = handle;
 
-        socketClient.set('/test/path/1', { set: 'data' }, function(e) {
+        socketClient.set('/test/path/1', { set: 'data' }, function (e) {
           if (e) return done(e);
         });
       }
     );
   });
 
-  it('does a variable depth on, ensure the client state items are correct, deeper path', function(done) {
+  it('does a variable depth on, ensure the client state items are correct, deeper path', function (done) {
     var variableDepthHandle;
 
     socketClient.on(
       '/test/path/**',
       { depth: 4 },
-      function(data) {
+      function (data) {
         expect(data).to.eql({ set: 'data' });
 
-        socketClient.off(variableDepthHandle, function(e) {
+        socketClient.off(variableDepthHandle, function (e) {
           if (e) return done(e);
 
           expect(socketClient.state.listenerRefs[variableDepthHandle]).to.eql(undefined);
@@ -750,7 +753,7 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
           done();
         });
       },
-      function(e, handle) {
+      function (e, handle) {
         if (e) return done(e);
 
         expect(handle).to.equal(0);
@@ -759,26 +762,26 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
 
         variableDepthHandle = handle;
 
-        socketClient.set('/test/path/1/3', { set: 'data' }, function(e) {
+        socketClient.set('/test/path/1/3', { set: 'data' }, function (e) {
           if (e) return done(e);
         });
       }
     );
   });
 
-  it('does a couple of variable depth ons, we disconnect the client and ensure the state is cleaned up', function(done) {
+  it('does a couple of variable depth ons, we disconnect the client and ensure the state is cleaned up', function (done) {
     socketClient.on(
       '/test/path/**',
       { depth: 4 },
-      function() {},
-      function() {
+      function () {},
+      function () {
         socketClient.on(
           '/test/path/1/**',
           { depth: 5 },
-          function() {},
-          function() {
+          function () {},
+          function () {
             expect(Object.keys(socketClient.state.listenerRefs).length).to.eql(2);
-            socketClient.disconnect(function(e) {
+            socketClient.disconnect(function (e) {
               if (e) return done(e);
               expect(Object.keys(socketClient.state.listenerRefs).length).to.eql(0);
               done();
@@ -789,35 +792,35 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('does a variable depth on which eclipses another .on, do off and ensure the correct handlers are called', function(done) {
+  it('does a variable depth on which eclipses another .on, do off and ensure the correct handlers are called', function (done) {
     var results = [];
 
     socketClient.on(
       '/test/path/**',
       { depth: 4 },
-      function(data, meta) {
+      function (data, meta) {
         results.push({ data: data, channel: meta.channel, path: meta.path });
       },
-      function(e, handle1) {
+      function (e, handle1) {
         if (e) return done(e);
         socketClient.on(
           '/test/path/1/**',
           { depth: 4 },
-          function(data, meta) {
+          function (data, meta) {
             results.push({ data: data, channel: meta.channel, path: meta.path });
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
-            socketClient.set('/test/path/1/1', { set: 1 }, function(e) {
+            socketClient.set('/test/path/1/1', { set: 1 }, function (e) {
               if (e) return done(e);
-              socketClient.off(handle1, function(e) {
+              socketClient.off(handle1, function (e) {
                 if (e) return done(e);
-                socketClient.set('/test/path/1/1', { set: 2 }, function(e) {
+                socketClient.set('/test/path/1/1', { set: 2 }, function (e) {
                   if (e) return done(e);
                   expect(results).to.eql([
                     { data: { set: 1 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' },
                     { data: { set: 1 }, channel: '/ALL@/test/path/**', path: '/test/path/1/1' },
-                    { data: { set: 2 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' }
+                    { data: { set: 2 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' },
                   ]);
                   done();
                 });
@@ -829,34 +832,34 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('should subscribe and get initial values on the callback', function(callback) {
+  it('should subscribe and get initial values on the callback', function (callback) {
     socketClient.set(
       '/initialCallback/testsubscribe/data/values_on_callback_test/1',
       {
-        test: 'data'
+        test: 'data',
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         socketClient.set(
           '/initialCallback/testsubscribe/data/values_on_callback_test/2',
           {
-            test: 'data1'
+            test: 'data1',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             socketClient.on(
               '/initialCallback/**',
               {
                 event_type: 'set',
-                initialCallback: true
+                initialCallback: true,
               },
-              function(message) {
+              function (message) {
                 expect(message.updated).to.equal(true);
                 callback();
               },
-              function(e, reference, response) {
+              function (e, reference, response) {
                 if (e) return callback(e);
                 try {
                   expect(response.length).to.equal(2);
@@ -867,9 +870,9 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
                     '/initialCallback/testsubscribe/data/values_on_callback_test/1',
                     {
                       test: 'data',
-                      updated: true
+                      updated: true,
                     },
-                    function(e) {
+                    function (e) {
                       if (e) return callback(e);
                     }
                   );
@@ -884,39 +887,39 @@ describe('02_websockets_embedded_sanity_encrypted_payloads', function() {
     );
   });
 
-  it('should subscribe and get initial values emitted immediately', function(callback) {
+  it('should subscribe and get initial values emitted immediately', function (callback) {
     var caughtEmitted = 0;
 
     socketClient.set(
       '/initialEmitSpecific/testsubscribe/data/values_emitted_test/1',
       {
-        test: 'data'
+        test: 'data',
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         socketClient.set(
           '/initialEmitSpecific/testsubscribe/data/values_emitted_test/2',
           {
-            test: 'data1'
+            test: 'data1',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             socketClient.on(
               '/initialEmitSpecific/**',
               {
                 event_type: 'set',
-                initialEmit: true
+                initialEmit: true,
               },
-              function(message) {
+              function (message) {
                 caughtEmitted++;
                 if (caughtEmitted === 2) {
                   expect(message.test).to.equal('data1');
                   callback();
                 }
               },
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
               }
             );

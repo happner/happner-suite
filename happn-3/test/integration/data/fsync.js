@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const happn = require('../../../lib/index');
   const commons = require('happn-commons');
   const service = happn.service;
@@ -11,7 +11,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   /** @type {test.sinon.SinonSpy} */
   let fsyncSpy;
 
-  before('should initialize the service', async function() {
+  before('should initialize the service', async function () {
     this.timeout(20000);
 
     fsyncSpy = test.sinon.spy(commons.fs, 'fsync');
@@ -23,10 +23,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         data: {
           config: {
             filename: testDbFile,
-            fsync: true
-          }
-        }
-      }
+            fsync: true,
+          },
+        },
+      },
     });
   });
 
@@ -37,11 +37,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
 
   let publisherclient;
 
-  before('should initialize the clients', function(callback) {
+  before('should initialize the clients', function (callback) {
     this.timeout(default_timeout);
 
     try {
-      happnInstance.services.session.localClient(function(e, instance) {
+      happnInstance.services.session.localClient(function (e, instance) {
         if (e) return callback(e);
         publisherclient = instance;
         callback();
@@ -57,7 +57,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       '/a1_eventemitter_embedded_datatypes/' + test_id + '/set/string/' + test_string;
 
     const setResult = await publisherclient.set(test_base_url, test_string, {
-      noPublish: true
+      noPublish: true,
     });
 
     test.chai.expect(fsyncSpy).to.have.been.called;

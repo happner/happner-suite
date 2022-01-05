@@ -1,23 +1,21 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var serviceInstance;
     var async = require('async');
     var Promisify = require('util').promisify;
 
-    var getService = function(config, callback) {
+    var getService = function (config, callback) {
       happn.service.create(config, callback);
     };
 
-    before('it starts completely defaulted service', function(done) {
+    before('it starts completely defaulted service', function (done) {
       getService(
         {
-          secure: true
+          secure: true,
         },
-        function(e, service) {
+        function (e, service) {
           if (e) return done(e);
           serviceInstance = service;
           done();
@@ -25,25 +23,25 @@ describe(
       );
     });
 
-    after('should stop the services', function(callback) {
-      serviceInstance.stop(function() {
+    after('should stop the services', function (callback) {
+      serviceInstance.stop(function () {
         callback();
       });
     });
 
     const USERNAME = 'abcdefghijklmnopqrstuvwxyz';
 
-    before('creates 20 users with substring usernames', function(done) {
+    before('creates 20 users with substring usernames', function (done) {
       async.times(
         20,
-        function(time, timeCB) {
+        function (time, timeCB) {
           serviceInstance.services.security.users.upsertUser(
             {
               username: USERNAME.substring(0, time + 3),
-              password: 'TEST PWD'
+              password: 'TEST PWD',
             },
             {
-              overwrite: false
+              overwrite: false,
             },
             timeCB
           );
@@ -52,18 +50,18 @@ describe(
       );
     });
 
-    it('checks to see that only the correct user is fetched', function(done) {
+    it('checks to see that only the correct user is fetched', function (done) {
       async.times(
         20,
-        function(time, timeCB) {
+        function (time, timeCB) {
           var username = USERNAME.substring(0, time + 3);
 
           serviceInstance.services.security.users.getUser(
             username,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, user) {
+            function (e, user) {
               if (e) return timeCB(e);
               if (user.username !== username)
                 return timeCB(
@@ -77,7 +75,7 @@ describe(
       );
     });
 
-    it('checks to see that only the correct user is fetched, negative test', function(done) {
+    it('checks to see that only the correct user is fetched, negative test', function (done) {
       //NB NB - if ths test fails it is probably because the getUser function relies on a heavily changes user service
       // just skip it in futire
 
@@ -85,7 +83,7 @@ describe(
         serviceInstance.services.security.users.getUser;
 
       serviceInstance.services.security.users.getUser = Promisify(
-        function(userName, options, callback) {
+        function (userName, options, callback) {
           if (typeof options === 'function') {
             callback = options;
             options = {};
@@ -108,8 +106,8 @@ describe(
             searchPath,
             {
               sort: {
-                path: 1
-              }
+                path: 1,
+              },
             },
             (e, results) => {
               if (e) return callback(e);
@@ -157,22 +155,22 @@ describe(
 
       async.times(
         20,
-        function(time, timeCB) {
+        function (time, timeCB) {
           var username = USERNAME.substring(0, time + 3);
 
           serviceInstance.services.security.users.getUser(
             username,
             {
-              overwrite: false
+              overwrite: false,
             },
-            function(e, user) {
+            function (e, user) {
               if (e) return timeCB(e);
               if (user.username !== username) badMatchFound = true;
               timeCB();
             }
           );
         },
-        function(e) {
+        function (e) {
           serviceInstance.services.security.users.getUser =
             serviceInstance.services.security.users.__oldGetUser;
 

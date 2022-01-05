@@ -9,8 +9,8 @@ module.exports = class UsersByGroupCache {
         cache: {
           max: this.__config.max,
           maxAge: 0,
-          dispose: this.removeMappings.bind(this)
-        }
+          dispose: this.removeMappings.bind(this),
+        },
       }
     );
     this.__mappings = {};
@@ -30,7 +30,7 @@ module.exports = class UsersByGroupCache {
   }
 
   cacheResult(groupName, result) {
-    result.forEach(username => {
+    result.forEach((username) => {
       if (this.__mappings[username]) this.__mappings[username][groupName] = 1;
       else this.__mappings[username] = { [groupName]: 1 };
     });
@@ -38,7 +38,7 @@ module.exports = class UsersByGroupCache {
   }
 
   removeMappings(groupName, result) {
-    result.data.forEach(username => {
+    result.data.forEach((username) => {
       if (this.__mappings[username]) {
         delete this.__mappings[username][groupName];
         if (this.__cacheService.happn.services.utils.isEmptyObject(this.__mappings[username]))
@@ -57,7 +57,7 @@ module.exports = class UsersByGroupCache {
 
   userChanged(userName) {
     if (!this.__mappings[userName]) return;
-    Object.keys(this.__mappings[userName]).forEach(groupName => {
+    Object.keys(this.__mappings[userName]).forEach((groupName) => {
       this.uncacheResult(groupName);
     });
   }

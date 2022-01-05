@@ -31,7 +31,7 @@ ProtocolService.prototype.__disconnectUnauthorizedSession = __disconnectUnauthor
 ProtocolService.prototype.__processSinglePath = __processSinglePath;
 function stats() {
   return {
-    protocols: Object.keys(this.config.protocols)
+    protocols: Object.keys(this.config.protocols),
   };
 }
 
@@ -98,7 +98,7 @@ function processInboundStack(message, protocol, callback) {
         transformed.request = { ...transformed.request, ...relevantPaths };
         return this.happn.services.subscription.processMultiSubscribe(
           this.happn.services.subscription.prepareSubscribeMessage(transformed),
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
             callback(null, result);
           }
@@ -107,10 +107,10 @@ function processInboundStack(message, protocol, callback) {
 
       // (If action == get)
       async.series(
-        relevantPaths.allowed.map(path => {
+        relevantPaths.allowed.map((path) => {
           let newMsg = { ...transformed };
           newMsg.request = { ...newMsg.request, path };
-          return cb => {
+          return (cb) => {
             return _this.__processSinglePath(newMsg, cb);
           };
         }),
@@ -123,7 +123,7 @@ function processInboundStack(message, protocol, callback) {
             return Array.isArray(msg.response) ? [...acc, ...msg.response] : [...acc, msg.response];
           }, []);
           let aggregated = msgs[0];
-          aggregated.response = responses.filter(msg => {
+          aggregated.response = responses.filter((msg) => {
             if (!msg) return false;
             return (
               !msg._meta || !msg._meta.path || !relevantPaths.prohibited.includes(msg._meta.path)
@@ -146,7 +146,7 @@ function __processSinglePath(transformed, callback) {
         if (e) return callback(e);
         if (publication.request.options && publication.request.options.noPublish)
           return callback(null, publication);
-        this.happn.services.publisher.processPublish(publication, function(e, result) {
+        this.happn.services.publisher.processPublish(publication, function (e, result) {
           if (e) return callback(e);
           callback(null, result);
         });
@@ -181,7 +181,7 @@ function __processSinglePath(transformed, callback) {
     if (authorized.request.action === 'on') {
       return this.happn.services.subscription.processSubscribe(
         this.happn.services.subscription.prepareSubscribeMessage(authorized),
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
           callback(null, result);
         }
@@ -191,14 +191,14 @@ function __processSinglePath(transformed, callback) {
     if (authorized.request.action === 'off')
       return this.happn.services.subscription.processUnsubscribe(
         this.happn.services.subscription.prepareSubscribeMessage(authorized),
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
           callback(null, result);
         }
       );
 
     if (authorized.request.action === 'request-nonce')
-      return this.happn.services.security.processNonceRequest(authorized, function(e, result) {
+      return this.happn.services.security.processNonceRequest(authorized, function (e, result) {
         if (e) return callback(e);
         callback(null, result);
       });
@@ -231,20 +231,21 @@ function __processSinglePath(transformed, callback) {
       });
 
     if (authorized.request.action === 'revoke-token')
-      return this.happn.services.session.processRevokeSessionToken(authorized, 'CLIENT', function(
-        e,
-        result
-      ) {
-        callback(e, result);
-      });
+      return this.happn.services.session.processRevokeSessionToken(
+        authorized,
+        'CLIENT',
+        function (e, result) {
+          callback(e, result);
+        }
+      );
 
     if (authorized.request.action === 'disconnect-child-sessions')
       return this.happn.services.session.disconnectSessions(
         authorized.session.id,
         {
-          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
         },
-        e => {
+        (e) => {
           callback(e, authorized);
         },
         false
@@ -288,7 +289,7 @@ function __disconnectUnauthorizedSession(message, errorMessage, cleansedRequest)
   }
   this.happn.services.session.disconnectSession(
     message.session.id,
-    e => {
+    (e) => {
       if (e)
         return this.happn.services.log.warn(
           `unable to disconnect session due to ${errorMessage}: ${e.message}`,
@@ -368,9 +369,9 @@ function processLayers(message, layers, callback) {
   if (layers == null || layers.length === 0) return callback(null, message);
   async.waterfall(
     [
-      function(layerCallback) {
+      function (layerCallback) {
         layerCallback(null, message);
-      }
+      },
     ].concat(layers),
     callback
   );

@@ -46,7 +46,7 @@ class LocalClient {
   disconnect(event, data) {
     var _this = this;
 
-    _this.context.services.session.finalizeDisconnect(_this, function(e) {
+    _this.context.services.session.finalizeDisconnect(_this, function (e) {
       if (e)
         _this.context.services.error.handleSystem(e, 'Localclient', CONSTANTS.ERROR_SEVERITY.LOW);
       if (data) _this.write(data);
@@ -67,33 +67,33 @@ class LocalClient {
 function LocalClientWrapper() {
   this.clientType = 'eventemitter';
 
-  this.__encryptLogin = function(parameters) {
+  this.__encryptLogin = function (parameters) {
     return parameters;
   };
 
-  this.__decryptLogin = function(parameters) {
+  this.__decryptLogin = function (parameters) {
     return parameters;
   };
 
-  this.__encryptPayload = function(message) {
+  this.__encryptPayload = function (message) {
     return message;
   };
 
-  this.__decryptPayload = function(message) {
+  this.__decryptPayload = function (message) {
     return message;
   };
 
-  this.__getConnection = function(callback) {
+  this.__getConnection = function (callback) {
     var client = new LocalClient();
 
     Object.defineProperty(client, 'context', {
-      value: this.context
+      value: this.context,
     });
     Object.defineProperty(client, 'handle_publication', {
-      value: this.handle_publication.bind(this)
+      value: this.handle_publication.bind(this),
     });
     Object.defineProperty(client, 'handle_response', {
-      value: this.handle_response.bind(this)
+      value: this.handle_response.bind(this),
     });
 
     client.sessionProtocol = 'happn_' + require('../../../package.json').protocol;

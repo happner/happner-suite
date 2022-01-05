@@ -13,12 +13,12 @@ function TransportService() {
 
 util.inherits(TransportService, EventEmitter);
 
-TransportService.prototype.createCertificate = function(keyPath, certPath, callback) {
+TransportService.prototype.createCertificate = function (keyPath, certPath, callback) {
   var pem = require('pem');
 
   pem.createCertificate(
     {
-      selfSigned: true
+      selfSigned: true,
     },
     (err, keys) => {
       if (err) return callback(err);
@@ -28,13 +28,13 @@ TransportService.prototype.createCertificate = function(keyPath, certPath, callb
 
       callback(null, {
         cert: keys.certificate,
-        key: keys.serviceKey
+        key: keys.serviceKey,
       });
     }
   );
 };
 
-TransportService.prototype.__createHttpsServer = function(options, app, callback) {
+TransportService.prototype.__createHttpsServer = function (options, app, callback) {
   try {
     var server = this.https.createServer(options, app);
 
@@ -44,7 +44,7 @@ TransportService.prototype.__createHttpsServer = function(options, app, callback
   }
 };
 
-TransportService.prototype.createServer = function(config, app, log, callback) {
+TransportService.prototype.createServer = function (config, app, log, callback) {
   if (!config) config = {};
   if (!config.mode) config.mode = 'http';
 
@@ -99,7 +99,7 @@ TransportService.prototype.createServer = function(config, app, log, callback) {
   });
 };
 
-TransportService.prototype.listen = function(host, port, options, callback) {
+TransportService.prototype.listen = function (host, port, options, callback) {
   this.happn.__listening = false;
   this.happn.__listeningOn = false;
   this.happn.__errorOn = false;
@@ -136,18 +136,18 @@ TransportService.prototype.listen = function(host, port, options, callback) {
 
   if (!options) options = {};
 
-  this.happn.server.on('error', e => {
+  this.happn.server.on('error', (e) => {
     this.happn._lastError = e;
     this.happn.services.log.warn('http server error', e);
   });
 
   this.__tryListen({
     port: port,
-    host: host
+    host: host,
   });
 };
 
-TransportService.prototype.__tryListen = function(options) {
+TransportService.prototype.__tryListen = function (options) {
   this.happn.log.$$TRACE('listen()');
 
   if (!options.portAvailablePingInterval) options.portAvailablePingInterval = 1000;
@@ -169,7 +169,7 @@ TransportService.prototype.__tryListen = function(options) {
       () => {
         clearInterval(waitingForPortMessageInterval);
         this.happn.log.info('port available, about to listen');
-        this.happn.server.listen(options.port, options.host, e => {
+        this.happn.server.listen(options.port, options.host, (e) => {
           if (e) return this.happn.__done(e);
 
           this.happn.__info = this.happn.server.address();
@@ -186,7 +186,7 @@ TransportService.prototype.__tryListen = function(options) {
           }
         });
       },
-      e => {
+      (e) => {
         this.happn.log.error(`port ${options.port} not available: ${e.message}`);
         clearInterval(waitingForPortMessageInterval);
         this.happn.__done(e);
@@ -194,13 +194,13 @@ TransportService.prototype.__tryListen = function(options) {
     );
 };
 
-TransportService.prototype.stop = function(options, callback) {
+TransportService.prototype.stop = function (options, callback) {
   //drop all connections
   this.happn.dropConnections();
   callback();
 };
 
-TransportService.prototype.initialize = function(config, callback) {
+TransportService.prototype.initialize = function (config, callback) {
   this.createServer(config, this.happn.connect, this.happn.log, (e, server) => {
     if (e) return callback(e);
 
@@ -211,7 +211,7 @@ TransportService.prototype.initialize = function(config, callback) {
       get: () => {
         return this.happn.__listening;
       },
-      enumerable: 'true'
+      enumerable: 'true',
     });
 
     this.happn.dropConnections = () => {
@@ -232,7 +232,7 @@ TransportService.prototype.initialize = function(config, callback) {
       this.happn.log.$$TRACE('killed connections');
     };
 
-    this.happn.server.on('connection', conn => {
+    this.happn.server.on('connection', (conn) => {
       var key = conn.remoteAddress + ':' + conn.remotePort;
       this.happn.connections[key] = conn;
 
@@ -241,7 +241,7 @@ TransportService.prototype.initialize = function(config, callback) {
       });
     });
 
-    this.happn.server.on('error', e => {
+    this.happn.server.on('error', (e) => {
       this.happn.log.warn('server error', e);
     });
 

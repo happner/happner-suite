@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(15000);
   const HappnClient = require('../../../lib/client');
   const Constants = require('../../../lib/constants');
@@ -20,80 +20,80 @@ describe(test.testName(__filename, 3), function() {
     happnClient.__initializeState();
 
     happnClient.log = log || {
-      error: function() {}
+      error: function () {},
     };
 
     happnClient.status = state != null ? state : Constants.CLIENT_STATE.ACTIVE;
     happnClient.session = session || {
-      id: 'test'
+      id: 'test',
     };
     happnClient.serverInfo = serverInfo || {};
 
     happnClient.socket = socket || {
-      end: socketEnd || function() {},
-      removeAllListeners: removeAllListeners || function() {},
-      write: function() {},
-      on: function() {},
-      destroy: function() {}
+      end: socketEnd || function () {},
+      removeAllListeners: removeAllListeners || function () {},
+      write: function () {},
+      on: function () {},
+      destroy: function () {},
     };
 
     happnClient.options = clientOptions || {
-      callTimeout: 60000
+      callTimeout: 60000,
     };
 
     return happnClient;
   }
 
   context('__updateSecurityDirectory', () => {
-    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on permission removal. on removed', done => {
+    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on permission removal. on removed', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__reattachListenersOnPermissionChange = sinon.stub();
       let message = {
         data: {
           changedData: {
             path: '/test/path',
-            action: 'on'
+            action: 'on',
           },
-          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED
-        }
+          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED,
+        },
       };
       happnClient.__updateSecurityDirectory(message);
       test.expect(happnClient.__reattachListenersOnPermissionChange.calledOnce).to.be(true);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/path': { actions: ['on'] }
+            '/test/path': { actions: ['on'] },
           })
         )
         .to.be(true);
       done();
     });
 
-    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on permission removal. * removed', done => {
+    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on permission removal. * removed', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__reattachListenersOnPermissionChange = sinon.stub();
       let message = {
         data: {
           changedData: {
             path: '/test/path',
-            action: '*'
+            action: '*',
           },
-          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED
-        }
+          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED,
+        },
       };
       happnClient.__updateSecurityDirectory(message);
       test.expect(happnClient.__reattachListenersOnPermissionChange.calledOnce).to.be(true);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/path': { actions: ['*'] }
+            '/test/path': { actions: ['*'] },
           })
         )
         .to.be(true);
       done();
     });
 
-    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on group unlink', done => {
+    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on group unlink', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__reattachListenersOnPermissionChange = sinon.stub();
       let message = {
@@ -101,15 +101,15 @@ describe(test.testName(__filename, 3), function() {
           changedData: {
             permissions: {
               '/test/allowed': {
-                actions: ['on', 'get', 'set']
+                actions: ['on', 'get', 'set'],
               }, //won't call _reattach or remove
               '/test/prohibited': {
-                prohibit: ['on']
-              } //calls __clear
-            }
+                prohibit: ['on'],
+              }, //calls __clear
+            },
           },
-          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UNLINK_GROUP
-        }
+          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UNLINK_GROUP,
+        },
       };
       happnClient.__updateSecurityDirectory(message);
       test.expect(happnClient.__reattachListenersOnPermissionChange.calledOnce).to.be(true);
@@ -123,7 +123,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on group upsert, permission removed', done => {
+    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on group upsert, permission removed', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__reattachListenersOnPermissionChange = sinon.stub();
       happnClient.__clearSecurityDirectorySubscriptions = sinon.stub();
@@ -132,44 +132,44 @@ describe(test.testName(__filename, 3), function() {
           changedData: {
             permissions: {
               '/test/added': {
-                actions: ['on', 'get', 'set']
+                actions: ['on', 'get', 'set'],
               }, //won't call _reattach or remove
               '/test/removedOn': {
                 actions: ['on'],
-                remove: true
+                remove: true,
               }, //calls __reattach
               '/test/removedAll': {
                 actions: ['*'],
-                remove: true
+                remove: true,
               }, //calls __reaytach
               '/test/prohibitOn': {
-                prohibit: ['on']
-              } //calls __clear
-            }
+                prohibit: ['on'],
+              }, //calls __clear
+            },
           },
-          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UPSERT_GROUP
-        }
+          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UPSERT_GROUP,
+        },
       };
       happnClient.__updateSecurityDirectory(message);
       test.expect(happnClient.__reattachListenersOnPermissionChange.callCount).to.be(2);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/removedOn': { actions: ['on'], remove: true }
+            '/test/removedOn': { actions: ['on'], remove: true },
           })
         )
         .to.be(true);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/removedAll': { actions: ['*'], remove: true }
+            '/test/removedAll': { actions: ['*'], remove: true },
           })
         )
         .to.be(true);
 
       test.expect(
         happnClient.__reattachListenersOnPermissionChange.calledWith({
-          '/test/added': { actions: ['on', 'get', 'set'] }
+          '/test/added': { actions: ['on', 'get', 'set'] },
         })
       );
       test.expect(happnClient.__clearSecurityDirectorySubscriptions.callCount).to.be(1);
@@ -179,7 +179,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on user upsert, permission removed', done => {
+    it('tests that __updateSecurityDirectory calls __reattachListenersOnPermissionChange on user upsert, permission removed', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__reattachListenersOnPermissionChange = sinon.stub();
       happnClient.__clearSecurityDirectorySubscriptions = sinon.stub();
@@ -188,37 +188,37 @@ describe(test.testName(__filename, 3), function() {
           changedData: {
             permissions: {
               '/test/added': {
-                actions: ['on', 'get', 'set']
+                actions: ['on', 'get', 'set'],
               }, //won't call _reattach or remove
               '/test/removedOn': {
                 actions: ['on'],
-                remove: true
+                remove: true,
               }, //calls __reattach
               '/test/removedAll': {
                 actions: ['*'],
-                remove: true
+                remove: true,
               }, //calls __reattach
               '/test/prohibitOn': {
-                prohibit: ['on']
-              } //calls __clear
-            }
+                prohibit: ['on'],
+              }, //calls __clear
+            },
           },
-          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UPSERT_USER
-        }
+          whatHappnd: Constants.SECURITY_DIRECTORY_EVENTS.UPSERT_USER,
+        },
       };
       happnClient.__updateSecurityDirectory(message);
       test.expect(happnClient.__reattachListenersOnPermissionChange.callCount).to.be(2);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/removedOn': { actions: ['on'], remove: true }
+            '/test/removedOn': { actions: ['on'], remove: true },
           })
         )
         .to.be(true);
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/removedAll': { actions: ['*'], remove: true }
+            '/test/removedAll': { actions: ['*'], remove: true },
           })
         )
         .to.be(true);
@@ -226,7 +226,7 @@ describe(test.testName(__filename, 3), function() {
       test
         .expect(
           happnClient.__reattachListenersOnPermissionChange.calledWith({
-            '/test/added': { actions: ['on', 'get', 'set'] }
+            '/test/added': { actions: ['on', 'get', 'set'] },
           })
         )
         .to.be(false);
@@ -238,21 +238,21 @@ describe(test.testName(__filename, 3), function() {
     });
   });
   context('__reattachListenersOnPermissionChange', () => {
-    it('tests that __reattachListenersOnPermissionChange returns early when there are no permissions, or no on/* permissions', done => {
+    it('tests that __reattachListenersOnPermissionChange returns early when there are no permissions, or no on/* permissions', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__getChannelsFromPaths = sinon.stub();
       test.expect(happnClient.__reattachListenersOnPermissionChange()).to.be(undefined);
       test.expect(happnClient.__reattachListenersOnPermissionChange({})).to.be(undefined);
       let permissions = {
         '1/2/3/4': { actions: ['set', 'get'] },
-        'web/2/3/4': { actions: ['put', 'post'] }
+        'web/2/3/4': { actions: ['put', 'post'] },
       }; // No "on" or "*"
       test.expect(happnClient.__reattachListenersOnPermissionChange(permissions)).to.be(undefined);
       test.expect(happnClient.__getChannelsFromPaths.notCalled).to.be(true);
       done();
     });
 
-    it('tests that __reattachListenersOnPermissionChange only looks for channels on on or * permission changes', done => {
+    it('tests that __reattachListenersOnPermissionChange only looks for channels on on or * permission changes', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__getChannelsFromPaths = sinon.stub().returns(null);
       let permissions = {
@@ -260,7 +260,7 @@ describe(test.testName(__filename, 3), function() {
         'web/2/3/4': { actions: ['put', 'post'] },
         'subscribed/on': { actions: ['on'] },
         'subscribed/star': { actions: ['*'] },
-        'subscribed/both': { actions: ['*', '|on'] }
+        'subscribed/both': { actions: ['*', '|on'] },
       };
       test.expect(happnClient.__reattachListenersOnPermissionChange(permissions)).to.be(undefined); //getChannels passes back nothing, so undefined
       test.expect(happnClient.__getChannelsFromPaths.calledOnce).to.be(true);
@@ -269,18 +269,18 @@ describe(test.testName(__filename, 3), function() {
           happnClient.__getChannelsFromPaths.calledWith([
             'subscribed/on',
             'subscribed/star',
-            'subscribed/both'
+            'subscribed/both',
           ])
         )
         .to.be(true);
       done();
     });
-    it('tests that __reattachListenersOnPermissionChange will use state.refcount, or create an object there iof it doesnt exist (coverage)', done => {
+    it('tests that __reattachListenersOnPermissionChange will use state.refcount, or create an object there iof it doesnt exist (coverage)', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__getChannelsFromPaths = sinon.stub().returns(null);
       let permissions = {
         'subscribed/on': { actions: ['on'] },
-        'subscribed/star': { actions: ['*'] }
+        'subscribed/star': { actions: ['*'] },
       };
       test.expect(happnClient.__reattachListenersOnPermissionChange(permissions)).to.be(undefined); //getChannels passes back nothing, so undefined
       test.expect(happnClient.__getChannelsFromPaths.calledOnce).to.be(true);
@@ -293,7 +293,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __reattachListenersOnPermissionChange will reset listeners on all channels, and reattach listeners on each channel', done => {
+    it('tests that __reattachListenersOnPermissionChange will reset listeners on all channels, and reattach listeners on each channel', (done) => {
       let happnClient = mockHappnClient();
       happnClient.__getChannelsFromPaths = sinon
         .stub()
@@ -303,7 +303,7 @@ describe(test.testName(__filename, 3), function() {
       let permissions = {
         '1/2/3/4': { actions: ['set', 'get'] },
         'web/2/3/4': { actions: ['put', 'post'] },
-        'subscribed/on': { actions: ['on'] }
+        'subscribed/on': { actions: ['on'] },
       };
       test.expect(happnClient.__reattachListenersOnPermissionChange(permissions)).to.be(undefined); //getChannels passes back nothing, so undefined
       test.expect(happnClient.__getChannelsFromPaths.calledOnce).to.be(true);
@@ -314,7 +314,7 @@ describe(test.testName(__filename, 3), function() {
           happnClient.__resetListenersRefsOnChannels.calledWith([
             'channel1',
             'channel2',
-            'channel3'
+            'channel3',
           ])
         )
         .to.be(true);
@@ -327,12 +327,12 @@ describe(test.testName(__filename, 3), function() {
   });
 
   context('__getChannelsFromPaths', () => {
-    it('tests the __getChannelsFromPaths  method', done => {
+    it('tests the __getChannelsFromPaths  method', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = {
         'ends/with/1/2/3': { some: 'object' },
         'ends/with/a/b': { some: 'object' },
-        'nothing/to/see/here': {}
+        'nothing/to/see/here': {},
       };
       test.expect(happnClient.__getChannelsFromPaths()).to.be(undefined);
       test.expect(happnClient.__getChannelsFromPaths([])).to.eql([]);
@@ -346,17 +346,17 @@ describe(test.testName(__filename, 3), function() {
     });
   });
   context('__resetListenersRefsOnChannels', () => {
-    it('tests the __resetListenersRefsOnChannels  method', done => {
+    it('tests the __resetListenersRefsOnChannels  method', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = {
         'ends/with/1/2/3': [{ eventKey: '1/2/3' }, { eventKey: 'b/1/2/3/' }],
         'ends/with/a/b': [{ eventKey: 'a/b' }, { eventKey: '2/a/b' }],
-        'nothing/to/see/here': {}
+        'nothing/to/see/here': {},
       };
       let originalRefCount = {
         '1/2/3': 1,
         'a/b': 0,
-        'c/d/e': 4
+        'c/d/e': 4,
       };
       let setRefcount = () => (happnClient.state.refCount = { ...originalRefCount });
       setRefcount();
@@ -374,7 +374,7 @@ describe(test.testName(__filename, 3), function() {
         '1/2/3': 0,
         'a/b': 0,
         'c/d/e': 4,
-        'b/1/2/3/': 0
+        'b/1/2/3/': 0,
       });
       setRefcount();
       happnClient.__resetListenersRefsOnChannels(['ends/with/a/b']);
@@ -391,12 +391,12 @@ describe(test.testName(__filename, 3), function() {
   });
 
   context('__reattachListenersOnChannel', () => {
-    it('tests that if there are listeners on a chanel, __reattachListenersOnChannel will call tryReattachListener on all of them', done => {
+    it('tests that if there are listeners on a chanel, __reattachListenersOnChannel will call tryReattachListener on all of them', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = {
         channel1: [{ eventKey: '1/2/3' }, { eventKey: 'b/1/2/3/' }],
         channel2: [{ eventKey: 'a/b' }, { eventKey: '2/a/b' }],
-        'nothing/to/see/here': {}
+        'nothing/to/see/here': {},
       };
       happnClient.__tryReattachListener = sinon.stub();
       happnClient.__testAndCleanupChannel = sinon.stub();
@@ -410,14 +410,14 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that if there are no listeners on a chanel, __reattachListenersOnChannel will call __testAndCleanupChannel (once) ', done => {
+    it('tests that if there are no listeners on a chanel, __reattachListenersOnChannel will call __testAndCleanupChannel (once) ', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = {
         channel1: [{ eventKey: '1/2/3' }, { eventKey: 'b/1/2/3/' }],
         channel2: [{ eventKey: 'a/b' }, { eventKey: '2/a/b' }],
         noListeners1: [],
         noListeners2: undefined,
-        'nothing/to/see/here': {}
+        'nothing/to/see/here': {},
       };
       happnClient.__tryReattachListener = sinon.stub();
       happnClient.__testAndCleanupChannel = sinon.stub();
@@ -433,7 +433,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
   context('__tryReattachListener', () => {
-    it('tests that __tryReattachListener returns clearListenerRef early if channel has been removed ', done => {
+    it('tests that __tryReattachListener returns clearListenerRef early if channel has been removed ', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = {};
       happnClient._offPath = sinon.stub();
@@ -447,7 +447,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __tryReattachListener returns early and increments refcount if there is already a listener on the eventKey ', done => {
+    it('tests that __tryReattachListener returns early and increments refcount if there is already a listener on the eventKey ', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = { channel1: [{ eventKey: 'event1' }] };
       happnClient.state.refCount = { event1: 1 };
@@ -458,7 +458,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __tryReattachListener will call offPath once, and log an error warning if _offPath returns an error (still tries remoteOn', done => {
+    it('tests that __tryReattachListener will call offPath once, and log an error warning if _offPath returns an error (still tries remoteOn', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = { channel1: [{ eventKey: 'event1' }] };
       happnClient.log.error = sinon.stub();
@@ -483,7 +483,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __tryReattachListener will clear events on 401 and 403 from _remoteOn', done => {
+    it('tests that __tryReattachListener will clear events on 401 and 403 from _remoteOn', (done) => {
       let happnClient = mockHappnClient();
       happnClient._offPath = sinon.stub();
       happnClient._offPath.callsArg(1);
@@ -493,14 +493,14 @@ describe(test.testName(__filename, 3), function() {
       happnClient.state.events = {
         403: [{ eventKey: 'event1' }, { eventKey: 'event2' }],
         401: [{ eventKey: 'eventA' }, { eventKey: 'eventB' }],
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       };
 
       happnClient.__tryReattachListener({ eventKey: 'event1' }, '403');
       test.expect(happnClient._remoteOn.callCount).to.be(1);
       test.expect(happnClient.state.events).to.eql({
         401: [{ eventKey: 'eventA' }, { eventKey: 'eventB' }],
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       });
       test.expect(happnClient.__clearListenerRef.calledOnce).to.be(true);
       test.expect(happnClient.__clearListenerRef.calledWith({ eventKey: 'event1' })).to.be(true);
@@ -508,14 +508,14 @@ describe(test.testName(__filename, 3), function() {
       happnClient.__tryReattachListener({ eventKey: 'eventB' }, '401');
       test.expect(happnClient._remoteOn.callCount).to.be(2);
       test.expect(happnClient.state.events).to.eql({
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       });
       test.expect(happnClient.__clearListenerRef.callCount).to.be(2);
       test.expect(happnClient.__clearListenerRef.calledWith({ eventKey: 'eventB' })).to.be(true);
       done();
     });
 
-    it('tests that __tryReattachListener will log an error and removeListenerRef on other error response from _remoteOn', done => {
+    it('tests that __tryReattachListener will log an error and removeListenerRef on other error response from _remoteOn', (done) => {
       let happnClient = mockHappnClient();
       happnClient._offPath = sinon.stub();
       happnClient._offPath.callsArg(1);
@@ -524,7 +524,7 @@ describe(test.testName(__filename, 3), function() {
       happnClient.__clearListenerRef = sinon.stub();
       happnClient.log.error = sinon.stub();
       happnClient.state.events = {
-        testChannel: [{ eventKey: 'event1' }, { eventKey: 'event2' }]
+        testChannel: [{ eventKey: 'event1' }, { eventKey: 'event2' }],
       };
       happnClient.__tryReattachListener({ any: 'listener' }, 'testChannel');
       test.expect(happnClient._remoteOn.callCount).to.be(1);
@@ -542,7 +542,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __tryReattachListener will set refcount to 1 if there are 0 references and remoteOn works', done => {
+    it('tests that __tryReattachListener will set refcount to 1 if there are 0 references and remoteOn works', (done) => {
       let happnClient = mockHappnClient();
       happnClient._offPath = sinon.stub();
       happnClient._offPath.callsArg(1);
@@ -551,7 +551,7 @@ describe(test.testName(__filename, 3), function() {
       happnClient.__clearListenerRef = sinon.stub();
       happnClient.log.error = sinon.stub();
       happnClient.state.events = {
-        testChannel: [{ eventKey: 'event1' }, { eventKey: 'event2' }]
+        testChannel: [{ eventKey: 'event1' }, { eventKey: 'event2' }],
       };
       happnClient.state.refCount = { event1: 0 };
       happnClient.__tryReattachListener(
@@ -570,31 +570,31 @@ describe(test.testName(__filename, 3), function() {
   });
 
   context('__testAndCleanupChannel', () => {
-    it('tests that __testAndCleanupChannel will delete state.events[channel] if it recieves a 401 or 403', done => {
+    it('tests that __testAndCleanupChannel will delete state.events[channel] if it recieves a 401 or 403', (done) => {
       let happnClient = mockHappnClient();
       happnClient._remoteOn = sinon.stub();
       happnClient._remoteOn.callsArgWith(2, { code: 403 });
       happnClient.state.events = {
         403: [{ eventKey: 'event1' }, { eventKey: 'event2' }],
         401: [{ eventKey: 'eventA' }, { eventKey: 'eventB' }],
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       };
       happnClient.__testAndCleanupChannel('403');
       test.expect(happnClient._remoteOn.callCount).to.be(1);
       test.expect(happnClient.state.events).to.eql({
         401: [{ eventKey: 'eventA' }, { eventKey: 'eventB' }],
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       });
       happnClient._remoteOn.callsArgWith(2, { code: 401 });
       happnClient.__testAndCleanupChannel('401');
       test.expect(happnClient._remoteOn.callCount).to.be(2);
       test.expect(happnClient.state.events).to.eql({
-        anotherChannel: [{ eventKey: 'something' }]
+        anotherChannel: [{ eventKey: 'something' }],
       });
       done();
     });
 
-    it('tests that __testAndCleanupChannel will log an error if it recieves a non 401 or 403 error', done => {
+    it('tests that __testAndCleanupChannel will log an error if it recieves a non 401 or 403 error', (done) => {
       let happnClient = mockHappnClient();
       happnClient._remoteOn = sinon.stub();
       happnClient.log.error = sinon.stub();
@@ -613,7 +613,7 @@ describe(test.testName(__filename, 3), function() {
       done();
     });
 
-    it('tests that __testAndCleanupChannel will unsubscribe test handler if channel is still allowed', done => {
+    it('tests that __testAndCleanupChannel will unsubscribe test handler if channel is still allowed', (done) => {
       let happnClient = mockHappnClient();
       happnClient._remoteOn = sinon.stub();
       happnClient._remoteOff = sinon.stub();

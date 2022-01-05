@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var delay = require('await-delay');
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
@@ -11,8 +9,8 @@ describe(
     this.timeout(40000);
 
     async function createService() {
-      return new Promise(function(resolve, reject) {
-        service.create(function(e, happnInst) {
+      return new Promise(function (resolve, reject) {
+        service.create(function (e, happnInst) {
           if (e) return reject(e);
           resolve(happnInst);
         });
@@ -28,15 +26,15 @@ describe(
     }
 
     async function createClient(host) {
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         happn_client.create(
           {
             config: {
               host,
-              connectTimeout: 1000
-            }
+              connectTimeout: 1000,
+            },
           },
-          function(e, client) {
+          function (e, client) {
             if (e) return reject(e);
             resolve(client);
           }
@@ -51,7 +49,7 @@ describe(
     it('should connect, server is restarted and dns record is reset, should carry on reconnecting', async () => {
       var dns = require('dns');
       dns.__oldLookup = dns.lookup.bind(dns);
-      dns.lookup = function(domain, options, callback) {
+      dns.lookup = function (domain, options, callback) {
         if (typeof options === 'function') {
           callback = options;
           options = { family: 4, hints: 1024 };
@@ -65,14 +63,14 @@ describe(
       var reconnectCount = 0;
       var reconnectSuccessfulCount = 0;
 
-      client.onEvent('reconnect-successful', function() {
+      client.onEvent('reconnect-successful', function () {
         reconnectSuccessfulCount++;
       });
 
-      client.onEvent('reconnect-scheduled', function() {
+      client.onEvent('reconnect-scheduled', function () {
         reconnectCount++;
         if (reconnectCount === 1) {
-          dns.lookup = function(domain, options, callback) {
+          dns.lookup = function (domain, options, callback) {
             if (typeof options === 'function') {
               callback = options;
               options = { family: 4, hints: 1024 };
@@ -94,7 +92,7 @@ describe(
       await stopService(service);
       //eslint-disable-next-line no-console
       console.log('stopped service, fixing dns...');
-      dns.lookup = function(domain, options, callback) {
+      dns.lookup = function (domain, options, callback) {
         if (typeof options === 'function') {
           callback = options;
           options = { family: 4, hints: 1024 };

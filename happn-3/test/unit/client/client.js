@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(15000);
   const HappnClient = require('../../../lib/client');
   const Constants = require('../../../lib/constants');
@@ -19,34 +19,34 @@ describe(test.testName(__filename, 3), function() {
     happnClient.__initializeState();
 
     happnClient.log = log || {
-      error: function() {}
+      error: function () {},
     };
 
     happnClient.status = state != null ? state : Constants.CLIENT_STATE.ACTIVE;
     happnClient.session = session || {
-      id: 'test'
+      id: 'test',
     };
     happnClient.serverInfo = serverInfo || {};
 
     happnClient.socket = socket || {
-      end: socketEnd || function() {},
-      removeAllListeners: removeAllListeners || function() {},
-      write: function() {},
-      on: function() {},
-      destroy: function() {}
+      end: socketEnd || function () {},
+      removeAllListeners: removeAllListeners || function () {},
+      write: function () {},
+      on: function () {},
+      destroy: function () {},
     };
 
     happnClient.options = clientOptions || {
-      callTimeout: 60000
+      callTimeout: 60000,
     };
 
     return happnClient;
   }
 
-  it('tests the __performDataRequest function set null options', function(done) {
+  it('tests the __performDataRequest function set null options', function (done) {
     var happnClient = mockHappnClient();
 
-    happnClient.__requestCallback = function(message, callback) {
+    happnClient.__requestCallback = function (message, callback) {
       callback();
     };
 
@@ -54,41 +54,41 @@ describe(test.testName(__filename, 3), function() {
       '/test/path',
       'set',
       {
-        test: 'data'
+        test: 'data',
       },
       null,
-      function(e) {
+      function (e) {
         if (e) return done(e);
         done();
       }
     );
   });
 
-  it('tests the __performDataRequest function set null options no callback', function(done) {
+  it('tests the __performDataRequest function set null options no callback', function (done) {
     var happnClient = mockHappnClient();
 
-    happnClient.__requestCallback = function(message, callback) {
+    happnClient.__requestCallback = function (message, callback) {
       callback();
     };
 
     happnClient.__performDataRequest('/test/path', 'set', {
-      test: 'data'
+      test: 'data',
     });
 
     done();
   });
 
-  it('tests the __performDataRequest function set null options, inactive state', function(done) {
+  it('tests the __performDataRequest function set null options, inactive state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.ERROR);
 
     happnClient.__performDataRequest(
       '/test/path',
       'set',
       {
-        test: 'data'
+        test: 'data',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e.toString()).to.be('Error: client not active');
         test.expect(e.detail).to.be('action: set, path: /test/path');
         done();
@@ -96,17 +96,17 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests the __performDataRequest function set null options, connect error state', function(done) {
+  it('tests the __performDataRequest function set null options, connect error state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.CONNECT_ERROR);
 
     happnClient.__performDataRequest(
       '/test/path',
       'set',
       {
-        test: 'data'
+        test: 'data',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e.toString()).to.be('Error: client in an error state');
         test.expect(e.detail).to.be('action: set, path: /test/path');
         done();
@@ -114,17 +114,17 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests the __performDataRequest function set null options, disconnected state', function(done) {
+  it('tests the __performDataRequest function set null options, disconnected state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.DISCONNECTED);
 
     happnClient.__performDataRequest(
       '/test/path',
       'set',
       {
-        test: 'data'
+        test: 'data',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e.toString()).to.be('Error: client is disconnected');
         test.expect(e.detail).to.be('action: set, path: /test/path');
         done();
@@ -132,17 +132,17 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests the __performDataRequest function set null options, uninitialized state', function(done) {
+  it('tests the __performDataRequest function set null options, uninitialized state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.UNINITIALIZED);
 
     happnClient.__performDataRequest(
       '/test/path',
       'set',
       {
-        test: 'data'
+        test: 'data',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e.toString()).to.be('Error: client not initialized yet');
         test.expect(e.detail).to.be('action: set, path: /test/path');
         done();
@@ -150,12 +150,12 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests the __performDataRequest function set null options, no callback, error state', function(done) {
+  it('tests the __performDataRequest function set null options, no callback, error state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.ERROR);
 
     try {
       happnClient.__performDataRequest('/test/path', 'set', {
-        test: 'data'
+        test: 'data',
       });
     } catch (e) {
       test.expect(e.toString()).to.be('Error: client not active');
@@ -164,12 +164,12 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('tests the __performDataRequest function set null options, no callback, connect error state', function(done) {
+  it('tests the __performDataRequest function set null options, no callback, connect error state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.CONNECT_ERROR);
 
     try {
       happnClient.__performDataRequest('/test/path', 'set', {
-        test: 'data'
+        test: 'data',
       });
     } catch (e) {
       test.expect(e.toString()).to.be('Error: client in an error state');
@@ -178,12 +178,12 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('tests the __performDataRequest function set null options, no callback, disconnected state', function(done) {
+  it('tests the __performDataRequest function set null options, no callback, disconnected state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.DISCONNECTED);
 
     try {
       happnClient.__performDataRequest('/test/path', 'set', {
-        test: 'data'
+        test: 'data',
       });
     } catch (e) {
       test.expect(e.toString()).to.be('Error: client is disconnected');
@@ -192,12 +192,12 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('tests the __performDataRequest function set null options, no callback, uninitialized state', function(done) {
+  it('tests the __performDataRequest function set null options, no callback, uninitialized state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.UNINITIALIZED);
 
     try {
       happnClient.__performDataRequest('/test/path', 'set', {
-        test: 'data'
+        test: 'data',
       });
     } catch (e) {
       test.expect(e.toString()).to.be('Error: client not initialized yet');
@@ -206,12 +206,12 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('tests the __performDataRequest function set null options, no callback, uninitialized state', function(done) {
+  it('tests the __performDataRequest function set null options, no callback, uninitialized state', function (done) {
     var happnClient = mockHappnClient(null, Constants.CLIENT_STATE.UNINITIALIZED);
 
     try {
       happnClient.__performDataRequest('/test/path', 'set', {
-        test: 'data'
+        test: 'data',
       });
     } catch (e) {
       test.expect(e.toString()).to.be('Error: client not initialized yet');
@@ -220,7 +220,7 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  it('tests the __getListener function', function() {
+  it('tests the __getListener function', function () {
     var happnClient = mockHappnClient();
     //handler, parameters, path, variableDepth
     var mockParameters = {
@@ -229,7 +229,7 @@ describe(test.testName(__filename, 3), function() {
       initialEmit: true,
       initialCallback: true,
       meta: 'test-meta',
-      depth: 20
+      depth: 20,
     };
     var listener = happnClient.__getListener('test-handler', mockParameters, 'test-path', 15);
 
@@ -243,7 +243,7 @@ describe(test.testName(__filename, 3), function() {
         initialEmit: true,
         initialCallback: true,
         meta: 'test-meta',
-        depth: 20
+        depth: 20,
       }),
       runcount: 0,
       meta: 'test-meta',
@@ -251,11 +251,11 @@ describe(test.testName(__filename, 3), function() {
       initialEmit: true,
       initialCallback: true,
       depth: 20,
-      variableDepth: 15
+      variableDepth: 15,
     });
   });
 
-  it('tests the __confirmRemoteOn function, with error', function(done) {
+  it('tests the __confirmRemoteOn function, with error', function (done) {
     var happnClient = mockHappnClient();
     var path = 'test-path';
     var parameters = {
@@ -264,24 +264,24 @@ describe(test.testName(__filename, 3), function() {
       initialEmit: true,
       initialCallback: true,
       meta: 'test-meta',
-      depth: 20
+      depth: 20,
     };
 
     var listener = {};
 
-    happnClient._remoteOn = function(path, parameters, callback) {
+    happnClient._remoteOn = function (path, parameters, callback) {
       callback(new Error('test-error'));
     };
 
-    happnClient.__clearListenerState = function() {};
+    happnClient.__clearListenerState = function () {};
 
-    happnClient.__confirmRemoteOn(path, parameters, listener, function(e) {
+    happnClient.__confirmRemoteOn(path, parameters, listener, function (e) {
       test.expect(e.toString()).to.be('Error: test-error');
       done();
     });
   });
 
-  it('tests the __confirmRemoteOn function, with response error', function(done) {
+  it('tests the __confirmRemoteOn function, with response error', function (done) {
     var happnClient = mockHappnClient();
     var path = 'test-path';
     var parameters = {
@@ -290,34 +290,34 @@ describe(test.testName(__filename, 3), function() {
       initialEmit: true,
       initialCallback: true,
       meta: 'test-meta',
-      depth: 20
+      depth: 20,
     };
 
     var listener = {};
 
-    happnClient._remoteOn = function(path, parameters, callback) {
+    happnClient._remoteOn = function (path, parameters, callback) {
       callback(null, {
         status: 'error',
-        payload: 'test-error'
+        payload: 'test-error',
       });
     };
 
-    happnClient.__clearListenerState = function() {};
+    happnClient.__clearListenerState = function () {};
 
-    happnClient.__confirmRemoteOn(path, parameters, listener, function(e) {
+    happnClient.__confirmRemoteOn(path, parameters, listener, function (e) {
       test.expect(e).to.be('test-error');
       done();
     });
   });
 
-  it('tests the __reattachListeners function', function(done) {
+  it('tests the __reattachListeners function', function (done) {
     var happnClient = mockHappnClient();
     var remoteOnCalled = 0;
 
-    happnClient._remoteOn = function(eventPath, parameters, callback) {
+    happnClient._remoteOn = function (eventPath, parameters, callback) {
       remoteOnCalled++;
       callback(null, {
-        id: remoteOnCalled
+        id: remoteOnCalled,
       });
     };
 
@@ -325,37 +325,37 @@ describe(test.testName(__filename, 3), function() {
       'test/event/1/*': [
         {
           meta: {},
-          eventKey: 0
-        }
+          eventKey: 0,
+        },
       ],
       'test/event/2/*': [
         {
           meta: {},
-          eventKey: 1
-        }
+          eventKey: 1,
+        },
       ],
       'test/event/3/*': [
         {
           meta: {},
-          eventKey: 2
-        }
-      ]
+          eventKey: 2,
+        },
+      ],
     };
 
-    happnClient.__reattachListeners(function(e) {
+    happnClient.__reattachListeners(function (e) {
       if (e) return done(e);
 
-      setTimeout(function() {
+      setTimeout(function () {
         test.expect(remoteOnCalled).to.be(3);
         done();
       }, 2000);
     });
   });
 
-  it('tests the __reattachListeners function fails', function(done) {
+  it('tests the __reattachListeners function fails', function (done) {
     var happnClient = mockHappnClient();
 
-    happnClient._remoteOn = function(eventPath, parameters, callback) {
+    happnClient._remoteOn = function (eventPath, parameters, callback) {
       callback(new Error('failed'));
     };
 
@@ -363,24 +363,24 @@ describe(test.testName(__filename, 3), function() {
       'test/event/1/*': [
         {
           meta: {},
-          eventKey: 0
-        }
+          eventKey: 0,
+        },
       ],
       'test/event/2/*': [
         {
           meta: {},
-          eventKey: 1
-        }
+          eventKey: 1,
+        },
       ],
       'test/event/3/*': [
         {
           meta: {},
-          eventKey: 2
-        }
-      ]
+          eventKey: 2,
+        },
+      ],
     };
 
-    happnClient.__reattachListeners(function(e) {
+    happnClient.__reattachListeners(function (e) {
       test
         .expect(e.toString())
         .to.be('Error: failed re-establishing listener to path: test/event/1/*');
@@ -388,15 +388,15 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the __reattachListeners function ignores 401, 403 errors', function(done) {
+  it('tests the __reattachListeners function ignores 401, 403 errors', function (done) {
     var happnClient = mockHappnClient();
     var remoteOnCalled = 0;
 
-    happnClient._remoteOn = function(eventPath, parameters, callback) {
+    happnClient._remoteOn = function (eventPath, parameters, callback) {
       remoteOnCalled++;
       if (remoteOnCalled === 1)
         return callback({
-          id: remoteOnCalled
+          id: remoteOnCalled,
         });
 
       var failureError = new Error('failed');
@@ -411,24 +411,24 @@ describe(test.testName(__filename, 3), function() {
       'test/event/1/*': [
         {
           meta: {},
-          eventKey: 0
-        }
+          eventKey: 0,
+        },
       ],
       'test/event/2/*': [
         {
           meta: {},
-          eventKey: 1
-        }
+          eventKey: 1,
+        },
       ],
       'test/event/3/*': [
         {
           meta: {},
-          eventKey: 2
-        }
-      ]
+          eventKey: 2,
+        },
+      ],
     };
 
-    happnClient.__reattachListeners(function(e) {
+    happnClient.__reattachListeners(function (e) {
       test
         .expect(e.toString())
         .to.be('Error: failed re-establishing listener to path: test/event/1/*');
@@ -444,17 +444,17 @@ describe(test.testName(__filename, 3), function() {
       null,
       null,
       null,
-      function() {},
-      function() {}
+      function () {},
+      function () {}
     );
 
     happnClient.log = {
-      warn: function() {}
+      warn: function () {},
     };
 
-    const destroySocketPromise = socket => {
+    const destroySocketPromise = (socket) => {
       return new Promise((resolve, reject) => {
-        happnClient.__endAndDestroySocket(socket, e => {
+        happnClient.__endAndDestroySocket(socket, (e) => {
           if (e) return reject(e);
           resolve();
         });
@@ -468,7 +468,7 @@ describe(test.testName(__filename, 3), function() {
           _local: true,
           end: () => {
             localEnded = true;
-          }
+          },
         })
       )
       .to.be(undefined);
@@ -482,7 +482,7 @@ describe(test.testName(__filename, 3), function() {
       },
       destroy: () => {
         readyStateNot1Destroyed = true;
-      }
+      },
     };
     test.expect(await destroySocketPromise(readyStateNot1DestroyedSocket)).to.be(undefined);
     test.expect(readyStateNot1Destroyed).to.be(true);
@@ -502,7 +502,7 @@ describe(test.testName(__filename, 3), function() {
         test.expect(evt === 'close');
         readyState1DestroyedSocket.handler = handler;
         return readyState1DestroyedSocket;
-      }
+      },
     };
     const readyState1DestroyedResult = await destroySocketPromise(readyState1DestroyedSocket);
     await test.delay(2000);
@@ -510,44 +510,44 @@ describe(test.testName(__filename, 3), function() {
     test.expect(readyState1Destroyed).to.be(true);
   });
 
-  it('tests the __connectionCleanup function, socket present', function(done) {
+  it('tests the __connectionCleanup function, socket present', function (done) {
     this.timeout(5000);
 
     const socket = {
       end: () => {
         return socket;
       },
-      destroy: done
+      destroy: done,
     };
 
-    const happnClient = mockHappnClient(null, null, null, null, socket, null, function() {}, null);
+    const happnClient = mockHappnClient(null, null, null, null, socket, null, function () {}, null);
 
     happnClient.log = {
-      warn: function() {}
+      warn: function () {},
     };
 
-    happnClient.__connectionCleanup(null, e => {
+    happnClient.__connectionCleanup(null, (e) => {
       test.expect(e).to.be(undefined);
     });
   });
 
-  it('tests __getCookieInstance', done => {
+  it('tests __getCookieInstance', (done) => {
     this.timeout(5000);
     let document = { cookie: encodeURIComponent('cookieName=test;with;cookie') };
     test.expect(HappnClient.__getCookieInstance('cookieName', document)).to.be('test');
     done();
   });
 
-  it('tests __getCookieInstance, no name match', done => {
+  it('tests __getCookieInstance, no name match', (done) => {
     this.timeout(5000);
     let document = { cookie: encodeURIComponent('notTheName=test;with;cookie') };
     test.expect(HappnClient.__getCookieInstance('cookieName', document)).to.be('');
     done();
   });
 
-  it('tests the __writeCookie function ', function() {
+  it('tests the __writeCookie function ', function () {
     this.timeout(5000);
-    const happnClient = mockHappnClient(null, null, null, null, null, null, function() {}, null);
+    const happnClient = mockHappnClient(null, null, null, null, null, null, function () {}, null);
     happnClient.options = happnClient.options || {};
     happnClient.options.protocol = 'https';
     let mockDocument = {};
@@ -556,7 +556,7 @@ describe(test.testName(__filename, 3), function() {
         httpsCookie: true,
         cookieName: 'test_happn_token',
         token: '[test token]',
-        cookieDomain: '[test cookie domain]'
+        cookieDomain: '[test cookie domain]',
       },
       mockDocument
     );
@@ -569,7 +569,7 @@ describe(test.testName(__filename, 3), function() {
       {
         cookieName: 'happn_token',
         token: '[test token]',
-        cookieDomain: '[test cookie domain]'
+        cookieDomain: '[test cookie domain]',
       },
       mockDocument
     );
@@ -586,7 +586,7 @@ describe(test.testName(__filename, 3), function() {
     const cookieInstances = {
       happn_token: 'happn_token_cookie',
       no_cookie_found: '',
-      specified_cookie: 'specified_cookie'
+      specified_cookie: 'specified_cookie',
     };
     const cookieEventHandlerHappnToken = (event, cookie) => {
       eventsHappnToken.push({ event, cookie });
@@ -598,7 +598,7 @@ describe(test.testName(__filename, 3), function() {
       eventsSpecified.push({ event, cookie });
     };
     const HappnClient = require('../../../lib/client');
-    HappnClient.__getCookieInstance = cookieName => {
+    HappnClient.__getCookieInstance = (cookieName) => {
       return cookieInstances[cookieName];
     };
     HappnClient.addCookieEventHandler(cookieEventHandlerHappnToken, 'happn_token', 500);
@@ -631,15 +631,15 @@ describe(test.testName(__filename, 3), function() {
 
     test.expect(eventsHappnToken).to.eql([
       { event: 'cookie-deleted', cookie: 'happn_token_cookie' },
-      { event: 'cookie-created', cookie: 'new_happn_token' }
+      { event: 'cookie-created', cookie: 'new_happn_token' },
     ]);
     test.expect(eventsNotFound).to.eql([
       { event: 'cookie-created', cookie: 'found_actually' },
-      { event: 'cookie-deleted', cookie: 'found_actually' }
+      { event: 'cookie-deleted', cookie: 'found_actually' },
     ]);
     test.expect(eventsSpecified).to.eql([
       { event: 'cookie-deleted', cookie: 'specified_cookie' },
-      { event: 'cookie-created', cookie: 'new_specified_cookie' }
+      { event: 'cookie-created', cookie: 'new_specified_cookie' },
     ]);
 
     //check we dont leak intervals
@@ -659,15 +659,15 @@ describe(test.testName(__filename, 3), function() {
     this.timeout(5000);
     test.expect(HappnClient.getCookieEventDefaults(null, null)).to.eql({
       cookieName: 'happn_token',
-      interval: 1000
+      interval: 1000,
     });
     test.expect(HappnClient.getCookieEventDefaults('happn_token_specified', 200)).to.eql({
       cookieName: 'happn_token_specified',
-      interval: 1000
+      interval: 1000,
     });
     test.expect(HappnClient.getCookieEventDefaults('happn_token_specified', 650)).to.eql({
       cookieName: 'happn_token_specified',
-      interval: 650
+      interval: 650,
     });
   });
 });

@@ -4,8 +4,8 @@ const tests = require('../../__fixtures/utils/test_helper').create();
 
 const expect = require('chai').expect;
 
-describe(tests.testName(__filename, 3), function() {
-  it('tests create and search', function() {
+describe(tests.testName(__filename, 3), function () {
+  it('tests create and search', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario1());
     expect(permissionsTree.tree).to.deep.equal(expectedTreeScenario1());
     expect(permissionsTree.search('/test/permission/1/1/2')).to.deep.equal(
@@ -13,7 +13,7 @@ describe(tests.testName(__filename, 3), function() {
     );
   });
 
-  it('tests short permission path', function() {
+  it('tests short permission path', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario2());
     expect(permissionsTree.tree).to.deep.equal(expectedTreeScenario2());
     expect(permissionsTree.search('/test/permission/1/1/2')).to.deep.equal(
@@ -21,7 +21,7 @@ describe(tests.testName(__filename, 3), function() {
     );
   });
 
-  it('tests prohibited permission paths', function() {
+  it('tests prohibited permission paths', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario3());
     expect(permissionsTree.tree).to.deep.equal(expectedTreeScenario3());
     expect(permissionsTree.search('/test/permission/1/1/2')).to.deep.equal(
@@ -29,7 +29,7 @@ describe(tests.testName(__filename, 3), function() {
     );
   });
 
-  it('tests building a list from a tree', function() {
+  it('tests building a list from a tree', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario4());
     let permissions = permissionsTree.wildcardPathSearch('/test/permission/**', 'get');
     expect(permissions).to.eql({
@@ -38,13 +38,13 @@ describe(tests.testName(__filename, 3), function() {
         '/test/permission/2/1/3',
         '/test/permission/3/4/5',
         '/test/permission/4/6/7',
-        '/test/permission/5/6/8'
+        '/test/permission/5/6/8',
       ],
-      prohibited: []
+      prohibited: [],
     });
   });
 
-  it("tests if there's a recursive wildcard in the middle of a request", function() {
+  it("tests if there's a recursive wildcard in the middle of a request", function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario4());
     const permissions = permissionsTree.wildcardPathSearch('/test/permission/1/**/3', 'get');
 
@@ -53,7 +53,7 @@ describe(tests.testName(__filename, 3), function() {
       .with.property('message', 'Recursive wildcards are invalid unless at end of permission path');
   });
 
-  it('tests that a recursive wildcard only returns those matched items, with child paths', function() {
+  it('tests that a recursive wildcard only returns those matched items, with child paths', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario5());
     const permissions = permissionsTree.wildcardPathSearch('/test/permission/1/**', 'get');
 
@@ -66,8 +66,8 @@ describe(tests.testName(__filename, 3), function() {
         '/test/permission/1/5/4',
         '/test/permission/1/6/3',
         '/test/permission/1/6/7',
-        '/test/permission/1/7'
-      ]
+        '/test/permission/1/7',
+      ],
     });
   });
 
@@ -80,8 +80,8 @@ describe(tests.testName(__filename, 3), function() {
       prohibited: [
         '/test/permission/1/2/3/4/5',
         '/test/permission/1/2/3',
-        '/test/permission/1/2/6/*'
-      ]
+        '/test/permission/1/2/6/*',
+      ],
     });
   });
 
@@ -94,8 +94,8 @@ describe(tests.testName(__filename, 3), function() {
       prohibited: [
         '/test/permission/1/2/3/4/5',
         '/test/permission/1/2/3',
-        '/test/permission/1/2/6/*'
-      ]
+        '/test/permission/1/2/6/*',
+      ],
     });
   });
 
@@ -105,7 +105,7 @@ describe(tests.testName(__filename, 3), function() {
 
     expect(permissions).to.deep.equal({
       allowed: ['/TEST/1/2/3', '/TEST/2/3/*', '/TEST/5/6'],
-      prohibited: ['/TEST/2/3/4/5']
+      prohibited: ['/TEST/2/3/4/5'],
     });
   });
 
@@ -114,7 +114,7 @@ describe(tests.testName(__filename, 3), function() {
     const permissions = permissionsTree.wildcardPathSearch('/TEST/*', 'get');
     expect(permissions).to.deep.equal({
       allowed: ['/TEST/*'],
-      prohibited: []
+      prohibited: [],
     });
   });
 
@@ -127,12 +127,12 @@ describe(tests.testName(__filename, 3), function() {
   function flattenedObjectScenario9() {
     return {
       '/*': { actions: ['*'] },
-      '/TEST/1/2/3': { prohibit: ['on'] }
+      '/TEST/1/2/3': { prohibit: ['on'] },
     };
   }
   function flattenedObjectScenario8() {
     return {
-      '/*': { actions: ['*'] }
+      '/*': { actions: ['*'] },
     };
   }
 
@@ -145,7 +145,7 @@ describe(tests.testName(__filename, 3), function() {
       '/TEST/5/6/*': { prohibit: ['on', 'get'] },
       '/TEST/5/6/7/9': { actions: ['on', 'get'] },
       '/ALLOWED/*': { actions: ['on', 'get'] },
-      '/TEMPLATED/{{user.username}}/1/2': { actions: ['on', 'get'] }
+      '/TEMPLATED/{{user.username}}/1/2': { actions: ['on', 'get'] },
     };
   }
 
@@ -159,7 +159,7 @@ describe(tests.testName(__filename, 3), function() {
       '/test/permission/1/2/3/4/5': { prohibit: ['get'] },
       '/test/permission/1/2/6/*': { prohibit: ['get'] },
       '/test/permission/1/2/6/4': { actions: ['get'] },
-      '/test/permission/1/2/6/4/7/8': { actions: ['get'] }
+      '/test/permission/1/2/6/4/7/8': { actions: ['get'] },
     };
   }
 
@@ -174,7 +174,7 @@ describe(tests.testName(__filename, 3), function() {
       '/test/permission/1/6/3': { actions: ['get'] },
       '/test/permission/1/5': { actions: ['get'] },
       '/test/permission/1/5/4': { actions: ['get'] },
-      '/test/permission/1/9/5': { prohibit: ['get'] }
+      '/test/permission/1/9/5': { prohibit: ['get'] },
     };
   }
 
@@ -184,7 +184,7 @@ describe(tests.testName(__filename, 3), function() {
       '/test/permission/2/1/3': { actions: ['get'] },
       '/test/permission/3/4/5': { actions: ['get'] },
       '/test/permission/4/6/7': { actions: ['get'] },
-      '/test/permission/5/6/8': { actions: ['get'] }
+      '/test/permission/5/6/8': { actions: ['get'] },
     };
   }
 
@@ -193,7 +193,7 @@ describe(tests.testName(__filename, 3), function() {
       '/test/permission/*': { actions: ['remove'] },
       '/test/*': { actions: ['get'] },
       '/test/permission/*/1/2': { actions: ['set'], prohibit: ['get'] },
-      '/test/permission/*/*/2': { prohibit: ['remove'] }
+      '/test/permission/*/*/2': { prohibit: ['remove'] },
     };
   }
 
@@ -201,7 +201,7 @@ describe(tests.testName(__filename, 3), function() {
     return {
       '/test/permission/*': { actions: ['remove'] },
       '/test/*': { actions: ['get'] },
-      '/test/permission/*/1/2': { actions: ['set'] }
+      '/test/permission/*/1/2': { actions: ['set'] },
     };
   }
 
@@ -210,7 +210,7 @@ describe(tests.testName(__filename, 3), function() {
       '/test/permission/1/*/2': { actions: ['remove'] },
       '/test/permission/*/1/2': { actions: ['get'] },
       '/test/permission/*/1/3': { actions: ['set'] },
-      '/test/permission/2': { actions: ['set'] }
+      '/test/permission/2': { actions: ['set'] },
     };
   }
 
@@ -231,28 +231,28 @@ describe(tests.testName(__filename, 3), function() {
       test: {
         permission: {
           '*': {
-            '1': {
-              '2': {
+            1: {
+              2: {
                 $leaf: '/test/permission/*/1/2',
                 actions: ['set'],
-                prohibit: ['get']
-              }
+                prohibit: ['get'],
+              },
             },
             $leaf: '/test/permission/*',
             actions: ['remove'],
             '*': {
-              '2': {
+              2: {
                 $leaf: '/test/permission/*/*/2',
-                prohibit: ['remove']
-              }
-            }
-          }
+                prohibit: ['remove'],
+              },
+            },
+          },
         },
         '*': {
           $leaf: '/test/*',
-          actions: ['get']
-        }
-      }
+          actions: ['get'],
+        },
+      },
     };
   }
 
@@ -261,21 +261,21 @@ describe(tests.testName(__filename, 3), function() {
       test: {
         permission: {
           '*': {
-            '1': {
-              '2': {
+            1: {
+              2: {
                 $leaf: '/test/permission/*/1/2',
-                actions: ['set']
-              }
+                actions: ['set'],
+              },
             },
             $leaf: '/test/permission/*',
-            actions: ['remove']
-          }
+            actions: ['remove'],
+          },
         },
         '*': {
           $leaf: '/test/*',
-          actions: ['get']
-        }
-      }
+          actions: ['get'],
+        },
+      },
     };
   }
 
@@ -283,32 +283,32 @@ describe(tests.testName(__filename, 3), function() {
     return {
       test: {
         permission: {
-          '1': {
+          1: {
             '*': {
-              '2': {
+              2: {
                 $leaf: '/test/permission/1/*/2',
-                actions: ['remove']
-              }
-            }
+                actions: ['remove'],
+              },
+            },
           },
-          '2': {
+          2: {
             $leaf: '/test/permission/2',
-            actions: ['set']
+            actions: ['set'],
           },
           '*': {
-            '1': {
-              '2': {
+            1: {
+              2: {
                 $leaf: '/test/permission/*/1/2',
-                actions: ['get']
+                actions: ['get'],
               },
-              '3': {
+              3: {
                 $leaf: '/test/permission/*/1/3',
-                actions: ['set']
-              }
-            }
-          }
-        }
-      }
+                actions: ['set'],
+              },
+            },
+          },
+        },
+      },
     };
   }
 });

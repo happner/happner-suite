@@ -1,9 +1,9 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function (test) {
   let happnInstance = null;
   let publisherclient;
   let listenerclient;
 
-  ['websockets', 'eventemitter'].forEach(clientType => {
+  ['websockets', 'eventemitter'].forEach((clientType) => {
     context(`client type: ${clientType}`, () => {
       before('should initialize the service', async () => {
         happnInstance = await test.createInstance();
@@ -22,22 +22,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         await test.destroyInstance(happnInstance);
       });
 
-      it('the listener should pick up a single wildcard event', function(callback) {
+      it('the listener should pick up a single wildcard event', function (callback) {
         try {
           //first listen for the change
           listenerclient.on(
             '/e2e_test1/testsubscribe/data/event/*',
             {
               event_type: 'set',
-              count: 1
+              count: 1,
             },
-            function() {
+            function () {
               test
                 .expect(listenerclient.state.events['/SET@/e2e_test1/testsubscribe/data/event/*'])
                 .to.be(undefined);
               callback();
             },
-            function(e) {
+            function (e) {
               if (!e) {
                 test
                   .expect(
@@ -51,10 +51,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function() {
+                  function () {
                     // do nothing
                   }
                 );
@@ -66,22 +66,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         }
       });
 
-      it('the listener should pick up a single published event', function(callback) {
+      it('the listener should pick up a single published event', function (callback) {
         try {
           //first listen for the change
           listenerclient.on(
             '/e2e_test1/testsubscribe/data/event',
             {
               event_type: 'set',
-              count: 1
+              count: 1,
             },
-            function() {
+            function () {
               test
                 .expect(listenerclient.state.events['/SET@/e2e_test1/testsubscribe/data/event'])
                 .to.be(undefined);
               callback();
             },
-            function(e) {
+            function (e) {
               if (!e) {
                 test
                   .expect(
@@ -93,10 +93,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function(/*e, result*/) {
+                  function (/*e, result*/) {
                     // do nothing
                   }
                 );
@@ -108,21 +108,21 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         }
       });
 
-      it('the listener should pick up a single published event', function(callback) {
+      it('the listener should pick up a single published event', function (callback) {
         try {
           listenerclient.on(
             '/e2e_test1/testsubscribe/data/event',
             {
               event_type: 'set',
-              count: 1
+              count: 1,
             },
-            function(/*message*/) {
+            function (/*message*/) {
               test
                 .expect(listenerclient.state.events['/SET@/e2e_test1/testsubscribe/data/event'])
                 .to.be(undefined);
               callback();
             },
-            function(e) {
+            function (e) {
               if (!e) {
                 test
                   .expect(
@@ -134,10 +134,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function(/*e, result*/) {
+                  function (/*e, result*/) {
                     //do nothing
                   }
                 );
@@ -149,7 +149,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         }
       });
 
-      it('the listener should pick up a single delete event', function(callback) {
+      it('the listener should pick up a single delete event', function (callback) {
         try {
           //We put the data we want to delete into the database
           publisherclient.set(
@@ -157,17 +157,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             {
               property1: 'property1',
               property2: 'property2',
-              property3: 'property3'
+              property3: 'property3',
             },
             null,
-            function(/*e, result*/) {
+            function (/*e, result*/) {
               listenerclient.on(
                 '/e2e_test1/testsubscribe/data/delete_me',
                 {
                   event_type: 'remove',
-                  count: 1
+                  count: 1,
                 },
-                function(eventData) {
+                function (eventData) {
                   test
                     .expect(
                       listenerclient.state.events['/REMOVE@/e2e_test1/testsubscribe/data/delete_me']
@@ -177,7 +177,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   test.expect(eventData.removed).to.be(1);
                   callback();
                 },
-                function(e) {
+                function (e) {
                   if (!e) {
                     test
                       .expect(
@@ -189,7 +189,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                     publisherclient.remove(
                       '/e2e_test1/testsubscribe/data/delete_me',
                       null,
-                      function() /*
+                      function () /*
                       e,
                       result
                       */
@@ -207,32 +207,32 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         }
       });
 
-      it('should unsubscribe from an event', function(callback) {
+      it('should unsubscribe from an event', function (callback) {
         var currentListenerId;
 
         listenerclient.on(
           '/e2e_test1/testsubscribe/data/on_off_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function(/*message*/) {
-            listenerclient.offPath('/e2e_test1/testsubscribe/data/on_off_test', function(e) {
+          function (/*message*/) {
+            listenerclient.offPath('/e2e_test1/testsubscribe/data/on_off_test', function (e) {
               if (e) return callback(new Error(e));
 
               listenerclient.on(
                 '/e2e_test1/testsubscribe/data/on_off_test',
                 {
                   event_type: 'set',
-                  count: 0
+                  count: 0,
                 },
-                function(/*message*/) {
-                  listenerclient.off(currentListenerId, function(e) {
+                function (/*message*/) {
+                  listenerclient.off(currentListenerId, function (e) {
                     if (e) return callback(new Error(e));
                     else return callback();
                   });
                 },
-                function(e, listenerId) {
+                function (e, listenerId) {
                   if (e) return callback(new Error(e));
 
                   currentListenerId = listenerId;
@@ -242,10 +242,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                     {
                       property1: 'property1',
                       property2: 'property2',
-                      property3: 'property3'
+                      property3: 'property3',
                     },
                     {},
-                    function(e /*, setresult*/) {
+                    function (e /*, setresult*/) {
                       if (e) return callback(new Error(e));
                     }
                   );
@@ -253,7 +253,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               );
             });
           },
-          function(e, listenerId) {
+          function (e, listenerId) {
             if (e) return callback(new Error(e));
             currentListenerId = listenerId;
             publisherclient.set(
@@ -261,10 +261,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               {},
-              function(e /*, setresult*/) {
+              function (e /*, setresult*/) {
                 if (e) return callback(new Error(e));
               }
             );
@@ -272,26 +272,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         );
       });
 
-      it('should subscribe and get an initial value on the callback', function(callback) {
+      it('should subscribe and get an initial value on the callback', function (callback) {
         listenerclient.set(
           '/e2e_test1/testsubscribe/data/value_on_callback_test',
           {
-            test: 'data'
+            test: 'data',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             listenerclient.on(
               '/e2e_test1/testsubscribe/data/value_on_callback_test',
               {
                 event_type: 'set',
-                initialCallback: true
+                initialCallback: true,
               },
-              function(message) {
+              function (message) {
                 test.expect(message.updated).to.be(true);
                 callback();
               },
-              function(e, reference, response) {
+              function (e, reference, response) {
                 if (e) return callback(e);
                 try {
                   test.expect(response.length).to.be(1);
@@ -301,9 +301,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                     '/e2e_test1/testsubscribe/data/value_on_callback_test',
                     {
                       test: 'data',
-                      updated: true
+                      updated: true,
                     },
-                    function(e) {
+                    function (e) {
                       if (e) return callback(e);
                     }
                   );
@@ -318,11 +318,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
 
       it('should subscribe and get initial values on the callback', async () => {
         await listenerclient.set('/e2e_test1/testsubscribe/data/values_on_callback_test/1', {
-          test: 'data'
+          test: 'data',
         });
 
         await listenerclient.set('/e2e_test1/testsubscribe/data/values_on_callback_test/2', {
-          test: 'data1'
+          test: 'data1',
         });
 
         let onResponse = await new Promise((resolve, reject) => {
@@ -330,12 +330,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             '/e2e_test1/testsubscribe/data/values_on_callback_test/*',
             {
               event_type: 'set',
-              initialCallback: true
+              initialCallback: true,
             },
-            function() {
+            function () {
               //do nothing
             },
-            function(e, _reference, response) {
+            function (e, _reference, response) {
               if (e) return reject(e);
               resolve(response);
             }
@@ -347,32 +347,32 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         test.expect(onResponse[1].test).to.be('data1');
       });
 
-      it('should subscribe and get initial values emitted immediately', function(callback) {
+      it('should subscribe and get initial values emitted immediately', function (callback) {
         var caughtEmitted = 0;
 
         listenerclient.set(
           '/e2e_test1/testsubscribe/data/values_emitted_test/1',
           {
-            test: 'data'
+            test: 'data',
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             listenerclient.set(
               '/e2e_test1/testsubscribe/data/values_emitted_test/2',
               {
-                test: 'data1'
+                test: 'data1',
               },
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
 
                 listenerclient.on(
                   '/e2e_test1/testsubscribe/data/values_emitted_test/*',
                   {
                     event_type: 'set',
-                    initialEmit: true
+                    initialEmit: true,
                   },
-                  function(message /*, meta*/) {
+                  function (message /*, meta*/) {
                     caughtEmitted++;
 
                     if (caughtEmitted === 2) {
@@ -380,7 +380,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                       callback();
                     }
                   },
-                  function(e) {
+                  function (e) {
                     if (e) return callback(e);
                   }
                 );
@@ -390,11 +390,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         );
       });
 
-      it('should subscribe to the catch all notification', function(callback) {
+      it('should subscribe to the catch all notification', function (callback) {
         var caughtCount = 0;
 
         listenerclient.onAll(
-          function(eventData, meta) {
+          function (eventData, meta) {
             if (
               meta.action === '/REMOVE@/e2e_test1/testsubscribe/data/catch_all' ||
               meta.action === '/SET@/e2e_test1/testsubscribe/data/catch_all'
@@ -405,7 +405,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               listenerclient.offAll(callback);
             }
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             publisherclient.set(
@@ -413,14 +413,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(/*e, put_result*/) {
+              function (/*e, put_result*/) {
                 publisherclient.remove(
                   '/e2e_test1/testsubscribe/data/catch_all',
                   null,
-                  function() /*
+                  function () /*
                   e,
                   del_result
                   */
@@ -441,7 +441,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           '/e2e_test1/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
           onHandler
         );
@@ -449,7 +449,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         await publisherclient.set('/e2e_test1/testsubscribe/data/off_all_test', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         await listenerclient.offAll();
@@ -457,7 +457,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         await publisherclient.set('/e2e_test1/testsubscribe/data/off_all_test', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         test.expect(onAllHandler.callCount).to.be(1);
@@ -473,7 +473,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           '/e2e_test1/testsubscribe/data/off_all_test_negative',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
           onHandler
         );
@@ -481,13 +481,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         await publisherclient.set('/e2e_test1/testsubscribe/data/off_all_test_negative', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         await publisherclient.set('/e2e_test1/testsubscribe/data/off_all_test_negative', {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         });
 
         test.expect(onAllHandler.callCount).to.be(2);

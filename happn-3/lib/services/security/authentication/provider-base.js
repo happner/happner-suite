@@ -171,13 +171,13 @@ module.exports = class AuthProvider {
 
       if (!currentLock)
         currentLock = {
-          attempts: 0
+          attempts: 0,
         };
 
       currentLock.attempts++;
 
       this.__locks.setSync(username, currentLock, {
-        ttl: this.config.accountLockout.retryInterval
+        ttl: this.config.accountLockout.retryInterval,
       });
     }
 

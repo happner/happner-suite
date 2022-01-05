@@ -1,8 +1,6 @@
 describe(
-  require('../../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     const happn = require('../../../../lib/index');
     const expect = require('expect.js');
     const path = require('path');
@@ -21,7 +19,7 @@ describe(
     });
     async function stopService(instance) {
       return new Promise((res, rej) => {
-        instance.stop(e => {
+        instance.stop((e) => {
           if (e) rej(e);
           res();
         });
@@ -38,29 +36,29 @@ describe(
                 blankAuth: path.resolve(
                   __dirname,
                   '../../../__fixtures/test/integration/security/authentication/secondAuthProvider.js'
-                )
+                ),
               },
-              defaultAuthProvider: 'blankAuth'
-            }
-          }
-        }
+              defaultAuthProvider: 'blankAuth',
+            },
+          },
+        },
       });
 
       let testUser = {
         username: 'TEST USE1R@blah.com',
         password: 'TEST PWD',
         custom_data: {
-          something: 'usefull'
-        }
+          something: 'usefull',
+        },
       };
       let addedTestuser = await instance.services.security.users.upsertUser(testUser, {
-        overwrite: false
+        overwrite: false,
       });
 
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
         'happn',
         'blankAuth',
-        'default'
+        'default',
       ]);
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
@@ -105,32 +103,32 @@ describe(
                 second: path.resolve(
                   __dirname,
                   '../../../__fixtures/test/integration/security/authentication/workingAuth.js'
-                )
+                ),
               },
-              defaultAuthProvider: 'second'
-            }
-          }
-        }
+              defaultAuthProvider: 'second',
+            },
+          },
+        },
       });
 
       let testUser = {
         username: 'happnTestuser@somewhere.com',
-        password: 'password'
+        password: 'password',
       };
 
       let testUser2 = {
         username: 'secondTestuser@somewhere.com',
-        password: 'secondPass'
+        password: 'secondPass',
       };
 
       await instance.services.security.users.upsertUser(testUser, {
-        overwrite: false
+        overwrite: false,
       });
 
       let client = await happn.client.create({
         port: 55555,
         ...testUser,
-        authType: 'happn'
+        authType: 'happn',
       });
       expect(client).to.be.ok();
       await client.disconnect({ reconnect: false });
@@ -138,7 +136,7 @@ describe(
         client = await happn.client.create({
           port: 55555,
           ...testUser2,
-          authType: 'happn'
+          authType: 'happn',
         });
         throw new Error('Should have errored');
       } catch (e) {
@@ -147,7 +145,7 @@ describe(
       try {
         client = await happn.client.create({
           port: 55555,
-          ...testUser
+          ...testUser,
           //should default auth provider to 'second'
         });
         throw new Error('Should have errored');
@@ -158,7 +156,7 @@ describe(
       await client.disconnect({ reconnect: false });
       client = await happn.client.create({
         port: 55555,
-        ...testUser2
+        ...testUser2,
       });
       expect(client).to.be.ok();
       await client.disconnect({ reconnect: false });

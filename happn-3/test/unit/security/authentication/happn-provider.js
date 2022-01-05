@@ -1,8 +1,6 @@
 describe(
-  require('../../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     const async = require('async');
     const expect = require('expect.js');
     const Logger = require('happn-logger');
@@ -15,14 +13,14 @@ describe(
       await stopServices(mockHappn);
     });
 
-    it('creates a happnProvider', done => {
+    it('creates a happnProvider', (done) => {
       let happnProvider = HappnProvider.create(mockHappn, {});
       expect(happnProvider).to.be.ok();
       done();
     });
 
-    it('Tests __providerTokenLogin when checkTokenToUserId fails ', done => {
-      mockHappn.services.security.checkTokenUserId = async function() {
+    it('Tests __providerTokenLogin when checkTokenToUserId fails ', (done) => {
+      mockHappn.services.security.checkTokenUserId = async function () {
         return false;
       };
       let happnProvider = HappnProvider.create(mockHappn, {});
@@ -35,14 +33,14 @@ describe(
       });
     });
 
-    it('Tests __providerTokenLogin when return user is null  ', done => {
-      mockHappn.services.security.checkTokenUserId = async function() {
+    it('Tests __providerTokenLogin when return user is null  ', (done) => {
+      mockHappn.services.security.checkTokenUserId = async function () {
         return true;
       };
-      mockHappn.services.security.authorize = async function() {
+      mockHappn.services.security.authorize = async function () {
         return true;
       };
-      mockHappn.services.security.users.getUser = async function() {
+      mockHappn.services.security.users.getUser = async function () {
         return null;
       };
 
@@ -54,8 +52,8 @@ describe(
       });
     });
 
-    it('Tests __providerTokenLogin when something throws an error  ', done => {
-      mockHappn.services.security.checkTokenUserId = async function() {
+    it('Tests __providerTokenLogin when something throws an error  ', (done) => {
+      mockHappn.services.security.checkTokenUserId = async function () {
         throw new Error('bad');
       };
       const happnProvider = HappnProvider.create(mockHappn, {});
@@ -66,8 +64,8 @@ describe(
       });
     });
 
-    it('Tests __digestLogin when verifyAuthenticationDigest returns an error', done => {
-      mockHappn.services.security.verifyAuthenticationDigest = function(creds, callback) {
+    it('Tests __digestLogin when verifyAuthenticationDigest returns an error', (done) => {
+      mockHappn.services.security.verifyAuthenticationDigest = function (creds, callback) {
         callback(new Error('bad'));
       };
       const happnProvider = HappnProvider.create(mockHappn, {});
@@ -78,8 +76,8 @@ describe(
       });
     });
 
-    it('Tests __digestLogin when verifyAuthenticationDigest returns not valid', done => {
-      mockHappn.services.security.verifyAuthenticationDigest = function(creds, callback) {
+    it('Tests __digestLogin when verifyAuthenticationDigest returns not valid', (done) => {
+      mockHappn.services.security.verifyAuthenticationDigest = function (creds, callback) {
         callback(null, false);
       };
       const happnProvider = HappnProvider.create(mockHappn, {});
@@ -95,8 +93,8 @@ describe(
       );
     });
 
-    it('Tests __providerCredsLogin when getUser returns an error  ', done => {
-      mockHappn.services.security.users.getUser = function(user, callback) {
+    it('Tests __providerCredsLogin when getUser returns an error  ', (done) => {
+      mockHappn.services.security.users.getUser = function (user, callback) {
         callback(new Error('bad'));
       };
 
@@ -108,8 +106,8 @@ describe(
       });
     });
 
-    it('Tests __providerCredsLogin when getUser returns null', done => {
-      mockHappn.services.security.users.getUser = function(user, callback) {
+    it('Tests __providerCredsLogin when getUser returns null', (done) => {
+      mockHappn.services.security.users.getUser = function (user, callback) {
         callback(null, null);
       };
 
@@ -123,11 +121,11 @@ describe(
 
     it('Tests __providerCredsLogin when getPasswordHash returns user does not exist error  ', async () => {
       let mockHappn = await mockServices();
-      mockHappn.services.security.users.getUser = function(user, callback) {
+      mockHappn.services.security.users.getUser = function (user, callback) {
         callback(null, { a: 'user' });
       };
 
-      mockHappn.services.security.users.getPasswordHash = function(user, callback) {
+      mockHappn.services.security.users.getPasswordHash = function (user, callback) {
         callback(new Error('userJoe does not exist in the system'));
       };
 
@@ -140,11 +138,11 @@ describe(
 
     it('Tests __providerCredsLogin when getPasswordHash returns another error ', async () => {
       let mockHappn = await mockServices();
-      mockHappn.services.security.users.getUser = function(user, callback) {
+      mockHappn.services.security.users.getUser = function (user, callback) {
         callback(null, { a: 'user' });
       };
 
-      mockHappn.services.security.users.getPasswordHash = function(user, callback) {
+      mockHappn.services.security.users.getPasswordHash = function (user, callback) {
         callback(new Error('some other error'));
       };
 
@@ -155,15 +153,15 @@ describe(
       });
     });
 
-    let stopServices = function(happnMock) {
+    let stopServices = function (happnMock) {
       return new Promise((res, rej) => {
         async.eachSeries(
           ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-          function(serviceName, eachServiceCB) {
+          function (serviceName, eachServiceCB) {
             if (!happnMock.services[serviceName].stop) return eachServiceCB();
             happnMock.services[serviceName].stop(eachServiceCB);
           },
-          e => {
+          (e) => {
             if (e) return rej(e);
             res();
           }
@@ -171,7 +169,7 @@ describe(
       });
     };
 
-    let mockServices = function(servicesConfig) {
+    let mockServices = function (servicesConfig) {
       return new Promise((res, rej) => {
         var testConfig = {
           secure: true,
@@ -179,8 +177,8 @@ describe(
             cache: {},
             data: {},
             crypto: {},
-            security: {}
-          }
+            security: {},
+          },
         };
 
         var testServices = {};
@@ -197,29 +195,29 @@ describe(
         var checkpoint = require('../../../../lib/services/security/checkpoint');
 
         testServices.checkpoint = new checkpoint({
-          logger: Logger
+          logger: Logger,
         });
 
         var happnMock = {
           config: {
             services: {
-              security: {}
-            }
+              security: {},
+            },
           },
           services: {
             system: {
-              package: require('../../../../package.json')
-            }
-          }
+              package: require('../../../../package.json'),
+            },
+          },
         };
 
         if (servicesConfig) testConfig = servicesConfig;
 
         async.eachSeries(
           ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-          function(serviceName, eachServiceCB) {
+          function (serviceName, eachServiceCB) {
             testServices[serviceName] = new testServices[serviceName]({
-              logger: Logger
+              logger: Logger,
             });
 
             testServices[serviceName].happn = happnMock;
@@ -227,7 +225,7 @@ describe(
             happnMock.services[serviceName] = testServices[serviceName];
 
             if (serviceName === 'error')
-              happnMock.services[serviceName].handleFatal = function(message, e) {
+              happnMock.services[serviceName].handleFatal = function (message, e) {
                 throw e;
               };
 
@@ -243,7 +241,7 @@ describe(
                 eachServiceCB
               );
           },
-          function(e) {
+          function (e) {
             if (e) return rej(e);
 
             res(happnMock);

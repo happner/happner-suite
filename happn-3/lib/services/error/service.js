@@ -50,7 +50,7 @@ function SystemError(error, reason, severity) {
 
 SystemError.prototype = Error.prototype;
 
-SystemError.prototype.toString = function() {
+SystemError.prototype.toString = function () {
   return this.name + ': ' + this.message;
 };
 
@@ -66,27 +66,27 @@ ValidationError.prototype = Error.prototype;
 
 function ErrorService() {}
 
-ErrorService.prototype.AccessDeniedError = function(message, reason) {
+ErrorService.prototype.AccessDeniedError = function (message, reason) {
   return new AccessDenied(message, reason);
 };
 
-ErrorService.prototype.ResourceNotFoundError = function(message, reason) {
+ErrorService.prototype.ResourceNotFoundError = function (message, reason) {
   return new ResourceNotFound(message, reason);
 };
 
-ErrorService.prototype.SystemError = function(message, reason) {
+ErrorService.prototype.SystemError = function (message, reason) {
   return new SystemError(message, reason);
 };
 
-ErrorService.prototype.ValidationError = function(message, reason) {
+ErrorService.prototype.ValidationError = function (message, reason) {
   return new ValidationError(message, reason);
 };
 
-ErrorService.prototype.InvalidCredentialsError = function(message, reason) {
+ErrorService.prototype.InvalidCredentialsError = function (message, reason) {
   return new InvalidCredentials(message, reason);
 };
 
-ErrorService.prototype.handleSystem = function(e, area, severity, callback) {
+ErrorService.prototype.handleSystem = function (e, area, severity, callback) {
   if (!area) area = 'System';
 
   if (!severity) severity = CONSTANTS.ERROR_SEVERITY.LOW;
@@ -104,7 +104,7 @@ ErrorService.prototype.handleSystem = function(e, area, severity, callback) {
     logMessage,
     null,
     null,
-    function() {
+    function () {
       if (typeof callback === 'function') {
         return callback(systemError);
       }
@@ -114,7 +114,7 @@ ErrorService.prototype.handleSystem = function(e, area, severity, callback) {
   return systemError;
 };
 
-ErrorService.prototype.handleFatal = function(message, e, area) {
+ErrorService.prototype.handleFatal = function (message, e, area) {
   if (!area) area = 'System';
   this.happn.services.log.write('fatal error', 'fatal', this.SystemError(e.toString()), area);
   // eslint-disable-next-line no-console

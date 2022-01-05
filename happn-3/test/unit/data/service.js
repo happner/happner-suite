@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(5000);
   const DataService = require('../../../lib/services/data/service');
   const Utils = require('../../../lib/services/utils/service');
@@ -26,18 +26,18 @@ describe(test.testName(__filename, 3), function() {
       services: {
         utils: new Utils(),
         system: {
-          package: require('../../../package.json')
-        }
-      }
+          package: require('../../../package.json'),
+        },
+      },
     };
 
-    dataService.initialize(config, e => {
+    dataService.initialize(config, (e) => {
       if (e) return callback(e);
       callback(null, dataService);
     });
   }
 
-  it('tests the _insertDataProvider method', function(done) {
+  it('tests the _insertDataProvider method', function (done) {
     getServiceInstance({}, (e, dataService) => {
       if (e) return done(e);
       dataService.datastores = {};
@@ -48,9 +48,9 @@ describe(test.testName(__filename, 3), function() {
           provider: 'memory',
           isDefault: true,
           settings: {},
-          patterns: ['/TEST/PATTERN/*']
+          patterns: ['/TEST/PATTERN/*'],
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           test.expect(Object.keys(dataService.datastores).length).to.be(1);
           test.expect(Object.keys(dataService.dataroutes)).to.eql(['/TEST/PATTERN/*']);
@@ -65,7 +65,7 @@ describe(test.testName(__filename, 3), function() {
     const dataService = await getServiceInstancePromise();
     const callback = () => {};
     test.sinon.stub(dataService, 'db').returns({
-      upsert: () => {}
+      upsert: () => {},
     });
     const upsertInternalSpy = test.sinon.spy(dataService, '__upsertInternal');
     let getOneByPath = test.sinon
@@ -102,19 +102,19 @@ describe(test.testName(__filename, 3), function() {
         '/path/1',
         {
           data: {
-            test: 1
+            test: 1,
           },
           _meta: {
-            path: '/path/1'
-          }
+            path: '/path/1',
+          },
         },
-        {}
+        {},
       ]);
 
     test.expect(upsertInternalSpy.secondCall.args[0]).to.be('/path/1');
     test.expect(upsertInternalSpy.secondCall.args[2]).to.eql({
       merge: true,
-      upsertType: 0
+      upsertType: 0,
     });
 
     test
@@ -125,13 +125,13 @@ describe(test.testName(__filename, 3), function() {
         '/path/1',
         {
           data: {
-            test: 3
+            test: 3,
           },
           _meta: {
-            path: '/path/1'
-          }
+            path: '/path/1',
+          },
         },
-        {}
+        {},
       ]);
 
     test
@@ -140,20 +140,20 @@ describe(test.testName(__filename, 3), function() {
         '/path/1',
         {
           _meta: {
-            path: '/path/1'
+            path: '/path/1',
           },
           data: {
-            test: 5
-          }
+            test: 5,
+          },
         },
         {
           merge: true,
-          upsertType: 0
-        }
+          upsertType: 0,
+        },
       ]);
   });
 
-  it('tests the _insertDataProvider method insert after default', function(done) {
+  it('tests the _insertDataProvider method insert after default', function (done) {
     let dataService = new DataService();
     dataService.config = {};
     dataService.datastores = {};
@@ -164,9 +164,9 @@ describe(test.testName(__filename, 3), function() {
         name: 'test_store',
         provider: 'memory',
         settings: {},
-        patterns: ['/TEST/PATTERN/*']
+        patterns: ['/TEST/PATTERN/*'],
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
         dataService._insertDataProvider(
           0,
@@ -174,9 +174,9 @@ describe(test.testName(__filename, 3), function() {
             name: 'test_store_1',
             provider: 'memory',
             settings: {},
-            patterns: ['/TEST/PATTERN/1/*']
+            patterns: ['/TEST/PATTERN/1/*'],
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
             test.expect(Object.keys(dataService.datastores).length).to.be(2);
             test
@@ -191,7 +191,7 @@ describe(test.testName(__filename, 3), function() {
     );
   });
 
-  it('tests the parseFields method', function() {
+  it('tests the parseFields method', function () {
     let dataService = new DataService();
 
     var parsedResult = dataService.parseFields({
@@ -200,20 +200,20 @@ describe(test.testName(__filename, 3), function() {
           _id: 'test-id',
           $or: [
             {
-              time: 10
+              time: 10,
             },
             {
-              time: 20
+              time: 20,
             },
             {
-              time: 30
+              time: 30,
             },
             {
-              time: 40
-            }
-          ]
-        }
-      ]
+              time: 40,
+            },
+          ],
+        },
+      ],
     });
 
     test.expect(parsedResult).to.eql({
@@ -222,20 +222,20 @@ describe(test.testName(__filename, 3), function() {
           _id: 'test-id',
           $or: [
             {
-              'data.time': 10
+              'data.time': 10,
             },
             {
-              'data.time': 20
+              'data.time': 20,
             },
             {
-              'data.time': 30
+              'data.time': 30,
             },
             {
-              'data.time': 40
-            }
-          ]
-        }
-      ]
+              'data.time': 40,
+            },
+          ],
+        },
+      ],
     });
 
     parsedResult = dataService.parseFields({
@@ -245,27 +245,27 @@ describe(test.testName(__filename, 3), function() {
           $or: [
             {
               '_meta.path': {
-                $regex: '.*detail-or/10/.*'
-              }
+                $regex: '.*detail-or/10/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/20/.*'
-              }
+                $regex: '.*detail-or/20/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/30/.*'
-              }
+                $regex: '.*detail-or/30/.*',
+              },
             },
             {
               '_meta.path': {
-                $regex: '.*detail-or/40/.*'
-              }
-            }
-          ]
-        }
-      ]
+                $regex: '.*detail-or/40/.*',
+              },
+            },
+          ],
+        },
+      ],
     });
 
     test.expect(parsedResult).to.eql({
@@ -275,38 +275,38 @@ describe(test.testName(__filename, 3), function() {
           $or: [
             {
               path: {
-                $regex: {}
-              }
+                $regex: {},
+              },
             },
             {
               path: {
-                $regex: {}
-              }
+                $regex: {},
+              },
             },
             {
               path: {
-                $regex: {}
-              }
+                $regex: {},
+              },
             },
             {
               path: {
-                $regex: {}
-              }
-            }
-          ]
-        }
-      ]
+                $regex: {},
+              },
+            },
+          ],
+        },
+      ],
     });
   });
 
-  it('tests the addDataStoreFilter and removeDataStoreFilter methods', function(done) {
+  it('tests the addDataStoreFilter and removeDataStoreFilter methods', function (done) {
     const dataService = new DataService();
     const utilsService = new Utils();
     dataService.happn = {
       services: {
         error: {},
-        utils: utilsService
-      }
+        utils: utilsService,
+      },
     };
     dataService.initialize({}, () => {
       const mockDataStore1 = { test: 1 };
@@ -317,18 +317,18 @@ describe(test.testName(__filename, 3), function() {
         test1: {
           name: 'test1',
           patterns: ['/test/1/*'],
-          provider: mockDataStore1
+          provider: mockDataStore1,
         },
         test2: {
           name: 'test2',
           patterns: ['/test/1/2/*'],
-          provider: mockDataStore2
+          provider: mockDataStore2,
         },
         test3: {
           name: 'test3',
           patterns: ['/test/1/2/3/*'],
-          provider: mockDataStore3
-        }
+          provider: mockDataStore3,
+        },
       };
 
       dataService.addDataStoreFilter('/test/1/*', 'test1');

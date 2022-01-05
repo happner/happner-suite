@@ -12,7 +12,7 @@ function UtilsService() {
   this.regexCaches = {};
 }
 
-UtilsService.prototype.clone = function(obj, circular) {
+UtilsService.prototype.clone = function (obj, circular) {
   if (!obj) return obj;
   if (typeof obj === "string") return obj.toString();
   if (!circular) return happnUtils.clone(obj);
@@ -37,21 +37,21 @@ function ensureRegexCache(cacheKey, cacheSize, cacheAsObject) {
       this.regexCaches[cacheKey] = {
         length: 0,
         data: {},
-        has: function(key) {
+        has: function (key) {
           return this.data[key] != null;
         },
-        get: function(key) {
+        get: function (key) {
           return this.data[key];
         },
-        set: function(key, data) {
+        set: function (key, data) {
           this.data[key] = data;
           this.length = Object.keys(this.data).length;
-        }
+        },
       };
     else {
       this.regexCaches[cacheKey] = new LRU({
         max: cacheSize || 10000,
-        maxAge: 0
+        maxAge: 0,
       });
     }
   }
@@ -69,13 +69,13 @@ function wildcardMatch(pattern, matchTo, cacheKey, cacheSize, cacheAsObject) {
   return regex.test(matchTo);
 }
 
-UtilsService.prototype.wildcardMatchMultiple = function(patterns, matchTo, cacheKey, cacheSize) {
+UtilsService.prototype.wildcardMatchMultiple = function (patterns, matchTo, cacheKey, cacheSize) {
   for (var patternIndex in patterns)
     if ((this.wildcardMatch(patterns[patternIndex], matchTo), cacheKey, cacheSize)) return true;
   return false;
 };
 
-UtilsService.prototype.replacePrefix = function(str, prefix, rep) {
+UtilsService.prototype.replacePrefix = function (str, prefix, rep) {
   if (rep == null) rep = "";
 
   if (str && prefix && str.indexOf(prefix) === 0)
@@ -84,7 +84,7 @@ UtilsService.prototype.replacePrefix = function(str, prefix, rep) {
   return str;
 };
 
-UtilsService.prototype.replaceSuffix = function(str, suffix, rep) {
+UtilsService.prototype.replaceSuffix = function (str, suffix, rep) {
   if (rep == null) rep = "";
 
   if (str && suffix && str.substring(str.length - suffix.length, str.length) === suffix)
@@ -93,17 +93,17 @@ UtilsService.prototype.replaceSuffix = function(str, suffix, rep) {
   return str;
 };
 
-UtilsService.prototype.isNumeric = function(n) {
+UtilsService.prototype.isNumeric = function (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
-UtilsService.prototype.toMilliseconds = function(input) {
+UtilsService.prototype.toMilliseconds = function (input) {
   if (!input || input === Infinity) return input;
   if (this.isNumeric(input)) return input;
   else return ms(input);
 };
 
-UtilsService.prototype.hrtimeDiffInMilliseconds = function(previousTime) {
+UtilsService.prototype.hrtimeDiffInMilliseconds = function (previousTime) {
   // Return the difference between 2 hrtimes in milliseconds
   // with appropriate decimal fraction from the nano portion
   // eg. 0.001763 milliseconds or 1000.030201 milliseconds
@@ -111,10 +111,10 @@ UtilsService.prototype.hrtimeDiffInMilliseconds = function(previousTime) {
   return diff[0] * 1000 + diff[1] / 1000000;
 };
 
-UtilsService.prototype.stringContainsAny = function(str, segments, caseInSensitive) {
+UtilsService.prototype.stringContainsAny = function (str, segments, caseInSensitive) {
   var containsAny = false;
 
-  segments.every(function(segment) {
+  segments.every(function (segment) {
     var compareSegment = segment;
     var compareStr = str;
 
@@ -132,18 +132,18 @@ UtilsService.prototype.stringContainsAny = function(str, segments, caseInSensiti
   return containsAny;
 };
 
-UtilsService.prototype.stringifyError = function(err) {
+UtilsService.prototype.stringifyError = function (err) {
   var plainError = {};
-  Object.getOwnPropertyNames(err).forEach(function(key) {
+  Object.getOwnPropertyNames(err).forEach(function (key) {
     plainError[key] = err[key];
   });
   return JSON.stringify(plainError);
 };
 
-UtilsService.prototype.getFirstMatchingProperty = function(properties, obj) {
+UtilsService.prototype.getFirstMatchingProperty = function (properties, obj) {
   var checkProperties = [];
 
-  properties.map(function(propertyName) {
+  properties.map(function (propertyName) {
     checkProperties.push(propertyName.toLowerCase());
   });
 
@@ -152,14 +152,14 @@ UtilsService.prototype.getFirstMatchingProperty = function(properties, obj) {
   return null;
 };
 
-UtilsService.prototype.mergeObjects = function(obj1, obj2, opts) {
+UtilsService.prototype.mergeObjects = function (obj1, obj2, opts) {
   var _this = this;
 
   if (!opts) opts = {};
 
   var newObj = {};
 
-  var getProp = function(obj, propertyName) {
+  var getProp = function (obj, propertyName) {
     if (!opts.clone) return obj[propertyName];
     return _this.clone(obj[propertyName]);
   };
@@ -176,8 +176,8 @@ UtilsService.prototype.mergeObjects = function(obj1, obj2, opts) {
   return newObj;
 };
 
-UtilsService.prototype.promisify = function(originalFunction, opts) {
-  return function() {
+UtilsService.prototype.promisify = function (originalFunction, opts) {
+  return function () {
     var args = Array.prototype.slice.call(arguments);
     var _this = this;
 
@@ -189,9 +189,9 @@ UtilsService.prototype.promisify = function(originalFunction, opts) {
       return originalFunction.apply(this, args);
     }
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // push false callback into arguments
-      args.push(function(error, result, more) {
+      args.push(function (error, result, more) {
         if (error) return reject(error);
         if (more) {
           var args = Array.prototype.slice.call(arguments);
@@ -209,7 +209,7 @@ UtilsService.prototype.promisify = function(originalFunction, opts) {
   };
 };
 
-UtilsService.prototype.fileExists = function(path) {
+UtilsService.prototype.fileExists = function (path) {
   try {
     return fs.statSync(path).isFile();
   } catch (e) {
@@ -217,18 +217,18 @@ UtilsService.prototype.fileExists = function(path) {
   }
 };
 
-UtilsService.prototype.isEmptyObject = function(obj) {
+UtilsService.prototype.isEmptyObject = function (obj) {
   for (let property in obj) {
     return false;
   }
   return true;
 };
 
-UtilsService.prototype.omitProperty = function(obj, propertiesToOmit) {
+UtilsService.prototype.omitProperty = function (obj, propertiesToOmit) {
   return _.omit(obj, propertiesToOmit);
 };
 
-UtilsService.prototype.replaceAll = function(str, search, replacement) {
+UtilsService.prototype.replaceAll = function (str, search, replacement) {
   if (str.replaceAll) return str.replaceAll(search, replacement);
   return replaceAll(str, search, replacement);
 };

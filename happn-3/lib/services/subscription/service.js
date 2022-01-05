@@ -5,7 +5,7 @@ const util = require('util'),
   CONSTANTS = commons.constants,
   TameSearch = require('tame-search'),
   hyperid = commons.hyperid.create({
-    urlSafe: true
+    urlSafe: true,
   }),
   _ = commons._;
 module.exports = SubscriptionService;
@@ -45,7 +45,8 @@ SubscriptionService.prototype.__stripOutVariableDepthExceeded = __stripOutVariab
 SubscriptionService.prototype.__processChangedSubscriptions = __processChangedSubscriptions;
 SubscriptionService.prototype.__removeInvalidProhibitions = __removeInvalidProhibitions;
 SubscriptionService.prototype.__removeInvalidSubscriptions = __removeInvalidSubscriptions;
-SubscriptionService.prototype.__removeExplicitlyRevokedSubscriptions = __removeExplicitlyRevokedSubscriptions;
+SubscriptionService.prototype.__removeExplicitlyRevokedSubscriptions =
+  __removeExplicitlyRevokedSubscriptions;
 SubscriptionService.prototype.__addNewProhibitions = __addNewProhibitions;
 SubscriptionService.prototype.__addNewSubscriptions = __addNewSubscriptions;
 SubscriptionService.prototype.__processUnnestedSubscriptions = __processUnnestedSubscriptions;
@@ -70,9 +71,9 @@ function initialize(config, callback) {
 
     if (typeof this.config.filter === 'function') {
       Object.defineProperty(this, 'originalGetRecipients', {
-        value: this.getFilteredRecipients
+        value: this.getFilteredRecipients,
       });
-      this.getFilteredRecipients = message => {
+      this.getFilteredRecipients = (message) => {
         return this.config.filter(message, this.originalGetRecipients(message));
       };
     }
@@ -95,7 +96,7 @@ function stats() {
 
 function prepareSubscribeMessage(message) {
   message.request.pathData = {
-    parts: message.request.path.split('@')
+    parts: message.request.path.split('@'),
   };
 
   message.request.pathData.action = message.request.pathData.parts[0].replace('/', '');
@@ -119,9 +120,9 @@ function processSubscribe(message, callback) {
       session: {
         id: message.session.id,
         protocol: message.session.protocol,
-        info: message.session.info
+        info: message.session.info,
       },
-      ref: reference
+      ref: reference,
     });
   } catch (e) {
     this.happn.services.error.handleSystem(
@@ -144,18 +145,18 @@ function processMultiSubscribe(message, callback) {
     session: {
       id: message.session.id,
       protocol: message.session.protocol,
-      info: message.session.info
+      info: message.session.info,
     },
-    ref: reference
+    ref: reference,
   };
   this.addListener(message.request.pathData.action, message.request.key, message.session.id, {
     ...data,
     options: {
       ...data.options,
-      wild: true
-    }
+      wild: true,
+    },
   });
-  message.request.allowed.forEach(path => {
+  message.request.allowed.forEach((path) => {
     try {
       let searchPath;
       if (path.endsWith('/*')) {
@@ -181,7 +182,7 @@ function processMultiSubscribe(message, callback) {
       );
     }
   });
-  message.request.prohibited.forEach(path => {
+  message.request.prohibited.forEach((path) => {
     let prohibitedData = { ...data, options: { ...data.options, prohibited: true } };
     try {
       if (path.endsWith('/*')) path += '*';
@@ -225,12 +226,12 @@ function processUnsubscribe(message, callback) {
     message.response = {
       data: {
         id: referenceId,
-        removed: removedReference
+        removed: removedReference,
       },
       _meta: {
         status: 'ok',
-        type: 'response'
-      }
+        type: 'response',
+      },
     };
     callback(null, message);
   } catch (e) {
@@ -239,7 +240,7 @@ function processUnsubscribe(message, callback) {
 }
 
 function __filterTargetRecipients(targetClients, recipients) {
-  return recipients.filter(recipient => {
+  return recipients.filter((recipient) => {
     return targetClients.indexOf(recipient.subscriberKey) > -1;
   });
 }
@@ -257,7 +258,7 @@ function __getRecipients(message) {
 function __stripOutVariableDepthExceeded(dataPath, message, items) {
   var depth = message.request.options.depth;
 
-  return items.filter(function(item) {
+  return items.filter(function (item) {
     return item._meta.path.substring(dataPath.length - 2).split('/').length <= depth ? item : null;
   });
 }
@@ -265,11 +266,11 @@ function __stripOutVariableDepthExceeded(dataPath, message, items) {
 function __doSubscriptionCallback(message, reference, callback, errors) {
   var data = {
     data: {
-      id: reference
+      id: reference,
     },
     _meta: {
-      status: 'ok'
-    }
+      status: 'ok',
+    },
   };
 
   message.response = data;
@@ -287,8 +288,8 @@ function __doSubscriptionCallback(message, reference, callback, errors) {
     {
       sort: {
         modified: 1,
-        path: 1
-      }
+        path: 1,
+      },
     },
     (e, initialItems) => {
       if (e) {
@@ -318,14 +319,14 @@ function addListener(action, path, sessionId, data, wildPath, searchPath) {
   data.path = wildPath || path;
   if (path === '*')
     return this.subscriptions.subscribeAny(sessionId, {
-      data: data
+      data: data,
     });
 
   this.subscriptions.subscribe(
     sessionId,
     this.getSubscriptionPath(action, path),
     {
-      data: data
+      data: data,
     },
     data.options
   );
@@ -335,12 +336,12 @@ function removeListener(referenceId, sessionId, action, path) {
   if (action === '*' && path === '*') return this.clearSessionSubscriptions(sessionId);
 
   const unsubOpts = {
-    returnRemoved: true
+    returnRemoved: true,
   };
 
   if (referenceId)
     unsubOpts.filter = {
-      data: { ref: referenceId }
+      data: { ref: referenceId },
     };
 
   if (path === '*') return this.subscriptions.unsubscribeAll(sessionId, unsubOpts);
@@ -354,12 +355,12 @@ function removeListener(referenceId, sessionId, action, path) {
 
 function clearSessionSubscriptions(sessionId) {
   const references = this.subscriptions.unsubscribeAll(sessionId, {
-    returnRemoved: true
+    returnRemoved: true,
   });
 
   this.emit('session-subscriptions-cleared', {
     sessionId: sessionId,
-    references
+    references,
   });
 
   return references;
@@ -368,8 +369,8 @@ function clearSessionSubscriptions(sessionId) {
 function allListeners(sessionId) {
   return this.subscriptions.searchAll({
     filter: {
-      subscriberKey: sessionId
-    }
+      subscriberKey: sessionId,
+    },
   });
 }
 
@@ -390,7 +391,7 @@ function securityDirectoryChanged(whatHappnd, _changedData, effectedSessions) {
           ? this.__processChangedSubscriptions(effectedSession, sessionCB)
           : this.__processUnnestedSubscriptions(effectedSession, sessionCB);
       },
-      e => {
+      (e) => {
         if (e) return reject(e);
         resolve(effectedSessions);
       }
@@ -401,7 +402,7 @@ function removeListenerExtended(filter, sessionId, action, path) {
   if (action === '*' && path === '*') return this.clearSessionSubscriptions(sessionId);
 
   const unsubOpts = {
-    returnRemoved: true
+    returnRemoved: true,
   };
 
   unsubOpts.filter = filter;
@@ -423,14 +424,14 @@ function getFilteredRecipients(message) {
 }
 
 function filterRecipients(message, recipients) {
-  recipients = recipients.filter(rec => !(rec.data.options && rec.data.options.wild === true));
+  recipients = recipients.filter((rec) => !(rec.data.options && rec.data.options.wild === true));
   // recipients with options.wild = true are just place-holders in case of security directory changes
   let prohibited;
 
   [prohibited, recipients] = _.partition(recipients, ['data.options.prohibited', true]);
   if (prohibited.length === 0) return recipients;
   let prohibitionsDict = prohibited
-    .map(rec => rec.data)
+    .map((rec) => rec.data)
     .reduce((prohibitedLists, current) => {
       prohibitedLists[current.session.id] = prohibitedLists[current.session.id] || {};
       if (current.searchPath.endsWith('*')) {
@@ -445,7 +446,7 @@ function filterRecipients(message, recipients) {
       return prohibitedLists;
     }, {});
 
-  recipients = recipients.filter(rec => {
+  recipients = recipients.filter((rec) => {
     let sessionList = prohibitionsDict[rec.data.session.id];
     if (!sessionList) return true;
     if (
@@ -457,7 +458,7 @@ function filterRecipients(message, recipients) {
     if (
       sessionList.wild &&
       sessionList.wild.some(
-        path =>
+        (path) =>
           this.__startsWithMask(rec.data.searchPath, path) ||
           this.__startsWithMask(message.request.path, path)
       )
@@ -479,22 +480,22 @@ function __processChangedSubscriptions(effectedSession, callback) {
         let prohibitedPaths = {
           explicit: relevantPaths.prohibited,
           wild: relevantPaths.prohibited
-            .filter(path => path.endsWith('*'))
-            .map(path => path.replace(/\/\*+$/, '/'))
+            .filter((path) => path.endsWith('*'))
+            .map((path) => path.replace(/\/\*+$/, '/')),
         };
         let allowedPaths = {
           explicit: relevantPaths.allowed,
           wild: relevantPaths.allowed
-            .filter(path => path.endsWith('*'))
-            .map(path => path.replace(/\/\*+$/, '/'))
+            .filter((path) => path.endsWith('*'))
+            .map((path) => path.replace(/\/\*+$/, '/')),
         };
         let prohibitedSubs, allowedSubs, wildSubs;
         [prohibitedSubs, allowedSubs] = _.partition(references, ['data.options.prohibited', true]);
         [wildSubs, allowedSubs] = _.partition(allowedSubs, ['data.options.wild', true]);
 
-        let nestedWildSubs = wildSubs.filter(sub => sub.data.path.endsWith('/**'));
-        let wildSubPaths = wildSubs.map(sub => sub.data.path.replace(/\/\*+$/, '/'));
-        let nestedWildSubPaths = nestedWildSubs.map(sub => sub.data.path.replace(/\/\*+$/, '/'));
+        let nestedWildSubs = wildSubs.filter((sub) => sub.data.path.endsWith('/**'));
+        let wildSubPaths = wildSubs.map((sub) => sub.data.path.replace(/\/\*+$/, '/'));
+        let nestedWildSubPaths = nestedWildSubs.map((sub) => sub.data.path.replace(/\/\*+$/, '/'));
 
         this.__removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths);
         this.__removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths);
@@ -518,13 +519,13 @@ function __processChangedSubscriptions(effectedSession, callback) {
 
 function __removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths) {
   let removeProhibitions = prohibitedSubs.filter(
-    sub =>
+    (sub) =>
       !(
         prohibitedPaths.explicit.includes(sub.data.searchPath) ||
-        prohibitedPaths.wild.some(path => this.__startsWithMask(sub.data.searchPath, path))
+        prohibitedPaths.wild.some((path) => this.__startsWithMask(sub.data.searchPath, path))
       )
   );
-  removeProhibitions.forEach(sub => {
+  removeProhibitions.forEach((sub) => {
     this.removeListenerExtended(
       { data: { ref: sub.data.ref, options: { prohibited: true } } },
       effectedSession.id,
@@ -536,18 +537,18 @@ function __removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibited
 
 function __removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths) {
   let noLongerValidSubs = allowedSubs.filter(
-    sub =>
+    (sub) =>
       allowedPaths.explicit.indexOf(sub.data.searchPath) < 0 &&
-      !allowedPaths.wild.some(wildPath => this.__startsWithMask(sub.data.searchPath, wildPath))
+      !allowedPaths.wild.some((wildPath) => this.__startsWithMask(sub.data.searchPath, wildPath))
   );
-  noLongerValidSubs.forEach(sub => {
+  noLongerValidSubs.forEach((sub) => {
     this.removeListenerExtended(
       {
         data: {
           ref: sub.data.ref,
           options: { prohibited: { $ne: true } },
-          searchPath: sub.data.searchPath
-        }
+          searchPath: sub.data.searchPath,
+        },
       },
       effectedSession.id,
       sub.data.action,
@@ -558,18 +559,18 @@ function __removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths
 
 function __removeExplicitlyRevokedSubscriptions(effectedSession, allowedSubs, prohibitedPaths) {
   let revoked = allowedSubs.filter(
-    sub =>
+    (sub) =>
       prohibitedPaths.explicit.includes(sub.data.searchPath) ||
-      prohibitedPaths.wild.some(path => this.__startsWithMask(sub.data.searchPath, path))
+      prohibitedPaths.wild.some((path) => this.__startsWithMask(sub.data.searchPath, path))
   );
-  revoked.forEach(sub => {
+  revoked.forEach((sub) => {
     this.removeListenerExtended(
       {
         data: {
           ref: sub.data.ref,
           options: { prohibited: { $ne: true } },
-          searchPath: sub.data.searchPath
-        }
+          searchPath: sub.data.searchPath,
+        },
       },
       effectedSession.id,
       sub.data.action,
@@ -580,19 +581,19 @@ function __removeExplicitlyRevokedSubscriptions(effectedSession, allowedSubs, pr
 
 function __addNewProhibitions(effectedSession, prohibitedSubs, prohibitedPaths, wildSubPaths) {
   let wildProhibitedSubsPaths = prohibitedSubs
-    .filter(sub => sub.data.searchPath.endsWith('*'))
-    .map(sub => sub.data.searchPath.replace(/\*+$/, ''));
+    .filter((sub) => sub.data.searchPath.endsWith('*'))
+    .map((sub) => sub.data.searchPath.replace(/\*+$/, ''));
   let newProhibitions = prohibitedPaths.explicit.filter(
-    prohibitPath =>
-      wildSubPaths.some(subPath => this.__startsWithMask(prohibitPath, subPath)) &&
-      !prohibitedSubs.some(sub => sub.data.searchPath === prohibitPath) &&
-      !wildProhibitedSubsPaths.some(path => this.__startsWithMask(prohibitPath, path))
+    (prohibitPath) =>
+      wildSubPaths.some((subPath) => this.__startsWithMask(prohibitPath, subPath)) &&
+      !prohibitedSubs.some((sub) => sub.data.searchPath === prohibitPath) &&
+      !wildProhibitedSubsPaths.some((path) => this.__startsWithMask(prohibitPath, path))
   );
   //Need to add a reference for these prohibitions (?)
-  newProhibitions.forEach(path => {
+  newProhibitions.forEach((path) => {
     this.addListener('ALL', path, effectedSession.id, {
       options: { prohibited: true },
-      session: effectedSession
+      session: effectedSession,
     });
   });
 }
@@ -606,23 +607,25 @@ function __addNewSubscriptions(
   wildSubPaths
 ) {
   //Add subscriptions on paths where we have a wild subscription further up the tree, and now have a permission
-  let allowedSubPaths = allowedSubs.map(sub => sub.data.searchPath);
-  let subscriptionsOnStarPermission = allowedSubPaths.filter(path => path.endsWith('/*'));
+  let allowedSubPaths = allowedSubs.map((sub) => sub.data.searchPath);
+  let subscriptionsOnStarPermission = allowedSubPaths.filter((path) => path.endsWith('/*'));
   let newSubPaths = allowedPaths.explicit.filter(
-    allowedPath =>
+    (allowedPath) =>
       !allowedPath.endsWith('*') &&
       allowedSubPaths.indexOf(allowedPath) < 0 &&
-      wildSubPaths.some(subPath => this.__startsWithMask(allowedPath, subPath)) &&
-      !subscriptionsOnStarPermission.some(subPath => this.__startsWithMask(allowedPath, subPath)) &&
+      wildSubPaths.some((subPath) => this.__startsWithMask(allowedPath, subPath)) &&
+      !subscriptionsOnStarPermission.some((subPath) =>
+        this.__startsWithMask(allowedPath, subPath)
+      ) &&
       prohibitedPaths.explicit.indexOf(allowedPath) < 0 &&
-      !prohibitedPaths.wild.some(prohibitedPath =>
+      !prohibitedPaths.wild.some((prohibitedPath) =>
         this.__startsWithMask(allowedPath, prohibitedPath)
       )
   );
-  newSubPaths.forEach(newPath => {
+  newSubPaths.forEach((newPath) => {
     wildSubs
-      .filter(wildSub => this.__startsWithMask(newPath, wildSub.data.path.replace(/\/\*+$/, '/')))
-      .forEach(sub => {
+      .filter((wildSub) => this.__startsWithMask(newPath, wildSub.data.path.replace(/\/\*+$/, '/')))
+      .forEach((sub) => {
         let action = sub.data.action;
         this.addListener(
           action,
@@ -632,9 +635,9 @@ function __addNewSubscriptions(
             ...sub.data,
             options: {
               ...sub.data.options,
-              wild: false
+              wild: false,
             },
-            searchPath: newPath
+            searchPath: newPath,
           },
           sub.data.path
         );

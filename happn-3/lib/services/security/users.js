@@ -59,22 +59,22 @@ function initialize(config, securityService, callback) {
     if (!config.__cache_users)
       config.__cache_users = {
         max: 5000,
-        maxAge: 0
+        maxAge: 0,
       };
 
     this.__cache_users = this.cacheService.new('cache_security_users', {
       type: 'LRU',
-      cache: config.__cache_users
+      cache: config.__cache_users,
     });
     this.__cache_passwords = this.cacheService.new('cache_security_passwords', {
       type: 'LRU',
-      cache: config.__cache_users
+      cache: config.__cache_users,
     });
 
     if (!config.__cache_users_by_groups)
       config.__cache_users_by_groups = {
         max: 10000,
-        maxAge: 0
+        maxAge: 0,
       };
     this.__cache_users_by_groups = UsersByGroupCache.create(
       this.cacheService,
@@ -104,8 +104,8 @@ function initialize(config, securityService, callback) {
 }
 
 function clearGroupUsersFromCache(groupName) {
-  return this.listUserNamesByGroup(groupName).then(usernames => {
-    usernames.forEach(username => {
+  return this.listUserNamesByGroup(groupName).then((usernames) => {
+    usernames.forEach((username) => {
       this.__cache_users.remove(username);
     });
   });
@@ -221,7 +221,7 @@ function getPasswordHash(username, callback) {
 
       if (!user) return callback(new Error(username + ' does not exist in the system'));
 
-      this.__cache_passwords.set(user.data.username, user.data.password, e => {
+      this.__cache_passwords.set(user.data.username, user.data.password, (e) => {
         if (e) return callback(e);
 
         callback(null, user.data.password);
@@ -287,7 +287,7 @@ function upsertUser(user, options, callback) {
     return callback(new Error('user is null or not an object'));
 
   user.username = this.prepareUserName(user.username);
-  this.__validate('user', options, user, async e => {
+  this.__validate('user', options, user, async (e) => {
     if (e) return callback(e);
     try {
       let upserted = await this.__upsertUser(user, options);
@@ -350,7 +350,7 @@ async function deleteUser(user, callback) {
     this.log.info(`user deleted: ${user.username}`);
     deleted = {
       obj,
-      tree
+      tree,
     };
 
     await this.__cache_users.remove(preparedUserName);
@@ -360,7 +360,7 @@ async function deleteUser(user, callback) {
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.DELETE_USER,
       deleted,
       null,
-      e => {
+      (e) => {
         if (e) {
           this.log.error(`user delete failure to propagate event: ${e.message}`);
         }
@@ -411,7 +411,7 @@ function __linkGroupsToUser(user, callback) {
   user.groups = {};
   this.getGroupMemberships(user.username, (e, userGroups) => {
     if (e) return callback(e);
-    userGroups.forEach(userGroup => {
+    userGroups.forEach((userGroup) => {
       //we have found a group linked to the user, add the group, by its name to the groups object
       user.groups[userGroup.groupName] = userGroup.membership;
     });
@@ -425,21 +425,21 @@ function getGroupMemberships(username, callback) {
     `${userPath}/_USER_GROUP/*`,
     {
       sort: {
-        path: 1
-      }
+        path: 1,
+      },
     },
     (e, userGroups) => {
       if (e) return callback(e);
       callback(
         null,
         userGroups
-          .filter(userGroup => {
+          .filter((userGroup) => {
             return userGroup._meta.path.indexOf(`${userPath}/`) === 0;
           })
-          .map(membership => {
+          .map((membership) => {
             return {
               groupName: membership._meta.path.replace(`${userPath}/_USER_GROUP/`, ''),
-              membership: this.utilsService.omitProperty(membership, ['_meta'])
+              membership: this.utilsService.omitProperty(membership, ['_meta']),
             };
           })
       );
@@ -487,7 +487,7 @@ function listUsers(userName, options, callback) {
   let searchParameters = {
     criteria: options.criteria,
     sort: options.sort,
-    options: {}
+    options: {},
   };
 
   if (options.limit) searchParameters.options.limit = options.limit;
@@ -512,7 +512,7 @@ function listUsers(userName, options, callback) {
 function __getUserNamesFromGroupLinks(userGroupLinks) {
   if (userGroupLinks == null) return [];
   let iterableUserGroupLinks = userGroupLinks.paths ? userGroupLinks.paths : userGroupLinks;
-  return iterableUserGroupLinks.map(link => {
+  return iterableUserGroupLinks.map((link) => {
     return link._meta.path.split('/_SYSTEM/_SECURITY/_USER/')[1].split('/_USER_GROUP/')[0];
   });
 }
@@ -530,7 +530,7 @@ function listUserNamesByGroup(groupName) {
 
     this.dataService
       .get('/_SYSTEM/_SECURITY/_USER/*/_USER_GROUP/' + groupName, { path_only: true }) // TODO return to true once #180 is resolved
-      .then(userGroupLinks => {
+      .then((userGroupLinks) => {
         let result = this.__getUserNamesFromGroupLinks(userGroupLinks);
         if (groupName.indexOf('*') === -1) {
           this.__cache_users_by_groups.cacheResult(groupName, result);
@@ -557,7 +557,7 @@ function listUsersByGroup(groupName, options, callback) {
   userSearchCriteria.$and.push({ username: { $exists: true } });
 
   this.listUserNamesByGroup(groupName)
-    .then(usernames => {
+    .then((usernames) => {
       if (usernames.length === 0) return callback(null, []);
       userSearchCriteria.$and.push({ username: { $in: usernames } });
       this.dataService.get(

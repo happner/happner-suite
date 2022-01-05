@@ -1,6 +1,6 @@
 const tests = require('../../__fixtures/utils/test_helper').create();
 
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   const happn = require('../../../lib/index');
   let serviceInstance;
   let adminClient;
@@ -65,7 +65,7 @@ describe(tests.testName(__filename, 3), function() {
         () => {
           //do nothing
         },
-        e => {
+        (e) => {
           if (e) {
             // eslint-disable-next-line no-console
             console.log('failed attaching to event' + e.message);
@@ -117,23 +117,23 @@ describe(tests.testName(__filename, 3), function() {
         .reduce((permissions, permissionPath) => {
           permissions[permissionPath] = { actions: ['*'] };
           return permissions;
-        }, {})
+        }, {}),
     };
   }
 
   function getUser(groupIndex) {
     return {
       username: `USER_${groupIndex}`,
-      password: 'TEST-PWD'
+      password: 'TEST-PWD',
     };
   }
 
   function startSecureService(done) {
     getService(
       {
-        secure: true
+        secure: true,
       },
-      function(e, service) {
+      function (e, service) {
         if (e) return done(e);
         serviceInstance = service;
         done();
@@ -143,11 +143,11 @@ describe(tests.testName(__filename, 3), function() {
 
   function stopAndDisconnect(done) {
     this.timeout(15000);
-    testClients.forEach(client => client.disconnect());
+    testClients.forEach((client) => client.disconnect());
     if (adminClient) adminClient.disconnect();
     if (!serviceInstance) return done();
-    setTimeout(function() {
-      serviceInstance.stop(function() {
+    setTimeout(function () {
+      serviceInstance.stop(function () {
         done();
       });
     }, 3000);

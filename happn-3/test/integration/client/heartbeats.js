@@ -6,14 +6,14 @@ const Happn = require('../../..'),
   path = require('path'),
   testHelper = require('../../__fixtures/utils/test_helper').create();
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   this.timeout(120e3);
 
   it('test the client detects the end of the connection to the server', async () => {
     const service = await startHappnService();
     const proxy = await startProxyService();
     const client = await connectClient({
-      port: 11235
+      port: 11235,
     });
     await testClient(client);
     expect(client.socket.timers.timers['heartbeat'] != null).to.be(true);
@@ -36,8 +36,8 @@ describe(testHelper.testName(__filename, 3), function() {
     const client = await connectClient({
       port: 55000,
       socket: {
-        pingTimeout: false
-      }
+        pingTimeout: false,
+      },
     });
     await testClient(client);
     expect(client.socket.timers.timers['heartbeat'] == null).to.be(true);
@@ -66,7 +66,7 @@ describe(testHelper.testName(__filename, 3), function() {
         () => {
           resolve();
         },
-        e => {
+        (e) => {
           if (e) return reject(e);
         }
       );
@@ -76,7 +76,7 @@ describe(testHelper.testName(__filename, 3), function() {
 
   function connectClient(opts) {
     return new Promise((resolve, reject) => {
-      HappnClient.create(opts, function(e, instance) {
+      HappnClient.create(opts, function (e, instance) {
         if (e) return reject(e);
         return resolve(instance);
       });

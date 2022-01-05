@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var service1 = happn.service;
     var service2 = happn.service;
@@ -22,25 +20,25 @@ describe(
 
     var instances = [];
 
-    after('stop all services', function(callback) {
+    after('stop all services', function (callback) {
       service1Client
         .disconnect({
-          timeout: 2000
+          timeout: 2000,
         })
         .then(
           service2Client.disconnect({
-            timeout: 2000
+            timeout: 2000,
           })
         )
         .then(
           defaultClient.disconnect({
-            timeout: 2000
+            timeout: 2000,
           })
         )
-        .then(function() {
+        .then(function () {
           async.eachSeries(
             instances,
-            function(instance, eachCallback) {
+            function (instance, eachCallback) {
               instance.stop(eachCallback);
             },
             callback
@@ -49,12 +47,12 @@ describe(
         .catch(callback);
     });
 
-    var initializeService = function(instance, port, callback) {
+    var initializeService = function (instance, port, callback) {
       instance.initialize(
         {
-          port: port
+          port: port,
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
 
           instances.push(instance);
@@ -63,14 +61,14 @@ describe(
       );
     };
 
-    it('should initialize the services', function(callback) {
+    it('should initialize the services', function (callback) {
       this.timeout(20000);
 
       try {
-        initializeService(service1, service1Port, function(e) {
+        initializeService(service1, service1Port, function (e) {
           if (e) return callback(e);
 
-          initializeService(service2, service2Port, function(e) {
+          initializeService(service2, service2Port, function (e) {
             if (e) return callback(e);
 
             initializeService(serviceDefault, null, callback);
@@ -81,7 +79,7 @@ describe(
       }
     });
 
-    it('should initialize the clients', function(callback) {
+    it('should initialize the clients', function (callback) {
       this.timeout(default_timeout);
 
       try {
@@ -90,30 +88,30 @@ describe(
         happn_client.create(
           {
             config: {
-              port: service1Port
-            }
+              port: service1Port,
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
 
             service1Client = instance;
             happn_client.create(
               {
                 config: {
-                  port: service2Port
-                }
+                  port: service2Port,
+                },
               },
-              function(e, instance) {
+              function (e, instance) {
                 if (e) return callback(e);
 
                 service2Client = instance;
                 happn_client.create(
                   {
                     config: {
-                      port: 55000
-                    }
+                      port: 55000,
+                    },
                   },
-                  function(e, instance) {
+                  function (e, instance) {
                     if (e) return callback(e);
 
                     defaultClient = instance;

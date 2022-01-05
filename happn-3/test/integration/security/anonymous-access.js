@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   const request = require('request');
   const happn = require('../../../lib/index');
   let serviceInstance, serviceInstanceAnonymous;
@@ -20,19 +20,19 @@ describe(test.testName(__filename, 3), function() {
       services: {
         security: {
           config: {
-            allowAnonymousAccess: true
-          }
-        }
-      }
+            allowAnonymousAccess: true,
+          },
+        },
+      },
     });
     serviceInstance = await getService({
       port: 55001,
-      secure: true
+      secure: true,
     });
 
     adminClient = await getClient({
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
   });
 
@@ -40,24 +40,24 @@ describe(test.testName(__filename, 3), function() {
     this.timeout(15000);
     if (anonymousClient)
       await anonymousClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
     if (anonymousClientWS)
       await anonymousClientWS.disconnect({
-        reconnect: false
+        reconnect: false,
       });
     if (adminClient)
       await adminClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
     serviceInstance.stop();
     serviceInstanceAnonymous.stop();
   });
 
-  context('login', function() {
+  context('login', function () {
     it('authenticates with the anonymous user', async () => {
       anonymousClient = await serviceInstanceAnonymous.services.session.localClient({
-        username: '_ANONYMOUS'
+        username: '_ANONYMOUS',
       });
     });
 
@@ -65,7 +65,7 @@ describe(test.testName(__filename, 3), function() {
       let message;
       try {
         await serviceInstance.services.session.localClient({
-          username: '_ANONYMOUS'
+          username: '_ANONYMOUS',
         });
       } catch (e) {
         message = e.message;
@@ -75,7 +75,7 @@ describe(test.testName(__filename, 3), function() {
 
     it('authenticates with the anonymous user - websocket', async () => {
       anonymousClientWS = await getClient({
-        username: '_ANONYMOUS'
+        username: '_ANONYMOUS',
       });
     });
 
@@ -85,8 +85,8 @@ describe(test.testName(__filename, 3), function() {
         await getClient({
           config: {
             username: '_ANONYMOUS',
-            port: 55001
-          }
+            port: 55001,
+          },
         });
       } catch (e) {
         message = e.message;
@@ -95,13 +95,13 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  context('user creation and updates', function() {
+  context('user creation and updates', function () {
     it('fails to add anonymous user', async () => {
       let message;
       try {
         await serviceInstance.services.security.users.upsertUser({
           username: '_ANONYMOUS',
-          password: 'anonymous'
+          password: 'anonymous',
         });
       } catch (e) {
         message = e.message;
@@ -114,7 +114,7 @@ describe(test.testName(__filename, 3), function() {
       try {
         await serviceInstanceAnonymous.services.security.users.upsertUser({
           username: '_ANONYMOUS',
-          password: 'anonymous'
+          password: 'anonymous',
         });
       } catch (e) {
         message = e.message;
@@ -123,7 +123,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  context('resources access testing', function() {
+  context('resources access testing', function () {
     before('creates and links an anonymous group to the anonymous user successfully', async () => {
       await createAndLinkAnonymousGroup(serviceInstanceAnonymous);
     });
@@ -141,19 +141,19 @@ describe(test.testName(__filename, 3), function() {
       }
     );
 
-    it('checks allowed on, and prevented from on', function(done) {
+    it('checks allowed on, and prevented from on', function (done) {
       anonymousClientWS.on(
         '/anonymous/' + test_id + '/on',
         {},
-        function() {},
-        function(e) {
+        function () {},
+        function (e) {
           if (e) return done(e);
 
           anonymousClientWS.on(
             '/anonymous/dodge/' + test_id + '/on',
             {},
-            function() {},
-            function(e) {
+            function () {},
+            function (e) {
               if (!e)
                 return done(
                   new Error(
@@ -169,23 +169,23 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed on, and prevented from on', function(done) {
+    it('delegated authority: checks allowed on, and prevented from on', function (done) {
       adminClient.on(
         '/anonymous/' + test_id + '/on',
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function() {},
-        function(e) {
+        function () {},
+        function (e) {
           if (e) return done(e);
 
           adminClient.on(
             '/anonymous/dodge/' + test_id + '/on',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function() {},
-            function(e) {
+            function () {},
+            function (e) {
               if (!e)
                 return done(
                   new Error(
@@ -201,8 +201,8 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed set, and prevented from set', function(done) {
-      anonymousClientWS.set('/anonymous/' + test_id + '/set', {}, function(e, result) {
+    it('checks allowed set, and prevented from set', function (done) {
+      anonymousClientWS.set('/anonymous/' + test_id + '/set', {}, function (e, result) {
         if (e) return done(e);
 
         expect(result._meta.path).to.be('/anonymous/' + test_id + '/set');
@@ -210,10 +210,10 @@ describe(test.testName(__filename, 3), function() {
         anonymousClientWS.set(
           '/anonymous/dodge/' + test_id + '/set',
           {
-            test: 'test'
+            test: 'test',
           },
           {},
-          function(e) {
+          function (e) {
             if (!e)
               return done(new Error('you just set data that you shouldnt have permissions to set'));
             expect(e.toString()).to.be('AccessDenied: unauthorized');
@@ -223,14 +223,14 @@ describe(test.testName(__filename, 3), function() {
       });
     });
 
-    it('delegated authority: checks allowed set, and prevented from set', function(done) {
+    it('delegated authority: checks allowed set, and prevented from set', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/set',
         {},
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return done(e);
 
           expect(result._meta.path).to.be('/anonymous/' + test_id + '/set');
@@ -238,12 +238,12 @@ describe(test.testName(__filename, 3), function() {
           adminClient.set(
             '/anonymous/dodge/' + test_id + '/set',
             {
-              test: 'test'
+              test: 'test',
             },
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e) {
+            function (e) {
               if (!e)
                 return done(
                   new Error('you just set data that you shouldnt have permissions to set')
@@ -256,28 +256,28 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks prevented from getPaths', function(done) {
+    it('delegated authority: checks prevented from getPaths', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/getPaths/1',
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           expect(e == null).to.be(true);
           adminClient.set(
             '/anonymous/' + test_id + '/getPaths/2',
             {
               property1: 'property1',
               property2: 'property2',
-              property3: 'property3'
+              property3: 'property3',
             },
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e) {
+            function (e) {
               if (!e)
                 return done(
                   new Error('you just set data that you shouldnt have permissions to set')
@@ -290,15 +290,15 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks prevented from increment', function(done) {
+    it('delegated authority: checks prevented from increment', function (done) {
       adminClient.increment(
         '/anonymous/' + test_id + '/increment',
         'counter',
         1,
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function(e) {
+        function (e) {
           if (!e)
             return done(new Error('you just set data that you shouldnt have permissions to set'));
           expect(e.toString()).to.be('AccessDenied: unauthorized');
@@ -307,21 +307,21 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed get, and prevented from get', function(done) {
+    it('checks allowed get, and prevented from get', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
-          anonymousClientWS.get('/anonymous/' + test_id + '/get', {}, function(e, result) {
+          anonymousClientWS.get('/anonymous/' + test_id + '/get', {}, function (e, result) {
             if (e) return done(e);
             expect(result._meta.path).to.be('/anonymous/' + test_id + '/get');
 
-            anonymousClientWS.get('/anonymous/dodge/' + test_id + '/get', {}, function(e) {
+            anonymousClientWS.get('/anonymous/dodge/' + test_id + '/get', {}, function (e) {
               if (!e)
                 return done(
                   new Error('you managed to get data which you do not have permissions for')
@@ -334,31 +334,31 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed get, and prevented from get', function(done) {
+    it('delegated authority: checks allowed get, and prevented from get', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
           adminClient.get(
             '/anonymous/' + test_id + '/get',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return done(e);
               expect(result._meta.path).to.be('/anonymous/' + test_id + '/get');
 
               adminClient.get(
                 '/anonymous/dodge/' + test_id + '/get',
                 {
-                  onBehalfOf: anonymousClientWS.session.user.username
+                  onBehalfOf: anonymousClientWS.session.user.username,
                 },
-                function(e) {
+                function (e) {
                   if (!e)
                     return done(
                       new Error('you managed to get data which you do not have permissions for')
@@ -373,21 +373,21 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed count, and prevented from count', function(done) {
+    it('checks allowed count, and prevented from count', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/count',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
-          anonymousClientWS.count('/anonymous/' + test_id + '/count', {}, function(e, result) {
+          anonymousClientWS.count('/anonymous/' + test_id + '/count', {}, function (e, result) {
             if (e) return done(e);
             expect(result.value).to.be(1);
 
-            anonymousClientWS.get('/anonymous/dodge/' + test_id + '/count', {}, function(e) {
+            anonymousClientWS.get('/anonymous/dodge/' + test_id + '/count', {}, function (e) {
               if (!e)
                 return done(
                   new Error('you managed to get data which you do not have permissions for')
@@ -400,18 +400,18 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed get but not set', function(done) {
-      anonymousClientWS.get('/anonymous/' + test_id + '/get', {}, function(e, result) {
+    it('checks allowed get but not set', function (done) {
+      anonymousClientWS.get('/anonymous/' + test_id + '/get', {}, function (e, result) {
         if (e) return done(e);
         expect(result._meta.path).to.be('/anonymous/' + test_id + '/get');
 
         anonymousClientWS.set(
           '/anonymous/' + test_id + '/get',
           {
-            test: 'test'
+            test: 'test',
           },
           {},
-          function(e) {
+          function (e) {
             if (!e)
               return done(new Error('you just set data that you shouldnt have permissions to set'));
             expect(e.toString()).to.be('AccessDenied: unauthorized');
@@ -421,25 +421,25 @@ describe(test.testName(__filename, 3), function() {
       });
     });
 
-    it('delegated authority: checks allowed get but not set', function(done) {
+    it('delegated authority: checks allowed get but not set', function (done) {
       adminClient.get(
         '/anonymous/' + test_id + '/get',
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return done(e);
           expect(result._meta.path).to.be('/anonymous/' + test_id + '/get');
 
           adminClient.set(
             '/anonymous/' + test_id + '/get',
             {
-              test: 'test'
+              test: 'test',
             },
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e) {
+            function (e) {
               if (!e)
                 return done(
                   new Error('you just set data that you shouldnt have permissions to set')
@@ -452,33 +452,33 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed get and on but not set', function(done) {
+    it('checks allowed get and on but not set', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/get_on',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          anonymousClientWS.get('/anonymous/' + test_id + '/comp/get_on', {}, function(e, result) {
+          anonymousClientWS.get('/anonymous/' + test_id + '/comp/get_on', {}, function (e, result) {
             if (e) return done(e);
             expect(result._meta.path).to.be('/anonymous/' + test_id + '/comp/get_on');
 
             anonymousClientWS.on(
               '/anonymous/' + test_id + '/comp/get_on',
               {},
-              function() {},
-              function(e) {
+              function () {},
+              function (e) {
                 if (e) return done(e);
 
                 anonymousClientWS.set(
                   '/anonymous/' + test_id + '/comp/get_on',
                   {
-                    test: 'test'
+                    test: 'test',
                   },
                   {},
-                  function(e) {
+                  function (e) {
                     if (!e)
                       return done(
                         new Error('you just set data that you shouldnt have permissions to set')
@@ -494,42 +494,42 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed get and on but not set', function(done) {
+    it('delegated authority: checks allowed get and on but not set', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/get_on',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
           adminClient.get(
             '/anonymous/' + test_id + '/comp/get_on',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return done(e);
               expect(result._meta.path).to.be('/anonymous/' + test_id + '/comp/get_on');
 
               adminClient.on(
                 '/anonymous/' + test_id + '/comp/get_on',
                 {
-                  onBehalfOf: anonymousClientWS.session.user.username
+                  onBehalfOf: anonymousClientWS.session.user.username,
                 },
-                function() {},
-                function(e) {
+                function () {},
+                function (e) {
                   if (e) return done(e);
 
                   adminClient.set(
                     '/anonymous/' + test_id + '/comp/get_on',
                     {
-                      test: 'test'
+                      test: 'test',
                     },
                     {
-                      onBehalfOf: anonymousClientWS.session.user.username
+                      onBehalfOf: anonymousClientWS.session.user.username,
                     },
-                    function(e) {
+                    function (e) {
                       if (!e)
                         return done(
                           new Error('you just set data that you shouldnt have permissions to set')
@@ -546,62 +546,27 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed get but not on', function(done) {
+    it('checks allowed get but not on', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/get_not_on',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          anonymousClientWS.get('/anonymous/' + test_id + '/comp/get_not_on', {}, function(
-            e,
-            result
-          ) {
-            if (e) return done(e);
-            expect(result._meta.path).to.be('/anonymous/' + test_id + '/comp/get_not_on');
-
-            anonymousClientWS.on(
-              '/anonymous/' + test_id + '/comp/get_not_on',
-              {},
-              function() {},
-              function(e) {
-                if (!e) return done(new Error('this should not have been allowed...'));
-                expect(e.toString()).to.be('AccessDenied: unauthorized');
-                done();
-              }
-            );
-          });
-        }
-      );
-    });
-
-    it('delegated authority: checks allowed get but not on', function(done) {
-      adminClient.set(
-        '/anonymous/' + test_id + '/comp/get_not_on',
-        {
-          'test-set': 'test-set-val'
-        },
-        {},
-        function(e) {
-          if (e) return done(e);
-          adminClient.get(
+          anonymousClientWS.get(
             '/anonymous/' + test_id + '/comp/get_not_on',
-            {
-              onBehalfOf: anonymousClientWS.session.user.username
-            },
-            function(e, result) {
+            {},
+            function (e, result) {
               if (e) return done(e);
               expect(result._meta.path).to.be('/anonymous/' + test_id + '/comp/get_not_on');
 
-              adminClient.on(
+              anonymousClientWS.on(
                 '/anonymous/' + test_id + '/comp/get_not_on',
-                {
-                  onBehalfOf: anonymousClientWS.session.user.username
-                },
-                function() {},
-                function(e) {
+                {},
+                function () {},
+                function (e) {
                   if (!e) return done(new Error('this should not have been allowed...'));
                   expect(e.toString()).to.be('AccessDenied: unauthorized');
                   done();
@@ -613,23 +578,59 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed on but not get', function(done) {
+    it('delegated authority: checks allowed get but not on', function (done) {
+      adminClient.set(
+        '/anonymous/' + test_id + '/comp/get_not_on',
+        {
+          'test-set': 'test-set-val',
+        },
+        {},
+        function (e) {
+          if (e) return done(e);
+          adminClient.get(
+            '/anonymous/' + test_id + '/comp/get_not_on',
+            {
+              onBehalfOf: anonymousClientWS.session.user.username,
+            },
+            function (e, result) {
+              if (e) return done(e);
+              expect(result._meta.path).to.be('/anonymous/' + test_id + '/comp/get_not_on');
+
+              adminClient.on(
+                '/anonymous/' + test_id + '/comp/get_not_on',
+                {
+                  onBehalfOf: anonymousClientWS.session.user.username,
+                },
+                function () {},
+                function (e) {
+                  if (!e) return done(new Error('this should not have been allowed...'));
+                  expect(e.toString()).to.be('AccessDenied: unauthorized');
+                  done();
+                }
+              );
+            }
+          );
+        }
+      );
+    });
+
+    it('checks allowed on but not get', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/on_not_get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          anonymousClientWS.get('/anonymous/' + test_id + '/comp/on_not_get', {}, function(e) {
+          anonymousClientWS.get('/anonymous/' + test_id + '/comp/on_not_get', {}, function (e) {
             if (!e) return done(new Error('this should not have been allowed...'));
             expect(e.toString()).to.be('AccessDenied: unauthorized');
 
             anonymousClientWS.on(
               '/anonymous/' + test_id + '/comp/on_not_get',
               {},
-              function() {},
+              function () {},
               done
             );
           });
@@ -637,30 +638,30 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed on but not get', function(done) {
+    it('delegated authority: checks allowed on but not get', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/on_not_get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
           adminClient.get(
             '/anonymous/' + test_id + '/comp/on_not_get',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e) {
+            function (e) {
               if (!e) return done(new Error('this should not have been allowed...'));
               expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.on(
                 '/anonymous/' + test_id + '/comp/on_not_get',
                 {
-                  onBehalfOf: anonymousClientWS.session.user.username
+                  onBehalfOf: anonymousClientWS.session.user.username,
                 },
-                function() {},
+                function () {},
                 done
               );
             }
@@ -669,16 +670,16 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed set but not get', function(done) {
+    it('checks allowed set but not get', function (done) {
       anonymousClientWS.set(
         '/anonymous/' + test_id + '/comp/set_not_get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
-          anonymousClientWS.get('/anonymous/' + test_id + '/comp/set_not_get', {}, function(e) {
+          anonymousClientWS.get('/anonymous/' + test_id + '/comp/set_not_get', {}, function (e) {
             if (!e) return done(new Error('this should not have been allowed...'));
             expect(e.toString()).to.be('AccessDenied: unauthorized');
             done();
@@ -687,23 +688,23 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed set but not get', function(done) {
+    it('delegated authority: checks allowed set but not get', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/set_not_get',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           adminClient.get(
             '/anonymous/' + test_id + '/comp/set_not_get',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function(e) {
+            function (e) {
               if (!e) return done(new Error('this should not have been allowed...'));
               expect(e.toString()).to.be('AccessDenied: unauthorized');
               done();
@@ -713,20 +714,20 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed set but not on', function(done) {
+    it('checks allowed set but not on', function (done) {
       anonymousClientWS.set(
         '/anonymous/' + test_id + '/comp/set_not_on',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
-        function(e) {
+        function (e) {
           if (e) return done(e);
           anonymousClientWS.on(
             '/anonymous/' + test_id + '/comp/set_not_on',
             {},
-            function() {},
-            function(e) {
+            function () {},
+            function (e) {
               if (!e) return done(new Error('this should not have been allowed...'));
               expect(e.toString()).to.be('AccessDenied: unauthorized');
               done();
@@ -736,24 +737,24 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('delegated authority: checks allowed set but not on', function(done) {
+    it('delegated authority: checks allowed set but not on', function (done) {
       adminClient.set(
         '/anonymous/' + test_id + '/comp/set_not_on',
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {
-          onBehalfOf: anonymousClientWS.session.user.username
+          onBehalfOf: anonymousClientWS.session.user.username,
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
           anonymousClientWS.on(
             '/anonymous/' + test_id + '/comp/set_not_on',
             {
-              onBehalfOf: anonymousClientWS.session.user.username
+              onBehalfOf: anonymousClientWS.session.user.username,
             },
-            function() {},
-            function(e) {
+            function () {},
+            function (e) {
               if (!e) return done(new Error('this should not have been allowed...'));
               expect(e.toString()).to.be('AccessDenied: unauthorized');
               done();
@@ -763,33 +764,40 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('checks allowed get all', function(done) {
+    it('checks allowed get all', function (done) {
       anonymousClientWS.get('/anonymous/' + test_id + '/get_all/' + test_id, {}, done);
     });
 
-    it('checks allowed on all', function(done) {
-      anonymousClientWS.on('/anonymous/' + test_id + '/on_all/' + test_id, {}, function() {}, done);
+    it('checks allowed on all', function (done) {
+      anonymousClientWS.on(
+        '/anonymous/' + test_id + '/on_all/' + test_id,
+        {},
+        function () {},
+        done
+      );
     });
 
-    it('checks allowed set all', function(done) {
+    it('checks allowed set all', function (done) {
       anonymousClientWS.set(
         '/anonymous/' + test_id + '/set_all/' + test_id,
         {
-          'test-set': 'test-set-val'
+          'test-set': 'test-set-val',
         },
         {},
         done
       );
     });
 
-    it('checks against a permission that doesnt exist', function(done) {
-      anonymousClientWS.get('/anonymous/whatevs' + test_id + '/get_all/' + test_id, {}, function(
-        e
-      ) {
-        if (!e) return done(new Error('this should not have been allowed...'));
-        expect(e.toString()).to.be('AccessDenied: unauthorized');
-        done();
-      });
+    it('checks against a permission that doesnt exist', function (done) {
+      anonymousClientWS.get(
+        '/anonymous/whatevs' + test_id + '/get_all/' + test_id,
+        {},
+        function (e) {
+          if (!e) return done(new Error('this should not have been allowed...'));
+          expect(e.toString()).to.be('AccessDenied: unauthorized');
+          done();
+        }
+      );
     });
 
     it('unlinks the test group from the user, checks that the user no longer has access', async () => {
@@ -798,7 +806,7 @@ describe(test.testName(__filename, 3), function() {
       let message;
       try {
         await anonymousClientWS.set('/anonymous/' + test_id + '/set', {
-          test: 'data'
+          test: 'data',
         });
       } catch (e) {
         message = e.message;
@@ -810,18 +818,18 @@ describe(test.testName(__filename, 3), function() {
       this.timeout(5000);
       await serviceInstanceAnonymous.services.security.linkAnonymousGroup(addedAnonymousGroup);
       await anonymousClientWS.set('/anonymous/' + test_id + '/set', {
-        test: 'data'
+        test: 'data',
       });
     });
 
-    it('tests the remove permission', function(done) {
+    it('tests the remove permission', function (done) {
       this.timeout(5000);
       anonymousClientWS.set(
         '/anonymous/' + test_id + '/remove-permission',
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
           //groupName, path, action
@@ -832,17 +840,17 @@ describe(test.testName(__filename, 3), function() {
               'set'
             )
             .then(() => {
-              return new Promise(resolve => {
+              return new Promise((resolve) => {
                 setTimeout(resolve, 2000);
               });
             })
-            .then(function() {
+            .then(function () {
               anonymousClientWS.set(
                 '/anonymous/' + test_id + '/remove-permission',
                 {
-                  test: 'data'
+                  test: 'data',
                 },
-                function(e) {
+                function (e) {
                   expect(e.toString()).to.be('AccessDenied: unauthorized');
                   done();
                 }
@@ -853,18 +861,18 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('tests the upsert permission', function(done) {
+    it('tests the upsert permission', function (done) {
       serviceInstanceAnonymous.services.security.groups
         .upsertPermission(
           addedAnonymousGroup.name,
           '/anonymous/' + test_id + '/remove-permission',
           'set'
         )
-        .then(function() {
+        .then(function () {
           anonymousClientWS.set(
             '/anonymous/' + test_id + '/remove-permission',
             {
-              test: 'data'
+              test: 'data',
             },
             done
           );
@@ -872,15 +880,15 @@ describe(test.testName(__filename, 3), function() {
         .catch(done);
     });
 
-    it('tests the prohibit permission', function(done) {
+    it('tests the prohibit permission', function (done) {
       var prohibitPath = '/anonymous/' + test_id + '/prohibit-permission';
 
       anonymousClientWS.set(
         prohibitPath,
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
           delete addedAnonymousGroup.permissions[prohibitPath].actions;
@@ -889,13 +897,13 @@ describe(test.testName(__filename, 3), function() {
           //groupName, path, action
           serviceInstanceAnonymous.services.security.groups
             .upsertGroup(addedAnonymousGroup)
-            .then(function() {
+            .then(function () {
               anonymousClientWS.set(
                 prohibitPath,
                 {
-                  test: 'data'
+                  test: 'data',
                 },
-                function(e) {
+                function (e) {
                   expect(e.toString()).to.be('AccessDenied: unauthorized');
                   done();
                 }
@@ -906,10 +914,10 @@ describe(test.testName(__filename, 3), function() {
       );
     });
 
-    it('cannot delete anonymous user', function(done) {
+    it('cannot delete anonymous user', function (done) {
       serviceInstanceAnonymous.services.security.users.deleteUser(
         { username: '_ANONYMOUS' },
-        function(e) {
+        function (e) {
           if (!e) return done(new Error('not meant to happen'));
           test
             .expect(e.message)
@@ -937,12 +945,12 @@ describe(test.testName(__filename, 3), function() {
   function doRequest(path, token) {
     return new Promise((resolve, reject) => {
       let options = {
-        url: 'http://127.0.0.1:55000' + path
+        url: 'http://127.0.0.1:55000' + path,
       };
       options.headers = {
-        Cookie: ['happn_token=' + token]
+        Cookie: ['happn_token=' + token],
       };
-      request(options, function(error, response) {
+      request(options, function (error, response) {
         if (error) return reject(error);
         resolve(response);
       });
@@ -950,67 +958,67 @@ describe(test.testName(__filename, 3), function() {
   }
   async function createAndLinkAnonymousGroup(serviceInst) {
     const anonymousGroup = {
-      name: 'ANONYMOUS'
+      name: 'ANONYMOUS',
     };
 
     anonymousGroup.permissions = {};
 
     anonymousGroup.permissions['/anonymous/' + test_id + '/all_access'] = {
-      actions: ['*']
+      actions: ['*'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/on'] = {
-      actions: ['on']
+      actions: ['on'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/on_all/*'] = {
-      actions: ['on']
+      actions: ['on'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/remove'] = {
-      actions: ['remove']
+      actions: ['remove'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/remove_all/*'] = {
-      actions: ['remove']
+      actions: ['remove'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/get'] = {
-      actions: ['get']
+      actions: ['get'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/get_all/*'] = {
-      actions: ['get']
+      actions: ['get'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/set'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/set_all/*'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/all/*'] = {
-      actions: ['*']
+      actions: ['*'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/comp/get_on'] = {
-      actions: ['get', 'on']
+      actions: ['get', 'on'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/comp/get_not_on'] = {
-      actions: ['get']
+      actions: ['get'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/comp/on_not_get'] = {
-      actions: ['on']
+      actions: ['on'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/comp/set_not_get'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/comp/set_not_on'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/remove-permission'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/prohibit-permission'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     anonymousGroup.permissions['/anonymous/' + test_id + '/web_access'] = {
-      actions: ['*']
+      actions: ['*'],
     };
     addedAnonymousGroup = await serviceInst.services.security.groups.upsertGroup(anonymousGroup, {
-      overwrite: false
+      overwrite: false,
     });
     await test.delay(3000);
     await serviceInst.services.security.linkAnonymousGroup(addedAnonymousGroup);

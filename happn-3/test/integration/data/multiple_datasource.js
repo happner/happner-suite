@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const happn = require('../../../lib/index');
   const tempFile1 = test.newTestFile();
   const test_id = Date.now() + '_' + require('shortid').generate();
@@ -7,23 +7,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   let singleClient;
   let multipleClient;
 
-  const getService = function(config, callback) {
+  const getService = function (config, callback) {
     happn.service.create(config, callback);
   };
 
-  const getClient = function(service, callback) {
-    service.services.session.localClient(function(e, instance) {
+  const getClient = function (service, callback) {
+    service.services.session.localClient(function (e, instance) {
       if (e) return callback(e);
       callback(null, instance);
     });
   };
 
-  before('should initialize the services', function(callback) {
+  before('should initialize the services', function (callback) {
     this.timeout(60000); //travis sometiems takes ages...
 
     let serviceConfigs = [
       {
-        port: 55001
+        port: 55001,
       },
       {
         services: {
@@ -35,45 +35,45 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
                   isDefault: true,
                   patterns: [
                     '/a3_eventemitter_multiple_datasource/' + test_id + '/memorytest/*',
-                    '/a3_eventemitter_multiple_datasource/' + test_id + '/memorynonwildcard'
-                  ]
+                    '/a3_eventemitter_multiple_datasource/' + test_id + '/memorynonwildcard',
+                  ],
                 },
                 {
                   name: 'persisted',
                   settings: {
-                    filename: tempFile1
+                    filename: tempFile1,
                   },
                   patterns: [
                     '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedtest/*',
-                    '/a3_eventemitter_multiple_datasource/' + test_id + '/persistednonwildcard'
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      }
+                    '/a3_eventemitter_multiple_datasource/' + test_id + '/persistednonwildcard',
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
     ];
 
     test.async.eachSeries(
       serviceConfigs,
-      function(serviceConfig, serviceConfigCallback) {
-        getService(serviceConfig, function(e, happnService) {
+      function (serviceConfig, serviceConfigCallback) {
+        getService(serviceConfig, function (e, happnService) {
           if (e) return serviceConfigCallback(e);
 
           services.push(happnService);
           serviceConfigCallback();
         });
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
-        getClient(services[0], function(e, client) {
+        getClient(services[0], function (e, client) {
           if (e) return callback(e);
 
           singleClient = client;
 
-          getClient(services[1], function(e, client) {
+          getClient(services[1], function (e, client) {
             if (e) return callback(e);
 
             multipleClient = client;
@@ -89,7 +89,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     await test.cleanup([], services);
   });
 
-  it('should push some data into the single datastore service', function(callback) {
+  it('should push some data into the single datastore service', function (callback) {
     this.timeout(4000);
 
     try {
@@ -101,12 +101,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            singleClient.get(test_path, null, function(e, results) {
+            singleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
               callback(e);
             });
@@ -118,7 +118,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore', function(callback) {
+  it('should push some data into the multiple datastore', function (callback) {
     this.timeout(4000);
 
     try {
@@ -130,12 +130,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
               callback(e);
             });
@@ -147,7 +147,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore, memory datastore, wildcard pattern', function(callback) {
+  it('should push some data into the multiple datastore, memory datastore, wildcard pattern', function (callback) {
     this.timeout(4000);
 
     try {
@@ -160,15 +160,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 if (record)
@@ -184,7 +184,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore, persisted datastore, wildcard pattern', function(callback) {
+  it('should push some data into the multiple datastore, persisted datastore, wildcard pattern', function (callback) {
     this.timeout(4000);
 
     try {
@@ -197,15 +197,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 if (record) callback();
@@ -220,7 +220,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore, memory datastore, exact pattern', function(callback) {
+  it('should push some data into the multiple datastore, memory datastore, exact pattern', function (callback) {
     this.timeout(4000);
 
     try {
@@ -231,15 +231,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 if (record)
@@ -255,7 +255,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore, persisted datastore, exact pattern', function(callback) {
+  it('should push some data into the multiple datastore, persisted datastore, exact pattern', function (callback) {
     this.timeout(4000);
 
     try {
@@ -266,15 +266,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 //console.log('rec: ', record);
@@ -291,7 +291,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should push some data into the multiple datastore, default pattern', function(callback) {
+  it('should push some data into the multiple datastore, default pattern', function (callback) {
     this.timeout(4000);
 
     try {
@@ -302,15 +302,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 if (record)
@@ -326,7 +326,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('check the same event should be raised, regardless of what data source we are pushing to', function(callback) {
+  it('check the same event should be raised, regardless of what data source we are pushing to', function (callback) {
     this.timeout(10000);
     let caughtCount = 0;
 
@@ -335,14 +335,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       '/a3_eventemitter_multiple_datasource/' + test_id + '/persistedtest/event';
 
     multipleClient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action === '/SET@' + memoryTestPath ||
           meta.action === '/SET@' + persistedTestPath
         ) {
           caughtCount++;
           if (caughtCount === 2) {
-            test.findRecordInDataFileCallback(persistedTestPath, tempFile1, function(e, record) {
+            test.findRecordInDataFileCallback(persistedTestPath, tempFile1, function (e, record) {
               if (e) return callback(e);
 
               if (record) callback();
@@ -351,7 +351,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           }
         }
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         multipleClient.set(
@@ -359,10 +359,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             multipleClient.set(
@@ -370,10 +370,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
               }
             );
@@ -383,7 +383,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('should not find the pattern to be added in the persisted datastore', function(callback) {
+  it('should not find the pattern to be added in the persisted datastore', function (callback) {
     this.timeout(4000);
 
     try {
@@ -394,15 +394,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
 
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
 
                 if (record)
@@ -418,7 +418,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should add a pattern to the persisted datastore, and check it works', function(callback) {
+  it('should add a pattern to the persisted datastore, and check it works', function (callback) {
     this.timeout(4000);
 
     try {
@@ -431,14 +431,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {},
-        function(e) {
+        function (e) {
           if (!e) {
-            multipleClient.get(test_path, null, function(e, results) {
+            multipleClient.get(test_path, null, function (e, results) {
               test.expect(results.property1 === 'property1').to.be(true);
-              test.findRecordInDataFileCallback(test_path, tempFile1, function(e, record) {
+              test.findRecordInDataFileCallback(test_path, tempFile1, function (e, record) {
                 if (e) return callback(e);
                 if (record) callback();
                 else callback(new Error('record not found in persisted file'));
@@ -452,7 +452,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     }
   });
 
-  it('should remove a pattern from the persisted datastore', function(callback) {
+  it('should remove a pattern from the persisted datastore', function (callback) {
     this.timeout(4000);
 
     try {

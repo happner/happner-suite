@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -14,7 +12,7 @@ describe(
 
     function startService(callback) {
       try {
-        service.create(function(e, happnInst) {
+        service.create(function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -29,11 +27,11 @@ describe(
       if (happnInstance) happnInstance.stop(callback);
     }
 
-    after(function(done) {
+    after(function (done) {
       stopService(done);
     });
 
-    before('should initialize the service', function(done) {
+    before('should initialize the service', function (done) {
       this.timeout(20000);
       startService(done);
     });
@@ -42,11 +40,11 @@ describe(
    We are initializing 2 clients to test saving data against the database, one client will push data into the
    database whilst another listens for changes.
    */
-    it('should initialize a client, check the standard configuration is in place', function(callback) {
+    it('should initialize a client, check the standard configuration is in place', function (callback) {
       this.timeout(default_timeout);
 
       try {
-        happn_client.create(function(e, instance) {
+        happn_client.create(function (e, instance) {
           if (e) return callback(e);
           primusClient = instance;
 
@@ -67,7 +65,7 @@ describe(
    We are initializing 2 clients to test saving data against the database, one client will push data into the
    database whilst another listens for changes.
    */
-    it('should initialize a client, and set up configurable options', function(callback) {
+    it('should initialize a client, and set up configurable options', function (callback) {
       this.timeout(default_timeout);
 
       try {
@@ -76,11 +74,11 @@ describe(
             socket: {
               reconnect: {
                 retries: 60,
-                max: 2100000
-              }
-            }
+                max: 2100000,
+              },
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
             primusClient = instance;
 
@@ -102,7 +100,7 @@ describe(
    We are initializing 2 clients to test saving data against the database, one client will push data into the
    database whilst another listens for changes.
    */
-    it('should initialize a client, and set up configurable options, not nested', function(callback) {
+    it('should initialize a client, and set up configurable options, not nested', function (callback) {
       this.timeout(default_timeout);
 
       try {
@@ -110,10 +108,10 @@ describe(
           {
             reconnect: {
               retries: 50,
-              max: 2000000
-            }
+              max: 2000000,
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
             primusClient = instance;
 
@@ -131,7 +129,7 @@ describe(
       }
     });
 
-    it('should initialize a client, and set up configurable options', function(callback) {
+    it('should initialize a client, and set up configurable options', function (callback) {
       this.timeout(default_timeout);
 
       try {
@@ -139,10 +137,10 @@ describe(
           {
             reconnect: {
               retries: 10, //10 times
-              max: 2000 //2 seconds
-            }
+              max: 2000, //2 seconds
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
             primusClient = instance;
 
@@ -160,7 +158,7 @@ describe(
       }
     });
 
-    it('should initialize a client, and set up configurable options - with stopped service, we check the backoff', function(callback) {
+    it('should initialize a client, and set up configurable options - with stopped service, we check the backoff', function (callback) {
       this.timeout(30000);
 
       try {
@@ -168,21 +166,21 @@ describe(
           {
             reconnect: {
               retries: Infinity, //10 times
-              max: 1000 //1 seconds
-            }
+              max: 1000, //1 seconds
+            },
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return callback(e);
             primusClient = instance;
 
             let reconnectCount = 0;
 
-            primusClient.onEvent('reconnect-scheduled', function() {
+            primusClient.onEvent('reconnect-scheduled', function () {
               reconnectCount++;
             });
 
-            stopService(function() {
-              setTimeout(function() {
+            stopService(function () {
+              setTimeout(function () {
                 primusClient.disconnect();
                 if (reconnectCount < 14)
                   return callback(new Error('expected reconnecvt count too small'));
@@ -196,32 +194,32 @@ describe(
       }
     });
 
-    it('should initialize a client, and set up configurable options - with stopped service, we check the allowed retries', function(callback) {
+    it('should initialize a client, and set up configurable options - with stopped service, we check the allowed retries', function (callback) {
       this.timeout(30000);
 
       try {
-        startService(function(e) {
+        startService(function (e) {
           if (e) return callback(e);
 
           happn_client.create(
             {
               reconnect: {
                 retries: 10, //10 times
-                max: 1000 //1 seconds
-              }
+                max: 1000, //1 seconds
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
               primusClient = instance;
 
               let reconnectCount = 0;
 
-              primusClient.onEvent('reconnect-scheduled', function() {
+              primusClient.onEvent('reconnect-scheduled', function () {
                 reconnectCount++;
               });
 
-              stopService(function() {
-                setTimeout(function() {
+              stopService(function () {
+                setTimeout(function () {
                   primusClient.disconnect();
                   if (reconnectCount !== 10)
                     return callback(new Error('expected reconnecvt count not 10'));

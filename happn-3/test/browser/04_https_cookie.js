@@ -1,4 +1,4 @@
-describe('04 https cookie', function() {
+describe('04 https cookie', function () {
   const HappnClient = window.HappnClient,
     expect = window.expect;
   this.timeout(120e3);
@@ -8,7 +8,7 @@ describe('04 https cookie', function() {
       port: 55003,
       protocol: 'https',
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
     await testClient(55003);
     await client.disconnect({ deleteCookie: true });
@@ -19,7 +19,7 @@ describe('04 https cookie', function() {
     Http.open('POST', `https://localhost:${port || 55003}${path}`, true);
     Http.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     Http.send({ post: 'data' });
-    Http.onreadystatechange = function() {
+    Http.onreadystatechange = function () {
       // Call a function when the state changes.
       if (this.readyState === XMLHttpRequest.DONE) {
         callback(null, { statusCode: this.status });
@@ -29,7 +29,7 @@ describe('04 https cookie', function() {
 
   function testClient(port) {
     return new Promise((resolve, reject) => {
-      doPost('/test/web/route', port, function(error, response) {
+      doPost('/test/web/route', port, function (error, response) {
         try {
           expect(error).to.eql(null);
           expect(response.statusCode).to.equal(200);
@@ -43,7 +43,7 @@ describe('04 https cookie', function() {
 
   function connectClient(opts) {
     return new Promise((resolve, reject) => {
-      HappnClient.create(opts, function(e, instance) {
+      HappnClient.create(opts, function (e, instance) {
         if (e) return reject(e);
         return resolve(instance);
       });

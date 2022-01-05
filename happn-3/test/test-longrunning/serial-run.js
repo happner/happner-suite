@@ -6,7 +6,7 @@ var testDir = __dirname;
 
 var files = [];
 
-fs.readdirSync(testDir).forEach(function(filename) {
+fs.readdirSync(testDir).forEach(function (filename) {
   var filePath = testDir + path.sep + filename;
 
   var file = fs.statSync(filePath);
@@ -21,12 +21,12 @@ console.log('about to run:', reportDir);
 
 sm.runTasks(files, null, reportDir)
 
-  .then(function() {
+  .then(function () {
     //eslint-disable-next-line no-console
     console.log('tests completed: check the latest report file in ' + reportDir);
   })
 
-  .catch(function(e) {
+  .catch(function (e) {
     //eslint-disable-next-line no-console
     console.log('broke:', e);
   });

@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -10,10 +8,10 @@ describe(
 
     if (process.env.RUNNING_IN_ACTIONS) return; //skip all tests in github actions CI
 
-    it('should initialize the service', function(callback) {
+    it('should initialize the service', function (callback) {
       this.timeout(20000);
       try {
-        service.create(function(e, happnInst) {
+        service.create(function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -24,20 +22,20 @@ describe(
       }
     });
 
-    after(function(done) {
+    after(function (done) {
       happnInstance.stop(done);
     });
 
-    it('should fetch the browser client', function(callback) {
+    it('should fetch the browser client', function (callback) {
       this.timeout(5000);
 
       try {
         require('request')(
           {
             uri: 'http://127.0.0.1:55000/browser_client',
-            method: 'GET'
+            method: 'GET',
           },
-          function(e, r, b) {
+          function (e, r, b) {
             if (!e) {
               var path = require('path');
               var happnPath = path.dirname(

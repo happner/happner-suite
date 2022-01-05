@@ -22,11 +22,11 @@ class BaseHappnProtocol {
 
       message.response = {
         _meta: {
-          type: 'system'
+          type: 'system',
         },
         eventKey: 'server-side-disconnect',
         data: options.reason,
-        reconnect: options.reconnect
+        reconnect: options.reconnect,
       };
     }
 
@@ -34,10 +34,10 @@ class BaseHappnProtocol {
       message.request = {};
       message.request.publication = {
         _meta: {
-          type: 'system'
+          type: 'system',
         },
         eventKey: message.eventKey,
-        data: message.data
+        data: message.data,
       };
     }
 
@@ -84,7 +84,7 @@ class BaseHappnProtocol {
     if (items == null) items = [];
     if (!Array.isArray(items)) items = [items];
     var returnItems = [];
-    items.forEach(item => {
+    items.forEach((item) => {
       returnItems.push(this.__formatReturnItem(item, local));
     });
     return returnItems;

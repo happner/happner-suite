@@ -1,95 +1,98 @@
 var testHelper = require('../../__fixtures/utils/test_helper').create();
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   var happn = require('../../../lib/index');
   var async = require('async');
   var serviceInstance;
   var adminClient;
   var expect = require('expect.js');
 
-  var getService = function(config, callback) {
+  var getService = function (config, callback) {
     happn.service.create(config, callback);
   };
 
-  before('it starts the service with limited cache sizes for the security service', function(
-    callback
-  ) {
-    this.timeout(3000);
-    getService(
-      {
-        secure: true,
-        services: {
-          security: {
-            config: {
-              __cache_checkpoint_authorization: {
-                //checkpoint auth cache
-                max: 5,
-                maxAge: 0
+  before(
+    'it starts the service with limited cache sizes for the security service',
+    function (callback) {
+      this.timeout(3000);
+      getService(
+        {
+          secure: true,
+          services: {
+            security: {
+              config: {
+                __cache_checkpoint_authorization: {
+                  //checkpoint auth cache
+                  max: 5,
+                  maxAge: 0,
+                },
+                __cache_checkpoint_permissionset: {
+                  //checkpoint auth cache
+                  max: 6,
+                  maxAge: 0,
+                },
+                __cache_compiled_permissions_templates: {
+                  max: 3,
+                  maxAge: 0,
+                },
+                __cache_groups: {
+                  //groups cache
+                  max: 5,
+                  maxAge: 0,
+                },
+                __cache_users: {
+                  max: 5,
+                  maxAge: 0,
+                },
+                __cache_permissions: {
+                  max: 5,
+                  maxAge: 0,
+                },
               },
-              __cache_checkpoint_permissionset: {
-                //checkpoint auth cache
-                max: 6,
-                maxAge: 0
-              },
-              __cache_compiled_permissions_templates: {
-                max: 3,
-                maxAge: 0
-              },
-              __cache_groups: {
-                //groups cache
-                max: 5,
-                maxAge: 0
-              },
-              __cache_users: {
-                max: 5,
-                maxAge: 0
-              },
-              __cache_permissions: {
-                max: 5,
-                maxAge: 0
-              }
-            }
-          }
+            },
+          },
+        },
+        function (e, service) {
+          if (e) return callback(e);
+
+          serviceInstance = service;
+
+          expect(serviceInstance.services.security.groups.__cache_groups.__cache.max).to.be(5);
+          expect(serviceInstance.services.security.users.__cache_users.__cache.max).to.be(5);
+          expect(
+            serviceInstance.services.security.groups.permissionManager.cache.__cache.max
+          ).to.be(5);
+          expect(
+            serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache
+              .max
+          ).to.be(5);
+          expect(
+            serviceInstance.services.security.checkpoint.__cache_checkpoint_permissionset.__cache
+              .max
+          ).to.be(6);
+          expect(
+            serviceInstance.services.security.checkpoint.__cache_compiled_permissions_templates
+              .__cache.max
+          ).to.be(3);
+
+          serviceInstance.services.session
+            .localClient({
+              username: '_ADMIN',
+              password: 'happn',
+            })
+
+            .then(function (clientInstance) {
+              adminClient = clientInstance;
+              callback();
+            })
+
+            .catch(function (e) {
+              callback(e);
+            });
         }
-      },
-      function(e, service) {
-        if (e) return callback(e);
-
-        serviceInstance = service;
-
-        expect(serviceInstance.services.security.groups.__cache_groups.__cache.max).to.be(5);
-        expect(serviceInstance.services.security.users.__cache_users.__cache.max).to.be(5);
-        expect(serviceInstance.services.security.groups.permissionManager.cache.__cache.max).to.be(
-          5
-        );
-        expect(
-          serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache.max
-        ).to.be(5);
-        expect(
-          serviceInstance.services.security.checkpoint.__cache_checkpoint_permissionset.__cache.max
-        ).to.be(6);
-        expect(
-          serviceInstance.services.security.checkpoint.__cache_compiled_permissions_templates
-            .__cache.max
-        ).to.be(3);
-
-        serviceInstance.services.session
-          .localClient({
-            username: '_ADMIN',
-            password: 'happn'
-          })
-
-          .then(function(clientInstance) {
-            adminClient = clientInstance;
-            callback();
-          })
-
-          .catch(function(e) {
-            callback(e);
-          });
-      }
-    );
-  });
+      );
+    }
+  );
 
   var SESSION_COUNT = 10;
 
@@ -99,13 +102,13 @@ describe(testHelper.testName(__filename, 3), function() {
   var users = [];
   var sessions = [];
 
-  before('it creates test groups', function(callback) {
+  before('it creates test groups', function (callback) {
     async.timesSeries(
       SESSION_COUNT,
-      function(time, timeCB) {
+      function (time, timeCB) {
         var group = {
           name: 'TEST_GRP_' + time.toString(),
-          permissions: {}
+          permissions: {},
         };
 
         group.permissions['test/permission/on/' + time.toString()] = { actions: ['on', 'set'] };
@@ -123,7 +126,7 @@ describe(testHelper.testName(__filename, 3), function() {
         group.permissions['test/{{user.username}}/all/8/*'] = { actions: ['*'] };
         group.permissions['test/{{user.username}}/all/9/*'] = { actions: ['*'] };
 
-        serviceInstance.services.security.groups.upsertGroup(group, function(e, upserted) {
+        serviceInstance.services.security.groups.upsertGroup(group, function (e, upserted) {
           if (e) return timeCB(e);
 
           groups.push(upserted);
@@ -134,22 +137,22 @@ describe(testHelper.testName(__filename, 3), function() {
     );
   });
 
-  before('it creates test users', function(callback) {
+  before('it creates test users', function (callback) {
     async.timesSeries(
       SESSION_COUNT,
-      function(time, timeCB) {
+      function (time, timeCB) {
         var user = {
           username: 'TEST_USR_' + time.toString(),
           password: 'TEST_USR_' + time.toString(),
           custom_data: {
-            value: time.toString()
-          }
+            value: time.toString(),
+          },
         };
 
-        serviceInstance.services.security.users.upsertUser(user, function(e, upserted) {
+        serviceInstance.services.security.users.upsertUser(user, function (e, upserted) {
           if (e) return timeCB(e);
 
-          serviceInstance.services.security.groups.linkGroup(groups[time], upserted, function(e) {
+          serviceInstance.services.security.groups.linkGroup(groups[time], upserted, function (e) {
             if (e) return timeCB(e);
 
             users.push(upserted);
@@ -161,22 +164,22 @@ describe(testHelper.testName(__filename, 3), function() {
     );
   });
 
-  before('it creates test sessions', function(callback) {
+  before('it creates test sessions', function (callback) {
     async.timesSeries(
       SESSION_COUNT,
-      function(time, timeCB) {
+      function (time, timeCB) {
         serviceInstance.services.session
           .localClient({
             username: 'TEST_USR_' + time.toString(),
-            password: 'TEST_USR_' + time.toString()
+            password: 'TEST_USR_' + time.toString(),
           })
 
-          .then(function(clientInstance) {
+          .then(function (clientInstance) {
             sessions.push(clientInstance);
             timeCB();
           })
 
-          .catch(function(e) {
+          .catch(function (e) {
             timeCB(e);
           });
       },
@@ -184,29 +187,29 @@ describe(testHelper.testName(__filename, 3), function() {
     );
   });
 
-  after('should delete the temp data file and disconnect all test clients', function(callback) {
+  after('should delete the temp data file and disconnect all test clients', function (callback) {
     this.timeout(15000);
 
     if (adminClient) adminClient.disconnect({ reconnect: false });
 
-    setTimeout(function() {
-      serviceInstance.stop(function() {
+    setTimeout(function () {
+      serviceInstance.stop(function () {
         callback();
       });
     }, 3000);
   });
 
-  it('does a bunch of user and groups fetches- checks the security caches are the correct size', function(done) {
+  it('does a bunch of user and groups fetches- checks the security caches are the correct size', function (done) {
     this.timeout(30000);
 
     async.timesSeries(
       SESSION_COUNT * 100,
-      function(time, timeCB) {
+      function (time, timeCB) {
         var randomInt = testHelper.randomInt(0, SESSION_COUNT - 1);
 
         serviceInstance.services.security.groups.getGroup(
           'TEST_GRP_' + randomInt.toString(),
-          function(e, group) {
+          function (e, group) {
             if (e) return timeCB(e);
 
             expect(
@@ -217,7 +220,7 @@ describe(testHelper.testName(__filename, 3), function() {
 
             serviceInstance.services.security.users.getUser(
               'TEST_USR_' + randomInt.toString(),
-              function(e, user) {
+              function (e, user) {
                 if (e) return timeCB(e);
                 expect(
                   serviceInstance.services.security.users.__cache_users.getSync(
@@ -236,7 +239,7 @@ describe(testHelper.testName(__filename, 3), function() {
           }
         );
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         expect(
@@ -254,26 +257,26 @@ describe(testHelper.testName(__filename, 3), function() {
     );
   });
 
-  it('does a bunch of data activity - checks the security caches are the correct size', function(done) {
+  it('does a bunch of data activity - checks the security caches are the correct size', function (done) {
     this.timeout(30000);
 
     async.timesSeries(
       SESSION_COUNT * 100,
-      function(time, timeCB) {
+      function (time, timeCB) {
         var randomInt = testHelper.randomInt(0, SESSION_COUNT - 1);
 
         var client = sessions[randomInt];
 
         client
           .offAll()
-          .then(function() {
+          .then(function () {
             client.on(
               'test/permission/on/' + randomInt,
-              function() {
-                client.get('test/permission/get/' + randomInt, function(e) {
+              function () {
+                client.get('test/permission/get/' + randomInt, function (e) {
                   if (e) return timeCB(e);
 
-                  client.set('test/permission/all/' + randomInt, { all: randomInt }, function(e) {
+                  client.set('test/permission/all/' + randomInt, { all: randomInt }, function (e) {
                     if (e) return timeCB(e);
                     var randomTemplateNumber = testHelper.randomInt(0, 9);
                     client.set(
@@ -289,7 +292,7 @@ describe(testHelper.testName(__filename, 3), function() {
                   });
                 });
               },
-              function(e) {
+              function (e) {
                 if (e) return timeCB(e);
 
                 client.set('test/permission/on/' + randomInt, { set: randomInt });
@@ -298,7 +301,7 @@ describe(testHelper.testName(__filename, 3), function() {
           })
           .catch(timeCB);
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         expect(

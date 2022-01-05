@@ -10,7 +10,7 @@ const serviceConfig1 = {
         sessionTokenSecret: 'h1_test-secret',
         keyPair: {
           privateKey: 'Kd9FQzddR7G6S9nJ/BK8vLF83AzOphW2lqDOQ/LjU4M=',
-          publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2'
+          publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2',
         },
         profiles: [
           //profiles are in an array, in descending order of priority, so if you fit more than one profile, the top profile is chosen
@@ -18,75 +18,75 @@ const serviceConfig1 = {
             name: 'token-not-allowed',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info.tokenNotAllowedForLogin': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
-              disallowTokenLogins: true
-            }
+              disallowTokenLogins: true,
+            },
           },
           {
             name: 'short-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info.shortSession': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
-              ttl: '2 seconds'
-            }
+              ttl: '2 seconds',
+            },
           },
           {
             name: 'browser-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info._browser': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
-              ttl: '7 days'
-            }
+              ttl: '7 days',
+            },
           },
           {
             name: 'locked-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info.tokenOriginLocked': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
               ttl: 0, // no ttl
-              lockTokenToOrigin: true
-            }
+              lockTokenToOrigin: true,
+            },
           },
           {
             name: 'node-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
-              _browser: false
+              _browser: false,
             },
             policy: {
-              ttl: 0 // no ttl
-            }
-          }
-        ]
-      }
-    }
-  }
+              ttl: 0, // no ttl
+            },
+          },
+        ],
+      },
+    },
+  },
 };
 
 const serviceConfig2 = {
@@ -98,7 +98,7 @@ const serviceConfig2 = {
         sessionTokenSecret: 'h1_test-secret',
         keyPair: {
           privateKey: 'Kd9FQzddR7G6S9nJ/BK8vLF83AzOphW2lqDOQ/LjU4M=',
-          publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2'
+          publicKey: 'AlHCtJlFthb359xOxR5kiBLJpfoC2ZLPLWYHN3+hdzf2',
         },
         profiles: [
           //profiles are in an array, in descending order of priority, so if you fit more than one profile, the top profile is chosen
@@ -106,75 +106,75 @@ const serviceConfig2 = {
             name: 'token-not-allowed',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info.tokenNotAllowedForLogin': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
-              disallowTokenLogins: true
-            }
+              disallowTokenLogins: true,
+            },
           },
           {
             name: 'short-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               'info.shortSession': {
-                $eq: true
-              }
+                $eq: true,
+              },
             },
             policy: {
-              ttl: '2 seconds'
-            }
+              ttl: '2 seconds',
+            },
           },
           {
             name: 'browser-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
-              _browser: true
+              _browser: true,
             },
             policy: {
-              ttl: '7 days'
-            }
+              ttl: '7 days',
+            },
           },
           {
             name: 'locked-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
               info: {
                 tokenOriginLocked: {
-                  $eq: true
-                }
-              }
+                  $eq: true,
+                },
+              },
             },
             policy: {
               ttl: 0, // no ttl
-              lockTokenToOrigin: true
-            }
+              lockTokenToOrigin: true,
+            },
           },
           {
             name: 'node-session',
             session: {
               'user.username': {
-                $eq: '_ADMIN'
+                $eq: '_ADMIN',
               },
-              _browser: false
+              _browser: false,
             },
             policy: {
-              ttl: 0 // no ttl
-            }
-          }
-        ]
-      }
-    }
-  }
+              ttl: 0, // no ttl
+            },
+          },
+        ],
+      },
+    },
+  },
 };
 
 describe(helper.testName(__filename, 3), tokenTests(serviceConfig1, serviceConfig2));

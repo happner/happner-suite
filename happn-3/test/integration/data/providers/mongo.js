@@ -1,15 +1,15 @@
-require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   const MongoDataProvider = require('happn-db-provider-mongo');
   const mockLogger = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
-    trace: test.sinon.stub()
+    trace: test.sinon.stub(),
   };
   const [mongoUrl, database, collection] = [
     'mongodb://127.0.0.1:27017',
     'mongo-provider-test',
-    'mongo-provider-test'
+    'mongo-provider-test',
   ];
   let clearMongo = require('../../../__fixtures/utils/cluster/clear-mongodb');
   beforeEach('clear mongo', async () => {
@@ -35,7 +35,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
       {
         ...settings,
         database,
-        collection
+        collection,
       },
       mockLogger
     );
@@ -43,7 +43,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     const results = [
       await mongoProvider.increment('test/increment', 'testGauge'),
       await mongoProvider.increment('test/increment', 'testGauge', 2),
-      await mongoProvider.increment('test/increment', 'testGauge')
+      await mongoProvider.increment('test/increment', 'testGauge'),
     ];
 
     test.expect(results).to.eql([1, 3, 4]);
@@ -58,7 +58,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
       {
         ...settings,
         database,
-        collection
+        collection,
       },
       mockLogger
     );
@@ -66,17 +66,17 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     await mongoProvider.upsert('test/path/1', {
       data: { test: 'test1' },
       created,
-      modified
+      modified,
     });
     await mongoProvider.upsert('test/path/2', {
       data: { test: 'test2' },
       created,
-      modified
+      modified,
     });
     await mongoProvider.upsert('test/path/3', {
       data: { test: 'test2' },
       created,
-      modified
+      modified,
     });
 
     test
@@ -84,9 +84,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
         await mongoProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test1'
-            }
-          }
+              $eq: 'test1',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 1 } });
@@ -96,9 +96,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
         await mongoProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test2'
-            }
-          }
+              $eq: 'test2',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 2 } });
@@ -109,7 +109,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
       {
         ...settings,
         database,
-        collection
+        collection,
       },
       mockLogger
     );
@@ -131,7 +131,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
 
     test
       .expect(
-        results.map(result => {
+        results.map((result) => {
           return result._meta.modifiedBy;
         })
       )
@@ -139,7 +139,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
 
     test
       .expect(
-        results.map(result => {
+        results.map((result) => {
           return result.data;
         })
       )
@@ -152,8 +152,8 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
     found = await mongoProvider.find('test/path/*', {
       options: {
         sort: { path: -1 },
-        limit: 2
-      }
+        limit: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/3');
     test.expect(found[1].path).to.be('test/path/2');
@@ -162,8 +162,8 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, te
       options: {
         sort: { path: -1 },
         limit: 2,
-        skip: 2
-      }
+        skip: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/1');
     test.expect(found.length).to.be(1);

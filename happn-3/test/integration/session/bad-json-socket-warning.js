@@ -1,6 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   var happn = require('../../../lib/index');
   var service = happn.service;
   var happn_client = happn.client;
@@ -8,8 +8,8 @@ describe(test.testName(__filename, 3), function() {
   var serviceConfig = {
     secure: true,
     services: {
-      session: {}
-    }
+      session: {},
+    },
   };
 
   var serviceInstance;
@@ -17,17 +17,17 @@ describe(test.testName(__filename, 3), function() {
 
   this.timeout(25000);
 
-  beforeEach('start the test service', function(done) {
-    createService(function(e) {
+  beforeEach('start the test service', function (done) {
+    createService(function (e) {
       if (e) return done(e);
       happn_client
         .create({
           config: {
             username: '_ADMIN',
-            password: 'happn'
-          }
+            password: 'happn',
+          },
         })
-        .then(function(client) {
+        .then(function (client) {
           clientInstance = client;
           done();
         })
@@ -35,12 +35,12 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('it sends bad JSON via the client socket, we ensure we get the correct logs', function(done) {
+  it('it sends bad JSON via the client socket, we ensure we get the correct logs', function (done) {
     const CaptureStdout = require('capture-stdout');
     const captureStdout = new CaptureStdout();
     captureStdout.startCapture();
     serviceInstance.services.session.log.setLevel('debug');
-    serviceInstance.services.session.on('client-socket-error', errorObj => {
+    serviceInstance.services.session.on('client-socket-error', (errorObj) => {
       captureStdout.stopCapture();
       const arrJson = captureStdout.getCapturedText();
       serviceInstance.services.session.log.setLevel(process.env.LOG_LEVEL || 'off');
@@ -68,11 +68,11 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  afterEach('it stops the test service', function(done) {
-    clientInstance.disconnect(function() {
+  afterEach('it stops the test service', function (done) {
+    clientInstance.disconnect(function () {
       serviceInstance.stop(
         {
-          reconnect: false
+          reconnect: false,
         },
         done
       );
@@ -80,7 +80,7 @@ describe(test.testName(__filename, 3), function() {
   });
 
   function createService(callback) {
-    service.create(serviceConfig, function(e, happnInst) {
+    service.create(serviceConfig, function (e, happnInst) {
       if (e) return callback(e);
       serviceInstance = happnInst;
       callback();

@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(5000);
 
     var expect = require('expect.js');
@@ -11,7 +9,7 @@ describe(
     function mockDataService(newDB, dbVersion) {
       var dataService = {};
 
-      dataService.get = function(path, callback) {
+      dataService.get = function (path, callback) {
         if (path === '/_SYSTEM/_SECURITY/_USER/_ADMIN') {
           if (!newDB) return callback(null, { data: { username: '_ADMIN' } });
 
@@ -27,7 +25,7 @@ describe(
         callback(new Error('unknown test get path: ' + path));
       };
 
-      dataService.upsert = function(path, dbVersion, callback) {
+      dataService.upsert = function (path, dbVersion, callback) {
         if (path === '/_SYSTEM/_DATABASE/_VERSION') {
           return callback(null, { data: { value: dbVersion } });
         }
@@ -50,12 +48,12 @@ describe(
       return systemService;
     }
 
-    it('tests analyzing an old db', function(done) {
+    it('tests analyzing an old db', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(false, null), mockSystemService('1'));
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         expect(analysis.isNew).to.be(false);
@@ -67,12 +65,12 @@ describe(
       });
     });
 
-    it('tests analyzing a version 1 db', function(done) {
+    it('tests analyzing a version 1 db', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(false, '1'), mockSystemService('1'));
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         expect(analysis.isNew).to.be(false);
@@ -84,12 +82,12 @@ describe(
       });
     });
 
-    it('tests analyzing a new db', function(done) {
+    it('tests analyzing a new db', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(true, '1'), mockSystemService('1'));
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         expect(analysis.isNew).to.be(true);
@@ -101,12 +99,12 @@ describe(
       });
     });
 
-    it('tests updating a new db', function(done) {
+    it('tests updating a new db', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(true, '1'), mockSystemService('1'));
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         expect(analysis.isNew).to.be(true);
@@ -118,19 +116,22 @@ describe(
       });
     });
 
-    it('tests updating an old db', function(done) {
+    it('tests updating an old db', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(false, null), mockSystemService('3'), {
-        updatesDirectory: path.resolve(__dirname, '../../__fixtures/test/unit/data/updater/updates')
+        updatesDirectory: path.resolve(
+          __dirname,
+          '../../__fixtures/test/unit/data/updater/updates'
+        ),
       });
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         updater.updateDB(
           analysis,
-          function(log) {
+          function (log) {
             expect(log[0].message).to.be('Update1 getUpdateRecords ran ok');
             expect(log[1].message).to.be('Update1 backup ran ok');
             expect(log[2].message).to.be('Update1 update ran ok');
@@ -154,22 +155,25 @@ describe(
       });
     });
 
-    it('tests updating an old with a rollback', function(done) {
+    it('tests updating an old with a rollback', function (done) {
       var Updater = require('../../../lib/services/data/versions/updater');
 
       var updater = new Updater(mockDataService(false, null), mockSystemService('4'), {
-        updatesDirectory: path.resolve(__dirname, '../../__fixtures/test/unit/data/updater/updates')
+        updatesDirectory: path.resolve(
+          __dirname,
+          '../../__fixtures/test/unit/data/updater/updates'
+        ),
       });
 
-      updater.analyzeDB(function(e, analysis) {
+      updater.analyzeDB(function (e, analysis) {
         if (e) return done(e);
 
         updater.updateDB(
           analysis,
-          function() {
+          function () {
             done(new Error('this was not meant to be...'));
           },
-          function(e, log, rollBackSuccessful) {
+          function (e, log, rollBackSuccessful) {
             expect(e.toString()).to.be('Error: test error');
             expect(rollBackSuccessful).to.be(true);
 

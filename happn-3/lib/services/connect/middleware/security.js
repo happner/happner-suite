@@ -65,7 +65,7 @@ function _process(req, res, next) {
           query
         );
 
-        return _this.happn.services.security.createAuthenticationNonce(params, function(e, nonce) {
+        return _this.happn.services.security.createAuthenticationNonce(params, function (e, nonce) {
           if (e) return next(e);
 
           //message, data, error, res, code
@@ -103,9 +103,9 @@ function _process(req, res, next) {
             data: { info: { _local: false } },
             headers,
             address,
-            encrypted: req.connection.encrypted
+            encrypted: req.connection.encrypted,
           },
-          function(e, session) {
+          function (e, session) {
             if (e) {
               if (
                 e.message === 'Invalid credentials' ||
@@ -136,29 +136,30 @@ function _process(req, res, next) {
             `token userid does not match userid for username: ${session.username}`
           );
 
-        _this.happn.services.security.authorize(session, path, req.method.toLowerCase(), function(
-          e,
-          authorized,
-          reason
-        ) {
-          if (e) {
-            if (e.toString().indexOf('AccessDenied') === 0)
-              return _this.__respondForbidden(req, res, 'unauthorized access to path ' + path);
-            return next(e);
-          }
+        _this.happn.services.security.authorize(
+          session,
+          path,
+          req.method.toLowerCase(),
+          function (e, authorized, reason) {
+            if (e) {
+              if (e.toString().indexOf('AccessDenied') === 0)
+                return _this.__respondForbidden(req, res, 'unauthorized access to path ' + path);
+              return next(e);
+            }
 
-          if (!authorized) {
-            if (CONSTANTS.UNAUTHORISED_REASONS_COLLECTION.indexOf(reason) > -1)
-              return _this.__respondUnauthorized(
-                req,
-                res,
-                `authorization failed for ${session.username}: ${reason}`
-              );
-            return _this.__respondForbidden(req, res, 'unauthorized access to path ' + path);
+            if (!authorized) {
+              if (CONSTANTS.UNAUTHORISED_REASONS_COLLECTION.indexOf(reason) > -1)
+                return _this.__respondUnauthorized(
+                  req,
+                  res,
+                  `authorization failed for ${session.username}: ${reason}`
+                );
+              return _this.__respondForbidden(req, res, 'unauthorized access to path ' + path);
+            }
+            req.happn_session = session; //used later if we are rechecking in security
+            next();
           }
-          req.happn_session = session; //used later if we are rechecking in security
-          next();
-        });
+        );
       });
     } catch (e) {
       next(e);
@@ -171,7 +172,7 @@ function __respondForbidden(req, res, message) {
 
   if (!_this.config.forbiddenResponsePath) {
     res.writeHead(403, 'unauthorized access', {
-      'content-type': 'text/plain'
+      'content-type': 'text/plain',
     });
     res.write(message);
     req.pipe(devNull()).once('finish', () => {
@@ -180,14 +181,14 @@ function __respondForbidden(req, res, message) {
     return;
   }
 
-  fs.readFile(_this.config.forbiddenResponsePath, function(err, html) {
+  fs.readFile(_this.config.forbiddenResponsePath, function (err, html) {
     if (err) {
       res.writeHead(500);
       return res.end(_this.happn.services.utils.stringifyError(err));
     }
 
     res.writeHead(403, 'unauthorized access', {
-      'Content-Type': 'text/html'
+      'Content-Type': 'text/html',
     });
     res.end(html);
   });
@@ -199,7 +200,7 @@ function __respondUnauthorized(req, res, message) {
   if (!_this.config.unauthorizedResponsePath) {
     res.writeHead(401, 'unauthorized access', {
       'Content-Type': 'text/plain',
-      'WWW-Authenticate': 'happn-auth'
+      'WWW-Authenticate': 'happn-auth',
     });
     res.write(message);
     req.pipe(devNull()).once('finish', () => {
@@ -208,7 +209,7 @@ function __respondUnauthorized(req, res, message) {
     return;
   }
 
-  fs.readFile(_this.config.unauthorizedResponsePath, function(err, html) {
+  fs.readFile(_this.config.unauthorizedResponsePath, function (err, html) {
     if (err) {
       res.writeHead(500);
       return res.end(_this.happn.services.utils.stringifyError(err));
@@ -216,7 +217,7 @@ function __respondUnauthorized(req, res, message) {
 
     res.writeHead(401, 'unauthorized access', {
       'Content-Type': 'text/html',
-      'WWW-Authenticate': 'happn-auth'
+      'WWW-Authenticate': 'happn-auth',
     });
     res.end(html);
   });
@@ -226,7 +227,7 @@ function __respond(message, data, error, res, code) {
   var responseString = '{"message":"' + message + '", "data":{{DATA}}, "error":{{ERROR}}}';
 
   var header = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
 
   if (error) {

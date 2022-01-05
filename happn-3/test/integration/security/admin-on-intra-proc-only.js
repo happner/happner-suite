@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var happn_client = happn.client;
 
@@ -13,7 +11,7 @@ describe(
     var serviceInstanceLocked;
     var serviceInstanceLockedConvenient;
 
-    var getService = async function(config) {
+    var getService = async function (config) {
       return new Promise((resolve, reject) => {
         happn.service.create(config, (e, instance) => {
           if (e) return reject(e);
@@ -25,7 +23,7 @@ describe(
     before('it starts secure defaulted service', async () => {
       serviceInstance = await getService({
         secure: true,
-        port: 55000
+        port: 55000,
       });
 
       serviceInstance.specialSetting = 55000;
@@ -38,10 +36,10 @@ describe(
         services: {
           security: {
             config: {
-              disableDefaultAdminNetworkConnections: true
-            }
-          }
-        }
+              disableDefaultAdminNetworkConnections: true,
+            },
+          },
+        },
       });
       serviceInstanceLocked.specialSetting = 55001;
     });
@@ -50,7 +48,7 @@ describe(
       serviceInstanceLockedConvenient = await getService({
         secure: true,
         port: 55002,
-        disableDefaultAdminNetworkConnections: true
+        disableDefaultAdminNetworkConnections: true,
       });
       serviceInstanceLockedConvenient.specialSetting = 55002;
     });
@@ -72,21 +70,21 @@ describe(
       testClient = await happn_client.create({
         config: {
           username: '_ADMIN',
-          password: 'happn'
-        }
+          password: 'happn',
+        },
       });
     });
 
     function doWebRequest(path, port, callback) {
       var request = require('request');
 
-      request({ url: 'http://127.0.0.1:' + port + path }, function(error, response, body) {
+      request({ url: 'http://127.0.0.1:' + port + path }, function (error, response, body) {
         callback(error, body);
       });
     }
 
-    it('fails to authenticate with the _ADMIN user, over a web post', function(done) {
-      doWebRequest('/auth/login?username=_ADMIN&password=happn', 55001, function(e, body) {
+    it('fails to authenticate with the _ADMIN user, over a web post', function (done) {
+      doWebRequest('/auth/login?username=_ADMIN&password=happn', 55001, function (e, body) {
         expect(JSON.parse(body).error.message).to.be(
           'use of _ADMIN credentials over the network is disabled'
         );
@@ -94,23 +92,23 @@ describe(
       });
     });
 
-    it('fails to authenticate with the _ADMIN user, over a web post, negative test', function(done) {
-      doWebRequest('/auth/login?username=_ADMIN&password=happn', 55000, function(e, body) {
+    it('fails to authenticate with the _ADMIN user, over a web post, negative test', function (done) {
+      doWebRequest('/auth/login?username=_ADMIN&password=happn', 55000, function (e, body) {
         expect(JSON.parse(body).error).to.be(null);
         done();
       });
     });
 
-    it('fails to authenticate with the _ADMIN user, on the locked service', function(done) {
+    it('fails to authenticate with the _ADMIN user, on the locked service', function (done) {
       happn_client.create(
         {
           config: {
             username: '_ADMIN',
             password: 'happn',
-            port: 55001
-          }
+            port: 55001,
+          },
         },
-        function(e) {
+        function (e) {
           expect(e.toString()).to.be(
             'AccessDenied: use of _ADMIN credentials over the network is disabled'
           );
@@ -119,16 +117,16 @@ describe(
       );
     });
 
-    it('fails to authenticate with the _ADMIN user, on the convenience locked service', function(done) {
+    it('fails to authenticate with the _ADMIN user, on the convenience locked service', function (done) {
       happn_client.create(
         {
           config: {
             username: '_ADMIN',
             password: 'happn',
-            port: 55002
-          }
+            port: 55002,
+          },
         },
-        function(e) {
+        function (e) {
           expect(e.toString()).to.be(
             'AccessDenied: use of _ADMIN credentials over the network is disabled'
           );
@@ -137,26 +135,26 @@ describe(
       );
     });
 
-    it('fails to authenticate with the _ADMIN user, on the locked service, using a session token', function(done) {
+    it('fails to authenticate with the _ADMIN user, on the locked service, using a session token', function (done) {
       serviceInstanceLocked.services.session.localClient(
         {
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         },
-        function(e, adminClient) {
+        function (e, adminClient) {
           if (e) return done(e);
 
           var token = adminClient.session.token;
 
-          adminClient.disconnect(function() {
+          adminClient.disconnect(function () {
             happn_client.create(
               {
                 config: {
                   port: 55001,
-                  token: token
-                }
+                  token: token,
+                },
               },
-              function(e) {
+              function (e) {
                 expect(e.toString()).to.be(
                   'AccessDenied: use of _ADMIN credentials over the network is disabled'
                 );
@@ -168,31 +166,31 @@ describe(
       );
     });
 
-    it('authenticates with the _ADMIN user, on the locked service using localAdminClient', function(done) {
-      serviceInstanceLocked.services.session.localAdminClient(function(e, adminClient) {
+    it('authenticates with the _ADMIN user, on the locked service using localAdminClient', function (done) {
+      serviceInstanceLocked.services.session.localAdminClient(function (e, adminClient) {
         if (e) return done(e);
-        adminClient.get('/_SYSTEM/*', function(e, items) {
+        adminClient.get('/_SYSTEM/*', function (e, items) {
           if (e) return done(e);
           expect(items.length > 0).to.be(true);
-          adminClient.disconnect(function() {
+          adminClient.disconnect(function () {
             done();
           });
         });
       });
     });
 
-    it('authenticates with the localClient using _ADMIN', function(done) {
+    it('authenticates with the localClient using _ADMIN', function (done) {
       serviceInstanceLocked.services.session.localClient(
         {
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         },
-        function(e, adminClient) {
+        function (e, adminClient) {
           if (e) return done(e);
-          adminClient.get('/_SYSTEM/*', function(e, items) {
+          adminClient.get('/_SYSTEM/*', function (e, items) {
             if (e) return done(e);
             expect(items.length > 0).to.be(true);
-            adminClient.disconnect(function() {
+            adminClient.disconnect(function () {
               done();
             });
           });

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   context('manage users and groups and permissions', async () => {
     const Logger = require('happn-logger');
     const test_id = Date.now() + '_' + require('shortid').generate();
@@ -7,7 +7,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
 
     testConfigs.data = {
       persist: true,
-      filename
+      filename,
     };
 
     testConfigs.security = {};
@@ -25,28 +25,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
 
     var checkpoint = require('../../../lib/services/security/checkpoint');
     testServices.checkpoint = new checkpoint({
-      logger: Logger
+      logger: Logger,
     });
 
-    var initializeMockServices = function(callback) {
+    var initializeMockServices = function (callback) {
       var happnMock = {
         config: {
           services: {
-            security: {}
-          }
+            security: {},
+          },
         },
         services: {
           system: {
-            package: require('../../../package.json')
-          }
-        }
+            package: require('../../../package.json'),
+          },
+        },
       };
 
       test.async.eachSeries(
         ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-        function(serviceName, eachServiceCB) {
+        function (serviceName, eachServiceCB) {
           testServices[serviceName] = new testServices[serviceName]({
-            logger: Logger
+            logger: Logger,
           });
 
           testServices[serviceName].happn = happnMock;
@@ -54,7 +54,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           happnMock.services[serviceName] = testServices[serviceName];
 
           if (serviceName === 'error')
-            happnMock.services[serviceName].handleFatal = function(message, e) {
+            happnMock.services[serviceName].handleFatal = function (message, e) {
               throw e;
             };
 
@@ -73,24 +73,21 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     before('should initialize the service', initializeMockServices);
     after(async () => await test.cleanup());
 
-    context('checkpoint utility functions', function() {
-      it('should get a permission-set key', function(callback) {
+    context('checkpoint utility functions', function () {
+      it('should get a permission-set key', function (callback) {
         var permissionSetKey = testServices.security.generatePermissionSetKey({
           groups: {
             test1: 'test1',
-            test2: 'test2'
-          }
+            test2: 'test2',
+          },
         });
-        test.expect(permissionSetKey).to.be(
-          require('crypto')
-            .createHash('sha1')
-            .update('test1/test2')
-            .digest('base64')
-        );
+        test
+          .expect(permissionSetKey)
+          .to.be(require('crypto').createHash('sha1').update('test1/test2').digest('base64'));
         callback();
       });
 
-      it(' should compare wildcards', function(callback) {
+      it(' should compare wildcards', function (callback) {
         test
           .expect(testServices.utils.wildcardMatch('/test/compare1*', '/test/compare1/blah/*'))
           .to.be(true);
@@ -135,8 +132,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       name: 'TEST GROUP' + test_id,
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     var subGroup = {
@@ -144,8 +141,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       custom_data: {
         customString: 'customSub1',
         customNumber: 1,
-        cadre: 1
-      }
+        cadre: 1,
+      },
     };
 
     var anotherSubGroup = {
@@ -153,30 +150,30 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       custom_data: {
         customString: 'customSub2',
         customNumber: 2,
-        cadre: 1
-      }
+        cadre: 1,
+      },
     };
 
     var testUser = {
       username: 'TEST USER@blah.com' + test_id,
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     var anotherTestUser = {
       username: 'TEST USER1@blah.com' + test_id,
       password: 'TEST PWD',
       custom_data: {
-        something: 'usefull'
-      }
+        something: 'usefull',
+      },
     };
 
     var addedGroup;
 
-    it('should create a group', function(callback) {
-      testServices.security.users.upsertGroup(testGroup, function(e, result) {
+    it('should create a group', function (callback) {
+      testServices.security.users.upsertGroup(testGroup, function (e, result) {
         if (e) return callback(e);
 
         test.expect(result.name === testGroup.name).to.be(true);
@@ -192,13 +189,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('should create a sub group', function(callback) {
+    it('should create a sub group', function (callback) {
       testServices.security.users.upsertGroup(
         subGroup,
         {
-          parent: addedGroup
+          parent: addedGroup,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
 
           test.expect(result.name === subGroup.name).to.be(true);
@@ -213,13 +210,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should create another sub group', function(callback) {
+    it('should create another sub group', function (callback) {
       testServices.security.users.upsertGroup(
         anotherSubGroup,
         {
-          parent: addedGroup
+          parent: addedGroup,
         },
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
 
           test.expect(result.name === anotherSubGroup.name).to.be(true);
@@ -234,13 +231,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should fail to create a group as it already exists', function(callback) {
+    it('should fail to create a group as it already exists', function (callback) {
       testServices.security.users.upsertGroup(
         testGroup,
         {
-          overwrite: false
+          overwrite: false,
         },
-        function(e) {
+        function (e) {
           if (
             e &&
             e.toString() ===
@@ -253,8 +250,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should get groups by group name', function(callback) {
-      testServices.security.users.listGroups('TEST*', function(e, results) {
+    it('should get groups by group name', function (callback) {
+      testServices.security.users.listGroups('TEST*', function (e, results) {
         if (e) return callback(e);
 
         test.expect(results.length).to.be(3);
@@ -262,8 +259,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('gets a specific group', function(callback) {
-      testServices.security.users.getGroup(testGroup.name, function(e, group) {
+    it('gets a specific group', function (callback) {
+      testServices.security.users.getGroup(testGroup.name, function (e, group) {
         if (e) return callback(e);
 
         test.expect(group.name).to.be(testGroup.name);
@@ -272,15 +269,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    it('should get groups matching special criteria', function(callback) {
+    it('should get groups matching special criteria', function (callback) {
       testServices.security.users.listGroups(
         'TEST*',
         {
           criteria: {
-            'custom_data.cadre': { $gt: 0 }
-          }
+            'custom_data.cadre': { $gt: 0 },
+          },
         },
-        function(e, results) {
+        function (e, results) {
           if (e) return callback(e);
           test.expect(results.length).to.be(2);
           callback();
@@ -288,16 +285,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should get groups matching special criteria with limit', function(callback) {
+    it('should get groups matching special criteria with limit', function (callback) {
       testServices.security.users.listGroups(
         'TEST*',
         {
           criteria: {
-            'custom_data.cadre': { $gt: 0 }
+            'custom_data.cadre': { $gt: 0 },
           },
-          limit: 1
+          limit: 1,
         },
-        function(e, results) {
+        function (e, results) {
           if (e) return callback(e);
           test.expect(results.length).to.be(1);
           callback();
@@ -305,16 +302,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should get groups matching special criteria with skip', function(callback) {
+    it('should get groups matching special criteria with skip', function (callback) {
       testServices.security.users.listGroups(
         'TEST*',
         {
           criteria: {
-            'custom_data.cadre': { $gt: 0 }
+            'custom_data.cadre': { $gt: 0 },
           },
-          skip: 1
+          skip: 1,
         },
-        function(e, results) {
+        function (e, results) {
           if (e) return callback(e);
           test.expect(results.length).to.be(1);
           callback();
@@ -322,16 +319,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should get groups matching special criteria with count', function(callback) {
+    it('should get groups matching special criteria with count', function (callback) {
       testServices.security.users.listGroups(
         'TEST*',
         {
           criteria: {
-            'custom_data.cadre': { $gt: 0 }
+            'custom_data.cadre': { $gt: 0 },
           },
-          count: true
+          count: true,
         },
-        function(e, results) {
+        function (e, results) {
           if (e) return callback(e);
           test.expect(results.value).to.be(2);
           callback();
@@ -339,16 +336,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should get groups matching special criteria with count, no data', function(callback) {
+    it('should get groups matching special criteria with count, no data', function (callback) {
       testServices.security.users.listGroups(
         'TEST*',
         {
           criteria: {
-            'custom_data.cadre': { $eq: 'lizard' }
+            'custom_data.cadre': { $eq: 'lizard' },
           },
-          count: true
+          count: true,
         },
-        function(e, results) {
+        function (e, results) {
           if (e) return callback(e);
           test.expect(results.value).to.be(0);
           callback();
@@ -356,57 +353,56 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       );
     });
 
-    it('should add permissions to a group', function(callback) {
+    it('should add permissions to a group', function (callback) {
       testGroup.permissions = {};
 
       //add set permissions to a group
       testGroup.permissions['/a5_eventemitter_security_groups/' + test_id + '/permission_set'] = {
-        actions: ['set']
+        actions: ['set'],
       };
 
       //add get permissions to a group
       testGroup.permissions['/a5_eventemitter_security_groups/' + test_id + '/permission_get'] = {
-        actions: ['get']
+        actions: ['get'],
       };
 
       //add on permissions to a group
       testGroup.permissions['/a5_eventemitter_security_groups/' + test_id + '/permission_on'] = {
-        actions: ['on']
+        actions: ['on'],
       };
 
       //add remove permissions to a group
-      testGroup.permissions[
-        '/a5_eventemitter_security_groups/' + test_id + '/permission_remove'
-      ] = {
-        actions: ['remove']
-      };
+      testGroup.permissions['/a5_eventemitter_security_groups/' + test_id + '/permission_remove'] =
+        {
+          actions: ['remove'],
+        };
 
       //add all permissions to a group
       testGroup.permissions['/a5_eventemitter_security_groups/' + test_id + '/permission_all'] = {
-        actions: ['*']
+        actions: ['*'],
       };
 
       //add all permissions to a wildcard group
       testGroup.permissions['/*' + test_id + '/permission_wildcard/all/*'] = {
-        actions: ['*']
+        actions: ['*'],
       };
 
       //add set permissions to a wildcard group
       testGroup.permissions['/*' + test_id + '/permission_wildcard/set/*'] = {
-        actions: ['set']
+        actions: ['set'],
       };
 
       //add multiple permissions to a wildcard group
       testGroup.permissions['/*' + test_id + '/permission_wildcard/multiple/*'] = {
-        actions: ['set', 'get']
+        actions: ['set', 'get'],
       };
 
       //add multiple permissions to a group
       testGroup.permissions['/' + test_id + '/permission_wildcard/multiple'] = {
-        actions: ['set', 'on']
+        actions: ['set', 'on'],
       };
 
-      testServices.security.users.upsertGroup(testGroup, function(e, result) {
+      testServices.security.users.upsertGroup(testGroup, function (e, result) {
         if (e) return callback(e);
 
         test
@@ -462,20 +458,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       name: 'GROUP TO REMOVE' + test_id,
       custom_data: {
         customString: 'customSub1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
-    it('should delete a group', function(callback) {
-      testServices.security.users.upsertGroup(groupToRemove, function(e, result) {
+    it('should delete a group', function (callback) {
+      testServices.security.users.upsertGroup(groupToRemove, function (e, result) {
         if (e) return callback(e);
 
-        testServices.security.users.deleteGroup(result, function(e, result) {
+        testServices.security.users.deleteGroup(result, function (e, result) {
           if (e) return callback(e);
 
           test.expect(result.removed).to.be(1);
 
-          testServices.security.users.listGroups(groupToRemove.name, function(e, results) {
+          testServices.security.users.listGroups(groupToRemove.name, function (e, results) {
             if (e) return callback(e);
 
             test.expect(results.length).to.be(0);
@@ -486,14 +482,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       });
     });
 
-    context('manage users', function() {
-      it('should add a user', function(callback) {
+    context('manage users', function () {
+      it('should add a user', function (callback) {
         testServices.security.users.upsertUser(
           testUser,
           {
-            overwrite: false
+            overwrite: false,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             test.expect(result.password).to.equal(undefined);
@@ -503,43 +499,44 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
 
             test.expect(result).to.eql({
               custom_data: {
-                something: 'usefull'
+                something: 'usefull',
               },
               permissions: {},
-              username: testUser.username
+              username: testUser.username,
             });
 
-            testServices.data.get('/_SYSTEM/_SECURITY/_USER/' + testUser.username, {}, function(
-              e,
-              result
-            ) {
-              test.expect(result.data.password !== 'TEST PWD').to.be(true);
+            testServices.data.get(
+              '/_SYSTEM/_SECURITY/_USER/' + testUser.username,
+              {},
+              function (e, result) {
+                test.expect(result.data.password !== 'TEST PWD').to.be(true);
 
-              delete result.data.password;
-              delete result.data.userid;
+                delete result.data.password;
+                delete result.data.userid;
 
-              test.expect(result.data).to.eql({
-                custom_data: {
-                  something: 'usefull'
-                },
-                username: testUser.username
-              });
+                test.expect(result.data).to.eql({
+                  custom_data: {
+                    something: 'usefull',
+                  },
+                  username: testUser.username,
+                });
 
-              callback();
-            });
+                callback();
+              }
+            );
           }
         );
       });
 
-      it('should add another user, update userid stays same', function(callback) {
-        testServices.security.users.upsertUser(anotherTestUser, { overwrite: false }, e => {
+      it('should add another user, update userid stays same', function (callback) {
+        testServices.security.users.upsertUser(anotherTestUser, { overwrite: false }, (e) => {
           if (e) return callback(e);
           testServices.security.users.getUser(anotherTestUser.username, (e, fetched) => {
             if (e) return callback(e);
             test.expect(fetched.userid != null).to.be(true);
             var userid = fetched.userid;
             fetched.custom_data.test1 = true;
-            testServices.security.users.upsertUser(fetched, { overwrite: true }, e => {
+            testServices.security.users.upsertUser(fetched, { overwrite: true }, (e) => {
               if (e) return callback(e);
               test.expect(fetched.userid === userid).to.be(true);
               callback();
@@ -548,16 +545,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should not add another user with the same name', function(callback) {
+      it('should not add another user with the same name', function (callback) {
         testUser.username += '.org';
         testUser.password = 'TSTPWD';
 
         testServices.security.users.upsertUser(
           testUser,
           {
-            overwrite: false
+            overwrite: false,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
 
             var user = result;
@@ -566,9 +563,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
             testServices.security.users.upsertUser(
               user,
               {
-                overwrite: false
+                overwrite: false,
               },
-              function(e) {
+              function (e) {
                 test
                   .expect(e.toString())
                   .to.equal(
@@ -583,11 +580,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         );
       });
 
-      it('should update a user', function(callback) {
+      it('should update a user', function (callback) {
         testUser.username += '.net';
         testUser.password = 'TSTPWD';
 
-        testServices.security.users.upsertUser(testUser, function(e, result) {
+        testServices.security.users.upsertUser(testUser, function (e, result) {
           if (e) return callback(e);
 
           var user = result;
@@ -595,38 +592,39 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           user.custom_data = {};
           user.password = 'XXX';
 
-          testServices.security.users.upsertUser(user, function(e, result) {
+          testServices.security.users.upsertUser(user, function (e, result) {
             if (e) return callback(e);
 
             test.expect(result.custom_data).to.eql({});
 
             var user = result;
 
-            testServices.data.get('/_SYSTEM/_SECURITY/_USER/' + user.username, {}, function(
-              e,
-              result
-            ) {
-              delete result.data.password;
-              delete result.data.userid;
+            testServices.data.get(
+              '/_SYSTEM/_SECURITY/_USER/' + user.username,
+              {},
+              function (e, result) {
+                delete result.data.password;
+                delete result.data.userid;
 
-              test.expect(result.data).to.eql({
-                custom_data: {},
-                username: user.username
-              });
+                test.expect(result.data).to.eql({
+                  custom_data: {},
+                  username: user.username,
+                });
 
-              callback();
-            });
+                callback();
+              }
+            );
           });
         });
       });
 
-      it('should list users, by username and criteria', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username and criteria', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -635,10 +633,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
-                }
+                  'custom_data.something': { $eq: 'usefull' },
+                },
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.length).to.be(3);
                 callback();
@@ -648,13 +646,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username, criteria and count', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username, criteria and count', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -663,11 +661,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
+                  'custom_data.something': { $eq: 'usefull' },
                 },
-                count: true
+                count: true,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.value).to.be(3);
                 callback();
@@ -677,13 +675,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username, criteria and count, no data', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username, criteria and count, no data', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -692,11 +690,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'lizard' }
+                  'custom_data.something': { $eq: 'lizard' },
                 },
-                count: true
+                count: true,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.value).to.be(0);
                 callback();
@@ -706,13 +704,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username and criteria with limit', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username and criteria with limit', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -721,11 +719,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
+                  'custom_data.something': { $eq: 'usefull' },
                 },
-                limit: 1
+                limit: 1,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.length).to.be(1);
                 callback();
@@ -735,13 +733,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username and criteria with skip', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username and criteria with skip', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -750,11 +748,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
+                  'custom_data.something': { $eq: 'usefull' },
                 },
-                skip: 1
+                skip: 1,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.length).to.be(2);
                 callback();
@@ -764,13 +762,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username, criteria, count and limit', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username, criteria, count and limit', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -779,12 +777,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
+                  'custom_data.something': { $eq: 'usefull' },
                 },
                 limit: 1,
-                count: true
+                count: true,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.value).to.be(1);
                 callback();
@@ -794,13 +792,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users, by username, criteria, count and skip', function(callback) {
-        testServices.security.users.listUsers(testUser.username, function(e, users) {
+      it('should list users, by username, criteria, count and skip', function (callback) {
+        testServices.security.users.listUsers(testUser.username, function (e, users) {
           if (e) return callback(e);
 
           test.expect(users.length).to.be(1);
 
-          testServices.security.users.listUsers('*', function(e, users) {
+          testServices.security.users.listUsers('*', function (e, users) {
             if (e) return callback(e);
 
             test.expect(users.length).to.be(5);
@@ -809,12 +807,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
               '*',
               {
                 criteria: {
-                  'custom_data.something': { $eq: 'usefull' }
+                  'custom_data.something': { $eq: 'usefull' },
                 },
                 count: true,
-                skip: 1
+                skip: 1,
               },
-              function(e, users) {
+              function (e, users) {
                 if (e) return callback(e);
                 test.expect(users.value).to.be(2);
                 callback();
@@ -824,34 +822,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('can delete a user', function(callback) {
+      it('can delete a user', function (callback) {
         testUser.username += '.xx';
         testUser.password = 'TST';
 
-        testServices.security.users.upsertUser(testUser, function(e, user) {
+        testServices.security.users.upsertUser(testUser, function (e, user) {
           if (e) return callback(e);
 
-          testServices.data.get('/_SYSTEM/_SECURITY/_USER/' + user.username, {}, function(e) {
+          testServices.data.get('/_SYSTEM/_SECURITY/_USER/' + user.username, {}, function (e) {
             if (e) return callback(e);
 
-            testServices.security.users.deleteUser(user, function(e, result) {
+            testServices.security.users.deleteUser(user, function (e, result) {
               if (e) return callback(e);
 
               test.expect(result.obj.data).to.eql({
-                removed: 1
+                removed: 1,
               });
               test.expect(result.tree.data).to.eql({
-                removed: 0
+                removed: 0,
               });
 
-              testServices.data.get('/_SYSTEM/_SECURITY/_USER/' + user.username, {}, function(
-                e,
-                result
-              ) {
-                test.expect(result).to.equal(null);
-                test.expect(result).to.equal(null);
-                callback();
-              });
+              testServices.data.get(
+                '/_SYSTEM/_SECURITY/_USER/' + user.username,
+                {},
+                function (e, result) {
+                  test.expect(result).to.equal(null);
+                  test.expect(result).to.equal(null);
+                  callback();
+                }
+              );
             });
           });
         });
@@ -862,47 +861,47 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         // });
       });
 
-      context('delete a user that has groups', function() {
-        it('removes the user', function(callback) {
+      context('delete a user that has groups', function () {
+        it('removes the user', function (callback) {
           callback();
         });
 
-        it('removes the group membership', function(callback) {
+        it('removes the group membership', function (callback) {
           callback();
         });
       });
     });
 
-    context('manage users and groups', function() {
+    context('manage users and groups', function () {
       var linkGroup = {
         name: 'LINK GROUP' + test_id,
         custom_data: {
           customString: 'custom1',
-          customNumber: 0
-        }
+          customNumber: 0,
+        },
       };
 
       var linkUser = {
         username: 'LINK USER@blah.com' + test_id,
         password: 'LINK PWD',
         custom_data: {
-          something: 'usefull'
-        }
+          something: 'usefull',
+        },
       };
 
       var nonExistantGroup = {
         name: 'BAD LINK GROUP' + test_id,
         _meta: {
-          path: '/SOME/DODGE/PATH'
-        }
+          path: '/SOME/DODGE/PATH',
+        },
       };
 
-      before('should create link between users and groups', function(done) {
-        testServices.security.users.upsertGroup(linkGroup, function(e, result) {
+      before('should create link between users and groups', function (done) {
+        testServices.security.users.upsertGroup(linkGroup, function (e, result) {
           if (e) return done(e);
           linkGroup = result;
 
-          testServices.security.users.upsertUser(linkUser, function(e, result) {
+          testServices.security.users.upsertUser(linkUser, function (e, result) {
             if (e) return done(e);
             linkUser = result;
             done();
@@ -910,14 +909,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('links a group to a user', function(callback) {
-        testServices.security.users.linkGroup(linkGroup, linkUser, function(e) {
+      it('links a group to a user', function (callback) {
+        testServices.security.users.linkGroup(linkGroup, linkUser, function (e) {
           if (e) return callback(e);
 
           testServices.data.get(
             '/_SYSTEM/_SECURITY/_USER/' + linkUser.username + '/_USER_GROUP/' + linkGroup.name,
             {},
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
 
               test.expect(result != null).to.be(true);
@@ -927,16 +926,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('should list users by groupName', function(callback) {
-        testServices.security.users.listUsersByGroup(linkGroup.name, function(e, users) {
+      it('should list users by groupName', function (callback) {
+        testServices.security.users.listUsersByGroup(linkGroup.name, function (e, users) {
           if (e) return callback(e);
           test.expect(users.length).to.be(1);
           callback();
         });
       });
 
-      it('gets a specific user - ensuring the group is now part of the return object', function(callback) {
-        testServices.security.users.getUser(linkUser.username, function(e, user) {
+      it('gets a specific user - ensuring the group is now part of the return object', function (callback) {
+        testServices.security.users.getUser(linkUser.username, function (e, user) {
           if (e) return callback(e);
 
           test.expect(user.groups[linkGroup.name] != null).to.be(true);
@@ -944,39 +943,40 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('gets a specific user - with the includeGroups:false switch, we ensure the group is not part of the user', function(callback) {
-        testServices.security.users.getUser(linkUser.username, { includeGroups: false }, function(
-          e,
-          user
-        ) {
-          if (e) return callback(e);
+      it('gets a specific user - with the includeGroups:false switch, we ensure the group is not part of the user', function (callback) {
+        testServices.security.users.getUser(
+          linkUser.username,
+          { includeGroups: false },
+          function (e, user) {
+            if (e) return callback(e);
 
-          test.expect(user.groups).to.be(undefined);
-          // we dont cache users that have no groups
-          test
-            .expect(testServices.security.users.__cache_users.getSync(linkUser.username))
-            .to.not.be(null);
-          test
-            .expect(testServices.security.users.__cache_passwords.getSync(linkUser.username))
-            .to.not.be(null);
-
-          testServices.security.users.clearCaches().then(function() {
+            test.expect(user.groups).to.be(undefined);
+            // we dont cache users that have no groups
             test
               .expect(testServices.security.users.__cache_users.getSync(linkUser.username))
-              .to.be(null);
+              .to.not.be(null);
             test
               .expect(testServices.security.users.__cache_passwords.getSync(linkUser.username))
-              .to.be(null);
-            callback();
-          });
-        });
+              .to.not.be(null);
+
+            testServices.security.users.clearCaches().then(function () {
+              test
+                .expect(testServices.security.users.__cache_users.getSync(linkUser.username))
+                .to.be(null);
+              test
+                .expect(testServices.security.users.__cache_passwords.getSync(linkUser.username))
+                .to.be(null);
+              callback();
+            });
+          }
+        );
       });
 
-      it('gets a non-existing user - with the includeGroups:false switch, we ensure we get null back', function(callback) {
+      it('gets a non-existing user - with the includeGroups:false switch, we ensure we get null back', function (callback) {
         testServices.security.users.getUser(
           'a non existing user',
           { includeGroups: false },
-          function(e, user) {
+          function (e, user) {
             if (e) return callback(e);
 
             test.expect(user).to.be(null);
@@ -985,13 +985,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         );
       });
 
-      it('tries to create a user with the :nogroups switch in the user name - we ensure this fails validation', function(callback) {
+      it('tries to create a user with the :nogroups switch in the user name - we ensure this fails validation', function (callback) {
         var badUser = {
           username: 'TESTBADUSER:nogroups',
-          password: 'PWD'
+          password: 'PWD',
         };
 
-        testServices.security.users.upsertUser(badUser, function(e) {
+        testServices.security.users.upsertUser(badUser, function (e) {
           test
             .expect(e.toString())
             .to.be("Error: validation failure: username cannot contain the ':nogroups' directive");
@@ -999,12 +999,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('unlinks a group from a user', function(callback) {
-        testServices.security.users.unlinkGroup(linkGroup, linkUser, function() {
+      it('unlinks a group from a user', function (callback) {
+        testServices.security.users.unlinkGroup(linkGroup, linkUser, function () {
           testServices.data.get(
             '/_SYSTEM/_SECURITY/_USER/' + linkUser.username + '/_USER_GROUP/' + linkGroup.name,
             {},
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
 
               test.expect(result).to.be(null);
@@ -1014,58 +1014,58 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         });
       });
 
-      it('fails to link a non-existant group to a user', function(callback) {
-        testServices.security.users.linkGroup(nonExistantGroup, linkUser, function(e) {
+      it('fails to link a non-existant group to a user', function (callback) {
+        testServices.security.users.linkGroup(nonExistantGroup, linkUser, function (e) {
           if (!e) return callback(new Error('user linked to non existant group'));
 
           callback();
         });
       });
 
-      it('deletes a group that belongs to a user without un-linking it, then is able to fetch the user', function(done) {
+      it('deletes a group that belongs to a user without un-linking it, then is able to fetch the user', function (done) {
         var thisUser = {
           username: 'thisUser1',
-          password: 'thisUser1'
+          password: 'thisUser1',
         };
 
         var thisGroup = {
           name: 'thisGroup1',
-          permissions: {}
+          permissions: {},
         };
 
         thisGroup.permissions['/*' + test_id + '/remove_group'] = {
-          actions: ['set', 'get']
+          actions: ['set', 'get'],
         };
 
         var fetchedGroup;
 
         testServices.security.groups
           .upsertGroup(thisGroup)
-          .then(function() {
+          .then(function () {
             return testServices.security.users.upsertUser(thisUser);
           })
-          .then(function() {
+          .then(function () {
             return testServices.security.groups.getGroup('thisGroup1');
           })
-          .then(function(gotGroup) {
+          .then(function (gotGroup) {
             fetchedGroup = gotGroup;
             return testServices.security.users.getUser('thisUser1');
           })
-          .then(function(fetchedUser) {
+          .then(function (fetchedUser) {
             return testServices.security.groups.linkGroup(fetchedGroup, fetchedUser);
           })
-          .then(function() {
+          .then(function () {
             return testServices.security.users.getUser('thisUser1');
           })
-          .then(function(user) {
+          .then(function (user) {
             test.expect(user.groups.thisGroup1).to.not.be(null);
             test.expect(user.groups.thisGroup1).to.not.be(undefined);
             return testServices.security.groups.deleteGroup(fetchedGroup);
           })
-          .then(function() {
+          .then(function () {
             return testServices.security.users.getUser('thisUser1');
           })
-          .then(function(user) {
+          .then(function (user) {
             test.expect(user.groups.thisGroup1).to.be(undefined);
             done();
           })

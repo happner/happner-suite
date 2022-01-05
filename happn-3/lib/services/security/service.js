@@ -19,19 +19,19 @@ function SecurityService(opts) {
   if (!opts.groupCache)
     opts.groupCache = {
       max: 300,
-      maxAge: 0
+      maxAge: 0,
     };
 
   if (!opts.userCache)
     opts.userCache = {
       max: 300,
-      maxAge: 0
+      maxAge: 0,
     };
 
   if (!opts.onBehalfOfCache)
     opts.onBehalfOfCache = {
       max: 1000,
-      maxAge: 0
+      maxAge: 0,
     };
 
   this.options = opts;
@@ -148,7 +148,8 @@ SecurityService.prototype.checkOverwrite = checkOverwrite;
 SecurityService.prototype.serializeAll = serializeAll;
 SecurityService.prototype.serialize = serialize;
 
-SecurityService.prototype.checkDisableDefaultAdminNetworkConnections = checkDisableDefaultAdminNetworkConnections;
+SecurityService.prototype.checkDisableDefaultAdminNetworkConnections =
+  checkDisableDefaultAdminNetworkConnections;
 SecurityService.prototype.checkIPAddressWhitelistPolicy = checkIPAddressWhitelistPolicy;
 SecurityService.prototype.__dataChangedInternal = __dataChangedInternal;
 
@@ -236,7 +237,7 @@ function getAuditData(message) {
   data.session = {
     type: message.session.type,
     username: message.session.user.username,
-    protocol: message.session.protocol
+    protocol: message.session.protocol,
   };
 
   return data;
@@ -270,9 +271,9 @@ function doAudit(message, callback) {
       auditPath,
       auditData,
       {
-        set_type: 'sibling'
+        set_type: 'sibling',
       },
-      e => {
+      (e) => {
         if (e)
           return callback(
             this.happn.services.error.SystemError('security audit failed', e.toString())
@@ -288,7 +289,7 @@ function processUnsecureLogin(message, callback) {
   let session = this.generateEmptySession(message.session.id);
   session.info = message.request.data.info;
   message.response = {
-    data: this.happn.services.session.attachSession(message.session.id, session)
+    data: this.happn.services.session.attachSession(message.session.id, session),
   };
 
   return callback(null, message);
@@ -319,7 +320,7 @@ function processLogin(message, callback) {
     delete decoupledSession.user.groups; //needlessly large list of security groups passed back, groups are necessary on server side though
 
     message.response = {
-      data: decoupledSession
+      data: decoupledSession,
     };
 
     callback(null, message);
@@ -383,8 +384,8 @@ function processNonceRequest(message, callback) {
     message.response = {
       nonce: nonce,
       data: {
-        nonce: nonce
-      } //happn-2 backward compatability
+        nonce: nonce,
+      }, //happn-2 backward compatability
     };
     return callback(null, message);
   });
@@ -428,7 +429,7 @@ function __ensureKeyPair(config) {
           '/_SYSTEM/_SECURITY/_SETTINGS/KEYPAIR',
           transformedKeyPair,
           {},
-          upsertFailed => {
+          (upsertFailed) => {
             if (upsertFailed) return reject(upsertFailed);
             this._keyPair = this.cryptoService.deserializeKeyPair(transformedKeyPair);
             resolve();
@@ -443,13 +444,13 @@ function __ensureAdminUser(config) {
   return new Promise((resolve, reject) => {
     if (!config.adminUser)
       config.adminUser = {
-        custom_data: {}
+        custom_data: {},
       };
     if (!config.adminGroup)
       config.adminGroup = {
         custom_data: {
-          description: 'the default administration group for happn'
-        }
+          description: 'the default administration group for happn',
+        },
       };
 
     config.adminUser.username = '_ADMIN';
@@ -457,8 +458,8 @@ function __ensureAdminUser(config) {
 
     config.adminGroup.permissions = {
       '*': {
-        actions: ['*']
-      }
+        actions: ['*'],
+      },
     };
 
     this.newDB = false;
@@ -486,7 +487,7 @@ async function __ensureAnonymousUser(config) {
   if (anonymousUser != null) return anonymousUser;
   return this.users.__upsertUser({
     username: '_ANONYMOUS',
-    password: 'anonymous'
+    password: 'anonymous',
   });
 }
 
@@ -520,14 +521,14 @@ function __initializeCheckPoint(config) {
   return new Promise((resolve, reject) => {
     let checkpoint = require('./checkpoint');
     this.checkpoint = new checkpoint({
-      logger: this.log
+      logger: this.log,
     });
 
     Object.defineProperty(this.checkpoint, 'happn', {
-      value: this.happn
+      value: this.happn,
     });
 
-    this.checkpoint.initialize(config, this, e => {
+    this.checkpoint.initialize(config, this, (e) => {
       if (e) return reject(e);
       resolve();
     });
@@ -538,15 +539,15 @@ function __initializeUsers(config) {
   return new Promise((resolve, reject) => {
     let SecurityUsers = require('./users');
     this.users = new SecurityUsers({
-      logger: this.log
+      logger: this.log,
     });
     Object.defineProperty(this.users, 'happn', {
-      value: this.happn
+      value: this.happn,
     });
     Object.defineProperty(this.users, 'groups', {
-      value: this.groups
+      value: this.groups,
     });
-    this.users.initialize(config, this, e => {
+    this.users.initialize(config, this, (e) => {
       if (e) return reject(e);
       resolve();
     });
@@ -556,7 +557,7 @@ function __initializeUsers(config) {
 function __initializeLookupTables(config) {
   let SecurityLookupTables = require('./lookup-tables');
   this.lookupTables = SecurityLookupTables.create({
-    logger: this.log
+    logger: this.log,
   });
   return this.lookupTables.initialize(this.happn, config.lookup);
 }
@@ -568,9 +569,9 @@ function __initializeSessionTokenSecret(config) {
       return this.dataService.upsert(
         '/_SYSTEM/_SECURITY/SESSION_TOKEN_SECRET',
         {
-          secret: config.sessionTokenSecret
+          secret: config.sessionTokenSecret,
         },
-        e => {
+        (e) => {
           if (e) return reject(e);
           resolve();
         }
@@ -587,9 +588,9 @@ function __initializeSessionTokenSecret(config) {
       this.dataService.upsert(
         '/_SYSTEM/_SECURITY/SESSION_TOKEN_SECRET',
         {
-          secret
+          secret,
         },
-        e => {
+        (e) => {
           if (e) return reject(e);
           config.sessionTokenSecret = secret;
           resolve();
@@ -604,14 +605,14 @@ function __initializeGroups(config) {
     let SecurityGroups = require('./groups');
 
     this.groups = new SecurityGroups({
-      logger: this.log
+      logger: this.log,
     });
 
     Object.defineProperty(this.groups, 'happn', {
-      value: this.happn
+      value: this.happn,
     });
 
-    this.groups.initialize(config, this, e => {
+    this.groups.initialize(config, this, (e) => {
       if (e) return reject(e);
       resolve();
     });
@@ -619,14 +620,14 @@ function __initializeGroups(config) {
 }
 
 function __clearOnBehalfOfCache() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (this.__cache_session_on_behalf_of) this.__cache_session_on_behalf_of.clear();
     resolve();
   });
 }
 
 function __initializeOnBehalfOfCache() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (!this.config.secure) return resolve();
     if (this.__cache_session_on_behalf_of) return resolve();
     this.__cache_session_on_behalf_of = this.cacheService.new(
@@ -641,11 +642,11 @@ function __initializeSessionManagement(config) {
   return new Promise((resolve, reject) => {
     if (!this.config.secure) return resolve();
     if (!config.activateSessionManagement)
-      return this.__loadRevokedTokens(e => {
+      return this.__loadRevokedTokens((e) => {
         if (e) return reject(e);
         resolve();
       });
-    this.activateSessionManagement(config.logSessionActivity, e => {
+    this.activateSessionManagement(config.logSessionActivity, (e) => {
       if (e) return reject(e);
       resolve();
     });
@@ -665,7 +666,7 @@ function __initializeAuthProviders(config) {
 
   let defaultAuthProvider = config.defaultAuthProvider || 'happn';
 
-  Object.keys(authProviders).forEach(key => {
+  Object.keys(authProviders).forEach((key) => {
     let provider = authProviders[key];
     this.authProviders[key] = BaseAuthProvider.create(this.happn, config, provider);
   });
@@ -686,7 +687,7 @@ function activateSessionManagement(logSessionActivity, callback) {
     return callback(new Error('session management must run off a secure instance'));
   this.__sessionManagementActive = true;
 
-  this.__loadRevokedTokens(e => {
+  this.__loadRevokedTokens((e) => {
     if (e) return callback(e);
     if (!logSessionActivity) return callback();
     this.__loadSessionActivity(callback);
@@ -714,8 +715,8 @@ function __loadRevokedTokens(callback) {
   let config = {
     type: 'persist',
     cache: {
-      dataStore: this.dataService
-    }
+      dataStore: this.dataService,
+    },
   };
 
   this.__cache_revoked_tokens = this.cacheService.new('cache_revoked_tokens', config);
@@ -743,8 +744,8 @@ function __loadSessionActivity(callback) {
     type: 'persist',
     cache: {
       dataStore: this.dataService,
-      defaultTTL: this.config.sessionActivityTTL
-    }
+      defaultTTL: this.config.sessionActivityTTL,
+    },
   };
 
   this.__cache_session_activity = this.cacheService.new('cache_session_activity', config);
@@ -753,7 +754,7 @@ function __loadSessionActivity(callback) {
 
 function __checkRevocations(token, callback) {
   if (!this.__cache_revoked_tokens) return callback(null, true);
-  this.__cache_revoked_tokens.get(token, function(e, item) {
+  this.__cache_revoked_tokens.get(token, function (e, item) {
     if (e) return callback(e);
     if (item == null) return callback(null, true);
     callback(null, false, `token has been revoked`);
@@ -806,10 +807,10 @@ function revokeToken(token, reason, callback) {
     {
       reason,
       timestamp,
-      ttl
+      ttl,
     },
     { ttl },
-    e => {
+    (e) => {
       if (!e)
         this.dataChanged(
           CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
@@ -818,7 +819,7 @@ function revokeToken(token, reason, callback) {
             session: decoded,
             reason,
             timestamp,
-            ttl
+            ttl,
           },
           `token for session with id ${decoded.id}  and origin ${
             decoded.parentId ? decoded.parentId : decoded.id
@@ -882,7 +883,7 @@ function sessionFromRequest(req, options) {
 }
 
 function restoreToken(token, callback) {
-  this.__cache_revoked_tokens.remove(token, e => {
+  this.__cache_revoked_tokens.remove(token, (e) => {
     if (!e)
       this.dataChanged(
         CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_RESTORED,
@@ -900,7 +901,7 @@ function __logSessionActivity(sessionId, path, action, err, authorized, reason, 
     id: sessionId,
     error: err ? err.toString() : '',
     authorized: authorized,
-    reason: reason
+    reason: reason,
   };
 
   this.__cache_session_activity.set(sessionId, activityInfo, callback);
@@ -978,7 +979,7 @@ function getEffectedSession(sessionData, causeSubscriptionsRefresh) {
     user: sessionData.user,
     happn: sessionData.happn,
     protocol: sessionData.protocol,
-    causeSubscriptionsRefresh: causeSubscriptionsRefresh
+    causeSubscriptionsRefresh: causeSubscriptionsRefresh,
   };
 }
 
@@ -993,9 +994,9 @@ function resetSessionPermissions(whatHappnd, changedData) {
       this.sessionService.disconnectSessions(
         changedData.session.parentId,
         {
-          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
         },
-        e => {
+        (e) => {
           if (e) this.errorService.handleSystem(e, 'SecurityService');
         }
       );
@@ -1008,7 +1009,7 @@ function resetSessionPermissions(whatHappnd, changedData) {
         changedData.token,
         { reason: changedData.reason, id: changedData.id },
         { noPersist: true, ttl: changedData.ttl },
-        e => {
+        (e) => {
           if (e) return reject(e);
           resolve(effectedSessions);
         }
@@ -1020,7 +1021,7 @@ function resetSessionPermissions(whatHappnd, changedData) {
       return this.__cache_revoked_tokens.remove(
         changedData.token,
         { noPersist: changedData.replicated },
-        function(e) {
+        function (e) {
           if (e) return reject(e);
           resolve(effectedSessions);
         }
@@ -1045,7 +1046,7 @@ function resetSessionPermissions(whatHappnd, changedData) {
 
         if (whatHappnd === CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_TABLE_CHANGED) {
           if (
-            Object.keys(sessionData.user.groups).some(group => changedData.groups.includes(group))
+            Object.keys(sessionData.user.groups).some((group) => changedData.groups.includes(group))
           )
             effectedSessions.push(getEffectedSession(sessionData, true));
         }
@@ -1101,7 +1102,7 @@ function resetSessionPermissions(whatHappnd, changedData) {
           if (sessionData.user.username === userName) {
             effectedSessions.push(getEffectedSession(sessionData, true));
             this.sessionService.disconnectSession(sessionData.id, null, {
-              reason: 'security directory update: user deleted'
+              reason: 'security directory update: user deleted',
             });
           }
         }
@@ -1131,7 +1132,7 @@ function resetSessionPermissions(whatHappnd, changedData) {
 
         sessionCallback();
       },
-      e => {
+      (e) => {
         if (e) return reject(e);
         resolve(effectedSessions);
       }
@@ -1148,17 +1149,17 @@ function emitChanges(whatHappnd, changedData, effectedSessions) {
       if (changedData) changedDataSerialized = JSON.stringify(changedData);
       if (effectedSessions) effectedSessionsSerialized = JSON.stringify(effectedSessions);
 
-      this.__dataHooks.every(hook => {
+      this.__dataHooks.every((hook) => {
         return hook.apply(hook, [
           whatHappnd,
           JSON.parse(changedDataSerialized),
-          JSON.parse(effectedSessionsSerialized)
+          JSON.parse(effectedSessionsSerialized),
         ]);
       });
       this.emit('security-data-changed', {
         whatHappnd: whatHappnd,
         changedData: changedData,
-        effectedSessions: effectedSessions
+        effectedSessions: effectedSessions,
       });
 
       resolve();
@@ -1188,10 +1189,10 @@ function __dataChangedInternal(whatHappnd, changedData, additionalInfo, callback
     .then(() => {
       return this.resetSessionPermissions(whatHappnd, changedData, additionalInfo);
     })
-    .then(effectedSessions => {
+    .then((effectedSessions) => {
       return this.checkpoint.clearCaches(effectedSessions);
     })
-    .then(effectedSessions => {
+    .then((effectedSessions) => {
       return new Promise((resolve, reject) => {
         if (
           this.happn.services.subscription &&
@@ -1208,7 +1209,7 @@ function __dataChangedInternal(whatHappnd, changedData, additionalInfo, callback
         }
       });
     })
-    .then(effectedSessions => {
+    .then((effectedSessions) => {
       return new Promise((resolve, reject) => {
         if (this.happn.services.session)
           this.happn.services.session
@@ -1220,7 +1221,7 @@ function __dataChangedInternal(whatHappnd, changedData, additionalInfo, callback
         else resolve(effectedSessions);
       });
     })
-    .then(effectedSessions => {
+    .then((effectedSessions) => {
       return this.emitChanges(whatHappnd, changedData, effectedSessions, additionalInfo);
     })
     .then(() => {
@@ -1229,7 +1230,7 @@ function __dataChangedInternal(whatHappnd, changedData, additionalInfo, callback
     .then(() => {
       if (callback) callback();
     })
-    .catch(e => {
+    .catch((e) => {
       this.happn.services.error.handleFatal('failure updating cached security data', e);
     });
 }
@@ -1245,9 +1246,9 @@ function __replicateDataChanged(whatHappnd, changedData, additionalInfo) {
       {
         whatHappnd: whatHappnd,
         changedData: changedData,
-        additionalInfo: additionalInfo
+        additionalInfo: additionalInfo,
       },
-      e => {
+      (e) => {
         if (e) {
           if (e.message === 'Replicator not ready') {
             // means not connected to self (or other peers in cluster)
@@ -1295,13 +1296,8 @@ function generatePermissionSetKey(user) {
     .createHash('sha1')
     .update(
       user.permissions
-        ? Object.keys(user.groups)
-            .concat(Object.keys(user.permissions))
-            .sort()
-            .join('/')
-        : Object.keys(user.groups)
-            .sort()
-            .join('/')
+        ? Object.keys(user.groups).concat(Object.keys(user.permissions)).sort().join('/')
+        : Object.keys(user.groups).sort().join('/')
     )
     .digest('base64');
 }
@@ -1313,14 +1309,14 @@ function generateEmptySession(id) {
 function __profileSession(session) {
   session.policy = {
     0: null,
-    1: null
+    1: null,
   };
   //we dont want to mess around with the actual sessions type
   //it is an unknown at this point
   let decoupledSession = this.happn.services.utils.clone(session);
-  this.__cache_Profiles.forEach(profile => {
+  this.__cache_Profiles.forEach((profile) => {
     let filter = profile.session;
-    [0, 1].forEach(function(sessionType) {
+    [0, 1].forEach(function (sessionType) {
       if (session.policy[sessionType] != null) return;
       decoupledSession.type = sessionType;
       if (commons.mongoFilter(filter, decoupledSession).length === 1) {
@@ -1404,42 +1400,42 @@ function __initializeProfiles(config) {
         name: 'default-browser', // this is the default underlying profile for stateful sessions
         session: {
           'info._browser': {
-            $eq: true
-          }
+            $eq: true,
+          },
         },
         policy: {
           ttl: '7 days', //a week
-          inactivity_threshold: '1 hour'
-        }
+          inactivity_threshold: '1 hour',
+        },
       });
 
       config.profiles.push({
         name: 'default-stateful', // this is the default underlying profile for stateful sessions
         session: {
           type: {
-            $eq: 1
-          }
+            $eq: 1,
+          },
         },
         policy: {
           ttl: 0, //session never goes stale
-          inactivity_threshold: Infinity
-        }
+          inactivity_threshold: Infinity,
+        },
       });
 
       config.profiles.push({
         name: 'default-stateless', // this is the default underlying profile for stateless sessions (REST)
         session: {
           type: {
-            $eq: 0
-          }
+            $eq: 0,
+          },
         },
         policy: {
           ttl: 0, //session never goes stale
-          inactivity_threshold: Infinity
-        }
+          inactivity_threshold: Infinity,
+        },
       });
 
-      config.profiles.forEach(profile => {
+      config.profiles.forEach((profile) => {
         if (profile.policy.ttl && profile.policy.ttl !== Infinity)
           profile.policy.ttl = this.happn.services.utils.toMilliseconds(profile.policy.ttl);
         if (profile.policy.inactivity_threshold && profile.policy.ttl !== Infinity)
@@ -1486,13 +1482,13 @@ function __loginFailed(username, specificMessage, e, callback, overrideLockout) 
 
     if (!currentLock)
       currentLock = {
-        attempts: 0
+        attempts: 0,
       };
 
     currentLock.attempts++;
 
     this.__locks.setSync(username, currentLock, {
-      ttl: this.config.accountLockout.retryInterval
+      ttl: this.config.accountLockout.retryInterval,
     });
 
     return callback(this.happn.services.error.InvalidCredentialsError(message));
@@ -1523,7 +1519,7 @@ function checkDisableDefaultAdminNetworkConnections(credentials, request) {
 }
 
 function checkIPAddressWhitelistPolicy(credentials, sessionId, request) {
-  return this.__cache_Profiles.every(profile => {
+  return this.__cache_Profiles.every((profile) => {
     if (profile.policy.sourceIPWhitelist == null || profile.policy.sourceIPWhitelist.length === 0)
       return true;
     if (commons.mongoFilter(profile.session, { user: credentials }).length === 0) return true;
@@ -1546,9 +1542,9 @@ function createAuthenticationNonce(request, callback) {
     nonce,
     {
       cache: 'security_authentication_nonce',
-      ttl: this.config.defaultNonceTTL
+      ttl: this.config.defaultNonceTTL,
     },
-    e => {
+    (e) => {
       if (e) return callback(e);
       else callback(null, nonce);
     }
@@ -1566,7 +1562,7 @@ function verifyAuthenticationDigest(request, callback) {
   this.cacheService.get(
     request.publicKey,
     {
-      cache: 'security_authentication_nonce'
+      cache: 'security_authentication_nonce',
     },
     (e, nonce) => {
       if (e) return callback(e);
@@ -1586,7 +1582,7 @@ function authorize(session, path, action, callback) {
   let completeCall = (err, authorized, reason) => {
     callback(err, authorized, reason);
     if (this.config.logSessionActivity)
-      this.__logSessionActivity(session.id, path, action, err, authorized, reason, e => {
+      this.__logSessionActivity(session.id, path, action, err, authorized, reason, (e) => {
         if (e) this.log.warn('unable to log session activity: ' + e.toString());
       });
   };
@@ -1615,7 +1611,7 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   let completeCall = (err, authorized, reason, onBehalfOfSession) => {
     callback(err, authorized, reason, onBehalfOfSession);
     if (this.config.logSessionActivity)
-      this.__logSessionActivity(session.id, path, action, err, authorized, reason, e => {
+      this.__logSessionActivity(session.id, path, action, err, authorized, reason, (e) => {
         if (e) this.log.warn('unable to log session activity: ' + e.toString());
       });
   };
@@ -1626,7 +1622,7 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   this.__getOnBehalfOfSession(session, onBehalfOf, (e, behalfOfSession) => {
     if (e) return completeCall(e, false, 'failed to get on behalf of session');
     if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
-    this.authorize(behalfOfSession, path, action, function(err, authorized, reason) {
+    this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
       if (err) return completeCall(err, false, reason);
       if (!authorized) return completeCall(err, false, reason);
       return completeCall(err, authorized, reason, behalfOfSession);
@@ -1644,7 +1640,7 @@ function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
       return callback(null, null);
     }
     behalfOfSession = this.generateSession(onBehalfOfUser, null, {
-      info: { delegatedBy: delegatedBy.user.username }
+      info: { delegatedBy: delegatedBy.user.username },
     });
     behalfOfSession.happn = delegatedBy.happn;
     this.__cache_session_on_behalf_of.setSync(onBehalfOf, behalfOfSession, { clone: false });
@@ -1695,7 +1691,7 @@ function validateName(name, validationType) {
       '_PERMISSION',
       '_USER_GROUP',
       '_ADMIN',
-      '_ANONYMOUS'
+      '_ANONYMOUS',
     ])
   )
     throw new this.errorService.ValidationError(
@@ -1724,7 +1720,7 @@ function checkOverwrite(validationType, obj, path, name, options, callback) {
 
 function serializeAll(objectType, objArray, options) {
   if (!objArray) return [];
-  return objArray.map(obj => {
+  return objArray.map((obj) => {
     return this.serialize(objectType, obj, options);
   });
 }

@@ -1,23 +1,21 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var happn = require('../../../lib/index');
     var serviceInstance;
     var expect = require('expect.js');
     var constants = happn.constants;
 
-    var getService = function(config, callback) {
+    var getService = function (config, callback) {
       happn.service.create(config, callback);
     };
 
-    before('it starts completely defaulted service', function(done) {
+    before('it starts completely defaulted service', function (done) {
       getService(
         {
-          secure: true
+          secure: true,
         },
-        function(e, service) {
+        function (e, service) {
           if (e) return done(e);
 
           serviceInstance = service;
@@ -27,11 +25,11 @@ describe(
       );
     });
 
-    after('stop the test service', function(callback) {
+    after('stop the test service', function (callback) {
       serviceInstance.stop(callback);
     });
 
-    it('logs errors via the error service, ensures system health changes as required', function(done) {
+    it('logs errors via the error service, ensures system health changes as required', function (done) {
       var e = new Error('TEST ERROR');
 
       expect(serviceInstance.services.system.__stats.HEALTH.STATUS).to.be(
@@ -101,16 +99,16 @@ describe(
       done();
     });
 
-    it('tests failures in the data service', function(done) {
+    it('tests failures in the data service', function (done) {
       var testProvider = serviceInstance.services.data.db('/test/path');
 
       testProvider.__oldFindOne = testProvider.findOne;
 
-      testProvider.findOne = function(criteria, fields, callback) {
+      testProvider.findOne = function (criteria, fields, callback) {
         return callback(new Error('test error'));
       };
 
-      serviceInstance.services.data.getOneByPath('/test/path', null, function(e) {
+      serviceInstance.services.data.getOneByPath('/test/path', null, function (e) {
         expect(e.toString()).to.be('SystemError: test error');
 
         testProvider.findOne = testProvider.__oldFindOne;
@@ -119,27 +117,28 @@ describe(
       });
     });
 
-    it('tests failures in the subscription service', function(done) {
+    it('tests failures in the subscription service', function (done) {
       serviceInstance.services.session
         .localClient({
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         })
-        .then(function(client) {
-          serviceInstance.services.subscription.__oldAddListener = serviceInstance.services.subscription.addListener.bind(
-            serviceInstance.services.subscription
-          );
+        .then(function (client) {
+          serviceInstance.services.subscription.__oldAddListener =
+            serviceInstance.services.subscription.addListener.bind(
+              serviceInstance.services.subscription
+            );
           //action, path, sessionId, data
-          serviceInstance.services.subscription.addListener = function() {
+          serviceInstance.services.subscription.addListener = function () {
             throw new Error('test subscribe error');
           }.bind(serviceInstance.services.subscription);
 
           client.on(
             '/test/on',
-            function() {
+            function () {
               //do nothing
             },
-            function(e) {
+            function (e) {
               expect(e.toString()).to.be('Error: test subscribe error');
 
               var stats = serviceInstance.services.system.stats();
@@ -155,46 +154,47 @@ describe(
             }
           );
         })
-        .catch(function(e) {
+        .catch(function (e) {
           if (e) return done(e);
         });
     });
 
-    it('tests failures in the publisher service', function(done) {
+    it('tests failures in the publisher service', function (done) {
       this.timeout(5000);
 
       serviceInstance.services.session
         .localClient({
           username: '_ADMIN',
-          password: 'happn'
+          password: 'happn',
         })
 
-        .then(function(client) {
-          serviceInstance.services.publisher.__oldPublishMessage = serviceInstance.services.publisher.processPublish.bind(
-            serviceInstance.services.publisher
-          );
+        .then(function (client) {
+          serviceInstance.services.publisher.__oldPublishMessage =
+            serviceInstance.services.publisher.processPublish.bind(
+              serviceInstance.services.publisher
+            );
 
-          serviceInstance.services.publisher.processPublish = function(message, callback) {
+          serviceInstance.services.publisher.processPublish = function (message, callback) {
             callback(new Error('a test publication error'));
           }.bind(serviceInstance.services.publisher);
 
           client.on(
             '/test/publication',
-            function() {
+            function () {
               //do nothing
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
 
               client.set(
                 '/test/publication',
                 {
-                  test: 'data'
+                  test: 'data',
                 },
                 {
-                  consistency: constants.CONSISTENCY.TRANSACTIONAL
+                  consistency: constants.CONSISTENCY.TRANSACTIONAL,
                 },
-                function(e) {
+                function (e) {
                   expect(e.toString()).to.be('Error: a test publication error');
 
                   setTimeout(() => {
@@ -211,7 +211,7 @@ describe(
             }
           );
         })
-        .catch(function(e) {
+        .catch(function (e) {
           if (e) return done(e);
         });
     });

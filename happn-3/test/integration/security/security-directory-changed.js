@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   const CONSTANTS = require('../../../lib/constants');
   const happn = require('../../../lib/index');
   const service = happn.service;
@@ -11,7 +11,7 @@ describe(test.testName(__filename, 3), function() {
   this.timeout(20000);
 
   let serviceConfig = {
-    secure: true
+    secure: true,
   };
   let testGroup;
 
@@ -28,76 +28,76 @@ describe(test.testName(__filename, 3), function() {
       name: 'TEST GROUP' + testId,
       custom_data: {
         customString: 'custom1',
-        customNumber: 0
-      }
+        customNumber: 0,
+      },
     };
 
     testGroup.permissions = {};
 
     testGroup.permissions['/security_directory_changed/' + testId + '/testsubscribe/data/all/*'] = {
-      actions: ['*']
+      actions: ['*'],
     };
     testGroup.permissions[
       '/security_directory_changed/' + testId + '/testsubscribe/data/remove/*'
     ] = {
-      actions: ['remove', 'set', 'on']
+      actions: ['remove', 'set', 'on'],
     };
     testGroup.permissions['/security_directory_changed/' + testId + '/testsubscribe/data/get/2'] = {
-      actions: ['get', 'set']
+      actions: ['get', 'set'],
     };
     testGroup.permissions['/security_directory_changed/' + testId + '/testsubscribe/data/set/*'] = {
-      actions: ['set']
+      actions: ['set'],
     };
     testGroup.permissions['/security_directory_changed/' + testId + '/on/1'] = {
-      actions: ['on']
+      actions: ['on'],
     };
     testGroup.permissions['/security_directory_changed/' + testId + '/on/2'] = {
-      actions: ['on']
+      actions: ['on'],
     };
     testGroup.permissions['/security_directory_changed/' + testId + '/on/*'] = {
-      actions: ['set']
+      actions: ['set'],
     };
 
     var testUser = {
       username: 'TEST USER@blah.com' + createdCounter++,
-      password: 'TEST PWD'
+      password: 'TEST PWD',
     };
 
     serviceInstance.services.security.users.upsertGroup(
       testGroup,
       {
-        overwrite: true
+        overwrite: true,
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         addedTestGroup = result;
 
         serviceInstance.services.security.users.upsertUser(
           testUser,
           {
-            overwrite: false
+            overwrite: false,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
             addedTestuser = result;
 
             serviceInstance.services.security.users.linkGroup(
               addedTestGroup,
               addedTestuser,
-              function(e) {
+              function (e) {
                 if (e) return callback(e);
 
                 serviceInstance.services.session
                   .localClient({
                     username: testUser.username,
-                    password: 'TEST PWD'
+                    password: 'TEST PWD',
                   })
 
-                  .then(function(clientInstance) {
+                  .then(function (clientInstance) {
                     callback(null, clientInstance);
                   })
 
-                  .catch(function(e) {
+                  .catch(function (e) {
                     callback(e);
                   });
               }
@@ -108,7 +108,7 @@ describe(test.testName(__filename, 3), function() {
     );
   }
 
-  var removeOnPermissionByUpsertingGroup = function(
+  var removeOnPermissionByUpsertingGroup = function (
     permissionPath,
     updateSecurityDirectory,
     callback
@@ -120,24 +120,24 @@ describe(test.testName(__filename, 3), function() {
     serviceInstance.services.security.groups.upsertGroup(addedTestGroup, addedTestuser, callback);
   };
 
-  var removeGroup = function(client, updateSecurityDirectory, callback) {
+  var removeGroup = function (client, updateSecurityDirectory, callback) {
     if (!updateSecurityDirectory) return callback();
 
     serviceInstance.services.security.groups.unlinkGroup(addedTestGroup, addedTestuser, callback);
   };
 
-  var removePermission = function(permissionPath, updateSecurityDirectory, callback) {
+  var removePermission = function (permissionPath, updateSecurityDirectory, callback) {
     if (!updateSecurityDirectory) return callback();
 
     serviceInstance.services.security.groups
       .removePermission(addedTestGroup.name, permissionPath)
-      .then(function() {
+      .then(function () {
         callback();
       })
       .catch(callback);
   };
 
-  var doOperations = function(client, options, callback) {
+  var doOperations = function (client, options, callback) {
     var listenerId1;
     var listenerId2;
 
@@ -146,27 +146,27 @@ describe(test.testName(__filename, 3), function() {
       '/security_directory_changed/' + testId + '/testsubscribe/data/remove/*',
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
-      function() {
+      function () {
         client.on(
           '/security_directory_changed/' + testId + '/testsubscribe/data/all/*',
           {
             event_type: 'set',
-            count: 1
+            count: 1,
           },
-          function() {
-            client.off(listenerId1, function(e) {
+          function () {
+            client.off(listenerId1, function (e) {
               if (e) return callback(e);
 
-              client.off(listenerId2, function(e) {
+              client.off(listenerId2, function (e) {
                 if (e) return callback(e);
 
                 client.offPath('/security_directory_changed/*', callback);
               });
             });
           },
-          function(e, listenerId) {
+          function (e, listenerId) {
             if (!e) {
               listenerId2 = listenerId;
               //then make the change
@@ -175,10 +175,10 @@ describe(test.testName(__filename, 3), function() {
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
                 }
               );
@@ -186,7 +186,7 @@ describe(test.testName(__filename, 3), function() {
           }
         );
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (!e) {
           listenerId1 = listenerId;
           //then make the change
@@ -195,10 +195,10 @@ describe(test.testName(__filename, 3), function() {
             {
               property1: 'property1',
               property2: 'property2',
-              property3: 'property3'
+              property3: 'property3',
             },
             null,
-            function(e) {
+            function (e) {
               if (e) return callback(e);
             }
           );
@@ -207,29 +207,29 @@ describe(test.testName(__filename, 3), function() {
     );
   };
 
-  var doSetOperation = function(client, options, callback) {
+  var doSetOperation = function (client, options, callback) {
     client.set(
       '/security_directory_changed/' + testId + '/testsubscribe/data/set/1',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       options,
       callback
     );
   };
 
-  var doSetOperationsForOn1 = function(client, options, callback) {
+  var doSetOperationsForOn1 = function (client, options, callback) {
     client.set(
       '/security_directory_changed/' + testId + '/on/1',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       options,
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         client.set(
@@ -237,10 +237,10 @@ describe(test.testName(__filename, 3), function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           options,
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             client.set(
@@ -248,7 +248,7 @@ describe(test.testName(__filename, 3), function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               options,
               callback
@@ -259,16 +259,16 @@ describe(test.testName(__filename, 3), function() {
     );
   };
 
-  var doSetOperationsForOn2 = function(client, options, callback) {
+  var doSetOperationsForOn2 = function (client, options, callback) {
     client.set(
       '/security_directory_changed/' + testId + '/on/2',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       options,
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         client.set(
@@ -276,10 +276,10 @@ describe(test.testName(__filename, 3), function() {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           options,
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
             client.set(
@@ -287,7 +287,7 @@ describe(test.testName(__filename, 3), function() {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               options,
               callback
@@ -298,33 +298,33 @@ describe(test.testName(__filename, 3), function() {
     );
   };
 
-  it('should do a bunch of operations, remove the the group from a client, wait a sec and see we are unable to perform operations', function(done) {
+  it('should do a bunch of operations, remove the the group from a client, wait a sec and see we are unable to perform operations', function (done) {
     this.timeout(15000);
 
     var groupUnlinkedChangedData;
 
-    serviceInstance.services.security.on('security-data-changed', function(changed) {
+    serviceInstance.services.security.on('security-data-changed', function (changed) {
       if (changed.whatHappnd === 'unlink-group') groupUnlinkedChangedData = changed.changedData;
     });
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
-      doOperations(client, null, function(e) {
+      doOperations(client, null, function (e) {
         if (e) return done(e);
 
-        removeGroup(client, true, function(e) {
+        removeGroup(client, true, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
-            doOperations(client, null, function(e) {
+          setTimeout(function () {
+            doOperations(client, null, function (e) {
               test.expect(e.toString()).to.be('AccessDenied: unauthorized');
               test.expect(groupUnlinkedChangedData).to.eql({
                 path:
                   '/_SYSTEM/_SECURITY/_USER/TEST USER@blah.com0/_USER_GROUP/TEST GROUP' + testId,
-                permissions: testGroup.permissions
+                permissions: testGroup.permissions,
               });
 
               done();
@@ -335,25 +335,25 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do a set operations, modify the set permission, wait a sec and see we are unable to perform the set operation', function(done) {
+  it('should do a set operations, modify the set permission, wait a sec and see we are unable to perform the set operation', function (done) {
     this.timeout(15000);
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
-      doSetOperation(client, null, function(e) {
+      doSetOperation(client, null, function (e) {
         if (e) return done(e);
 
         removePermission(
           '/security_directory_changed/' + testId + '/testsubscribe/data/set/*',
           true,
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
-              doSetOperation(client, null, function(e) {
+            setTimeout(function () {
+              doSetOperation(client, null, function (e) {
                 test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
                 done();
@@ -365,21 +365,21 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do a bunch of operations, remove the the group from a client, wait a sec and see we are unable to perform operations, negative test', function(done) {
+  it('should do a bunch of operations, remove the the group from a client, wait a sec and see we are unable to perform operations, negative test', function (done) {
     this.timeout(15000);
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
-      doOperations(client, null, function(e) {
+      doOperations(client, null, function (e) {
         if (e) return done(e);
 
-        removeGroup(client, false, function(e) {
+        removeGroup(client, false, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
+          setTimeout(function () {
             doOperations(client, null, done);
           }, 300);
         });
@@ -387,24 +387,24 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do a set operations, modify the set permission, wait a sec and see we are unable to perform the set operation, negative test', function(done) {
+  it('should do a set operations, modify the set permission, wait a sec and see we are unable to perform the set operation, negative test', function (done) {
     this.timeout(15000);
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
-      doSetOperation(client, null, function(e) {
+      doSetOperation(client, null, function (e) {
         if (e) return done(e);
 
         removePermission(
           '/security_directory_changed/' + testId + '/testsubscribe/data/set/*',
           false,
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
+            setTimeout(function () {
               doSetOperation(client, null, done);
             }, 300);
           }
@@ -413,45 +413,45 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events', function(done) {
+  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/1',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn1(client, null, function(e) {
+      doSetOperationsForOn1(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
-        removePermission('/security_directory_changed/' + testId + '/on/1', true, function(e) {
+        removePermission('/security_directory_changed/' + testId + '/on/1', true, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
-            doSetOperationsForOn1(client, null, function(e) {
+          setTimeout(function () {
+            doSetOperationsForOn1(client, null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 //wait in case our events have not caught up
                 test.expect(count).to.be(3); //must stay the same
                 test.expect(securityServiceEventCount).to.be(1);
@@ -464,45 +464,45 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission, wait a sec and see we still have access to events we should', function(done) {
+  it('should do an on, check we receive events, modify the on permission, wait a sec and see we still have access to events we should', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/2',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn2(client, null, function(e) {
+      doSetOperationsForOn2(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
-        removePermission('/security_directory_changed/' + testId + '/on/1', true, function(e) {
+        removePermission('/security_directory_changed/' + testId + '/on/1', true, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
-            doSetOperationsForOn2(client, null, function(e) {
+          setTimeout(function () {
+            doSetOperationsForOn2(client, null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 test.expect(count).to.be(6);
                 test.expect(securityServiceEventCount).to.be(1);
                 done();
@@ -514,45 +514,45 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events', function(done) {
+  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/1',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn1(client, null, function(e) {
+      doSetOperationsForOn1(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
-        removePermission('/security_directory_changed/' + testId + '/on/1', true, function(e) {
+        removePermission('/security_directory_changed/' + testId + '/on/1', true, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
-            doSetOperationsForOn1(client, null, function(e) {
+          setTimeout(function () {
+            doSetOperationsForOn1(client, null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 //wait in case our events have not caught up
                 test.expect(count).to.be(3);
                 test.expect(securityServiceEventCount).to.be(1);
@@ -565,48 +565,48 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission via a group upsert, wait a sec and see we no longer receive the events, also check security service events', function(done) {
+  it('should do an on, check we receive events, modify the on permission via a group upsert, wait a sec and see we no longer receive the events, also check security service events', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/1',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn1(client, null, function(e) {
+      doSetOperationsForOn1(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
         removeOnPermissionByUpsertingGroup(
           '/security_directory_changed/' + testId + '/on/1',
           true,
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
-              doSetOperationsForOn1(client, null, function(e) {
+            setTimeout(function () {
+              doSetOperationsForOn1(client, null, function (e) {
                 if (e) return done(e);
 
-                setTimeout(function() {
+                setTimeout(function () {
                   //wait in case our events have not caught up
                   test.expect(count).to.be(3);
                   test.expect(securityServiceEventCount).to.be(1);
@@ -620,48 +620,48 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission via a group upsert, wait a sec and see we no longer receive the events, also check security service events, negative test', function(done) {
+  it('should do an on, check we receive events, modify the on permission via a group upsert, wait a sec and see we no longer receive the events, also check security service events, negative test', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/1',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn1(client, null, function(e) {
+      doSetOperationsForOn1(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
         removeOnPermissionByUpsertingGroup(
           '/security_directory_changed/' + testId + '/on/1',
           false,
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
-              doSetOperationsForOn1(client, null, function(e) {
+            setTimeout(function () {
+              doSetOperationsForOn1(client, null, function (e) {
                 if (e) return done(e);
 
-                setTimeout(function() {
+                setTimeout(function () {
                   //wait in case our events have not caught up
                   test.expect(count).to.be(6);
                   test.expect(securityServiceEventCount).to.be(0);
@@ -675,45 +675,45 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events, negative test', function(done) {
+  it('should do an on, check we receive events, modify the on permission, wait a sec and see we no longer receive the events, also check security service events, negative test', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/1',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn1(client, null, function(e) {
+      doSetOperationsForOn1(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        serviceInstance.services.security.on('security-data-changed', function() {
+        serviceInstance.services.security.on('security-data-changed', function () {
           securityServiceEventCount++;
         });
 
-        removePermission('/security_directory_changed/' + testId + '/on/1', false, function(e) {
+        removePermission('/security_directory_changed/' + testId + '/on/1', false, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
-            doSetOperationsForOn1(client, null, function(e) {
+          setTimeout(function () {
+            doSetOperationsForOn1(client, null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 //wait in case our events have not caught up
                 test.expect(count).to.be(6); //must be double, as we had not updated the sd change key in the db
                 test.expect(securityServiceEventCount).to.be(0);
@@ -726,34 +726,34 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('should do an on, check we receive events, modify the on permission, wait a sec and see we are now unable to do the .on anymore', function(done) {
+  it('should do an on, check we receive events, modify the on permission, wait a sec and see we are now unable to do the .on anymore', function (done) {
     this.timeout(15000);
 
     var count = 0;
 
     var securityServiceEventCount = 0;
 
-    createTestClient(function(e, client) {
+    createTestClient(function (e, client) {
       if (e) return done(e);
 
       currentClient = client;
 
       client.on(
         '/security_directory_changed/' + testId + '/on/2',
-        function() {
+        function () {
           count++;
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
         }
       );
 
-      doSetOperationsForOn2(client, null, function(e) {
+      doSetOperationsForOn2(client, null, function (e) {
         if (e) return done(e);
 
         test.expect(count).to.be(3);
 
-        client.onSystemMessage(function(key) {
+        client.onSystemMessage(function (key) {
           if (key === 'security-data-changed') securityServiceEventCount++;
         });
 
@@ -761,14 +761,14 @@ describe(test.testName(__filename, 3), function() {
         test.expect(Object.keys(client.state.refCount).length).to.be(1);
         test.expect(Object.keys(client.state.listenerRefs).length).to.be(1);
 
-        removePermission('/security_directory_changed/' + testId + '/on/2', true, function(e) {
+        removePermission('/security_directory_changed/' + testId + '/on/2', true, function (e) {
           if (e) return done(e);
 
-          setTimeout(function() {
+          setTimeout(function () {
             client.on(
               '/security_directory_changed/' + testId + '/on/2',
-              function() {},
-              function(e) {
+              function () {},
+              function (e) {
                 try {
                   test.expect(e).to.not.be(null);
                   test.expect(e.toString()).to.be('AccessDenied: unauthorized');
@@ -802,7 +802,7 @@ describe(test.testName(__filename, 3), function() {
       if (callback) callback();
     };
     await serviceInstance.services.security.users.deleteUser({
-      username: currentClient.session.user.username
+      username: currentClient.session.user.username,
     });
     await test.delay(2000);
     serviceInstance.services.subscription.config.allowNestedPermissions = true;
@@ -811,7 +811,7 @@ describe(test.testName(__filename, 3), function() {
       .bind(serviceInstance.services.security)(
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER,
       {
-        username: currentClient.session.user.username
+        username: currentClient.session.user.username,
       },
       null
     );
@@ -823,16 +823,16 @@ describe(test.testName(__filename, 3), function() {
     if (currentClient) {
       currentClient.disconnect(
         {
-          timeout: 2000
+          timeout: 2000,
         },
         callback
       );
     } else callback();
   }
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(20000);
-    disconnectClients(null, function() {
+    disconnectClients(null, function () {
       serviceInstance.stop(done);
     });
   });

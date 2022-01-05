@@ -11,7 +11,7 @@ module.exports = {
   protocol: package.protocol,
   version: package.version,
   __cachedBrowserClient: null,
-  __createBrowserClient: async function(options) {
+  __createBrowserClient: async function (options) {
     const commons = require('happn-commons');
     var package = require('../package.json');
     var protocol = package.protocol;
@@ -56,13 +56,14 @@ module.exports = {
         const minified = await minify(this.__cachedBrowserClient);
         this.__cachedBrowserClient = minified.code;
       } catch (e) {
-        console.log('minify failure');
+        // eslint-disable-next-line no-console
+        console.log(`minify failure: ${e.message}`);
         throw e;
       }
     }
   },
 
-  browserClient: async function(options) {
+  browserClient: async function (options) {
     if (!options) options = {};
     var clientDirPath;
     var clientFilePath;
@@ -118,5 +119,5 @@ module.exports = {
     fs.writeFileSync(clientFilePath, this.__cachedBrowserClient, 'utf8');
     if (!options.contentsOnly) return clientFilePath;
     return this.__cachedBrowserClient;
-  }
+  },
 };

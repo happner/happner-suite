@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   const happn = require('../../../lib/index');
   let serviceInstance;
   let adminClient;
@@ -9,7 +9,7 @@ describe(test.testName(__filename, 3), function() {
     happn.service.create(config, callback);
   }
 
-  before('it starts secure service, with lockTokenToUserId switched on', function(done) {
+  before('it starts secure service, with lockTokenToUserId switched on', function (done) {
     this.timeout(5000);
     getService(
       {
@@ -17,17 +17,17 @@ describe(test.testName(__filename, 3), function() {
         allowNestedPermissions: true,
         services: {
           security: {
-            config: {}
+            config: {},
           },
           protocol: {
-            config: { allowNestedPermissions: true }
+            config: { allowNestedPermissions: true },
           },
           subscription: {
-            config: { allowNestedPermissions: true }
-          }
-        }
+            config: { allowNestedPermissions: true },
+          },
+        },
       },
-      function(e, service) {
+      function (e, service) {
         if (e) return done(e);
         serviceInstance = service;
         done();
@@ -50,128 +50,128 @@ describe(test.testName(__filename, 3), function() {
         name: 'TEST GROUP',
         permissions: {
           '/TEST/1/2/3': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/2/3/*': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/2/3/4/5': {
-            prohibit: ['on', 'get']
+            prohibit: ['on', 'get'],
           },
           '/TEST/5/6': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/5/6/*': {
-            prohibit: ['on', 'get']
+            prohibit: ['on', 'get'],
           },
           '/TEST/5/6/7/9': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/7/8': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/ALLOWED/*': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEMPLATED/{{user.username}}/1/2': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
       let testGroup2 = {
         name: 'TEST GROUP2',
         permissions: {
           '/TEST/2/3/5/6': {
-            prohibit: ['on', 'get']
-          }
-        }
+            prohibit: ['on', 'get'],
+          },
+        },
       };
 
       let testGroup3 = {
         name: 'TEST GROUP3',
         permissions: {
           '/TEST/1/2/3/4': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       let testGroup4 = {
         name: 'TEST GROUP4',
         permissions: {
           '/TEST/7/1/1': {
-            actions: ['on', 'get']
+            actions: ['on', 'get'],
           },
           '/TEST/7/3/*': {
-            actions: ['on', 'get']
-          }
-        }
+            actions: ['on', 'get'],
+          },
+        },
       };
 
       addedTestGroup = await serviceInstance.services.security.users.upsertGroup(testGroup, {
-        overwrite: false
+        overwrite: false,
       });
 
       addedTestGroup2 = await serviceInstance.services.security.users.upsertGroup(testGroup2, {
-        overwrite: false
+        overwrite: false,
       });
 
       addedTestGroup3 = await serviceInstance.services.security.users.upsertGroup(testGroup3, {
-        overwrite: false
+        overwrite: false,
       });
 
       addedTestGroup4 = await serviceInstance.services.security.users.upsertGroup(testGroup4, {
-        overwrite: false
+        overwrite: false,
       });
 
       testUser = {
         username: 'TEST',
         password: 'TEST PWD',
-        permissions: {}
+        permissions: {},
       };
 
       testUser.permissions['/TEMPLATED_ALLOWED/{{user.username}}/8'] = {
-        actions: ['on', 'get']
+        actions: ['on', 'get'],
       };
 
       addedTestuser = await serviceInstance.services.security.users.upsertUser(testUser, {
-        overwrite: false
+        overwrite: false,
       });
 
       await serviceInstance.services.security.users.linkGroup(addedTestGroup, addedTestuser);
 
       testClient = await serviceInstance.services.session.localClient({
         username: testUser.username,
-        password: 'TEST PWD'
+        password: 'TEST PWD',
       });
 
       adminClient = await serviceInstance.services.session.localClient({
         username: '_ADMIN',
-        password: 'happn'
+        password: 'happn',
       });
     }
   );
 
-  after('should disconnect', function(callback) {
+  after('should disconnect', function (callback) {
     this.timeout(15000);
 
     if (testClient)
       testClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
     if (adminClient)
       adminClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
 
-    setTimeout(function() {
-      serviceInstance.stop(function() {
+    setTimeout(function () {
+      serviceInstance.stop(function () {
         callback();
       });
     }, 3000);
   });
 
-  context('get', function() {
+  context('get', function () {
     it('gets data from an allowed set of nested permissions', async () => {
       await adminClient.set('/ALLOWED/0', { test: 0 });
       await adminClient.set('/TEST/1/2/3', { test: 1 });
@@ -224,15 +224,15 @@ describe(test.testName(__filename, 3), function() {
       await adminClient.set('/TEST/7/3/1', { test: 4 });
       await adminClient.set('/TEST/7/3/1/2', { test: 5 });
       let results = await adminClient.get('/TEST/7/**');
-      test.expect(results.map(result => result.test)).to.eql([1, 2, 3, 4, 5]);
+      test.expect(results.map((result) => result.test)).to.eql([1, 2, 3, 4, 5]);
       await serviceInstance.services.security.users.linkGroup(addedTestGroup4, addedTestuser);
       results = await adminClient.get('/TEST/7/**', { onBehalfOf: testUser.username });
-      test.expect(results.map(result => result.test)).to.eql([1, 4, 5]);
+      test.expect(results.map((result) => result.test)).to.eql([1, 4, 5]);
       await serviceInstance.services.security.users.unlinkGroup(addedTestGroup4, addedTestuser);
     }).timeout(5000);
   });
 
-  context('events', function() {
+  context('events', function () {
     it('recieves events from an allowed set of nested permissions', async () => {
       const events = [];
       function handler(data) {
@@ -283,7 +283,7 @@ describe(test.testName(__filename, 3), function() {
     }).timeout(10000);
   });
 
-  context('events - changing permissions', function() {
+  context('events - changing permissions', function () {
     it('Links and unlinks a group with prohibitions, and checks that events are recieved correctly', async () => {
       const events = [];
       function handler(data) {
@@ -318,7 +318,7 @@ describe(test.testName(__filename, 3), function() {
 
     it('delegated authority: checks subscription is accurate', async () => {
       let results = [];
-      let handler = data => {
+      let handler = (data) => {
         results.push(data.test);
       };
 

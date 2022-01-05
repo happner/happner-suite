@@ -2,7 +2,7 @@ const tests = require('../../__fixtures/utils/test_helper').create();
 const happn = require('../../../lib/index');
 const request = require('request');
 
-describe(tests.testName(__filename, 3), function() {
+describe(tests.testName(__filename, 3), function () {
   this.timeout(5000);
   beforeEach('creates a secure instance', createInstance);
   beforeEach('creates a user', createUser);
@@ -21,12 +21,12 @@ describe(tests.testName(__filename, 3), function() {
       name: 'test-group',
       permissions: {
         'test/path/1': { actions: ['*'] },
-        '/@HTTP/test/path/1': { actions: ['get'] }
-      }
+        '/@HTTP/test/path/1': { actions: ['get'] },
+      },
     });
     const addedTestuser = await happnInstance.services.security.users.upsertUser({
       username: 'test',
-      password: 'test'
+      password: 'test',
     });
     await happnInstance.services.security.users.linkGroup(addedTestGroup, addedTestuser);
     testClient = await happn.client.create({ username: 'test', password: 'test' });
@@ -36,11 +36,11 @@ describe(tests.testName(__filename, 3), function() {
     await happnInstance.services.security.users.deleteUser({ username: 'test' });
   };
 
-  var performOperation = async client => {
+  var performOperation = async (client) => {
     await client.set('test/path/1', { data: 'test' });
   };
 
-  var performWebOperation = async client => {
+  var performWebOperation = async (client) => {
     return await doRequest('test/path/1', client.session.token);
   };
 
@@ -81,11 +81,11 @@ describe(tests.testName(__filename, 3), function() {
       happn.service.create(config, (e, inst) => {
         if (e) reject(e);
         happnInstance = inst;
-        happnInstance.connect.use('/test/path/1', function(req, res) {
+        happnInstance.connect.use('/test/path/1', function (req, res) {
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              secure: 'value'
+              secure: 'value',
             })
           );
         });
@@ -97,12 +97,12 @@ describe(tests.testName(__filename, 3), function() {
   function doRequest(path, token) {
     return new Promise((resolve, reject) => {
       let options = {
-        url: 'http://127.0.0.1:55000/' + path
+        url: 'http://127.0.0.1:55000/' + path,
       };
       options.headers = {
-        Cookie: ['happn_token=' + token]
+        Cookie: ['happn_token=' + token],
       };
-      request(options, function(error, response) {
+      request(options, function (error, response) {
         if (error) return reject(error);
         resolve(response);
       });

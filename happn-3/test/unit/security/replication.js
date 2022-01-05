@@ -1,25 +1,23 @@
 const async = require('async');
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var SecurityService = require('../../../lib/services/security/service');
 
     var opts = {
       logger: {
-        createLogger: function() {
+        createLogger: function () {
           return {
-            $$TRACE: function() {},
-            createLogger: function() {
+            $$TRACE: function () {},
+            createLogger: function () {
               return {
-                $$TRACE: function() {}
+                $$TRACE: function () {},
               };
-            }
+            },
           };
-        }
-      }
+        },
+      },
     };
 
     var replicationSubscriptions = {};
@@ -30,12 +28,12 @@ describe(
       obj.happn.services = {};
       obj.happn.config = {
         services: {
-          security: {}
-        }
+          security: {},
+        },
       };
 
       obj.happn.services.cache = {
-        new: function() {}
+        new: function () {},
       };
 
       obj.happn.services.data = {
@@ -46,74 +44,74 @@ describe(
         //eslint-disable-next-line
         upsert:function(path, data, callback){
           callback(null, data);
-        }
+        },
       };
 
       obj.happn.services.error = {
-        handleFatal: function(str, e) {
+        handleFatal: function (str, e) {
           //eslint-disable-next-line no-console
           console.error(str, e);
-        }
+        },
       };
 
       obj.happn.services.replicator = {
-        on: function(eventName, handler) {
+        on: function (eventName, handler) {
           replicationSubscriptions[eventName] = handler;
         },
-        send: function(eventName, payload, callback) {
+        send: function (eventName, payload, callback) {
           replicatedData[eventName] = payload;
           callback();
-        }
+        },
       };
     }
 
     function stubInitializationSteps(obj) {
-      obj.__initializeGroups = function() {
+      obj.__initializeGroups = function () {
         return Promise.resolve();
       };
 
-      obj.__initializeUsers = function() {};
+      obj.__initializeUsers = function () {};
 
-      obj.__initializeProfiles = function() {};
+      obj.__initializeProfiles = function () {};
 
-      obj.__ensureKeyPair = function() {};
+      obj.__ensureKeyPair = function () {};
 
-      obj.__initializeCheckPoint = function() {};
+      obj.__initializeCheckPoint = function () {};
 
-      obj.__initializeSessionManagement = function() {};
+      obj.__initializeSessionManagement = function () {};
 
-      obj.__ensureAdminUser = function() {};
+      obj.__ensureAdminUser = function () {};
 
-      obj.__initializeAuthProviders = function() {};
+      obj.__initializeAuthProviders = function () {};
     }
 
     function stubDataChangedSteps(obj) {
       obj.users = {
-        clearCaches: function() {
+        clearCaches: function () {
           return Promise.resolve();
-        }
+        },
       };
 
       obj.groups = {
-        clearCaches: function() {
+        clearCaches: function () {
           return Promise.resolve();
-        }
+        },
       };
 
-      obj.resetSessionPermissions = function() {
+      obj.resetSessionPermissions = function () {
         return Promise.resolve();
       };
 
       obj.checkpoint = {
-        clearCaches: function() {
+        clearCaches: function () {
           return Promise.resolve();
-        }
+        },
       };
 
-      obj.emitChanges = function() {};
+      obj.emitChanges = function () {};
     }
 
-    it('subscribes to replication service security updates', function(done) {
+    it('subscribes to replication service security updates', function (done) {
       replicationSubscriptions = {};
 
       var security = new SecurityService(opts);
@@ -121,7 +119,7 @@ describe(
       createMockHappn(security);
       stubInitializationSteps(security);
 
-      security.initialize({}, function(e) {
+      security.initialize({}, function (e) {
         if (e) return done(e);
 
         expect(Object.keys(replicationSubscriptions)).to.eql(['/security/dataChanged']);
@@ -130,7 +128,7 @@ describe(
       });
     });
 
-    it('replicates the security updates', function(done) {
+    it('replicates the security updates', function (done) {
       replicatedData = {};
 
       var security = new SecurityService(opts);
@@ -147,7 +145,7 @@ describe(
       createMockHappn(security);
       stubDataChangedSteps(security);
 
-      security.dataChanged('unlink-group', 'changedData', 'additionalInfo', function(e) {
+      security.dataChanged('unlink-group', 'changedData', 'additionalInfo', function (e) {
         if (e) return done(e);
 
         try {
@@ -155,8 +153,8 @@ describe(
             '/security/dataChanged': {
               additionalInfo: 'additionalInfo',
               changedData: 'changedData',
-              whatHappnd: 'unlink-group'
-            }
+              whatHappnd: 'unlink-group',
+            },
           });
           done();
         } catch (err) {

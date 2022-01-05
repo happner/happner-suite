@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -23,29 +21,29 @@ describe(
                 name: 'test',
                 session: {
                   'user.username': {
-                    $eq: '_ADMIN'
+                    $eq: '_ADMIN',
                   },
                   type: {
-                    $eq: 1
-                  }
+                    $eq: 1,
+                  },
                 },
                 policy: {
                   usage_limit: 10,
                   ttl: '4 seconds',
-                  inactivity_threshold: '20 seconds' //this is costly, as we need to store state on the server side
-                }
-              }
-            ]
-          }
-        }
-      }
+                  inactivity_threshold: '20 seconds', //this is costly, as we need to store state on the server side
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       test_id = Date.now() + '_' + require('shortid').generate();
 
       try {
-        service.create(serviceConfig, function(e, happnInst) {
+        service.create(serviceConfig, function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -59,16 +57,16 @@ describe(
     var publisherclient;
     var listenerclient;
 
-    var disconnectClients = function(options, callback) {
+    var disconnectClients = function (options, callback) {
       publisherclient.disconnect(
         {
-          timeout: 2000
+          timeout: 2000,
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           listenerclient.disconnect(
             {
-              timeout: 2000
+              timeout: 2000,
             },
             callback
           );
@@ -76,15 +74,15 @@ describe(
       );
     };
 
-    var connectClients = function(options, callback) {
+    var connectClients = function (options, callback) {
       happn_client.create(
         {
           config: {
             username: '_ADMIN',
-            password: 'happn'
-          }
+            password: 'happn',
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
           publisherclient = instance;
 
@@ -92,10 +90,10 @@ describe(
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
-              }
+                password: 'happn',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
               listenerclient = instance;
               callback();
@@ -105,7 +103,7 @@ describe(
       );
     };
 
-    var doOperations = function(options, callback) {
+    var doOperations = function (options, callback) {
       var listenerId1;
       var listenerId2;
 
@@ -114,27 +112,27 @@ describe(
         '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function(/*message*/) {
+        function (/*message*/) {
           listenerclient.on(
             '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
             {
               event_type: 'remove',
-              count: 1
+              count: 1,
             },
-            function(/*message*/) {
-              listenerclient.off(listenerId1, function(e) {
+            function (/*message*/) {
+              listenerclient.off(listenerId1, function (e) {
                 if (e) return callback(e);
 
-                listenerclient.off(listenerId2, function(e) {
+                listenerclient.off(listenerId2, function (e) {
                   if (e) return callback(e);
 
                   listenerclient.offPath('/memory-leak-protocol-service/*', callback);
                 });
               });
             },
-            function(e, listenerId) {
+            function (e, listenerId) {
               if (!e) {
                 listenerId2 = listenerId;
                 //then make the change
@@ -143,10 +141,10 @@ describe(
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function(e) {
+                  function (e) {
                     if (e) return callback(e);
                   }
                 );
@@ -154,7 +152,7 @@ describe(
             }
           );
         },
-        function(e, listenerId) {
+        function (e, listenerId) {
           if (!e) {
             listenerId1 = listenerId;
             //then make the change
@@ -163,10 +161,10 @@ describe(
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e /*, result*/) {
+              function (e /*, result*/) {
                 if (e) return callback(e);
               }
             );
@@ -175,26 +173,26 @@ describe(
       );
     };
 
-    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the __checkpoint_usage_limit cache', function(done) {
+    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the __checkpoint_usage_limit cache', function (done) {
       this.timeout(5000);
 
-      connectClients(null, function(e) {
+      connectClients(null, function (e) {
         if (e) return done(e);
 
-        doOperations(null, function(e) {
+        doOperations(null, function (e) {
           if (e) return done(e);
 
-          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function(
+          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
             e,
             items
           ) {
             expect(items.length > 0).to.be(true);
 
-            disconnectClients(null, function(e) {
+            disconnectClients(null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
-                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function(
+              setTimeout(function () {
+                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
                   e,
                   items
                 ) {
@@ -209,26 +207,26 @@ describe(
       });
     });
 
-    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the checkpoint_inactivity_threshold', function(done) {
+    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the checkpoint_inactivity_threshold', function (done) {
       this.timeout(5000);
 
-      connectClients(null, function(e) {
+      connectClients(null, function (e) {
         if (e) return done(e);
 
-        doOperations(null, function(e) {
+        doOperations(null, function (e) {
           if (e) return done(e);
 
-          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function(
+          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
             e,
             items
           ) {
             expect(items.length > 0).to.be(true);
 
-            disconnectClients(null, function(e) {
+            disconnectClients(null, function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
-                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function(
+              setTimeout(function () {
+                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
                   e,
                   items
                 ) {
@@ -243,10 +241,10 @@ describe(
       });
     });
 
-    after(function(done) {
+    after(function (done) {
       this.timeout(20000);
 
-      disconnectClients(null, function() {
+      disconnectClients(null, function () {
         happnInstance.stop(done);
       });
     });

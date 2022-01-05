@@ -1,4 +1,4 @@
-describe('longrunning/004_cluster_ready', function() {
+describe('longrunning/004_cluster_ready', function () {
   var expect = require('expect.js');
   var happn = require('../../lib/index');
 
@@ -27,7 +27,7 @@ describe('longrunning/004_cluster_ready', function() {
 
     this.logs = [];
 
-    this.log = function(type, message) {
+    this.log = function (type, message) {
       if (message == null) {
         message = type;
         type = null;
@@ -38,15 +38,15 @@ describe('longrunning/004_cluster_ready', function() {
       this.logs.push({
         timestamp: Date.now(),
         type: type,
-        message: message
+        message: message,
       });
     };
   }
 
-  Cluster.prototype.addChild = function(instance, callback) {
+  Cluster.prototype.addChild = function (instance, callback) {
     var _this = this;
 
-    var doCallback = function(e) {
+    var doCallback = function (e) {
       if (e) return callback(e);
 
       _this.children[instance.port] = instance;
@@ -64,10 +64,10 @@ describe('longrunning/004_cluster_ready', function() {
 
     async.eachSeries(
       childPorts,
-      function(childPort, childCB) {
+      function (childPort, childCB) {
         var child = _this.children[childPort];
 
-        child.connectTo(instance, function(e) {
+        child.connectTo(instance, function (e) {
           if (e) return childCB(e);
 
           instance.connectTo(child, childCB);
@@ -77,7 +77,7 @@ describe('longrunning/004_cluster_ready', function() {
     );
   };
 
-  Cluster.prototype.removeChild = function(port, callback) {
+  Cluster.prototype.removeChild = function (port, callback) {
     var _this = this;
 
     var childPorts = Object.keys(_this.children);
@@ -86,13 +86,13 @@ describe('longrunning/004_cluster_ready', function() {
 
     async.eachSeries(
       childPorts,
-      function(childPort, childCB) {
+      function (childPort, childCB) {
         var child = _this.children[childPort];
 
         if (childPort === port.toString()) child.disconnectAll(childCB);
         else child.disconnectFrom(childPort, childCB);
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         delete _this.children[port];
@@ -102,17 +102,17 @@ describe('longrunning/004_cluster_ready', function() {
     );
   };
 
-  Cluster.prototype.stop = function(callback) {
+  Cluster.prototype.stop = function (callback) {
     var _this = this;
     var serverPorts = Object.keys(_this.servers);
     if (serverPorts.length === 0) return callback();
 
     async.eachSeries(
       serverPorts,
-      function(serverPort, serverCB) {
+      function (serverPort, serverCB) {
         var server = _this.servers[serverPort];
 
-        server.stop(function(e) {
+        server.stop(function (e) {
           if (e) {
             return serverCB(e);
           }
@@ -140,34 +140,34 @@ describe('longrunning/004_cluster_ready', function() {
     this.connections = {}; //connections to other cluster nodes, keyed by port
   }
 
-  ClusterChild.prototype.disconnectAll = function(callback) {
+  ClusterChild.prototype.disconnectAll = function (callback) {
     var _this = this;
 
     async.eachSeries(
       Object.keys(_this.connections),
-      function(port, eachCB) {
+      function (port, eachCB) {
         _this.disconnectFrom(port, eachCB);
       },
       callback
     );
   };
 
-  ClusterChild.prototype.disconnectFrom = function(port, callback) {
+  ClusterChild.prototype.disconnectFrom = function (port, callback) {
     var _this = this;
 
     if (_this.connections[port]) {
       var connection = _this.connections[port];
 
-      connection.randomActivity.generateActivityEnd(connection.code, function(aggregatedLog) {
+      connection.randomActivity.generateActivityEnd(connection.code, function (aggregatedLog) {
         connection.activityLog = aggregatedLog;
 
         aggregatedLogs.push(aggregatedLog);
 
-        connection.randomActivity.verify(function(e) {
+        connection.randomActivity.verify(function (e) {
           //eslint-disable-next-line no-console
           if (e) console.warn('WARNING:::RANDOM_VERIFY' + e.toString());
 
-          connection.client.disconnect(function(e) {
+          connection.client.disconnect(function (e) {
             if (e) return callback(e);
 
             delete _this.connections[port];
@@ -178,21 +178,21 @@ describe('longrunning/004_cluster_ready', function() {
     } else callback();
   };
 
-  ClusterChild.prototype.connectTo = function(child, callback) {
+  ClusterChild.prototype.connectTo = function (child, callback) {
     var _this = this;
 
     var connectionCode = _this.port.toString() + '-' + child.port.toString();
 
     happn_client.create(
       {
-        port: child.port
+        port: child.port,
       },
-      function(e, instance) {
+      function (e, instance) {
         if (e) return callback(e);
 
         var connection = {
           client: instance,
-          code: connectionCode
+          code: connectionCode,
         };
 
         connection.randomActivity = new random_activity(connection.client, {
@@ -201,10 +201,10 @@ describe('longrunning/004_cluster_ready', function() {
           percentageGets: [2, 80],
           percentageSets: [81, 95],
           percentageRemoves: [96, 100],
-          initialDataOnCount: 1
+          initialDataOnCount: 1,
         });
 
-        connection.randomActivity.generateActivityStart(connection.code, function(e) {
+        connection.randomActivity.generateActivityStart(connection.code, function (e) {
           if (e) return callback(e);
 
           _this.connections[child.port] = connection;
@@ -217,19 +217,19 @@ describe('longrunning/004_cluster_ready', function() {
     );
   };
 
-  it('starts ' + INSTANCE_COUNT + ' instances', function(callback) {
+  it('starts ' + INSTANCE_COUNT + ' instances', function (callback) {
     this.timeout(INSTANCE_COUNT * 10000 + CLUSTER_OPERATION_TIME);
 
     var currentPort = INITIAL_PORT;
 
     async.timesSeries(
       INSTANCE_COUNT,
-      function(counter, clientCB) {
+      function (counter, clientCB) {
         service.create(
           {
-            port: currentPort
+            port: currentPort,
           },
-          function(e, instance) {
+          function (e, instance) {
             if (e) return clientCB(e);
 
             var clusterChild = new ClusterChild(currentPort, instance);
@@ -240,7 +240,7 @@ describe('longrunning/004_cluster_ready', function() {
           }
         );
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         setTimeout(callback, CLUSTER_OPERATION_TIME);
@@ -248,27 +248,27 @@ describe('longrunning/004_cluster_ready', function() {
     );
   });
 
-  it('stops ' + INSTANCE_COUNT + ' instances', function(callback) {
+  it('stops ' + INSTANCE_COUNT + ' instances', function (callback) {
     this.timeout(INSTANCE_COUNT * 10000 + CLUSTER_OPERATION_TIME);
 
     var currentPort = INITIAL_PORT;
 
     async.timesSeries(
       INSTANCE_COUNT,
-      function(counter, clientCB) {
-        CLUSTER.removeChild(currentPort, function(e) {
+      function (counter, clientCB) {
+        CLUSTER.removeChild(currentPort, function (e) {
           if (e) return clientCB(e);
           currentPort++;
           clientCB();
         });
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         expect(Object.keys(CLUSTER.children).length).to.be(0);
         expect(Object.keys(CLUSTER.servers).length).to.be(INSTANCE_COUNT);
 
-        CLUSTER.stop(function(e) {
+        CLUSTER.stop(function (e) {
           if (e) return callback(e);
 
           expect(Object.keys(CLUSTER.servers).length).to.be(0);
@@ -287,10 +287,10 @@ describe('longrunning/004_cluster_ready', function() {
             on: 0,
             get: 0,
             remove: 0,
-            set: 0
+            set: 0,
           };
 
-          aggregatedLogs.forEach(function(log) {
+          aggregatedLogs.forEach(function (log) {
             aggregatedTotals.on += log.initial.on ? log.initial.on : 0;
             aggregatedTotals.get += log.initial.get ? log.initial.get : 0;
             aggregatedTotals.set += log.initial.set ? log.initial.set : 0;
@@ -302,7 +302,7 @@ describe('longrunning/004_cluster_ready', function() {
             aggregatedTotals.on += log.on ? log.on : 0;
           });
 
-          Object.keys(aggregatedTotals).forEach(function(activity) {
+          Object.keys(aggregatedTotals).forEach(function (activity) {
             //eslint-disable-next-line no-console
             console.log(activity, aggregatedTotals[activity]);
           });

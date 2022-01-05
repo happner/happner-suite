@@ -7,5 +7,5 @@ module.exports = {
   packager,
   package: packager,
   protocol: packager.protocol,
-  version: packager.version
+  version: packager.version,
 };

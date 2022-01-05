@@ -36,7 +36,7 @@ function fetchUpdateOperations(moduleDBVersion, desc) {
 
   if (desc) operationKeys.reverse();
 
-  operationKeys.forEach(function(operationKey) {
+  operationKeys.forEach(function (operationKey) {
     returnOperations.push(_this.updateModules[operationKey]);
   });
 
@@ -48,7 +48,7 @@ function fetchUpdateModules(directory) {
   var updateFileNames = fs.readdirSync(directory);
   var updateModules = {};
 
-  updateFileNames.forEach(function(updateFileName) {
+  updateFileNames.forEach(function (updateFileName) {
     updateModules[updateFileName] = require(directory + path.sep + updateFileName).create(_this);
   });
 
@@ -60,7 +60,7 @@ function analyzeDB(callback) {
   var analysis = { moduleDBVersion: _this.systemService.package.database || '0', isNew: false };
 
   //the secure or unsecure configurations always push a user in here
-  _this.dataService.get('/_SYSTEM/_SECURITY/_USER/_ADMIN', function(e, user) {
+  _this.dataService.get('/_SYSTEM/_SECURITY/_USER/_ADMIN', function (e, user) {
     if (e) return callback(e);
 
     if (!user) {
@@ -70,7 +70,7 @@ function analyzeDB(callback) {
       return callback(null, analysis);
     }
 
-    _this.dataService.get('/_SYSTEM/_DATABASE/_VERSION', function(e, version) {
+    _this.dataService.get('/_SYSTEM/_DATABASE/_VERSION', function (e, version) {
       if (e) return callback(e);
 
       if (version == null) analysis.currentDBVersion = '0';
@@ -86,7 +86,7 @@ function analyzeDB(callback) {
 function writeVersionToDB(version, resolve, reject) {
   var _this = this;
 
-  _this.dataService.upsert('/_SYSTEM/_DATABASE/_VERSION', version, function(e) {
+  _this.dataService.upsert('/_SYSTEM/_DATABASE/_VERSION', version, function (e) {
     if (e) return reject(e);
     resolve();
   });
@@ -99,7 +99,7 @@ function log(message, data, logType) {
     message: message,
     data: data,
     timestamp: Date.now(),
-    logType: logType
+    logType: logType,
   });
 }
 
@@ -108,13 +108,10 @@ function rollbackDB(analysis, originalError, records, callback) {
 
   async.eachSeries(
     _this.fetchUpdateOperations(analysis.moduleDBVersion, true),
-    function(rollback, updateComplete) {
-      rollback
-        .rollback(records)
-        .then(updateComplete)
-        .catch(updateComplete);
+    function (rollback, updateComplete) {
+      rollback.rollback(records).then(updateComplete).catch(updateComplete);
     },
-    function(e) {
+    function (e) {
       if (e) return callback(originalError, _this.__logs, false);
       callback(originalError, _this.__logs, true);
     }
@@ -128,24 +125,24 @@ function updateDB(analysis, resolve, reject) {
 
   async.eachSeries(
     _this.fetchUpdateOperations(analysis.moduleDBVersion),
-    function(update, updateComplete) {
+    function (update, updateComplete) {
       update
         .getUpdateRecords()
-        .then(function(records) {
+        .then(function (records) {
           updateRecords = records;
           return update.backup(records);
         })
-        .then(function(records) {
+        .then(function (records) {
           return update.update(records);
         })
-        .then(function() {
+        .then(function () {
           updateComplete();
         })
-        .catch(function(e) {
+        .catch(function (e) {
           updateComplete(e);
         });
     },
-    function(e) {
+    function (e) {
       //analysis, originalError, records, callback
       if (e) return _this.rollbackDB(analysis, e, updateRecords, reject);
       resolve(_this.__logs);

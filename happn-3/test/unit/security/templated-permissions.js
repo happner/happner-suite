@@ -1,18 +1,16 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var Logger = require('happn-logger');
     var EventEmitter = require('events').EventEmitter;
     var Checkpoint = require('../../../lib/services/security/checkpoint');
 
-    var initializeCheckpoint = function(callback, config) {
+    var initializeCheckpoint = function (callback, config) {
       if (!config) config = {};
 
       var checkpoint = new Checkpoint({
-        logger: Logger
+        logger: Logger,
       });
 
       var CacheService = require('../../../lib/services/cache/service');
@@ -21,7 +19,7 @@ describe(
       var cacheServiceInst = new CacheService();
       var utilsServiceInst = new UtilsService();
 
-      cacheServiceInst.initialize(function() {
+      cacheServiceInst.initialize(function () {
         var happn = {
           services: {
             session: new EventEmitter(),
@@ -29,25 +27,25 @@ describe(
             security: {
               happn: {
                 services: {
-                  utils: new UtilsService()
-                }
+                  utils: new UtilsService(),
+                },
               },
               users: {
-                getUser: function(name, callback) {
+                getUser: function (name, callback) {
                   return callback(null, {
                     username: name,
-                    groups: {}
+                    groups: {},
                   });
                 },
-                attachPermissions: async function(user) {
+                attachPermissions: async function (user) {
                   return user;
-                }
+                },
               },
               groups: {
-                getGroup: function(name, opts, callback) {
+                getGroup: function (name, opts, callback) {
                   var returnGroup = {
                     name: name,
-                    permissions: {}
+                    permissions: {},
                   };
 
                   if (name === 'test_group_1')
@@ -56,8 +54,8 @@ describe(
                       permissions: {
                         'test/path/1': { actions: ['get'] },
                         '/gauge/{{user.username}}/*': { actions: ['on', 'set'] },
-                        '/custom/{{user.custom_data.custom_field}}/*': { actions: ['on', 'set'] }
-                      }
+                        '/custom/{{user.custom_data.custom_field}}/*': { actions: ['on', 'set'] },
+                      },
                     };
 
                   if (name === 'test_group_2')
@@ -65,39 +63,39 @@ describe(
                       name: 'test_group_2',
                       permissions: {
                         'test/path/2': { actions: ['get'] },
-                        '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] }
-                      }
+                        '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] },
+                      },
                     };
 
                   if (name === 'test_group_3')
                     returnGroup = {
                       name: 'test_group_3',
                       custom_data: {
-                        existent_property: 'existent_property'
+                        existent_property: 'existent_property',
                       },
                       permissions: {
                         'test/path/3': { actions: ['get'] },
-                        '/custom/{{user.nonexistent_property}}': { actions: ['*'] }
-                      }
+                        '/custom/{{user.nonexistent_property}}': { actions: ['*'] },
+                      },
                     };
 
                   return callback(null, returnGroup);
-                }
-              }
+                },
+              },
             },
-            cache: cacheServiceInst
-          }
+            cache: cacheServiceInst,
+          },
         };
 
         Object.defineProperty(checkpoint, 'happn', {
-          value: happn
+          value: happn,
         });
 
         Object.defineProperty(cacheServiceInst, 'happn', {
-          value: happn
+          value: happn,
         });
 
-        checkpoint.initialize(config, happn.services.security, function(e) {
+        checkpoint.initialize(config, happn.services.security, function (e) {
           if (e) return callback(e);
 
           callback(null, checkpoint);
@@ -106,7 +104,7 @@ describe(
     };
 
     // took this out, cannot see how listening on a template path is a hole to security
-    xit('should ensure replacement permissions fail the utility checkPath', function(done) {
+    xit('should ensure replacement permissions fail the utility checkPath', function (done) {
       var utils = require('happn-commons').utils;
 
       try {
@@ -120,21 +118,21 @@ describe(
       done(new Error('unexpected success...'));
     });
 
-    it('tests the __createPermissionSet method does permissions replacements, using a mocked identity with templated permissions', function(done) {
-      initializeCheckpoint(function(e, checkpoint) {
+    it('tests the __createPermissionSet method does permissions replacements, using a mocked identity with templated permissions', function (done) {
+      initializeCheckpoint(function (e, checkpoint) {
         if (e) return done(e);
         var mockedIdentity = {
           user: {
             username: 'test_user',
             custom_data: {
               custom_field: 'test_custom_field',
-              custom_field1: 'test_custom_field1'
+              custom_field1: 'test_custom_field1',
             },
             groups: {
               test_group_1: {},
-              test_group_2: {}
-            }
-          }
+              test_group_2: {},
+            },
+          },
         };
 
         var templated = checkpoint.__createPermissionSet(
@@ -143,63 +141,63 @@ describe(
             'test/path/2': { actions: ['get'] },
             '/gauge/{{user.username}}/*': { actions: ['on', 'set'] },
             '/custom/{{user.custom_data.custom_field}}/*': { actions: ['on', 'set'] },
-            '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] }
+            '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] },
           },
           mockedIdentity
         );
         expect(templated.tree).to.eql({
           test: {
             path: {
-              '1': {
+              1: {
                 $leaf: 'test/path/1',
-                actions: ['get']
+                actions: ['get'],
               },
-              '2': {
+              2: {
                 $leaf: 'test/path/2',
-                actions: ['get']
-              }
-            }
+                actions: ['get'],
+              },
+            },
           },
           gauge: {
             test_user: {
               '*': {
                 $leaf: '/gauge/test_user/*',
-                actions: ['on', 'set']
-              }
-            }
+                actions: ['on', 'set'],
+              },
+            },
           },
           custom: {
             test_custom_field: {
               '*': {
                 $leaf: '/custom/test_custom_field/*',
-                actions: ['on', 'set']
-              }
+                actions: ['on', 'set'],
+              },
             },
             test_custom_field1: {
               $leaf: '/custom/test_custom_field1',
-              actions: ['*']
-            }
-          }
+              actions: ['*'],
+            },
+          },
         });
         done();
       });
     });
 
-    it('tests the __createPermissionSet method does permissions replacements, using a mocked identity, ensures template elements that dont match the context (identity / session) are skipped', function(done) {
-      initializeCheckpoint(function(e, checkpoint) {
+    it('tests the __createPermissionSet method does permissions replacements, using a mocked identity, ensures template elements that dont match the context (identity / session) are skipped', function (done) {
+      initializeCheckpoint(function (e, checkpoint) {
         if (e) return done(e);
         var mockedIdentity = {
           user: {
             username: 'test_user',
             custom_data: {
               custom_field: 'test_custom_field',
-              custom_field1: 'test_custom_field1'
+              custom_field1: 'test_custom_field1',
             },
             groups: {
               test_group_1: {},
-              test_group_2: {}
-            }
-          }
+              test_group_2: {},
+            },
+          },
         };
 
         var templated = checkpoint.__createPermissionSet(
@@ -209,7 +207,7 @@ describe(
             '/gauge/{{user.username}}/*': { actions: ['on', 'set'] },
             '/gauge/{{user.nonexistent_property}}/*': { actions: ['on', 'set'] },
             '/custom/{{user.custom_data.custom_field}}/*': { actions: ['on', 'set'] },
-            '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] }
+            '/custom/{{user.custom_data.custom_field1}}': { actions: ['*'] },
           },
           mockedIdentity
         );
@@ -217,156 +215,156 @@ describe(
         expect(templated.tree).to.eql({
           test: {
             path: {
-              '1': {
+              1: {
                 $leaf: 'test/path/1',
-                actions: ['get']
+                actions: ['get'],
               },
-              '2': {
+              2: {
                 $leaf: 'test/path/2',
-                actions: ['get']
-              }
-            }
+                actions: ['get'],
+              },
+            },
           },
           gauge: {
             test_user: {
               '*': {
                 $leaf: '/gauge/test_user/*',
-                actions: ['on', 'set']
-              }
-            }
+                actions: ['on', 'set'],
+              },
+            },
           },
           custom: {
             test_custom_field: {
               '*': {
                 $leaf: '/custom/test_custom_field/*',
-                actions: ['on', 'set']
-              }
+                actions: ['on', 'set'],
+              },
             },
             test_custom_field1: {
               $leaf: '/custom/test_custom_field1',
-              actions: ['*']
-            }
-          }
+              actions: ['*'],
+            },
+          },
         });
         done();
       });
     });
 
-    it('tests the __loadPermissionSet method does permissions replacements, using a mocked identity with templated permissions', function(done) {
-      initializeCheckpoint(function(e, checkpoint) {
+    it('tests the __loadPermissionSet method does permissions replacements, using a mocked identity with templated permissions', function (done) {
+      initializeCheckpoint(function (e, checkpoint) {
         if (e) return done(e);
         var mockedIdentity = {
           user: {
             username: 'test_user',
             custom_data: {
               custom_field: 'test_custom_field',
-              custom_field1: 'test_custom_field1'
+              custom_field1: 'test_custom_field1',
             },
             groups: {
               test_group_1: {},
-              test_group_2: {}
-            }
-          }
+              test_group_2: {},
+            },
+          },
         };
 
-        checkpoint.__loadPermissionSet(mockedIdentity, function(e, permissionSet) {
+        checkpoint.__loadPermissionSet(mockedIdentity, function (e, permissionSet) {
           if (e) return done(e);
           expect(permissionSet.tree).to.eql({
             test: {
               path: {
-                '1': {
+                1: {
                   $leaf: 'test/path/1',
-                  actions: ['get']
+                  actions: ['get'],
                 },
-                '2': {
+                2: {
                   $leaf: 'test/path/2',
-                  actions: ['get']
-                }
-              }
+                  actions: ['get'],
+                },
+              },
             },
             gauge: {
               test_user: {
                 '*': {
                   $leaf: '/gauge/test_user/*',
-                  actions: ['on', 'set']
-                }
-              }
+                  actions: ['on', 'set'],
+                },
+              },
             },
             custom: {
               test_custom_field: {
                 '*': {
                   $leaf: '/custom/test_custom_field/*',
-                  actions: ['on', 'set']
-                }
+                  actions: ['on', 'set'],
+                },
               },
               test_custom_field1: {
                 $leaf: '/custom/test_custom_field1',
-                actions: ['*']
-              }
-            }
+                actions: ['*'],
+              },
+            },
           });
           done();
         });
       });
     });
 
-    it('tests the __loadPermissionSet method does permissions replacements, using a mocked identity with templated permissions, ensures template elements that dont match the context (identity / session) are skipped', function(done) {
-      initializeCheckpoint(function(e, checkpoint) {
+    it('tests the __loadPermissionSet method does permissions replacements, using a mocked identity with templated permissions, ensures template elements that dont match the context (identity / session) are skipped', function (done) {
+      initializeCheckpoint(function (e, checkpoint) {
         if (e) return done(e);
         var mockedIdentity = {
           user: {
             username: 'test_user',
             custom_data: {
               custom_field: 'test_custom_field',
-              custom_field1: 'test_custom_field1'
+              custom_field1: 'test_custom_field1',
             },
             groups: {
               test_group_1: {},
               test_group_2: {},
-              test_group_3: {}
-            }
-          }
+              test_group_3: {},
+            },
+          },
         };
 
-        checkpoint.__loadPermissionSet(mockedIdentity, function(e, permissionSet) {
+        checkpoint.__loadPermissionSet(mockedIdentity, function (e, permissionSet) {
           if (e) return done(e);
           expect(permissionSet.tree).to.eql({
             test: {
               path: {
-                '1': {
+                1: {
                   $leaf: 'test/path/1',
-                  actions: ['get']
+                  actions: ['get'],
                 },
-                '2': {
+                2: {
                   $leaf: 'test/path/2',
-                  actions: ['get']
+                  actions: ['get'],
                 },
-                '3': {
+                3: {
                   $leaf: 'test/path/3',
-                  actions: ['get']
-                }
-              }
+                  actions: ['get'],
+                },
+              },
             },
             gauge: {
               test_user: {
                 '*': {
                   $leaf: '/gauge/test_user/*',
-                  actions: ['on', 'set']
-                }
-              }
+                  actions: ['on', 'set'],
+                },
+              },
             },
             custom: {
               test_custom_field: {
                 '*': {
                   $leaf: '/custom/test_custom_field/*',
-                  actions: ['on', 'set']
-                }
+                  actions: ['on', 'set'],
+                },
               },
               test_custom_field1: {
                 $leaf: '/custom/test_custom_field1',
-                actions: ['*']
-              }
-            }
+                actions: ['*'],
+              },
+            },
           });
           done();
         });

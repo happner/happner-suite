@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -10,9 +8,9 @@ describe(
     var happnInstance = null;
     this.timeout(20000);
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       try {
-        service.create(function(e, happnInst) {
+        service.create(function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -23,18 +21,15 @@ describe(
       }
     });
 
-    after(function(done) {
-      client
-        .disconnect()
-        .then(happnInstance.stop().then(done))
-        .catch(done);
+    after(function (done) {
+      client.disconnect().then(happnInstance.stop().then(done)).catch(done);
     });
 
     var client;
 
-    it('should connect with default settings', function(callback) {
+    it('should connect with default settings', function (callback) {
       try {
-        happn_client.create(function(e, instance) {
+        happn_client.create(function (e, instance) {
           if (e) return callback(e);
           client = instance;
           callback();
@@ -44,15 +39,15 @@ describe(
       }
     });
 
-    it('should fail to connect, bad port', function(callback) {
+    it('should fail to connect, bad port', function (callback) {
       try {
         happn_client.create(
           {
             config: {
-              port: 4545
-            }
+              port: 4545,
+            },
           },
-          function(e) {
+          function (e) {
             expect(e.toString().indexOf('ECONNREFUSED')).to.be.greaterThan(-1);
             callback();
           }
@@ -62,16 +57,16 @@ describe(
       }
     });
 
-    it('should fail to connect, bad ip - connect timeout of 3 seconds', function(callback) {
+    it('should fail to connect, bad ip - connect timeout of 3 seconds', function (callback) {
       try {
         happn_client.create(
           {
             config: {
               host: '99.99.99.99',
-              connectTimeout: 3000
-            }
+              connectTimeout: 3000,
+            },
           },
-          function(e) {
+          function (e) {
             expect(e.toString()).to.be('Error: connection timed out');
             callback();
           }

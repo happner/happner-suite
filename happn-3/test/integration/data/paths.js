@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, function (test) {
   let mode = 'embedded';
   let happnInstance = null;
   let test_id = test.shortid();
@@ -19,14 +19,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     listenerclient = await test.createAdminSession(happnInstance);
   });
 
-  it('the listener should pick up a single wildcard event', function(callback) {
+  it('the listener should pick up a single wildcard event', function (callback) {
     listenerclient.on(
       '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/event/*',
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
-      function() {
+      function () {
         test
           .expect(
             listenerclient.state.events[
@@ -36,7 +36,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           .to.be(undefined);
         callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         test
@@ -51,10 +51,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function() {
+          function () {
             //do nothing
           }
         );
@@ -62,24 +62,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('the publisher should set new data', function(callback) {
+  it('the publisher should set new data', function (callback) {
     var test_path_end = test.shortid();
     publisherclient.set(
       'a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/' + test_path_end,
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {
-        noPublish: true
+        noPublish: true,
       },
-      function(e) {
+      function (e) {
         if (!e) {
           publisherclient.get(
             'a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/' + test_path_end,
             null,
-            function(e, results) {
+            function (e, results) {
               if (e) return callback(e);
               test.expect(results.property1 === 'property1').to.be(true);
 
@@ -94,7 +94,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should search for data with more than one wildcard', function(callback) {
+  it('should search for data with more than one wildcard', function (callback) {
     var test_path_end = test.shortid();
 
     publisherclient.set(
@@ -102,33 +102,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       {
-        noPublish: true
+        noPublish: true,
       },
-      function(e) {
+      function (e) {
         if (!e) {
-          publisherclient.get('*/' + test_id + '/testsubscribe/wildcards/*', null, function(
-            e,
-            results
-          ) {
-            if (e) return callback(e);
-            test.expect(results.length > 0).to.be(true);
-            callback(e);
-          });
+          publisherclient.get(
+            '*/' + test_id + '/testsubscribe/wildcards/*',
+            null,
+            function (e, results) {
+              if (e) return callback(e);
+              test.expect(results.length > 0).to.be(true);
+              callback(e);
+            }
+          );
         } else callback(e);
       }
     );
   });
 
-  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function(callback) {
+  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function (callback) {
     var timesCount = 10;
 
     var testBasePath = '/a2_eventemitter_embedded_paths/' + test_id + '/set_multiple';
     test.async.times(
       timesCount,
-      function(n, timesCallback) {
+      function (n, timesCallback) {
         var test_random_path2 = test.shortid();
 
         publisherclient.set(
@@ -136,23 +137,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {
-            noPublish: true
+            noPublish: true,
           },
           timesCallback
         );
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
-        listenerclient.get(testBasePath + '/' + '*', null, function(e, results) {
+        listenerclient.get(testBasePath + '/' + '*', null, function (e, results) {
           if (e) return callback(e);
 
           test.expect(results.length).to.be(timesCount);
 
-          results.every(function(result) {
+          results.every(function (result) {
             test.expect(result._meta.path.indexOf(testBasePath) === 0).to.be(true);
             return true;
           });
@@ -163,7 +164,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
+  it('should set data, and then merge a new document into the data without overwriting old fields', function (callback) {
     try {
       var test_path_end = test.shortid();
 
@@ -172,10 +173,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           publisherclient.set(
             '/a2_eventemitter_embedded_paths/' +
@@ -183,12 +184,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               '/testsubscribe/data/merge/' +
               test_path_end,
             {
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              merge: true
+              merge: true,
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
               publisherclient.get(
                 '/a2_eventemitter_embedded_paths/' +
@@ -196,7 +197,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   '/testsubscribe/data/merge/' +
                   test_path_end,
                 null,
-                function(e, results) {
+                function (e, results) {
                   if (e) return callback(e);
                   test.expect(results.property4).to.be('property4');
                   test.expect(results.property1).to.be('property1');
@@ -212,10 +213,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('should contain the same payload between 2 non-merging consecutive stores', function(done) {
+  it('should contain the same payload between 2 non-merging consecutive stores', function (done) {
     var object = {
       param1: 10,
-      param2: 20
+      param2: 20,
     };
     var firstTime;
 
@@ -223,9 +224,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       'setTest/object',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function(message) {
+      function (message) {
         if (firstTime === undefined) {
           firstTime = message;
         } else {
@@ -233,11 +234,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           done();
         }
       },
-      function(err) {
+      function (err) {
         test.expect(err).to.not.be.ok();
-        publisherclient.set('setTest/object', object, {}, function(err) {
+        publisherclient.set('setTest/object', object, {}, function (err) {
           test.expect(err).to.not.be.ok();
-          publisherclient.set('setTest/object', object, {}, function(err) {
+          publisherclient.set('setTest/object', object, {}, function (err) {
             test.expect(err).to.not.be.ok();
           });
         });
@@ -245,10 +246,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should contain the same payload between a merge and a normal store for first store', function(done) {
+  it('should contain the same payload between a merge and a normal store for first store', function (done) {
     var object = {
       param1: 10,
-      param2: 20
+      param2: 20,
     };
     var firstTime = true;
 
@@ -256,9 +257,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       'mergeTest/object',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function(message) {
+      function (message) {
         test.expect(message).to.eql(object);
         if (firstTime) {
           firstTime = false;
@@ -266,23 +267,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         }
         done();
       },
-      function(err) {
+      function (err) {
         test.expect(err).to.not.be.ok();
         publisherclient.set(
           'mergeTest/object',
           object,
           {
-            merge: true
+            merge: true,
           },
-          function(err) {
+          function (err) {
             test.expect(err).to.not.be.ok();
             publisherclient.set(
               'mergeTest/object',
               object,
               {
-                merge: true
+                merge: true,
               },
-              function(err) {
+              function (err) {
                 test.expect(err).to.not.be.ok();
               }
             );
@@ -292,7 +293,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should search for a complex object', function(callback) {
+  it('should search for a complex object', function (callback) {
     var test_path_end = test.shortid();
 
     var complex_obj = {
@@ -301,40 +302,40 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var criteria1 = {
       $or: [
         {
           regions: {
-            $containsAny: ['North', 'South', 'East', 'West']
-          }
+            $containsAny: ['North', 'South', 'East', 'West'],
+          },
         },
         {
           towns: {
-            $containsAny: ['North.Cape Town', 'South.East London']
-          }
+            $containsAny: ['North.Cape Town', 'South.East London'],
+          },
         },
         {
           categories: {
-            $containsAny: ['Action', 'History']
-          }
-        }
+            $containsAny: ['Action', 'History'],
+          },
+        },
       ],
       keywords: {
-        $containsAny: ['bass', 'Penny Siopis']
-      }
+        $containsAny: ['bass', 'Penny Siopis'],
+      },
     };
 
     var options1 = {
       fields: {
-        data: 1
+        data: 1,
       },
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
@@ -342,16 +343,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     var options2 = {
       fields: null,
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 2
+      limit: 2,
     };
 
     publisherclient.set(
       '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           '/a2_eventemitter_embedded_paths/' +
@@ -361,15 +362,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             '/1',
           complex_obj,
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
             publisherclient.get(
               '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/complex*',
               {
                 criteria: criteria1,
-                options: options1
+                options: options1,
               },
-              function(e, search_result) {
+              function (e, search_result) {
                 test.expect(e == null).to.be(true);
                 test.expect(search_result.length === 1).to.be(true);
 
@@ -377,9 +378,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/complex*',
                   {
                     criteria: criteria2,
-                    options: options2
+                    options: options2,
                   },
-                  function(e, search_result) {
+                  function (e, search_result) {
                     test.expect(e == null).to.be(true);
                     test.expect(search_result.length === 2).to.be(true);
 
@@ -394,7 +395,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should delete some test data', function(callback) {
+  it('should delete some test data', function (callback) {
     try {
       //We put the data we want to delete into the database
       publisherclient.set(
@@ -402,19 +403,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function() {
+        function () {
           //We perform the actual delete
           publisherclient.remove(
             '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/delete_me',
             {
-              noPublish: true
+              noPublish: true,
             },
-            function(e, result) {
+            function (e, result) {
               test.expect(e).to.be(null);
               test.expect(result._meta.status).to.be('ok');
               callback();
@@ -427,7 +428,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = test.shortid();
 
@@ -436,12 +437,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e).to.be(null);
 
           publisherclient.set(
@@ -450,12 +451,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              noPublish: true
+              noPublish: true,
             },
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e).to.be(null);
               test.expect(updateResult._meta.id === insertResult._meta.id).to.be(true);
               callback();
@@ -470,16 +471,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
 
   //  We set the listener client to listen for a PUT event according to a path, then we set a value with the publisher client.
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           test
             .expect(
               listenerclient.state.events[
@@ -489,7 +490,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -503,10 +504,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {
+              function () {
                 //do nothing
               }
             );
@@ -520,7 +521,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
 
   //We are testing setting data at a specific path
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     try {
       var test_path_end = test.shortid();
 
@@ -529,15 +530,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e) {
+        function (e) {
           if (!e) {
             publisherclient.get(
               'a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/' + test_path_end,
               null,
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
 
                 if (mode !== 'embedded')
@@ -556,7 +557,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = test.shortid();
 
@@ -565,10 +566,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e == null).to.be(true);
 
           publisherclient.set(
@@ -577,10 +578,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             null,
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e == null).to.be(true);
               test.expect(updateResult._meta._id === insertResult._meta._id).to.be(true);
               callback();
@@ -593,16 +594,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function() {
+        function () {
           test
             .expect(
               listenerclient.state.events[
@@ -612,7 +613,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -627,10 +628,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function() {
+              function () {
                 //do nothing
               }
             );
@@ -642,7 +643,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     }
   });
 
-  it('should get using a wildcard', function(callback) {
+  it('should get using a wildcard', function (callback) {
     var test_path_end = test.shortid();
 
     publisherclient.set(
@@ -650,26 +651,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           'a2_eventemitter_embedded_paths/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
 
             publisherclient.get(
               'a2_eventemitter_embedded_paths/' + test_id + '/testwildcard/' + test_path_end + '*',
               null,
-              function(e, results) {
+              function (e, results) {
                 if (e) return callback();
 
                 test.expect(results.length === 2).to.be(true);
@@ -682,7 +683,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should get paths', function(callback) {
+  it('should get paths', function (callback) {
     var test_path_end = test.shortid();
 
     publisherclient.set(
@@ -690,25 +691,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           'a2_eventemitter_embedded_paths/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
 
             publisherclient.getPaths(
               'a2_eventemitter_embedded_paths/' + test_id + '/testwildcard/' + test_path_end + '*',
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.length === 2).to.be(true);
                 callback(e);
               }
@@ -719,24 +720,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('the listener should pick up a single delete event', function(callback) {
+  it('the listener should pick up a single delete event', function (callback) {
     //We put the data we want to delete into the database
     publisherclient.set(
       '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function() {
+      function () {
         listenerclient.on(
           '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/delete_me',
           {
             event_type: 'remove',
-            count: 1
+            count: 1,
           },
-          function(eventData) {
+          function (eventData) {
             test
               .expect(
                 listenerclient.state.events[
@@ -749,7 +750,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             test.expect(eventData.payload.removed).to.be(1);
             callback();
           },
-          function(e) {
+          function (e) {
             if (!e) return callback(e);
             test
               .expect(
@@ -764,7 +765,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
             publisherclient.remove(
               '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/delete_me',
               null,
-              function() {
+              function () {
                 //do nothing
               }
             );
@@ -774,35 +775,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should unsubscribe from an event', function(callback) {
+  it('should unsubscribe from an event', function (callback) {
     var currentListenerId;
 
     listenerclient.on(
       '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/on_off_test',
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function() {
+      function () {
         //we detach all listeners from the path here
         listenerclient.offPath(
           '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/on_off_test',
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
 
             listenerclient.on(
               '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/on_off_test',
               {
                 event_type: 'set',
-                count: 0
+                count: 0,
               },
-              function() {
-                listenerclient.off(currentListenerId, function(e) {
+              function () {
+                listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
                 });
               },
-              function(e, listenerId) {
+              function (e, listenerId) {
                 if (e) return callback(new Error(e));
 
                 currentListenerId = listenerId;
@@ -812,10 +813,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   {},
-                  function(e) {
+                  function (e) {
                     if (e) return callback(new Error(e));
                   }
                 );
@@ -824,7 +825,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           }
         );
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (e) return callback(new Error(e));
 
         currentListenerId = listenerId;
@@ -834,10 +835,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
           }
         );
@@ -845,12 +846,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should subscribe to the catch all notification', function(callback) {
+  it('should subscribe to the catch all notification', function (callback) {
     this.timeout(10000);
     var caughtCount = 0;
 
     listenerclient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action ===
             '/REMOVE@/a2_eventemitter_embedded_paths/' +
@@ -863,7 +864,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
 
         if (caughtCount === 2) callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set(
@@ -871,14 +872,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function() {
+          function () {
             publisherclient.remove(
               '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/catch_all',
               null,
-              function() {
+              function () {
                 //do nothing
               }
             );
@@ -888,33 +889,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
     );
   });
 
-  it('should unsubscribe from all events', function(callback) {
+  it('should unsubscribe from all events', function (callback) {
     this.timeout(10000);
 
     var onHappened = false;
 
     listenerclient.onAll(
-      function() {
+      function () {
         onHappened = true;
         callback(new Error('this wasnt meant to happen'));
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.on(
           '/a2_eventemitter_embedded_paths/' + test_id + '/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function() {
+          function () {
             onHappened = true;
             callback(new Error('this wasnt meant to happen'));
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            listenerclient.offAll(function(e) {
+            listenerclient.offAll(function (e) {
               if (e) return callback(e);
 
               publisherclient.set(
@@ -922,13 +923,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, funct
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
-                  setTimeout(function() {
+                  setTimeout(function () {
                     if (!onHappened) callback();
                   }, 3000);
                 }

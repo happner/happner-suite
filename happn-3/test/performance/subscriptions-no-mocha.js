@@ -13,10 +13,10 @@ var CONSISTENCY = CONSTANTS.CONSISTENCY.TRANSACTIONAL;
 
 var client;
 
-service.create({}, function(e, happnInst) {
+service.create({}, function (e, happnInst) {
   if (e) throw e;
   happnInstance = happnInst;
-  happnInstance.services.session.localClient(function(e, instance) {
+  happnInstance.services.session.localClient(function (e, instance) {
     if (e) throw e;
     client = instance;
 
@@ -26,10 +26,10 @@ service.create({}, function(e, happnInst) {
     console.log('building subscriptions...');
 
     var randomPaths = random.randomPaths({
-      count: SUBSCRIPTION_COUNT
+      count: SUBSCRIPTION_COUNT,
     });
 
-    randomPaths.forEach(function(path) {
+    randomPaths.forEach(function (path) {
       var possibleSubscriptions = random.getWildcardPermutations(path);
       var subscriptionPath =
         possibleSubscriptions[random.integer(0, possibleSubscriptions.length - 1)];
@@ -46,13 +46,13 @@ service.create({}, function(e, happnInst) {
 
     var startedSubscribing = Date.now();
     var setResults = {
-      counters: {}
+      counters: {},
     };
 
     var eventsCount = 0;
     var startedSearching;
 
-    var handleOn = function(data, meta) {
+    var handleOn = function (data, meta) {
       if (!setResults[meta.path]) setResults[meta.path] = [];
       setResults[meta.path].push(data);
       setResults.counters[data.counter] = true;
@@ -81,18 +81,18 @@ service.create({}, function(e, happnInst) {
 
     async.each(
       subscriptions,
-      function(subscription, subscriptionCB) {
+      function (subscription, subscriptionCB) {
         //eslint-disable-next-line no-console
         console.log('subscribed:::', subscription);
         client.on(
           subscription,
           handleOn.bind({
-            path: subscription
+            path: subscription,
           }),
           subscriptionCB
         );
       },
-      function() {
+      function () {
         //eslint-disable-next-line no-console
         console.log(
           'did ' +
@@ -105,21 +105,21 @@ service.create({}, function(e, happnInst) {
         var counter = 0;
         async.each(
           searchPaths,
-          function(randomPath, randomPathCB) {
+          function (randomPath, randomPathCB) {
             client.set(
               randomPath,
               {
-                counter: counter++
+                counter: counter++,
               },
               {
                 noStore: NOSTORE,
                 consistency: CONSISTENCY,
-                onPublished: function() {}
+                onPublished: function () {},
               },
               randomPathCB
             );
           },
-          function() {
+          function () {
             //eslint-disable-next-line no-console
             console.log(
               'handled ' +

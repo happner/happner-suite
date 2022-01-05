@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   var happn = require('../../../lib/index');
   var happnClient = happn.client;
   var testDbFile = test.newTestFile();
@@ -65,7 +65,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     var client = await happnClient.create({
       port: happnPort,
       username: '_ADMIN',
-      password: happnPassword
+      password: happnPassword,
     });
 
     await client.set('/test/write', { hello: 'world' });
@@ -75,7 +75,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
   function stopService() {
     return new Promise((resolve, reject) => {
       if (currentService) {
-        currentService.stop(function(e) {
+        currentService.stop(function (e) {
           if (e && e.toString() !== 'Error: Not running') return reject(e);
           resolve();
         });
@@ -92,46 +92,46 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
         security: {
           config: {
             adminUser: {
-              password: happnPassword
+              password: happnPassword,
             },
             sessionTokenSecret,
-            persistPermissions
-          }
+            persistPermissions,
+          },
         },
         data: {
           config: {
-            filename: filename
-          }
-        }
+            filename: filename,
+          },
+        },
       },
-      secure: true
+      secure: true,
     });
   }
 
   const testGroup = {
     name: 'TEST-GROUP',
     custom_data: {
-      customString: 'customGroupString'
+      customString: 'customGroupString',
     },
     permissions: {
       '/permission/1': {
-        actions: ['*']
+        actions: ['*'],
       },
       '/permission/2': {
-        actions: ['on']
+        actions: ['on'],
       },
       '/permission/3': {
-        actions: ['set']
-      }
-    }
+        actions: ['set'],
+      },
+    },
   };
 
   const testUser = {
     username: 'TEST-USER',
     password: 'TEST_PWD',
     custom_data: {
-      customString: 'customUserString'
-    }
+      customString: 'customUserString',
+    },
   };
 
   async function addPermissions() {
@@ -151,14 +151,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       let group = await currentService.services.security.groups.getGroup('TEST-GROUP');
       test.expect(group.permissions).to.eql({
         '/permission/1': {
-          actions: ['*']
+          actions: ['*'],
         },
         '/permission/2': {
-          actions: ['on']
+          actions: ['on'],
         },
         '/permission/3': {
-          actions: ['set']
-        }
+          actions: ['set'],
+        },
       });
       return true;
     } catch (e) {

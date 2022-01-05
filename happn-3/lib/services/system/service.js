@@ -1,7 +1,7 @@
 const commons = require('happn-commons'),
   sillyname = commons.sillyname,
   hyperid = commons.hyperid.create({
-    urlSafe: true
+    urlSafe: true,
   }),
   CONSTANTS = commons.constants;
 
@@ -10,19 +10,19 @@ function SystemService(opts) {
   this.log.$$TRACE('construct(%j)', opts);
 
   Object.defineProperty(this, 'package', {
-    value: require('../../../package.json')
+    value: require('../../../package.json'),
   });
 
   this.resetStats();
 }
 
-SystemService.prototype.resetStats = function() {
+SystemService.prototype.resetStats = function () {
   this.__stats = {
     HEALTH: {
       STATUS: CONSTANTS.SYSTEM_HEALTH.EXCELLENT,
       BY_SEVERITY: {},
-      BY_AREA: {}
-    }
+      BY_AREA: {},
+    },
   };
 
   for (var severity in CONSTANTS.ERROR_SEVERITY) {
@@ -32,7 +32,7 @@ SystemService.prototype.resetStats = function() {
   this.__stats.HEALTH.lastError = null;
 };
 
-SystemService.prototype.stats = function() {
+SystemService.prototype.stats = function () {
   var stats = JSON.parse(JSON.stringify(this.__stats));
 
   stats.memory = process.memoryUsage();
@@ -40,41 +40,37 @@ SystemService.prototype.stats = function() {
   return stats;
 };
 
-SystemService.prototype.uniqueName = function() {
-  return (
-    sillyname()
-      .split(' ')[0]
-      .toLowerCase() +
-    '_' +
-    hyperid()
-  );
+SystemService.prototype.uniqueName = function () {
+  return sillyname().split(' ')[0].toLowerCase() + '_' + hyperid();
 };
 
-SystemService.prototype._ensureSystemName = function(config, callback) {
+SystemService.prototype._ensureSystemName = function (config, callback) {
   var _this = this;
 
-  _this.dataService.get('/_SYSTEM/_NETWORK/_SETTINGS/NAME', {}, function(e, response) {
+  _this.dataService.get('/_SYSTEM/_NETWORK/_SETTINGS/NAME', {}, function (e, response) {
     if (e) return callback(e);
 
     if (!response) {
       if (!config.name) config.name = _this.uniqueName();
 
-      return _this.dataService.upsert('/_SYSTEM/_NETWORK/_SETTINGS/NAME', config.name, {}, function(
-        e,
-        result
-      ) {
-        if (e) return callback(e);
-        _this.name = result.data.value;
-        _this.happn.name = result.data.value;
-        callback();
-      });
+      return _this.dataService.upsert(
+        '/_SYSTEM/_NETWORK/_SETTINGS/NAME',
+        config.name,
+        {},
+        function (e, result) {
+          if (e) return callback(e);
+          _this.name = result.data.value;
+          _this.happn.name = result.data.value;
+          callback();
+        }
+      );
     } else {
       if (config.name && response.data.value !== config.name) {
         return _this.dataService.upsert(
           '/_SYSTEM/_NETWORK/_SETTINGS/NAME',
           config.name,
           {},
-          function(e, result) {
+          function (e, result) {
             if (e) return callback(e);
             _this.name = result.data.value;
             _this.happn.name = result.data.value;
@@ -91,16 +87,16 @@ SystemService.prototype._ensureSystemName = function(config, callback) {
   });
 };
 
-SystemService.prototype.processMessage = function(message) {
+SystemService.prototype.processMessage = function (message) {
   if (message.request.action === 'describe')
     message.response = {
-      data: this.getDescription(message)
+      data: this.getDescription(message),
     };
 
   return message;
 };
 
-SystemService.prototype.logError = function(e, area, severity) {
+SystemService.prototype.logError = function (e, area, severity) {
   if (!area) area = 'System';
 
   if (!severity) severity = CONSTANTS.ERROR_SEVERITY.LOW;
@@ -110,7 +106,7 @@ SystemService.prototype.logError = function(e, area, severity) {
   this.__stats.HEALTH.lastError = {
     message: e.toString(),
     area: area,
-    severity: severity
+    severity: severity,
   };
 
   if (!this.__stats.HEALTH.BY_AREA[area]) this.__stats.HEALTH.BY_AREA[area] = 0;
@@ -135,10 +131,10 @@ SystemService.prototype.logError = function(e, area, severity) {
   }
 };
 
-SystemService.prototype.getDescription = function(message) {
+SystemService.prototype.getDescription = function (message) {
   var description = {
     name: this.name,
-    secure: this.happn.config.secure ? true : false
+    secure: this.happn.config.secure ? true : false,
   };
 
   if (message && message.session.cookieName) description.cookieName = message.session.cookieName;
@@ -148,7 +144,7 @@ SystemService.prototype.getDescription = function(message) {
   return description;
 };
 
-SystemService.prototype.__processSystemMessage = function(message) {
+SystemService.prototype.__processSystemMessage = function (message) {
   try {
     if (message.action === 'MEMORY_USAGE') {
       message.response = process.memoryUsage();
@@ -173,7 +169,7 @@ SystemService.prototype.__processSystemMessage = function(message) {
   process.send(message);
 };
 
-SystemService.prototype.stop = function(options, callback) {
+SystemService.prototype.stop = function (options, callback) {
   if (typeof options === 'function') callback = options;
 
   process.removeAllListeners('message');
@@ -181,7 +177,7 @@ SystemService.prototype.stop = function(options, callback) {
   callback();
 };
 
-SystemService.prototype.initialize = function(config, callback) {
+SystemService.prototype.initialize = function (config, callback) {
   process.on('message', this.__processSystemMessage.bind(this));
 
   this.config = config;
@@ -189,7 +185,7 @@ SystemService.prototype.initialize = function(config, callback) {
 
   this._ensureSystemName(
     config,
-    function(e) {
+    function (e) {
       if (e) return callback(e);
       this.log.info('instance name: ' + this.name);
       this.log.context = this.name;

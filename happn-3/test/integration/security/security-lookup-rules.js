@@ -1,6 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe(test.testName(__filename), function() {
+describe(test.testName(__filename), function () {
   this.timeout(120000);
   const happn = require('../../../lib/index');
   let serviceInstance;
@@ -12,7 +12,7 @@ describe(test.testName(__filename), function() {
   // this feature only applies to groups
   it('sets up lookup rules and tests them - nonAdmin/Least Permissive (0/3) ', async () => {
     const standardGroup = {
-      name: 'STANDARD_ABC'
+      name: 'STANDARD_ABC',
     };
 
     let standardUserGroup = await serviceInstance.services.security.groups.upsertGroup(
@@ -23,8 +23,8 @@ describe(test.testName(__filename), function() {
       name: 'STANDARD_ABC',
       paths: [
         '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1',
-        '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'
-      ]
+        '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2',
+      ],
     });
 
     await serviceInstance.services.security.lookupTables.insertPath(
@@ -39,7 +39,7 @@ describe(test.testName(__filename), function() {
         actions: ['on', 'get', 'set'],
         table: 'STANDARD_ABC',
         // maps to an array of paths, companies is an array
-        path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}'
+        path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}',
       }
     );
 
@@ -67,7 +67,7 @@ describe(test.testName(__filename), function() {
   // this feature only applies to groups
   it('sets up lookup rules and tests them - Enterprise Admin - (1/3) permissivity', async () => {
     const testEnterpriseAdminGroup = {
-      name: 'OEM_MANAGER_ABC'
+      name: 'OEM_MANAGER_ABC',
     };
 
     let enterpriseAdminGroup = await serviceInstance.services.security.groups.upsertGroup(
@@ -78,8 +78,8 @@ describe(test.testName(__filename), function() {
       name: 'OEM_MANAGER_ABC_LOOKUP',
       paths: [
         '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1',
-        '/device/OEM_ABC/COMPANY_DEF/SPECIAL_DEVICE_ID_2'
-      ]
+        '/device/OEM_ABC/COMPANY_DEF/SPECIAL_DEVICE_ID_2',
+      ],
     });
 
     await serviceInstance.services.security.lookupTables.insertPath(
@@ -94,7 +94,7 @@ describe(test.testName(__filename), function() {
         actions: ['on', 'get', 'set'],
         table: 'OEM_MANAGER_ABC_LOOKUP',
         // maps to an array of paths, companies is an array
-        path: '/device/{{user.custom_data.oem}}/{{user.custom_data.companies}}/{{$1}}'
+        path: '/device/{{user.custom_data.oem}}/{{user.custom_data.companies}}/{{$1}}',
       }
     );
 
@@ -121,7 +121,7 @@ describe(test.testName(__filename), function() {
 
   it('sets up lookup rules and tests them -  oem admin groups (2/3) permissivity', async () => {
     const testOEMAdminGroup = {
-      name: 'SMC_MANAGER_ABC'
+      name: 'SMC_MANAGER_ABC',
     };
 
     let oemAdminGroup = await serviceInstance.services.security.groups.upsertGroup(
@@ -132,8 +132,8 @@ describe(test.testName(__filename), function() {
       name: 'OEM_ABC_LOOKUP',
       paths: [
         '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1',
-        '/device/OEM_DEF/COMPANY_GHI/SPECIAL_DEVICE_ID_2'
-      ]
+        '/device/OEM_DEF/COMPANY_GHI/SPECIAL_DEVICE_ID_2',
+      ],
     });
 
     await serviceInstance.services.security.lookupTables.insertPath(
@@ -149,7 +149,7 @@ describe(test.testName(__filename), function() {
         actions: ['on', 'get', 'set'],
         table: 'OEM_ABC_LOOKUP',
         // maps to an array of paths, organisations is an array
-        path: '/device/{{user.custom_data.organisations}}/*/{{$1}}'
+        path: '/device/{{user.custom_data.organisations}}/*/{{$1}}',
       }
     );
 
@@ -176,7 +176,7 @@ describe(test.testName(__filename), function() {
 
   it('sets up lookup rules and tests them - smc Admin groups (3/3) permissivity', async () => {
     const testSMCAdminGroup = {
-      name: 'SMC_ADM_ABC'
+      name: 'SMC_ADM_ABC',
     };
 
     let smcAdminGroup = await serviceInstance.services.security.groups.upsertGroup(
@@ -187,8 +187,8 @@ describe(test.testName(__filename), function() {
       name: 'SMC_LOOKUP',
       paths: [
         '/device/OEM_XYZ/COMPANY_GHI/SPECIAL_DEVICE_ID_1',
-        '/device/OEM_JASDA/COMPANY_BAFTA/SPECIAL_DEVICE_ID_2'
-      ]
+        '/device/OEM_JASDA/COMPANY_BAFTA/SPECIAL_DEVICE_ID_2',
+      ],
     });
 
     // SMC admin
@@ -198,7 +198,7 @@ describe(test.testName(__filename), function() {
         regex: '^/_data/historianStore/(.*)',
         actions: ['on', 'get', 'set'],
         table: 'SMC_LOOKUP',
-        path: '/device/*/*/{{$1}}'
+        path: '/device/*/*/{{$1}}',
       }
     );
 
@@ -230,7 +230,7 @@ describe(test.testName(__filename), function() {
 
   it('sets up lookup rules and tests them -  multiple  array values', async () => {
     const testOEMAdminGroupMultiArray = {
-      name: 'SMC_MANAGER_ABC-Mulyi'
+      name: 'SMC_MANAGER_ABC-Mulyi',
     };
 
     let oemAdminMultiGroup = await serviceInstance.services.security.groups.upsertGroup(
@@ -241,8 +241,8 @@ describe(test.testName(__filename), function() {
       name: 'OEM_ABC_MULTI_LOOKUP',
       paths: [
         '/device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1',
-        '/device/OEM_DEF/COMPANY_GHI/SPECIAL_DEVICE_ID_2'
-      ]
+        '/device/OEM_DEF/COMPANY_GHI/SPECIAL_DEVICE_ID_2',
+      ],
     });
 
     await serviceInstance.services.security.lookupTables.insertPath(
@@ -258,7 +258,7 @@ describe(test.testName(__filename), function() {
         actions: ['on', 'get', 'set'],
         table: 'OEM_ABC_MULTI_LOOKUP',
         // maps to an array of paths, organisations is an array
-        path: '/device/{{user.custom_data.organisations}}/{{user.custom_data.companies}}/{{$1}}'
+        path: '/device/{{user.custom_data.organisations}}/{{user.custom_data.companies}}/{{$1}}',
       }
     );
 
@@ -292,12 +292,12 @@ describe(test.testName(__filename), function() {
     return true;
   }
 
-  before('it starts secure service', function(done) {
+  before('it starts secure service', function (done) {
     getService(
       {
-        secure: true
+        secure: true,
       },
-      function(e, service) {
+      function (e, service) {
         if (e) return done(e);
         serviceInstance = service;
         done();
@@ -313,39 +313,39 @@ describe(test.testName(__filename), function() {
         organisations: ['OEM_ABC', 'OEM_DEF'],
         oem: 'OEM_ABC',
         company: 'COMPANY_ABC',
-        companies: ['COMPANY_ABC', 'COMPANY_DEF', 'COMPANY_GHI']
+        companies: ['COMPANY_ABC', 'COMPANY_DEF', 'COMPANY_GHI'],
       },
-      permissions: {}
+      permissions: {},
     };
 
     testUser.permissions['/TEMPLATED_ALLOWED/{{user.username}}/8'] = {
-      actions: ['on', 'get']
+      actions: ['on', 'get'],
     };
 
     addedTestuser = await serviceInstance.services.security.users.upsertUser(testUser, {
-      overwrite: false
+      overwrite: false,
     });
 
     testClient = await serviceInstance.services.session.localClient({
       username: testUser.username,
-      password: 'TEST PWD'
+      password: 'TEST PWD',
     });
   });
 
   before('authenticates with the _ADMIN user, using the default password', async () => {
     adminClient = await serviceInstance.services.session.localClient({
       username: '_ADMIN',
-      password: 'happn'
+      password: 'happn',
     });
   });
 
-  after('should delete the temp data file', function(callback) {
+  after('should delete the temp data file', function (callback) {
     this.timeout(15000);
 
     if (adminClient) adminClient.disconnect({ reconnect: false });
 
-    setTimeout(function() {
-      serviceInstance.stop(function() {
+    setTimeout(function () {
+      serviceInstance.stop(function () {
         callback();
       });
     }, 3000);

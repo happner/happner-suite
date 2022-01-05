@@ -1,11 +1,9 @@
 var expect = require('expect.js');
 
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
-    it('starts up system and app-land services', function(done) {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
+    it('starts up system and app-land services', function (done) {
       var ServiceManager = require('../../../lib/services/manager');
       var serviceManager = new ServiceManager();
 
@@ -26,74 +24,74 @@ describe(
         'publisher',
         'queue',
         'layer',
-        'stats'
+        'stats',
       ];
 
       var serviceConfig = {
-        services: {}
+        services: {},
       };
 
-      systemServices.forEach(function(serviceName) {
+      systemServices.forEach(function (serviceName) {
         serviceConfig.services[serviceName] = {
           instance: {
-            initialize: function(config, cb) {
+            initialize: function (config, cb) {
               cb();
             },
-            stop: function(opts, cb) {
+            stop: function (opts, cb) {
               cb();
-            }
-          }
+            },
+          },
         };
       });
 
       serviceConfig.services.myService1 = {
         instance: {
-          initialize: function(config, cb) {
+          initialize: function (config, cb) {
             cb();
           },
-          stop: function(opts, cb) {
+          stop: function (opts, cb) {
             cb();
           },
-          test: function() {
+          test: function () {
             return 'TEST1';
-          }
-        }
+          },
+        },
       };
 
       serviceConfig.services.myService2 = {
         instance: {
-          initialize: function(config, cb) {
+          initialize: function (config, cb) {
             cb();
           },
-          stop: function(opts, cb) {
+          stop: function (opts, cb) {
             cb();
           },
-          test: function() {
+          test: function () {
             return 'TEST2';
-          }
-        }
+          },
+        },
       };
 
       var happn = {
         services: {},
 
         log: {
-          $$TRACE: function(message) {
+          $$TRACE: function (message) {
             //eslint-disable-next-line no-console
             console.log(message);
           },
-          error: function(message) {
+          error: function (message) {
             //eslint-disable-next-line no-console
             console.log(message);
           },
-          info: function(message) {
+          info: function (message) {
             //eslint-disable-next-line no-console
             console.log(message);
-          }
-        }
+          },
+        },
       };
 
-      serviceManager.initialize(serviceConfig, happn, function(e) {
+      serviceManager.initialize(serviceConfig, happn, function (e) {
         if (e) return done(e);
 
         expect(happn.services.myService1.test()).to.be('TEST1');

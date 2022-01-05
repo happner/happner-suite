@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -13,9 +11,9 @@ describe(
     var listenerclient;
     var defaultVariableDepth = 5;
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       try {
-        service.create({ secure: true }, function(e, happnInst) {
+        service.create({ secure: true }, function (e, happnInst) {
           if (e) return callback(e);
           happnInstance = happnInst;
           callback();
@@ -25,21 +23,21 @@ describe(
       }
     });
 
-    after(function(done) {
+    after(function (done) {
       this.timeout(20000);
 
       publisherclient.disconnect(
         {
-          timeout: 2000
+          timeout: 2000,
         },
-        function(e) {
+        function (e) {
           //eslint-disable-next-line no-console
           if (e) console.warn('failed disconnecting publisher client');
           listenerclient.disconnect(
             {
-              timeout: 2000
+              timeout: 2000,
             },
-            function(e) {
+            function (e) {
               //eslint-disable-next-line no-console
               if (e) console.warn('failed disconnecting listener client');
               happnInstance.stop(done);
@@ -58,28 +56,28 @@ describe(
       if (listenerclient) await listenerclient.disconnect();
       // eslint-disable-next-line require-atomic-updates
       publisherclient = await happn_client.create({
-        config: { username: '_ADMIN', password: 'happn' }
+        config: { username: '_ADMIN', password: 'happn' },
       });
       // eslint-disable-next-line require-atomic-updates
       listenerclient = await happn_client.create({
         config: {
           username: '_ADMIN',
           password: 'happn',
-          defaultVariableDepth: defaultVariableDepth
-        }
+          defaultVariableDepth: defaultVariableDepth,
+        },
       });
     });
 
-    it('does a variable depth on, ensure the client state items are correct', function(done) {
+    it('does a variable depth on, ensure the client state items are correct', function (done) {
       var variableDepthHandle;
 
       listenerclient.on(
         '/test/path/**',
         { depth: 4 },
-        function(data) {
+        function (data) {
           expect(data).to.eql({ set: 'data' });
 
-          listenerclient.off(variableDepthHandle, function(e) {
+          listenerclient.off(variableDepthHandle, function (e) {
             if (e) return done(e);
 
             expect(listenerclient.state.listenerRefs[variableDepthHandle]).to.eql(undefined);
@@ -88,7 +86,7 @@ describe(
             done();
           });
         },
-        function(e, handle) {
+        function (e, handle) {
           if (e) return done(e);
 
           expect(handle).to.be(0);
@@ -97,23 +95,23 @@ describe(
 
           variableDepthHandle = handle;
 
-          publisherclient.set('/test/path/1', { set: 'data' }, function(e) {
+          publisherclient.set('/test/path/1', { set: 'data' }, function (e) {
             if (e) return done(e);
           });
         }
       );
     });
 
-    it('does a variable depth on, ensure the client state items are correct, deeper path', function(done) {
+    it('does a variable depth on, ensure the client state items are correct, deeper path', function (done) {
       var variableDepthHandle;
 
       listenerclient.on(
         '/test/path/**',
         { depth: 4 },
-        function(data) {
+        function (data) {
           expect(data).to.eql({ set: 'data' });
 
-          listenerclient.off(variableDepthHandle, function(e) {
+          listenerclient.off(variableDepthHandle, function (e) {
             if (e) return done(e);
 
             expect(listenerclient.state.listenerRefs[variableDepthHandle]).to.eql(undefined);
@@ -122,7 +120,7 @@ describe(
             done();
           });
         },
-        function(e, handle) {
+        function (e, handle) {
           if (e) return done(e);
 
           expect(handle).to.be(0);
@@ -131,31 +129,31 @@ describe(
 
           variableDepthHandle = handle;
 
-          publisherclient.set('/test/path/1/3', { set: 'data' }, function(e) {
+          publisherclient.set('/test/path/1/3', { set: 'data' }, function (e) {
             if (e) return done(e);
           });
         }
       );
     });
 
-    it('does a couple of variable depth ons, we disconnect the client and ensure the state is cleaned up', function(done) {
+    it('does a couple of variable depth ons, we disconnect the client and ensure the state is cleaned up', function (done) {
       listenerclient.on(
         '/test/path/**',
         { depth: 4 },
-        function() {
+        function () {
           //do nothing
         },
-        function() {
+        function () {
           listenerclient.on(
             '/test/path/1/**',
             { depth: 5 },
-            function() {
+            function () {
               //do nothing
             },
-            function() {
+            function () {
               expect(Object.keys(listenerclient.state.listenerRefs).length).to.eql(2);
 
-              listenerclient.disconnect(function(e) {
+              listenerclient.disconnect(function (e) {
                 if (e) return done(e);
                 expect(Object.keys(listenerclient.state.listenerRefs).length).to.eql(0);
                 done();
@@ -166,35 +164,35 @@ describe(
       );
     });
 
-    it('does a variable depth on which eclipses another .on, do off and ensure the correct handlers are called', function(done) {
+    it('does a variable depth on which eclipses another .on, do off and ensure the correct handlers are called', function (done) {
       var results = [];
 
       listenerclient.on(
         '/test/path/**',
         { depth: 4 },
-        function(data, meta) {
+        function (data, meta) {
           results.push({ data: data, channel: meta.channel, path: meta.path });
         },
-        function(e, handle1) {
+        function (e, handle1) {
           if (e) return done(e);
           listenerclient.on(
             '/test/path/1/**',
             { depth: 4 },
-            function(data, meta) {
+            function (data, meta) {
               results.push({ data: data, channel: meta.channel, path: meta.path });
             },
-            function(e) {
+            function (e) {
               if (e) return done(e);
-              publisherclient.set('/test/path/1/1', { set: 1 }, function(e) {
+              publisherclient.set('/test/path/1/1', { set: 1 }, function (e) {
                 if (e) return done(e);
-                listenerclient.off(handle1, function(e) {
+                listenerclient.off(handle1, function (e) {
                   if (e) return done(e);
-                  publisherclient.set('/test/path/1/1', { set: 2 }, function(e) {
+                  publisherclient.set('/test/path/1/1', { set: 2 }, function (e) {
                     if (e) return done(e);
                     expect(results).to.eql([
                       { data: { set: 1 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' },
                       { data: { set: 1 }, channel: '/ALL@/test/path/**', path: '/test/path/1/1' },
-                      { data: { set: 2 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' }
+                      { data: { set: 2 }, channel: '/ALL@/test/path/1/**', path: '/test/path/1/1' },
                     ]);
                     done();
                   });
@@ -206,10 +204,10 @@ describe(
       );
     });
 
-    it('does a normal subscription, initialEmit and initialCallback - checks the listener state, then unsubscribes and checks the listener state', function(done) {
+    it('does a normal subscription, initialEmit and initialCallback - checks the listener state, then unsubscribes and checks the listener state', function (done) {
       var eventData = [];
 
-      var handleEvent = function(data) {
+      var handleEvent = function (data) {
         eventData.push(data);
       };
 
@@ -219,10 +217,10 @@ describe(
 
       listenerclient
         .set('/initialEmitTest/path', { test: 1 })
-        .then(function() {
+        .then(function () {
           return listenerclient.on('/initialEmitTest/path', {}, handleEvent);
         })
-        .then(function(reference) {
+        .then(function (reference) {
           reference1 = reference;
           expect(Object.keys(listenerclient.state.events).length).to.be(1);
           expect(
@@ -233,7 +231,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(1);
           return listenerclient.on('/initialEmitTest/**', { initialEmit: true }, handleEvent);
         })
-        .then(function(reference) {
+        .then(function (reference) {
           reference2 = reference;
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(2);
@@ -251,7 +249,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(2);
           return listenerclient.on('/initialEmitTest/**', { initialCallback: true }, handleEvent);
         })
-        .then(function(reference) {
+        .then(function (reference) {
           reference3 = reference;
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(2);
@@ -278,7 +276,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(3);
           return listenerclient.off(reference1);
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(1);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**'].length).to.be(2);
@@ -303,7 +301,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(2);
           return listenerclient.off(reference2);
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(1);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**'].length).to.be(1);
@@ -328,7 +326,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(1);
           return listenerclient.off(reference3);
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(0);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**']).to.be(undefined);
@@ -355,34 +353,34 @@ describe(
         });
     });
 
-    it('should subscribe and get initial values on the callback', function(callback) {
+    it('should subscribe and get initial values on the callback', function (callback) {
       listenerclient.set(
         '/initialCallback/testsubscribe/data/values_on_callback_test/1',
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
 
           listenerclient.set(
             '/initialCallback/testsubscribe/data/values_on_callback_test/2',
             {
-              test: 'data1'
+              test: 'data1',
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
 
               listenerclient.on(
                 '/initialCallback/**',
                 {
                   event_type: 'set',
-                  initialCallback: true
+                  initialCallback: true,
                 },
-                function(message) {
+                function (message) {
                   expect(message.updated).to.be(true);
                   callback();
                 },
-                function(e, reference, response) {
+                function (e, reference, response) {
                   if (e) return callback(e);
                   try {
                     expect(response.length).to.be(2);
@@ -393,9 +391,9 @@ describe(
                       '/initialCallback/testsubscribe/data/values_on_callback_test/1',
                       {
                         test: 'data',
-                        updated: true
+                        updated: true,
                       },
-                      function(e) {
+                      function (e) {
                         if (e) return callback(e);
                       }
                     );
@@ -410,32 +408,32 @@ describe(
       );
     });
 
-    it('should subscribe and get initial values emitted immediately', function(callback) {
+    it('should subscribe and get initial values emitted immediately', function (callback) {
       var caughtEmitted = 0;
 
       listenerclient.set(
         '/initialEmitSpecific/testsubscribe/data/values_emitted_test/1',
         {
-          test: 'data'
+          test: 'data',
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
 
           listenerclient.set(
             '/initialEmitSpecific/testsubscribe/data/values_emitted_test/2',
             {
-              test: 'data1'
+              test: 'data1',
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
 
               listenerclient.on(
                 '/initialEmitSpecific/**',
                 {
                   event_type: 'set',
-                  initialEmit: true
+                  initialEmit: true,
                 },
-                function(message) {
+                function (message) {
                   caughtEmitted++;
 
                   if (caughtEmitted === 2) {
@@ -443,7 +441,7 @@ describe(
                     callback();
                   }
                 },
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
                 }
               );
@@ -459,27 +457,27 @@ describe(
       var caughtEmitted = [];
 
       await listenerclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/1', {
-        test: 'data1'
+        test: 'data1',
       });
 
       await publisherclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/2', {
-        test: 'data2'
+        test: 'data2',
       });
 
       await publisherclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/3', {
-        test: 'data3'
+        test: 'data3',
       });
 
       await publisherclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/3/4', {
-        test: 'data4'
+        test: 'data4',
       });
 
       await publisherclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/3/4/5', {
-        test: 'data5'
+        test: 'data5',
       });
 
       await publisherclient.set('/initialEmitSpecificCorrectDepth/testsubscribe/3/4/5/6', {
-        test: 'data6'
+        test: 'data6',
       });
 
       await listenerclient.on(
@@ -487,9 +485,9 @@ describe(
         {
           event_type: 'set',
           initialEmit: true,
-          depth: 2
+          depth: 2,
         },
-        function(data) {
+        function (data) {
           caughtEmitted.push(data._meta.path);
         }
       );
@@ -498,7 +496,7 @@ describe(
         '/initialEmitSpecificCorrectDepth/testsubscribe/1',
         '/initialEmitSpecificCorrectDepth/testsubscribe/2',
         '/initialEmitSpecificCorrectDepth/testsubscribe/3',
-        '/initialEmitSpecificCorrectDepth/testsubscribe/3/4'
+        '/initialEmitSpecificCorrectDepth/testsubscribe/3/4',
       ]);
     });
 
@@ -506,45 +504,45 @@ describe(
       this.timeout(10000);
 
       await listenerclient.set('/initialCallbackCorrectDepth/testsubscribe/1', {
-        test: 'data1'
+        test: 'data1',
       });
 
       await publisherclient.set('/initialCallbackCorrectDepth/testsubscribe/2', {
-        test: 'data2'
+        test: 'data2',
       });
 
       await publisherclient.set('/initialCallbackCorrectDepth/testsubscribe/3', {
-        test: 'data3'
+        test: 'data3',
       });
 
       await publisherclient.set('/initialCallbackCorrectDepth/testsubscribe/3/4', {
-        test: 'data4'
+        test: 'data4',
       });
 
       await publisherclient.set('/initialCallbackCorrectDepth/testsubscribe/3/4/5', {
-        test: 'data5'
+        test: 'data5',
       });
 
       await publisherclient.set('/initialCallbackCorrectDepth/testsubscribe/3/4/5/6', {
-        test: 'data6'
+        test: 'data6',
       });
 
-      var results = await new Promise(function(resolve, reject) {
+      var results = await new Promise(function (resolve, reject) {
         listenerclient.on(
           '/initialCallbackCorrectDepth/testsubscribe/**',
           {
             event_type: 'set',
             initialCallback: true,
-            depth: 2
+            depth: 2,
           },
-          function() {
+          function () {
             //do nothing
           },
-          function(e, reference, response) {
+          function (e, reference, response) {
             if (e) return reject(e);
             resolve(
               response
-                .map(function(item) {
+                .map(function (item) {
                   return item._meta.path;
                 })
                 .sort()
@@ -557,23 +555,23 @@ describe(
         '/initialCallbackCorrectDepth/testsubscribe/1',
         '/initialCallbackCorrectDepth/testsubscribe/2',
         '/initialCallbackCorrectDepth/testsubscribe/3',
-        '/initialCallbackCorrectDepth/testsubscribe/3/4'
+        '/initialCallbackCorrectDepth/testsubscribe/3/4',
       ]);
     });
 
-    it('does a normal subscription, initialEmit and initialCallback - checks the listener state, then unsubscribes by path and checks the listener state', function(done) {
+    it('does a normal subscription, initialEmit and initialCallback - checks the listener state, then unsubscribes by path and checks the listener state', function (done) {
       var eventData = [];
 
-      var handleEvent = function(data) {
+      var handleEvent = function (data) {
         eventData.push(data);
       };
 
       listenerclient
         .set('/initialEmitTest/path', { test: 1 })
-        .then(function() {
+        .then(function () {
           return listenerclient.on('/initialEmitTest/path', {}, handleEvent);
         })
-        .then(function() {
+        .then(function () {
           expect(Object.keys(listenerclient.state.events).length).to.be(1);
           expect(
             listenerclient.state.refCount[
@@ -583,7 +581,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(1);
           return listenerclient.on('/initialEmitTest/**', { initialEmit: true }, handleEvent);
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(2);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**'].length).to.be(1);
@@ -600,7 +598,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(2);
           return listenerclient.on('/initialEmitTest/**', { initialCallback: true }, handleEvent);
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(2);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**'].length).to.be(2);
@@ -626,7 +624,7 @@ describe(
           expect(Object.keys(listenerclient.state.listenerRefs).length).to.be(3);
           return listenerclient.offPath('/initialEmitTest/**');
         })
-        .then(function() {
+        .then(function () {
           expect(eventData.length).to.be(1);
           expect(Object.keys(listenerclient.state.events).length).to.be(0);
           expect(listenerclient.state.events['/ALL@/initialEmitTest/**']).to.be(undefined);
@@ -656,7 +654,7 @@ describe(
     it('should correctly listen on overlapping variable depth subscriptions', async () => {
       var eventData = [];
 
-      var handleEvent = function(data) {
+      var handleEvent = function (data) {
         eventData.push(data);
       };
 
@@ -664,37 +662,37 @@ describe(
       await listenerclient.on('/overlap/**', { depth: 5 }, handleEvent);
 
       await publisherclient.set('/overlap/1/2/3', {
-        test: 'data1'
+        test: 'data1',
       });
 
       await publisherclient.set('/overlap/1/2/3/4', {
-        test: 'data2'
+        test: 'data2',
       });
 
       await publisherclient.set('/overlap/1/2/3/4/5', {
-        test: 'data3'
+        test: 'data3',
       });
 
       expect(eventData).to.eql([
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data2'
+          test: 'data2',
         },
         {
-          test: 'data3'
-        }
+          test: 'data3',
+        },
       ]);
     });
 
     it('should correctly listen on overlapping variable depth subscriptions - default depth', async () => {
       var eventData = [];
 
-      var handleEvent = function(data) {
+      var handleEvent = function (data) {
         eventData.push(data);
       };
 
@@ -702,34 +700,34 @@ describe(
       await listenerclient.on('/overlap-default/**', handleEvent);
 
       await publisherclient.set('/overlap-default/1/2/3', {
-        test: 'data1'
+        test: 'data1',
       });
 
       await publisherclient.set('/overlap-default/1/2/3/4', {
-        test: 'data2'
+        test: 'data2',
       });
 
       await publisherclient.set('/overlap-default/1/2/3/4/5', {
-        test: 'data3'
+        test: 'data3',
       });
 
       await publisherclient.set('/overlap-default/1/2/3/4/5/6', {
-        test: 'data3'
+        test: 'data3',
       });
 
       expect(eventData).to.eql([
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data2'
+          test: 'data2',
         },
         {
-          test: 'data3'
-        }
+          test: 'data3',
+        },
       ]);
 
       defaultVariableDepth = 6;
@@ -738,7 +736,7 @@ describe(
     it('should correctly listen on overlapping variable depth subscriptions - default depth, NB: relies on previous', async () => {
       var eventData = [];
 
-      var handleEvent = function(data) {
+      var handleEvent = function (data) {
         eventData.push(data);
       };
 
@@ -746,37 +744,37 @@ describe(
       await listenerclient.on('/overlap-default-specified/**', handleEvent);
 
       await publisherclient.set('/overlap-default-specified/1/2/3', {
-        test: 'data1'
+        test: 'data1',
       });
 
       await publisherclient.set('/overlap-default-specified/1/2/3/4', {
-        test: 'data2'
+        test: 'data2',
       });
 
       await publisherclient.set('/overlap-default-specified/1/2/3/4/5', {
-        test: 'data3'
+        test: 'data3',
       });
 
       await publisherclient.set('/overlap-default-specified/1/2/3/4/5/6', {
-        test: 'data4'
+        test: 'data4',
       });
 
       expect(eventData).to.eql([
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data1'
+          test: 'data1',
         },
         {
-          test: 'data2'
+          test: 'data2',
         },
         {
-          test: 'data3'
+          test: 'data3',
         },
         {
-          test: 'data4'
-        }
+          test: 'data4',
+        },
       ]);
     });
   }

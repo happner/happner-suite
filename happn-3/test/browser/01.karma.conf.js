@@ -2,7 +2,7 @@
 // Generated on Tue Dec 01 2015 11:18:30 GMT+0200 (SAST)
 const commons = require('happn-commons');
 const fs = commons.fs;
-module.exports = function(config) {
+module.exports = function (config) {
   const browserDirPath = commons.path.resolve(__dirname, './tmp');
   commons.rimraf.sync(browserDirPath);
   fs.ensureDirSync(commons.path.resolve(__dirname, 'tmp'));
@@ -21,7 +21,7 @@ module.exports = function(config) {
       'test/browser/03_heartbeats.js',
       'test/browser/04_https_cookie.js',
       'test/browser/05_https_cookieLogin.js',
-      'test/browser/06_login_promise.js'
+      'test/browser/06_login_promise.js',
     ],
 
     // list of files / patterns to load in the browser
@@ -39,7 +39,7 @@ module.exports = function(config) {
     reporters: ['mocha', 'coverage'],
 
     preprocessors: {
-      'test/browser/browser-client-02.js': ['coverage']
+      'test/browser/browser-client-02.js': ['coverage'],
     },
 
     // web server port
@@ -65,9 +65,9 @@ module.exports = function(config) {
         flags: [
           '--disable-web-security',
           '--ignore-certificate-errors',
-          `--user-data-dir=${browserDirPath}`
-        ]
-      }
+          `--user-data-dir=${browserDirPath}`,
+        ],
+      },
     },
 
     // Continuous Integration mode
@@ -81,11 +81,11 @@ module.exports = function(config) {
     protocol: 'https',
     httpsServerOptions: {
       key: fs.readFileSync(`${__dirname}/__fixtures/key.rsa`, 'utf8'),
-      cert: fs.readFileSync(`${__dirname}/__fixtures/cert.pem`, 'utf8')
+      cert: fs.readFileSync(`${__dirname}/__fixtures/cert.pem`, 'utf8'),
     },
     coverageReporter: {
       dir: './',
-      reporters: [{ type: 'lcov', subdir: 'coverage-web' }, { type: 'text-summary' }]
-    }
+      reporters: [{ type: 'lcov', subdir: 'coverage-web' }, { type: 'text-summary' }],
+    },
   });
 };

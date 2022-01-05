@@ -4,7 +4,7 @@ const testHelper = require('../../__fixtures/utils/test_helper').create();
 const expect = require('expect.js');
 var openSockets;
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   var remote;
   var webSocketsClient;
   var path = require('path');
@@ -28,23 +28,23 @@ describe(testHelper.testName(__filename, 3), function() {
   before('start server and connect client', buildUp);
   after('disconnect client and stop server', tearDown);
 
-  it('kills the server, then restarts it, then tests the subscriptions still exist and work', function(done) {
-    webSocketsClient.onEvent('reconnect-successful', function() {
+  it('kills the server, then restarts it, then tests the subscriptions still exist and work', function (done) {
+    webSocketsClient.onEvent('reconnect-successful', function () {
       testEvent(done);
     });
 
     killServer();
 
-    startServer(function(e) {
+    startServer(function (e) {
       if (e) return done(e);
     });
   });
 
-  it('connects but fails to authenticate, we ensure that the client socket is cleaned up and no successive attempts are made', function(done) {
+  it('connects but fails to authenticate, we ensure that the client socket is cleaned up and no successive attempts are made', function (done) {
     this.timeout(120000);
     connectClient('blah', () => {
       //do nothing
-    }).catch(e => {
+    }).catch((e) => {
       expect(e.message).to.be('Invalid credentials');
       setTimeout(() => {
         expect(openSockets).to.be(0);
@@ -53,7 +53,7 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('disconnects and we ensure that the client socket is cleaned up and no successive attempts are made', function(done) {
+  it('disconnects and we ensure that the client socket is cleaned up and no successive attempts are made', function (done) {
     this.timeout(120000);
     const reconnectEvents = [];
     function pushEventData(evt, data) {
@@ -61,16 +61,16 @@ describe(testHelper.testName(__filename, 3), function() {
       console.log('reconnect event:::', evt, data);
       reconnectEvents.push({ evt, data });
     }
-    webSocketsClient.onEvent('reconnect-error', function(data) {
+    webSocketsClient.onEvent('reconnect-error', function (data) {
       pushEventData('reconnect-error', data);
     });
-    webSocketsClient.onEvent('reconnect-timeout', function(data) {
+    webSocketsClient.onEvent('reconnect-timeout', function (data) {
       pushEventData('reconnect-timeout', data);
     });
-    webSocketsClient.onEvent('reconnect-successful', function(data) {
+    webSocketsClient.onEvent('reconnect-successful', function (data) {
       pushEventData('reconnect-successful', data);
     });
-    connectClient('happn', async e => {
+    connectClient('happn', async (e) => {
       if (e) return done(e);
       await webSocketsClient.disconnect();
       setTimeout(() => {
@@ -81,25 +81,25 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  var clientEventHandler = function(data, meta) {
+  var clientEventHandler = function (data, meta) {
     events.push({
       data: data,
-      meta: meta
+      meta: meta,
     });
   };
 
-  var testEvent = function(callback) {
+  var testEvent = function (callback) {
     var eventId = shortid.generate();
 
     webSocketsClient.set(
       'test/event/' + eventId,
       {
-        id: eventId
+        id: eventId,
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
-        setTimeout(function() {
+        setTimeout(function () {
           var eventData = events[events.length - 1];
 
           if (eventData.data.id !== eventId)
@@ -114,7 +114,7 @@ describe(testHelper.testName(__filename, 3), function() {
   function startServer(callback) {
     remote = spawn('node', [path.join(libFolder, 'service.js')]);
 
-    remote.stdout.on('data', function(data) {
+    remote.stdout.on('data', function (data) {
       if (data.toString().match(/READY/)) {
         callback();
       }
@@ -126,7 +126,7 @@ describe(testHelper.testName(__filename, 3), function() {
   }
 
   function buildUp(callback) {
-    startServer(function(e) {
+    startServer(function (e) {
       if (e) return callback(e);
       connectClient('happn', callback);
     });
@@ -138,12 +138,12 @@ describe(testHelper.testName(__filename, 3), function() {
       config: {
         username: '_ADMIN',
         password,
-        port: 55005
-      }
+        port: 55005,
+      },
     });
-    webSocketsClient.on('test/event/*', clientEventHandler, function(e) {
+    webSocketsClient.on('test/event/*', clientEventHandler, function (e) {
       if (e) return callback(e);
-      testEvent(function(e) {
+      testEvent(function (e) {
         if (e) return callback(e);
         callback();
       });
@@ -157,7 +157,7 @@ describe(testHelper.testName(__filename, 3), function() {
   function tearDown(callback) {
     try {
       if (webSocketsClient)
-        webSocketsClient.disconnect(function() {
+        webSocketsClient.disconnect(function () {
           killServer();
           callback();
         });

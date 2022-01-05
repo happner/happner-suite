@@ -10,7 +10,7 @@ function StatsService() {
 util.inherits(StatsService, EventEmitter);
 
 //how we collect stats from the various services and return them as a json object
-StatsService.prototype.fetch = function(opts) {
+StatsService.prototype.fetch = function (opts) {
   var stats = {};
 
   if (!opts) opts = {};
@@ -24,7 +24,7 @@ StatsService.prototype.fetch = function(opts) {
   return stats;
 };
 
-StatsService.prototype.initialize = function(config, callback) {
+StatsService.prototype.initialize = function (config, callback) {
   if (!config || !config.emit) return callback();
 
   if (config.debug) this.DEBUG = true;
@@ -33,14 +33,14 @@ StatsService.prototype.initialize = function(config, callback) {
     this.__statsClient = new (require('happn-stats').StatsClient)({
       host: config.statsServer,
       port: config.statsPort,
-      name: this.happn.services.system.config.name
+      name: this.happn.services.system.config.name,
     });
   }
 
   if (typeof config.interval !== 'number') config.interval = 10 * 1000; // every 10 seconds
 
   this.__interval = setInterval(
-    function() {
+    function () {
       var stats = this.service.fetch(this.config.opts);
 
       this.service.__sendStats(stats);
@@ -56,24 +56,24 @@ StatsService.prototype.initialize = function(config, callback) {
   callback();
 };
 
-StatsService.prototype.stop = function(options, callback) {
+StatsService.prototype.stop = function (options, callback) {
   clearInterval(this.__statsInterval); // doesn't mattter if no interval there
   clearInterval(this.__interval);
   if (this.__statsClient) this.__statsClient.stop();
   callback();
 };
 
-StatsService.prototype.increment = function(counterName, value) {
+StatsService.prototype.increment = function (counterName, value) {
   if (!this.__statsClient) return;
   this.__statsClient.increment(counterName, value);
 };
 
-StatsService.prototype.gauge = function(gaugeName, value) {
+StatsService.prototype.gauge = function (gaugeName, value) {
   if (!this.__statsClient) return;
   this.__statsClient.gauge(gaugeName, value);
 };
 
-StatsService.prototype.__sendStats = function(stats) {
+StatsService.prototype.__sendStats = function (stats) {
   var statsClient = this.__statsClient;
 
   if (!statsClient) return;

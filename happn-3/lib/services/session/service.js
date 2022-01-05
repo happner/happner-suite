@@ -79,9 +79,9 @@ function __unconfiguredSessionCleanup(config) {
     const sessionKeys = Object.keys(this.__sessions);
     this.__configuredSessionLog(`current live sessions count ${sessionKeys.length}`, config);
     var cleanedUp = 0;
-    sessionKeys.forEach(sessionId => {
+    sessionKeys.forEach((sessionId) => {
       if (this.__sessionIsUnconfigured(sessionId, config)) {
-        this.disconnectClient(this.__sessions[sessionId].client, e => {
+        this.disconnectClient(this.__sessions[sessionId].client, (e) => {
           if (e) return this.log.error(`unable to remove unconfigured session: ${sessionId}`);
           this.__configuredSessionLog(`session ${sessionId} not configured, removed`, config);
         });
@@ -112,7 +112,7 @@ function __stopUnconfiguredSessionCleanup() {
 
 function stats() {
   return {
-    sessions: Object.keys(this.__sessions).length
+    sessions: Object.keys(this.__sessions).length,
   };
 }
 
@@ -134,13 +134,13 @@ function __safeSessionData(sessionData) {
     sourcePort: sessionData.address ? sessionData.address.port : null,
     upgradeUrl: sessionData.url,
     happnVersion: sessionData.version,
-    happn: sessionData.happn
+    happn: sessionData.happn,
   };
 
   if (sessionData.user)
     safeSessionData.user = {
       username: sessionData.user.username,
-      publicKey: sessionData.user.publicKey
+      publicKey: sessionData.user.publicKey,
     };
 
   return safeSessionData;
@@ -149,7 +149,7 @@ function __safeSessionData(sessionData) {
 function initializeCaches(callback) {
   if (!this.config.activeSessionsCache)
     this.config.activeSessionsCache = {
-      type: 'static'
+      type: 'static',
     };
 
   this.__activeSessions = this.happn.services.cache.new(
@@ -184,11 +184,11 @@ function __detachSessionExpired(sessionId) {
 function endSession(sessionId, reason) {
   this.disconnectSession(
     sessionId,
-    e => {
+    (e) => {
       if (e) return this.log.error(`failed to end session ${sessionId}: ${e.message}`);
     },
     {
-      reason
+      reason,
     }
   );
 }
@@ -226,12 +226,12 @@ function getSessionEventJSON(event, safeSessionData) {
     sourcePort: safeSessionData.sourcePort,
     upgradeUrl: safeSessionData.upgradeUrl,
     happnVersion: safeSessionData.happnVersion,
-    happnProtocolVersion: safeSessionData.protocol
+    happnProtocolVersion: safeSessionData.protocol,
   });
 }
 
 function processRevokeSessionToken(message, reason, callback) {
-  this.happn.services.security.revokeToken(message.session.token, reason, function(e) {
+  this.happn.services.security.revokeToken(message.session.token, reason, function (e) {
     callback(e, message);
   });
 }
@@ -260,7 +260,7 @@ function disconnectSessions(parentSessionId, message, callback, includeParent = 
       if (session.data.parentId !== parentSessionId) return sessionCb();
       this.disconnectSession(sessionId, sessionCb, message);
     },
-    e => {
+    (e) => {
       return callback(e);
     }
   );
@@ -275,11 +275,11 @@ function disconnectSession(sessionId, callback, message) {
   this.__detachSessionExpired(sessionId);
   this.disconnectClient(session.client, callback, {
     _meta: {
-      type: 'system'
+      type: 'system',
     },
     data: message,
     eventKey: 'server-side-disconnect',
-    __outbound: true
+    __outbound: true,
   });
 }
 
@@ -309,9 +309,9 @@ function destroyPrimus(options, callback) {
       // // have primus close the http server and clean up
       close: true,
       // have primus inform clients to attempt reconnect
-      reconnect: typeof options.reconnect === 'boolean' ? options.reconnect : true
+      reconnect: typeof options.reconnect === 'boolean' ? options.reconnect : true,
     },
-    e => {
+    (e) => {
       //we ensure that primus didn't time out earlier
       if (!this.__shutdownTimeout) {
         clearTimeout(shutdownTimeout);
@@ -335,7 +335,7 @@ function stop(options, callback) {
 
   if (options.reconnect === false)
     // this must happen rarely or in test cases
-    return this.disconnectAllClients(e => {
+    return this.disconnectAllClients((e) => {
       if (e) this.log.error('failed disconnecting clients gracefully', e);
       this.destroyPrimus(options, callback);
     });
@@ -346,7 +346,7 @@ function stop(options, callback) {
 function disconnectAllClients(callback) {
   this.each((sessionData, sessionDataCallback) => {
     this.disconnectSession(sessionData.id, sessionDataCallback, {
-      reason: 'reconnect-false'
+      reason: 'reconnect-false',
     });
   }, callback);
 }
@@ -390,7 +390,7 @@ function initialize(config, callback) {
     this.primus.on('disconnection', this.onDisconnect.bind(this));
 
     //remove the __outbound tag
-    this.primus.transform('outgoing', function(packet, next) {
+    this.primus.transform('outgoing', function (packet, next) {
       if (packet.data) delete packet.data.__outbound;
       next();
     });
@@ -424,9 +424,9 @@ function localClient(config, callback) {
     {
       config: config,
       plugin: LocalPlugin,
-      context: this.happn
+      context: this.happn,
     },
-    function(e, instance) {
+    function (e, instance) {
       if (e) return callback(e);
       callback(null, instance);
     }
@@ -441,12 +441,12 @@ function localAdminClient(callback) {
     {
       config: {
         username: '_ADMIN',
-        password: 'LOCAL'
+        password: 'LOCAL',
       }, //the AdminPlugin is directly connected to the security service, this password is just a place holder to get around client validation
       plugin: AdminPlugin,
-      context: this.happn
+      context: this.happn,
     },
-    function(e, instance) {
+    function (e, instance) {
       if (e) return callback(e);
       callback(null, instance);
     }
@@ -466,7 +466,7 @@ function __configureSession(message, client) {
     protocol: message.data.protocol,
     cookieName: message.data.browser
       ? this.happn.services.security.getCookieName(session.client.headers, session.data, {})
-      : undefined
+      : undefined,
   };
 
   const updatedSession = this.__updateSession(client.sessionId, configuration);
@@ -499,7 +499,7 @@ function handleMessage(message, client) {
     {
       raw: message,
       session: this.__sessions[client.sessionId].data,
-      id: this.__currentMessageId
+      id: this.__currentMessageId,
     },
     (e, processed) => {
       if (e)
@@ -534,7 +534,7 @@ function finalizeDisconnect(client, callback) {
 }
 
 function disconnectClient(client, callback, message) {
-  if (!callback) callback = function() {};
+  if (!callback) callback = function () {};
   if (!this.__sessions[client.sessionId]) return callback();
   if (client.__readyState === 2) return this.finalizeDisconnect(client, callback);
   client.once('end', () => {
@@ -576,20 +576,20 @@ function onConnect(client) {
     headers: this.getClientUpgradeHeaders(client.headers),
     encrypted: client.request && client.request.connection.encrypted ? true : false,
     address: client.address || 'intra-proc',
-    url: client.request && client.request.url
+    url: client.request && client.request.url,
   };
   this.__sessions[client.sessionId] = {
     client: client,
-    data: sessionData
+    data: sessionData,
   };
-  client.on('error', err => {
+  client.on('error', (err) => {
     if (this.socketErrorWarning(err)) this.log.warn(`socket warning: ${err.message}`);
     else this.log.error('socket error', err);
     const errorObject = this.__safeSessionData(sessionData);
     this.log.json.warn(errorObject, 'client-socket-error');
     this.emit('client-socket-error', errorObject);
   });
-  client.on('data', message => {
+  client.on('data', (message) => {
     setImmediate(() => {
       this.handleMessage(message, client);
     });
@@ -598,7 +598,7 @@ function onConnect(client) {
 }
 
 function onDisconnect(client) {
-  this.finalizeDisconnect(client, e => {
+  this.finalizeDisconnect(client, (e) => {
     if (e) this.log.error('client disconnect error, for session id: ' + client.sessionId, e);
   });
 }
@@ -624,8 +624,8 @@ function securityDirectoryChanged(whatHappnd, changedData, effectedSessions) {
               eventKey: 'security-data-changed',
               data: {
                 whatHappnd: whatHappnd,
-                changedData: changedData
-              }
+                changedData: changedData,
+              },
             },
             sessionCB
           );
@@ -633,7 +633,7 @@ function securityDirectoryChanged(whatHappnd, changedData, effectedSessions) {
           sessionCB(e);
         }
       },
-      function(e) {
+      function (e) {
         if (e) return reject(e);
         resolve(effectedSessions);
       }

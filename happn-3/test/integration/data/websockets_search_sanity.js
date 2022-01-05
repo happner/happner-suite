@@ -1,14 +1,14 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test) => {
   var happn = require('../../../lib/index');
   var serviceInstance;
   var searchClient;
 
-  var getService = function(config, callback) {
+  var getService = function (config, callback) {
     happn.service.create(config, callback);
   };
 
-  before('it starts completely defaulted service', function(done) {
-    getService({}, function(e, service) {
+  before('it starts completely defaulted service', function (done) {
+    getService({}, function (e, service) {
       if (e) return done(e);
 
       serviceInstance = service;
@@ -16,56 +16,56 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     });
   });
 
-  after('should delete the temp data file', function(callback) {
+  after('should delete the temp data file', function (callback) {
     if (searchClient)
       searchClient.disconnect({
-        reconnect: false
+        reconnect: false,
       });
 
     serviceInstance.stop(callback);
   });
 
-  before('authenticates with the _ADMIN user, using the default password', function(done) {
+  before('authenticates with the _ADMIN user, using the default password', function (done) {
     happn.client
       .create()
 
-      .then(function(clientInstance) {
+      .then(function (clientInstance) {
         searchClient = clientInstance;
         done();
       })
 
-      .catch(function(e) {
+      .catch(function (e) {
         done(e);
       });
   });
 
-  it('can get using criteria', function(done) {
+  it('can get using criteria', function (done) {
     searchClient.set(
       'movie/war',
       {
         name: 'crimson tide',
-        genre: 'war'
+        genre: 'war',
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           sort: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
-          name: 'crimson tide'
+          name: 'crimson tide',
         };
 
         searchClient.get(
           'movie/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
 
             test.expect(result.length).to.be(1);
@@ -76,33 +76,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get using criteria, limit to fields', function(done) {
+  it('can get using criteria, limit to fields', function (done) {
     searchClient.set(
       'movie/war/ww2',
       {
         name: 'crimson tide',
-        genre: 'ww2'
+        genre: 'ww2',
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
-          genre: 'ww2'
+          genre: 'ww2',
         };
 
         searchClient.get(
           'movie/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
 
             test.expect(result[0].genre).to.be(undefined);
@@ -116,35 +116,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get using criteria, $regex with params in array', function(done) {
+  it('can get using criteria, $regex with params in array', function (done) {
     searchClient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: ['.*loadtest.*', 'i']
-          }
+            $regex: ['.*loadtest.*', 'i'],
+          },
         };
 
         searchClient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             test.expect(result[0].anotherProp).to.be(undefined);
             test.expect(result[0].name).to.be('Loadtest_123');
@@ -156,35 +156,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get using criteria, $regex as string', function(done) {
+  it('can get using criteria, $regex as string', function (done) {
     searchClient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: '.*Loadtest.*'
-          }
+            $regex: '.*Loadtest.*',
+          },
         };
 
         searchClient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             test.expect(result[0].anotherProp).to.be(undefined);
             test.expect(result[0].name).to.be('Loadtest_123');
@@ -196,35 +196,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get using criteria, bad $regex as boolean', function(done) {
+  it('can get using criteria, bad $regex as boolean', function (done) {
     searchClient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: false
-          }
+            $regex: false,
+          },
         };
 
         searchClient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e) {
+          function (e) {
             test
               .expect(e.toString())
               .to.be('SystemError: $regex parameter value must be an Array or a string');
@@ -235,33 +235,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get the latest record, without _meta', function(done) {
+  it('can get the latest record, without _meta', function (done) {
     var indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
     test.async.eachSeries(
       indexes,
-      function(index, eachCallback) {
+      function (index, eachCallback) {
         searchClient.set(
           'movie/family/' + index,
           {
             name: 'the black stallion',
-            genre: 'family'
+            genre: 'family',
           },
           eachCallback
         );
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           sort: {
-            '_meta.created': -1
+            '_meta.created': -1,
           },
-          limit: 1
+          limit: 1,
         };
 
         var criteria = {
-          genre: 'family'
+          genre: 'family',
         };
 
         var latestResult;
@@ -270,9 +270,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           'movie/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
 
             test.expect(result.length).to.be(1);
@@ -282,7 +282,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
             test.expect(latestResult._meta.created).to.not.be(null);
             test.expect(latestResult._meta.created).to.not.be(undefined);
 
-            searchClient.get('movie/family/*', function(e, result) {
+            searchClient.get('movie/family/*', function (e, result) {
               if (e) return done(e);
 
               for (var resultItemIndex in result) {
@@ -307,33 +307,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
     );
   });
 
-  it('can get the latest record', function(done) {
+  it('can get the latest record', function (done) {
     var indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
     test.async.eachSeries(
       indexes,
-      function(index, eachCallback) {
+      function (index, eachCallback) {
         searchClient.set(
           'movie/family/' + index,
           {
             name: 'the black stallion',
-            genre: 'family'
+            genre: 'family',
           },
           eachCallback
         );
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         var options = {
           sort: {
-            '_meta.created': -1
+            '_meta.created': -1,
           },
-          limit: 1
+          limit: 1,
         };
 
         var criteria = {
-          genre: 'family'
+          genre: 'family',
         };
 
         var latestResult;
@@ -342,9 +342,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
           'movie/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
 
             test.expect(result.length).to.be(1);
@@ -354,7 +354,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
             test.expect(latestResult._meta.created).to.not.be(null);
             test.expect(latestResult._meta.created).to.not.be(undefined);
 
-            searchClient.get('movie/family/*', function(e, result) {
+            searchClient.get('movie/family/*', function (e, result) {
               if (e) return done(e);
 
               for (var resultItemIndex in result) {
@@ -392,24 +392,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       await searchClient.set('series/horror/' + index, {
         name: 'nightmare on elm street',
         genre: 'horror',
-        episode: index
+        episode: index,
       });
       await searchClient.set('series/fantasy/' + index, {
         name: 'game of thrones',
         genre: 'fantasy',
-        episode: index
+        episode: index,
       });
     }
 
     var options = {
       sort: {
-        '_meta.created': -1
+        '_meta.created': -1,
       },
-      limit: pageSize
+      limit: pageSize,
     };
 
     var criteria = {
-      genre: 'horror'
+      genre: 'horror',
     };
 
     var foundPages = [];
@@ -418,7 +418,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       options.skip = foundPages.length;
       let results = await searchClient.get('series/*', {
         criteria: criteria,
-        options: options
+        options: options,
       });
       foundPages = foundPages.concat(results);
     }
@@ -427,9 +427,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, test 
       criteria: criteria,
       options: {
         sort: {
-          '_meta.created': -1
-        }
-      }
+          '_meta.created': -1,
+        },
+      },
     });
 
     test.expect(allResults.length).to.eql(foundPages.length);

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function(test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function (test) {
   var Logger = require('happn-logger');
   const util = require('util');
   var Services = {};
@@ -16,7 +16,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
   Services.ErrorService = require('../../../lib/services/error/service');
   Services.LogService = require('../../../lib/services/log/service');
 
-  var mockService = util.promisify(function(happn, serviceName, config, callback) {
+  var mockService = util.promisify(function (happn, serviceName, config, callback) {
     if (typeof config === 'function') {
       callback = config;
       if (config !== false) config = {};
@@ -26,7 +26,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       var serviceClass = Services[serviceName + 'Service'];
 
       var serviceInstance = new serviceClass({
-        logger: Logger
+        logger: Logger,
       });
 
       serviceInstance.happn = happn;
@@ -36,7 +36,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
       if (typeof serviceInstance.initialize !== 'function' || config === false) return callback();
 
-      serviceInstance.initialize(config, function() {
+      serviceInstance.initialize(config, function () {
         //console.log(`service ${serviceName} initialized...`);
         callback();
       });
@@ -45,10 +45,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     }
   });
 
-  var mockServices = function(callback) {
+  var mockServices = function (callback) {
     var happn = {
       services: {},
-      config: {}
+      config: {},
     };
 
     mockService(happn, 'Crypto')
@@ -63,8 +63,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .then(mockService(happn, 'System'))
       .then(mockService(happn, 'Security'))
       .then(mockService(happn, 'Subscription'))
-      .then(function() {
-        happn.services.session.initializeCaches.bind(happn.services.session)(function(e) {
+      .then(function () {
+        happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
           if (e) return callback(e);
           callback(null, happn);
         });
@@ -73,7 +73,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
   };
 
   function createUsersAndGroups(happn, callback) {
-    let done = e => {
+    let done = (e) => {
       if (e) return callback(e);
       setTimeout(callback, 1000);
     };
@@ -89,13 +89,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       users.push({
         username: 'test_' + i,
         password: 'test_' + i,
-        custom_data: { role: 'OEM Admin', extra: i }
+        custom_data: { role: 'OEM Admin', extra: i },
       });
 
     test.async.each(
       groups,
-      function(group, groupCB) {
-        happn.services.security.groups.upsertGroup(group, function(e, upsertedGroup) {
+      function (group, groupCB) {
+        happn.services.security.groups.upsertGroup(group, function (e, upsertedGroup) {
           if (e) return groupCB(e);
 
           upsertedGroups.push(upsertedGroup);
@@ -103,13 +103,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
           groupCB();
         });
       },
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         test.async.each(
           users,
-          function(user, userCB) {
-            happn.services.security.users.upsertUser(user, function(e, upsertedUser) {
+          function (user, userCB) {
+            happn.services.security.users.upsertUser(user, function (e, upsertedUser) {
               if (e) return userCB(e);
 
               upsertedUsers.push(upsertedUser);
@@ -117,15 +117,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
               userCB();
             });
           },
-          function(e) {
+          function (e) {
             if (e) return done(e);
 
             test.async.each(
               upsertedUsers,
-              function(upsertedUser, upsertedUserCB) {
+              function (upsertedUser, upsertedUserCB) {
                 test.async.each(
                   upsertedGroups,
-                  function(upsertedGroup, upsertedGroupCB) {
+                  function (upsertedGroup, upsertedGroupCB) {
                     happn.services.security.groups.linkGroup(
                       upsertedGroup,
                       upsertedUser,
@@ -143,32 +143,32 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     );
   }
 
-  it('tests upserting an undefined user', function(done) {
-    mockServices(function(e, happn) {
+  it('tests upserting an undefined user', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      happn.services.security.users.upsertUser(undefined, function(e) {
+      happn.services.security.users.upsertUser(undefined, function (e) {
         test.expect(e.message).to.be('user is null or not an object');
         done();
       });
     });
   });
 
-  it('tests deleting an undefined user', function(done) {
-    mockServices(function(e, happn) {
+  it('tests deleting an undefined user', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      happn.services.security.users.deleteUser(undefined, function(e) {
+      happn.services.security.users.deleteUser(undefined, function (e) {
         test.expect(e.message).to.be('user is null or not an object');
         done();
       });
     });
   });
 
-  it('tests deleting a reserved user', function(done) {
-    mockServices(function(e, happn) {
+  it('tests deleting a reserved user', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      happn.services.security.users.deleteUser({ username: '_ANONYMOUS' }, function(e) {
+      happn.services.security.users.deleteUser({ username: '_ANONYMOUS' }, function (e) {
         test.expect(e.message).to.be('unable to delete a user with the reserved name: _ANONYMOUS');
-        happn.services.security.users.deleteUser({ username: '_ADMIN' }, function(e) {
+        happn.services.security.users.deleteUser({ username: '_ADMIN' }, function (e) {
           test.expect(e.message).to.be('unable to delete a user with the reserved name: _ADMIN');
           done();
         });
@@ -176,7 +176,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests deleting an undefined user - promise', function(done) {
+  it('tests deleting an undefined user - promise', function (done) {
     mockServices(async (e, happn) => {
       try {
         await happn.services.security.users.deleteUser(undefined);
@@ -187,7 +187,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests deleting a reserved user - promise', function(done) {
+  it('tests deleting a reserved user - promise', function (done) {
     mockServices(async (_e, happn) => {
       try {
         await happn.services.security.users.deleteUser({ username: '_ANONYMOUS' });
@@ -198,25 +198,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests deleting a user happy path - promise', function(done) {
+  it('tests deleting a user happy path - promise', function (done) {
     mockServices(async (_e, happn) => {
       happn.services.security.users.permissionManager = {
-        removeAllUserPermissions: () => {}
+        removeAllUserPermissions: () => {},
       };
       happn.services.security.users.dataService = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_users = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_passwords = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.securityService.dataChanged = (
         whatHappned,
@@ -229,14 +229,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
       happn.services.security.users
         .deleteUser({ username: 'test' })
-        .then(deleted => {
+        .then((deleted) => {
           test.expect(deleted).to.eql({
             obj: {
-              path: '/_SYSTEM/_SECURITY/_USER/test'
+              path: '/_SYSTEM/_SECURITY/_USER/test',
             },
             tree: {
-              path: '/_SYSTEM/_SECURITY/_USER/test/*'
-            }
+              path: '/_SYSTEM/_SECURITY/_USER/test/*',
+            },
           });
           done();
         })
@@ -244,25 +244,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests deleting a user happy path - callback', function(done) {
+  it('tests deleting a user happy path - callback', function (done) {
     mockServices(async (_e, happn) => {
       happn.services.security.users.permissionManager = {
-        removeAllUserPermissions: () => {}
+        removeAllUserPermissions: () => {},
       };
       happn.services.security.users.dataService = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_users = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_passwords = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.securityService.dataChanged = (
         whatHappned,
@@ -277,38 +277,38 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         test.expect(e).to.eql(null);
         test.expect(deleted).to.eql({
           obj: {
-            path: '/_SYSTEM/_SECURITY/_USER/test'
+            path: '/_SYSTEM/_SECURITY/_USER/test',
           },
           tree: {
-            path: '/_SYSTEM/_SECURITY/_USER/test/*'
-          }
+            path: '/_SYSTEM/_SECURITY/_USER/test/*',
+          },
         });
         done();
       });
     });
   });
 
-  it('tests deleting a user sad path - promise', function(done) {
+  it('tests deleting a user sad path - promise', function (done) {
     mockServices(async (_e, happn) => {
       happn.services.security.users.permissionManager = {
         removeAllUserPermissions: () => {
           throw new Error('test');
-        }
+        },
       };
       happn.services.security.users.dataService = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_users = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_passwords = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.securityService.dataChanged = (
         whatHappned,
@@ -324,34 +324,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         .then(() => {
           done(new Error('untest.expected'));
         })
-        .catch(e => {
+        .catch((e) => {
           test.expect(e.message).to.be('test');
           done();
         });
     });
   });
 
-  it('tests deleting a user sad path - callback', function(done) {
+  it('tests deleting a user sad path - callback', function (done) {
     mockServices(async (_e, happn) => {
       happn.services.security.users.permissionManager = {
         removeAllUserPermissions: () => {
           throw new Error('test');
-        }
+        },
       };
       happn.services.security.users.dataService = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_users = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.__cache_passwords = {
-        remove: path => {
+        remove: (path) => {
           return { path };
-        }
+        },
       };
       happn.services.security.users.securityService.dataChanged = (
         whatHappned,
@@ -362,24 +362,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         callback(null, { whatHappned, data, additionalInfo });
       };
 
-      happn.services.security.users.deleteUser({ username: 'test' }, e => {
+      happn.services.security.users.deleteUser({ username: 'test' }, (e) => {
         test.expect(e.message).to.be('test');
         done();
       });
     });
   });
 
-  it('searches for users  a custom filter to ensure we dont have to trim out groups, this will allow us to optimise the listUsers method', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users  a custom filter to ensure we dont have to trim out groups, this will allow us to optimise the listUsers method', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
         happn.services.data.get(
           '/_SYSTEM/_SECURITY/_USER/*',
           { criteria: { 'custom_data.role': { $in: ['SMC Admin', 'OEM Admin'] } } },
-          function(e, results) {
+          function (e, results) {
             if (e) return done(e);
 
             test.expect(results.length === 10).to.be(true);
@@ -391,14 +391,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users  a custom filter to ensure we dont have to trim out groups, this will allow us to optimise the listUsers method, negative test', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users  a custom filter to ensure we dont have to trim out groups, this will allow us to optimise the listUsers method, negative test', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
-        happn.services.data.get('/_SYSTEM/_SECURITY/_USER/*', function(e, results) {
+        happn.services.data.get('/_SYSTEM/_SECURITY/_USER/*', function (e, results) {
           if (e) return done(e);
 
           test.expect(results.length > 10).to.be(true);
@@ -409,11 +409,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the $exists filter and other criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the $exists filter and other criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
         happn.services.data.get(
@@ -421,10 +421,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
           {
             criteria: {
               'custom_data.role': { $containsAny: ['SMC Admin', 'OEM Admin'] },
-              username: { $exists: true }
-            }
+              username: { $exists: true },
+            },
           },
-          function(e, results) {
+          function (e, results) {
             if (e) return done(e);
 
             test.expect(results.length === 10).to.be(true);
@@ -436,17 +436,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the $exists filter and no other criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the $exists filter and no other criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         setTimeout(() => {
           happn.services.data.get(
             '/_SYSTEM/_SECURITY/_USER/*',
             { criteria: { username: { $exists: true } } },
-            function(e, results) {
+            function (e, results) {
               if (e) return done(e);
               test.expect(results.length === 11).to.be(true); //11 to compensate for the admin user
               done();
@@ -457,14 +457,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsers method, no criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsers method, no criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
-        happn.services.security.users.listUsers('*', function(e, users) {
+        happn.services.security.users.listUsers('*', function (e, users) {
           if (e) return done(e);
           test.expect(users.length === 11).to.be(true); //11 to compensate for the admin user
           done();
@@ -473,32 +473,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsers method, null criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsers method, null criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
-        happn.services.security.users.listUsers('*', null, function(e, users) {
-          if (e) return done(e);
-
-          test.expect(users.length === 11).to.be(true); //11 to compensate for the admin user
-
-          done();
-        });
-      });
-    });
-  });
-
-  it('searches for users with the listUsers method, undefined criteria', function(done) {
-    mockServices(function(e, happn) {
-      if (e) return done(e);
-
-      createUsersAndGroups(happn, function(e) {
-        if (e) return done(e);
-
-        happn.services.security.users.listUsers('*', undefined, function(e, users) {
+        happn.services.security.users.listUsers('*', null, function (e, users) {
           if (e) return done(e);
 
           test.expect(users.length === 11).to.be(true); //11 to compensate for the admin user
@@ -509,17 +491,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsers method, additional criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsers method, undefined criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
+        if (e) return done(e);
+
+        happn.services.security.users.listUsers('*', undefined, function (e, users) {
+          if (e) return done(e);
+
+          test.expect(users.length === 11).to.be(true); //11 to compensate for the admin user
+
+          done();
+        });
+      });
+    });
+  });
+
+  it('searches for users with the listUsers method, additional criteria', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
         happn.services.security.users.listUsers(
           '*',
           { criteria: { 'custom_data.role': { $in: ['SMC Admin', 'OEM Admin'] } } },
-          function(e, users) {
+          function (e, users) {
             if (e) return done(e);
 
             test.expect(users.length === 10).to.be(true); //11 to compensate for the admin user
@@ -531,70 +531,70 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests the __getUserNamesFromGroupLinks method', function(done) {
+  it('tests the __getUserNamesFromGroupLinks method', function (done) {
     var userGroupLinks = [
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_0/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_0/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_0/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_1/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_1/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_1/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_2/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_2/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_2/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_3/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_3/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_3/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_4/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_4/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_4/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_5/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_5/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_5/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_6/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_6/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_6/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_7/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_7/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_7/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_8/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_8/_USER_GROUP/test_1'
-        }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_8/_USER_GROUP/test_1',
+        },
       },
       {
         _meta: {
           path: '/_SYSTEM/_SECURITY/_USER/test_9/_USER_GROUP/test_1',
-          _id: '/_SYSTEM/_SECURITY/_USER/test_9/_USER_GROUP/test_1'
-        }
-      }
+          _id: '/_SYSTEM/_SECURITY/_USER/test_9/_USER_GROUP/test_1',
+        },
+      },
     ];
-    mockServices(function(e, happn) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       var userNames = happn.services.security.users.__getUserNamesFromGroupLinks(userGroupLinks);
       test
@@ -609,15 +609,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
           'test_6',
           'test_7',
           'test_8',
-          'test_9'
+          'test_9',
         ]);
       done();
     });
   });
 
-  it('tests the __getUserNamesFromGroupLinks method, empty links', function(done) {
+  it('tests the __getUserNamesFromGroupLinks method, empty links', function (done) {
     var userGroupLinks = [];
-    mockServices(function(e, happn) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       var userNames = happn.services.security.users.__getUserNamesFromGroupLinks(userGroupLinks);
       test.expect(userNames).to.eql([]);
@@ -625,9 +625,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests the __getUserNamesFromGroupLinks method, null links', function(done) {
+  it('tests the __getUserNamesFromGroupLinks method, null links', function (done) {
     var userGroupLinks = null;
-    mockServices(function(e, happn) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       var userNames = happn.services.security.users.__getUserNamesFromGroupLinks(userGroupLinks);
       test.expect(userNames).to.eql([]);
@@ -635,12 +635,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, exact match to group', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, exact match to group', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
-        happn.services.security.users.listUserNamesByGroup('test_1').then(function(userNames) {
+        happn.services.security.users.listUserNamesByGroup('test_1').then(function (userNames) {
           if (e) return done(e);
           test
             .expect(userNames.sort())
@@ -654,7 +654,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
               'test_6',
               'test_7',
               'test_8',
-              'test_9'
+              'test_9',
             ]);
           done();
         });
@@ -662,14 +662,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, group name not matching', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, group name not matching', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         happn.services.security.users
           .listUserNamesByGroup('lizard-group')
-          .then(function(userNames) {
+          .then(function (userNames) {
             if (e) return done(e);
             test.expect(userNames).to.eql([]);
             done();
@@ -678,17 +678,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, group name null', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, group name null', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         happn.services.security.users
           .listUserNamesByGroup(null)
-          .then(function() {
+          .then(function () {
             done(new Error('untest.expected execution'));
           })
-          .catch(function(e) {
+          .catch(function (e) {
             test.expect(e.toString()).to.be('Error: validation error: groupName must be specified');
             done();
           });
@@ -696,12 +696,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, exact match to group', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, exact match to group', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
-        happn.services.security.users.listUsersByGroup('test_1', function(e, users) {
+        happn.services.security.users.listUsersByGroup('test_1', function (e, users) {
           if (e) return done(e);
           test.expect(users.length === 10).to.be(true); //11 to compensate for the admin user
           done();
@@ -710,15 +710,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, exact match to group, extra criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, exact match to group, extra criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         happn.services.security.users.listUsersByGroup(
           'test_1',
           { criteria: { 'custom_data.extra': 1 } },
-          function(e, users) {
+          function (e, users) {
             if (e) return done(e);
             test.expect(users.length === 1).to.be(true); //11 to compensate for the admin user
             done();
@@ -728,15 +728,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, exact match to group, unmatched extra criteria', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, exact match to group, unmatched extra criteria', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         happn.services.security.users.listUsersByGroup(
           'test_1',
           { criteria: { 'custom_data.extra': 1000 } },
-          function(e, users) {
+          function (e, users) {
             if (e) return done(e);
             test.expect(users.length === 0).to.be(true); //11 to compensate for the admin user
             done();
@@ -746,12 +746,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, unmatched group name', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, unmatched group name', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
-        happn.services.security.users.listUsersByGroup('lizard-group', function(e, users) {
+        happn.services.security.users.listUsersByGroup('lizard-group', function (e, users) {
           if (e) return done(e);
           test.expect(users.length === 0).to.be(true); //11 to compensate for the admin user
           done();
@@ -760,12 +760,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('searches for users with the listUsersByGroup method, null group name', function(done) {
-    mockServices(function(e, happn) {
+  it('searches for users with the listUsersByGroup method, null group name', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
-        happn.services.security.users.listUsersByGroup(null, function(e) {
+        happn.services.security.users.listUsersByGroup(null, function (e) {
           test.expect(e.toString()).to.be('Error: validation error: groupName must be specified');
           done();
         });
@@ -773,10 +773,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests getUserNoGroups', function(done) {
-    mockServices(function(e, happn) {
+  it('tests getUserNoGroups', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
         happn.services.security.users.getUser('test_1', (e, user) => {
           test.expect(e).to.be(null);
@@ -793,9 +793,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
               test_6: { data: {} },
               test_7: { data: {} },
               test_8: { data: {} },
-              test_9: { data: {} }
+              test_9: { data: {} },
             },
-            permissions: {}
+            permissions: {},
           });
         });
         happn.services.security.users.getUserNoGroups('test_1', (e, user) => {
@@ -803,7 +803,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
           test.expect(test._.omit(user, ['userid'])).to.eql({
             username: 'test_1',
             custom_data: { role: 'OEM Admin', extra: 1 },
-            permissions: {}
+            permissions: {},
           });
           happn.services.security.users.getUser('test_1', (e, user) => {
             test.expect(e).to.be(null);
@@ -820,9 +820,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
                 test_6: { data: {} },
                 test_7: { data: {} },
                 test_8: { data: {} },
-                test_9: { data: {} }
+                test_9: { data: {} },
               },
-              permissions: {}
+              permissions: {},
             });
             done();
           });
@@ -831,8 +831,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests getUserNoGroups returns user permissions', function(done) {
-    mockServices(function(e, happn) {
+  it('tests getUserNoGroups returns user permissions', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       let user = {
         username: 'test_permissions',
@@ -840,16 +840,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         custom_data: { role: 'OEM Admin', extra: 27 },
         permissions: {
           'test/path/1': {
-            actions: ['get', 'on', 'set']
+            actions: ['get', 'on', 'set'],
           },
           'test/path/2': {
-            prohibit: ['put', 'delete', 'post']
+            prohibit: ['put', 'delete', 'post'],
           },
           'test/path/3': {
             actions: ['get', 'on', 'set'],
-            prohibit: ['put', 'delete', 'post']
-          }
-        }
+            prohibit: ['put', 'delete', 'post'],
+          },
+        },
       };
       happn.services.security.users.upsertUser(user, (e, upsertedUser) => {
         happn.services.security.users.getUserNoGroups('test_permissions', (e, retrievedUser) => {
@@ -862,16 +862,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
               custom_data: { role: 'OEM Admin', extra: 27 },
               permissions: {
                 'test/path/1': {
-                  actions: ['get', 'on', 'set']
+                  actions: ['get', 'on', 'set'],
                 },
                 'test/path/2': {
-                  prohibit: ['delete', 'post', 'put']
+                  prohibit: ['delete', 'post', 'put'],
                 },
                 'test/path/3': {
                   actions: ['get', 'on', 'set'],
-                  prohibit: ['delete', 'post', 'put']
-                }
-              }
+                  prohibit: ['delete', 'post', 'put'],
+                },
+              },
             });
             done();
           } catch (e) {
@@ -882,19 +882,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('__upsertUser should add a user', function(done) {
-    mockServices(function(e, happn) {
+  it('__upsertUser should add a user', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
-      createUsersAndGroups(happn, function(e) {
+      createUsersAndGroups(happn, function (e) {
         if (e) return done(e);
 
         const user = {
           username: 'test_user',
           password: 'test_user',
-          custom_data: { role: 'OEM Admin', extra: 'user_extra' }
+          custom_data: { role: 'OEM Admin', extra: 'user_extra' },
         };
 
-        happn.services.security.users.__upsertUser(user).then(upsertedUser => {
+        happn.services.security.users.__upsertUser(user).then((upsertedUser) => {
           if (e) return done(e);
 
           try {

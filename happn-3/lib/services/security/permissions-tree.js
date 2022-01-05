@@ -21,7 +21,7 @@ module.exports = class PermissionsTree {
         path.split('/').slice(path.startsWith('/') ? 1 : 0),
         {
           $leaf: path,
-          ...permissions[path]
+          ...permissions[path],
         },
         Object
       );
@@ -36,14 +36,14 @@ module.exports = class PermissionsTree {
       actions.splice(
         actions.length - 1,
         0,
-        ...branch[branchSegment].prohibit.map(action => `!${action}`)
+        ...branch[branchSegment].prohibit.map((action) => `!${action}`)
       );
   }
 
   matchBranches(actions, permissionPath) {
     return (tree, segment) => {
       return tree.reduce((matched, branch) => {
-        Object.keys(branch).forEach(branchSegment => {
+        Object.keys(branch).forEach((branchSegment) => {
           if (
             branch[branchSegment].$leaf &&
             this.utils.wildcardMatch(branch[branchSegment].$leaf, permissionPath, 'PERMISSION-PATH')
@@ -107,10 +107,10 @@ module.exports = class PermissionsTree {
 
     if (tree['*']) {
       let leaf = this.checkAllowedLeaf(tree['*'], action);
-      let final = Object.keys(tree['*']).every(key =>
+      let final = Object.keys(tree['*']).every((key) =>
         ['$leaf', 'prohibit', 'actions'].includes(key)
       );
-      let final2 = Object.keys(tree).every(key =>
+      let final2 = Object.keys(tree).every((key) =>
         ['$leaf', 'prohibit', 'actions', '*'].includes(key)
       );
       let permissions = { allowed: [originalPath], prohibited: [] };
@@ -176,7 +176,7 @@ module.exports = class PermissionsTree {
     const treeKeys = Object.keys(tree);
     if (treeKeys.length === 0) return { allowed, prohibited };
     const filteredBranches = ['$leaf', 'prohibit', 'actions'];
-    if (treeKeys.every(branch => filteredBranches.includes(branch))) {
+    if (treeKeys.every((branch) => filteredBranches.includes(branch))) {
       if (this.checkProhibitedLeaf(tree, action))
         return { allowed, prohibited: [...prohibited, tree.$leaf] };
       if (this.checkAllowedLeaf(tree, action))
@@ -198,7 +198,7 @@ module.exports = class PermissionsTree {
     if (tree['*'] && this.checkAllowedLeaf(tree['*'], action))
       return {
         allowed: [...allowed, tree['*'].$leaf],
-        prohibited: [...prohibited, ...this.buildProhibitions(tree, action)]
+        prohibited: [...prohibited, ...this.buildProhibitions(tree, action)],
       };
 
     for (const branch of treeKeys) {

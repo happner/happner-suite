@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     this.timeout(30000);
     const delay = require('await-delay');
     const expect = require('expect.js');
@@ -20,65 +18,65 @@ describe(
                 name: 'default-browser', // this is the default underlying profile for stateful sessions
                 session: {
                   'info._browser': {
-                    $eq: true
-                  }
+                    $eq: true,
+                  },
                 },
                 policy: {
                   ttl: '10 seconds', //a week
-                  inactivity_threshold: '5 seconds'
-                }
-              }
-            ]
-          }
-        }
-      }
+                  inactivity_threshold: '5 seconds',
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     it('logs in with a _browser request, then does a series of logins with with the original token, we revoke the token and ensure all children sessions have been disconnected', async () => {
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const client1 = await getClient({
         username: 'user-short-session',
         password: 'user-short-session-password',
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
       const clientsSessionEvents = {};
-      client1.onEvent('session-ended', evt => {
+      client1.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-1'] = evt;
       });
       const client2 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -87,17 +85,17 @@ describe(
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-1': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-4': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
       stopServer(server);
     });
@@ -106,47 +104,47 @@ describe(
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const client1 = await getClient({
         username: 'user-short-session',
         password: 'user-short-session-password',
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
       const clientsSessionEvents = {};
-      client1.onEvent('session-ended', evt => {
+      client1.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-1'] = evt;
       });
       const client2 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -155,14 +153,14 @@ describe(
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-4': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
       stopServer(server);
     });
@@ -171,47 +169,47 @@ describe(
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const client1 = await getClient({
         username: 'user-short-session',
         password: 'user-short-session-password',
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
       const clientsSessionEvents = {};
-      client1.onEvent('session-ended', evt => {
+      client1.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-1'] = evt;
       });
       const client2 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -220,14 +218,14 @@ describe(
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-4': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
       stopServer(server);
     });
@@ -236,47 +234,47 @@ describe(
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',
-        password: 'user-short-session-password'
+        password: 'user-short-session-password',
       });
       const client1 = await getClient({
         username: 'user-short-session',
         password: 'user-short-session-password',
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
       const clientsSessionEvents = {};
-      client1.onEvent('session-ended', evt => {
+      client1.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-1'] = evt;
       });
       const client2 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClient({
         username: 'user-short-session',
         token: client1.session.token,
         info: {
-          _browser: true
-        }
+          _browser: true,
+        },
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -285,14 +283,14 @@ describe(
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-1': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
       stopServer(server);
     });
@@ -308,7 +306,7 @@ describe(
 
     function getServer(config) {
       return new Promise((resolve, reject) => {
-        service.create(config, function(e, instance) {
+        service.create(config, function (e, instance) {
           if (e) return reject(e);
           resolve(instance);
         });
@@ -317,7 +315,7 @@ describe(
 
     function stopServer(server) {
       return new Promise((resolve, reject) => {
-        server.stop(e => {
+        server.stop((e) => {
           if (e) return reject(e);
           resolve();
         });
@@ -335,7 +333,7 @@ describe(
 
     function revokeToken(server, token) {
       return new Promise((resolve, reject) => {
-        server.services.security.revokeToken(token, 'test reason', e => {
+        server.services.security.revokeToken(token, 'test reason', (e) => {
           if (e) return reject(e);
           resolve();
         });

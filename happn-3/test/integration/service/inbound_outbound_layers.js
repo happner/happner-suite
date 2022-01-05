@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -10,19 +8,19 @@ describe(
 
     this.timeout(10000);
 
-    it('injects inbound protocol layers', function(callback) {
+    it('injects inbound protocol layers', function (callback) {
       var layerLog1 = [];
       var layerLog2 = [];
 
       var inboundLayers = [
-        function(message, cb) {
+        function (message, cb) {
           layerLog1.push(message);
           return cb(null, message);
         },
-        function(message, cb) {
+        function (message, cb) {
           layerLog2.push(message);
           return cb(null, message);
-        }
+        },
       ];
 
       var serviceConfig = {
@@ -30,16 +28,16 @@ describe(
         services: {
           protocol: {
             config: {
-              inboundLayers: inboundLayers
-            }
-          }
-        }
+              inboundLayers: inboundLayers,
+            },
+          },
+        },
       };
 
       service.create(
         serviceConfig,
 
-        function(e, happnInst) {
+        function (e, happnInst) {
           if (e) return callback(e);
           var serviceInstance = happnInst;
 
@@ -47,13 +45,13 @@ describe(
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               },
               info: {
-                from: 'startup'
-              }
+                from: 'startup',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               var clientInstance = instance;
@@ -61,18 +59,18 @@ describe(
               clientInstance.set(
                 '/did/set',
                 {
-                  test: 'data'
+                  test: 'data',
                 },
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
 
                   expect(layerLog1.length > 0).to.be(true);
                   expect(layerLog2.length > 0).to.be(true);
 
-                  clientInstance.disconnect(function() {
+                  clientInstance.disconnect(function () {
                     serviceInstance.stop(
                       {
-                        reconnect: false
+                        reconnect: false,
                       },
                       callback
                     );
@@ -85,19 +83,19 @@ describe(
       );
     });
 
-    it('injects outbound protocol layers', function(callback) {
+    it('injects outbound protocol layers', function (callback) {
       var layerLog1 = [];
       var layerLog2 = [];
 
       var outboundLayers = [
-        function(message, cb) {
+        function (message, cb) {
           layerLog1.push(message);
           return cb(null, message);
         },
-        function(message, cb) {
+        function (message, cb) {
           layerLog2.push(message);
           return cb(null, message);
-        }
+        },
       ];
 
       var serviceConfig = {
@@ -105,16 +103,16 @@ describe(
         services: {
           protocol: {
             config: {
-              outboundLayers: outboundLayers
-            }
-          }
-        }
+              outboundLayers: outboundLayers,
+            },
+          },
+        },
       };
 
       service.create(
         serviceConfig,
 
-        function(e, happnInst) {
+        function (e, happnInst) {
           if (e) return callback(e);
           var serviceInstance = happnInst;
 
@@ -122,40 +120,40 @@ describe(
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               },
               info: {
-                from: 'startup'
-              }
+                from: 'startup',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               var clientInstance = instance;
 
               clientInstance.on(
                 '/did/on',
-                function() {
+                function () {
                   expect(layerLog1.length > 0).to.be(true);
                   expect(layerLog2.length > 0).to.be(true);
 
-                  clientInstance.disconnect(function() {
+                  clientInstance.disconnect(function () {
                     serviceInstance.stop(
                       {
-                        reconnect: false
+                        reconnect: false,
                       },
                       callback
                     );
                   });
                 },
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
                   clientInstance.set(
                     '/did/on',
                     {
-                      test: 'data'
+                      test: 'data',
                     },
-                    function(e) {
+                    function (e) {
                       if (e) return callback(e);
                     }
                   );
@@ -167,32 +165,32 @@ describe(
       );
     });
 
-    it('injects outbound and inbound protocol layers', function(callback) {
+    it('injects outbound and inbound protocol layers', function (callback) {
       var layerLog1 = [];
       var layerLog2 = [];
       var layerLog3 = [];
       var layerLog4 = [];
 
       var inboundLayers = [
-        function(message, cb) {
+        function (message, cb) {
           layerLog3.push(message);
           return cb(null, message);
         },
-        function(message, cb) {
+        function (message, cb) {
           layerLog4.push(message);
           return cb(null, message);
-        }
+        },
       ];
 
       var outboundLayers = [
-        function(message, cb) {
+        function (message, cb) {
           layerLog1.push(message);
           return cb(null, message);
         },
-        function(message, cb) {
+        function (message, cb) {
           layerLog2.push(message);
           return cb(null, message);
-        }
+        },
       ];
 
       var serviceConfig = {
@@ -201,16 +199,16 @@ describe(
           protocol: {
             config: {
               outboundLayers: outboundLayers,
-              inboundLayers: inboundLayers
-            }
-          }
-        }
+              inboundLayers: inboundLayers,
+            },
+          },
+        },
       };
 
       service.create(
         serviceConfig,
 
-        function(e, happnInst) {
+        function (e, happnInst) {
           if (e) return callback(e);
           var serviceInstance = happnInst;
 
@@ -218,42 +216,42 @@ describe(
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
+                password: 'happn',
               },
               info: {
-                from: 'startup'
-              }
+                from: 'startup',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
 
               var clientInstance = instance;
 
               clientInstance.on(
                 '/did/both',
-                function() {
+                function () {
                   expect(layerLog1.length > 0).to.be(true);
                   expect(layerLog2.length > 0).to.be(true);
                   expect(layerLog3.length > 0).to.be(true);
                   expect(layerLog4.length > 0).to.be(true);
 
-                  clientInstance.disconnect(function() {
+                  clientInstance.disconnect(function () {
                     serviceInstance.stop(
                       {
-                        reconnect: false
+                        reconnect: false,
                       },
                       callback
                     );
                   });
                 },
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
                   clientInstance.set(
                     '/did/both',
                     {
-                      test: 'data'
+                      test: 'data',
                     },
-                    function(e) {
+                    function (e) {
                       if (e) return callback(e);
                     }
                   );

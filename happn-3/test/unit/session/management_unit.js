@@ -1,6 +1,6 @@
 const testHelper = require('../../__fixtures/utils/test_helper').create();
 
-describe(testHelper.testName(__filename, 3), function() {
+describe(testHelper.testName(__filename, 3), function () {
   this.timeout(60000);
 
   var expect = require('expect.js');
@@ -22,7 +22,7 @@ describe(testHelper.testName(__filename, 3), function() {
   Services.ErrorService = require('../../../lib/services/error/service');
   Services.LogService = require('../../../lib/services/log/service');
 
-  var mockService = util.promisify(function(happn, serviceName, config, callback) {
+  var mockService = util.promisify(function (happn, serviceName, config, callback) {
     if (typeof config === 'function') {
       callback = config;
       if (config !== false) config = {};
@@ -32,7 +32,7 @@ describe(testHelper.testName(__filename, 3), function() {
       var serviceClass = Services[serviceName + 'Service'];
 
       var serviceInstance = new serviceClass({
-        logger: Logger
+        logger: Logger,
       });
 
       serviceInstance.happn = happn;
@@ -46,10 +46,10 @@ describe(testHelper.testName(__filename, 3), function() {
     }
   });
 
-  var mockServices = function(sessionManagementActive, callback) {
+  var mockServices = function (sessionManagementActive, callback) {
     var happn = {
       services: {},
-      config: {}
+      config: {},
     };
 
     if (typeof sessionManagementActive === 'function') {
@@ -72,13 +72,13 @@ describe(testHelper.testName(__filename, 3), function() {
           activateSessionManagement: sessionManagementActive,
           logSessionActivity: true,
           sessionActivityTTL: 3000,
-          secure: true
+          secure: true,
         })
       )
       .then(mockService(happn, 'Subscription'))
-      .then(function() {
-        setTimeout(function() {
-          happn.services.session.initializeCaches.bind(happn.services.session)(function(e) {
+      .then(function () {
+        setTimeout(function () {
+          happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
             if (e) return callback(e);
             callback(null, happn);
           });
@@ -87,7 +87,7 @@ describe(testHelper.testName(__filename, 3), function() {
       .catch(callback);
   };
 
-  let asyncMockServices = sessionManagementActive => {
+  let asyncMockServices = (sessionManagementActive) => {
     return new Promise((resolve, reject) => {
       mockServices(sessionManagementActive, (e, services) => {
         if (e) return reject(e);
@@ -96,19 +96,19 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   };
 
-  var mockClient = function() {
+  var mockClient = function () {
     return {
-      once: function(evt, handler) {
+      once: function (evt, handler) {
         this.onceHandler = handler;
       },
-      on: function() {},
-      end: function() {
+      on: function () {},
+      end: function () {
         this.onceHandler();
-      }
+      },
     };
   };
 
-  var mockSession = function(type, id, username, ttl, securityService) {
+  var mockSession = function (type, id, username, ttl, securityService) {
     if (!ttl) ttl = Infinity;
     var session = {
       timestamp: Date.now(),
@@ -116,23 +116,23 @@ describe(testHelper.testName(__filename, 3), function() {
       id: id,
       ttl: ttl,
       user: {
-        username: username
+        username: username,
       },
       policy: {
         0: {
-          ttl: ttl
+          ttl: ttl,
         },
         1: {
-          ttl: ttl
-        }
-      }
+          ttl: ttl,
+        },
+      },
     };
     session.token = securityService.generateToken(session);
     return session;
   };
 
-  it('tests sessionActivity activation', function(done) {
-    mockServices(function(e, happn) {
+  it('tests sessionActivity activation', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
       expect(happn.services.security.__sessionManagementActive).to.be(true);
@@ -143,8 +143,8 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests security services listActiveSessions', function(done) {
-    mockServices(function(e, happn) {
+  it('tests security services listActiveSessions', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
       var client = mockClient();
@@ -157,7 +157,7 @@ describe(testHelper.testName(__filename, 3), function() {
 
       happn.services.session.attachSession(session.id, session);
 
-      happn.services.security.listActiveSessions(function(e, list) {
+      happn.services.security.listActiveSessions(function (e, list) {
         if (e) return done(e);
 
         expect(list[0].user.username).to.be('TESTUSER');
@@ -168,13 +168,13 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests security services update session activity, list session activity', function(done) {
-    mockServices(function(e, happn) {
+  it('tests security services update session activity, list session activity', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
       async.times(
         10,
-        function(timeIndex, timeCB) {
+        function (timeIndex, timeCB) {
           var session = mockSession(
             1,
             'TEST_SESSION' + timeIndex,
@@ -192,16 +192,16 @@ describe(testHelper.testName(__filename, 3), function() {
             timeCB
           );
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
-          happn.services.security.listSessionActivity(function(e, items) {
+          happn.services.security.listSessionActivity(function (e, items) {
             if (e) return done(e);
 
             expect(items.length).to.be(10);
 
-            setTimeout(function() {
-              happn.services.security.listSessionActivity(function(e, items) {
+            setTimeout(function () {
+              happn.services.security.listSessionActivity(function (e, items) {
                 if (e) return done(e);
 
                 expect(items.length).to.be(0);
@@ -215,15 +215,15 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests security services list session activity, with a filter', function(done) {
+  it('tests security services list session activity, with a filter', function (done) {
     this.timeout(10000);
 
-    mockServices(function(e, happn) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
       async.times(
         10,
-        function(timeIndex, timeCB) {
+        function (timeIndex, timeCB) {
           var session = mockSession(
             1,
             'TEST_SESSION' + timeIndex,
@@ -241,16 +241,16 @@ describe(testHelper.testName(__filename, 3), function() {
             timeCB
           );
         },
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
           happn.services.security.listSessionActivity(
             {
               action: {
-                $in: ['testaction8', 'testaction9']
-              }
+                $in: ['testaction8', 'testaction9'],
+              },
             },
-            function(e, items) {
+            function (e, items) {
               if (e) return done(e);
 
               expect(items.length).to.be(2);
@@ -263,8 +263,8 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests security services session activity no duplicates', function(done) {
-    mockServices(function(e, happn) {
+  it('tests security services session activity no duplicates', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
 
       var session = mockSession(1, 'TEST_SESSION', 'TEST_USER', null, happn.services.security);
@@ -276,7 +276,7 @@ describe(testHelper.testName(__filename, 3), function() {
         null,
         true,
         null,
-        function(e) {
+        function (e) {
           if (e) return done(e);
 
           happn.services.security.__logSessionActivity(
@@ -286,10 +286,10 @@ describe(testHelper.testName(__filename, 3), function() {
             null,
             true,
             null,
-            function(e) {
+            function (e) {
               if (e) return done(e);
 
-              happn.services.security.listSessionActivity(function(e, items) {
+              happn.services.security.listSessionActivity(function (e, items) {
                 if (e) return done(e);
 
                 expect(items.length).to.be(1);
@@ -303,33 +303,32 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests security services session revocation', function(done) {
-    mockServices(function(e, happn) {
+  it('tests security services session revocation', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       var session = mockSession(1, 'TEST_SESSION', 'TEST_USER', 60000, happn.services.security);
 
-      happn.services.security.revokeToken(session.token, function(e) {
+      happn.services.security.revokeToken(session.token, function (e) {
         if (e) return done(e);
-        happn.services.security.listRevokedTokens(function(e, list) {
+        happn.services.security.listRevokedTokens(function (e, list) {
           if (e) return done(e);
           expect(list.length).to.be(1);
-          happn.services.security.__checkRevocations(session.token, function(
-            e,
-            authorized,
-            reason
-          ) {
-            expect(authorized).to.be(false);
-            expect(reason).to.be('token has been revoked');
+          happn.services.security.__checkRevocations(
+            session.token,
+            function (e, authorized, reason) {
+              expect(authorized).to.be(false);
+              expect(reason).to.be('token has been revoked');
 
-            happn.services.security.restoreToken(session.token, function(e) {
-              if (e) return done(e);
-              happn.services.security.listRevokedTokens(function(e, list) {
+              happn.services.security.restoreToken(session.token, function (e) {
                 if (e) return done(e);
-                expect(list.length).to.be(0);
-                happn.services.security.__checkRevocations(session.token, done);
+                happn.services.security.listRevokedTokens(function (e, list) {
+                  if (e) return done(e);
+                  expect(list.length).to.be(0);
+                  happn.services.security.__checkRevocations(session.token, done);
+                });
               });
-            });
-          });
+            }
+          );
         });
       });
     });
@@ -351,15 +350,15 @@ describe(testHelper.testName(__filename, 3), function() {
     expect(activeSessions1[0].user.username).to.be('TEST_USER');
     expect(activeSessions1[0].id).to.be(client.sessionId);
 
-    happn.services.session.disconnectSession(client.sessionId, function() {}, 'server disconnect');
+    happn.services.session.disconnectSession(client.sessionId, function () {}, 'server disconnect');
 
     await testHelper.delay(2000);
     const activeSessions2 = await happn.services.security.listActiveSessions();
     expect(activeSessions2.length).to.be(0);
   });
 
-  it('tests pubsub services session logging switched on', function(done) {
-    mockServices(false, function(e, happn) {
+  it('tests pubsub services session logging switched on', function (done) {
+    mockServices(false, function (e, happn) {
       var client = mockClient();
 
       happn.services.session.onConnect(client);
@@ -370,15 +369,15 @@ describe(testHelper.testName(__filename, 3), function() {
 
       happn.services.session.attachSession(session.id, session);
 
-      setTimeout(function() {
-        happn.services.security.listActiveSessions(function(e) {
+      setTimeout(function () {
+        happn.services.security.listActiveSessions(function (e) {
           expect(e.toString()).to.be('Error: session management not activated');
 
-          happn.services.security.activateSessionManagement(true, function(e) {
+          happn.services.security.activateSessionManagement(true, function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
-              happn.services.security.listActiveSessions(function(e, list) {
+            setTimeout(function () {
+              happn.services.security.listActiveSessions(function (e, list) {
                 if (e) return done(e);
 
                 expect(list.length).to.be(1);
@@ -394,8 +393,8 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests session revocation times out', function(done) {
-    mockServices(true, function(e, happn) {
+  it('tests session revocation times out', function (done) {
+    mockServices(true, function (e, happn) {
       var client = mockClient();
 
       happn.services.session.onConnect(client);
@@ -404,17 +403,17 @@ describe(testHelper.testName(__filename, 3), function() {
 
       happn.services.session.attachSession(session.id, session);
 
-      setTimeout(function() {
-        happn.services.security.revokeToken(session.token, function(e) {
+      setTimeout(function () {
+        happn.services.security.revokeToken(session.token, function (e) {
           if (e) return done(e);
 
-          happn.services.security.listRevokedTokens(function(e, list) {
+          happn.services.security.listRevokedTokens(function (e, list) {
             if (e) return done(e);
 
             expect(list.length).to.be(1);
 
-            setTimeout(function() {
-              happn.services.security.listRevokedTokens(function(e, list) {
+            setTimeout(function () {
+              happn.services.security.listRevokedTokens(function (e, list) {
                 if (e) return done(e);
                 expect(list.length).to.be(0);
 
@@ -427,8 +426,8 @@ describe(testHelper.testName(__filename, 3), function() {
     });
   });
 
-  it('tests session revocation times out after restart', function(done) {
-    mockServices(true, function(e, happn) {
+  it('tests session revocation times out after restart', function (done) {
+    mockServices(true, function (e, happn) {
       var client = mockClient();
 
       happn.services.session.onConnect(client);
@@ -437,11 +436,11 @@ describe(testHelper.testName(__filename, 3), function() {
 
       happn.services.session.attachSession(session.id, session);
 
-      setTimeout(function() {
-        happn.services.security.revokeToken(session.token, function(e) {
+      setTimeout(function () {
+        happn.services.security.revokeToken(session.token, function (e) {
           if (e) return done(e);
 
-          happn.services.security.listRevokedTokens(function(e, list) {
+          happn.services.security.listRevokedTokens(function (e, list) {
             if (e) return done(e);
 
             expect(list.length).to.be(1);
@@ -459,7 +458,7 @@ describe(testHelper.testName(__filename, 3), function() {
             delete happn.services.cache.__caches.cache_revoked_tokens;
             delete happn.services.security.__cache_revoked_tokens;
 
-            happn.services.security.__loadRevokedTokens(function(e) {
+            happn.services.security.__loadRevokedTokens(function (e) {
               if (e) return done(e);
 
               expect(
@@ -470,10 +469,10 @@ describe(testHelper.testName(__filename, 3), function() {
                 Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
               ).to.be(0);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 delete happn.services.cache.__caches.cache_revoked_tokens;
 
-                happn.services.security.__loadRevokedTokens(function(e) {
+                happn.services.security.__loadRevokedTokens(function (e) {
                   if (e) return done(e);
                   expect(
                     Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length

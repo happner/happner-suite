@@ -1,8 +1,6 @@
 describe(
-  require('../../__fixtures/utils/test_helper')
-    .create()
-    .testName(__filename, 3),
-  function() {
+  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
+  function () {
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
     var service = happn.service;
@@ -13,14 +11,14 @@ describe(
     this.timeout(5000);
 
     var serviceConfig = {
-      secure: true
+      secure: true,
     };
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       test_id = Date.now() + '_' + require('shortid').generate();
 
       try {
-        service.create(serviceConfig, function(e, happnInst) {
+        service.create(serviceConfig, function (e, happnInst) {
           if (e) return callback(e);
 
           happnInstance = happnInst;
@@ -34,16 +32,16 @@ describe(
     var publisherclient;
     var listenerclient;
 
-    var disconnectClients = function(options, callback) {
+    var disconnectClients = function (options, callback) {
       publisherclient.disconnect(
         {
-          timeout: 2000
+          timeout: 2000,
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
           listenerclient.disconnect(
             {
-              timeout: 2000
+              timeout: 2000,
             },
             callback
           );
@@ -51,15 +49,15 @@ describe(
       );
     };
 
-    var connectClients = function(options, callback) {
+    var connectClients = function (options, callback) {
       happn_client.create(
         {
           config: {
             username: '_ADMIN',
-            password: 'happn'
-          }
+            password: 'happn',
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return callback(e);
           publisherclient = instance;
 
@@ -67,10 +65,10 @@ describe(
             {
               config: {
                 username: '_ADMIN',
-                password: 'happn'
-              }
+                password: 'happn',
+              },
             },
-            function(e, instance) {
+            function (e, instance) {
               if (e) return callback(e);
               listenerclient = instance;
               callback();
@@ -80,23 +78,23 @@ describe(
       );
     };
 
-    var doOperations = function(options, callback) {
+    var doOperations = function (options, callback) {
       //first listen for the change
       listenerclient.on(
         '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
         {
-          event_type: 'set'
+          event_type: 'set',
         },
-        function(/*message*/) {
+        function (/*message*/) {
           listenerclient.on(
             '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
             {
-              event_type: 'remove'
+              event_type: 'remove',
             },
-            function(/*message*/) {
+            function (/*message*/) {
               callback();
             },
-            function(e /*, listenerId*/) {
+            function (e /*, listenerId*/) {
               if (!e) {
                 //then make the change
                 publisherclient.remove(
@@ -104,10 +102,10 @@ describe(
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   null,
-                  function(e) {
+                  function (e) {
                     if (e) return callback(e);
                   }
                 );
@@ -115,7 +113,7 @@ describe(
             }
           );
         },
-        function(e /*, listenerId*/) {
+        function (e /*, listenerId*/) {
           if (!e) {
             //then make the change
             publisherclient.set(
@@ -123,10 +121,10 @@ describe(
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e /*, result*/) {
+              function (e /*, result*/) {
                 if (e) return callback(e);
               }
             );
@@ -135,50 +133,50 @@ describe(
       );
     };
 
-    var doOperationsWithAll = function(options, callback) {
+    var doOperationsWithAll = function (options, callback) {
       //first listen for the change
       listenerclient.on(
         '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
         {
-          event_type: 'set'
+          event_type: 'set',
         },
-        function(/*message*/) {
+        function (/*message*/) {
           listenerclient.on(
             '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/*',
             {
-              event_type: 'all'
+              event_type: 'all',
             },
-            function(/*message*/) {
+            function (/*message*/) {
               callback();
             },
-            function(e /*, listenerId*/) {
+            function (e /*, listenerId*/) {
               if (e) return callback(e);
               publisherclient.remove(
                 '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/1',
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e) {
+                function (e) {
                   if (e) return callback(e);
                 }
               );
             }
           );
         },
-        function(e /*, listenerId*/) {
+        function (e /*, listenerId*/) {
           if (e) return callback(e);
           publisherclient.set(
             '/memory-leak-protocol-service/' + test_id + '/testsubscribe/data/event/1',
             {
               property1: 'property1',
               property2: 'property2',
-              property3: 'property3'
+              property3: 'property3',
             },
             null,
-            function(e /*, result*/) {
+            function (e /*, result*/) {
               if (e) return callback(e);
             }
           );
@@ -186,23 +184,23 @@ describe(
       );
     };
 
-    it('should do a bunch of operations, then disconnect we ensure that there are no residual subscriptions in the subscription service', function(done) {
+    it('should do a bunch of operations, then disconnect we ensure that there are no residual subscriptions in the subscription service', function (done) {
       this.timeout(5000);
 
-      connectClients(null, function(e) {
+      connectClients(null, function (e) {
         if (e) return done(e);
 
-        doOperations(null, function(e) {
+        doOperations(null, function (e) {
           if (e) return done(e);
 
           expect(happnInstance.services.subscription.subscriptions.searchAll().length > 0).to.be(
             true
           );
 
-          disconnectClients(null, function(e) {
+          disconnectClients(null, function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
+            setTimeout(function () {
               expect(
                 happnInstance.services.subscription.subscriptions.searchAll().length === 0
               ).to.be(true);
@@ -213,23 +211,23 @@ describe(
       });
     });
 
-    it('should do a bunch of operations with an all subscription, then disconnect we ensure that there are no residual subscriptions in the subscription service', function(done) {
+    it('should do a bunch of operations with an all subscription, then disconnect we ensure that there are no residual subscriptions in the subscription service', function (done) {
       this.timeout(5000);
 
-      connectClients(null, function(e) {
+      connectClients(null, function (e) {
         if (e) return done(e);
 
-        doOperationsWithAll(null, function(e) {
+        doOperationsWithAll(null, function (e) {
           if (e) return done(e);
 
           expect(happnInstance.services.subscription.subscriptions.searchAll().length > 0).to.be(
             true
           );
 
-          disconnectClients(null, function(e) {
+          disconnectClients(null, function (e) {
             if (e) return done(e);
 
-            setTimeout(function() {
+            setTimeout(function () {
               expect(
                 happnInstance.services.subscription.subscriptions.searchAll().length === 0
               ).to.be(true);
@@ -240,10 +238,10 @@ describe(
       });
     });
 
-    after(function(done) {
+    after(function (done) {
       this.timeout(20000);
 
-      disconnectClients(null, function() {
+      disconnectClients(null, function () {
         happnInstance.stop(done);
       });
     });

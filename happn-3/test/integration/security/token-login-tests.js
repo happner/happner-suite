@@ -1,5 +1,5 @@
-module.exports = function(serviceConfig1, serviceConfig2) {
-  return function() {
+module.exports = function (serviceConfig1, serviceConfig2) {
+  return function () {
     this.timeout(20000);
     var expect = require('expect.js');
     var happn = require('../../../lib/index');
@@ -8,16 +8,16 @@ module.exports = function(serviceConfig1, serviceConfig2) {
     var happnInstance2 = null;
     const delay = require('await-delay');
 
-    before('should initialize the service', function(callback) {
+    before('should initialize the service', function (callback) {
       this.timeout(20000);
 
       try {
-        service.create(serviceConfig1, function(e, happnInst1) {
+        service.create(serviceConfig1, function (e, happnInst1) {
           if (e) return callback(e);
 
           happnInstance1 = happnInst1;
 
-          service.create(serviceConfig2, function(e, happnInst2) {
+          service.create(serviceConfig2, function (e, happnInst2) {
             if (e) return callback(e);
 
             happnInstance2 = happnInst2;
@@ -30,7 +30,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       }
     });
 
-    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout - then login with the token, and test operations', function(done) {
+    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout - then login with the token, and test operations', function (done) {
       this.timeout(20000);
 
       getClient(
@@ -41,31 +41,31 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
-            }
-          }
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
               getClient(
                 {
                   token: token,
-                  port: 10000
+                  port: 10000,
                 },
-                function(e, tokenInstance) {
+                function (e, tokenInstance) {
                   if (e) return done(e);
 
-                  testOperations(tokenInstance, function(e) {
-                    tryDisconnect(tokenInstance, function() {
+                  testOperations(tokenInstance, function (e) {
+                    tryDisconnect(tokenInstance, function () {
                       done(e);
                     });
                   });
@@ -77,7 +77,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we wait for the short session to time out, then try and reuse the token for login, it should not be allowed', function(done) {
+    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we wait for the short session to time out, then try and reuse the token for login, it should not be allowed', function (done) {
       getClient(
         {
           config: {
@@ -86,31 +86,31 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
             },
             info: {
-              shortSession: true
-            }
-          }
+              shortSession: true,
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 getClient(
                   {
                     token: token,
-                    port: 10000
+                    port: 10000,
                   },
-                  function(e) {
+                  function (e) {
                     expect(e.toString()).to.be('AccessDenied: expired session token');
                     done();
                   }
@@ -122,7 +122,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('testing inverse of preceding test, so no timed out session', function(done) {
+    it('testing inverse of preceding test, so no timed out session', function (done) {
       getClient(
         {
           config: {
@@ -131,31 +131,31 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
-            }
-          }
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 getClient(
                   {
                     token: token,
-                    port: 10000
+                    port: 10000,
                   },
-                  function(e, instance) {
+                  function (e, instance) {
                     if (instance)
                       instance.disconnect({
-                        reconnect: false
+                        reconnect: false,
                       });
                     done(e);
                   }
@@ -167,7 +167,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout with revokeSession true - we then ensure we are unable to login with the revoked token', function(done) {
+    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout with revokeSession true - we then ensure we are unable to login with the revoked token', function (done) {
       getClient(
         {
           config: {
@@ -176,32 +176,32 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
-            }
-          }
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
             instance.disconnect(
               {
-                revokeSession: true
+                revokeSession: true,
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
 
-                setTimeout(function() {
+                setTimeout(function () {
                   getClient(
                     {
                       token: token,
-                      port: 10000
+                      port: 10000,
                     },
-                    function(e) {
+                    function (e) {
                       expect(e.message).to.be('token has been revoked');
                       done();
                     }
@@ -214,7 +214,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout revoking the token - we then ensure we are unable to login with the revoked token', function(done) {
+    it('logs in with the test client, supplying a public key, we perform a bunch of operations - we remember the token and logout revoking the token - we then ensure we are unable to login with the revoked token', function (done) {
       getClient(
         {
           config: {
@@ -223,32 +223,32 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
-            }
-          }
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
             instance.disconnect(
               {
-                revokeToken: true
+                revokeToken: true,
               },
-              function(e) {
+              function (e) {
                 if (e) return done(e);
 
-                setTimeout(function() {
+                setTimeout(function () {
                   getClient(
                     {
                       token: token,
-                      port: 10000
+                      port: 10000,
                     },
-                    function(e) {
+                    function (e) {
                       expect(e.message).to.be('token has been revoked');
                       done();
                     }
@@ -261,7 +261,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('we log in to a test service, supplying a public key, we perform a bunch of operations - the token is remembered and matches the locked profile, we then ensure we are able to login to the same server with the token but are unable to log in to a different server using the locked token', function(done) {
+    it('we log in to a test service, supplying a public key, we perform a bunch of operations - the token is remembered and matches the locked profile, we then ensure we are able to login to the same server with the token but are unable to log in to a different server using the locked token', function (done) {
       getClient(
         {
           config: {
@@ -270,30 +270,30 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
             },
             info: {
-              tokenOriginLocked: true
-            }
-          }
+              tokenOriginLocked: true,
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
               getClient(
                 {
                   token: token,
-                  port: 10001
+                  port: 10001,
                 },
-                function(e) {
+                function (e) {
                   expect(e.toString()).to.be(
                     'AccessDenied: this token is locked to a different origin by policy'
                   );
@@ -306,7 +306,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('inverse of preceding test, we check we are able to log in to another instance with the same token.', function(done) {
+    it('inverse of preceding test, we check we are able to log in to another instance with the same token.', function (done) {
       getClient(
         {
           config: {
@@ -315,31 +315,31 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
-            }
-          }
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
-              setTimeout(function() {
+              setTimeout(function () {
                 getClient(
                   {
                     token: token,
-                    port: 10001
+                    port: 10001,
                   },
-                  function(e, instance) {
+                  function (e, instance) {
                     if (instance)
                       instance.disconnect({
-                        reconnect: false
+                        reconnect: false,
                       });
                     done(e);
                   }
@@ -351,7 +351,7 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       );
     });
 
-    it('we log in to a test service, supplying a public key, we perform a bunch of operations - the token is remembered and matches the disallow profile, we then ensure we are unable to login with the login disallowed token', function(done) {
+    it('we log in to a test service, supplying a public key, we perform a bunch of operations - the token is remembered and matches the disallow profile, we then ensure we are unable to login with the login disallowed token', function (done) {
       getClient(
         {
           config: {
@@ -360,30 +360,30 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             port: 10000,
             keyPair: {
               publicKey: 'AjN7wyfbEdI2LzWyFo6n31hvOrlYvkeHad9xGqOXTm1K',
-              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ='
+              privateKey: 'y5RTfdnn21OvbQrnBMiKBP9DURduo0aijMIGyLJFuJQ=',
             },
             info: {
-              tokenNotAllowedForLogin: true
-            }
-          }
+              tokenNotAllowedForLogin: true,
+            },
+          },
         },
-        function(e, instance) {
+        function (e, instance) {
           if (e) return done(e);
 
-          testOperations(instance, function(e) {
+          testOperations(instance, function (e) {
             if (e) return done(e);
 
             var token = instance.session.token;
 
-            instance.disconnect(function(e) {
+            instance.disconnect(function (e) {
               if (e) return done(e);
 
               getClient(
                 {
                   token: token,
-                  port: 10000
+                  port: 10000,
                 },
-                function(e) {
+                function (e) {
                   expect(e.toString()).to.be(
                     'AccessDenied: logins with this token are disallowed by policy'
                   );
@@ -400,32 +400,32 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       const client1 = await getClientSync({
         username: '_ADMIN',
         password: 'happn',
-        port: 10000
+        port: 10000,
       });
       const clientsSessionEvents = {};
 
       const client2 = await getClientSync({
         username: '_ADMIN',
         token: client1.session.token,
-        port: 10000
+        port: 10000,
       });
-      client2.onEvent('session-ended', evt => {
+      client2.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-2'] = evt;
       });
       const client3 = await getClientSync({
         username: '_ADMIN',
         token: client1.session.token,
-        port: 10000
+        port: 10000,
       });
-      client3.onEvent('session-ended', evt => {
+      client3.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-3'] = evt;
       });
       const client4 = await getClientSync({
         username: '_ADMIN',
         token: client1.session.token,
-        port: 10000
+        port: 10000,
       });
-      client4.onEvent('session-ended', evt => {
+      client4.onEvent('session-ended', (evt) => {
         clientsSessionEvents['session-ended-4'] = evt;
       });
 
@@ -434,14 +434,14 @@ module.exports = function(serviceConfig1, serviceConfig2) {
 
       expect(clientsSessionEvents).to.eql({
         'session-ended-2': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-3': {
-          reason: 'token-revoked'
+          reason: 'token-revoked',
         },
         'session-ended-4': {
-          reason: 'token-revoked'
-        }
+          reason: 'token-revoked',
+        },
       });
     });
 
@@ -466,18 +466,18 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       happn.client
         .create(config)
 
-        .then(function(clientInstance) {
+        .then(function (clientInstance) {
           callback(null, clientInstance);
         })
 
-        .catch(function(e) {
+        .catch(function (e) {
           callback(e);
         });
     }
 
     function tryDisconnectSync(clientInstance, options) {
       return new Promise((resolve, reject) => {
-        tryDisconnect(clientInstance, options, e => {
+        tryDisconnect(clientInstance, options, (e) => {
           if (e) return reject(e);
           resolve();
         });
@@ -500,11 +500,11 @@ module.exports = function(serviceConfig1, serviceConfig2) {
     function testOperations(clientInstance, callback) {
       var calledBack = false;
 
-      var timeout = setTimeout(function() {
+      var timeout = setTimeout(function () {
         raiseError('operations timed out');
       }, 2000);
 
-      var raiseError = function(message) {
+      var raiseError = function (message) {
         if (!calledBack) {
           calledBack = true;
           return callback(new Error(message));
@@ -516,11 +516,8 @@ module.exports = function(serviceConfig1, serviceConfig2) {
       clientInstance.on(
         '/test/operations',
 
-        function(data, meta) {
-          operations += meta.action
-            .toUpperCase()
-            .split('@')[0]
-            .replace(/\//g, '');
+        function (data, meta) {
+          operations += meta.action.toUpperCase().split('@')[0].replace(/\//g, '');
 
           if (operations === 'SETREMOVE') {
             clearTimeout(timeout);
@@ -528,17 +525,17 @@ module.exports = function(serviceConfig1, serviceConfig2) {
             callback();
           }
         },
-        function(e) {
+        function (e) {
           if (e) return raiseError(e.toString());
 
           clientInstance.set(
             '/test/operations',
             {
-              test: 'data'
+              test: 'data',
             },
-            function(e) {
+            function (e) {
               if (e) return raiseError(e.toString());
-              clientInstance.remove('/test/operations', function(e) {
+              clientInstance.remove('/test/operations', function (e) {
                 if (e) return raiseError(e.toString());
               });
             }

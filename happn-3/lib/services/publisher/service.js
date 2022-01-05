@@ -31,7 +31,7 @@ function processAcknowledge(message, callback) {
         new Error('processAcknowledge failed', e),
         'PublisherService',
         CONSTANTS.ERROR_SEVERITY.MEDIUM,
-        e => {
+        (e) => {
           callback(e);
         }
       );
@@ -48,7 +48,7 @@ function initialize(config, callback) {
     this.__stats = {
       attempted: 0,
       failed: 0,
-      unacknowledged: 0
+      unacknowledged: 0,
     };
 
     this.errorService = this.happn.services.error;
@@ -76,7 +76,7 @@ function processPublish(message, callback) {
   var publication = this.publication.create(message, this.config.publicationOptions, this.happn);
 
   message.publication = {
-    id: publication.id
+    id: publication.id,
   };
 
   if (publication.options.consistency === CONSTANTS.CONSISTENCY.ACKNOWLEDGED)
@@ -85,7 +85,7 @@ function processPublish(message, callback) {
   if (publication.options.consistency !== CONSTANTS.CONSISTENCY.TRANSACTIONAL)
     callback(null, message); //callback early, continue on to publish
 
-  publication.publish(e => {
+  publication.publish((e) => {
     if (publication.options.consistency === CONSTANTS.CONSISTENCY.TRANSACTIONAL) {
       //callback with publication results, return
       if (e) return callback(e);
@@ -96,7 +96,7 @@ function processPublish(message, callback) {
       delete this.__unacknowledgedPublications[publication.id];
 
     //push publication results to publishing client
-    return this.happn.services.protocol.processMessageOut(publication.resultsMessage(e), e => {
+    return this.happn.services.protocol.processMessageOut(publication.resultsMessage(e), (e) => {
       if (e)
         this.errorService.handleSystem(
           new Error('acknowledged or deferred publish results feedback failed', e),

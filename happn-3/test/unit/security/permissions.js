@@ -1,7 +1,7 @@
 const PermissionsManager = require('../../../lib/services/security/permissions');
 const test = require('../../__fixtures/utils/test_helper').create();
 const sinon = test.sinon;
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   this.timeout(10000);
   var Logger = require('happn-logger');
   const util = require('util');
@@ -19,7 +19,7 @@ describe(test.testName(__filename, 3), function() {
   Services.ErrorService = require('../../../lib/services/error/service');
   Services.LogService = require('../../../lib/services/log/service');
 
-  var mockService = util.promisify(function(happn, serviceName, config, callback) {
+  var mockService = util.promisify(function (happn, serviceName, config, callback) {
     if (typeof config === 'function') {
       callback = config;
       if (config !== false) config = {};
@@ -29,7 +29,7 @@ describe(test.testName(__filename, 3), function() {
       var serviceClass = Services[serviceName + 'Service'];
 
       var serviceInstance = new serviceClass({
-        logger: Logger
+        logger: Logger,
       });
 
       serviceInstance.happn = happn;
@@ -46,10 +46,10 @@ describe(test.testName(__filename, 3), function() {
     }
   });
 
-  var mockServices = function(callback) {
+  var mockServices = function (callback) {
     var happn = {
       services: {},
-      config: {}
+      config: {},
     };
 
     mockService(happn, 'Crypto')
@@ -64,16 +64,16 @@ describe(test.testName(__filename, 3), function() {
       .then(mockService(happn, 'System'))
       .then(mockService(happn, 'Security'))
       .then(mockService(happn, 'Subscription'))
-      .then(function() {
-        happn.services.session.initializeCaches.bind(happn.services.session)(function(e) {
+      .then(function () {
+        happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
           if (e) return callback(e);
           callback(null, happn);
         });
       })
       .catch(callback);
   };
-  it('tests creating a permission Manager (constructor)', function(done) {
-    mockServices(function(e, happn) {
+  it('tests creating a permission Manager (constructor)', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       let pm = new PermissionsManager(null, 'test', happn);
       test.expect(pm.type).to.be('test');
@@ -81,8 +81,8 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests creating a permission Manager (create method)', function(done) {
-    mockServices(function(e, happn) {
+  it('tests creating a permission Manager (create method)', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       let pm = PermissionsManager.create(null, 'test', happn);
       test.expect(pm.type).to.be('test');
@@ -91,17 +91,17 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the defaults method', function(done) {
-    mockServices(function(e, happn) {
+  it('tests the defaults method', function (done) {
+    mockServices(function (e, happn) {
       if (e) return done(e);
       let pm = new PermissionsManager(null, 'test', happn);
       let config = pm.defaults();
       test.expect(config).to.eql({
         __cache_permissions: {
           max: 10000,
-          maxAge: 0
+          maxAge: 0,
         },
-        __userPermissionsPrefix: '_USER/'
+        __userPermissionsPrefix: '_USER/',
       });
       let newConfig = pm.defaults(config);
       test.expect(config).to.eql(newConfig);
@@ -110,23 +110,23 @@ describe(test.testName(__filename, 3), function() {
       let config1 = {
         __cache_permissions: {
           max: 20,
-          maxAge: 20
-        }
+          maxAge: 20,
+        },
       };
       test.expect(pm.defaults(config1)).to.eql({ ...config, ...config1 });
 
       let config2 = {
-        __userPermissionsPrefix: 'RANDOM'
+        __userPermissionsPrefix: 'RANDOM',
       };
       test.expect(pm.defaults(config2)).to.eql({ ...config, ...config2 });
 
       let config3 = {
         __cache_permissions: {
           max: 20,
-          maxAge: 20
+          maxAge: 20,
         },
         __userPermissionsPrefix: 'RANDOM',
-        some: { other: 'stuff' }
+        some: { other: 'stuff' },
       };
       test.expect(pm.defaults(config3)).to.eql(config3);
       test.expect(pm.defaults(config3)).not.to.be(config3);
@@ -134,7 +134,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the listPermissions method', function(done) {
+  it('tests the listPermissions method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -156,7 +156,7 @@ describe(test.testName(__filename, 3), function() {
         perms = await pm.listPermissions('testName');
         test.expect(perms).to.eql([
           { action: 'get', authorized: true, path: '/another/test/path' },
-          { action: 'set', authorized: true, path: '/some/test/path' }
+          { action: 'set', authorized: true, path: '/some/test/path' },
         ]);
         test.expect(await pm.cache.get('testName')).to.eql(perms);
         done();
@@ -166,7 +166,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the attachPermissions method', function(done) {
+  it('tests the attachPermissions method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -184,12 +184,12 @@ describe(test.testName(__filename, 3), function() {
           name: 'testName',
           permissions: {
             '/another/test/path': {
-              actions: ['get']
+              actions: ['get'],
             },
             '/some/test/path': {
-              actions: ['on', 'set']
-            }
-          }
+              actions: ['on', 'set'],
+            },
+          },
         });
         await removeTestPermissions(happn);
         pm.cache.remove('testName');
@@ -202,7 +202,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the __removePermission method', function(done) {
+  it('tests the __removePermission method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -221,12 +221,12 @@ describe(test.testName(__filename, 3), function() {
           name: 'testName',
           permissions: {
             '/another/test/path': {
-              actions: ['get']
+              actions: ['get'],
             },
             '/some/test/path': {
-              actions: ['set']
-            }
-          }
+              actions: ['set'],
+            },
+          },
         });
         done();
       } catch (e) {
@@ -235,7 +235,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the removePermission method', function(done) {
+  it('tests the removePermission method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -256,12 +256,12 @@ describe(test.testName(__filename, 3), function() {
           name: 'testName',
           permissions: {
             '/another/test/path': {
-              actions: ['get']
+              actions: ['get'],
             },
             '/some/test/path': {
-              actions: ['set']
-            }
-          }
+              actions: ['set'],
+            },
+          },
         });
 
         sinon.assert.calledOnce(securityService.dataChanged);
@@ -278,7 +278,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the __upsertPermission method', function(done) {
+  it('tests the __upsertPermission method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -298,9 +298,9 @@ describe(test.testName(__filename, 3), function() {
           name: 'testName',
           permissions: {
             '/some/test/path': {
-              actions: ['on']
-            }
-          }
+              actions: ['on'],
+            },
+          },
         });
         done();
       } catch (e) {
@@ -309,7 +309,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the upsertPermission method', function(done) {
+  it('tests the upsertPermission method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -331,16 +331,16 @@ describe(test.testName(__filename, 3), function() {
           name: 'testName',
           permissions: {
             '/some/test/path': {
-              actions: ['on']
-            }
-          }
+              actions: ['on'],
+            },
+          },
         });
         sinon.assert.calledOnce(securityService.dataChanged);
         sinon.assert.calledWith(securityService.dataChanged, 'permission-upserted', {
           testName: 'testName',
           path: '/some/test/path',
           action: 'on',
-          authorized: true
+          authorized: true,
         });
         done();
       } catch (e) {
@@ -349,7 +349,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the validatePermissions method, valid permissions', function(done) {
+  it('tests the validatePermissions method, valid permissions', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -358,7 +358,7 @@ describe(test.testName(__filename, 3), function() {
         let validPermissions = {
           '/path1': { actions: ['set', 'get', 'on'] },
           '/path2': { prohibit: ['delete', 'post', 'options'] },
-          '/path3': { actions: ['set', 'get', 'on'], prohibit: ['delete', 'post', 'options'] }
+          '/path3': { actions: ['set', 'get', 'on'], prohibit: ['delete', 'post', 'options'] },
         };
         test.expect(pm.validatePermissions(validPermissions)).to.be(true);
         done();
@@ -368,7 +368,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the validatePermissions method, invalid permissions', function(done) {
+  it('tests the validatePermissions method, invalid permissions', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -394,7 +394,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the upsertMultiplePermissions method', function(done) {
+  it('tests the upsertMultiplePermissions method', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
@@ -403,7 +403,7 @@ describe(test.testName(__filename, 3), function() {
         let validPermissions = {
           '/path1': { actions: ['set', 'get', 'on'] },
           '/path2': { prohibit: ['delete', 'post', 'options'] },
-          '/path3': { actions: ['set', 'get', 'on'], prohibit: ['delete', 'post', 'options'] }
+          '/path3': { actions: ['set', 'get', 'on'], prohibit: ['delete', 'post', 'options'] },
         };
         await pm.upsertMultiplePermissions('testName', validPermissions);
         let permissionList = await pm.listPermissions('testName');
@@ -419,7 +419,7 @@ describe(test.testName(__filename, 3), function() {
           { action: 'post', authorized: false, path: '/path2' },
           { action: 'post', authorized: false, path: '/path3' },
           { action: 'set', authorized: true, path: '/path1' },
-          { action: 'set', authorized: true, path: '/path3' }
+          { action: 'set', authorized: true, path: '/path3' },
         ]);
         done();
       } catch (e) {
@@ -428,14 +428,14 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the upsertMultiplePermissions method, removing permissions', function(done) {
+  it('tests the upsertMultiplePermissions method, removing permissions', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
         let pm = new PermissionsManager(null, 'test', happn);
         let validPermissions = {
           '/path1': { actions: ['set', 'get', 'on'] },
-          '/path2': { prohibit: ['delete', 'post'] }
+          '/path2': { prohibit: ['delete', 'post'] },
         };
         await pm.upsertMultiplePermissions('testName', validPermissions);
         let permissionList = await pm.listPermissions('testName');
@@ -444,18 +444,18 @@ describe(test.testName(__filename, 3), function() {
           { action: 'get', authorized: true, path: '/path1' },
           { action: 'on', authorized: true, path: '/path1' },
           { action: 'post', authorized: false, path: '/path2' },
-          { action: 'set', authorized: true, path: '/path1' }
+          { action: 'set', authorized: true, path: '/path1' },
         ]);
         let removePermissions = {
           '/path1': { remove: true, actions: ['set', 'get'] },
-          '/path2': { remove: true, actions: ['delete'] } //Should not remove anything as this is a prohibition, not a permission
+          '/path2': { remove: true, actions: ['delete'] }, //Should not remove anything as this is a prohibition, not a permission
         };
         await pm.upsertMultiplePermissions('testName', removePermissions);
         permissionList = await pm.listPermissions('testName');
         test.expect(permissionList).to.eql([
           { action: 'delete', authorized: false, path: '/path2' }, //Still here
           { action: 'on', authorized: true, path: '/path1' },
-          { action: 'post', authorized: false, path: '/path2' }
+          { action: 'post', authorized: false, path: '/path2' },
         ]);
         done();
       } catch (e) {
@@ -464,14 +464,14 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the upsertMultiplePermissions method, removing prohibitions]', function(done) {
+  it('tests the upsertMultiplePermissions method, removing prohibitions]', function (done) {
     mockServices(async (e, happn) => {
       try {
         if (e) return done(e);
         let pm = new PermissionsManager(null, 'test', happn);
         let validPermissions = {
           '/path1': { actions: ['set', 'get', 'on'] },
-          '/path2': { prohibit: ['delete', 'post'] }
+          '/path2': { prohibit: ['delete', 'post'] },
         };
         await pm.upsertMultiplePermissions('testName', validPermissions);
         let permissionList = await pm.listPermissions('testName');
@@ -480,11 +480,11 @@ describe(test.testName(__filename, 3), function() {
           { action: 'get', authorized: true, path: '/path1' },
           { action: 'on', authorized: true, path: '/path1' },
           { action: 'post', authorized: false, path: '/path2' },
-          { action: 'set', authorized: true, path: '/path1' }
+          { action: 'set', authorized: true, path: '/path1' },
         ]);
         let removePermissions = {
           '/path1': { remove: true, prohibit: ['get'] }, //Should not remove anything as this is a permission, not a prohibition
-          '/path2': { remove: true, prohibit: ['delete'] }
+          '/path2': { remove: true, prohibit: ['delete'] },
         };
         await pm.upsertMultiplePermissions('testName', removePermissions);
         permissionList = await pm.listPermissions('testName');
@@ -492,7 +492,7 @@ describe(test.testName(__filename, 3), function() {
           { action: 'get', authorized: true, path: '/path1' }, //Still here
           { action: 'on', authorized: true, path: '/path1' },
           { action: 'post', authorized: false, path: '/path2' },
-          { action: 'set', authorized: true, path: '/path1' }
+          { action: 'set', authorized: true, path: '/path1' },
         ]);
         done();
       } catch (e) {
@@ -501,7 +501,7 @@ describe(test.testName(__filename, 3), function() {
     });
   });
 
-  it('tests the removeAllUserPermissions method', function(done) {
+  it('tests the removeAllUserPermissions method', function (done) {
     mockServices(async (_e, happn) => {
       let pm = new PermissionsManager(null, 'test', happn);
       pm.type = 'user';
@@ -509,7 +509,7 @@ describe(test.testName(__filename, 3), function() {
         await pm.removeAllUserPermissions();
       } catch (e) {
         test.expect(e.message).to.be('please supply a username');
-        pm.dataService.remove = path => {
+        pm.dataService.remove = (path) => {
           test.expect(path).to.be('/_SYSTEM/_SECURITY/_PERMISSIONS/_USER/test/*');
           done();
         };

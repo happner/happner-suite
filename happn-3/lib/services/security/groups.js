@@ -44,18 +44,18 @@ function initialize(config, securityService, callback) {
   if (!config.__cache_groups)
     config.__cache_groups = {
       max: 5000,
-      maxAge: 0
+      maxAge: 0,
     };
 
   if (!config.__cache_permissions)
     config.__cache_permissions = {
       max: 10000,
-      maxAge: 0
+      maxAge: 0,
     };
 
   _this.__cache_groups = _this.cacheService.new('cache_security_groups', {
     type: 'LRU',
-    cache: config.__cache_groups
+    cache: config.__cache_groups,
   });
 
   if (config.persistPermissions !== false) return callback();
@@ -67,12 +67,12 @@ function initialize(config, securityService, callback) {
       name: 'volatile_permissions',
       provider: 'memory',
       settings: {},
-      patterns: ['/_SYSTEM/_SECURITY/_PERMISSIONS/*']
+      patterns: ['/_SYSTEM/_SECURITY/_PERMISSIONS/*'],
     },
-    e => {
+    (e) => {
       if (e) return callback(e);
       _this.dataService.addDataProviderPatterns('/_SYSTEM/_SECURITY/_GROUP', [
-        '/_SYSTEM/_SECURITY/_PERMISSIONS/_*'
+        '/_SYSTEM/_SECURITY/_PERMISSIONS/_*',
       ]);
       callback();
     }
@@ -227,7 +227,7 @@ function upsertGroup(group, options, callback) {
   if (typeof group !== 'object' || group == null)
     return callback(new Error('group is null or not an object'));
 
-  this.__validate('group', options, group, async e => {
+  this.__validate('group', options, group, async (e) => {
     if (e) return callback(e);
     try {
       let upserted = await this.__upsertGroup(group, options);
@@ -276,7 +276,7 @@ function deleteGroup(group, options, callback) {
               removed: groupDeleteResults.data.removed,
               obj: group,
               links: userGroupDeleteResults,
-              permissions: permissionsDeleteResults
+              permissions: permissionsDeleteResults,
             };
 
             this.securityService.dataChanged(
@@ -312,13 +312,13 @@ function listGroups(groupName, options, callback) {
   if (!options.criteria) options.criteria = {};
   if (!options.sort)
     options.sort = {
-      path: 1
+      path: 1,
     };
 
   let searchParameters = {
     criteria: options.criteria,
     sort: options.sort,
-    options: {}
+    options: {},
   };
 
   if (options.limit) searchParameters.options.limit = options.limit;
@@ -364,8 +364,8 @@ function getGroup(groupName, options, callback) {
     '/_SYSTEM/_SECURITY/_GROUP/' + groupName,
     {
       sort: {
-        path: 1
-      }
+        path: 1,
+      },
     },
     (e, result) => {
       if (e) return callback(e);
@@ -375,7 +375,7 @@ function getGroup(groupName, options, callback) {
 
       this.permissionManager
         .attachPermissions(group)
-        .then(attached => {
+        .then((attached) => {
           this.__cache_groups.setSync(groupName, attached, { clone: false });
           callback(null, attached);
         })
@@ -390,7 +390,7 @@ function linkGroup(group, user, options, callback) {
     options = {};
   }
 
-  this.__validate('user-group', [group, user], options, e => {
+  this.__validate('user-group', [group, user], options, (e) => {
     if (e) return callback(e);
 
     this.dataService.upsert(
@@ -417,7 +417,7 @@ function linkGroup(group, user, options, callback) {
 function unlinkGroup(group, user, options, callback) {
   if (typeof options === 'function') callback = options;
 
-  this.__validate('user-group', [group, user], null, e => {
+  this.__validate('user-group', [group, user], null, (e) => {
     if (e) return callback(e);
 
     var groupLinkPath = '/_SYSTEM/_SECURITY/_USER/' + user.username + '/_USER_GROUP/' + group.name;
@@ -440,7 +440,7 @@ function unlinkGroup(group, user, options, callback) {
 function __attachPermissionsAll(groups) {
   var promises = [];
 
-  groups.forEach(group => {
+  groups.forEach((group) => {
     promises.push(this.permissionManager.attachPermissions(group));
   });
 

@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function() {
+describe(test.testName(__filename, 3), function () {
   let happnInstance = null;
   this.timeout(20000);
 
@@ -8,7 +8,7 @@ describe(test.testName(__filename, 3), function() {
     happnInstance = await test.server.createServer({ secure: true });
   });
 
-  after(function(done) {
+  after(function (done) {
     happnInstance.stop(done);
   });
 
@@ -17,7 +17,7 @@ describe(test.testName(__filename, 3), function() {
     const user = await test.security.upsertUser(
       {
         username: 'TEST',
-        password: 'TEST'
+        password: 'TEST',
       },
       happnInstance
     );
@@ -25,15 +25,15 @@ describe(test.testName(__filename, 3), function() {
       {
         name: 'TEST',
         permissions: {
-          '/test/path': { actions: ['*'] }
-        }
+          '/test/path': { actions: ['*'] },
+        },
       },
       happnInstance
     );
     await test.security.linkGroup(group, user, happnInstance);
     const client = await test.security.createClient({
       username: 'TEST',
-      password: 'TEST'
+      password: 'TEST',
     });
     await client.on('/test/path', () => {
       //do nothing

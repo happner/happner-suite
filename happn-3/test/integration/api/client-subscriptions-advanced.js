@@ -1,15 +1,15 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe(test.testName(3), function() {
+describe(test.testName(3), function () {
   const happn = require('../../../lib/index');
   const service = happn.service;
   const happn_client = happn.client;
   var happnInstance = null;
   this.timeout(60000);
 
-  before('should initialize the service', function(callback) {
+  before('should initialize the service', function (callback) {
     try {
-      service.create(function(e, happnInst) {
+      service.create(function (e, happnInst) {
         if (e) return callback(e);
         happnInstance = happnInst;
         callback();
@@ -19,21 +19,21 @@ describe(test.testName(3), function() {
     }
   });
 
-  after(function(done) {
+  after(function (done) {
     this.timeout(20000);
 
     publisherclient.disconnect(
       {
-        timeout: 2000
+        timeout: 2000,
       },
-      function(e) {
+      function (e) {
         //eslint-disable-next-line no-console
         if (e) console.warn('failed disconnecting publisher client');
         listenerclient.disconnect(
           {
-            timeout: 2000
+            timeout: 2000,
           },
-          function(e) {
+          function (e) {
             //eslint-disable-next-line no-console
             if (e) console.warn('failed disconnecting listener client');
             happnInstance.stop(done);
@@ -50,13 +50,13 @@ describe(test.testName(3), function() {
      We are initializing 2 clients to test saving data against the database, one client will push data into the
      database whilst another listens for changes.
      */
-  before('should initialize the clients', function(callback) {
+  before('should initialize the clients', function (callback) {
     try {
-      happn_client.create(function(e, instance) {
+      happn_client.create(function (e, instance) {
         if (e) return callback(e);
         publisherclient = instance;
 
-        happn_client.create(function(e, instance) {
+        happn_client.create(function (e, instance) {
           if (e) return callback(e);
           listenerclient = instance;
           callback();
@@ -69,19 +69,19 @@ describe(test.testName(3), function() {
 
   it('can support concurrent subscriptions without counts', async () => {
     const updates = [];
-    const sub1 = await listenerclient.on('/some/path/three', data =>
+    const sub1 = await listenerclient.on('/some/path/three', (data) =>
       updates.push({ name: 'sub1', data: data })
     );
     await publisherclient.set('/some/path/three', { key: 'VAL' });
-    const sub2 = await listenerclient.on('/some/path/three', data =>
+    const sub2 = await listenerclient.on('/some/path/three', (data) =>
       updates.push({ name: 'sub2', data: data })
     );
     await publisherclient.set('/some/path/three', { key: 'VAL-2' });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     test.expect(updates).eql([
       { name: 'sub1', data: { key: 'VAL' } },
       { name: 'sub1', data: { key: 'VAL-2' } },
-      { name: 'sub2', data: { key: 'VAL-2' } }
+      { name: 'sub2', data: { key: 'VAL-2' } },
     ]);
     await listenerclient.off(sub1);
     await listenerclient.off(sub2);
@@ -89,42 +89,42 @@ describe(test.testName(3), function() {
 
   it('can support concurrent subscriptions with same expire counts expiry', async () => {
     const updates = [];
-    await listenerclient.on('/some/path/three', { count: 1 }, data =>
+    await listenerclient.on('/some/path/three', { count: 1 }, (data) =>
       updates.push({ name: 'sub1', data: data })
     );
     await publisherclient.set('/some/path/three', { key: 'VAL' });
-    await listenerclient.on('/some/path/three', { count: 1 }, data =>
+    await listenerclient.on('/some/path/three', { count: 1 }, (data) =>
       updates.push({ name: 'sub2', data: data })
     );
     await publisherclient.set('/some/path/three', { key: 'VAL-2' });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     test.expect(updates).eql([
       { name: 'sub1', data: { key: 'VAL' } },
-      { name: 'sub2', data: { key: 'VAL-2' } }
+      { name: 'sub2', data: { key: 'VAL-2' } },
     ]);
   });
 
   it('can support concurrent subscriptions with differing expire counts', async () => {
     const updates = [];
-    const handle1 = await listenerclient.on('/some/path/three', { count: 2 }, data =>
+    const handle1 = await listenerclient.on('/some/path/three', { count: 2 }, (data) =>
       updates.push({ name: 'sub1', data: data })
     );
     await publisherclient.set('/some/path/three', { key: 'VAL' });
-    const handle2 = await listenerclient.on('/some/path/three', { count: 1 }, data =>
+    const handle2 = await listenerclient.on('/some/path/three', { count: 1 }, (data) =>
       updates.push({ name: 'sub2', data: data })
     );
     test.expect(handle1).to.be.a('number');
     test.expect(handle2).to.be.a('number');
 
     await publisherclient.set('/some/path/three', { key: 'VAL-2' });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     test.expect(updates).eql([
       { name: 'sub1', data: { key: 'VAL' } },
       { name: 'sub1', data: { key: 'VAL-2' } },
-      { name: 'sub2', data: { key: 'VAL-2' } }
+      { name: 'sub2', data: { key: 'VAL-2' } },
     ]);
 
-    const handle3 = await listenerclient.on('/some/path/four', { count: 2 }, data =>
+    const handle3 = await listenerclient.on('/some/path/four', { count: 2 }, (data) =>
       updates.push({ name: 'sub1', data: data })
     );
 
@@ -135,13 +135,13 @@ describe(test.testName(3), function() {
 
   it('once convenience method', async () => {
     const updates = [];
-    const handle1 = await listenerclient.once('/some/path/five', { count: 2 }, data =>
+    const handle1 = await listenerclient.once('/some/path/five', { count: 2 }, (data) =>
       updates.push({ name: 'sub1', data: data })
     );
-    const handle2 = await listenerclient.once('/some/path/five', { count: 1 }, data =>
+    const handle2 = await listenerclient.once('/some/path/five', { count: 1 }, (data) =>
       updates.push({ name: 'sub2', data: data })
     );
-    const handle3 = await listenerclient.once('/some/path/five', data =>
+    const handle3 = await listenerclient.once('/some/path/five', (data) =>
       updates.push({ name: 'sub3', data: data })
     );
     test.expect(handle1).to.be.a('number');
@@ -155,12 +155,12 @@ describe(test.testName(3), function() {
     test.expect(updates).eql([
       { name: 'sub1', data: { key: 'VAL-2' } },
       { name: 'sub2', data: { key: 'VAL-2' } },
-      { name: 'sub3', data: { key: 'VAL-2' } }
+      { name: 'sub3', data: { key: 'VAL-2' } },
     ]);
     test.expect(listenerclient.state.events['/ALL@/some/path/five']).to.be.empty;
 
     // eslint-disable-next-line no-unused-vars
-    const handle4 = await listenerclient.once('/some/path/five', data => {
+    const handle4 = await listenerclient.once('/some/path/five', (data) => {
       updates.push({ name: 'sub4', data: data });
     });
 
@@ -170,7 +170,7 @@ describe(test.testName(3), function() {
 
     updates.splice(0, updates.length);
 
-    await listenerclient.once('/some/path/five', { event_type: 'remove' }, data => {
+    await listenerclient.once('/some/path/five', { event_type: 'remove' }, (data) => {
       updates.push({ name: 'sub5', data: data });
     });
     await publisherclient.set('/some/path/five', { key: 'VAL-2' });
@@ -185,21 +185,25 @@ describe(test.testName(3), function() {
 
   it('onAll and offAll convenience methods', async () => {
     const updates = [];
-    const handle1 = await listenerclient.onAll(data => updates.push({ name: 'sub1', data: data }));
-    const handle2 = await listenerclient.onAll(data => updates.push({ name: 'sub2', data: data }));
+    const handle1 = await listenerclient.onAll((data) =>
+      updates.push({ name: 'sub1', data: data })
+    );
+    const handle2 = await listenerclient.onAll((data) =>
+      updates.push({ name: 'sub2', data: data })
+    );
     test.expect(listenerclient.state.events['/ALL@*']).to.not.be.empty;
     await listenerclient.off(handle1);
     test.expect(listenerclient.state.events['/ALL@*']).to.not.be.empty;
     await listenerclient.off(handle2);
     test.expect(listenerclient.state.events['/ALL@*']).to.be.empty;
 
-    await listenerclient.onAll(data => updates.push({ name: 'sub3', data: data }));
-    await listenerclient.onAll(data => updates.push({ name: 'sub4', data: data }));
+    await listenerclient.onAll((data) => updates.push({ name: 'sub3', data: data }));
+    await listenerclient.onAll((data) => updates.push({ name: 'sub4', data: data }));
     await publisherclient.set('/some/path/six', { key: 'VAL-2' });
     await test.delay(1000);
     test.expect(updates).eql([
       { name: 'sub3', data: { key: 'VAL-2' } },
-      { name: 'sub4', data: { key: 'VAL-2' } }
+      { name: 'sub4', data: { key: 'VAL-2' } },
     ]);
     test.expect(listenerclient.state.events['/ALL@*']).to.not.be.empty;
     await listenerclient.offAll();

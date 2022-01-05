@@ -1,6 +1,6 @@
 const constants = require('happn-commons').constants;
 const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(), function() {
+describe(test.testName(), function () {
   this.timeout(20000);
   var expect = require('chai').expect;
   var happnInstance = null;
@@ -15,8 +15,8 @@ describe(test.testName(), function() {
 
   var client;
 
-  before('should initialize the clients', function(callback) {
-    happnInstance.services.session.localClient(function(e, instance) {
+  before('should initialize the clients', function (callback) {
+    happnInstance.services.session.localClient(function (e, instance) {
       if (e) return callback(e);
       client = instance;
       callback();
@@ -27,7 +27,7 @@ describe(test.testName(), function() {
   const READ_MULTIPLIER = 2;
   const WRITE_MULTIPLIER = 15;
 
-  it(`reading after ${ITEM_COUNT} entries takes only ${READ_MULTIPLIER} times as long as 10 entries and writing takes only ${WRITE_MULTIPLIER} times as long as 10 entries`, async function() {
+  it(`reading after ${ITEM_COUNT} entries takes only ${READ_MULTIPLIER} times as long as 10 entries and writing takes only ${WRITE_MULTIPLIER} times as long as 10 entries`, async function () {
     const itemCountFirstCheck = 10;
     const itemCount = 10000;
 
@@ -41,7 +41,7 @@ describe(test.testName(), function() {
     var test_string = `${test.shortid()}/`;
     var test_base_url = `${test.shortid()}/`;
 
-    await test.async.timesSeries(itemCountFirstCheck, async n => {
+    await test.async.timesSeries(itemCountFirstCheck, async (n) => {
       await setItem(test_base_url + n, test_string + n);
     });
 
@@ -53,7 +53,7 @@ describe(test.testName(), function() {
     expect((await getItem(test_base_url)).value).to.eql(test_string);
     timeFirstGet = Number(process.hrtime.bigint() - timeStart) / 1e6;
 
-    await test.async.timesSeries(itemCount, async n => {
+    await test.async.timesSeries(itemCount, async (n) => {
       await setItem(test_base_url + (n + itemCountFirstCheck), test_string + n, true);
     });
 
@@ -64,7 +64,7 @@ describe(test.testName(), function() {
     test.log(`timeFirstSet: ${timeFirstSet}`);
     expect(timeLastSet).to.be.lt(timeFirstSet * writeMultiplier);
 
-    await test.async.timesSeries(itemCount, async n => {
+    await test.async.timesSeries(itemCount, async (n) => {
       timeStart = process.hrtime.bigint();
       expect((await getItem(test_base_url + (n + itemCountFirstCheck))).value).to.eql(
         test_string + n
@@ -83,7 +83,7 @@ describe(test.testName(), function() {
         noPublish: true,
         upsertType: insert
           ? constants.DATA_OPERATION_TYPES.INSERT
-          : constants.DATA_OPERATION_TYPES.UPSERT
+          : constants.DATA_OPERATION_TYPES.UPSERT,
       });
     }
 
