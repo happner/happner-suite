@@ -1,3 +1,4 @@
+const sinon = require('sinon');
 const DataService = require('../../../lib/services/data/service');
 const CacheService = require('../../../lib/services/cache/service');
 
@@ -9,11 +10,11 @@ const fs = require('fs');
 const UtilsService = require('../../../lib/services/utils/service');
 
 describe(test.testName(__filename, 3), function () {
-  const sinon = test.sinon;
   var Logger = require('happn-logger');
   let mockErrorService;
   let dbPath = path.resolve(__dirname, '../../__fixtures/test/test_lookup_db');
   let lookupTables;
+  let getUserReturns = {};
 
   before('01. Sets up errorService', (done) => {
     const ErrorService = require('../../../lib/services/error/service');
@@ -31,7 +32,7 @@ describe(test.testName(__filename, 3), function () {
       error: mockErrorService,
       log: Logger,
       utils: new UtilsService(),
-      security: { dataChanged: () => {} },
+      security: { dataChanged: () => {}, users: { getUser: () => getUserReturns } },
     },
   };
 
@@ -540,7 +541,7 @@ describe(test.testName(__filename, 3), function () {
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission1);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');
-    test.expect(stored.sort()).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
+    test.expect(stored).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission2);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');
@@ -739,6 +740,10 @@ describe(test.testName(__filename, 3), function () {
     await lookupTables.upsertLookupPermission('testGroup6', permission1);
     await lookupTables.upsertLookupPermission('testGroup7', permission2);
     await lookupTables.upsertLookupPermission('testGroup8', permission3);
+
+    /**
+     * !! Using session.user.groups to view groups
+     */
     let session = {
       user: {
         name: 'bob',
@@ -746,6 +751,21 @@ describe(test.testName(__filename, 3), function () {
         groups: { testGroup6: {}, testGroup7: {}, testGroup8: {} },
       },
     };
+    test
+      .expect(await lookupTables.authorize(session, '/_data/historianStore/notDeviceA', 'on'))
+      .to.be(false);
+    test
+      .expect(await lookupTables.authorize(session, '/_data/historianStore/deviceA', 'on'))
+      .to.be(true);
+
+    /**
+     * !! Using securityService.users.getUser to view groups
+     */
+    session = {
+      username: 'bob',
+    };
+    getUserReturns.groups = { testGroup6: {}, testGroup7: {}, testGroup8: {} };
+    getUserReturns.company = 'tenacious';
     test
       .expect(await lookupTables.authorize(session, '/_data/historianStore/notDeviceA', 'on'))
       .to.be(false);

@@ -1,5 +1,5 @@
 {
-  "name": "happn-suite",
+  "name": "happner-suite",
   "version": "1.0.0",
   "workspaces": [
     "happn-3",
