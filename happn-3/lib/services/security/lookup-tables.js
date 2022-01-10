@@ -29,7 +29,7 @@ module.exports = class LookupTables {
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_TABLE_CHANGED,
       {
         groups: affectedGroups,
-        table: table.name,
+        table: table.name
       },
       null
     );
@@ -45,7 +45,7 @@ module.exports = class LookupTables {
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_TABLE_CHANGED,
       {
         groups: affectedGroups,
-        table: name,
+        table: name
       },
       null
     );
@@ -54,7 +54,7 @@ module.exports = class LookupTables {
   async insertPath(tableName, path, callDataChanged = true) {
     path = this.stripLeadingSlashes(path);
     await this.dataService.upsert(`/_SYSTEM/_SECURITY/_LOOKUP/${tableName}/${path}`, {
-      authorized: true,
+      authorized: true
     });
     if (callDataChanged) {
       let affectedGroups = await this.__getGroupsByTable(tableName);
@@ -62,7 +62,7 @@ module.exports = class LookupTables {
         CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_TABLE_CHANGED,
         {
           groups: affectedGroups,
-          table: tableName,
+          table: tableName
         },
         null
       );
@@ -78,7 +78,7 @@ module.exports = class LookupTables {
         CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_TABLE_CHANGED,
         {
           groups: affectedGroups,
-          table: tableName,
+          table: tableName
         },
         null
       );
@@ -88,15 +88,15 @@ module.exports = class LookupTables {
   async __getGroupsByTable(tableName) {
     let lookupPath = `/_SYSTEM/_SECURITY/_PERMISSIONS/_LOOKUP/${tableName}/*`;
     let storedGroups = await this.dataService.get(lookupPath);
-    let groups = storedGroups.map((data) => data._meta.path.split('/').pop());
+    let groups = storedGroups.map(data => data._meta.path.split('/').pop());
     return groups;
   }
 
   async fetchLookupTable(name) {
     let tablePaths = await this.dataService.get(`/_SYSTEM/_SECURITY/_LOOKUP/${name}/*`);
     let paths = tablePaths
-      .filter((tp) => tp.data.authorized)
-      .map((tp) => this.__extractPath(tp._meta.path, name));
+      .filter(tp => tp.data.authorized)
+      .map(tp => this.__extractPath(tp._meta.path, name));
     return { name, paths };
   }
 
@@ -109,7 +109,7 @@ module.exports = class LookupTables {
 
   async upsertLookupPermission(groupName, permission) {
     let storedPermissions = await this.fetchLookupPermissions(groupName);
-    if (storedPermissions.find((current) => _.isEqual(current, permission))) return; //permission already stored
+    if (storedPermissions.find(current => _.isEqual(current, permission))) return; //permission already stored
 
     storedPermissions.push(permission);
     await this.__storePermissions(groupName, storedPermissions, permission.table);
@@ -117,14 +117,14 @@ module.exports = class LookupTables {
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.LOOKUP_PERMISSION_CHANGED,
       {
         group: groupName,
-        table: permission.table,
+        table: permission.table
       },
       null
     );
   }
 
   async __storePermissions(groupName, permissions, tableName) {
-    let relevantPermissions = permissions.filter((perm) => perm.table === tableName);
+    let relevantPermissions = permissions.filter(perm => perm.table === tableName);
     let dataPathGxT = `/_SYSTEM/_SECURITY/_PERMISSIONS/_LOOKUP/${tableName}/${groupName}`;
     let dataPathTxG = `/_SYSTEM/_SECURITY/_PERMISSIONS/_LOOKUP/${groupName}/${tableName}`;
     if (relevantPermissions.length === 0) {
@@ -133,7 +133,7 @@ module.exports = class LookupTables {
     } else {
       await this.dataService.upsert(dataPathGxT, {});
       return this.dataService.upsert(dataPathTxG, {
-        permissions: relevantPermissions,
+        permissions: relevantPermissions
       });
     }
   }
@@ -149,7 +149,7 @@ module.exports = class LookupTables {
 
   async removeLookupPermission(groupName, permission) {
     let storedPermissions = await this.fetchLookupPermissions(groupName);
-    let index = storedPermissions.findIndex((current) => _.isEqual(current, permission));
+    let index = storedPermissions.findIndex(current => _.isEqual(current, permission));
     if (index > -1) {
       storedPermissions.splice(index, 1);
       return this.__storePermissions(groupName, storedPermissions, permission.table);
@@ -158,7 +158,7 @@ module.exports = class LookupTables {
 
   async removeAllTablePermission(groupName, tableName) {
     let storedPermissions = await this.fetchLookupPermissions(groupName);
-    storedPermissions = storedPermissions.filter((permission) => permission.table !== tableName);
+    storedPermissions = storedPermissions.filter(permission => permission.table !== tableName);
     return this.__storePermissions(groupName, storedPermissions, tableName);
   }
 
@@ -166,7 +166,6 @@ module.exports = class LookupTables {
     if (!session.user) {
       session.user = await this.securityService.users.getUser(session.username);
       session.user.name = session.username;
-      delete session.username;
     }
     let groups = Object.keys(session.user.groups);
     let authorized = false;
@@ -197,12 +196,12 @@ module.exports = class LookupTables {
     let matches = path.match(permission.regex);
     if (!matches) return false;
 
-    let permissionPaths = this.__buildPermissionPaths(session, permission.path, matches).map(
-      (path) => this.stripLeadingSlashes(path)
+    let permissionPaths = this.__buildPermissionPaths(session, permission.path, matches).map(path =>
+      this.stripLeadingSlashes(path)
     );
     let lookupPaths = (await this.fetchLookupTable(permission.table)).paths;
-    return permissionPaths.some((permPath) =>
-      lookupPaths.some((luPath) => this.wildcardMatch(permPath, luPath))
+    return permissionPaths.some(permPath =>
+      lookupPaths.some(luPath => this.wildcardMatch(permPath, luPath))
     );
   }
 
@@ -221,7 +220,7 @@ module.exports = class LookupTables {
 
       templates = templates.reduce(
         (temps, current) =>
-          temps.concat(values.map((val) => this.utils.replaceAll(current, templateMatch[0], val))),
+          temps.concat(values.map(val => this.utils.replaceAll(current, templateMatch[0], val))),
         []
       );
 

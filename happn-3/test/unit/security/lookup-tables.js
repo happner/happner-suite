@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const UtilsService = require('../../../lib/services/utils/service');
 
-describe(test.testName(__filename, 3), function () {
+describe.only(test.testName(__filename, 3), function () {
   var Logger = require('happn-logger');
   let mockErrorService;
   let dbPath = path.resolve(__dirname, '../../__fixtures/test/test_lookup_db');
@@ -541,7 +541,7 @@ describe(test.testName(__filename, 3), function () {
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission1);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');
-    test.expect(stored).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
+    test.expect(stored.sort()).to.eql(['GxTRemoveGroup1', 'GxTRemoveGroup2']);
 
     await lookupTables.removeLookupPermission('GxTRemoveGroup1', permission2);
     stored = await lookupTables.__getGroupsByTable('GxTRemoveTable1');
