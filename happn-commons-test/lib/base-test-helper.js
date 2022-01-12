@@ -128,6 +128,10 @@ class TestHelper {
     randomInt = function(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
+
+	compressedUUID() {
+		return this.commons.uuid.v4().replace(/\-/g, '');
+	}
 }
 
 module.exports = TestHelper;

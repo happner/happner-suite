@@ -1,0 +1,32 @@
+{
+  "name": "happn-db-provider-elastic",
+  "version": "1.0.0",
+  "private": false,
+  "scripts": {
+    "coverage": "npm run test-cover && npm run report",
+    "coveralls": "npm run test-cover && nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint '**/*.js'",
+    "lint-fix": "eslint '**/*.js' --fix",
+    "report": "nyc report --reporter=text --reporter=lcov --reporter=text-summary && nyc report --reporter=text --reporter=text-summary > coverage.txt",
+    "test": "mocha",
+    "test-cover": "env LOG_LEVEL=off nyc --reporter=none mocha",
+    "test-perf": "mocha test/perf.js"
+  },
+  "dependencies": {
+    "happn-commons": "^1.0.0",
+    "agentkeepalive": "^3.3.0",
+    "bluebird": "2.10.2",
+    "elasticsearch": "13.2.0",
+    "extract-values": "^0.1.2",
+    "happn-logger": "^1.1.1",
+    "micromustache": "^5.2.0",
+    "redis-lru-cache": "0.1.0",
+    "sift": "3.2.6",
+    "traverse": "0.6.6"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0",
+    "happn-3": "^13.0.0",
+    "json-from-schema": "1.10.0"
+  }
+}

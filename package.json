@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "workspaces": [
     "happn-3",
+    "happn-db-provider-elasticsearch",
     "happn-db-provider-loki",
     "happn-db-provider-mongo",
     "happn-db-provider-nedb",

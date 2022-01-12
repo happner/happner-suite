@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^3.2.2",
+    "custom-env": "^2.0.1",
     "fs-extra": "^10.0.0",
     "happn-sillyname": "^0.1.1",
     "happner-hyperid": "^2.0.0",

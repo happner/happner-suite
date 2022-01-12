@@ -29,7 +29,8 @@ module.exports = {
   UPSERT_TYPE: {
     UPSERT: 0,
     UPDATE: 1,
-    INSERT: 2
+    INSERT: 2,
+    BULK: 3
   },
   SYSTEM_HEALTH: {
     EXCELLENT: 0,
