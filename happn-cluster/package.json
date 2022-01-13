@@ -1,0 +1,51 @@
+{
+  "name": "happn-cluster",
+  "version": "12.0.0",
+  "description": "extends happn with cluster ability",
+  "main": "index.js",
+  "scripts": {
+    "test": "_mocha test/test-func/* test/test-unit/* --recursive --exit",
+    "test-unit": "mocha test/test-unit",
+    "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text-summary npm test",
+    "lint": "eslint '**/*.js'",
+    "lint-fix": "eslint '**/*.js' --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happner/happn-cluster.git"
+  },
+  "keywords": [
+    "mongo",
+    "primus",
+    "websockets",
+    "pub-sub",
+    "swim",
+    "cluster",
+    "happn"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/happner/happn-cluster/issues"
+  },
+  "homepage": "https://github.com/happner/happn-cluster#readme",
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0",
+    "capture-stdout": "^1.0.0",
+    "happn-random-activity-generator": "0.2.1",
+    "happner-serial-mocha": "1.3.0",
+    "ip": "^1.1.5",
+    "request": "^2.81.0"
+  },
+  "dependencies": {
+    "happn-commons": "^1.0.0",
+    "clone": "^1.0.2",
+    "dface": "1.0.1",
+    "happn-3": "^13.0.0",
+    "happn-db-provider-mongo": "^1.0.0",
+    "happn-stats": "^1.0.8",
+    "happn-swim": "^1.0.3",
+    "http-proxy": "1.15.2",
+    "mongodb": "^4.1.4"
+  }
+}

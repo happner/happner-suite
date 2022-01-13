@@ -13,6 +13,7 @@
     "happn-nedb",
     "happn-primus-wrapper",
     "happn-stats",
-    "happn-util-crypto"
+    "happn-util-crypto",
+    "happn-cluster"
   ]
 }
