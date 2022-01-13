@@ -13,6 +13,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   UPSERT_TYPE = commons.constants.UPSERT_TYPE;
   constructor(settings, logger) {
     super(settings, logger);
+    if (!this.settings.dataroutes) {
+      this.settings.dataroutes = [{
+        pattern: '*',
+        index: 'happner'
+      }];
+    }
     if (this.settings.cache) {
       if (this.settings.cache === true) this.settings.cache = {};
       if (!this.settings.cache.cacheId) this.settings.cache.cacheId = this.settings.name;
@@ -92,7 +98,13 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
   upsert(path, document, options, callback) {
     try {
-      if (!options) options = {};
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+      if (options == null) {
+        options = {};
+      }
       options.refresh = options.refresh ? options.refresh.toString() : 'true';
 
       if (options.upsertType === this.UPSERT_TYPE.BULK) {
@@ -427,6 +439,16 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   }
 
   find(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
+    if (parameters == null) {
+      parameters = {};
+    }
+    if (parameters.options == null) {
+      parameters.options = {};
+    }
     const _this = this;
 
     const searchPath = _this.preparePath(path);
@@ -487,17 +509,75 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       });
   }
 
-  findOne(criteria, fields, callback) {
+  count(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
+    if (parameters == null) {
+      parameters = {};
+    }
+    if (parameters.options == null) {
+      parameters.options = {};
+    }
     const _this = this;
 
-    // [start:{"key":"findOne", "self":"_this"}:start]
+    const searchPath = _this.preparePath(path);
+    const route = _this.__getRoute(searchPath);
 
+    if (route.noIndexYet) {
+      // [end:{"key":"find", "self":"_this"}:end]
+      return callback(null, []);
+    }
+    if (!parameters.criteria) parameters.criteria = {};
+    if (!parameters.criteria.path) parameters.criteria.path = route.path;
+
+    let searchString = '';
+    try {
+      searchString = mongoToElastic.convertCriteria(parameters.criteria);
+    } catch (e) {
+      callback(e);
+    }
+    const query = {
+      query: {
+        constant_score: {
+          filter: {
+            query_string: {
+              query: searchString
+            }
+          }
+        }
+      }
+    };
+
+    const elasticMessage = {
+      index: route.index,
+      type: route.type,
+      body: query
+    };
+
+    if (parameters.options) mongoToElastic.convertOptions(parameters.options, elasticMessage); // this is because the $not keyword works in nedb and sift, but not in elastic
+
+    _this
+      .__pushElasticMessage('count', elasticMessage)
+
+      .then(function(resp) {
+        callback(null, { data: { value: resp.count } });
+      })
+      .catch(e => {
+        callback(e);
+      });
+  }
+
+  findOne(criteria, fields, callback) {
+    if (typeof fields === 'function') {
+      callback = fields;
+      fields = null;
+    }
+    const _this = this;
     const path = criteria.path;
-
     delete criteria.path;
-
     _this.find(path, { options: fields, criteria: criteria }, function(e, results) {
-      // [end:{"key":"findOne", "self":"_this"}:end]
 
       if (e) return callback(e);
 
@@ -507,62 +587,67 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     });
   }
 
-  count(pathOrMessage, parametersOrCallBack, callback) {
-    const _this = this;
-    let countMessage = {};
+  // count(pathOrMessage, parameters, callback) {
+  //   if (typeof parameters === 'function') {
+  //     callback = parameters;
+  //     parameters = {};
+  //   }
+  //   if (parameters == null) {
+  //     parameters = {};
+  //   }
+  //   const _this = this;
+    
+  //   let countMessage = {};
 
-    if (typeof pathOrMessage === 'string') {
-      const searchPath = _this.preparePath(pathOrMessage);
-      const route = _this.__getRoute(searchPath);
-      countMessage = {
-        index: route.index,
-        type: route.type,
-        body: { query: {} }
-      };
-      countMessage;
+  //   if (typeof pathOrMessage === 'string') {
+  //     const searchPath = _this.preparePath(pathOrMessage);
+  //     const route = _this.__getRoute(searchPath);
+  //     countMessage = {
+  //       index: route.index,
+  //       type: route.type,
+  //       body: { query: {} }
+  //     };
+  //     countMessage;
 
-      if (searchPath.indexOf('*') > -1) {
-        countMessage.body.query = {
-          regexp: {
-            path: _this.escapeRegex(searchPath).replace(/\\\*/g, '.*')
-          }
-        };
-      } else {
-        countMessage.body.query = {
-          match: {
-            path: searchPath
-          }
-        };
-      }
-    } else {
-      countMessage = {
-        index: pathOrMessage.index,
-        type: pathOrMessage.type
-      };
-      if (pathOrMessage.id) {
-        countMessage.body = {
-          query: {
-            match: {
-              path: pathOrMessage.id
-            }
-          }
-        };
-      } else if (pathOrMessage.body) countMessage.body = pathOrMessage.body;
-    }
-    if (typeof parametersOrCallBack === 'function') {
-      callback = parametersOrCallBack;
-      parametersOrCallBack = {};
-    } else if (parametersOrCallBack.options)
-      mongoToElastic.convertOptions(parametersOrCallBack.options, countMessage);
+  //     if (searchPath.indexOf('*') > -1) {
+  //       countMessage.body.query = {
+  //         regexp: {
+  //           path: _this.escapeRegex(searchPath).replace(/\\\*/g, '.*')
+  //         }
+  //       };
+  //     } else {
+  //       countMessage.body.query = {
+  //         match: {
+  //           path: searchPath
+  //         }
+  //       };
+  //     }
+  //   } else {
+  //     countMessage = {
+  //       index: pathOrMessage.index,
+  //       type: pathOrMessage.type
+  //     };
+  //     if (pathOrMessage.id) {
+  //       countMessage.body = {
+  //         query: {
+  //           match: {
+  //             path: pathOrMessage.id
+  //           }
+  //         }
+  //       };
+  //     } else if (pathOrMessage.body) countMessage.body = pathOrMessage.body;
+  //   }
+  //   if (parameters.options) {
+  //     mongoToElastic.convertOptions(parametersOrCallBack.options, countMessage);
+  //   }
+  //   _this
+  //     .__pushElasticMessage('count', countMessage)
 
-    _this
-      .__pushElasticMessage('count', countMessage)
-
-      .then(function(response) {
-        callback(null, response.count);
-      })
-      .catch(callback);
-  }
+  //     .then(function(response) {
+  //       callback(null, response.count);
+  //     })
+  //     .catch(callback);
+  // }
 
   __partialTransformAll(dataItems) {
     const _this = this;

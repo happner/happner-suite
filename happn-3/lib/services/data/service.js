@@ -6,7 +6,7 @@ const traverse = require('traverse'),
   util = commons.utils,
   EventEmitter = require('events').EventEmitter,
   hyperid = commons.hyperid.create({
-    urlSafe: true
+    urlSafe: true,
   }),
   VersionUpdater = require('./versions/updater');
 
@@ -18,12 +18,12 @@ const META_FIELDS = [
   'modified',
   'timestamp',
   'createdBy',
-  'modifiedBy'
+  'modifiedBy',
 ];
 
-const PREFIXED_META_FIELDS = META_FIELDS.filter(function(metaField) {
+const PREFIXED_META_FIELDS = META_FIELDS.filter(function (metaField) {
   return metaField !== '_meta';
-}).map(function(metaField) {
+}).map(function (metaField) {
   if (metaField !== '_meta') return '_meta.' + metaField;
 });
 
@@ -80,7 +80,7 @@ function DataService(opts) {
   } else {
     Logger = require('happn-logger');
     Logger.configure({
-      logLevel: 'info'
+      logLevel: 'info',
     });
   }
 
@@ -105,8 +105,8 @@ function initialize(config, callback) {
       provider: 'happn-db-provider-loki',
       isDefault: true,
       settings: {
-        fsync: this.config.fsync === true
-      }
+        fsync: this.config.fsync === true,
+      },
     };
 
     if (this.config.dbfile) this.config.filename = this.config.dbfile;
@@ -152,12 +152,12 @@ function __updateDatabaseVersions() {
 
       versionUpdater.updateDB(
         analysis,
-        logs => {
+        (logs) => {
           this.log.warn(
             'database upgrade from ' + analysis.currentDBVersion + ' to ' + analysis.moduleDBVersion
           );
 
-          logs.forEach(log => {
+          logs.forEach((log) => {
             this.log.info(log.message);
           });
 
@@ -230,7 +230,7 @@ function get(path, parameters, callback) {
   if (parsedParameters.options.collation && !this.__providerHasFeature(provider, 'collation'))
     return callback(new Error(`collation feature not available for provider on path: ${path}`));
 
-  provider.find(path, parsedParameters, function(e, items) {
+  provider.find(path, parsedParameters, function (e, items) {
     if (e) {
       return callback(e);
     }
@@ -247,7 +247,7 @@ function get(path, parameters, callback) {
 
     if (parsedParameters.options.path_only) {
       return callback(e, {
-        paths: provider.transformAll(items)
+        paths: provider.transformAll(items),
       });
     }
 
@@ -258,9 +258,14 @@ function get(path, parameters, callback) {
 function processGet(message, callback) {
   return this.get(message.request.path, message.request.options, (e, response) => {
     if (e)
-      return this.errorService.handleSystem(e, 'DataService', CONSTANTS.ERROR_SEVERITY.HIGH, e => {
-        callback(e, message);
-      });
+      return this.errorService.handleSystem(
+        e,
+        'DataService',
+        CONSTANTS.ERROR_SEVERITY.HIGH,
+        (e) => {
+          callback(e, message);
+        }
+      );
     message.response = response;
     return callback(null, message);
   });
@@ -278,7 +283,7 @@ function count(path, parameters, callback) {
 
     var options = this.__getPullOptions(parameters);
 
-    provider.count(path, options, function(e, count) {
+    provider.count(path, options, function (e, count) {
       if (e) return callback(e);
       callback(null, count);
     });
@@ -290,9 +295,14 @@ function count(path, parameters, callback) {
 function processCount(message, callback) {
   return this.count(message.request.path, message.request.options, (e, response) => {
     if (e)
-      return this.errorService.handleSystem(e, 'DataService', CONSTANTS.ERROR_SEVERITY.HIGH, e => {
-        callback(e, message);
-      });
+      return this.errorService.handleSystem(
+        e,
+        'DataService',
+        CONSTANTS.ERROR_SEVERITY.HIGH,
+        (e) => {
+          callback(e, message);
+        }
+      );
     message.response = response;
     return callback(null, message);
   });
@@ -305,7 +315,7 @@ function processRemove(message, callback) {
         e,
         'DataService',
         CONSTANTS.ERROR_SEVERITY.HIGH,
-        function(e) {
+        function (e) {
           callback(e, message);
         }
       );
@@ -333,7 +343,7 @@ function processStore(message, callback) {
           e,
           'DataService',
           CONSTANTS.ERROR_SEVERITY.HIGH,
-          e => {
+          (e) => {
             callback(e);
           }
         );
@@ -359,7 +369,7 @@ function processSecureStore(message, callback) {
           e,
           'DataService',
           CONSTANTS.ERROR_SEVERITY.HIGH,
-          e => {
+          (e) => {
             callback(e);
           }
         );
@@ -382,7 +392,7 @@ function getOneByPath(path, fields, callback) {
   }
   this.db(path).findOne(
     {
-      path: path
+      path: path,
     },
     fields || {},
     (e, findresult) => {
@@ -407,7 +417,7 @@ function addDataStoreFilterSorted(pattern, dataStore) {
 
 function removeDataStoreFilterSorted(pattern) {
   delete this.dataroutes[pattern];
-  this.dataroutessorted = this.dataroutessorted.filter(patternFilter => {
+  this.dataroutessorted = this.dataroutessorted.filter((patternFilter) => {
     // eslint-disable-next-line eqeqeq
     return patternFilter != pattern;
   });
@@ -427,7 +437,7 @@ function removeDataStoreFilter(pattern) {
 function parseFields(fields) {
   var lastError;
 
-  traverse(fields).forEach(function(value) {
+  traverse(fields).forEach(function (value) {
     if (value != null) {
       if (value.bsonid) this.update(value.bsonid);
 
@@ -490,7 +500,7 @@ function filter(criteria, data, callback) {
 
 function transform(dataObj, meta) {
   var transformed = {
-    data: dataObj.data
+    data: dataObj.data,
   };
 
   if (!meta) {
@@ -507,7 +517,7 @@ function transform(dataObj, meta) {
 }
 
 function transformAll(items, fields) {
-  return items.map(item => {
+  return items.map((item) => {
     return this.transform(item, null, fields);
   });
 }
@@ -520,7 +530,7 @@ function formatSetData(path, data, options) {
     data == null
   ) {
     data = {
-      value: data
+      value: data,
     };
   }
   if (options && options.modifiedBy)
@@ -528,15 +538,15 @@ function formatSetData(path, data, options) {
       data: data,
       _meta: {
         path: path,
-        modifiedBy: options.modifiedBy
-      }
+        modifiedBy: options.modifiedBy,
+      },
     };
 
   return {
     data: data,
     _meta: {
-      path: path
-    }
+      path: path,
+    },
   };
 }
 
@@ -544,19 +554,24 @@ function __upsertInternal(path, setData, options, callback) {
   var provider = this.db(path);
 
   if (options.increment != null) {
-    if (typeof provider.increment !== 'function')
-      return callback(new Error('db provider does not have an increment function'));
+    if (!this.__providerHasFeature(provider, 'increment'))
+      return callback(new Error(`db provider does not have an increment function`));
     if (!setData.data || typeof setData.data.value !== 'string')
       return callback(new Error('invalid increment counter field name, must be a string'));
     if (isNaN(options.increment))
       return callback(new Error('increment option value must be a number'));
 
-    return provider.increment(path, setData.data.value, options.increment, function(e, gaugeValue) {
-      if (e) return callback(e);
-      setData.data.gauge = setData.data.value;
-      setData.data.value = gaugeValue;
-      callback(null, provider.transform(setData));
-    });
+    return provider.increment(
+      path,
+      setData.data.value,
+      options.increment,
+      function (e, gaugeValue) {
+        if (e) return callback(e);
+        setData.data.gauge = setData.data.value;
+        setData.data.value = gaugeValue;
+        callback(null, provider.transform(setData));
+      }
+    );
   }
 
   provider.upsert(path, setData, options, callback);
@@ -564,7 +579,7 @@ function __upsertInternal(path, setData, options, callback) {
 
 function remove(path, options, callback) {
   if (typeof options === 'function') callback = options;
-  this.db(path).remove(path, function(e, removed) {
+  this.db(path).remove(path, function (e, removed) {
     if (e) return callback(new Error('error removing item on path ' + path, e));
     callback(null, removed);
   });
@@ -573,7 +588,7 @@ function remove(path, options, callback) {
 function stop(options, callback) {
   if (typeof options === 'function') callback = options;
 
-  this.__iterateDataStores(function(key, dataStore, next) {
+  this.__iterateDataStores(function (key, dataStore, next) {
     if (dataStore.provider.stop) return dataStore.provider.stop(next);
     next();
   }, callback);
@@ -585,19 +600,19 @@ function __initializeProviders() {
     async.eachSeries(
       this.config.datastores,
       (datastoreConfig, datastoreCallback) => {
-        this._insertDataProvider(dataStorePos, datastoreConfig, e => {
+        this._insertDataProvider(dataStorePos, datastoreConfig, (e) => {
           if (e) return datastoreCallback(e);
           dataStorePos++;
           datastoreCallback();
         });
       },
-      e => {
+      (e) => {
         if (e) return reject(e);
 
         this.defaultProviderConfig = this.datastores[this.defaultDatastore];
         this.defaultProvider = this.defaultProviderConfig.provider;
 
-        this.db = function(path) {
+        this.db = function (path) {
           return this.__findDataProviderConfig(path).provider;
         };
         resolve();
@@ -615,7 +630,7 @@ function __findDataProviderConfig(path) {
 
 function addDataProviderPatterns(route, patterns) {
   const providerConfig = this.__findDataProviderConfig(route);
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     this.addDataStoreFilter(pattern, providerConfig.name);
   });
 }
@@ -640,11 +655,11 @@ function _insertDataProvider(dataStorePos, datastoreConfig, callback) {
     var DataProvider = require(datastoreConfig.provider);
     dataStoreInstance.provider = new DataProvider(dataStoreInstance.settings, this.log);
     Object.defineProperty(dataStoreInstance, '__service', {
-      value: this
+      value: this,
     });
 
     this.__attachProviderEvents(datastoreConfig.name, dataStoreInstance.provider);
-    dataStoreInstance.provider.initialize(e => {
+    dataStoreInstance.provider.initialize((e) => {
       if (e) return callback(e);
 
       if (dataStoreInstance.provider.transform == null)
@@ -652,7 +667,7 @@ function _insertDataProvider(dataStorePos, datastoreConfig, callback) {
       if (dataStoreInstance.provider.transformAll == null)
         dataStoreInstance.provider.transformAll = this.transformAll;
       this.datastores[datastoreConfig.name] = dataStoreInstance;
-      dataStoreInstance.patterns.forEach(pattern => {
+      dataStoreInstance.patterns.forEach((pattern) => {
         this.addDataStoreFilter(pattern, datastoreConfig.name);
       });
       //forces the default datastore
@@ -671,11 +686,11 @@ function __attachProviderEvents(providerKey, provider) {
   if (typeof provider.on !== 'function') return;
   if (!_this.__providerEventHandlers) _this.__providerEventHandlers = {};
 
-  var providerEventsHandler = function(data) {
+  var providerEventsHandler = function (data) {
     this.service.emit('provider-event', {
       eventName: this.eventName,
       eventData: data,
-      provider: this.providerKey
+      provider: this.providerKey,
     });
   };
 
@@ -685,7 +700,7 @@ function __attachProviderEvents(providerKey, provider) {
 function __getPullOptions(parameters) {
   var returnParams = {
     criteria: null,
-    options: {}
+    options: {},
   };
 
   if (!parameters) return returnParams;
@@ -696,7 +711,7 @@ function __getPullOptions(parameters) {
   if (parameters.path_only || parameters.options.path_only) {
     returnParams.options.fields = {
       path: 1,
-      _meta: 1
+      _meta: 1,
     };
     returnParams.options.path_only = true;
   }
@@ -753,7 +768,7 @@ function __iterateDataStores(dataStoreKey, operator, callback) {
       'default',
       {
         db: this.dbInstance,
-        config: this.config
+        config: this.config,
       },
       callback
     );
@@ -765,7 +780,7 @@ function randomId() {
 }
 
 function extractData(data) {
-  return data.map(function(item) {
+  return data.map(function (item) {
     return item.data;
   });
 }

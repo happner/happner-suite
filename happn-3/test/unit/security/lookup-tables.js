@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const UtilsService = require('../../../lib/services/utils/service');
 
-describe.only(test.testName(__filename, 3), function () {
+describe(test.testName(__filename, 3), function () {
   var Logger = require('happn-logger');
   let mockErrorService;
   let dbPath = path.resolve(__dirname, '../../__fixtures/test/test_lookup_db');

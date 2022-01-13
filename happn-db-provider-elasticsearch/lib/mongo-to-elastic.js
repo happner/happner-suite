@@ -239,7 +239,7 @@ module.exports = {
 
     if (options.limit) elasticMessage.body.size = options.limit;
 
-    if (options.offSet) elasticMessage.body.from = options.offSet;
+    if (options.offSet || options.skip) elasticMessage.body.from = options.offSet || options.skip;
 
     if (options.sort) {
       elasticMessage.body.sort = [];

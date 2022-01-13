@@ -11,6 +11,8 @@ jobs:
       matrix:
         node-version: [14.x,16.x,17.x]
         mongodb-version: ['4.4']
+        redis-version: ['6']
+        elastic-version: ['5.1.1']
 
     steps:
     - name: Git checkout
@@ -20,6 +22,23 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+
+    - name: Start Elasticsearch
+      uses: elastic/elastic-github-actions/elasticsearch@master
+      with:
+        stack-version: ${{ matrix.elastic-version }}
+  
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.4.0
+      with:
+        redis-version: ${{ matrix.redis-version }}
 
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.6.0

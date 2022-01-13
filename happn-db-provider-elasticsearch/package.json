@@ -1,5 +1,5 @@
 {
-  "name": "happn-db-provider-elastic",
+  "name": "happn-db-provider-elasticsearch",
   "version": "1.0.0",
   "private": false,
   "scripts": {
