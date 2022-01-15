@@ -941,7 +941,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
         })
 
         .catch(function(e) {
-          if (e && e.toString().indexOf('[index_already_exists_exception]') === -1) {
+          if (e && !utils.stringContainsAny(e.message, 'resource_already_exists_exception','index_already_exists_exception')) {
             return reject(
               new Error('failed creating index ' + indexConfig.index + ':' + e.toString(), e)
             );

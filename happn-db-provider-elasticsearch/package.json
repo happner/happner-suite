@@ -8,7 +8,7 @@
     "lint": "eslint '**/*.js'",
     "lint-fix": "eslint '**/*.js' --fix",
     "report": "nyc report --reporter=text --reporter=lcov --reporter=text-summary && nyc report --reporter=text --reporter=text-summary > coverage.txt",
-    "test": "mocha",
+    "test": "_mocha test/* --recursive --exit",
     "test-cover": "env LOG_LEVEL=off nyc --reporter=none mocha",
     "test-perf": "mocha test/perf.js"
   },
@@ -16,7 +16,7 @@
     "happn-commons": "^1.0.0",
     "agentkeepalive": "^3.3.0",
     "bluebird": "2.10.2",
-    "elasticsearch": "13.2.0",
+    "elasticsearch": "^13.2.0",
     "extract-values": "^0.1.2",
     "happn-logger": "^1.1.1",
     "micromustache": "^5.2.0",

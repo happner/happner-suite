@@ -2,24 +2,24 @@ module.exports = {
   /*
      Shared between the browser client and the server and nodejs client
      */
-  prepareWildPath: function(path) {
+  prepareWildPath: function (path) {
     //strips out duplicate sequential wildcards, ie simon***bishop -> simon*bishop
     return path.replace(/(.)\1+/g, '*');
   },
-  makeRe: function(pattern) {
+  makeRe: function (pattern) {
     return new RegExp('^' + this.escapeRegex(pattern).replace(/\\\*/g, '.*') + '$', 'i');
   },
-  escapeRegex: function(str) {
+  escapeRegex: function (str) {
     if (typeof str !== 'string') throw new TypeError('Expected a string');
     return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
   },
-  wildcardPreliminaryMatch: function(pattern, matchTo) {
+  wildcardPreliminaryMatch: function (pattern, matchTo) {
     if (pattern.indexOf('*') === -1) return pattern === matchTo;
     const preparedPattern = pattern.replace(/(.)\1+/g, '*'); //strip out *** ****** and replace with *
     if (preparedPattern === '*') return true;
     return preparedPattern;
   },
-  wildcardMatch: function(pattern, matchTo) {
+  wildcardMatch: function (pattern, matchTo) {
     const preparedOrMatched = this.wildcardPreliminaryMatch(pattern, matchTo);
     if (typeof preparedOrMatched === 'boolean') return preparedOrMatched; //we have a match result, return it
     //try a starts with reject
@@ -27,10 +27,10 @@ module.exports = {
     if (initialSegment.length > 0 && matchTo.indexOf(initialSegment) === -1) return false;
     return this.makeRe(preparedOrMatched).test(matchTo);
   },
-  stripLeadingSlashes: function(path) {
+  stripLeadingSlashes: function (path) {
     return path.replace(/^\//, '');
   },
-  whilst: function(test, iterator, cb) {
+  whilst: function (test, iterator, cb) {
     cb = cb || noop;
 
     if (!test()) return cb(null);
@@ -39,7 +39,7 @@ module.exports = {
 
     _this.__attempts = 0;
 
-    var next = function(err, args) {
+    var next = function (err, args) {
       _this.__attempts++;
 
       if (err) return cb(err, _this.__attempts);
@@ -52,7 +52,7 @@ module.exports = {
     iterator(_this.__attempts, next);
   },
   //taken from https://github.com/alessioalex/tiny-each-async
-  async: function(arr, parallelLimit, iteratorFn, cb) {
+  async: function (arr, parallelLimit, iteratorFn, cb) {
     var pending = 0;
     var index = 0;
     var lastIndex = arr.length - 1;
@@ -113,10 +113,10 @@ module.exports = {
 
     processIterator();
   },
-  clone: function(obj) {
+  clone: function (obj) {
     return JSON.parse(JSON.stringify(obj));
   },
-  checkPath: function(path, action) {
+  checkPath: function (path, action) {
     if (typeof path !== 'string') throw new Error(`Bad path [${path}], must be a string`);
 
     if (action === 'set' && path.indexOf('*') > -1)
@@ -129,7 +129,7 @@ module.exports = {
         'Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*'
       );
   },
-  computeiv: function(secret) {
+  computeiv: function (secret) {
     if (typeof secret !== 'string')
       throw new Error('secret must be a string and cannot be null or undefined');
 
@@ -141,7 +141,11 @@ module.exports = {
 
     return iv;
   },
-  removeLast: function(str, last) {
+  stringContainsAny: function (str, ...items) {
+    var re = new RegExp(items.join('|'));
+    return re.test(str);
+  },
+  removeLast: function (str, last) {
     if (
       !str || //null undefined or empty
       !str.substring || //not a string
@@ -153,13 +157,13 @@ module.exports = {
 
     return str.substring(0, str.length - 1);
   },
-  asyncCallback: function() {
+  asyncCallback: function () {
     var fn = arguments[0].bind.apply(arguments[0], Array.from(arguments));
     if (setImmediate) return setImmediate(fn);
     setTimeout(fn, 0);
   },
-  wrapImmediate: function(fn, timeout) {
-    return function() {
+  wrapImmediate: function (fn, timeout) {
+    return function () {
       if (timeout) return setTimeout(fn.bind(this), timeout, ...arguments);
       if (setImmediate) {
         setImmediate(fn.bind(this), ...arguments);
@@ -168,15 +172,15 @@ module.exports = {
       setTimeout(fn.bind(this), ...arguments);
     };
   },
-  isPromise: function(obj) {
+  isPromise: function (obj) {
     return (
       !!obj &&
       (typeof obj === 'object' || typeof obj === 'function') &&
       typeof obj.then === 'function'
     );
   },
-  maybePromisify: function(originalFunction, opts) {
-    return function() {
+  maybePromisify: function (originalFunction, opts) {
+    return function () {
       var args = Array.prototype.slice.call(arguments);
       var _this = this;
 
@@ -189,9 +193,9 @@ module.exports = {
         return originalFunction.apply(this, args);
       }
 
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         // push false callback into arguments
-        args.push(function(error, result, more) {
+        args.push(function (error, result, more) {
           if (error) return reject(error);
           if (more) {
             var args = Array.prototype.slice.call(arguments);
@@ -207,7 +211,7 @@ module.exports = {
         }
       });
     };
-  }
+  },
 };
 
 function noop() {}
