@@ -932,6 +932,13 @@
 -----------------
   - SMC-4938: Fix - lookup tables fail for rest request
 
+13.0.0 2022-01-08
+-----------------
+  - SMC-4938: Fix - dont delete session.username
+  - SMC-4550: Fix -correctly calling securityDirectoryChanged on permission removal and group/permission table unlinking
+
+  
+
 
 
 

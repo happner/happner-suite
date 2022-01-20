@@ -587,68 +587,6 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     });
   }
 
-  // count(pathOrMessage, parameters, callback) {
-  //   if (typeof parameters === 'function') {
-  //     callback = parameters;
-  //     parameters = {};
-  //   }
-  //   if (parameters == null) {
-  //     parameters = {};
-  //   }
-  //   const _this = this;
-    
-  //   let countMessage = {};
-
-  //   if (typeof pathOrMessage === 'string') {
-  //     const searchPath = _this.preparePath(pathOrMessage);
-  //     const route = _this.__getRoute(searchPath);
-  //     countMessage = {
-  //       index: route.index,
-  //       type: route.type,
-  //       body: { query: {} }
-  //     };
-  //     countMessage;
-
-  //     if (searchPath.indexOf('*') > -1) {
-  //       countMessage.body.query = {
-  //         regexp: {
-  //           path: _this.escapeRegex(searchPath).replace(/\\\*/g, '.*')
-  //         }
-  //       };
-  //     } else {
-  //       countMessage.body.query = {
-  //         match: {
-  //           path: searchPath
-  //         }
-  //       };
-  //     }
-  //   } else {
-  //     countMessage = {
-  //       index: pathOrMessage.index,
-  //       type: pathOrMessage.type
-  //     };
-  //     if (pathOrMessage.id) {
-  //       countMessage.body = {
-  //         query: {
-  //           match: {
-  //             path: pathOrMessage.id
-  //           }
-  //         }
-  //       };
-  //     } else if (pathOrMessage.body) countMessage.body = pathOrMessage.body;
-  //   }
-  //   if (parameters.options) {
-  //     mongoToElastic.convertOptions(parametersOrCallBack.options, countMessage);
-  //   }
-  //   _this
-  //     .__pushElasticMessage('count', countMessage)
-
-  //     .then(function(response) {
-  //       callback(null, response.count);
-  //     })
-  //     .catch(callback);
-  // }
-
   __partialTransformAll(dataItems) {
     const _this = this;
 

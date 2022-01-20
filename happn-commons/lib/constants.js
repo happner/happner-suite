@@ -78,8 +78,7 @@ module.exports = {
     TOKEN_REVOKED: 'token-revoked',
     TOKEN_RESTORED: 'token-restored',
     LOOKUP_TABLE_CHANGED: 'lookup-table-changed',
-    LOOKUP_PERMISSION_CHANGED: 'lookup-permission-changed',
-    LOOKUP_PERMISSION_UPSERTED: 'lookup-permission-upserted'
+    LOOKUP_PERMISSION_CHANGED: 'lookup-permission-changed'
   },
   SECURITY_DIRECTORY_CHANGE_EVENTS: {
     LINK_GROUP: 'link-group',
@@ -88,7 +87,7 @@ module.exports = {
     UNLINK_GROUP: 'unlink-group',
     DELETE_GROUP: 'delete-group',
     UPSERT_GROUP: 'upsert-group',
-    UPSERT_USER: 'upsert-user'
+    UPSERT_USER: 'upsert-user',
   },
   DATA_OPERATION_TYPES: {
     SNAPSHOT: 'SNAPSHOT',

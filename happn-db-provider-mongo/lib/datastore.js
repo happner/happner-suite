@@ -70,16 +70,10 @@ function find(criteria, searchOptions, sortOptions, callback) {
   let maxTimeMS = searchOptions.maxTimeMS || 0;
   delete searchOptions.maxTimeMS;
 
-  if (!sortOptions)
-    return this.data
-      .find(criteria, searchOptions)
-      .maxTimeMS(maxTimeMS)
-      .toArray(callback);
-
   this.data
     .find(criteria, searchOptions)
     .maxTimeMS(maxTimeMS)
-    .sort(sortOptions)
+    .sort(sortOptions || { path: 1 })
     .toArray(callback);
 }
 

@@ -18,7 +18,7 @@ const mongoComparisonOperators = new Map([
       }
       valueString += ')';
       return `${field}:${valueString}`;
-    }
+    },
   ],
   ['$lt', (field, value) => `${field}:<${value}`],
   ['$lte', (field, value) => `${field}:<=${value}`],
@@ -38,8 +38,8 @@ const mongoComparisonOperators = new Map([
       }
       valueString += ' OR NOT _exists_)';
       return `${field}:${valueString}`;
-    }
-  ]
+    },
+  ],
 ]);
 
 const mongoLogicalOperators = new Map([
@@ -55,13 +55,13 @@ const mongoLogicalOperators = new Map([
       }
 
       return returnStirng + ' )';
-    }
+    },
   ],
   [
     '$not',
     (field, value) => {
       return 'NOT ( ' + ProcessValueField(field, value) + ' )';
-    }
+    },
   ],
   [
     '$nor',
@@ -75,7 +75,7 @@ const mongoLogicalOperators = new Map([
       }
 
       return returnStirng + ')';
-    }
+    },
   ],
   [
     '$or',
@@ -89,8 +89,8 @@ const mongoLogicalOperators = new Map([
       }
 
       return returnStirng + ' )';
-    }
-  ]
+    },
+  ],
 ]);
 
 const mongoElementOperators = new Map([
@@ -100,8 +100,8 @@ const mongoElementOperators = new Map([
       if (field === '') throw new Error("Logical Query malfomed: '$and' requires and array");
       if (value) return ` _exists_:${field}`;
       else return ` NOT exists_:${field}`;
-    }
-  ]
+    },
+  ],
 ]);
 
 const mongoEvaluationOperators = new Map([
@@ -112,8 +112,8 @@ const mongoEvaluationOperators = new Map([
         throw new Error("Evaluation Query malfomed: '$regex' requires a field value");
       if (value.constructor.name === 'RegExp') return `${field}:${value}`;
       else return `${field}:${formatStringCondition(value)}`;
-    }
-  ]
+    },
+  ],
 ]);
 
 function isMongoOperator(string) {
@@ -222,7 +222,7 @@ function convertCriteria(options, parentkey = '') {
 }
 
 module.exports = {
-  convertOptions: function(options, elasticMessage) {
+  convertOptions: function (options, elasticMessage) {
     if (options.fields) {
       var fieldsClone = JSON.parse(JSON.stringify(options.fields));
 
@@ -241,20 +241,22 @@ module.exports = {
 
     if (options.offSet || options.skip) elasticMessage.body.from = options.offSet || options.skip;
 
+    elasticMessage.body.sort = [
+      {
+        path: 'asc',
+      },
+    ];
+
     if (options.sort) {
-      elasticMessage.body.sort = [];
-
-      for (var sortFieldName in options.sort) {
-        var sortField = {};
-
-        sortField[sortFieldName] = {};
-
-        sortField[sortFieldName]['order'] = options.sort[sortFieldName] === -1 ? 'desc' : 'asc';
-
-        elasticMessage.body.sort.push(sortField);
-      }
+      elasticMessage.body.sort = Object.keys(options.sort).map((sortFieldName) => {
+        return {
+          [sortFieldName]: {
+            order: options.sort[sortFieldName] === -1 ? 'desc' : 'asc',
+          },
+        };
+      });
     }
   },
   convertCriteria,
-  escapeRegex
+  escapeRegex,
 };

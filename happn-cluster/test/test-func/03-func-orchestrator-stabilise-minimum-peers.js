@@ -79,29 +79,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
       })
 
       .then(function () {
-        return Promise.resolve(configs).map(function (config, sequence) {
-          if (sequence === 0) {
-            return (
-              HappnCluster.create(config)
-                .then(function (server) {
-                  self.servers.push(server);
-                })
-                // can't reject the entire set on one failure,
-                // because we need to accumulate those that did start
-                // for hooks.stopCluster();
-                .catch(function () {})
-            );
-          }
-          return test
-            .delay(500)
-            .then(function () {
-              return HappnCluster.create(config);
-            })
-            .then(function (server) {
-              self.servers.push(server);
-            })
-            .catch(function () {});
-        });
+        return createClusters(self, configs);
       })
 
       .then(function () {
@@ -119,6 +97,23 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
         clearInterval(interval);
       });
   });
+
+  async function createClusters(self, configs) {
+    let sequence = 0;
+    let unresolved = [];
+    for (let config of configs) {
+      if (sequence > 0) {
+        await test.delay(500);
+      }
+      unresolved.push(HappnCluster.create(config));
+
+      sequence++;
+    }
+    await test.delay(2000);
+    for (let promise of unresolved) {
+      self.servers.push(await promise);
+    }
+  }
 
   hooks.stopCluster();
 

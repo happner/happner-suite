@@ -2,6 +2,8 @@ happner elastic dataprovider
 ----------------------------
 *This dataprovider provides the ability to run happner/happn instances off of elasticsearch instead of mongo or nedb*
 
+### supports elastic <= 6.4.0
+
 ### installing elasticsearch and redis on your local machine:
 ```bash
 # elastic search - version is 5.1.1

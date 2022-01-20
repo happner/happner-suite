@@ -358,8 +358,8 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     const sortOptions = options.sort
       ? this.transformSortOptions(options.sort)
       : [
+          ['path', false],
           ['modified', false], //sort by [modified, path] ascending
-          ['path', false]
         ];
 
     finalResult = results.compoundsort(sortOptions).data({ forceClones: true, removeMeta: true });

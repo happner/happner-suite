@@ -178,7 +178,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     if (parameters.criteria) {
       pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
     }
-    const sortOptions = parameters.options ? parameters.options.sort : null;
+    const sortOptions = parameters.options ? parameters.options.sort : { path: 1 };
     const searchOptions = {};
     if (parameters.options) {
       if (parameters.options.fields) searchOptions.fields = parameters.options.fields;

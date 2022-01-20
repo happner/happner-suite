@@ -6,7 +6,7 @@ var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 10;
 var happnSecure = true;
 
-require('../lib/test-helper').describe({ timeout: 30e3, only: true }, function (test) {
+require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';
