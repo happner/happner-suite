@@ -367,8 +367,6 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   remove(path, callback) {
     const _this = this;
 
-    // [start:{"key":"remove", "self":"_this"}:start]
-
     const multiple = path.indexOf('*') > -1;
 
     let deletedCount = 0;
@@ -376,7 +374,6 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     const route = _this.__getRoute(path);
 
     const handleResponse = function(e) {
-      // [end:{"key":"remove", "self":"_this", "error":"e"}:end]
 
       if (e) return callback(e);
 
@@ -414,14 +411,14 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       // deleteOperation = this.db.deleteByQuery.bind(this.db);
     } else elasticMessage.id = path;
 
-    _this.count(elasticMessage, function(e, count) {
+    _this.count(path, function(e, count) {
       if (e) {
         if (e.status !== 404)
           return callback(new Error('count operation failed for delete: ' + e.toString()));
         else return handleResponse(null);
       }
 
-      deletedCount = count;
+      deletedCount = count.data.value;
 
       let method = 'delete';
 
@@ -488,7 +485,11 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       body: query
     };
 
-    if (parameters.options) mongoToElastic.convertOptions(parameters.options, elasticMessage); // this is because the $not keyword works in nedb and sift, but not in elastic
+    mongoToElastic.convertOptions(parameters.options, elasticMessage, [{
+      path:{
+        order:'asc'
+      }
+    }]); // this is because the $not keyword works in nedb and sift, but not in elastic
 
     if (elasticMessage.body.from == null) elasticMessage.body.from = 0;
 

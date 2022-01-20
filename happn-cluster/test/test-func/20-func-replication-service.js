@@ -7,6 +7,7 @@ var clusterSize = 5;
 var happnSecure = false;
 
 require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+  let Promise = test.bluebird;
   hooks.startCluster({
     testSequence: testSequence,
     size: clusterSize,
@@ -98,7 +99,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
           }
 
           try {
-            test.expect(replicatedEvents).to.eql(test.expectedEvents);
+            test.expect(replicatedEvents).to.eql(expectedEvents);
             resolve();
           } catch (e) {
             reject(e);

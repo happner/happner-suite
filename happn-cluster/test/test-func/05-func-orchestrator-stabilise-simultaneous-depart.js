@@ -10,8 +10,7 @@ var clusterSize = 3;
 var happnSecure = false;
 
 // eslint-disable-next-line no-unused-vars
-require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
-
+require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';

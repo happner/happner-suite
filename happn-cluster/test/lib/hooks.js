@@ -5,7 +5,6 @@ var ChildProcess = require('child_process');
 var clone = require('clone');
 var HappnCluster = require('../../');
 var testUtils = require('./test-utils');
-const delay = require('await-delay');
 const test = require('happn-commons-test').create();
 
 module.exports.startCluster = function (clusterOpts) {
@@ -58,6 +57,7 @@ module.exports.stopCluster = function () {
 };
 
 module.exports.startMultiProcessCluster = function (clusterOpts) {
+  let Promise = test.bluebird;
   before('multi clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });

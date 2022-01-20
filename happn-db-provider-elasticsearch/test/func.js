@@ -1,5 +1,4 @@
-require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
-  const util = require('util');
+require('./fixtures/test-helper').describe({ timeout: 30e3 }, function (test) {
   const service = require('..');
   const testId = test.compressedUUID();
 
@@ -9,8 +8,8 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       {
         index: 'happner',
         body: {
-          mappings: {}
-        }
+          mappings: {},
+        },
       },
       {
         index: 'sortandlimitindex',
@@ -18,23 +17,23 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
           mappings: {
             happner: {
               properties: {
-                'data.item_sort_id': { type: 'integer' }
-              }
-            }
-          }
-        }
-      }
+                'data.item_sort_id': { type: 'integer' },
+              },
+            },
+          },
+        },
+      },
     ],
     dataroutes: [
       {
         pattern: '/sort_and_limit/*',
-        index: 'sortandlimitindex'
+        index: 'sortandlimitindex',
       },
       {
         pattern: '*',
-        index: 'happner'
-      }
-    ]
+        index: 'happner',
+      },
+    ],
   };
 
   const serviceInstance = new service(config);
@@ -44,12 +43,12 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     const ran = test.compressedUUID();
     const pathNew = `${path}/${ran}`;
     return new Promise((resolve, reject) => {
-      serviceInstance.upsert(pathNew, data, {}, err => {
+      serviceInstance.upsert(pathNew, data, {}, (err) => {
         if (err) return reject(err);
         serviceInstance.find(`${path}/*`, { criteria: CorrectSearchCriteria }, (err, data) => {
           if (err || !data) return reject(err);
 
-          let valid = data.findIndex(ob => ob._id === pathNew) > -1;
+          let valid = data.findIndex((ob) => ob._id === pathNew) > -1;
           test.expect(valid).to.be(true);
           serviceInstance.find(`${path}/*`, { criteria: IncorrectSearchCriteria }, (err, data) => {
             if (err || !data) return reject(err);
@@ -63,41 +62,43 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     });
   }
 
-  before('should initialize the service', function(callback) {
-    serviceInstance.initialize(function(e) {
+  before('should initialize the service', function (callback) {
+    serviceInstance.initialize(function (e) {
       if (e) return callback(e);
       callback();
     });
   });
 
-  after(function(done) {
+  after(function (done) {
     serviceInstance.stop(done);
   });
 
-  it('sets data', function(callback) {
+  it('sets data', function (callback) {
     var beforeCreatedOrModified = Date.now();
-    setTimeout(function() {
-      serviceInstance.upsert('/set/' + testId, { data: { test: 'data' } }, {}, function(
-        e,
-        created
-      ) {
-        if (e) return callback(e);
+    setTimeout(function () {
+      serviceInstance.upsert(
+        '/set/' + testId,
+        { data: { test: 'data' } },
+        {},
+        function (e, created) {
+          if (e) return callback(e);
 
-        test.expect(created.data.test).to.equal('data');
-        test.expect(created._meta.created > beforeCreatedOrModified).to.equal(true);
-        test.expect(created._meta.modified > beforeCreatedOrModified).to.equal(true);
+          test.expect(created.data.test).to.equal('data');
+          test.expect(created._meta.created > beforeCreatedOrModified).to.equal(true);
+          test.expect(created._meta.modified > beforeCreatedOrModified).to.equal(true);
 
-        callback();
-      });
+          callback();
+        }
+      );
     }, 100);
   });
 
-  it('gets data', function(callback) {
+  it('gets data', function (callback) {
     this.timeout(5000);
 
-    serviceInstance.upsert('/get/' + testId, { data: { test: 'data' } }, {}, function(e) {
+    serviceInstance.upsert('/get/' + testId, { data: { test: 'data' } }, {}, function (e) {
       if (e) return callback(e);
-      serviceInstance.find('/get/' + testId, {}, function(e, items) {
+      serviceInstance.find('/get/' + testId, {}, function (e, items) {
         if (e) return callback(e);
         test.expect(items[0].data.test).to.be('data');
         callback();
@@ -105,39 +106,41 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     });
   });
 
-  it('gets data with wildcard', function(callback) {
+  it('gets data with wildcard', function (callback) {
     this.timeout(5000);
 
-    serviceInstance.upsert('/get/multiple/1/' + testId, { data: { test: 'data' } }, {}, function(
-      e
-    ) {
-      if (e) return callback(e);
+    serviceInstance.upsert(
+      '/get/multiple/1/' + testId,
+      { data: { test: 'data' } },
+      {},
+      function (e) {
+        if (e) return callback(e);
 
-      serviceInstance.upsert(
-        '/get/multiple/2/' + testId,
-        { data: { test: 'data' } },
-        false,
-        function(e) {
-          if (e) return callback(e);
+        serviceInstance.upsert(
+          '/get/multiple/2/' + testId,
+          { data: { test: 'data' } },
+          function (e) {
+            if (e) return callback(e);
 
-          setTimeout(function() {
-            serviceInstance.find('/get/multiple/*/' + testId, {}, function(e, response) {
-              if (e) return callback(e);
-              test.expect(response.length).to.equal(2);
-              test.expect(response[0].data.test).to.equal('data');
-              test.expect(response[1].data.test).to.equal('data');
-              callback();
-            });
-          }, 2000);
-        }
-      );
-    });
+            setTimeout(function () {
+              serviceInstance.find('/get/multiple/*/' + testId, {}, function (e, response) {
+                if (e) return callback(e);
+                test.expect(response.length).to.equal(2);
+                test.expect(response[0].data.test).to.equal('data');
+                test.expect(response[1].data.test).to.equal('data');
+                callback();
+              });
+            }, 2000);
+          }
+        );
+      }
+    );
   });
 
-  it('removes data', function(callback) {
-    serviceInstance.upsert('/remove/' + testId, { data: { test: 'data' } }, {}, function(e) {
+  it('removes data', function (callback) {
+    serviceInstance.upsert('/remove/' + testId, { data: { test: 'data' } }, {}, function (e) {
       if (e) return callback(e);
-      serviceInstance.remove('/remove/' + testId, function(e, response) {
+      serviceInstance.remove('/remove/' + testId, function (e, response) {
         if (e) return callback(e);
         test.expect(response._meta.path).to.equal('/remove/' + testId);
         test.expect(response.data.removed).to.equal(1);
@@ -146,29 +149,32 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     });
   });
 
-  it('removes multiple data', function(callback) {
-    serviceInstance.upsert('/remove/multiple/1/' + testId, { data: { test: 'data' } }, {}, function(
-      e
-    ) {
-      if (e) return callback(e);
-      serviceInstance.upsert(
-        '/remove/multiple/2/' + testId,
-        { data: { test: 'data' } },
-        {},
-        function(e) {
-          if (e) return callback(e);
-          serviceInstance.remove('/remove/multiple/*', function(e, response) {
+  it('removes multiple data', function (callback) {
+    serviceInstance.upsert(
+      '/remove/multiple/1/' + testId,
+      { data: { test: 'data' } },
+      {},
+      function (e) {
+        if (e) return callback(e);
+        serviceInstance.upsert(
+          '/remove/multiple/2/' + testId,
+          { data: { test: 'data' } },
+          {},
+          function (e) {
             if (e) return callback(e);
-            test.expect(response._meta.path).to.equal('/remove/multiple/*');
-            test.expect(response.data.removed).to.equal(2);
-            callback();
-          });
-        }
-      );
-    });
+            serviceInstance.remove('/remove/multiple/*', function (e, response) {
+              if (e) return callback(e);
+              test.expect(response._meta.path).to.equal('/remove/multiple/*');
+              test.expect(response.data.removed).to.equal(2);
+              callback();
+            });
+          }
+        );
+      }
+    );
   });
 
-  it('gets data with complex search', function(callback) {
+  it('gets data with complex search', function (callback) {
     var test_path_end = require('shortid').generate();
 
     var complex_obj = {
@@ -177,27 +183,27 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var criteria1 = {
       $or: [
         { 'data.regions': { $in: ['North', 'South', 'East', 'West'] } },
         { 'data.towns': { $in: ['North.Cape Town', 'South.East London'] } },
-        { 'data.categories': { $in: ['Action', 'History'] } }
+        { 'data.categories': { $in: ['Action', 'History'] } },
       ],
-      'data.keywords': { $in: ['bass', 'Penny Siopis'] }
+      'data.keywords': { $in: ['bass', 'Penny Siopis'] },
     };
 
     var options1 = {
       sort: { path: 1 },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
 
     var options2 = {
-      limit: 2
+      limit: 2,
     };
 
     // serviceInstance.upsert('/get/multiple/1/' + testId, {data:{"test":"data"}}, {}, function(e, response){
@@ -205,7 +211,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex/' + test_path_end,
       { data: complex_obj },
       {},
-      function(e) {
+      function (e) {
         test.expect(e == null).to.be(true);
 
         serviceInstance.upsert(
@@ -216,7 +222,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
             '/1',
           { data: complex_obj },
           {},
-          function(e) {
+          function (e) {
             test.expect(e == null).to.be(true);
 
             serviceInstance.upsert(
@@ -227,17 +233,17 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
                 '/2',
               { data: { test: 'data' } },
               {},
-              function(e) {
+              function (e) {
                 test.expect(e == null).to.be(true);
 
-                setTimeout(function() {
+                setTimeout(function () {
                   serviceInstance.find(
                     '/1_eventemitter_embedded_sanity/' + testId + '/testsubscribe/data/complex*',
                     {
                       criteria: criteria1,
-                      options: options1
+                      options: options1,
                     },
-                    function(e, search_result) {
+                    function (e, search_result) {
                       if (e) return callback(e);
 
                       test.expect(search_result.length === 1).to.be(true);
@@ -248,9 +254,9 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
                           '/testsubscribe/data/complex*',
                         {
                           criteria: criteria2,
-                          options: options2
+                          options: options2,
                         },
-                        function(e, search_result) {
+                        function (e, search_result) {
                           if (e) return callback(e);
 
                           test.expect(search_result.length === 2).to.be(true);
@@ -269,10 +275,10 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     );
   });
 
-  it('gets no data', function(callback) {
+  it('gets no data', function (callback) {
     var random = require('shortid').generate();
 
-    serviceInstance.find('/wontfind/' + random, {}, function(e, response) {
+    serviceInstance.find('/wontfind/' + random, {}, function (e, response) {
       if (e) return callback(e);
 
       test.expect(response).to.eql([]);
@@ -281,37 +287,44 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     });
   });
 
-  it('gets data with $not', function(done) {
+  it('gets data with $not', function (done) {
     var test_obj = {
-      value: 'ok'
+      value: 'ok',
     };
 
     var test_obj1 = {
-      value: 'notok'
+      value: 'notok',
     };
 
-    serviceInstance.upsert('/not_get/' + testId + '/ok/1', { data: test_obj }, {}, function(e) {
+    serviceInstance.upsert('/not_get/' + testId + '/ok/1', { data: test_obj }, {}, function (e) {
       if (e) return done(e);
 
-      serviceInstance.upsert('/not_get/' + testId + '/_notok_/1', { data: test_obj1 }, {}, function(
-        e
-      ) {
-        if (e) return done(e);
+      serviceInstance.upsert(
+        '/not_get/' + testId + '/_notok_/1',
+        { data: test_obj1 },
+        {},
+        function (e) {
+          if (e) return done(e);
 
-        var listCriteria = { criteria: { $not: {} } };
+          var listCriteria = { criteria: { $not: {} } };
 
-        listCriteria.criteria.$not['path'] = { $regex: new RegExp('.*_notok_.*') };
+          listCriteria.criteria.$not['path'] = { $regex: new RegExp('.*_notok_.*') };
 
-        serviceInstance.find('/not_get/' + testId + '/*', listCriteria, function(e, search_result) {
-          test.expect(e == null).to.be(true);
-          test.expect(search_result.length === 1).to.be(true);
-          done();
-        });
-      });
+          serviceInstance.find(
+            '/not_get/' + testId + '/*',
+            listCriteria,
+            function (e, search_result) {
+              test.expect(e == null).to.be(true);
+              test.expect(search_result.length === 1).to.be(true);
+              done();
+            }
+          );
+        }
+      );
     });
   });
 
-  it('does a sort and limit', function(done) {
+  it('does a sort and limit', function (done) {
     var ITEMS = 20;
 
     var LIMIT = 10;
@@ -326,7 +339,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
 
     for (var i = 0; i < ITEMS; i++) {
       var item = {
-        item_sort_id: i + Math.floor(Math.random() * 1000000)
+        item_sort_id: i + Math.floor(Math.random() * 1000000),
       };
 
       randomItems.push(item);
@@ -335,21 +348,21 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     async.eachSeries(
       randomItems,
 
-      function(item, callback) {
+      function (item, callback) {
         var testPath = base_path + item.item_sort_id;
 
-        serviceInstance.upsert(testPath, { data: item }, { noPublish: true }, function(e) {
+        serviceInstance.upsert(testPath, { data: item }, { noPublish: true }, function (e) {
           if (e) return callback(e);
 
           callback();
         });
       },
 
-      function(e) {
+      function (e) {
         if (e) return done(e);
 
         //ascending
-        randomItems.sort(function(a, b) {
+        randomItems.sort(function (a, b) {
           return a.item_sort_id - b.item_sort_id;
         });
 
@@ -357,9 +370,9 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
           base_path + '/*',
           {
             options: { sort: { 'data.item_sort_id': 1 } },
-            limit: LIMIT
+            limit: LIMIT,
           },
-          function(e, items) {
+          function (e, items) {
             if (e) return done(e);
 
             for (var itemIndex in items) {
@@ -374,7 +387,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
             }
 
             //ascending
-            randomItems.sort(function(a, b) {
+            randomItems.sort(function (a, b) {
               return b.item_sort_id - a.item_sort_id;
             });
 
@@ -382,9 +395,9 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
               base_path + '/*',
               {
                 options: { sort: { 'data.item_sort_id': -1 } },
-                limit: 50
+                limit: 50,
               },
-              function(e, items) {
+              function (e, items) {
                 if (e) return done(e);
 
                 for (var itemIndex in items) {
@@ -406,35 +419,35 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     );
   });
 
-  it('tests a bulk insert', function(done) {
+  it('tests a bulk insert', function (done) {
     var bulkItems = [
       {
         data: {
-          test: 1
-        }
+          test: 1,
+        },
       },
       {
         data: {
-          test: 2
-        }
+          test: 2,
+        },
       },
       {
         data: {
-          test: 3
-        }
+          test: 3,
+        },
       },
       {
         data: {
-          test: 4
-        }
-      }
+          test: 4,
+        },
+      },
     ];
 
     serviceInstance.upsert(
       '/bulk/test/{id}',
       bulkItems,
       { upsertType: serviceInstance.UPSERT_TYPE.BULK },
-      function(e, inserted) {
+      function (e, inserted) {
         if (e) return done(e);
 
         test.expect(inserted.errors).to.be(false);
@@ -449,41 +462,41 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     );
   });
 
-  it('tests a bulk insert with a timestamp', function(done) {
+  it('tests a bulk insert with a timestamp', function (done) {
     var date = new Date().getTime() - 60000;
 
     var bulkItems = [
       {
         data: {
           test: 1,
-          timestamp: date
-        }
+          timestamp: date,
+        },
       },
       {
         data: {
           test: 2,
-          timestamp: date
-        }
+          timestamp: date,
+        },
       },
       {
         data: {
-          test: 3
-        }
+          test: 3,
+        },
       },
       {
         data: {
-          test: 4
-        }
-      }
+          test: 4,
+        },
+      },
     ];
-    serviceInstance.remove('/bulk/test/*', function(e) {
+    serviceInstance.remove('/bulk/test/*', function (e) {
       if (e) return done(e);
 
       serviceInstance.upsert(
         '/bulk/test/{id}',
         bulkItems,
         { upsertType: serviceInstance.UPSERT_TYPE.BULK },
-        function(e, inserted) {
+        function (e, inserted) {
           if (e) return done(e);
 
           test.expect(inserted.errors).to.be(false);
@@ -493,12 +506,12 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
           for (var i = 0; i < inserted.items.length; i++)
             test.expect(inserted.items[i].index.result).to.be('created');
 
-          serviceInstance.find('/bulk/test/*', {}, function(err, items) {
+          serviceInstance.find('/bulk/test/*', {}, function (err, items) {
             if (err) return done(err);
 
             test.expect(items.length).to.be(4);
 
-            items.forEach(function(item) {
+            items.forEach(function (item) {
               if (item.data.timestamp) test.expect(item.timestamp).to.be(item.data.timestamp);
             });
 
@@ -509,14 +522,14 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     });
   });
 
-  it('tests a bulk with more than 1000 succeeds', function(done) {
+  it('tests a bulk with more than 1000 succeeds', function (done) {
     var bulkItems = [];
     for (var i = 0; i < 9999; i++) bulkItems.push({ test: i.toString() });
     serviceInstance.upsert(
       '/bulk/test/{id}',
       bulkItems,
       { upsertType: serviceInstance.UPSERT_TYPE.BULK },
-      function(e, items) {
+      function (e, items) {
         if (e) return done(e);
         test.expect(items.items.length).to.be(9999);
 
@@ -525,7 +538,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     );
   });
 
-  it('tests a bulk fail due to too many items', function(done) {
+  it('tests a bulk fail due to too many items', function (done) {
     var bulkItems = [];
 
     for (var i = 0; i < 100001; i++) bulkItems.push({ test: i.toString() });
@@ -534,7 +547,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       '/bulk/test/{id}',
       bulkItems,
       { upsertType: serviceInstance.UPSERT_TYPE.BULK },
-      function(e) {
+      function (e) {
         test
           .expect(e.toString())
           .to.be('Error: bulk batches can only be 100000 entries or less amount 100001');
@@ -544,30 +557,29 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     );
   });
 
-  it('count works with happner-datastore style parameter', function(done) {
+  it('count works with happner-datastore style parameter', function (done) {
     const dataItem = [
       { data: { test: 'data1' } },
       { data: { test: 'data1' } },
       { data: { test: 'data1' } },
       { data: { test: 'data2' } },
-      { data: { test: 'data2' } }
+      { data: { test: 'data2' } },
     ];
 
     let insertCount = 0;
 
     async function countEntries() {
-      let countPromise = util.promisify(serviceInstance.count).bind(serviceInstance);
-      let countAll = await countPromise('/countTest/num*');
-      test.expect(countAll).to.be(5);
-      let count1 = await countPromise('/countTest/num1');
-      test.expect(count1).to.be(1);
-      let count2 = await countPromise('/countTest/*');
-      test.expect(count2).to.be(5);
+      let countAll = await serviceInstance.count('/countTest/num*');
+      test.expect(countAll.data.value).to.be(5);
+      let count1 = await serviceInstance.count('/countTest/num1');
+      test.expect(count1.data.value).to.be(1);
+      let count2 = await serviceInstance.count('/countTest/*');
+      test.expect(count2.data.value).to.be(5);
       done();
     }
 
     for (let i = 0; i < dataItem.length; ++i) {
-      serviceInstance.upsert(`/countTest/num${i}`, dataItem[i], {}, err => {
+      serviceInstance.upsert(`/countTest/num${i}`, dataItem[i], (err) => {
         if (err) return done(err);
         insertCount++;
         if (insertCount === dataItem.length) {
@@ -577,13 +589,13 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     }
   });
 
-  it('find ', function(done) {
+  it('find ', function (done) {
     const dataItem = [
       { data: { test: 'data1' } },
       { data: { test: 'data1' } },
       { data: { test: 'data1' } },
       { data: { test: 'data2' } },
-      { data: { test: 'data2' } }
+      { data: { test: 'data2' } },
     ];
 
     let insertCount = 0;
@@ -594,11 +606,11 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
           constant_score: {
             filter: {
               query_string: {
-                query: [{ path: '/findTest/num1' }]
-              }
-            }
-          }
-        }
+                query: [{ path: '/findTest/num1' }],
+              },
+            },
+          },
+        },
       };
 
       serviceInstance.find('/findTest/num1', body, (_err, data) => {
@@ -609,7 +621,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     }
 
     for (let i = 0; i < dataItem.length; ++i) {
-      serviceInstance.upsert(`/findTest/num${i}`, dataItem[i], {}, err => {
+      serviceInstance.upsert(`/findTest/num${i}`, dataItem[i], {}, (err) => {
         if (err) return done(err);
         insertCount++;
         if (insertCount === dataItem.length) {
@@ -619,24 +631,24 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
     }
   });
 
-  it('Criteria Conversion - Embedded Document   ', function(done) {
+  it('Criteria Conversion - Embedded Document   ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: 'twigLeaf' }
-        }
-      }
+          branch2: { twig: 'twigLeaf' },
+        },
+      },
     };
     let dataItemNotAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: 'twigLeafNotAdded' }
-        }
-      }
+          branch2: { twig: 'twigLeafNotAdded' },
+        },
+      },
     };
 
     AddSearchDelete('/criteriaConversion', dataItemAdded, dataItemAdded, dataItemNotAdded)
@@ -646,25 +658,25 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator eq  ', function(done) {
+  it('Criteria Conversion - Mongo Operator eq  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: 'twigLeaf' }
-        }
-      }
+          branch2: { twig: 'twigLeaf' },
+        },
+      },
     };
     let filterItemCorrect = {
       data: {
-        trunk: { $eq: 'trunkLeaf' }
-      }
+        trunk: { $eq: 'trunkLeaf' },
+      },
     };
     let filterItemIncorect = {
       data: {
-        trunk: { $eq: 'trunk' }
-      }
+        trunk: { $eq: 'trunk' },
+      },
     };
 
     AddSearchDelete('/criteriaConversionEq', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -674,35 +686,35 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator gt  ', function(done) {
+  it('Criteria Conversion - Mongo Operator gt  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 5,
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
       data: {
-        trunk: { $gt: 4 }
-      }
+        trunk: { $gt: 4 },
+      },
     };
     let filterItemCorrect2 = {
       data: {
-        trunk: { $gte: 5 }
-      }
+        trunk: { $gte: 5 },
+      },
     };
     let filterItemIncorect = {
       data: {
-        trunk: { $gt: 5 }
-      }
+        trunk: { $gt: 5 },
+      },
     };
     let filterItemIncorect2 = {
       data: {
-        trunk: { $gte: 6 }
-      }
+        trunk: { $gte: 6 },
+      },
     };
 
     AddSearchDelete('/criteriaConversionsEq', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -720,35 +732,35 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator lt  ', function(done) {
+  it('Criteria Conversion - Mongo Operator lt  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 5,
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
       data: {
-        trunk: { $lt: 6 }
-      }
+        trunk: { $lt: 6 },
+      },
     };
     let filterItemCorrect2 = {
       data: {
-        trunk: { $lte: 5 }
-      }
+        trunk: { $lte: 5 },
+      },
     };
     let filterItemIncorect = {
       data: {
-        trunk: { $lt: 5 }
-      }
+        trunk: { $lt: 5 },
+      },
     };
     let filterItemIncorect2 = {
       data: {
-        trunk: { $lte: 4 }
-      }
+        trunk: { $lte: 4 },
+      },
     };
 
     AddSearchDelete('/criteriaConversionsLt', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -766,40 +778,40 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator in  ', function(done) {
+  it('Criteria Conversion - Mongo Operator in  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'hello',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
       data: {
-        trunk: { $in: ['goodbye', 'hello'] }
-      }
+        trunk: { $in: ['goodbye', 'hello'] },
+      },
     };
     let filterItemCorrect2 = {
       data: {
         trunk: 'hello',
         trunk2: {
           branch1: { $in: ['branchLeaf', 'test'] },
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
 
     let filterItemIncorect = {
       data: {
-        trunk: { $in: ['Wrong'] }
-      }
+        trunk: { $in: ['Wrong'] },
+      },
     };
     let filterItemIncorect2 = {
       data: {
-        trunk: { $in: ['Wrong', 'VeryWorng', 'hell'] }
-      }
+        trunk: { $in: ['Wrong', 'VeryWorng', 'hell'] },
+      },
     };
 
     AddSearchDelete('/criteriaConversionsIn', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -817,42 +829,42 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator ne  ', function(done) {
+  it('Criteria Conversion - Mongo Operator ne  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'hello',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
       data: {
-        trunk: { $ne: 'goodbye' }
-      }
+        trunk: { $ne: 'goodbye' },
+      },
     };
     let filterItemCorrect2 = {
       data: {
         trunk: 'hello',
         trunk2: {
           branch1: { $ne: 'NotbranchLeaf' },
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
 
     let filterItemIncorect = {
       data: {
-        trunk: { $ne: 'hello' }
-      }
+        trunk: { $ne: 'hello' },
+      },
     };
     let filterItemIncorect2 = {
       data: {
         trunk2: {
-          branch1: { $ne: 'branchLeaf' }
-        }
-      }
+          branch1: { $ne: 'branchLeaf' },
+        },
+      },
     };
 
     AddSearchDelete('/criteriaConversionsNe', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -870,32 +882,32 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator And  ', function(done) {
+  it('Criteria Conversion - Mongo Operator And  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'hello',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
-      $and: [{ 'data.trunk': 'hello' }, { 'data.trunk2.branch1': 'branchLeaf' }]
+      $and: [{ 'data.trunk': 'hello' }, { 'data.trunk2.branch1': 'branchLeaf' }],
     };
     let filterItemCorrect2 = {
-      $and: [{ 'data.trunk': 'hello' }]
+      $and: [{ 'data.trunk': 'hello' }],
     };
 
     let filterItemIncorect = {
       $and: [
         { 'data.trunk': 'hello' },
         { 'data.trunk2.branch1': 'branchLeaf' },
-        { 'data.trunk2.branch2': 'branchLeaf' }
-      ]
+        { 'data.trunk2.branch2': 'branchLeaf' },
+      ],
     };
     let filterItemIncorect2 = {
-      $and: [{ 'data.trunk': 'hell' }]
+      $and: [{ 'data.trunk': 'hell' }],
     };
 
     AddSearchDelete('/criteriaConversionsAnd', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -913,36 +925,36 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator OR  ', function(done) {
+  it('Criteria Conversion - Mongo Operator OR  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
-      $or: [{ 'data.trunk': 'trunkLeaf' }, { 'data.trunk': 'incorrectValue' }]
+      $or: [{ 'data.trunk': 'trunkLeaf' }, { 'data.trunk': 'incorrectValue' }],
     };
     let filterItemCorrect2 = {
-      $or: [{ 'data.trunk': 'incorrectValue' }, { 'data.trunk2.branch2': { twig: '5' } }]
+      $or: [{ 'data.trunk': 'incorrectValue' }, { 'data.trunk2.branch2': { twig: '5' } }],
     };
 
     let filterItemIncorect = {
       $or: [
         { 'data.trunk': 'IncorrectValue' },
         { 'data.trunk2.branch1': 'branchL' },
-        { 'data.trunk2.branch2': 'branchLeaf' }
-      ]
+        { 'data.trunk2.branch2': 'branchLeaf' },
+      ],
     };
     let filterItemIncorect2 = {
       $or: [
         { 'data.trunk': 'IncorrectValue' },
         { 'data.trunk2': { branch1: 'branchL' } },
-        { 'data.trunk2': { branch2: 'branchLeaf' } }
-      ]
+        { 'data.trunk2': { branch2: 'branchLeaf' } },
+      ],
     };
 
     AddSearchDelete('/criteriaConversionsOr', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -960,28 +972,28 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - Mongo Operator NOR  ', function(done) {
+  it('Criteria Conversion - Mongo Operator NOR  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let filterItemCorrect = {
-      $nor: [{ 'data.trunk': 'trunkLeaz' }, { 'data.trunk2.branch2.twig': '4' }]
+      $nor: [{ 'data.trunk': 'trunkLeaz' }, { 'data.trunk2.branch2.twig': '4' }],
     };
     let filterItemCorrect2 = {
-      $nor: [{ 'data.trunk2.branch2.twig': '6' }, { 'data.trunk2.branch2': { twig: '4' } }]
+      $nor: [{ 'data.trunk2.branch2.twig': '6' }, { 'data.trunk2.branch2': { twig: '4' } }],
     };
 
     let filterItemIncorect = {
-      $nor: [{ 'data.trunk': 'trunkLeaf' }, { 'data.trunk2.branch2.twig': '5' }]
+      $nor: [{ 'data.trunk': 'trunkLeaf' }, { 'data.trunk2.branch2.twig': '5' }],
     };
     let filterItemIncorect2 = {
-      $nor: [{ 'data.trunk': 't' }, { 'data.trunk2.branch2': { twig: '5' } }]
+      $nor: [{ 'data.trunk': 't' }, { 'data.trunk2.branch2': { twig: '5' } }],
     };
 
     AddSearchDelete('/criteriaConversionsOr', dataItemAdded, filterItemCorrect, filterItemIncorect)
@@ -999,15 +1011,15 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
       .catch(done);
   });
 
-  it('Criteria Conversion - unsupported opperator  ', function(done) {
+  it('Criteria Conversion - unsupported opperator  ', function (done) {
     let dataItemAdded = {
       data: {
         trunk: 'trunkLeaf',
         trunk2: {
           branch1: 'branchLeaf',
-          branch2: { twig: '5' }
-        }
-      }
+          branch2: { twig: '5' },
+        },
+      },
     };
     let invalidfilter = {
       loc: {
@@ -1019,25 +1031,25 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function(test) {
                 [0, 0],
                 [3, 6],
                 [6, 1],
-                [0, 0]
-              ]
-            ]
-          }
-        }
-      }
+                [0, 0],
+              ],
+            ],
+          },
+        },
+      },
     };
 
     AddSearchDelete('/criteriaConversionsOr', dataItemAdded, invalidfilter, {})
-      .then(data => {
+      .then((data) => {
         done(data);
       })
-      .catch(e => {
+      .catch((e) => {
         test.expect(e.message).to.be("unkown or unsuported MongoOperator '$geoIntersects'");
         done();
       });
   });
 
-  it('Index delete : non-exisitng index ', function(done) {
+  it('Index delete : non-exisitng index ', function (done) {
     serviceInstance.remove('/index.that.does.not.exist/*', done);
   });
 });

@@ -24,6 +24,7 @@ class TestHelper {
 		this.spawn = require("child_process").spawn;
 		this.gulp = require("gulp");
 		this.karma = require("karma");
+		this.bluebird = require("bluebird");
 	}
 	static create() {
 		return new TestHelper();

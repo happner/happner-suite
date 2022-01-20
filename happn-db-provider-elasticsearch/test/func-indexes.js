@@ -1,4 +1,4 @@
-require('./fixtures/test-helper').describe({ timeout: 30e3, only: true }, function (test) {
+require('./fixtures/test-helper').describe({ timeout: 30e3 }, function (test) {
   const service = require('..');
   const path = require('path');
   const provider_path = path.resolve('../index.js');

@@ -222,7 +222,7 @@ function convertCriteria(options, parentkey = '') {
 }
 
 module.exports = {
-  convertOptions: function (options, elasticMessage) {
+  convertOptions: function (options, elasticMessage, defaultSort) {
     if (options.fields) {
       var fieldsClone = JSON.parse(JSON.stringify(options.fields));
 
@@ -241,13 +241,8 @@ module.exports = {
 
     if (options.offSet || options.skip) elasticMessage.body.from = options.offSet || options.skip;
 
-    elasticMessage.body.sort = [
-      {
-        path: 'asc',
-      },
-    ];
-
     if (options.sort) {
+      elasticMessage.body.sort = [];
       elasticMessage.body.sort = Object.keys(options.sort).map((sortFieldName) => {
         return {
           [sortFieldName]: {
@@ -255,6 +250,10 @@ module.exports = {
           },
         };
       });
+    } else {
+      if (defaultSort) {
+        elasticMessage.body.sort = defaultSort;
+      }
     }
   },
   convertCriteria,

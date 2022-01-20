@@ -10,7 +10,8 @@
     "report": "nyc report --reporter=text --reporter=lcov --reporter=text-summary && nyc report --reporter=text --reporter=text-summary > coverage.txt",
     "test": "_mocha test/* --recursive --exit",
     "test-cover": "env LOG_LEVEL=off nyc --reporter=none mocha",
-    "test-perf": "mocha test/perf.js"
+    "test-perf": "mocha test/perf.js",
+    "test-unit": "mocha test/unit*.js"
   },
   "dependencies": {
     "happn-commons": "^1.0.0",

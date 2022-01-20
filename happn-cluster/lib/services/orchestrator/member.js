@@ -288,7 +288,8 @@ Member.prototype.connect = function (member) {
 
       if (
         thisError.code === 'ECONNREFUSED' ||
-        thisError.toString() === 'Error: connection timed out'
+        thisError.toString() === 'Error: connection timed out' ||
+        thisError.message.indexOf('connect ECONNREFUSED') === 0
       ) {
         // This happens when we join, get list of remotes and simultaneously
         // one of them shuts down. We don't get the notification from swim

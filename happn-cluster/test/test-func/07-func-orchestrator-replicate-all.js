@@ -9,6 +9,8 @@ var clusterSize = 3;
 var happnSecure = false;
 
 require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+  let Promise = test.bluebird;
+
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';

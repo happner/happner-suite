@@ -170,7 +170,7 @@ Orchestrator.prototype.prepare = require('util').promisify(function (callback) {
   });
 });
 
-Orchestrator.prototype.stabilised = require('util').promisify(function (callback) {
+Orchestrator.prototype.stabilised = require('bluebird').promisify(function (callback) {
   this.log.debug('testing stabilised');
 
   var _this = this;
