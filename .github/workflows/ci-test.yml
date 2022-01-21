@@ -50,8 +50,7 @@ jobs:
 
     - run: npm run-script test-cover --workspace=happn-3
     - run: npm run-script test-browser --workspace=happn-3
-
-     - run: npm run-script test-cover --workspace=happn-cluster
+    - run: npm run-script test-cover --workspace=happn-cluster
 
     - name: Coveralls
       uses: coverallsapp/github-action@master
