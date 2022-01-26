@@ -936,6 +936,7 @@
 -----------------
   - SMC-4938: Fix - dont delete session.username
   - SMC-4550: Fix -correctly calling securityDirectoryChanged on permission removal and group/permission table unlinking
+  - SMC-4550: Fixed array templated permission substitution
 
   
 

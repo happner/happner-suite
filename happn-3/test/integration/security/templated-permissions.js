@@ -248,7 +248,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
             test
               .expect(warnings[0])
               .to.be(
-                'illegal promotion of permissions via permissions template, permissionPath/forbidden/{{user.custom_data.custom_field_forbidden}}, replaced path: /forbidden/*'
+                'failed creating permission set: illegal promotion of permissions via permissions template, permissionPath: /forbidden/{{user.custom_data.custom_field_forbidden}}, substitution key: user.custom_data.custom_field_forbidden, value: *'
               );
             done();
           });
@@ -432,6 +432,76 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
           );
         }
       );
+    });
+
+    it('can work with array values in session fields', async () => {
+      this.timeout(10000);
+      const customArrayPath1 = '/custom-array/array_item_1';
+      const customArrayPath2 = '/custom-array/array_item_2';
+      const customArrayPath3 = '/custom-array/array_item_3';
+
+      await testClient.set(customArrayPath1, {
+        test: 'data1',
+      });
+
+      await testClient.set(customArrayPath2, {
+        test: 'data1',
+      });
+
+      await testClient.set(customArrayPath3, {
+        test: 'data1',
+      });
+
+      await serviceInstance.services.security.users.upsertUser({
+        username: 'TEST USER@blah.com' + test_id,
+        custom_data: {
+          custom_field1: 'custom_field1_value',
+          custom_field2: 'custom_field2_value',
+          custom_field3: 'custom_field3_value',
+          custom_field4: 'custom_field4_value',
+          custom_field5: 'custom_field5_value',
+          custom_field_forbidden: '*',
+          custom_field_array: ['array_item_1', 'array_item_3'],
+        },
+      });
+
+      //should fail because path 2 was removed from custom data
+      test
+        .expect(
+          await test.tryMethod(testClient, 'set', customArrayPath2, {
+            test: 'data2',
+          })
+        )
+        .to.equal('unauthorized');
+
+      //still able to access path 1
+      await testClient.set(customArrayPath1, {
+        test: 'data1',
+      });
+
+      //remove the whole permission
+      await serviceInstance.services.security.groups.removePermission(
+        testGroup.name,
+        '/custom-array/{{user.custom_data.custom_field_array}}',
+        '*'
+      );
+
+      //should fail because the whole permission was removed
+      test
+        .expect(
+          await test.tryMethod(testClient, 'set', customArrayPath1, {
+            test: 'data1',
+          })
+        )
+        .to.equal('unauthorized');
+
+      test
+        .expect(
+          await test.tryMethod(testClient, 'set', customArrayPath3, {
+            test: 'data3',
+          })
+        )
+        .to.equal('unauthorized');
     });
   });
 });

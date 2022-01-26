@@ -1,5 +1,6 @@
 const test = require('../../../__fixtures/utils/test_helper').create();
 describe(test.testName(), function () {
+  this.timeout(10e3);
   const Logger = require('happn-logger');
   const BaseAuthProvider = require('../../../../lib/services/security/authentication/provider-base');
   const dummyAuthProvider = test.path.resolve(
