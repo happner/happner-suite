@@ -48,9 +48,11 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run lint-happn-3
+    - run: npm run lint --package_name=happn-3 
     - run: npm run-script test-cover --workspace=happn-3
     - run: npm run-script test-browser --workspace=happn-3
+
+    - run: npm run lint --package_name=happn-cluster 
     - run: npm run-script test-cover --workspace=happn-cluster
 
     - name: Coveralls
