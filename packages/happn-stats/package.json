@@ -1,0 +1,35 @@
+{
+  "name": "happn-stats",
+  "version": "1.0.8",
+  "description": "Lightweight application monitoring.",
+  "main": "index.js",
+  "bin": {
+    "happn-stats": "bin/happn-stats"
+  },
+  "scripts": {
+    "test": "_mocha --recursive --exit silence.js test/*",
+    "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
+    "test-unit": "mocha silence.js test/unit/* --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happner/happn-stats.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/happner/happn-stats/issues"
+  },
+  "homepage": "https://github.com/happner/happn-stats#readme",
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "commander": "^2.11.0",
+    "debug": "^2.0.0",
+    "happn-commons": "^1.0.0",
+    "ws": "^8.1.0"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "happn-util-crypto",
+  "version": "2.0.0",
+  "description": "Happn cryptograpy utilities",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/happner/happn-util-crypto"
+  },
+  "main": "lib/crypto",
+  "scripts": {
+    "test": "_mocha --recursive --exit silence.js test/*",
+    "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
+    "test-unit": "mocha silence.js test/unit/* --recursive"
+  },
+  "dependencies": {
+    "async": "^3.2.0",
+    "crypto-browserify": "^3.12.0",
+    "randombytes": "^2.0.6",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0",
+    "browserify": "^16.2.3",
+    "connect": "^3.6.6",
+    "gulp": "^4.0.0",
+    "gulp-header": "^2.0.7",
+    "gulp-uglify-es": "^2.0.0",
+    "gulp-util": "^3.0.8",
+    "karma": "^3.1.3",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-mocha": "^1.3.0",
+    "karma-mocha-reporter": "^2.2.5",
+    "request": "^2.88.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "readmeFilename": "README.md"
+}

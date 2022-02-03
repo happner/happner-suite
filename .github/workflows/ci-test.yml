@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x,16.x,17.x]
+        node-version: [14.x,16.x]
         mongodb-version: ['4.4']
         redis-version: ['6']
         elastic-version: ['6.4.0']
@@ -48,6 +48,7 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
+    - run: npm run lint-happn-3
     - run: npm run-script test-cover --workspace=happn-3
     - run: npm run-script test-browser --workspace=happn-3
     - run: npm run-script test-cover --workspace=happn-cluster

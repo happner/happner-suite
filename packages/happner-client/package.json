@@ -1,0 +1,37 @@
+{
+  "name": "happner-client",
+  "version": "12.0.0",
+  "description": "The client for happner-2 and happner cluster services",
+  "homepage": "https://github.com/happner/happner-client#readme",
+  "bugs": {
+    "url": "https://github.com/happner/happner-client/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happner/happner-client.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "coverage": "npm run test-cover && npm run report",
+    "coveralls": "npm run test-cover && nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint '**/*.js'",
+    "lint-fix": "eslint '**/*.js' --fix",
+    "release": "rm -rf node_modules && rm -f package-lock.json && npm install && npm run test-cover && npm run test-browser",
+    "report": "nyc report --reporter=text --reporter=lcov --reporter=text-summary && nyc report --reporter=text --reporter=text-summary > coverage.txt",
+    "test": "npm run lint && mocha test/unit/* test/integration/* --opts mocha.opts",
+    "test-cover": "env LOG_LEVEL=off nyc --reporter=lcov --reporter=text-summary mocha test/unit/* test/integration/* --opts mocha.opts",
+    "test-browser": "rsync -a --delete lib/ node_modules/happner-client/lib && node_modules/.bin/gulp --gulpfile test/browser/gulp-01.js",
+    "prepare": "rm -rf node_modules/happner-2/node_modules/bitcore-lib && rm -rf node_modules/happner-client/node_modules/bitcore-lib && rm -rf node_modules/bitcore-ecies/node_modules/bitcore-lib"
+  },
+  "dependencies": {
+    "happn-commons": "^1.0.0",
+    "happn-3": "^13.0.0",
+    "happner-semver": "^1.0.1"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0",
+    "happner-2": "^12.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "happn-db-provider-nedb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "_mocha --recursive --exit silence.js test/*",
+    "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
+    "test-unit": "mocha silence.js test/unit/* --recursive"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lokijs": "^1.5.12",
+    "happn-commons": "^1.0.0"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0"
+  }
+}
