@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
-    "lint-happn-3": "eslint \"./happn-3/**/*.js\"",
-    "lint-fix-happn-3": "eslint './happn-3/**/*.js' --fix",
+    "lint-happn-3": "eslint \"./packages/happn-3/**/*.js\"",
+    "lint-fix-happn-3": "eslint './packages/happn-3/**/*.js' --fix",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "workspaces": [
