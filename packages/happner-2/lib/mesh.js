@@ -223,10 +223,15 @@ function Mesh(config) {
     enumerable: true,
   });
 
+  // eslint-disable-next-line no-self-assign
   this.initialize = this.initialize; // make function visible in repl (console)
+  // eslint-disable-next-line no-self-assign
   this.start = this.start;
+  // eslint-disable-next-line no-self-assign
   this.stop = this.stop;
+  // eslint-disable-next-line no-self-assign
   this.describe = this.describe;
+  // eslint-disable-next-line no-self-assign
   this.test = this.test;
 
   this.plugins = [];

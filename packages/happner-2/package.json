@@ -15,16 +15,12 @@
     ]
   },
   "scripts": {
-    "test": "npm run lint && _mocha --exit -- silence.js test/integration/** test/unit/**",
-    "test-benchmark": "node test/benchmark/serial-run.js",
+    "test": "_mocha -- silence.js test/integration/** test/unit/** --exit",
     "test-unit": "_mocha --exit test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
-    "test-cover": "npm run lint && nyc --reporter=lcov --reporter=text-summary _mocha silence.js --recursive test/unit/** test/integration/** --exit",
+    "test-cover": "npm run lint && nyc --reporter=lcov --reporter=text-summary npm test",
     "test-browser": "node_modules/.bin/gulp --gulpfile test/browser/gulp-01.js",
-    "test-backward-compatibility": "_mocha silence.js test/backward-compatibility/** --exit",
-    "lint": "eslint '**/*.js'",
-    "lint-fix": "eslint '**/*.js' --fix",
-    "report-coverage": "nyc report --reporter=text-lcov | coveralls"
+    "test-backward-compatibility": "_mocha silence.js test/backward-compatibility/** --exit"
   },
   "repository": {
     "type": "git",

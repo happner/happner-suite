@@ -2,6 +2,8 @@
 //       to provide single /client/api script to browser.
 //       Better if this was cached to disk (when in production mode)
 
+const utils = require('happn-commons/lib/utils');
+
 // BUG: more than one meshnode in same process and packager does not apply
 // post-start changes to script package into all mesh nodes.
 
@@ -30,6 +32,7 @@ var fs = require('fs'),
   semver = require('happner-semver');
 
 function Packager(mesh) {
+  // eslint-disable-next-line no-useless-catch
   try {
     this.log = mesh.log.createLogger('Packager');
     const happnerClientPath = dirname(require.resolve('happner-client'));
@@ -143,14 +146,16 @@ Packager.prototype.saveCachedScript = function (merged) {
   fs.writeFileSync(cachedFilename, merged.data);
 };
 
+Packager.prototype.readFile = async function (file) {
+  return await util.promisify(fs.readFile)(typeof file.then === 'function' ? await file : file);
+};
+
 Packager.prototype.initialize = function (callback) {
   if (!this.scripts) {
     return callback();
   }
 
   this.log.$$DEBUG('Building /api/client package');
-
-  var readFilePromise = util.promisify(fs.readFile);
   var lstatPromise = util.promisify(fs.lstat);
   var _this = this;
 
@@ -187,7 +192,7 @@ Packager.prototype.initialize = function (callback) {
         return Promise.all(
           scripts.map(function (script) {
             _this.log.$$DEBUG('reading script %s', script.file);
-            return readFilePromise(script.file);
+            return _this.readFile(script.file);
           })
         );
       })

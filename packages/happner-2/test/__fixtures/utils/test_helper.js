@@ -15,10 +15,15 @@ class TestHelper extends BaseTestHelper {
     this.TCPProxy = require('./tcp-proxy/proxy');
     this.package = require('../../../package.json');
     this.path = require('path');
-    this.happnPackage = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../node_modules/happn-3/package.json')));
+    this.happnPackage = JSON.parse(this.fs.readFileSync(this.path.resolve(__dirname, '../../../../../node_modules/happn-3/package.json')));
     this._ = commons._;
     this.log = console.log;
     this.users = require('./users');
+
+    this.startUp = this.util.promisify(this.startUp);
+    this.disconnectClient = this.util.promisify(this.disconnectClient);
+    this.stopService = this.util.promisify(this.stopService);
+    this.testService = this.util.promisify(this.testService);
   }
 
   static create() {
@@ -29,7 +34,20 @@ class TestHelper extends BaseTestHelper {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
   }
 
-  TestHelper.prototype.__addHappnerClient = function (ctx, client) {
+  startUp(configs, callback) {
+    if (typeof configs == 'function') {
+      callback = configs;
+      configs = null;
+    }
+    if (configs == null) return callback();
+    if (!Array.isArray(configs)) return callback(new Error('configs not an Array, please pass in Array'));
+    var _this = this;
+    async.eachSeries(configs, function (config, configCB) {
+      _this.getService(config, configCB);
+    }, callback);
+  }
+
+  __addHappnerClient (ctx, client) {
 
     if (!this.__happnerClients[ctx])
       this.__happnerClients[ctx] = [];
@@ -37,7 +55,7 @@ class TestHelper extends BaseTestHelper {
     this.__happnerClients[ctx].push(client);
   };
   
-  TestHelper.prototype.__addHappnerInstance = function (ctx, instance, config) {
+  __addHappnerInstance (ctx, instance, config) {
   
     if (!this.__happnerInstances[ctx])
       this.__happnerInstances[ctx] = [];
@@ -45,7 +63,7 @@ class TestHelper extends BaseTestHelper {
     this.__happnerInstances[ctx].push({instance: instance, config: config});
   };
   
-  TestHelper.prototype.startHappnerInstance = function(ctx, config, callback){
+  startHappnerInstance (ctx, config, callback){
   
     var _this = this;
   
@@ -83,7 +101,7 @@ class TestHelper extends BaseTestHelper {
     });
   };
   
-  TestHelper.prototype.stopHappnerInstances = function(ctx, callback){
+  stopHappnerInstances (ctx, callback){
   
     var _this = this;
   
@@ -101,7 +119,7 @@ class TestHelper extends BaseTestHelper {
   
           if (started.config.data) dbPath = started.config.data.filename;
   
-          fs.unlinkSync(dbPath);
+          this.fs.unlinkSync(dbPath);
         }
   
         stopCallback();
@@ -116,7 +134,7 @@ class TestHelper extends BaseTestHelper {
     });
   };
   
-  TestHelper.prototype.getRecordFromHappn = function(options, callback){
+  getRecordFromHappn (options, callback) {
   
     var service = this.findService(options.instanceName);
   
@@ -135,7 +153,7 @@ class TestHelper extends BaseTestHelper {
     });
   };
   
-  TestHelper.prototype.getRecordFromSmallFile = function(options){
+  getRecordFromSmallFile (options){
   
     try{
   
@@ -143,7 +161,7 @@ class TestHelper extends BaseTestHelper {
   
       var foundRecord = null;
   
-      if (options.filename) fileContents = fs.readFileSync(options.filename, 'utf8');
+      if (options.filename) fileContents = this.fs.readFileSync(options.filename, 'utf8');
   
       var records = fileContents.toString().split('\n');
   
@@ -176,23 +194,23 @@ class TestHelper extends BaseTestHelper {
     }
   };
   
-  TestHelper.prototype.newTestFile = function (options) {
+  newTestFile (options) {
   
     var _this = this;
   
     if (!options) options = {};
   
-    if (!options.dir) options.dir = 'test' + path.sep + 'tmp';
+    if (!options.dir) options.dir = 'test' + this.path.sep + 'tmp';
   
     if (!options.ext) options.ext = 'nedb';
   
     if (!options.name) options.name = shortid.generate();
   
-    var folderName = path.resolve(options.dir);
+    var folderName = this.path.resolve(options.dir);
   
-    fs.ensureDirSync(folderName);
+    this.fs.ensureDirSync(folderName);
   
-    var fileName = folderName + path.sep + options.name + '.' + options.ext;
+    var fileName = folderName + this.path.sep + options.name + '.' + options.ext;
   
     var testRow = {
       "_id": "/_TEST_HELPER/TESTWRITE",
@@ -202,14 +220,14 @@ class TestHelper extends BaseTestHelper {
       "modified": Date.now()
     };
   
-    fs.writeFileSync(fileName, JSON.stringify(testRow));
+    this.fs.writeFileSync(fileName, JSON.stringify(testRow));
   
     _this.__testFiles.push(fileName);
   
     return fileName;
   };
   
-  TestHelper.prototype.deleteFiles = function () {
+  deleteFiles () {
   
     var _this = this;
   
@@ -221,7 +239,7 @@ class TestHelper extends BaseTestHelper {
   
     _this.__testFiles.forEach(function (filename) {
       try {
-        fs.unlinkSync(filename);
+        this.fs.unlinkSync(filename);
         deleted++;
       } catch (e) {
         lastError = e;
@@ -234,25 +252,7 @@ class TestHelper extends BaseTestHelper {
     return results;
   };
   
-  TestHelper.prototype.startUp = util.promisify(function (configs, callback) {
-  
-    if (typeof configs == 'function') {
-      callback = configs;
-      configs = null;
-    }
-  
-    if (configs == null) return callback();
-  
-    if (!Array.isArray(configs)) return callback(new Error('configs not an Array, please pass in Array'));
-  
-    var _this = this;
-  
-    async.eachSeries(configs, function (config, configCB) {
-      _this.getService(config, configCB);
-    }, callback);
-  });
-  
-  TestHelper.prototype.__serviceExists = function (config) {
+  __serviceExists (config) {
   
     var nameExists = this.__activeServices[config.name] != null;
   
@@ -266,7 +266,7 @@ class TestHelper extends BaseTestHelper {
     return false;
   };
   
-  TestHelper.prototype.findClient = function (options) {
+  findClient (options) {
   
     if (options.name) options.id = options.name;
   
@@ -297,7 +297,7 @@ class TestHelper extends BaseTestHelper {
     return null;
   };
   
-  TestHelper.prototype.getClient = function (config, callback, clientPassword) {
+  getClient (config, callback, clientPassword) {
   
     if (typeof config != 'object') return callback('cannot get a client without a config');
   
@@ -388,7 +388,7 @@ class TestHelper extends BaseTestHelper {
       });
   };
   
-  TestHelper.prototype.findService = function (options) {
+  findService (options) {
   
     if (typeof options == 'string') return this.__activeServices[options];
   
@@ -413,7 +413,7 @@ class TestHelper extends BaseTestHelper {
     return null;
   };
   
-  TestHelper.prototype.restartService = function (options, callback) {
+  restartService (options, callback) {
   
     var _this = this;
   
@@ -434,7 +434,7 @@ class TestHelper extends BaseTestHelper {
     callback(new Error('could not find service'));
   };
   
-  TestHelper.prototype.__appendTestComponentConfig = function(config){
+  __appendTestComponentConfig(config){
   
     if (!config.modules) config.modules = {};
   
@@ -454,7 +454,7 @@ class TestHelper extends BaseTestHelper {
     config.components.testHelperComponent = {};
   };
   
-  TestHelper.prototype.getService = function (config, callback, clientPassword) {
+  getService (config, callback, clientPassword) {
   
     var _this = this;
   
@@ -535,7 +535,7 @@ class TestHelper extends BaseTestHelper {
     });
   };
   
-  TestHelper.prototype.disconnectClient = util.promisify(function (id, callback) {
+  disconnectClient(id, callback) {
   
     var _this = this;
   
@@ -566,9 +566,9 @@ class TestHelper extends BaseTestHelper {
   
       return callback(null, removed);
     });
-  });
+  }
   
-  TestHelper.prototype.stopService = util.promisify(function (id, callback) {
+  stopService (id, callback) {
   
     var _this = this;
   
@@ -604,9 +604,9 @@ class TestHelper extends BaseTestHelper {
     }
   
     return completeStopService();
-  });
+  }
   
-  TestHelper.prototype.testClientComponent = function(clientInstance, options, callback){
+  testClientComponent(clientInstance, options, callback){
   
     if (typeof options == 'function'){
       callback = options;
@@ -644,7 +644,7 @@ class TestHelper extends BaseTestHelper {
     } else callback(new Error('expected exchange and event methods not found'));
   };
   
-  TestHelper.prototype.testClientData = function (clientInstance, callback) {
+  testClientData (clientInstance, callback) {
   
     var calledBack = false;
   
@@ -690,7 +690,7 @@ class TestHelper extends BaseTestHelper {
       });
   };
   
-  TestHelper.prototype.testService = util.promisify(function (id, callback) {
+  testService (id, callback) {
   
     var _this = this;
   
@@ -717,9 +717,9 @@ class TestHelper extends BaseTestHelper {
         _this.testClientComponent(client.instance, client.config.__testOptions, callback);
       });
     });
-  });
+  }
   
-  TestHelper.prototype.tearDown = util.promisify(function (options, callback) {
+  tearDown (options, callback) {
   
     if (typeof options == 'function') {
       callback = options;
@@ -756,170 +756,7 @@ class TestHelper extends BaseTestHelper {
   
       callback(e);
     });
-  });
-
-  newTestFile(options) {
-    if (!options) options = {};
-    if (!options.dir) options.dir = 'test' + this.path.sep + 'tmp';
-    if (!options.ext) options.ext = 'txt';
-    if (!options.name) options.name = this.newid();
-    const fileName = this.ensureTmpPath(options.name + '.' + options.ext);
-    this.fs.writeFileSync(fileName, '');
-    this.__testFiles.push(fileName);
-    return fileName;
-  }
-
-  async cleanup(sessions = [], instances = []) {
-    this.deleteFiles();
-    for (let session of sessions) {
-      await this.destroySession(session);
-    }
-    for (let instance of instances) {
-      await this.destroyInstance(instance);
-    }
-  }
-  deleteFiles() {
-    var errors = 0;
-    var deleted = 0;
-    var lastError;
-    this.__testFiles.forEach(filename => {
-      try {
-        this.fs.unlinkSync(filename);
-        deleted++;
-      } catch (e) {
-        lastError = e;
-        errors++;
-      }
-    });
-    return { deleted, errors, lastError };
-  }
-  //eslint-disable-next-line
-doRequest (path, token) {
-    return new Promise((resolve, reject) => {
-      let options = {
-        url: 'http://127.0.0.1:55000' + path
-      };
-      options.headers = {
-        Cookie: ['happn_token=' + token]
-      };
-      this.request(options, function(error, response) {
-        if (error) return reject(error);
-        resolve(response);
-      });
-    });
-  }
-
-  async lineCount(filePath) {
-    if (!this.fs.existsSync(filePath)) {
-      return 0;
-    }
-    const reader = readline.createInterface({
-      input: this.fs.createReadStream(filePath),
-      crlfDelay: Infinity
-    });
-    let lineIndex = 0;
-    // eslint-disable-next-line no-unused-vars
-    for await (const _line of reader) {
-      lineIndex++;
-    }
-    return lineIndex;
-  }
-
-  ensureTmpPath(suffix) {
-    const tmpPath = this.path.resolve(__dirname, '../tmp');
-    this.fs.ensureDirSync(tmpPath);
-    if (!suffix) return tmpPath;
-    return `${tmpPath}${this.path.sep}${suffix}`;
-  }
-
-  findRecordInDataFile(path, filepath) {
-    return new Promise((resolve, reject) => {
-      let found = false;
-      let stream;
-      try {
-        const byline = require('byline');
-        stream = byline(this.fs.createReadStream(filepath, { encoding: 'utf8' }));
-      } catch (e) {
-        reject(e);
-        return;
-      }
-      stream.on('data', function(line) {
-        if (found) return;
-
-        var record = JSON.parse(line);
-
-        if (
-          record.operation != null &&
-          ['UPSERT', 'INSERT'].includes(record.operation.operationType) &&
-          record.operation.arguments[0] === path
-        ) {
-          found = true;
-          stream.end();
-          return resolve(record);
-        }
-      });
-
-      stream.on('error', function(e) {
-        if (!found) reject(e);
-      });
-
-      stream.on('end', function() {
-        if (!found) resolve(null);
-      });
-    });
-  }
-  createInstance(config = {}) {
-    return new Promise((resolve, reject) => {
-      this.happn.service.create(config, function(e, happnInst) {
-        if (e) return reject(e);
-        resolve(happnInst);
-      });
-    });
-  }
-
-  destroyInstance(instance) {
-    return new Promise((resolve, reject) => {
-      if (!instance) return resolve();
-      instance.stop(function(e) {
-        if (e) return reject(e);
-        resolve();
-      });
-    });
-  }
-
-  createAdminWSSession() {
-    return new Promise((resolve, reject) => {
-      this.happn.client.create({ username: '_ADMIN', password: 'happn' }, function(e, session) {
-        if (e) return reject(e);
-        resolve(session);
-      });
-    });
-  }
-
-  async destroySessions(sessions) {
-    for (let session of sessions) {
-      await this.destroySession(session);
-    }
-  }
-
-  destroySession(session) {
-    return new Promise((resolve, reject) => {
-      if (!session) return resolve();
-      session.disconnect(function(e) {
-        if (e) return reject(e);
-        resolve();
-      });
-    });
-  }
-
-  createAdminSession(instance) {
-    return new Promise((resolve, reject) => {
-      instance.services.session.localAdminClient(function(e, session) {
-        if (e) return reject(e);
-        resolve(session);
-      });
-    });
-  }
+  };
 }
 
 module.exports = TestHelper;
