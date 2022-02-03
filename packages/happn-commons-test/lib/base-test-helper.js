@@ -25,6 +25,8 @@ class TestHelper {
 		this.gulp = require("gulp");
 		this.karma = require("karma");
 		this.bluebird = require("bluebird");
+		this.request = this.nodeUtils.promisify(require('request'), { multiArgs: true });
+		require('chai').should();
 	}
 	static create() {
 		return new TestHelper();

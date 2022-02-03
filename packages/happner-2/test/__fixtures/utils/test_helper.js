@@ -1,816 +1,924 @@
-var async = require('async')
-  , Happner = require('../../..')
-  , sillyname = require('happn-sillyname')
-  , shortid = require('shortid')
-  , path = require('path')
-  , fs = require('fs-extra')
-  , Mesh = require('../../..')
-  , util = require('util')
-  ;
+const commons = require('happn-commons');
+const BaseTestHelper = require('happn-commons-test');
+class TestHelper extends BaseTestHelper {
+  constructor() {
+    super();
+    this.__activeServices = {};
+    this.__testFiles = [];
+    this.__happnerClients = {};
+    this.__happnerInstances = {};
 
-function TestHelper() {
-  this.__activeServices = {};
-  this.__testFiles = [];
-  this.__happnerClients = {};
-  this.__happnerInstances = {};
-  this.util = util;
-  this.fs = fs;
-  this.async = async;
-  this.TCPProxy = require('./tcp-proxy/proxy');
-  this.expect = require('expect.js');
-  this.package = require('../../../package.json');
-  this.path = require('path');
-  this.happnPackage = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../node_modules/happn-3/package.json')));
-  this.sinon = require('sinon');
-  this._ = require('lodash');
-  this.delay = require('await-delay');
-  this.request = util.promisify(require('request'), { multiArgs: true });
-  this.log = console.log;
-  this.users = require('./users');
-  require('chai').should();
-}
-
-TestHelper.create = function(){
-
-  return new TestHelper();
-};
-
-TestHelper.prototype.testName = function(testFilename, depth){
-
-  if (!depth) depth = 2;
-
-  var fileParts = testFilename.split(path.sep).reverse();
-
-  var poParts = [];
-
-  for (var i = 0; i < depth; i++)
-    poParts.push(fileParts.shift());
-
-  return poParts.reverse().join('/').replace('.js', '');
-};
-
-TestHelper.prototype.__addHappnerClient = function (ctx, client) {
-
-  if (!this.__happnerClients[ctx])
-    this.__happnerClients[ctx] = [];
-
-  this.__happnerClients[ctx].push(client);
-};
-
-TestHelper.prototype.__addHappnerInstance = function (ctx, instance, config) {
-
-  if (!this.__happnerInstances[ctx])
-    this.__happnerInstances[ctx] = [];
-
-  this.__happnerInstances[ctx].push({instance: instance, config: config});
-};
-
-TestHelper.prototype.startHappnerInstance = function(ctx, config, callback){
-
-  var _this = this;
-
-  if (!ctx) ctx = 'default';
-
-  if (typeof config == 'function') {
-    callback = config;
-    config = null;
+    this.package = require('../../../package.json');
+    this.util = commons.nodeUtils;
+    this.fs = commons.fs;
+    this.async = commons.async;
+    this.TCPProxy = require('./tcp-proxy/proxy');
+    this.package = require('../../../package.json');
+    this.path = require('path');
+    this.happnPackage = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../node_modules/happn-3/package.json')));
+    this._ = commons._;
+    this.log = console.log;
+    this.users = require('./users');
   }
 
-  Mesh.create(config, function (e, instance) {
-
-    if (e) return callback(e);
-
-    _this.__addHappnerInstance(ctx, instance, config);
-
-    var client = new Mesh.MeshClient({port: config.happn.port ? config.happn.port : 55000});
-
-    var loginParams = {
-
-      username: '_ADMIN',
-      password: config.happn.adminPassword ? config.happn.adminPassword : 'happn'
-
-    };
-
-    client.login(loginParams).then(function (e) {
-
-      if (e) return callback(e);
-
-      _this.__addHappnerClient(ctx, client);
-
-      callback(null, instance, client);
-    });
-
-  });
-};
-
-TestHelper.prototype.stopHappnerInstances = function(ctx, callback){
-
-  var _this = this;
-
-  async.eachSeries(_this.__happnerInstances[ctx], function (started, stopCallback) {
-
-    started.instance.stop(function (e) {
-
-      if (e) return stopCallback[e];
-
-      if ((started.config && started.config.happn && started.config.happn.filename) || (started.config && started.config.data && started.config.data.filename)) {
-
-        var dbPath;
-
-        if (started.config.happn) dbPath = started.config.happn.filename;
-
-        if (started.config.data) dbPath = started.config.data.filename;
-
-        fs.unlinkSync(dbPath);
-      }
-
-      stopCallback();
-    });
-  }, function (e) {
-
-    if (e) return callback(e);
-
-    _this.__happnerInstances[ctx] = [];
-
-    callback();
-  });
-};
-
-TestHelper.prototype.getRecordFromHappn = function(options, callback){
-
-  var service = this.findService(options.instanceName);
-
-  var happn = service.instance._mesh.happn.server;
-
-  happn.services.session.localClient({username:'_ADMIN', password:'happn'}, function(e, localClient){
-
-    if (e) return callback(e);
-
-    localClient.get(options.dataPath, function(e, response){
-
-      if (e) return callback(e);
-
-      callback(null, response);
-    });
-  });
-};
-
-TestHelper.prototype.getRecordFromSmallFile = function(options){
-
-  try{
-
-    var fileContents;
-
-    var foundRecord = null;
-
-    if (options.filename) fileContents = fs.readFileSync(options.filename, 'utf8');
-
-    var records = fileContents.toString().split('\n');
-
-    //backwards to get latest record
-    records.reverse().every(function(line){
-
-      var record = null;
-
-      try{
-        record = JSON.parse(line);
-      }catch(e){
-        //do nothing
-      }
-
-      if (record){
-
-        if (record.path == options.dataPath){
-          foundRecord = record;
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    return foundRecord;
-
-  }catch(e){
-    throw new Error('getRecordFromSmallFile failed: ' + e.toString(), e);
+  static create() {
+    return new TestHelper();
   }
-};
 
-TestHelper.prototype.newTestFile = function (options) {
+  static describe(options, handler) {
+    return BaseTestHelper.extend(TestHelper).describe(options, handler);
+  }
 
-  var _this = this;
+  TestHelper.prototype.__addHappnerClient = function (ctx, client) {
 
-  if (!options) options = {};
-
-  if (!options.dir) options.dir = 'test' + path.sep + 'tmp';
-
-  if (!options.ext) options.ext = 'nedb';
-
-  if (!options.name) options.name = shortid.generate();
-
-  var folderName = path.resolve(options.dir);
-
-  fs.ensureDirSync(folderName);
-
-  var fileName = folderName + path.sep + options.name + '.' + options.ext;
-
-  var testRow = {
-    "_id": "/_TEST_HELPER/TESTWRITE",
-    "data": {},
-    "path": "/_TEST_HELPER/TESTWRITE",
-    "created": Date.now(),
-    "modified": Date.now()
+    if (!this.__happnerClients[ctx])
+      this.__happnerClients[ctx] = [];
+  
+    this.__happnerClients[ctx].push(client);
   };
-
-  fs.writeFileSync(fileName, JSON.stringify(testRow));
-
-  _this.__testFiles.push(fileName);
-
-  return fileName;
-};
-
-TestHelper.prototype.deleteFiles = function () {
-
-  var _this = this;
-
-  var errors = 0;
-
-  var deleted = 0;
-
-  var lastError;
-
-  _this.__testFiles.forEach(function (filename) {
-    try {
-      fs.unlinkSync(filename);
-      deleted++;
-    } catch (e) {
-      lastError = e;
-      errors++;
+  
+  TestHelper.prototype.__addHappnerInstance = function (ctx, instance, config) {
+  
+    if (!this.__happnerInstances[ctx])
+      this.__happnerInstances[ctx] = [];
+  
+    this.__happnerInstances[ctx].push({instance: instance, config: config});
+  };
+  
+  TestHelper.prototype.startHappnerInstance = function(ctx, config, callback){
+  
+    var _this = this;
+  
+    if (!ctx) ctx = 'default';
+  
+    if (typeof config == 'function') {
+      callback = config;
+      config = null;
     }
-  });
-
-  var results = {deleted: deleted, errors: errors, lastError: lastError};
-
-  return results;
-};
-
-TestHelper.prototype.startUp = util.promisify(function (configs, callback) {
-
-  if (typeof configs == 'function') {
-    callback = configs;
-    configs = null;
-  }
-
-  if (configs == null) return callback();
-
-  if (!Array.isArray(configs)) return callback(new Error('configs not an Array, please pass in Array'));
-
-  var _this = this;
-
-  async.eachSeries(configs, function (config, configCB) {
-    _this.getService(config, configCB);
-  }, callback);
-});
-
-TestHelper.prototype.__serviceExists = function (config) {
-
-  var nameExists = this.__activeServices[config.name] != null;
-
-  if (nameExists) return true;
-
-  for (var serviceName in this.__activeServices) {
-    var service = this.__activeServices[serviceName];
-    if (service.config.happn.port == config.happn.port) return true;
-  }
-
-  return false;
-};
-
-TestHelper.prototype.findClient = function (options) {
-
-  if (options.name) options.id = options.name;
-
-  if (options.id) {
-
-    var serviceId = options.id.split('@')[1];
-
-    for (var serviceName in this.__activeServices) {
-
-      if (serviceName == serviceId) {
-
-        var service = this.__activeServices[serviceName];
-
-        if (service.clients && service.clients.length > 0) {
-
-          for (var clientIndex in service.clients) {
-
-            var client = service.clients[clientIndex];
-
-            if (client.id == options.id)  return client;
-          }
-        }
-        return null;
-      }
-    }
-  }
-
-  return null;
-};
-
-TestHelper.prototype.getClient = function (config, callback, clientPassword) {
-
-  if (typeof config != 'object') return callback('cannot get a client without a config');
-
-  if (config.happn) config.name = config.name != null?config.name:config.happn.name;
-
-  if (!config.name) return callback('cannot get a client for unknown service name');
-
-  if (!config.__testOptions) config.__testOptions = {};
-
-  config.__testOptions.clientKey = shortid.generate() + '@' + config.name;//[client id]@[server key]
-
-  var _this = this;
-
-  var service = _this.findService(config);
-
-  if (!service) return callback('could not find service using options: ' + JSON.stringify(config));
-
-  var credentials = {};
-
-  var options = {};
-
-  var happnConfig = service.config.happn != null ? service.config.happn : service.config;
-
-  var secure = happnConfig.secure != null ? happnConfig.secure : service.config.secure;
-
-  var port = happnConfig.port != null ? happnConfig.port : service.config.port;
-
-  if (secure) {
-
-    options.secure = true;
-
-    if (happnConfig.encryptPayloads) options.encryptPayloads = true;
-
-    if (happnConfig.keyPair) options.keyPair = happnConfig.keyPair;
-
-    var username = config.username ? config.username : '_ADMIN';
-
-    var password = config.password;
-
-    if (!password) {
-
-      if (happnConfig.adminPassword)
-        password = happnConfig.adminPassword;
-
-      else if (happnConfig.services && happnConfig.services.security &&
-        happnConfig.services.security.config &&
-        happnConfig.services.security.config.adminUser)
-        password = happnConfig.services.security.config.adminUser.password;
-
-      else
-        password = 'happn';
-    }
-
-    credentials.username = username;
-    credentials.password = clientPassword || password;
-  }
-
-  options.port = port;
-
-  var clientInstance = new Happner.MeshClient(options);
-
-  var clientConfig = JSON.parse(JSON.stringify(happnConfig));
-
-  if (secure) {
-    clientConfig.username = username;
-    clientConfig.password = clientPassword || password;
-  }
-
-  clientConfig.__testOptions = config.__testOptions != null?config.__testOptions:{};
-
-  clientConfig.__testOptions.skipComponentTests = clientConfig.__testOptions.skipComponentTests != null?clientConfig.__testOptions.skipComponentTests:true;
-
-  clientInstance.login(credentials)
-
-    .then(function () {
-
-      if (_this.__activeServices[config.name].clients == null) _this.__activeServices[config.name].clients = [];
-
-      var client = {instance: clientInstance, id: config.__testOptions.clientKey, config:clientConfig};
-
-      _this.__activeServices[config.name].clients.push(client);
-
-      callback(null, client);
-    })
-
-    .catch(function (e) {
-      callback(e);
-    });
-};
-
-TestHelper.prototype.findService = function (options) {
-
-  if (typeof options == 'string') return this.__activeServices[options];
-
-  if (options.name) {
-    if (this.__activeServices[options.name]) return this.__activeServices[options.name];
-  }
-
-  if (options.id) {
-    if (this.__activeServices[options.id]) return this.__activeServices[options.id];
-  }
-
-  if (options.port) {
-    for (var serviceName in this.__activeServices) {
-      var service = this.__activeServices[serviceName];
-      if (service.config &&
-        (service.config.port == options.port ||
-        (service.config.happn && service.config.happn.port == options.port)))
-        return service;
-    }
-  }
-
-  return null;
-};
-
-TestHelper.prototype.restartService = function (options, callback) {
-
-  var _this = this;
-
-  var service = _this.findService(options);
-
-  if (service != null) {
-
-    var config = service.config;
-
-    return _this.stopService(options, function (e) {
-
+  
+    Mesh.create(config, function (e, instance) {
+  
       if (e) return callback(e);
-
-      _this.getService(config, callback);
+  
+      _this.__addHappnerInstance(ctx, instance, config);
+  
+      var client = new Mesh.MeshClient({port: config.happn.port ? config.happn.port : 55000});
+  
+      var loginParams = {
+  
+        username: '_ADMIN',
+        password: config.happn.adminPassword ? config.happn.adminPassword : 'happn'
+  
+      };
+  
+      client.login(loginParams).then(function (e) {
+  
+        if (e) return callback(e);
+  
+        _this.__addHappnerClient(ctx, client);
+  
+        callback(null, instance, client);
+      });
+  
     });
-  }
-
-  callback(new Error('could not find service'));
-};
-
-TestHelper.prototype.__appendTestComponentConfig = function(config){
-
-  if (!config.modules) config.modules = {};
-
-  if (!config.components) config.components = {};
-
-  config.modules.testHelperComponent = {
-
-    instance: {
-
-      testHelperFunction : function($happn, val, callback){
-        $happn.emit('test-function-called', {message:'test-message', value:val});
-        callback();
-      }
-    }
   };
-
-  config.components.testHelperComponent = {};
-};
-
-TestHelper.prototype.getService = function (config, callback, clientPassword) {
-
-  var _this = this;
-
-  if (typeof config == 'function') {
-    callback = config;
-    config = {};
-  }
-
-  if (!config.happn) config.happn = {};
-
-  if (config.happn.name) config.name = config.happn.name;
-
-  if (!config.name) config.name = sillyname();
-
-  if (config.happn.port != null) config.port = config.happn.port;
-
-  if (!config.port) config.port = 55000;
-
-  config.happn.port = config.port;//for __serviceExists test
-
-  if (config.__testOptions == null) config.__testOptions = {};
-
-  if (config.__testOptions.skipComponentTests === false)
-    _this.__appendTestComponentConfig(config);
-
-  if (_this.__serviceExists(config)) return callback(new Error('service by the name ' + config.name + ' or port ' + config.port + ' already exists'));
-
-  if (config.__testOptions.isRemote) return _this.startRemoteService(config, function (e, process) {
-
-    if (e) return callback(e);
-
-    var service = {instance: process, config: config, id: config.name};
-
-    _this.__activeServices[config.name] = service;
-
-    if (config.__testOptions.getClient) return _this.getClient(config, function (e, client) {
-
-      if (e) return callback(new Error('started service ok but failed to get client: ' + e.toString()));
-
-      service.client = client;
-
-      callback(null, service);
-
-    }, clientPassword);
-
-    callback(null, service);
-  });
-
-  Happner.create(config, function (e, instance) {
-
-    if (e) return callback(e);
-
-    var service = {instance: instance, config: config, id: config.name};
-
-    _this.__activeServices[config.name] = service;
-
-    if (config.__testOptions.getClient) {
-
-      return _this.getClient(config, function (e, client) {
-
-        if (e) {
-          return service.instance.stop(function(){
-
-            delete _this.__activeServices[config.name];
-
-            return callback(new Error('started service ok but failed to get client: ' + e.toString()));
-          });
+  
+  TestHelper.prototype.stopHappnerInstances = function(ctx, callback){
+  
+    var _this = this;
+  
+    async.eachSeries(_this.__happnerInstances[ctx], function (started, stopCallback) {
+  
+      started.instance.stop(function (e) {
+  
+        if (e) return stopCallback[e];
+  
+        if ((started.config && started.config.happn && started.config.happn.filename) || (started.config && started.config.data && started.config.data.filename)) {
+  
+          var dbPath;
+  
+          if (started.config.happn) dbPath = started.config.happn.filename;
+  
+          if (started.config.data) dbPath = started.config.data.filename;
+  
+          fs.unlinkSync(dbPath);
         }
-
-        service.client = client;
-
-        callback(null, service);
-
-      }, clientPassword);
-    }
-
-    callback(null, service);
-  });
-};
-
-TestHelper.prototype.disconnectClient = util.promisify(function (id, callback) {
-
-  var _this = this;
-
-  var removed = false;
-
-  var client = _this.findClient({id: id});
-
-  if (!client) return callback(new Error('client with id: ' + id + ' not found'));
-
-  client.instance.disconnect({ttl:5000}, function (e) {
-
-    if (e) return callback(e);
-
-    var serviceId = id.split('@')[1];
-
-    var service = _this.findService({id: serviceId});
-
-    //remove the client from the services clients collection
-    service.clients.every(function (serviceClient, serviceClientIndex) {
-
-      if (serviceClient.id == id) {
-        service.clients.splice(serviceClientIndex, 1);
-        removed = true;
-        return false;
-      }
-      return true;
-    });
-
-    return callback(null, removed);
-  });
-});
-
-TestHelper.prototype.stopService = util.promisify(function (id, callback) {
-
-  var _this = this;
-
-  var activeService = _this.findService(id);
-
-  if (!activeService) return callback(new Error('could not find service to stop using options: ' + JSON.stringify(id)));
-
-  var completeStopService = function () {
-
-    delete _this.__activeServices[activeService.id];
-
-    if (activeService.config.__testOptions.isRemote) {
-
-      activeService.instance.kill();
-
-      return callback();
-    }
-
-    return activeService.instance.stop(callback);
-  };
-
-  if (activeService.clients && activeService.clients.length > 0) {
-
-    return async.eachSeries(activeService.clients, function (activeServiceClient, activeServiceClientCB) {
-      _this.disconnectClient(activeServiceClient.id, activeServiceClientCB);
+  
+        stopCallback();
+      });
     }, function (e) {
-
-      if (e) {
-        console.warn('unable to disconnect clients for service: ' + activeService.config.name);
-      }
-      completeStopService();
+  
+      if (e) return callback(e);
+  
+      _this.__happnerInstances[ctx] = [];
+  
+      callback();
     });
-  }
-
-  return completeStopService();
-});
-
-TestHelper.prototype.testClientComponent = function(clientInstance, options, callback){
-
-  if (typeof options == 'function'){
-    callback = options;
-    options = {};
-  }
-
-  if (options.skipComponentTests) {
-    return callback();
-  }
-
-  if (!options.eventName) options.eventName = 'test-function-called';
-
-  if (!options.componentName) options.componentName = 'testHelperComponent';
-
-  if (!options.functionName) options.functionName = 'testHelperFunction';
-
-  if (!options.methodArguments) options.methodArguments = [1];
-
-  if (!options.expectedData) options.expectedData = {message:'test-message', value:1};
-
-  if (clientInstance.exchange[options.componentName]) {
-
-    clientInstance.event[options.componentName].on(options.eventName, function(data){
-
-      try{
-        this.expect(data).to.eql(options.expectedData);
-        callback();
-      }catch(e){
-        callback(e);
-      }
-    });
-
-    clientInstance.exchange[options.componentName][options.functionName].apply(clientInstance.exchange[options.componentName], options.methodArguments);
-
-  } else callback(new Error('expected exchange and event methods not found'));
-};
-
-TestHelper.prototype.testClientData = function (clientInstance, callback) {
-
-  var calledBack = false;
-
-  var timeout = setTimeout(function () {
-    raiseError('operations timed out');
-  }, 2000);
-
-  var raiseError = function (message) {
-    if (!calledBack) {
-      calledBack = true;
-      return callback(new Error(message));
-    }
   };
-
-  var operations = '';
-
-  clientInstance.data.on('/test/operations',
-
-    function (data, meta) {
-
-      operations += meta.action.toUpperCase().split('@')[0].replace(/\//g, '');
-
-      if (operations === 'SETREMOVE') {
-
-        clearTimeout(timeout);
-
-        callback();
-      }
-
-    }, function (e) {
-
-      if (e) return raiseError(e.toString());
-
-      clientInstance.data.set('/test/operations', {test: 'data'}, function (e) {
-
-        if (e) return raiseError(e.toString());
-
-        clientInstance.data.remove('/test/operations', function (e) {
-
-          if (e) return raiseError(e.toString());
-        });
+  
+  TestHelper.prototype.getRecordFromHappn = function(options, callback){
+  
+    var service = this.findService(options.instanceName);
+  
+    var happn = service.instance._mesh.happn.server;
+  
+    happn.services.session.localClient({username:'_ADMIN', password:'happn'}, function(e, localClient){
+  
+      if (e) return callback(e);
+  
+      localClient.get(options.dataPath, function(e, response){
+  
+        if (e) return callback(e);
+  
+        callback(null, response);
       });
     });
-};
-
-TestHelper.prototype.testService = util.promisify(function (id, callback) {
-
-  var _this = this;
-
-  if (!callback) throw new Error('callback cannot be null');
-
-  if (id == null || typeof id == 'function') {
-    return callback(new Error('id is necessary to test a service.'));
-  }
-
-  var service = _this.findService(id);
-
-  if (!service) return callback(new Error('unable to find service with id: ' + id));
-
-  var clientConfig = JSON.parse(JSON.stringify(service.config));
-
-  _this.getClient(clientConfig, function (e, client) {
-
-    if (e) return callback(e);
-
-    _this.testClientData(client.instance, function (e) {
-
+  };
+  
+  TestHelper.prototype.getRecordFromSmallFile = function(options){
+  
+    try{
+  
+      var fileContents;
+  
+      var foundRecord = null;
+  
+      if (options.filename) fileContents = fs.readFileSync(options.filename, 'utf8');
+  
+      var records = fileContents.toString().split('\n');
+  
+      //backwards to get latest record
+      records.reverse().every(function(line){
+  
+        var record = null;
+  
+        try{
+          record = JSON.parse(line);
+        }catch(e){
+          //do nothing
+        }
+  
+        if (record){
+  
+          if (record.path == options.dataPath){
+            foundRecord = record;
+            return false;
+          }
+        }
+  
+        return true;
+      });
+  
+      return foundRecord;
+  
+    }catch(e){
+      throw new Error('getRecordFromSmallFile failed: ' + e.toString(), e);
+    }
+  };
+  
+  TestHelper.prototype.newTestFile = function (options) {
+  
+    var _this = this;
+  
+    if (!options) options = {};
+  
+    if (!options.dir) options.dir = 'test' + path.sep + 'tmp';
+  
+    if (!options.ext) options.ext = 'nedb';
+  
+    if (!options.name) options.name = shortid.generate();
+  
+    var folderName = path.resolve(options.dir);
+  
+    fs.ensureDirSync(folderName);
+  
+    var fileName = folderName + path.sep + options.name + '.' + options.ext;
+  
+    var testRow = {
+      "_id": "/_TEST_HELPER/TESTWRITE",
+      "data": {},
+      "path": "/_TEST_HELPER/TESTWRITE",
+      "created": Date.now(),
+      "modified": Date.now()
+    };
+  
+    fs.writeFileSync(fileName, JSON.stringify(testRow));
+  
+    _this.__testFiles.push(fileName);
+  
+    return fileName;
+  };
+  
+  TestHelper.prototype.deleteFiles = function () {
+  
+    var _this = this;
+  
+    var errors = 0;
+  
+    var deleted = 0;
+  
+    var lastError;
+  
+    _this.__testFiles.forEach(function (filename) {
+      try {
+        fs.unlinkSync(filename);
+        deleted++;
+      } catch (e) {
+        lastError = e;
+        errors++;
+      }
+    });
+  
+    var results = {deleted: deleted, errors: errors, lastError: lastError};
+  
+    return results;
+  };
+  
+  TestHelper.prototype.startUp = util.promisify(function (configs, callback) {
+  
+    if (typeof configs == 'function') {
+      callback = configs;
+      configs = null;
+    }
+  
+    if (configs == null) return callback();
+  
+    if (!Array.isArray(configs)) return callback(new Error('configs not an Array, please pass in Array'));
+  
+    var _this = this;
+  
+    async.eachSeries(configs, function (config, configCB) {
+      _this.getService(config, configCB);
+    }, callback);
+  });
+  
+  TestHelper.prototype.__serviceExists = function (config) {
+  
+    var nameExists = this.__activeServices[config.name] != null;
+  
+    if (nameExists) return true;
+  
+    for (var serviceName in this.__activeServices) {
+      var service = this.__activeServices[serviceName];
+      if (service.config.happn.port == config.happn.port) return true;
+    }
+  
+    return false;
+  };
+  
+  TestHelper.prototype.findClient = function (options) {
+  
+    if (options.name) options.id = options.name;
+  
+    if (options.id) {
+  
+      var serviceId = options.id.split('@')[1];
+  
+      for (var serviceName in this.__activeServices) {
+  
+        if (serviceName == serviceId) {
+  
+          var service = this.__activeServices[serviceName];
+  
+          if (service.clients && service.clients.length > 0) {
+  
+            for (var clientIndex in service.clients) {
+  
+              var client = service.clients[clientIndex];
+  
+              if (client.id == options.id)  return client;
+            }
+          }
+          return null;
+        }
+      }
+    }
+  
+    return null;
+  };
+  
+  TestHelper.prototype.getClient = function (config, callback, clientPassword) {
+  
+    if (typeof config != 'object') return callback('cannot get a client without a config');
+  
+    if (config.happn) config.name = config.name != null?config.name:config.happn.name;
+  
+    if (!config.name) return callback('cannot get a client for unknown service name');
+  
+    if (!config.__testOptions) config.__testOptions = {};
+  
+    config.__testOptions.clientKey = shortid.generate() + '@' + config.name;//[client id]@[server key]
+  
+    var _this = this;
+  
+    var service = _this.findService(config);
+  
+    if (!service) return callback('could not find service using options: ' + JSON.stringify(config));
+  
+    var credentials = {};
+  
+    var options = {};
+  
+    var happnConfig = service.config.happn != null ? service.config.happn : service.config;
+  
+    var secure = happnConfig.secure != null ? happnConfig.secure : service.config.secure;
+  
+    var port = happnConfig.port != null ? happnConfig.port : service.config.port;
+  
+    if (secure) {
+  
+      options.secure = true;
+  
+      if (happnConfig.encryptPayloads) options.encryptPayloads = true;
+  
+      if (happnConfig.keyPair) options.keyPair = happnConfig.keyPair;
+  
+      var username = config.username ? config.username : '_ADMIN';
+  
+      var password = config.password;
+  
+      if (!password) {
+  
+        if (happnConfig.adminPassword)
+          password = happnConfig.adminPassword;
+  
+        else if (happnConfig.services && happnConfig.services.security &&
+          happnConfig.services.security.config &&
+          happnConfig.services.security.config.adminUser)
+          password = happnConfig.services.security.config.adminUser.password;
+  
+        else
+          password = 'happn';
+      }
+  
+      credentials.username = username;
+      credentials.password = clientPassword || password;
+    }
+  
+    options.port = port;
+  
+    var clientInstance = new Happner.MeshClient(options);
+  
+    var clientConfig = JSON.parse(JSON.stringify(happnConfig));
+  
+    if (secure) {
+      clientConfig.username = username;
+      clientConfig.password = clientPassword || password;
+    }
+  
+    clientConfig.__testOptions = config.__testOptions != null?config.__testOptions:{};
+  
+    clientConfig.__testOptions.skipComponentTests = clientConfig.__testOptions.skipComponentTests != null?clientConfig.__testOptions.skipComponentTests:true;
+  
+    clientInstance.login(credentials)
+  
+      .then(function () {
+  
+        if (_this.__activeServices[config.name].clients == null) _this.__activeServices[config.name].clients = [];
+  
+        var client = {instance: clientInstance, id: config.__testOptions.clientKey, config:clientConfig};
+  
+        _this.__activeServices[config.name].clients.push(client);
+  
+        callback(null, client);
+      })
+  
+      .catch(function (e) {
+        callback(e);
+      });
+  };
+  
+  TestHelper.prototype.findService = function (options) {
+  
+    if (typeof options == 'string') return this.__activeServices[options];
+  
+    if (options.name) {
+      if (this.__activeServices[options.name]) return this.__activeServices[options.name];
+    }
+  
+    if (options.id) {
+      if (this.__activeServices[options.id]) return this.__activeServices[options.id];
+    }
+  
+    if (options.port) {
+      for (var serviceName in this.__activeServices) {
+        var service = this.__activeServices[serviceName];
+        if (service.config &&
+          (service.config.port == options.port ||
+          (service.config.happn && service.config.happn.port == options.port)))
+          return service;
+      }
+    }
+  
+    return null;
+  };
+  
+  TestHelper.prototype.restartService = function (options, callback) {
+  
+    var _this = this;
+  
+    var service = _this.findService(options);
+  
+    if (service != null) {
+  
+      var config = service.config;
+  
+      return _this.stopService(options, function (e) {
+  
+        if (e) return callback(e);
+  
+        _this.getService(config, callback);
+      });
+    }
+  
+    callback(new Error('could not find service'));
+  };
+  
+  TestHelper.prototype.__appendTestComponentConfig = function(config){
+  
+    if (!config.modules) config.modules = {};
+  
+    if (!config.components) config.components = {};
+  
+    config.modules.testHelperComponent = {
+  
+      instance: {
+  
+        testHelperFunction : function($happn, val, callback){
+          $happn.emit('test-function-called', {message:'test-message', value:val});
+          callback();
+        }
+      }
+    };
+  
+    config.components.testHelperComponent = {};
+  };
+  
+  TestHelper.prototype.getService = function (config, callback, clientPassword) {
+  
+    var _this = this;
+  
+    if (typeof config == 'function') {
+      callback = config;
+      config = {};
+    }
+  
+    if (!config.happn) config.happn = {};
+  
+    if (config.happn.name) config.name = config.happn.name;
+  
+    if (!config.name) config.name = sillyname();
+  
+    if (config.happn.port != null) config.port = config.happn.port;
+  
+    if (!config.port) config.port = 55000;
+  
+    config.happn.port = config.port;//for __serviceExists test
+  
+    if (config.__testOptions == null) config.__testOptions = {};
+  
+    if (config.__testOptions.skipComponentTests === false)
+      _this.__appendTestComponentConfig(config);
+  
+    if (_this.__serviceExists(config)) return callback(new Error('service by the name ' + config.name + ' or port ' + config.port + ' already exists'));
+  
+    if (config.__testOptions.isRemote) return _this.startRemoteService(config, function (e, process) {
+  
       if (e) return callback(e);
-
-      _this.testClientComponent(client.instance, client.config.__testOptions, callback);
+  
+      var service = {instance: process, config: config, id: config.name};
+  
+      _this.__activeServices[config.name] = service;
+  
+      if (config.__testOptions.getClient) return _this.getClient(config, function (e, client) {
+  
+        if (e) return callback(new Error('started service ok but failed to get client: ' + e.toString()));
+  
+        service.client = client;
+  
+        callback(null, service);
+  
+      }, clientPassword);
+  
+      callback(null, service);
+    });
+  
+    Happner.create(config, function (e, instance) {
+  
+      if (e) return callback(e);
+  
+      var service = {instance: instance, config: config, id: config.name};
+  
+      _this.__activeServices[config.name] = service;
+  
+      if (config.__testOptions.getClient) {
+  
+        return _this.getClient(config, function (e, client) {
+  
+          if (e) {
+            return service.instance.stop(function(){
+  
+              delete _this.__activeServices[config.name];
+  
+              return callback(new Error('started service ok but failed to get client: ' + e.toString()));
+            });
+          }
+  
+          service.client = client;
+  
+          callback(null, service);
+  
+        }, clientPassword);
+      }
+  
+      callback(null, service);
+    });
+  };
+  
+  TestHelper.prototype.disconnectClient = util.promisify(function (id, callback) {
+  
+    var _this = this;
+  
+    var removed = false;
+  
+    var client = _this.findClient({id: id});
+  
+    if (!client) return callback(new Error('client with id: ' + id + ' not found'));
+  
+    client.instance.disconnect({ttl:5000}, function (e) {
+  
+      if (e) return callback(e);
+  
+      var serviceId = id.split('@')[1];
+  
+      var service = _this.findService({id: serviceId});
+  
+      //remove the client from the services clients collection
+      service.clients.every(function (serviceClient, serviceClientIndex) {
+  
+        if (serviceClient.id == id) {
+          service.clients.splice(serviceClientIndex, 1);
+          removed = true;
+          return false;
+        }
+        return true;
+      });
+  
+      return callback(null, removed);
     });
   });
-});
-
-TestHelper.prototype.tearDown = util.promisify(function (options, callback) {
-
-  if (typeof options == 'function') {
-    callback = options;
-    options = {};
-  }
-
-  var timeout = Object.keys(this.__activeServices).length * 10000;
-
-  var timedOut = false;
-
-  if (options.ttl) {
-    if (typeof options.ttl != 'number')
-      timeout = options.ttl;
-  }
-
-  var timeoutHandle = setTimeout(function () {
-    timedOut = true;
-    return callback(new Error('tearDown timed out'));
-  }, timeout);
-
-  var _this = this;
-
-  async.eachSeries(Object.keys(_this.__activeServices), function (activeServiceId, activeServiceCB) {
-
-    if (timedOut) return activeServiceCB(new Error('timed out'));
-
-    _this.stopService(activeServiceId, activeServiceCB);
-
-  }, function (e) {
-
-    _this.deleteFiles();
-
-    if (!timedOut) clearTimeout(timeoutHandle);
-
-    callback(e);
+  
+  TestHelper.prototype.stopService = util.promisify(function (id, callback) {
+  
+    var _this = this;
+  
+    var activeService = _this.findService(id);
+  
+    if (!activeService) return callback(new Error('could not find service to stop using options: ' + JSON.stringify(id)));
+  
+    var completeStopService = function () {
+  
+      delete _this.__activeServices[activeService.id];
+  
+      if (activeService.config.__testOptions.isRemote) {
+  
+        activeService.instance.kill();
+  
+        return callback();
+      }
+  
+      return activeService.instance.stop(callback);
+    };
+  
+    if (activeService.clients && activeService.clients.length > 0) {
+  
+      return async.eachSeries(activeService.clients, function (activeServiceClient, activeServiceClientCB) {
+        _this.disconnectClient(activeServiceClient.id, activeServiceClientCB);
+      }, function (e) {
+  
+        if (e) {
+          console.warn('unable to disconnect clients for service: ' + activeService.config.name);
+        }
+        completeStopService();
+      });
+    }
+  
+    return completeStopService();
   });
-});
-
-TestHelper.prototype.delay = async function(delayMS){
-  if (!delayMS) delayMS = 5000;
-  const delay = require('await-delay');
-  await delay(delayMS);
-};
-
-TestHelper.prototype.printOpenHandles = async function(delayMS) {
-  const why = require('why-is-node-running');
-  await this.delay(delayMS);
-  console.log('OPEN HANDLES:::');
-  why();
-  return;
-}
-
-TestHelper.prototype.showOpenHandles = function(after, delayMS){
-  after(async () => {
-   await this.printOpenHandles(delayMS);
+  
+  TestHelper.prototype.testClientComponent = function(clientInstance, options, callback){
+  
+    if (typeof options == 'function'){
+      callback = options;
+      options = {};
+    }
+  
+    if (options.skipComponentTests) {
+      return callback();
+    }
+  
+    if (!options.eventName) options.eventName = 'test-function-called';
+  
+    if (!options.componentName) options.componentName = 'testHelperComponent';
+  
+    if (!options.functionName) options.functionName = 'testHelperFunction';
+  
+    if (!options.methodArguments) options.methodArguments = [1];
+  
+    if (!options.expectedData) options.expectedData = {message:'test-message', value:1};
+  
+    if (clientInstance.exchange[options.componentName]) {
+  
+      clientInstance.event[options.componentName].on(options.eventName, function(data){
+  
+        try{
+          this.expect(data).to.eql(options.expectedData);
+          callback();
+        }catch(e){
+          callback(e);
+        }
+      });
+  
+      clientInstance.exchange[options.componentName][options.functionName].apply(clientInstance.exchange[options.componentName], options.methodArguments);
+  
+    } else callback(new Error('expected exchange and event methods not found'));
+  };
+  
+  TestHelper.prototype.testClientData = function (clientInstance, callback) {
+  
+    var calledBack = false;
+  
+    var timeout = setTimeout(function () {
+      raiseError('operations timed out');
+    }, 2000);
+  
+    var raiseError = function (message) {
+      if (!calledBack) {
+        calledBack = true;
+        return callback(new Error(message));
+      }
+    };
+  
+    var operations = '';
+  
+    clientInstance.data.on('/test/operations',
+  
+      function (data, meta) {
+  
+        operations += meta.action.toUpperCase().split('@')[0].replace(/\//g, '');
+  
+        if (operations === 'SETREMOVE') {
+  
+          clearTimeout(timeout);
+  
+          callback();
+        }
+  
+      }, function (e) {
+  
+        if (e) return raiseError(e.toString());
+  
+        clientInstance.data.set('/test/operations', {test: 'data'}, function (e) {
+  
+          if (e) return raiseError(e.toString());
+  
+          clientInstance.data.remove('/test/operations', function (e) {
+  
+            if (e) return raiseError(e.toString());
+          });
+        });
+      });
+  };
+  
+  TestHelper.prototype.testService = util.promisify(function (id, callback) {
+  
+    var _this = this;
+  
+    if (!callback) throw new Error('callback cannot be null');
+  
+    if (id == null || typeof id == 'function') {
+      return callback(new Error('id is necessary to test a service.'));
+    }
+  
+    var service = _this.findService(id);
+  
+    if (!service) return callback(new Error('unable to find service with id: ' + id));
+  
+    var clientConfig = JSON.parse(JSON.stringify(service.config));
+  
+    _this.getClient(clientConfig, function (e, client) {
+  
+      if (e) return callback(e);
+  
+      _this.testClientData(client.instance, function (e) {
+  
+        if (e) return callback(e);
+  
+        _this.testClientComponent(client.instance, client.config.__testOptions, callback);
+      });
+    });
   });
-};
+  
+  TestHelper.prototype.tearDown = util.promisify(function (options, callback) {
+  
+    if (typeof options == 'function') {
+      callback = options;
+      options = {};
+    }
+  
+    var timeout = Object.keys(this.__activeServices).length * 10000;
+  
+    var timedOut = false;
+  
+    if (options.ttl) {
+      if (typeof options.ttl != 'number')
+        timeout = options.ttl;
+    }
+  
+    var timeoutHandle = setTimeout(function () {
+      timedOut = true;
+      return callback(new Error('tearDown timed out'));
+    }, timeout);
+  
+    var _this = this;
+  
+    async.eachSeries(Object.keys(_this.__activeServices), function (activeServiceId, activeServiceCB) {
+  
+      if (timedOut) return activeServiceCB(new Error('timed out'));
+  
+      _this.stopService(activeServiceId, activeServiceCB);
+  
+    }, function (e) {
+  
+      _this.deleteFiles();
+  
+      if (!timedOut) clearTimeout(timeoutHandle);
+  
+      callback(e);
+    });
+  });
 
-TestHelper.prototype.tryAsyncMethod = async function(attempt) {
-  try {
-    return await attempt();
-  } catch(e) {
-    return e.message;
+  newTestFile(options) {
+    if (!options) options = {};
+    if (!options.dir) options.dir = 'test' + this.path.sep + 'tmp';
+    if (!options.ext) options.ext = 'txt';
+    if (!options.name) options.name = this.newid();
+    const fileName = this.ensureTmpPath(options.name + '.' + options.ext);
+    this.fs.writeFileSync(fileName, '');
+    this.__testFiles.push(fileName);
+    return fileName;
   }
-}
 
-TestHelper.prototype.tryMethod = function(attempt) {
-  try {
-    return attempt();
-  } catch(e) {
-    return e.message;
+  async cleanup(sessions = [], instances = []) {
+    this.deleteFiles();
+    for (let session of sessions) {
+      await this.destroySession(session);
+    }
+    for (let instance of instances) {
+      await this.destroyInstance(instance);
+    }
+  }
+  deleteFiles() {
+    var errors = 0;
+    var deleted = 0;
+    var lastError;
+    this.__testFiles.forEach(filename => {
+      try {
+        this.fs.unlinkSync(filename);
+        deleted++;
+      } catch (e) {
+        lastError = e;
+        errors++;
+      }
+    });
+    return { deleted, errors, lastError };
+  }
+  //eslint-disable-next-line
+doRequest (path, token) {
+    return new Promise((resolve, reject) => {
+      let options = {
+        url: 'http://127.0.0.1:55000' + path
+      };
+      options.headers = {
+        Cookie: ['happn_token=' + token]
+      };
+      this.request(options, function(error, response) {
+        if (error) return reject(error);
+        resolve(response);
+      });
+    });
+  }
+
+  async lineCount(filePath) {
+    if (!this.fs.existsSync(filePath)) {
+      return 0;
+    }
+    const reader = readline.createInterface({
+      input: this.fs.createReadStream(filePath),
+      crlfDelay: Infinity
+    });
+    let lineIndex = 0;
+    // eslint-disable-next-line no-unused-vars
+    for await (const _line of reader) {
+      lineIndex++;
+    }
+    return lineIndex;
+  }
+
+  ensureTmpPath(suffix) {
+    const tmpPath = this.path.resolve(__dirname, '../tmp');
+    this.fs.ensureDirSync(tmpPath);
+    if (!suffix) return tmpPath;
+    return `${tmpPath}${this.path.sep}${suffix}`;
+  }
+
+  findRecordInDataFile(path, filepath) {
+    return new Promise((resolve, reject) => {
+      let found = false;
+      let stream;
+      try {
+        const byline = require('byline');
+        stream = byline(this.fs.createReadStream(filepath, { encoding: 'utf8' }));
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      stream.on('data', function(line) {
+        if (found) return;
+
+        var record = JSON.parse(line);
+
+        if (
+          record.operation != null &&
+          ['UPSERT', 'INSERT'].includes(record.operation.operationType) &&
+          record.operation.arguments[0] === path
+        ) {
+          found = true;
+          stream.end();
+          return resolve(record);
+        }
+      });
+
+      stream.on('error', function(e) {
+        if (!found) reject(e);
+      });
+
+      stream.on('end', function() {
+        if (!found) resolve(null);
+      });
+    });
+  }
+  createInstance(config = {}) {
+    return new Promise((resolve, reject) => {
+      this.happn.service.create(config, function(e, happnInst) {
+        if (e) return reject(e);
+        resolve(happnInst);
+      });
+    });
+  }
+
+  destroyInstance(instance) {
+    return new Promise((resolve, reject) => {
+      if (!instance) return resolve();
+      instance.stop(function(e) {
+        if (e) return reject(e);
+        resolve();
+      });
+    });
+  }
+
+  createAdminWSSession() {
+    return new Promise((resolve, reject) => {
+      this.happn.client.create({ username: '_ADMIN', password: 'happn' }, function(e, session) {
+        if (e) return reject(e);
+        resolve(session);
+      });
+    });
+  }
+
+  async destroySessions(sessions) {
+    for (let session of sessions) {
+      await this.destroySession(session);
+    }
+  }
+
+  destroySession(session) {
+    return new Promise((resolve, reject) => {
+      if (!session) return resolve();
+      session.disconnect(function(e) {
+        if (e) return reject(e);
+        resolve();
+      });
+    });
+  }
+
+  createAdminSession(instance) {
+    return new Promise((resolve, reject) => {
+      instance.services.session.localAdminClient(function(e, session) {
+        if (e) return reject(e);
+        resolve(session);
+      });
+    });
   }
 }
 
