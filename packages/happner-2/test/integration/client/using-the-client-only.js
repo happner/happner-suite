@@ -1,7 +1,5 @@
-const testHelper = require('../../__fixtures/utils/test_helper').create();
-describe(testHelper.testName(__filename, 3), function () {
-  this.timeout(20000);
-
+// eslint-disable-next-line no-unused-vars
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const spawn = require('child_process').spawn;
   const sep = require('path').sep;
   let remote;
@@ -26,7 +24,7 @@ describe(testHelper.testName(__filename, 3), function () {
   });
 
   //for use possibly later
-  //testHelper.showOpenHandles(after, 5000);
+  //test.showOpenHandles(after, 5000);
 
   context('with clientside bits', function () {
     it('can ride the slippery slip', function (done) {

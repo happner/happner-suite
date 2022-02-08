@@ -1,9 +1,4 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
-
-  var expect = require('expect.js');
-
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var Mesh = require('../../..');
   var mesh;
 
@@ -93,12 +88,12 @@ describe(test.testName(__filename, 3), function () {
       if (e) return done(e);
 
       adminClient.on('reconnect/scheduled', function () {
-        //TODO some expect code
+        //TODO some test.expect code
         fireEvent('reconnect/scheduled');
       });
 
       adminClient.on('reconnect/successful', function () {
-        //TODO some expect code
+        //TODO some test.expect code
         fireEvent('reconnect/successful');
       });
 
@@ -140,7 +135,7 @@ describe(test.testName(__filename, 3), function () {
 
           // use try/catch to avoid process.exit (issue 222)
           try {
-            expect(measuredAverage < 3300).to.be(true); // allow 10% grace for windows
+            test.expect(measuredAverage < 3300).to.be(true); // allow 10% grace for windows
           } catch (e) {
             return done(e);
           }

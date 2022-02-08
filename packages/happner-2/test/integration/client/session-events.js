@@ -1,9 +1,5 @@
-var expect = require('expect.js');
-const Mesh = require('../../../');
-const testHelper = require('../../__fixtures/utils/test_helper').create();
-
-describe(testHelper.testName(__filename, 3), function () {
-  this.timeout(10000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const Mesh = require('../../../');
   var server;
   var startServer = function (config) {
     return new Promise((resolve, reject) => {
@@ -39,11 +35,7 @@ describe(testHelper.testName(__filename, 3), function () {
                 session: {
                   $and: [
                     {
-                      user: {
-                        username: {
-                          $eq: '_ADMIN',
-                        },
-                      },
+                      'user.username': { $eq: '_ADMIN' },
                     },
                   ],
                 },
@@ -65,15 +57,15 @@ describe(testHelper.testName(__filename, 3), function () {
     let client = new Mesh.MeshClient();
     await client.login(clientConfig);
     var reason = false;
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
     client.on('session/ended', function (evt) {
       reason = evt.reason;
     });
-    await testHelper.delay(4000);
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
+    await test.delay(4000);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
     await client.disconnect();
     await stopServer();
-    expect(reason).to.be('token-expired');
+    test.expect(reason).to.be('token-expired');
   });
 
   it('ensures the session timeout is cleared if session ends before session/ended/token-expired', async () => {
@@ -88,11 +80,7 @@ describe(testHelper.testName(__filename, 3), function () {
                 session: {
                   $and: [
                     {
-                      user: {
-                        username: {
-                          $eq: '_ADMIN',
-                        },
-                      },
+                      'user.username': { $eq: '_ADMIN' },
                     },
                   ],
                 },
@@ -118,15 +106,15 @@ describe(testHelper.testName(__filename, 3), function () {
     client.on('session/ended', function (evt) {
       reason = evt.reason;
     });
-    await testHelper.delay(500);
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
+    await test.delay(500);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
     sessionService.endSession(client.data.session.id, 'test-reason');
-    await testHelper.delay(500);
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
+    await test.delay(500);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
 
     await client.disconnect();
     await stopServer();
-    expect(reason).to.be('test-reason');
+    test.expect(reason).to.be('test-reason');
   });
 
   it('ensures the session timeout is cleared if client disconnects before session/ended/token-expired', async () => {
@@ -141,11 +129,7 @@ describe(testHelper.testName(__filename, 3), function () {
                 session: {
                   $and: [
                     {
-                      user: {
-                        username: {
-                          $eq: '_ADMIN',
-                        },
-                      },
+                      'user.username': { $eq: '_ADMIN' },
                     },
                   ],
                 },
@@ -168,11 +152,11 @@ describe(testHelper.testName(__filename, 3), function () {
     let client = new Mesh.MeshClient();
     await client.login(clientConfig);
 
-    await testHelper.delay(500);
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
+    await test.delay(500);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] != null).to.be(true);
     await client.disconnect();
-    await testHelper.delay(500);
-    expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
+    await test.delay(500);
+    test.expect(sessionService.__sessionExpiryWatchers[client.data.session.id] == null).to.be(true);
     await stopServer();
   });
 
@@ -188,11 +172,7 @@ describe(testHelper.testName(__filename, 3), function () {
                 session: {
                   $and: [
                     {
-                      user: {
-                        username: {
-                          $eq: '_ADMIN',
-                        },
-                      },
+                      'user.username': { $eq: '_ADMIN' },
                     },
                   ],
                 },
@@ -217,7 +197,7 @@ describe(testHelper.testName(__filename, 3), function () {
     client.on('session/ended', function (evt) {
       reason = evt.reason;
     });
-    await testHelper.delay(4000);
+    await test.delay(4000);
     try {
       await client.data.set('test/data', {
         test: 'data',
@@ -225,10 +205,10 @@ describe(testHelper.testName(__filename, 3), function () {
     } catch (e) {
       // do nothing
     }
-    await testHelper.delay(1000);
+    await test.delay(1000);
     await client.disconnect();
     await stopServer();
-    expect(reason).to.be('inactivity-threshold');
+    test.expect(reason).to.be('inactivity-threshold');
   });
 
   it('emits session/ended/token-revoked', async () => {
@@ -250,8 +230,8 @@ describe(testHelper.testName(__filename, 3), function () {
     securityService.revokeToken(client.data.session.token, 'test', () => {
       //do nothing
     });
-    await testHelper.delay(2000);
+    await test.delay(2000);
     await stopServer();
-    expect(reason).to.be('token-revoked');
+    test.expect(reason).to.be('token-revoked');
   });
 });

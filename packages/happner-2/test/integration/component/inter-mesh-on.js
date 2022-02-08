@@ -1,7 +1,4 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-
-describe(test.testName(__filename), function () {
-  this.timeout(120000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const Happner = require('../../..');
   const clientAdmin = new Happner.MeshClient({});
   let server;

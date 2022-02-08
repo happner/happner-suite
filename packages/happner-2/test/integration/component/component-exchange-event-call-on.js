@@ -1,6 +1,4 @@
-const tests = require('../../__fixtures/utils/test_helper').create();
-describe(tests.testName(__filename, 3), function () {
-  this.timeout(10000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const Happner = require('../../..');
   const clientAdmin = new Happner.MeshClient({});
   const clientTest = new Happner.MeshClient({});
@@ -48,7 +46,7 @@ describe(tests.testName(__filename, 3), function () {
           instance: Module1,
         },
         component2: {
-          path: tests.path.resolve(
+          path: test.path.resolve(
             __dirname,
             '../../__fixtures/test/integration/component/component-exchange-event-call-on'
           ),
@@ -72,7 +70,7 @@ describe(tests.testName(__filename, 3), function () {
     server.stop({ reconnect: false }, done);
   });
 
-  context('server api tests', () => {
+  context('server api test', () => {
     it('we are able to call component methods and listen to events', async () => {
       let results = await callAndListen(
         server,
@@ -82,7 +80,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component1', path: 'test/event' }
       );
-      tests.expect(results).to.eql({
+      test.expect(results).to.eql({
         event: { result: 3 },
         exec: 3,
       });
@@ -98,7 +96,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(results).to.eql({
+      test.expect(results).to.eql({
         event: { result: 3 },
         exec: 3,
       });
@@ -114,7 +112,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(1);
+      test.expect(eventCounter).to.eql(1);
     });
 
     it('we get errors attempting to access a mesh that does not exist', async () => {
@@ -128,7 +126,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME_1', component: 'component1', path: 'test/event' }
       );
 
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [MESH_NAME_1] mesh does not exist on the api',
@@ -147,7 +145,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component3', path: 'test/event' }
       );
 
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [MESH_NAME.component3] component does not exist on the api',
@@ -164,7 +162,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component3', path: 'test/event' }
       );
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [component3] component does not exist on the api',
@@ -182,7 +180,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(3);
+      test.expect(eventCounter).to.eql(3);
     });
 
     it('we are able to call component methods and listen to events with an $off, with mesh name - negative test', async () => {
@@ -196,7 +194,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         true
       );
-      tests.expect(eventCounter).to.eql(4);
+      test.expect(eventCounter).to.eql(4);
     });
 
     it('we are able to call component methods and listen to events with an $offPath, with mesh name', async () => {
@@ -209,7 +207,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(2);
+      test.expect(eventCounter).to.eql(2);
     });
 
     it('we are able to call component methods and listen to events with an $offPath, with mesh name - negative test', async () => {
@@ -223,11 +221,11 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         true
       );
-      tests.expect(eventCounter).to.eql(4);
+      test.expect(eventCounter).to.eql(4);
     });
   });
 
-  context('client tests', () => {
+  context('client test', () => {
     it('we are able to call component methods and listen to events', async () => {
       let results = await callAndListen(
         clientAdmin,
@@ -237,7 +235,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component1', path: 'test/event' }
       );
-      tests.expect(results).to.eql({
+      test.expect(results).to.eql({
         event: { result: 3 },
         exec: 3,
       });
@@ -253,7 +251,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(results).to.eql({
+      test.expect(results).to.eql({
         event: { result: 3 },
         exec: 3,
       });
@@ -269,7 +267,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(1);
+      test.expect(eventCounter).to.eql(1);
     });
 
     it('we are able to call component methods and listen to events with an $off, with mesh name', async () => {
@@ -282,7 +280,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(3);
+      test.expect(eventCounter).to.eql(3);
     });
 
     it('we are able to call component methods and listen to events with an $off, with mesh name - negative test', async () => {
@@ -296,7 +294,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         true
       );
-      tests.expect(eventCounter).to.eql(4);
+      test.expect(eventCounter).to.eql(4);
     });
 
     it('we are able to call component methods and listen to events with an $offPath, with mesh name', async () => {
@@ -309,7 +307,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' }
       );
-      tests.expect(eventCounter).to.eql(2);
+      test.expect(eventCounter).to.eql(2);
     });
 
     it('we are able to call component methods and listen to events with an $offPath, with mesh name - negative test', async () => {
@@ -323,7 +321,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         true
       );
-      tests.expect(eventCounter).to.eql(4);
+      test.expect(eventCounter).to.eql(4);
     });
 
     it('we get errors attempting to access a mesh that does not exist', async () => {
@@ -337,7 +335,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME_1', component: 'component1', path: 'test/event' }
       );
 
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [MESH_NAME_1] mesh does not exist on the api',
@@ -356,7 +354,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component3', path: 'test/event' }
       );
 
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [MESH_NAME.component3] component does not exist on the api',
@@ -373,7 +371,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component3', path: 'test/event' }
       );
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [component3] component does not exist on the api',
@@ -391,7 +389,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component', path: 'test/event' }
       );
-      tests
+      test
         .expect(errors)
         .to.eql([
           'invalid endpoint options: [component.unknownMethod] method does not exist on the api',
@@ -399,7 +397,7 @@ describe(tests.testName(__filename, 3), function () {
     });
   });
 
-  context('asAdmin tests', () => {
+  context('asAdmin test', () => {
     it('fails to call an edge function that is forbidden by an unauthorized user', async () => {
       let message;
       try {
@@ -410,7 +408,7 @@ describe(tests.testName(__filename, 3), function () {
       } catch (e) {
         message = e.message;
       }
-      tests.expect(message).to.be('unauthorized');
+      test.expect(message).to.be('unauthorized');
     });
 
     it('fails to call an internal function that is forbidden by an unauthorized user', async () => {
@@ -423,7 +421,7 @@ describe(tests.testName(__filename, 3), function () {
       } catch (e) {
         message = e.message;
       }
-      tests.expect(message).to.be('unauthorized');
+      test.expect(message).to.be('unauthorized');
     });
 
     it('succeeds in calling an internal function that is forbidden by an unauthorized user - through asAdmin', async () => {
@@ -436,12 +434,12 @@ describe(tests.testName(__filename, 3), function () {
       } catch (e) {
         message = e.message;
       }
-      tests.expect(message).to.be(undefined);
-      tests.expect(result).to.be(3);
+      test.expect(message).to.be(undefined);
+      test.expect(result).to.be(3);
     });
   });
 
-  context('client tests - using callback', () => {
+  context('client test - using callback', () => {
     it('we are able to call component methods and listen to events - with callback', function (done) {
       callAndListenCallback(
         clientAdmin,
@@ -452,7 +450,7 @@ describe(tests.testName(__filename, 3), function () {
         { component: 'component1', path: 'test/event' },
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql({
+          test.expect(results).to.eql({
             event: { result: 3 },
             exec: 3,
           });
@@ -472,7 +470,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql({
+          test.expect(results).to.eql({
             event: { result: 3 },
             exec: 3,
           });
@@ -492,7 +490,7 @@ describe(tests.testName(__filename, 3), function () {
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql(1);
+          test.expect(results).to.eql(1);
           done();
         }
       );
@@ -510,7 +508,7 @@ describe(tests.testName(__filename, 3), function () {
         false,
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql(3);
+          test.expect(results).to.eql(3);
           done();
         }
       );
@@ -528,7 +526,7 @@ describe(tests.testName(__filename, 3), function () {
         true,
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql(4);
+          test.expect(results).to.eql(4);
           done();
         }
       );
@@ -546,7 +544,7 @@ describe(tests.testName(__filename, 3), function () {
         false,
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql(2);
+          test.expect(results).to.eql(2);
           done();
         }
       );
@@ -564,7 +562,7 @@ describe(tests.testName(__filename, 3), function () {
         true,
         (e, results) => {
           if (e) return done(e);
-          tests.expect(results).to.eql(4);
+          test.expect(results).to.eql(4);
           done();
         }
       );
@@ -580,7 +578,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME_1', component: 'component1', path: 'test/event' },
         (e, errors) => {
-          tests
+          test
             .expect(errors)
             .to.eql([
               'invalid endpoint options: [MESH_NAME_1] mesh does not exist on the api',
@@ -601,7 +599,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { mesh: 'MESH_NAME', component: 'component3', path: 'test/event' },
         (e, errors) => {
-          tests
+          test
             .expect(errors)
             .to.eql([
               'invalid endpoint options: [MESH_NAME.component3] component does not exist on the api',
@@ -621,7 +619,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component3', path: 'test/event' },
         (e, errors) => {
-          tests
+          test
             .expect(errors)
             .to.eql([
               'invalid endpoint options: [component3] component does not exist on the api',
@@ -642,7 +640,7 @@ describe(tests.testName(__filename, 3), function () {
         },
         { component: 'component', path: 'test/event' },
         (e, errors) => {
-          tests
+          test
             .expect(errors)
             .to.eql([
               'Error: invalid endpoint options: [component.unknownMethod] method does not exist on the api',
@@ -678,7 +676,7 @@ describe(tests.testName(__filename, 3), function () {
       results.event = data;
     });
     results.exec = await client.exchange.$call(callParameters);
-    await tests.delay(2000);
+    await test.delay(2000);
     return results;
   }
 
@@ -690,7 +688,7 @@ describe(tests.testName(__filename, 3), function () {
     await client.exchange.$call(callParameters);
     await client.exchange.$call(callParameters);
     await client.exchange.$call(callParameters);
-    await tests.delay(2000);
+    await test.delay(2000);
     return eventCounter;
   }
 
@@ -710,7 +708,7 @@ describe(tests.testName(__filename, 3), function () {
         id,
       });
     await client.exchange.$call(callParameters);
-    await tests.delay(2000);
+    await test.delay(2000);
     return eventCounter;
   }
 
@@ -725,7 +723,7 @@ describe(tests.testName(__filename, 3), function () {
     await client.exchange.$call(callParameters);
     if (!negative) await client.event.$offPath(listenParameters);
     await client.exchange.$call(callParameters);
-    await tests.delay(2000);
+    await test.delay(2000);
     return eventCounter;
   }
 

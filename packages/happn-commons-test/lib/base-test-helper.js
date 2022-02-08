@@ -16,6 +16,7 @@ class TestHelper {
 		this.chai.use(require("chai-match"));
 		this.chai.use(require("sinon-chai"));
 		this.chai.use(require("chai-as-promised"));
+		this.should = this.chai.should;
 		this.moment = require("moment");
 		this._ = this.commons._;
 		this.fs = this.commons.fs;

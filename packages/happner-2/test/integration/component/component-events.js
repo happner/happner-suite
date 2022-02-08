@@ -1,27 +1,25 @@
-const tests = require('../../__fixtures/utils/test_helper').create();
-describe(tests.testName(__filename, 3), function () {
-  var expect = require('expect.js');
+var Module1 = {
+  causeEmit: function ($happn, callback) {
+    $happn.emit('test/event1', { some: 'thing' });
+    callback();
+  },
+  causeEmitPromise: function ($happn, callback) {
+    $happn.emit('test/event/promise', { some: 'promise' });
+    callback();
+  },
+  causeEmitLocal: function ($happn, callback) {
+    $happn.emitLocal('test/event2', { some: 'thing' });
+    callback();
+  },
+  causeEmitToSpecificPath: function ($happn, path, callback) {
+    $happn.emit(path, { some: 'thing' });
+    callback();
+  },
+};
+
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var Happner = require('../../..');
   var server;
-
-  var Module1 = {
-    causeEmit: function ($happn, callback) {
-      $happn.emit('test/event1', { some: 'thing' });
-      callback();
-    },
-    causeEmitPromise: function ($happn, callback) {
-      $happn.emit('test/event/promise', { some: 'promise' });
-      callback();
-    },
-    causeEmitLocal: function ($happn, callback) {
-      $happn.emitLocal('test/event2', { some: 'thing' });
-      callback();
-    },
-    causeEmitToSpecificPath: function ($happn, path, callback) {
-      $happn.emit(path, { some: 'thing' });
-      callback();
-    },
-  };
 
   before(function (done) {
     Happner.create({
@@ -57,7 +55,7 @@ describe(tests.testName(__filename, 3), function () {
 
   it('components can emit events', function (done) {
     server.event.component1.on('test/event1', function (data) {
-      expect(data).to.eql({ some: 'thing' });
+      test.expect(data).to.eql({ some: 'thing' });
       done();
     });
 
@@ -70,54 +68,54 @@ describe(tests.testName(__filename, 3), function () {
       'test/event/promise',
       { count: 1 },
       function (data) {
-        expect(data).to.eql({ some: 'promise' });
+        test.expect(data).to.eql({ some: 'promise' });
         eventEmitted = true;
       }
     );
-    tests.expect(handle).to.be.greaterThan(0);
+    test.expect(handle).to.be.greaterThan(0);
     await server.exchange.component1.causeEmitPromise();
-    await tests.delay(1000);
-    tests.expect(eventEmitted).to.be(true);
+    await test.delay(1000);
+    test.expect(eventEmitted).to.be(true);
   });
 
   it('components can emit events - promise based, with no parameters', async () => {
     let eventEmitted = false;
     const handle = await server.event.component1.on('test/event/promise', function (data) {
-      expect(data).to.eql({ some: 'promise' });
+      test.expect(data).to.eql({ some: 'promise' });
       eventEmitted = true;
     });
-    tests.expect(handle).to.be.greaterThan(0);
+    test.expect(handle).to.be.greaterThan(0);
     await server.exchange.component1.causeEmitPromise();
-    await tests.delay(1000);
-    tests.expect(eventEmitted).to.be(true);
+    await test.delay(1000);
+    test.expect(eventEmitted).to.be(true);
   });
 
   it('components can emit events - promise based, without await', async () => {
     let eventEmitted = false;
     server.event.component1.on('test/event/promise', { count: 1 }, function (data) {
-      expect(data).to.eql({ some: 'promise' });
+      test.expect(data).to.eql({ some: 'promise' });
       eventEmitted = true;
     });
     await server.exchange.component1.causeEmitPromise();
-    await tests.delay(1000);
-    tests.expect(eventEmitted).to.be(true);
+    await test.delay(1000);
+    test.expect(eventEmitted).to.be(true);
   });
 
   it('components can emit events - promise based, with no parameters', async () => {
     let eventEmitted = false;
     const handle = await server.event.component1.on('test/event/promise', function (data) {
-      expect(data).to.eql({ some: 'promise' });
+      test.expect(data).to.eql({ some: 'promise' });
       eventEmitted = true;
     });
-    tests.expect(handle).to.be.greaterThan(0);
+    test.expect(handle).to.be.greaterThan(0);
     await server.exchange.component1.causeEmitPromise();
-    await tests.delay(1000);
-    tests.expect(eventEmitted).to.be(true);
+    await test.delay(1000);
+    test.expect(eventEmitted).to.be(true);
   });
 
   it('components can emit events with noCluster', function (done) {
     server._mesh.data.set = function (path, data, options) {
-      expect(options.noCluster).to.be(true);
+      test.expect(options.noCluster).to.be(true);
       done();
     };
 
@@ -149,7 +147,7 @@ describe(tests.testName(__filename, 3), function () {
       })
       .then(function () {
         setTimeout(function () {
-          expect(capturedEvents).to.eql([
+          test.expect(capturedEvents).to.eql([
             {
               channel: '/SET@/_events/MESH_NAME/component1/**',
               path: '/_events/MESH_NAME/component1/test/path/1',
@@ -194,7 +192,7 @@ describe(tests.testName(__filename, 3), function () {
       })
       .then(function () {
         setTimeout(function () {
-          expect(capturedEvents).to.eql([
+          test.expect(capturedEvents).to.eql([
             {
               channel: '/SET@/_events/MESH_NAME/component1/**',
               path: '/_events/MESH_NAME/component1/test/path/1',
@@ -234,7 +232,7 @@ describe(tests.testName(__filename, 3), function () {
               })
               .then(function () {
                 setTimeout(function () {
-                  expect(capturedEvents).to.eql([]);
+                  test.expect(capturedEvents).to.eql([]);
                   done();
                 }, 2000);
               });
@@ -274,7 +272,7 @@ describe(tests.testName(__filename, 3), function () {
           })
           .then(function () {
             setTimeout(function () {
-              expect(capturedEvents).to.eql([
+              test.expect(capturedEvents).to.eql([
                 {
                   channel: '/SET@/_events/MESH_NAME/component1/**',
                   path: '/_events/MESH_NAME/component1/test/path/1',
@@ -314,7 +312,7 @@ describe(tests.testName(__filename, 3), function () {
                   })
                   .then(function () {
                     setTimeout(function () {
-                      expect(capturedEvents).to.eql([]);
+                      test.expect(capturedEvents).to.eql([]);
                       done();
                     }, 2000);
                   });

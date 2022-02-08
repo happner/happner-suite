@@ -1,8 +1,6 @@
 module.exports = Explicit;
 
 const testHelper = require('../../__fixtures/utils/test_helper').create();
-const should = require('chai').should();
-const expect = require('expect.js');
 
 var DONE = false;
 var INITIALIZED = false;
@@ -41,9 +39,7 @@ var mesh;
 var anotherMesh;
 var Mesh = require('../../../lib/mesh');
 
-describe(testHelper.testName(__filename, 3), function () {
-  this.timeout(120000);
-
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   before(function (done) {
     global.TESTING_INIT_PROMISE = true; //.............
 
@@ -127,8 +123,8 @@ describe(testHelper.testName(__filename, 3), function () {
 
   it('validates start and init methods', function (done) {
     this.mesh.api.exchange.explicit.methodName1({ op: 'tions3' }, function (err, res) {
-      expect(res.state.started).to.be(true);
-      expect(res.state.initialized).to.be(true);
+      test.expect(res.state.started).to.be(true);
+      test.expect(res.state.initialized).to.be(true);
       done();
     });
   });
