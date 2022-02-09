@@ -1,4 +1,5 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  let remote;
   var path = require('path');
   var Mesh = require('../../..');
   var spawn = require('child_process').spawn;

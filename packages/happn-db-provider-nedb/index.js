@@ -15,8 +15,6 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     this.stop = utils.maybePromisify(this.stop);
     this.upsert = utils.maybePromisify(this.upsert);
     this.increment = utils.maybePromisify(this.increment);
-    this.merge = utils.maybePromisify(this.merge);
-    this.insert = utils.maybePromisify(this.insert);
     this.find = utils.maybePromisify(this.find);
     this.findOne = utils.maybePromisify(this.findOne);
     this.remove = utils.maybePromisify(this.remove);
@@ -47,7 +45,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
           return;
         }
 
-        fs.fsync(fd, err => {
+        fs.fsync(fd, (err) => {
           if (err) {
             callback(new Error(`failed syncing to storage device: ${err.message}`));
             return;
@@ -68,22 +66,22 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     const incrementField = `data.${counterName}.value`;
     this.db.update(
       {
-        path
+        path,
       },
       {
         $inc: {
-          [incrementField]: increment
-        }
+          [incrementField]: increment,
+        },
       },
       { upsert: true },
-      this.__ensureFileSync(e => {
+      this.__ensureFileSync((e) => {
         if (e) return callback(e);
         this.findOne(
           { path },
           {
-            fields: { [incrementField]: 1 }
+            fields: { [incrementField]: 1 },
           },
-          function(e, found) {
+          function (e, found) {
             if (e) {
               return callback(
                 new Error('increment happened but fetching new value failed: ' + e.toString())
@@ -109,15 +107,15 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
         data: document.data,
         _id: path,
         path: path,
-        modifiedBy: options.modifiedBy //stripped out if undefined by _utils.clone
-      }
+        modifiedBy: options.modifiedBy, //stripped out if undefined by _utils.clone
+      },
     });
 
     options.upsert = true;
 
     this.db.update(
       {
-        _id: path
+        _id: path,
       },
       setParameters,
       options,
@@ -148,19 +146,19 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     return this.db.remove(
       this.getPathCriteria(path),
       {
-        multi: true
+        multi: true,
       },
-      function(e, removed) {
+      function (e, removed) {
         if (e) return callback(e);
 
         callback(null, {
           data: {
-            removed: removed
+            removed: removed,
           },
           _meta: {
             timestamp: Date.now(),
-            path: path
-          }
+            path: path,
+          },
         });
       }
     );
@@ -192,7 +190,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     if (searchOptions.skip) cursor = cursor.skip(searchOptions.skip);
     if (searchOptions.limit) cursor = cursor.limit(searchOptions.limit);
 
-    cursor.exec(function(e, items) {
+    cursor.exec(function (e, items) {
       if (e) return callback(e);
       callback(null, items);
     });
@@ -216,13 +214,13 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     if (searchOptions.skip) cursor = cursor.skip(searchOptions.skip);
     if (searchOptions.limit) cursor = cursor.limit(searchOptions.limit);
 
-    cursor.exec(function(e, items) {
+    cursor.exec(function (e, items) {
       if (e) return callback(e);
 
       callback(null, {
         data: {
-          value: items
-        }
+          value: items,
+        },
       });
     });
   }
@@ -276,11 +274,11 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
   __attachCompactionHandler(handler, once) {
     var _this = this;
 
-    var handlerFunc = function(data) {
+    var handlerFunc = function (data) {
       _this.emit('compaction-successful', data); //emit as provider
       if (typeof this.handler === 'function') this.handler(data); //do locally bound handler
     }.bind({
-      handler: handler
+      handler: handler,
     });
 
     if (once) return _this.db.once('compaction.done', handlerFunc);

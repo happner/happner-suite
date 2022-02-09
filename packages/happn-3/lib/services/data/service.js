@@ -57,6 +57,9 @@ DataService.prototype.randomId = randomId;
 
 DataService.prototype.stop = stop;
 
+DataService.prototype.compact = compact;
+DataService.prototype.__compacting = {};
+
 DataService.prototype.__initializeProviders = __initializeProviders;
 DataService.prototype._insertDataProvider = _insertDataProvider;
 DataService.prototype.__attachProviderEvents = __attachProviderEvents;
@@ -583,6 +586,54 @@ function remove(path, options, callback) {
     if (e) return callback(new Error('error removing item on path ' + path, e));
     callback(null, removed);
   });
+}
+
+function compact(
+  dataStoreKey, //what dataStore - if undefined we will compact all data stores
+  interval, //compaction interval
+  callback, //callback on compaction cycle started or single compaction ended
+  compactionHandler
+) {
+  if (typeof interval === 'function') {
+    compactionHandler = callback;
+    callback = interval;
+    interval = null;
+  }
+
+  if (typeof dataStoreKey === 'function') {
+    callback = dataStoreKey;
+    compactionHandler = null;
+    interval = null;
+    dataStoreKey = null;
+  }
+
+  if (dataStoreKey == null) {
+    this.__iterateDataStores((key, _dataStore, next) => {
+      this.compact(key, null, next, null);
+    }, callback);
+  } else {
+    var dataStore = this.datastores[dataStoreKey];
+    this.__compacting[dataStoreKey] = dataStore;
+
+    if (interval) {
+      if (!this.__providerHasFeature(dataStore.provider, 'startCompacting')) {
+        return callback();
+      }
+      return this.__compacting[dataStoreKey].provider.startCompacting(
+        interval,
+        callback,
+        compactionHandler
+      );
+    }
+    if (!this.__providerHasFeature(dataStore.provider, 'compact')) {
+      return callback();
+    }
+    this.__compacting[dataStoreKey].provider.compact((e) => {
+      if (e) this.errorService.handleSystem(e, 'DataService', CONSTANTS.ERROR_SEVERITY.MEDIUM);
+      delete this.__compacting[dataStoreKey];
+      callback();
+    });
+  }
 }
 
 function stop(options, callback) {

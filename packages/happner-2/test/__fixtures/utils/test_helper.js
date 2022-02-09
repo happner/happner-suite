@@ -1,5 +1,7 @@
 const commons = require('happn-commons');
 const BaseTestHelper = require('happn-commons-test');
+const Mesh = require('../../../lib/mesh');
+const path = require('path');
 class TestHelper extends BaseTestHelper {
   constructor() {
     super();
@@ -24,6 +26,7 @@ class TestHelper extends BaseTestHelper {
     this.disconnectClient = this.util.promisify(this.disconnectClient);
     this.stopService = this.util.promisify(this.stopService);
     this.testService = this.util.promisify(this.testService);
+    this.Mesh = Mesh;
   }
 
   static create() {
@@ -42,7 +45,7 @@ class TestHelper extends BaseTestHelper {
     if (configs == null) return callback();
     if (!Array.isArray(configs)) return callback(new Error('configs not an Array, please pass in Array'));
     var _this = this;
-    async.eachSeries(configs, function (config, configCB) {
+    this.async.eachSeries(configs, function (config, configCB) {
       _this.getService(config, configCB);
     }, callback);
   }
@@ -74,30 +77,18 @@ class TestHelper extends BaseTestHelper {
       config = null;
     }
   
-    Mesh.create(config, function (e, instance) {
-  
+    Mesh.create(config,  (e, instance) => {
       if (e) return callback(e);
-  
-      _this.__addHappnerInstance(ctx, instance, config);
-  
-      var client = new Mesh.MeshClient({port: config.happn.port ? config.happn.port : 55000});
-  
-      var loginParams = {
-  
+      this.__addHappnerInstance(ctx, instance, config);
+      const client = new Mesh.MeshClient({port: config.happn.port ? config.happn.port : 55000});
+      client.login({
         username: '_ADMIN',
         password: config.happn.adminPassword ? config.happn.adminPassword : 'happn'
-  
-      };
-  
-      client.login(loginParams).then(function (e) {
-  
+      }).then((e) => {
         if (e) return callback(e);
-  
-        _this.__addHappnerClient(ctx, client);
-  
+        this.__addHappnerClient(ctx, client);
         callback(null, instance, client);
       });
-  
     });
   };
   
@@ -105,7 +96,7 @@ class TestHelper extends BaseTestHelper {
   
     var _this = this;
   
-    async.eachSeries(_this.__happnerInstances[ctx], function (started, stopCallback) {
+    this.async.eachSeries(_this.__happnerInstances[ctx], function (started, stopCallback) {
   
       started.instance.stop(function (e) {
   
@@ -158,18 +149,13 @@ class TestHelper extends BaseTestHelper {
     try{
   
       var fileContents;
-  
       var foundRecord = null;
-  
       if (options.filename) fileContents = this.fs.readFileSync(options.filename, 'utf8');
-  
       var records = fileContents.toString().split('\n');
   
       //backwards to get latest record
       records.reverse().every(function(line){
-  
         var record = null;
-  
         try{
           record = JSON.parse(line);
         }catch(e){
@@ -177,11 +163,18 @@ class TestHelper extends BaseTestHelper {
         }
   
         if (record){
-  
-          if (record.path == options.dataPath){
+          if (options.type === 'nedb') {
+            if (record.path == options.dataPath){
+              foundRecord = record;
+              return false;
+            }
+          }
+         if (options.type === 'loki') {
+          if (record.operation && record.operation.arguments && record.operation.arguments[0] == options.dataPath){
             foundRecord = record;
             return false;
           }
+         }
         }
   
         return true;
@@ -193,51 +186,48 @@ class TestHelper extends BaseTestHelper {
       throw new Error('getRecordFromSmallFile failed: ' + e.toString(), e);
     }
   };
+
+  newTempFilename(ext) {
+    return this.path.resolve(`test/tmp/${this.newid()}.${ext}`);
+  }
   
   newTestFile (options) {
-  
-    var _this = this;
-  
     if (!options) options = {};
-  
     if (!options.dir) options.dir = 'test' + this.path.sep + 'tmp';
-  
-    if (!options.ext) options.ext = 'nedb';
-  
+    if (!options.ext) options.ext = 'loki';
     if (!options.name) options.name = shortid.generate();
-  
-    var folderName = this.path.resolve(options.dir);
-  
+    const folderName = this.path.resolve(options.dir);
     this.fs.ensureDirSync(folderName);
-  
-    var fileName = folderName + this.path.sep + options.name + '.' + options.ext;
-  
-    var testRow = {
+    const fileName = folderName + this.path.sep + options.name + '.' + options.ext;
+    this.fs.copySync(path.resolve(__dirname, `../test/integration/data/test-db${options.secure ? '-secure' : ''}.loki`), fileName);
+    this.__testFiles.push(fileName);
+    return fileName;
+  };
+
+  newTestFileNedb (options) {
+    if (!options) options = {};
+    if (!options.dir) options.dir = 'test' + path.sep + 'tmp';
+    if (!options.ext) options.ext = 'nedb';
+    if (!options.name) options.name = shortid.generate();
+    var folderName = path.resolve(options.dir);
+    this.commons.fs.ensureDirSync(folderName);
+    const fileName = folderName + path.sep + options.name + '.' + options.ext;
+    this.commons.fs.writeFileSync(fileName, JSON.stringify({
       "_id": "/_TEST_HELPER/TESTWRITE",
       "data": {},
       "path": "/_TEST_HELPER/TESTWRITE",
       "created": Date.now(),
       "modified": Date.now()
-    };
-  
-    this.fs.writeFileSync(fileName, JSON.stringify(testRow));
-  
-    _this.__testFiles.push(fileName);
-  
+    }));
+    this.__testFiles.push(fileName);
     return fileName;
   };
   
   deleteFiles () {
-  
-    var _this = this;
-  
-    var errors = 0;
-  
-    var deleted = 0;
-  
-    var lastError;
-  
-    _this.__testFiles.forEach(function (filename) {
+    let errors = 0;
+    let deleted = 0;
+    let lastError;
+    this.__testFiles.forEach(function (filename) {
       try {
         this.fs.unlinkSync(filename);
         deleted++;
@@ -246,10 +236,7 @@ class TestHelper extends BaseTestHelper {
         errors++;
       }
     });
-  
-    var results = {deleted: deleted, errors: errors, lastError: lastError};
-  
-    return results;
+    return {deleted, errors, lastError};
   };
   
   __serviceExists (config) {
@@ -298,55 +285,35 @@ class TestHelper extends BaseTestHelper {
   };
   
   getClient (config, callback, clientPassword) {
-  
     if (typeof config != 'object') return callback('cannot get a client without a config');
-  
-    if (config.happn) config.name = config.name != null?config.name:config.happn.name;
-  
+    if (config.happn) config.name = config.name != null  ? config.name : config.happn.name;
     if (!config.name) return callback('cannot get a client for unknown service name');
-  
     if (!config.__testOptions) config.__testOptions = {};
-  
-    config.__testOptions.clientKey = shortid.generate() + '@' + config.name;//[client id]@[server key]
-  
-    var _this = this;
-  
-    var service = _this.findService(config);
-  
+    config.__testOptions.clientKey = this.newid() + '@' + config.name;//[client id]@[server key]
+    let service = this.findService(config);
     if (!service) return callback('could not find service using options: ' + JSON.stringify(config));
-  
+
     var credentials = {};
-  
     var options = {};
-  
     var happnConfig = service.config.happn != null ? service.config.happn : service.config;
-  
     var secure = happnConfig.secure != null ? happnConfig.secure : service.config.secure;
-  
     var port = happnConfig.port != null ? happnConfig.port : service.config.port;
   
     if (secure) {
   
       options.secure = true;
-  
       if (happnConfig.encryptPayloads) options.encryptPayloads = true;
-  
       if (happnConfig.keyPair) options.keyPair = happnConfig.keyPair;
-  
       var username = config.username ? config.username : '_ADMIN';
-  
       var password = config.password;
   
       if (!password) {
-  
         if (happnConfig.adminPassword)
           password = happnConfig.adminPassword;
-  
         else if (happnConfig.services && happnConfig.services.security &&
           happnConfig.services.security.config &&
           happnConfig.services.security.config.adminUser)
           password = happnConfig.services.security.config.adminUser.password;
-  
         else
           password = 'happn';
       }
@@ -357,8 +324,7 @@ class TestHelper extends BaseTestHelper {
   
     options.port = port;
   
-    var clientInstance = new Happner.MeshClient(options);
-  
+    var clientInstance = new Mesh.MeshClient(options);
     var clientConfig = JSON.parse(JSON.stringify(happnConfig));
   
     if (secure) {
@@ -367,22 +333,16 @@ class TestHelper extends BaseTestHelper {
     }
   
     clientConfig.__testOptions = config.__testOptions != null?config.__testOptions:{};
-  
     clientConfig.__testOptions.skipComponentTests = clientConfig.__testOptions.skipComponentTests != null?clientConfig.__testOptions.skipComponentTests:true;
   
     clientInstance.login(credentials)
+      .then(() => {
   
-      .then(function () {
-  
-        if (_this.__activeServices[config.name].clients == null) _this.__activeServices[config.name].clients = [];
-  
+        if (this.__activeServices[config.name].clients == null) this.__activeServices[config.name].clients = [];
         var client = {instance: clientInstance, id: config.__testOptions.clientKey, config:clientConfig};
-  
-        _this.__activeServices[config.name].clients.push(client);
-  
+        this.__activeServices[config.name].clients.push(client);
         callback(null, client);
       })
-  
       .catch(function (e) {
         callback(e);
       });
@@ -503,7 +463,7 @@ class TestHelper extends BaseTestHelper {
       callback(null, service);
     });
   
-    Happner.create(config, function (e, instance) {
+    Mesh.create(config, function (e, instance) {
   
       if (e) return callback(e);
   
@@ -592,7 +552,7 @@ class TestHelper extends BaseTestHelper {
   
     if (activeService.clients && activeService.clients.length > 0) {
   
-      return async.eachSeries(activeService.clients, function (activeServiceClient, activeServiceClientCB) {
+      return this.async.eachSeries(activeService.clients, function (activeServiceClient, activeServiceClientCB) {
         _this.disconnectClient(activeServiceClient.id, activeServiceClientCB);
       }, function (e) {
   
@@ -742,7 +702,7 @@ class TestHelper extends BaseTestHelper {
   
     var _this = this;
   
-    async.eachSeries(Object.keys(_this.__activeServices), function (activeServiceId, activeServiceCB) {
+    this.async.eachSeries(Object.keys(_this.__activeServices), function (activeServiceId, activeServiceCB) {
   
       if (timedOut) return activeServiceCB(new Error('timed out'));
   

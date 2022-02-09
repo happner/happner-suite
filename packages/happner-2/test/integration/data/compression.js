@@ -1,15 +1,10 @@
-const path = require('path');
-const testHelper = require('../../__fixtures/utils/test_helper').create();
-
-describe(testHelper.testName(__filename, 3), function () {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 200e3 }, (test) => {
   var libFolder =
-    path.resolve(__dirname, '../../..') +
-    path.sep +
-    ['test', '__fixtures', 'test', 'integration', 'data'].join(path.sep);
+    test.commons.path.resolve(__dirname, '../../..') +
+    test.commons.path.sep +
+    ['test', '__fixtures', 'test', 'integration', 'data'].join(test.commons.path.sep);
   var Mesh = require('../../..');
-  var expect = require('expect.js');
   let proxy;
-  this.timeout(200000);
 
   before(createProxy);
 
@@ -62,8 +57,8 @@ describe(testHelper.testName(__filename, 3), function () {
   }
 
   function compareBytes(optimised, unoptimised, expectedReductionPercentage) {
-    expect(optimised < unoptimised).to.be(true);
-    expect((optimised / unoptimised) * 100 < 100 - expectedReductionPercentage).to.be(true);
+    test.expect(optimised < unoptimised).to.be(true);
+    test.expect((optimised / unoptimised) * 100 < 100 - expectedReductionPercentage).to.be(true);
   }
 
   function getBigPayload(size, str) {
@@ -71,7 +66,7 @@ describe(testHelper.testName(__filename, 3), function () {
   }
 
   async function createProxy() {
-    proxy = testHelper.TCPProxy.createProxy(12358, '127.0.0.1', 12359);
+    proxy = test.TCPProxy.createProxy(12358, '127.0.0.1', 12359);
   }
 
   function tearDownProxy() {
@@ -123,7 +118,7 @@ describe(testHelper.testName(__filename, 3), function () {
       },
       modules: {
         compressionModule: {
-          path: libFolder + path.sep + 'compression-module',
+          path: libFolder + test.commons.path.sep + 'compression-module',
         },
       },
       components: {

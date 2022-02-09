@@ -29,7 +29,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.db = new db();
     this.collection = this.db.addCollection('happn', {
       indices: ['path', 'created', 'modified'],
-      unique: ['path']
+      unique: ['path'],
     });
     this.persistenceOn = this.settings.filename != null;
     this.operationQueue = async.queue((operation, cb) => {
@@ -40,7 +40,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       return;
     }
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
-    this.reconstruct(e => {
+    this.reconstruct((e) => {
       if (e) {
         this.logger.error('failed reconstructing database', e);
         callback(e);
@@ -55,12 +55,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     const reader = readline.createInterface({
       input: fs.createReadStream(this.settings.filename),
-      crlfDelay: Infinity
+      crlfDelay: Infinity,
     });
     let lineIndex = 0;
     let errorHappened = false;
 
-    reader.on('line', line => {
+    reader.on('line', (line) => {
       if (lineIndex === 0) {
         this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
         this.collection = this.db.collections[0];
@@ -83,7 +83,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       }
     });
 
-    reader.on('error', e => {
+    reader.on('error', (e) => {
       this.logger.error(`reconstruction reader error ${e.message}`);
       if (!errorHappened) {
         callback(e);
@@ -203,7 +203,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         callback(null, result);
         return;
       }
-      this.appendOperationData({ operation }, appendFailure => {
+      this.appendOperationData({ operation }, (appendFailure) => {
         if (appendFailure) {
           this.logger.error('failed persisting operation data', appendFailure);
           callback(appendFailure);
@@ -213,7 +213,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           callback(null, result);
           return;
         }
-        this.snapshot(e => {
+        this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
             callback(e);
@@ -245,13 +245,13 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       this.settings.filename,
       `${JSON.stringify(snapshotData)}\r\n`,
       {
-        flag: 'w'
+        flag: 'w',
       },
       this.fsync(callback)
     );
   }
   fsync(callback) {
-    return e => {
+    return (e) => {
       if (e) {
         callback(e);
         return;
@@ -265,7 +265,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           callback(new Error(`failed syncing to storage device: ${errorOpening.message}`));
           return;
         }
-        fs.fsync(fd, errorSyncing => {
+        fs.fsync(fd, (errorSyncing) => {
           if (errorSyncing) {
             this.logger.error(`fsync to file ${this.settings.filename} failed`, e);
             callback(errorSyncing);
@@ -304,7 +304,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.operationQueue.push(
       {
         operationType: constants.DATA_OPERATION_TYPES.UPSERT,
-        arguments: [path, document, options]
+        arguments: [path, document, options],
       },
       (e, response) => {
         if (e) {
@@ -329,12 +329,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     return {
       data: {
-        removed
+        removed,
       },
       _meta: {
         timestamp: Date.now(),
-        path: path
-      }
+        path: path,
+      },
     };
   }
   transformSortOptions(mongoSortOptions) {
@@ -377,7 +377,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     if (options.fields) {
-      finalResult = finalResult.map(item => {
+      finalResult = finalResult.map((item) => {
         return _.pick(item, Object.keys(options.fields));
       });
     }
@@ -434,14 +434,14 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.operationQueue.push(
       {
         operationType: constants.DATA_OPERATION_TYPES.INCREMENT,
-        arguments: [path, counterName, increment]
+        arguments: [path, counterName, increment],
       },
       callback
     );
   }
   incrementInternal(path, counterName, increment) {
     let recordToIncrement = this.findOneInternal({ path }) || {
-      data: { [counterName]: { value: 0 } }
+      data: { [counterName]: { value: 0 } },
     };
     if (recordToIncrement.data[counterName] == null) {
       recordToIncrement.data[counterName] = { value: 0 };

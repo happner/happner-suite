@@ -4,9 +4,23 @@ var path = require('path');
 Happner.create({
   name: 'MESH_NAME',
   happn: {
-    filename: path.join(__dirname, 'test.nedb'),
-    defaultRoute: "mem",
-    compactInterval: 5000
+    services: {
+      data: {
+        config: {
+          autoUpdateDBVersion: true,
+          datastores: [
+            {
+              name: 'nedb',
+              provider: 'happn-db-provider-nedb',
+              settings: {
+                filename: path.join(__dirname, 'test.nedb'),
+                compactInterval: 5000
+              },
+            },
+          ],
+        },
+      },
+    },
   }
 })
 .then(function (server) {

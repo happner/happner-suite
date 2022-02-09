@@ -180,6 +180,9 @@ module.exports = {
     );
   },
   maybePromisify: function (originalFunction, opts) {
+    if (originalFunction == null) {
+      throw new Error('attempt to promisify a null function');
+    }
     return function () {
       var args = Array.prototype.slice.call(arguments);
       var _this = this;

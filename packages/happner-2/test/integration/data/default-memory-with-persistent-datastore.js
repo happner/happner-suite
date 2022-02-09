@@ -1,10 +1,7 @@
-var should = require('chai').should();
-var shortId = require('shortid');
-var happner2 = require('../../..');
-var path = require('path');
-var async = require('async');
-
-describe('default-memory-with-persistent-datastore', function () {
+const happner2 = require('../../..');
+let thisTest;
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test) => {
+  thisTest = test;
   it('should test persistency using convenience settings', function (done) {
     var c = getConfig(true);
     runTest(c, done);
@@ -17,7 +14,7 @@ describe('default-memory-with-persistent-datastore', function () {
 
   function runTest(c, done) {
     var mesh;
-    async.series(
+    thisTest.commons.async.series(
       [
         function (cb) {
           startMesh(c, function (err, _mesh) {
@@ -48,7 +45,7 @@ describe('default-memory-with-persistent-datastore', function () {
         },
         function (cb) {
           mesh.exchange.myComponent.getData2('b', function (err, data) {
-            should.not.exist(data);
+            thisTest.expect(data).to.be(null);
             cb(err);
           });
         },
@@ -71,8 +68,7 @@ function startMesh(c, cb) {
 }
 
 function getConfig(useConvenienceSettings) {
-  var filename = path.join(__dirname, '../tmp/' + shortId() + '.nedb');
-  var compactInterval = 5000;
+  var filename = thisTest.commons.path.join(__dirname, '../tmp/' + thisTest.newid() + '.loki');
 
   var c = {
     happn: {
@@ -133,7 +129,6 @@ function getConfig(useConvenienceSettings) {
   if (useConvenienceSettings) {
     c.happn.filename = filename;
     c.happn.defaultRoute = 'mem';
-    c.happn.compactInterval = compactInterval;
   } else {
     c.happn.services.data = {
       config: {
@@ -146,7 +141,6 @@ function getConfig(useConvenienceSettings) {
             name: 'persist',
             settings: {
               filename: filename,
-              compactInterval: compactInterval,
             },
           },
         ],

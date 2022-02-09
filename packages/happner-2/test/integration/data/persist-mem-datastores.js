@@ -1,18 +1,11 @@
-var path = require('path');
-
-describe(
-  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
-  function () {
-    this.timeout(30000);
-
-    var expect = require('expect.js');
-    var libFolder =
-      path.resolve(__dirname, '../../..') +
-      path.sep +
-      ['test', '__fixtures', 'utils'].join(path.sep);
-    var TestHelper = require(libFolder + '/test_helper');
-    var helper = new TestHelper();
-    var __testFileName = helper.newTestFile({ name: 'persist-mem-datastores' });
+[{ type: 'nedb' }, { type: 'loki' }].forEach((testConfig) => {
+  require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
+    const filename =
+      testConfig.type === 'nedb'
+        ? test.newTestFileNedb({ name: 'persist-mem-datastores' })
+        : test.newTestFile({ name: 'persist-mem-datastores' });
+    const provider =
+      testConfig.type === 'nedb' ? 'happn-db-provider-nedb' : 'happn-db-provider-loki';
 
     var config = {
       happn: {
@@ -22,7 +15,20 @@ describe(
         services: {
           data: {
             config: {
-              filename: __testFileName,
+              autoUpdateDBVersion: true,
+              datastores: [
+                {
+                  name: 'persist',
+                  provider,
+                  settings: {
+                    filename,
+                  },
+                },
+                {
+                  name: 'mem',
+                  provider,
+                },
+              ],
             },
           },
         },
@@ -53,36 +59,38 @@ describe(
       },
     };
 
-    before('should initialize the helper with services', function (done) {
-      helper.startUp([config], done);
+    before(`should initialize the test with services ${testConfig.type}`, function (done) {
+      test.startUp([config], done);
     });
 
-    after('tears down all services and clients', function (done) {
-      helper.tearDown(done);
+    after(`tears down all services and clients ${testConfig.type}`, function (done) {
+      test.tearDown(done);
     });
 
-    it('checks the default datastores are in place', function (done) {
-      var service = helper.findService('persist-mem-datastores');
-
+    it(`checks the default datastores are in place ${testConfig.type}`, function (done) {
+      var service = test.findService('persist-mem-datastores');
       var happnServer = service.instance._mesh.happn.server;
+      test.expect(happnServer.services.data.datastores.mem).to.not.be(null);
+      if (testConfig.type === 'nedb') {
+        test
+          .expect(
+            happnServer.services.data.dataroutes['/_data/persistComponent/mem/*'].provider.db
+              .inMemoryOnly
+          )
+          .to.be(true);
 
-      expect(happnServer.services.data.datastores.mem).to.not.be(null);
-
-      expect(
-        happnServer.services.data.dataroutes['/_data/persistComponent/mem/*'].provider.db
-          .inMemoryOnly
-      ).to.be(true);
-
-      expect(
-        happnServer.services.data.dataroutes['/_data/persistComponent/persist/*'].provider.db
-          .filename
-      ).to.be(__testFileName);
-
+        test
+          .expect(
+            happnServer.services.data.dataroutes['/_data/persistComponent/persist/*'].provider.db
+              .filename
+          )
+          .to.be(filename);
+      }
       done();
     });
 
-    it('writes to mem path, and then to persist path, ensures the data is in the right places', function (done) {
-      var service = helper.findService('persist-mem-datastores');
+    it(`writes to mem path, and then to persist path, ensures the data is in the right places ${testConfig.type}`, function (done) {
+      var service = test.findService('persist-mem-datastores');
 
       service.instance.exchange.persistComponent.writeData(
         {
@@ -92,12 +100,17 @@ describe(
         function (e) {
           if (e) return done(e);
 
-          var record = helper.getRecordFromSmallFile({
-            filename: __testFileName,
+          var record = test.getRecordFromSmallFile({
+            filename,
             dataPath: '/_data/persistComponent/persist/some/data',
+            type: testConfig.type,
           });
 
-          expect(record.data.data).to.be('isPersisted');
+          if (testConfig.type === 'nedb') {
+            test.expect(record.data.data).to.be('isPersisted');
+          } else {
+            test.expect(record.operation.arguments[1].data.data).to.be('isPersisted');
+          }
 
           service.instance.exchange.persistComponent.writeData(
             {
@@ -107,21 +120,20 @@ describe(
             function (e) {
               if (e) return done(e);
 
-              helper.getRecordFromHappn(
+              test.getRecordFromHappn(
                 {
                   instanceName: 'persist-mem-datastores',
                   dataPath: '/_data/persistComponent/mem/some/data',
                 },
                 function (e, record) {
-                  expect(record.data).to.be('isVolatile');
+                  test.expect(record.data).to.be('isVolatile');
 
-                  var notFoundRecord = helper.getRecordFromSmallFile({
-                    filename: __testFileName,
+                  var notFoundRecord = test.getRecordFromSmallFile({
+                    filename,
                     dataPath: '/_data/persistComponent/mem/some/data',
+                    type: testConfig.type,
                   });
-
-                  expect(notFoundRecord).to.be(null);
-
+                  test.expect(notFoundRecord).to.be(null);
                   done();
                 }
               );
@@ -130,5 +142,5 @@ describe(
         }
       );
     });
-  }
-);
+  });
+});
