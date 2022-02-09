@@ -1,10 +1,4 @@
-// connect old happner endpoint to new happner server
-// (use config.domain to support load balancer)
-describe(require('../../__fixtures/utils/test_helper').create().testName(__filename), function () {
-  var Happner = require('../../..');
-  var expect = require('expect.js');
-  var async = require('async');
-
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   context('secure', function () {
     var server,
       endpoints = [];
@@ -14,7 +8,7 @@ describe(require('../../__fixtures/utils/test_helper').create().testName(__filen
     });
 
     before('start endpoints', function (done) {
-      async.series([startEndpoint, startEndpoint], function (e, results) {
+      test.commons.async.series([startEndpoint, startEndpoint], function (e, results) {
         if (e) return done(e);
         endpoints = results;
         done();
@@ -23,7 +17,7 @@ describe(require('../../__fixtures/utils/test_helper').create().testName(__filen
 
     after('stop endpoints', function (done) {
       if (endpoints.length === 0) return done();
-      async.eachSeries(
+      test.commons.async.eachSeries(
         endpoints,
         function (endpoint, endpointCB) {
           stopEndpoint(endpoint, endpointCB, false);
@@ -44,7 +38,7 @@ describe(require('../../__fixtures/utils/test_helper').create().testName(__filen
     function startEndpoint(done) {
       startPort++;
 
-      Happner.create({
+      test.Mesh.create({
         port: startPort,
         happn: {
           secure: true,
@@ -125,7 +119,7 @@ describe(require('../../__fixtures/utils/test_helper').create().testName(__filen
 
     function startServer(done) {
       server = undefined;
-      Happner.create({
+      test.Mesh.create({
         name: 'MESH_NAME',
         domain: 'DOMAIN_NAME',
         happn: {
@@ -179,31 +173,32 @@ describe(require('../../__fixtures/utils/test_helper').create().testName(__filen
 
     it('it calls components methods from new happner, we flip flop the new server, and ensure that the subscription service does not have hanging subscriptions', function (done) {
       this.timeout(10000);
-      var async = require('async');
-
-      async.series([executeMethod, executeMethod, executeMethod, executeMethod], function (e) {
-        if (e) return done(e);
-
-        var originalSubscriptions =
-          server._mesh.happn.__toListenInstance.services.subscription.subscriptions.searchAll();
-        expect(expectedCount(originalSubscriptions, 1)).to.be(true);
-        stopServer(true, function (e) {
+      test.commons.async.series(
+        [executeMethod, executeMethod, executeMethod, executeMethod],
+        function (e) {
           if (e) return done(e);
-          var subscriptions =
+
+          var originalSubscriptions =
             server._mesh.happn.__toListenInstance.services.subscription.subscriptions.searchAll();
-          expect(expectedCount(subscriptions, 0)).to.be(true);
-          startServer(function () {
-            setTimeout(() => {
-              executeMethod(function () {
-                var subscriptions =
-                  server._mesh.happn.__toListenInstance.services.subscription.subscriptions.searchAll();
-                expect(expectedCount(subscriptions, 1)).to.be(true);
-                done();
-              });
-            }, 2000);
+          test.expect(expectedCount(originalSubscriptions, 1)).to.be(true);
+          stopServer(true, function (e) {
+            if (e) return done(e);
+            var subscriptions =
+              server._mesh.happn.__toListenInstance.services.subscription.subscriptions.searchAll();
+            test.expect(expectedCount(subscriptions, 0)).to.be(true);
+            startServer(function () {
+              setTimeout(() => {
+                executeMethod(function () {
+                  var subscriptions =
+                    server._mesh.happn.__toListenInstance.services.subscription.subscriptions.searchAll();
+                  test.expect(expectedCount(subscriptions, 1)).to.be(true);
+                  done();
+                });
+              }, 2000);
+            });
           });
-        });
-      });
+        }
+      );
     });
   });
 });

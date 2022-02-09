@@ -7,3 +7,4 @@ packages/happn-3/test/integration/session/management_sanity.js
 packages/happn-3/test/browser/browser-client-02.js
 packages/happn-3/test/browser/browser_client.js
 packages/happn-3/test/integration/session/management-sanity.js
+

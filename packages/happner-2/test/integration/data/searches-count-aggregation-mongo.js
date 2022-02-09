@@ -1,7 +1,4 @@
-describe('integration/' + require('path').basename(__filename) + '\n', function () {
-  this.timeout(5000);
-
-  let expect = require('expect.js');
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
   var happnerTestHelper;
 
   var publisherclient;
@@ -19,7 +16,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
             datastores: [
               {
                 name: 'mongo',
-                provider: 'happn-service-mongo-2',
+                provider: 'happn-db-provider-mongo',
                 isDefault: true,
                 settings: {
                   database: DB_NAME,
@@ -86,7 +83,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
   it('tests a normal search', function (callback) {
     listenerclient.data.get('/searches-and-aggregation/*', {}, function (e, items) {
       if (e) return callback(e);
-      expect(items.length).to.be(10);
+      test.expect(items.length).to.be(10);
       callback();
     });
   });
@@ -105,7 +102,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(9);
+        test.expect(count.value).to.be(9);
         callback();
       }
     );
@@ -129,7 +126,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(5);
+        test.expect(count.value).to.be(5);
         callback();
       }
     );
@@ -148,7 +145,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(1);
+        test.expect(count.value).to.be(1);
         callback();
       }
     );
@@ -176,8 +173,8 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, items) {
         if (e) return callback(e);
-        expect(items.value.length).to.be(4);
-        expect(items.value.sort((a, b) => a.total - b.total)).to.eql([
+        test.expect(items.value.length).to.be(4);
+        test.expect(items.value.sort((a, b) => a.total - b.total)).to.eql([
           {
             _id: 'Odd',
             total: 1,
@@ -228,8 +225,8 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, items) {
         if (e) return callback(e);
-        expect(items.value.length).to.be(1);
-        expect(items.value).to.eql([
+        test.expect(items.value.length).to.be(1);
+        test.expect(items.value).to.eql([
           {
             _id: 'Odd',
             total: 25,

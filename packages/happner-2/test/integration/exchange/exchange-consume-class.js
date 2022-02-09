@@ -1,15 +1,11 @@
-const test = require('../../__fixtures/utils/test_helper').create();
 const testName = 'exchange-consume-class.js';
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const libFolder =
     test.path.resolve(__dirname, '../../..') +
     test.path.sep +
     ['test', '__fixtures', 'test', 'integration', 'exchange'].join(test.path.sep) +
     test.path.sep;
-  const Happner = require('../../..');
-  require('chai').should();
-  const test_id = Date.now() + '_' + require('shortid').generate();
+  const test_id = Date.now() + '_' + test.newid();
   const dbFileName = '.' + test.path.sep + 'temp' + test.path.sep + test_id + '.nedb';
   let mesh;
 
@@ -67,7 +63,7 @@ describe(test.testName(__filename, 3), function () {
   };
 
   before(function (done) {
-    Happner.create(config)
+    test.Mesh.create(config)
       .then(function (createdMesh) {
         mesh = createdMesh;
         done();

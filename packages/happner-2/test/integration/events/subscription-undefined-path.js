@@ -1,10 +1,7 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
-
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
+  let remote;
   var path = require('path');
-  var Mesh = require('../../..');
+  var Mesh = test.Mesh;
   var spawn = require('child_process').spawn;
   var libFolder =
     path.resolve(__dirname, '../../..') +

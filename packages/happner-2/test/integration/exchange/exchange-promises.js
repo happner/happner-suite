@@ -94,269 +94,263 @@ SeeAbove.prototype.$happner = {
   },
 };
 
-if (global.TESTING_18) return; // When 'requiring' the module above,
+if (global.TESTING_18) return;
+// When 'requiring' the module above,
 // don't run the tests below
-//.............
-require('chai').should();
 
-describe(
-  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
-  function () {
-    var Mesh = require('../../..');
-    var mesh;
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  var Mesh = test.Mesh;
+  var mesh;
 
-    this.timeout(120000);
+  before(function (done) {
+    global.TESTING_18 = true; //.............
 
-    before(function (done) {
-      global.TESTING_18 = true; //.............
+    mesh = this.mesh = new Mesh();
 
-      mesh = this.mesh = new Mesh();
-
-      mesh.initialize(
-        {
-          dataLayer: {
-            setOptions: {
-              timeout: 1000,
-            },
-          },
-          util: {
-            //logLevel: 'trace'
-          },
-          modules: {
-            component: {
-              path: __filename, // .............
-            },
-          },
-          components: {
-            component: {},
+    mesh.initialize(
+      {
+        dataLayer: {
+          setOptions: {
+            timeout: 1000,
           },
         },
-        function (err) {
-          delete global.TESTING_18; //.............
-          if (err) return done(err);
-          done();
-        }
-      );
-    });
+        util: {
+          //logLevel: 'trace'
+        },
+        modules: {
+          component: {
+            path: __filename, // .............
+          },
+        },
+        components: {
+          component: {},
+        },
+      },
+      function (err) {
+        delete global.TESTING_18; //.............
+        if (err) return done(err);
+        done();
+      }
+    );
+  });
 
-    after(function (done) {
-      mesh.stop({ reconnect: false }, done);
-    });
+  after(function (done) {
+    mesh.stop({ reconnect: false }, done);
+  });
 
-    it('supports non-promises in the exchange', function (done) {
-      this.mesh.exchange.component.methodName1({ number: 1 }, function (err, res) {
+  it('supports non-promises in the exchange', function (done) {
+    this.mesh.exchange.component.methodName1({ number: 1 }, function (err, res) {
+      res.should.eql({ number: 2 });
+      done();
+    });
+  });
+
+  it('supports promises in the exchange', function (done) {
+    this.mesh.exchange.component
+      .methodName1({ number: 1 })
+
+      .then(function (res) {
         res.should.eql({ number: 2 });
         done();
       });
-    });
+  });
 
-    it('supports promises in the exchange', function (done) {
-      this.mesh.exchange.component
-        .methodName1({ number: 1 })
+  it('the promise implementation supports .catch from callback error', function (done) {
+    this.mesh.exchange.component
+      .methodName1({ errorAs: 'callback' })
 
-        .then(function (res) {
-          res.should.eql({ number: 2 });
-          done();
-        });
-    });
+      .then(function () {
+        done(new Error('did not catch'));
+      })
 
-    it('the promise implementation supports .catch from callback error', function (done) {
-      this.mesh.exchange.component
-        .methodName1({ errorAs: 'callback' })
+      .catch(function (err) {
+        err.should.match(/THIS IS JUST A TEST/);
+        done();
+      });
+  });
 
-        .then(function () {
-          done(new Error('did not catch'));
-        })
+  it('the promise implementation supports .catch from thrown error', function (done) {
+    this.mesh.exchange.component
+      .methodName1({ errorAs: 'throw' })
 
-        .catch(function (err) {
-          err.should.match(/THIS IS JUST A TEST/);
-          done();
-        });
-    });
-
-    it('the promise implementation supports .catch from thrown error', function (done) {
-      this.mesh.exchange.component
-        .methodName1({ errorAs: 'throw' })
-
-        .then(function (res) {
-          //eslint-disable-next-line
+      .then(function (res) {
+        //eslint-disable-next-line
           console.log(res);
-          done(new Error('did not catch'));
-        })
+        done(new Error('did not catch'));
+      })
 
-        .catch(function (err) {
-          err.should.match(/THIS IS JUST A TEST/);
-          done();
-        });
-    });
-
-    it('supports non-promises on the alias', function (done) {
-      this.mesh.exchange.component.ancientmoth({ number: 1 }, function (err, res) {
-        res.should.eql({ number: 2 });
+      .catch(function (err) {
+        err.should.match(/THIS IS JUST A TEST/);
         done();
       });
-    });
+  });
 
-    it('supports promises on the alias', function (done) {
-      this.mesh.exchange.component
-        .ancientmoth({ number: 1 })
-
-        .then(function (res) {
-          res.should.eql({ number: 2 });
-          done();
-        });
-    });
-
-    it('supports fire and forget', function (done) {
-      this.timeout(1500);
-      this.mesh.exchange.component.methodName1({});
+  it('supports non-promises on the alias', function (done) {
+    this.mesh.exchange.component.ancientmoth({ number: 1 }, function (err, res) {
+      res.should.eql({ number: 2 });
       done();
     });
+  });
 
-    it('supports calling a synchronous method and getting a promise back', function (done) {
-      this.timeout(1500);
+  it('supports promises on the alias', function (done) {
+    this.mesh.exchange.component
+      .ancientmoth({ number: 1 })
 
-      this.mesh.exchange.component
-        .synchronousMethod(1, 2)
+      .then(function (res) {
+        res.should.eql({ number: 2 });
+        done();
+      });
+  });
 
-        .then(function (res) {
-          res.should.eql(3);
+  it('supports fire and forget', function (done) {
+    this.timeout(1500);
+    this.mesh.exchange.component.methodName1({});
+    done();
+  });
+
+  it('supports calling a synchronous method and getting a promise back', function (done) {
+    this.timeout(1500);
+
+    this.mesh.exchange.component
+      .synchronousMethod(1, 2)
+
+      .then(function (res) {
+        res.should.eql(3);
+        done();
+      })
+
+      .catch(function (err) {
+        done(err);
+      });
+  });
+
+  it('supports calling a synchronous method with $happn and $origin and getting a promise back', function (done) {
+    this.timeout(1500);
+
+    this.mesh.exchange.component
+      .synchronousMethodHappnOrigin(1, 2)
+
+      .then(function (res) {
+        res.should.eql(3);
+        done();
+      })
+
+      .catch(function (err) {
+        done(err);
+      });
+  });
+
+  it('supports calling a synchronous method fire and forget', function (done) {
+    this.timeout(1500);
+    this.mesh.exchange.component.synchronousMethod(1, 2);
+    done();
+  });
+
+  it('supports exposing a promise on the exchange', function (done) {
+    this.mesh.exchange.component
+      .promiseMethod({ number: 1 })
+
+      .then(function (res) {
+        res.should.eql({ number: 2 });
+        done();
+      });
+  });
+
+  it('supports calling a promise from a promise on the exchange', function (done) {
+    this.timeout(1500);
+    var _this = this;
+
+    this.mesh.exchange.component
+      .promisePromiseCaller({ number: 1 })
+
+      .then(
+        function (res) {
+          res.should.eql({ number: 2 });
           done();
-        })
+        }.bind(_this)
+      );
+  });
 
-        .catch(function (err) {
-          done(err);
-        });
-    });
+  it('supports calling a promise from a method on the exchange', function (done) {
+    this.timeout(1500);
 
-    it('supports calling a synchronous method with $happn and $origin and getting a promise back', function (done) {
-      this.timeout(1500);
+    this.mesh.exchange.component
+      .promiseCaller({ number: 1 })
 
-      this.mesh.exchange.component
-        .synchronousMethodHappnOrigin(1, 2)
+      .then(function (res) {
+        res.should.eql({ number: 2 });
+        done();
+      });
+  });
 
-        .then(function (res) {
-          res.should.eql(3);
-          done();
-        })
+  it('supports returning a promise from a method on the exchange', function (done) {
+    this.timeout(1500);
 
-        .catch(function (err) {
-          done(err);
-        });
-    });
-
-    it('supports calling a synchronous method fire and forget', function (done) {
-      this.timeout(1500);
-      this.mesh.exchange.component.synchronousMethod(1, 2);
+    this.mesh.exchange.component.promiseReturner({ number: 1 }).then(function (res) {
+      res.should.eql({ number: 2 });
       done();
     });
+  });
 
-    it('supports exposing a promise on the exchange', function (done) {
-      this.mesh.exchange.component
-        .promiseMethod({ number: 1 })
+  it('supports returning a promise from a method on the exchange with no callback', function (done) {
+    this.timeout(1500);
 
-        .then(function (res) {
-          res.should.eql({ number: 2 });
-          done();
-        });
+    this.mesh.exchange.component.promiseReturnerNoCallback({ number: 1 }).then(function (res) {
+      res.should.eql({ number: 2 });
+      done();
     });
+  });
 
-    it('supports calling a promise from a promise on the exchange', function (done) {
-      this.timeout(1500);
-      var _this = this;
+  it('supports returning a promise from a method on the exchange that throws an error', function (done) {
+    this.timeout(1500);
 
-      this.mesh.exchange.component
-        .promisePromiseCaller({ number: 1 })
-
-        .then(
-          function (res) {
-            res.should.eql({ number: 2 });
-            done();
-          }.bind(_this)
-        );
-    });
-
-    it('supports calling a promise from a method on the exchange', function (done) {
-      this.timeout(1500);
-
-      this.mesh.exchange.component
-        .promiseCaller({ number: 1 })
-
-        .then(function (res) {
-          res.should.eql({ number: 2 });
-          done();
-        });
-    });
-
-    it('supports returning a promise from a method on the exchange', function (done) {
-      this.timeout(1500);
-
-      this.mesh.exchange.component.promiseReturner({ number: 1 }).then(function (res) {
-        res.should.eql({ number: 2 });
+    this.mesh.exchange.component
+      .promiseReturnerNoCallback({ number: 1, errorAs: 'throw' })
+      .then(function () {
+        done(new Error('should not get here'));
+      })
+      .catch(function (err) {
+        err.message.should.eql('THIS IS JUST A TEST THAT THROWS AN ERROR');
         done();
       });
-    });
+  });
 
-    it('supports returning a promise from a method on the exchange with no callback', function (done) {
-      this.timeout(1500);
+  it('supports returning a promise from a method on the exchange that callbacks an error', function (done) {
+    this.timeout(1500);
 
-      this.mesh.exchange.component.promiseReturnerNoCallback({ number: 1 }).then(function (res) {
-        res.should.eql({ number: 2 });
+    this.mesh.exchange.component
+      .promiseReturnerNoCallback({ number: 1, errorAs: 'callback' })
+      .then(function () {
+        done(new Error('should not get here'));
+      })
+      .catch(function (err) {
+        err.message.should.eql('THIS IS JUST A TEST WITH CALLBACK ERROR');
         done();
       });
-    });
+  });
 
-    it('supports returning a promise from a method on the exchange that throws an error', function (done) {
-      this.timeout(1500);
+  it('does not time out a sync function', function (done) {
+    this.timeout(2500);
 
-      this.mesh.exchange.component
-        .promiseReturnerNoCallback({ number: 1, errorAs: 'throw' })
-        .then(function () {
-          done(new Error('should not get here'));
-        })
-        .catch(function (err) {
-          err.message.should.eql('THIS IS JUST A TEST THAT THROWS AN ERROR');
-          done();
-        });
-    });
-
-    it('supports returning a promise from a method on the exchange that callbacks an error', function (done) {
-      this.timeout(1500);
-
-      this.mesh.exchange.component
-        .promiseReturnerNoCallback({ number: 1, errorAs: 'callback' })
-        .then(function () {
-          done(new Error('should not get here'));
-        })
-        .catch(function (err) {
-          err.message.should.eql('THIS IS JUST A TEST WITH CALLBACK ERROR');
-          done();
-        });
-    });
-
-    it('does not time out a sync function', function (done) {
-      this.timeout(2500);
-
-      this.mesh.exchange.component
-        .fireAndForget({ number: 1 })
-        .then(function () {
-          // should never get here
-          done(new Error('Should not get a result'));
-        })
-        .catch(function (err) {
-          done(err);
-        });
-
-      setTimeout(done, 2000);
-    });
-
-    it('does not fire a callback twice', function (done) {
-      this.timeout(2000);
-
-      this.mesh.exchange.component.callCallbackTwice({ number: 1 }, function (err, result) {
-        result.number.should.eql(2);
-        setTimeout(done, 500);
+    this.mesh.exchange.component
+      .fireAndForget({ number: 1 })
+      .then(function () {
+        // should never get here
+        done(new Error('Should not get a result'));
+      })
+      .catch(function (err) {
+        done(err);
       });
+
+    setTimeout(done, 2000);
+  });
+
+  it('does not fire a callback twice', function (done) {
+    this.timeout(2000);
+
+    this.mesh.exchange.component.callCallbackTwice({ number: 1 }, function (err, result) {
+      result.number.should.eql(2);
+      setTimeout(done, 500);
     });
-  }
-);
+  });
+});

@@ -1,14 +1,25 @@
-describe('integration/' + require('path').basename(__filename) + '\n', function () {
-  this.timeout(10000);
-
-  let expect = require('expect.js');
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
   var happnerTestHelper;
 
   var publisherclient;
   var listenerclient;
 
   const config = {
-    happn: {},
+    happn: {
+      services: {
+        data: {
+          config: {
+            autoUpdateDBVersion: true,
+            datastores: [
+              {
+                name: 'nedb',
+                provider: 'happn-db-provider-nedb',
+              },
+            ],
+          },
+        },
+      },
+    },
   };
 
   before('should initialize the service and clients', async () => {
@@ -59,7 +70,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
   it('tests a normal search', function (callback) {
     listenerclient.data.get('/searches-and-aggregation/*', {}, function (e, items) {
       if (e) return callback(e);
-      expect(items.length).to.be(10);
+      test.expect(items.length).to.be(10);
       callback();
     });
   });
@@ -77,7 +88,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
         },
       },
       function (e) {
-        expect(e.toString()).to.be('SystemError: Unknown comparison function $not');
+        test.expect(e.toString()).to.be('SystemError: Unknown comparison function $not');
         callback();
       }
     );
@@ -96,7 +107,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       },
       function (e, count) {
         if (e) return callback(e);
-        expect(count.value).to.be(1);
+        test.expect(count.value).to.be(1);
         callback();
       }
     );
@@ -121,7 +132,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
       function (e, count) {
         if (e) return callback(e);
         //this is because the nedb data provider has no idea about collation
-        expect(count.value).to.be(1);
+        test.expect(count.value).to.be(1);
         callback();
       }
     );
@@ -148,7 +159,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
         ],
       },
       function (e) {
-        expect(e.toString()).to.be(
+        test.expect(e.toString()).to.be(
           'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
         );
         callback();
@@ -183,7 +194,7 @@ describe('integration/' + require('path').basename(__filename) + '\n', function 
         },
       },
       function (e) {
-        expect(e.toString()).to.be(
+        test.expect(e.toString()).to.be(
           'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
         );
         callback();
