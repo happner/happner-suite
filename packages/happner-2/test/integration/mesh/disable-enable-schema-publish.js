@@ -1,11 +1,7 @@
-/* eslint-disable no-console */
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  var Happner = require('../../..');
-  this.timeout(60000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var mesh;
   before('start mesh', function (done) {
-    Happner.create({
+    test.Mesh.create({
       name: 'MESH_NAME',
       modules: {
         factory: {
@@ -54,7 +50,7 @@ describe(test.testName(__filename, 3), function () {
   });
 
   it('injects a new component - we check the client receives a new description publication', async () => {
-    const client = new Happner.MeshClient();
+    const client = new test.Mesh.MeshClient();
     await client.login();
     let descriptionCount = 0;
     await client.data.on('/mesh/schema/description', () => {
@@ -68,7 +64,7 @@ describe(test.testName(__filename, 3), function () {
   });
 
   it('injects a new component after we disable the schema publication - we check the client does not receive a new description publication, we re-enable and check the client did receive the publication', async () => {
-    const client = new Happner.MeshClient();
+    const client = new test.Mesh.MeshClient();
     await client.login();
     let descriptionCount = 0;
     await client.data.on('/mesh/schema/description', () => {

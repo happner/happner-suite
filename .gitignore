@@ -53,6 +53,6 @@ coverage-web
 report.*
 .vscode
 
-./packages/happner-2/test/temp
-./packages/happner-2/test/integration/temp
-./packages/happner-2/temp
+packages/happner-2/test/temp
+packages/happner-2/test/integration/temp
+packages/happner-2/temp

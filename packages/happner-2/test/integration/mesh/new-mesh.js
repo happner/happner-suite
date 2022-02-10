@@ -1,7 +1,5 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
-  const Mesh = require('../../..');
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const Mesh = test.Mesh;
   let mesh;
   it('tests the client newMesh call', function (done) {
     Mesh.create(function (e, instance) {
