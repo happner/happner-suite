@@ -1,9 +1,6 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  const Happner = require('../../..');
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   let server, testClient;
-  const adminClient = new Happner.MeshClient({ secure: true });
-  this.timeout(120000);
+  const adminClient = new test.Mesh.MeshClient({ secure: true });
 
   before(startsServer);
   before(connectsAdminClient);
@@ -232,7 +229,7 @@ describe(test.testName(__filename, 3), function () {
   });
 
   async function startsServer() {
-    server = await Happner.create({
+    server = await test.Mesh.create({
       name: 'MESH_NAME',
       secure: true,
       modules: {
@@ -264,7 +261,6 @@ describe(test.testName(__filename, 3), function () {
             },
             method2: async function ($happn, data) {
               $happn.emit('method2', { data });
-              callback();
             },
             method3: function ($happn, data) {
               return new Promise((resolve, reject) => {
@@ -331,7 +327,7 @@ describe(test.testName(__filename, 3), function () {
     );
   }
   async function connectsTestUser() {
-    testClient = new Happner.MeshClient();
+    testClient = new test.Mesh.MeshClient();
 
     await testClient.login({
       username: 'testUser',

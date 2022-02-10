@@ -1,20 +1,14 @@
-var path = require('path');
-const test = require('../../__fixtures/utils/test_helper').create();
-const _ = require('lodash');
-const wait = require('await-delay');
-
-describe(test.testName(__filename, 3), function () {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const path = require('path');
   const util = require('util');
-  var request = util.promisify(require('request'), { multiArgs: true });
-  this.timeout(200000);
-  var expect = require('expect.js');
-  var Mesh = require('../../..');
-  var test_id = Date.now() + '_' + require('shortid').generate();
-  require('chai').should();
-  var dbFileName = '.' + path.sep + 'temp' + path.sep + 'b1-advanced-security' + test_id + '.nedb';
-  var fs = require('fs-extra');
-  var mesh = new Mesh();
-  var DELETEFILE = false;
+  const request = util.promisify(require('request'), { multiArgs: true });
+  const Mesh = test.Mesh;
+  const test_id = test.newid();
+  const dbFileName =
+    '.' + path.sep + 'temp' + path.sep + 'b1-advanced-security' + test_id + '.nedb';
+  const fs = test.commons.fs;
+  let mesh = new Mesh();
+  const DELETEFILE = false;
 
   var config = {
     name: 'meshname',
@@ -128,9 +122,13 @@ describe(test.testName(__filename, 3), function () {
     adminClient.exchange.security.addGroup(testGroup, function (e, result) {
       if (e) return done(e);
 
-      expect(result.name === testGroup.name).to.be(true);
-      expect(result.custom_data.customString === testGroup.custom_data.customString).to.be(true);
-      expect(result.custom_data.customNumber === testGroup.custom_data.customNumber).to.be(true);
+      test.expect(result.name === testGroup.name).to.be(true);
+      test
+        .expect(result.custom_data.customString === testGroup.custom_data.customString)
+        .to.be(true);
+      test
+        .expect(result.custom_data.customNumber === testGroup.custom_data.customNumber)
+        .to.be(true);
 
       testGroupSaved = result;
       done();
@@ -151,7 +149,7 @@ describe(test.testName(__filename, 3), function () {
     adminClient.exchange.security.addUser(testUser, function (e, result) {
       if (e) return done(e);
 
-      expect(result.username).to.be(testUser.username);
+      test.expect(result.username).to.be(testUser.username);
       testUserSaved = result;
 
       done();
@@ -188,7 +186,7 @@ describe(test.testName(__filename, 3), function () {
 
     adminClient.exchange.security.updateUser(testUserSaved, function (e, result) {
       if (e) return done(e);
-      expect(result.custom_data.changedCustom).to.be('changedCustom');
+      test.expect(result.custom_data.changedCustom).to.be('changedCustom');
       testUserClient.login(testUserSaved).then(done).catch(done);
     });
   });
@@ -228,7 +226,7 @@ describe(test.testName(__filename, 3), function () {
       adminClient.exchange.security.addUser(testUser, function (e, result) {
         if (e) return done(e);
 
-        expect(result.username).to.be(testUser.username);
+        test.expect(result.username).to.be(testUser.username);
         testUserSaved = result;
 
         adminClient.exchange.security.linkGroup(testGroupSaved, testUserSaved, function (e) {
@@ -245,7 +243,7 @@ describe(test.testName(__filename, 3), function () {
                 function (e) {
                   if (!e) return done(new Error('this was not meant to happn'));
 
-                  expect(e.toString()).to.be('AccessDenied: unauthorized');
+                  test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
                   done();
                 }
@@ -274,7 +272,7 @@ describe(test.testName(__filename, 3), function () {
     adminClient.exchange.security.listGroups('*', function (e, groups) {
       if (e) return done(e);
 
-      expect(groups.length).to.be(5);
+      test.expect(groups.length).to.be(5);
 
       done();
     });
@@ -284,7 +282,7 @@ describe(test.testName(__filename, 3), function () {
     adminClient.exchange.security.listUsers('*', function (e, users) {
       if (e) return done(e);
 
-      expect(users.length).to.be(3);
+      test.expect(users.length).to.be(3);
       done();
     });
   });
@@ -295,7 +293,7 @@ describe(test.testName(__filename, 3), function () {
       { criteria: { '_meta.path': '/_SYSTEM/_SECURITY/_USER/_ADMIN' } },
       function (e, users) {
         if (e) return done(e);
-        expect(users.length).to.be(1);
+        test.expect(users.length).to.be(1);
         done();
       }
     );
@@ -305,8 +303,8 @@ describe(test.testName(__filename, 3), function () {
     adminClient.exchange.security.getUser(testUserSaved.username, function (e, user) {
       if (e) return done(e);
 
-      expect(user.groups[testGroupSaved.name]).to.not.be(undefined);
-      expect(user.groups[testGroupSaved.name]).to.not.be(null);
+      test.expect(user.groups[testGroupSaved.name]).to.not.be(undefined);
+      test.expect(user.groups[testGroupSaved.name]).to.not.be(null);
 
       done();
     });
@@ -319,7 +317,7 @@ describe(test.testName(__filename, 3), function () {
       function (e, user) {
         if (e) return done(e);
 
-        expect(user.groups).to.be(undefined);
+        test.expect(user.groups).to.be(undefined);
         done();
       }
     );
@@ -342,8 +340,8 @@ describe(test.testName(__filename, 3), function () {
           if (e) return done(e);
           adminClient.exchange.security.getUser(testUserSaved.username, function (e, user_new) {
             if (e) return done(e);
-            expect(user_new.groups[testGroupSaved.name] !== undefined).to.be(true);
-            expect(user_new.groups[testGroup2.name] !== undefined).to.be(true);
+            test.expect(user_new.groups[testGroupSaved.name] !== undefined).to.be(true);
+            test.expect(user_new.groups[testGroup2.name] !== undefined).to.be(true);
             done();
           });
         });
@@ -361,7 +359,7 @@ describe(test.testName(__filename, 3), function () {
           done(new Error('this was not meant to happn'));
         })
         .catch(function (e) {
-          expect(e.toString()).to.be('AccessDenied: Invalid credentials');
+          test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
           done();
         });
     });
@@ -463,8 +461,8 @@ describe(test.testName(__filename, 3), function () {
       .then(function () {
         //Expected to throw an error as the TEST GROUP USER has no permission for this method.
         new_meshClient.exchange.security.getUser(testUser.username, function (e, fetchedUser) {
-          expect(e.toString()).to.equal('AccessDenied: unauthorized');
-          expect(fetchedUser).to.be(undefined);
+          test.expect(e.toString()).to.equal('AccessDenied: unauthorized');
+          test.expect(fetchedUser).to.be(undefined);
           return done();
         });
       })
@@ -608,7 +606,7 @@ describe(test.testName(__filename, 3), function () {
         })
 
         .then(function (fetchedGroup) {
-          expect(fetchedGroup).to.eql({
+          test.expect(fetchedGroup).to.eql({
             name: 'group',
             custom_data: {
               customString: 'custom1',
@@ -655,7 +653,7 @@ describe(test.testName(__filename, 3), function () {
         })
 
         .then(function (body) {
-          expect(body).to.equal('ok2');
+          test.expect(body).to.equal('ok2');
         })
         .then(done)
         .catch(done);
@@ -670,7 +668,7 @@ describe(test.testName(__filename, 3), function () {
         })
 
         .then(function (fetchedGroup) {
-          expect(fetchedGroup).to.eql({
+          test.expect(fetchedGroup).to.eql({
             name: 'group',
             custom_data: {
               customString: 'custom1',
@@ -725,7 +723,7 @@ describe(test.testName(__filename, 3), function () {
         })
 
         .then(function (fetchedGroup) {
-          expect(fetchedGroup).to.eql({
+          test.expect(fetchedGroup).to.eql({
             name: 'group',
             custom_data: {
               customString: 'custom1',
@@ -842,17 +840,17 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.upsertGroup(testUpsertGroup1, function (e) {
-                expect(e).to.be(null);
+                test.expect(e).to.be(null);
 
                 testUpsertClient.exchange.component.method2(function (e) {
-                  expect(e).to.be(null);
+                  test.expect(e).to.be(null);
                   done();
                 });
               });
@@ -919,21 +917,21 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.upsertGroup(
                 testUpsertGroup1,
                 { overwritePermissions: true },
                 function () {
                   testUpsertClient.exchange.component.method2(function (e) {
-                    expect(e).to.be(null);
+                    test.expect(e).to.be(null);
 
                     testUpsertClient.exchange.component.method1(function (e) {
-                      expect(e.toString()).to.be('AccessDenied: unauthorized');
+                      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
                       done();
                     });
@@ -1003,18 +1001,18 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.upsertGroup(testUpsertGroup1, function () {
                 testUpsertClient.exchange.component.method2(function (e) {
-                  expect(e).to.be(null);
+                  test.expect(e).to.be(null);
 
                   testUpsertClient.exchange.component.method1(function (e) {
-                    expect(e).to.be(null);
+                    test.expect(e).to.be(null);
 
                     done();
                   });
@@ -1084,21 +1082,21 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.upsertGroup(
                 testUpsertGroup1,
                 { overwritePermissions: true },
                 function () {
                   testUpsertClient.exchange.component.method2(function (e) {
-                    expect(e).to.be(null);
+                    test.expect(e).to.be(null);
 
                     testUpsertClient.exchange.component.method1(function (e) {
-                      expect(e.toString()).to.be('AccessDenied: unauthorized');
+                      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
                       done();
                     });
@@ -1172,22 +1170,22 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.addGroup(testUpsertGroup1, function (e) {
-                expect(!e).to.be(true);
+                test.expect(!e).to.be(true);
 
                 testUpsertUser.groups.TEST_UPSERT_EXISTING_6_1 = true;
 
                 adminClient.exchange.security.upsertUser(testUpsertUser, function (e) {
-                  expect(!e).to.be(true);
+                  test.expect(!e).to.be(true);
 
                   testUpsertClient.exchange.component.method2(function (e) {
-                    expect(!e).to.be(true);
+                    test.expect(!e).to.be(true);
                     done();
                   });
                 });
@@ -1255,14 +1253,14 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.addGroup(testUpsertGroup1, function (e) {
-                expect(!e).to.be(true);
+                test.expect(!e).to.be(true);
 
                 testUpsertUser.groups['TEST_UPSERT_EXISTING_7_1'] = true;
 
@@ -1270,13 +1268,13 @@ describe(test.testName(__filename, 3), function () {
                   testUpsertUser,
                   { overwriteMemberships: true },
                   function (e) {
-                    expect(!e).to.be(true);
+                    test.expect(!e).to.be(true);
 
                     testUpsertClient.exchange.component.method2(function (e) {
-                      expect(!e).to.be(true);
+                      test.expect(!e).to.be(true);
 
                       testUpsertClient.exchange.component.method1(function (e) {
-                        expect(e.toString()).to.be('AccessDenied: unauthorized');
+                        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
                         done();
                       });
                     });
@@ -1313,18 +1311,20 @@ describe(test.testName(__filename, 3), function () {
     let testUpsertClient = new Mesh.MeshClient({ secure: true, test: 'testUpsertClient6' });
     await adminClient.exchange.security.addUser(testUpsertUser);
     await testUpsertClient.login(testUpsertUser);
-    expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-    expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+    test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+    test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
     try {
       await testUpsertClient.exchange.component.method2();
     } catch (e) {
-      expect(e.toString()).to.eql('AccessDenied: unauthorized');
+      test.expect(e.toString()).to.eql('AccessDenied: unauthorized');
     }
     testUpsertUser.permissions.web = {}; //Fetching the user will return empty objects for these permissions
     testUpsertUser.permissions.data = {};
 
     let user = await adminClient.exchange.security.getUser('TEST_USER_PERMISSIONS_1');
-    expect(_.omit(user, ['groups', 'userid'])).to.eql(_.omit(testUpsertUser, ['password']));
+    test
+      .expect(test.commons._.omit(user, ['groups', 'userid']))
+      .to.eql(test.commons._.omit(testUpsertUser, ['password']));
   });
 
   it('upsert a user with user permissions, and appendPermissions to a user', async () => {
@@ -1350,12 +1350,12 @@ describe(test.testName(__filename, 3), function () {
     let testUpsertClient = new Mesh.MeshClient({ secure: true, test: 'testUpsertClient6' });
     await adminClient.exchange.security.addUser(testUpsertUser);
     await testUpsertClient.login(testUpsertUser);
-    expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-    expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+    test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+    test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
     try {
       await testUpsertClient.exchange.component.method2();
     } catch (e) {
-      expect(e.toString()).to.eql('AccessDenied: unauthorized');
+      test.expect(e.toString()).to.eql('AccessDenied: unauthorized');
     }
 
     await adminClient.exchange.security.addUserPermissions('TEST_USER_PERMISSIONS_2', {
@@ -1369,7 +1369,7 @@ describe(test.testName(__filename, 3), function () {
     try {
       await testUpsertClient.exchange.component.method2();
     } catch (e) {
-      expect(e).to.be(null);
+      test.expect(e).to.be(null);
     }
   });
 
@@ -1392,28 +1392,28 @@ describe(test.testName(__filename, 3), function () {
     let testUpsertClient = new Mesh.MeshClient({ secure: true, test: 'testUpsertClient6' });
     await adminClient.exchange.security.addUser(testUpsertUser);
     await testUpsertClient.login(testUpsertUser);
-    expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+    test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
 
     let errors = [];
     try {
       await testUpsertClient.exchange.component.method1();
     } catch (e) {
       errors.push(e);
-      expect(e).to.be(null);
+      test.expect(e).to.be(null);
     }
-    expect(errors).to.eql([]);
+    test.expect(errors).to.eql([]);
     await adminClient.exchange.security.removeUserPermissions('TEST_USER_PERMISSIONS_3', {
       methods: {
         '/meshname/component/method1': {},
       },
     });
-    await wait(3000);
+    await test.delay(3000);
     try {
       await testUpsertClient.exchange.component.method1();
     } catch (e) {
       errors.push(e.toString());
     }
-    expect(errors[0]).to.eql('AccessDenied: unauthorized');
+    test.expect(errors[0]).to.eql('AccessDenied: unauthorized');
   });
 
   it('can upsert a new user', function (done) {
@@ -1455,23 +1455,23 @@ describe(test.testName(__filename, 3), function () {
       })
 
       .then(function (addedGroup, addedUser) {
-        expect(addedGroup).to.not.be(null);
-        expect(addedUser).to.not.be(null);
+        test.expect(addedGroup).to.not.be(null);
+        test.expect(addedUser).to.not.be(null);
 
         var testUpsertClient = new Mesh.MeshClient({ secure: true, test: 'testUpsertClient7' });
 
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               testUpsertClient.exchange.component.method1(function (e, result) {
-                expect(!e).to.be(true);
-                expect(result).to.be('reply1');
+                test.expect(!e).to.be(true);
+                test.expect(result).to.be('reply1');
 
                 done();
               });
@@ -1539,22 +1539,24 @@ describe(test.testName(__filename, 3), function () {
         testUpsertClient
           .login(testUpsertUser)
           .then(function () {
-            expect(testUpsertClient.exchange.component.method1).to.not.be(null);
-            expect(testUpsertClient.exchange.component.method2).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method1).to.not.be(null);
+            test.expect(testUpsertClient.exchange.component.method2).to.not.be(null);
 
             testUpsertClient.exchange.component.method2(function (e) {
-              expect(e.toString()).to.be('AccessDenied: unauthorized');
+              test.expect(e.toString()).to.be('AccessDenied: unauthorized');
 
               adminClient.exchange.security.addGroup(testUpsertGroup1, function (e) {
-                expect(!e).to.be(true);
+                test.expect(!e).to.be(true);
 
                 testUpsertUser.groups.TEST_UPSERT_EXISTING_NON_EXISTING = true;
 
                 adminClient.exchange.security.upsertUser(testUpsertUser, function (e) {
-                  expect(e).to.not.be(null);
-                  expect(e.toString()).to.be(
-                    'Error: group with name TEST_UPSERT_EXISTING_NON_EXISTING does not exist'
-                  );
+                  test.expect(e).to.not.be(null);
+                  test
+                    .expect(e.toString())
+                    .to.be(
+                      'Error: group with name TEST_UPSERT_EXISTING_NON_EXISTING does not exist'
+                    );
                   done();
                 });
               });

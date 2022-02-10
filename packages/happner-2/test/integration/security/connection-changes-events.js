@@ -1,106 +1,91 @@
-describe(
-  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
-  function () {
-    this.timeout(120000);
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const Mesh = require('../../..');
+  const mesh = new Mesh();
+  const adminClient = new Mesh.MeshClient({ secure: true, port: 8004 });
+  const test_id = test.newid();
 
-    require('chai').should();
-
-    var Mesh = require('../../..');
-    var mesh = new Mesh();
-
-    var adminClient = new Mesh.MeshClient({ secure: true, port: 8004 });
-
-    var test_id = Date.now() + '_' + require('shortid').generate();
-
-    before(function (done) {
-      mesh.initialize(
-        {
-          name: 'connection-changes-events',
-          happn: {
-            secure: true,
-            adminPassword: test_id,
-            port: 8004,
-          },
+  before(function (done) {
+    mesh.initialize(
+      {
+        name: 'connection-changes-events',
+        happn: {
+          secure: true,
+          adminPassword: test_id,
+          port: 8004,
         },
-        function (err) {
-          if (err) return done(err);
-          mesh.start(function (err) {
-            if (err) {
-              return done(err);
-            }
+      },
+      function (err) {
+        if (err) return done(err);
+        mesh.start(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            var credentials = {
-              username: '_ADMIN', // pending
-              password: test_id,
-            };
+          var credentials = {
+            username: '_ADMIN',
+            password: test_id,
+          };
 
-            adminClient
-              .login(credentials)
-              .then(function () {
-                done();
-              })
-              .catch(done);
-          });
-        }
-      );
-    });
+          adminClient
+            .login(credentials)
+            .then(function () {
+              done();
+            })
+            .catch(done);
+        });
+      }
+    );
+  });
 
-    var eventsToFire = {
-      'reconnect/scheduled': false,
-      'reconnect/successful': false,
+  var eventsToFire = {
+    'reconnect/scheduled': false,
+    'reconnect/successful': false,
+  };
+
+  var eventsFired = false;
+
+  it('tests the reconnection events', function (done) {
+    var fireEvent = function (key) {
+      if (eventsFired) return;
+
+      eventsToFire[key] = true;
+
+      for (var eventKey in eventsToFire) if (eventsToFire[eventKey] === false) return;
+
+      eventsFired = true;
+
+      done();
     };
 
-    var eventsFired = false;
+    adminClient.on('reconnect/scheduled', function () {
+      fireEvent('reconnect/scheduled');
+    });
 
-    it('tests the reconnection events', function (done) {
-      var fireEvent = function (key) {
-        if (eventsFired) return;
+    adminClient.on('reconnect/successful', function () {
+      fireEvent('reconnect/successful');
+    });
 
-        eventsToFire[key] = true;
+    for (var key in mesh._mesh.happn.server.connections)
+      mesh._mesh.happn.server.connections[key].destroy();
+  });
 
-        for (var eventKey in eventsToFire) if (eventsToFire[eventKey] === false) return;
+  var endedConnections = {};
 
-        eventsFired = true;
+  var endedConnectionDone = false;
 
+  it('tests the connection end event', function (done) {
+    adminClient.on('connection/ended', function (evt) {
+      if (endedConnections[evt])
+        return done(new Error('connection ended called twice for same session'));
+
+      if (!endedConnectionDone) {
+        endedConnectionDone = true;
         done();
-      };
-
-      adminClient.on('reconnect/scheduled', function () {
-        //TODO some expect code
-
-        fireEvent('reconnect/scheduled');
-      });
-
-      adminClient.on('reconnect/successful', function () {
-        //TODO some expect code
-        fireEvent('reconnect/successful');
-      });
-
-      for (var key in mesh._mesh.happn.server.connections)
-        mesh._mesh.happn.server.connections[key].destroy();
+      }
     });
 
-    var endedConnections = {};
-
-    var endedConnectionDone = false;
-
-    it('tests the connection end event', function (done) {
-      adminClient.on('connection/ended', function (evt) {
-        if (endedConnections[evt])
-          return done(new Error('connection ended called twice for same session'));
-
-        if (!endedConnectionDone) {
-          endedConnectionDone = true;
-          //TODO some expect stuff
-          done();
-        }
-      });
-
-      mesh.stop({ reconnect: false }, function (e) {
-        if (e) return done(e);
-      });
+    mesh.stop({ reconnect: false }, function (e) {
+      if (e) return done(e);
     });
-
-    //require('benchmarket').stop();
-  }
-);
+  });
+});

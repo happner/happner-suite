@@ -7,15 +7,14 @@ TestMesh.prototype.method1 = function ($happn, options, callback) {
   callback(null, options);
 };
 
-if (global.TESTING_USER_MANAGEMENT) return; // When 'requiring' the module above,
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
+if (global.TESTING_USER_MANAGEMENT) return;
+
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   let mesh;
-  let Mesh = require('../../../lib/mesh');
+  let Mesh = test.Mesh;
 
   const adminClient = new Mesh.MeshClient({ secure: true, port: 8003 });
-  const test_id = Date.now() + '_' + require('shortid').generate();
+  const test_id = test.newid();
 
   before(async () => {
     global.TESTING_USER_MANAGEMENT = true; //.............

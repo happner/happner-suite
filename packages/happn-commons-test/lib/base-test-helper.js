@@ -1,6 +1,8 @@
 let extension;
 class TestHelper {
 	constructor() {
+		this.assert = require("assert");
+		this.axios = require("axios");
         this.commons = require("happn-commons");
         this.async = this.commons.async;
         this.hyperid  = this.commons.hyperid;

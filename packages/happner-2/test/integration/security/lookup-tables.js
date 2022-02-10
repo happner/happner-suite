@@ -1,15 +1,8 @@
-var expect = require('expect.js');
-
-var mesh;
-var Mesh = require('../../..');
-
-var adminClient = new Mesh.MeshClient({ secure: true });
-var test_id = Date.now() + '_' + require('shortid').generate();
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  this.timeout(120000);
-  let testUser, testUserSaved;
-  let testGroupSaved;
+require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
+  const Mesh = require('../../..');
+  const adminClient = new Mesh.MeshClient({ secure: true });
+  const test_id = Date.now() + '_' + require('shortid').generate();
+  let mesh, testUser, testUserSaved, testGroupSaved;
   before(async () => {
     global.TESTING_B4 = true; //.............
 
@@ -85,28 +78,28 @@ describe(test.testName(__filename, 3), function () {
     };
     await adminClient.exchange.security.upsertLookupTable(table1);
     let storedTable = await adminClient.exchange.security.fetchLookupTable(table1.name);
-    expect(storedTable).to.eql(table1);
+    test.expect(storedTable).to.eql(table1);
     await adminClient.exchange.security.deleteLookupTable(table1.name);
     storedTable = await adminClient.exchange.security.fetchLookupTable(table1.name);
-    expect(storedTable).to.eql({ name: table1.name, paths: [] });
+    test.expect(storedTable).to.eql({ name: table1.name, paths: [] });
   });
 
   it('can upsert, fetch and remove paths from a lookup table', async () => {
     await adminClient.exchange.security.insertLookupPath('pathTable', '/1/2/3'); //creates 'pathTable'
     let storedTable = await adminClient.exchange.security.fetchLookupTable('pathTable');
-    expect(storedTable).to.eql({ name: 'pathTable', paths: ['1/2/3'] });
+    test.expect(storedTable).to.eql({ name: 'pathTable', paths: ['1/2/3'] });
 
     await adminClient.exchange.security.insertLookupPath('pathTable', '4/5/6');
     storedTable = await adminClient.exchange.security.fetchLookupTable('pathTable');
-    expect(storedTable).to.eql({ name: 'pathTable', paths: ['1/2/3', '4/5/6'] });
+    test.expect(storedTable).to.eql({ name: 'pathTable', paths: ['1/2/3', '4/5/6'] });
 
     await adminClient.exchange.security.removeLookupPath('pathTable', '1/2/3');
     storedTable = await adminClient.exchange.security.fetchLookupTable('pathTable');
-    expect(storedTable).to.eql({ name: 'pathTable', paths: ['4/5/6'] });
+    test.expect(storedTable).to.eql({ name: 'pathTable', paths: ['4/5/6'] });
 
     await adminClient.exchange.security.removeLookupPath('pathTable', '/4/5/6');
     storedTable = await adminClient.exchange.security.fetchLookupTable('pathTable');
-    expect(storedTable).to.eql({ name: 'pathTable', paths: [] });
+    test.expect(storedTable).to.eql({ name: 'pathTable', paths: [] });
   });
 
   it('can upsert, fetch and remove lookup permissions', async () => {
@@ -126,25 +119,25 @@ describe(test.testName(__filename, 3), function () {
     let storedPermissions = await adminClient.exchange.security.fetchLookupPermissions(
       'permissionGroup'
     );
-    expect(storedPermissions).to.eql([permission1]);
+    test.expect(storedPermissions).to.eql([permission1]);
 
     await adminClient.exchange.security.upsertLookupPermission('permissionGroup', permission2);
     storedPermissions = await adminClient.exchange.security.fetchLookupPermissions(
       'permissionGroup'
     );
-    expect(storedPermissions).to.eql([permission1, permission2]);
+    test.expect(storedPermissions).to.eql([permission1, permission2]);
 
     await adminClient.exchange.security.removeLookupPermission('permissionGroup', permission1);
     storedPermissions = await adminClient.exchange.security.fetchLookupPermissions(
       'permissionGroup'
     );
-    expect(storedPermissions).to.eql([permission2]);
+    test.expect(storedPermissions).to.eql([permission2]);
 
     await adminClient.exchange.security.removeLookupPermission('permissionGroup', permission2);
     storedPermissions = await adminClient.exchange.security.fetchLookupPermissions(
       'permissionGroup'
     );
-    expect(storedPermissions).to.eql([]);
+    test.expect(storedPermissions).to.eql([]);
   });
 
   it('can upsert, fetch and remove happner lookup permissions', async () => {
@@ -196,11 +189,7 @@ describe(test.testName(__filename, 3), function () {
     );
 
     test
-      .expect(
-        await test.tryAsyncMethod(async () => {
-          await testClient.exchange.component.method();
-        })
-      )
+      .expect(await test.tryMethod(testClient.exchange.component, 'method'))
       .to.be('unauthorized');
 
     // add method permission back
@@ -216,15 +205,8 @@ describe(test.testName(__filename, 3), function () {
 
     await testClient.disconnect();
     testClient = await startClient(testUser);
-
     test
-      .expect(
-        await test.tryAsyncMethod(async () => {
-          await testClient.event.component.on('current/device1/*', (data) => {
-            eventData = data;
-          });
-        })
-      )
+      .expect(await test.tryMethod(testClient.event.component, 'on', 'current/device1/*', () => {}))
       .to.be('unauthorized');
 
     await adminClient.exchange.security.upsertEventLookupPermission(
@@ -267,10 +249,10 @@ describe(test.testName(__filename, 3), function () {
     let storedPermissions = await adminClient.exchange.security.fetchLookupPermissions(
       'unlinkGroup'
     );
-    expect(storedPermissions).to.eql([permission1, permission2, permission3]);
+    test.expect(storedPermissions).to.eql([permission1, permission2, permission3]);
     await adminClient.exchange.security.unlinkLookupTable('unlinkGroup', 'TABLE1');
     storedPermissions = await adminClient.exchange.security.fetchLookupPermissions('unlinkGroup');
-    expect(storedPermissions).to.eql([permission3]);
+    test.expect(storedPermissions).to.eql([permission3]);
   });
 
   it('can fetch data if lookup tables and permissions are configured correctly', async () => {
@@ -297,7 +279,7 @@ describe(test.testName(__filename, 3), function () {
       let data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
       if (data) throw new Error('Test Error : Should not be authorized');
     } catch (e) {
-      expect(e.toString()).to.be('AccessDenied: unauthorized');
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
 
     await adminClient.exchange.security.linkGroup(testGroupSaved, testUserSaved);
@@ -311,7 +293,7 @@ describe(test.testName(__filename, 3), function () {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
       if (data) throw new Error('Test Error : Should not be authorized');
     } catch (e) {
-      expect(e.toString()).to.be('AccessDenied: unauthorized');
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
     await testClient.disconnect();
   });

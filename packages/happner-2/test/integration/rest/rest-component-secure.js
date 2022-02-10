@@ -74,34 +74,18 @@ SeeAbove.prototype.$happner = {
 
 if (global.TESTING_E3B) return; // When 'requiring' the module above,
 
-var path = require('path');
-var test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  /**
-   * Simon Bishop
-   * @type {expect}
-   */
-
-  var spawn = require('child_process').spawn;
-
-  // Uses unit test 2 modules
-  var expect = require('expect.js');
-
-  var Mesh = require('../../..');
-
-  var libFolder =
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const spawn = require('child_process').spawn;
+  const Mesh = require('../../..');
+  const path = require('path');
+  const libFolder =
     path.resolve(__dirname, '../../..') +
     path.sep +
     ['test', '__fixtures', 'test', 'integration', 'rest'].join(path.sep) +
     path.sep;
-
-  var REMOTE_MESH = 'remote-mesh-secure.js';
-  var ADMIN_PASSWORD = 'ADMIN_PASSWORD';
-
-  this.timeout(120000);
-
-  var mesh;
-  var remote;
+  const REMOTE_MESH = 'remote-mesh-secure.js';
+  const ADMIN_PASSWORD = 'ADMIN_PASSWORD';
+  let mesh, remote;
 
   var startRemoteMesh = function (callback) {
     var timedOut = setTimeout(function () {
@@ -250,9 +234,9 @@ describe(test.testName(__filename, 3), function () {
         // eslint-disable-next-line default-case
         switch (testStage) {
           case 'success':
-            expect(response.message).to.be('test success response');
-            expect(response.message).to.be('test success response');
-            expect(response.data.test).to.be('data');
+            test.expect(response.message).to.be('test success response');
+            test.expect(response.message).to.be('test success response');
+            test.expect(response.data.test).to.be('data');
             testStage = 'success-empty';
             restModule.__respond(
               mock$Happn,
@@ -263,9 +247,9 @@ describe(test.testName(__filename, 3), function () {
             );
             return;
           case 'success-empty':
-            expect(response.message).to.be('test empty success response');
-            expect(response.error).to.be(null);
-            expect(response.data).to.be(null);
+            test.expect(response.message).to.be('test empty success response');
+            test.expect(response.error).to.be(null);
+            test.expect(response.data).to.be(null);
             testStage = 'error';
             restModule.__respond(
               mock$Happn,
@@ -276,14 +260,14 @@ describe(test.testName(__filename, 3), function () {
             );
             return;
           case 'error':
-            expect(response.error).to.not.be(null);
-            expect(response.error.message).to.be('a test error');
-            expect(mock$Happn.log.error.lastCall.firstArg).to.be(
-              'rpc request failure: a test error'
-            );
+            test.expect(response.error).to.not.be(null);
+            test.expect(response.error.message).to.be('a test error');
+            test
+              .expect(mock$Happn.log.error.lastCall.firstArg)
+              .to.be('rpc request failure: a test error');
             return done();
         }
-        //TODO: an unexpected GET or POST with a non-json content
+        //TODO: an untest.expected GET or POST with a non-json content
       } catch (e) {
         done(e);
       }
@@ -319,16 +303,16 @@ describe(test.testName(__filename, 3), function () {
     mockResponse.end = function (responseString) {
       var response = JSON.parse(responseString);
 
-      if (!response.error) return done(new Error('bad response expected error'));
+      if (!response.error) return done(new Error('bad response test.expected error'));
 
       done(new Error(response.error));
     };
 
     restModule.__parseBody(request, mockResponse, mock$Happn, function (body) {
-      expect(body).to.not.be(null);
-      expect(body).to.not.be(undefined);
-      expect(body.uri).to.be('/testComponent/methodName1');
-      expect(body.parameters.opts.number).to.be(1);
+      test.expect(body).to.not.be(null);
+      test.expect(body).to.not.be(undefined);
+      test.expect(body.uri).to.be('/testComponent/methodName1');
+      test.expect(body.parameters.opts.number).to.be(1);
 
       done();
     });
@@ -351,8 +335,8 @@ describe(test.testName(__filename, 3), function () {
       callback
     ) {
       try {
-        expect(origin.test).to.be('data');
-        expect(action).to.be('set');
+        test.expect(origin.test).to.be('data');
+        test.expect(action).to.be('set');
 
         callback();
       } catch (e) {
@@ -392,7 +376,7 @@ describe(test.testName(__filename, 3), function () {
 
         if (response.error) return done(new Error(response.error.message));
 
-        expect(response.data.token).to.not.be(null);
+        test.expect(response.data.token).to.not.be(null);
         done();
       };
 
@@ -428,7 +412,7 @@ describe(test.testName(__filename, 3), function () {
   it('tests the rest components login method over the wire', function (done) {
     login(function (e, response) {
       if (e) return done(e);
-      expect(response.data.token).to.not.be(null);
+      test.expect(response.data.token).to.not.be(null);
       done();
     });
   });
@@ -447,9 +431,9 @@ describe(test.testName(__filename, 3), function () {
       mock$Happn._mesh.happn.server.services.security = {
         authorize: function (origin, accessPoint, action, callback) {
           try {
-            expect(origin.test).to.be('data');
-            expect(accessPoint).to.be('/_exchange/requests/e3b-test/test/method');
-            expect(action).to.be('set');
+            test.expect(origin.test).to.be('data');
+            test.expect(accessPoint).to.be('/_exchange/requests/e3b-test/test/method');
+            test.expect(action).to.be('set');
 
             callback(null, true);
           } catch (e) {
@@ -495,8 +479,8 @@ describe(test.testName(__filename, 3), function () {
       restClient
         .get('http://localhost:10000/rest/describe?happn_token=' + result.data.token)
         .on('complete', function (result) {
-          expect(result.data['/testComponent/method1']).to.not.be(null);
-          expect(result.data['/testComponent/method2']).to.not.be(null);
+          test.expect(result.data['/testComponent/method1']).to.not.be(null);
+          test.expect(result.data['/testComponent/method2']).to.not.be(null);
 
           done();
         });
@@ -538,7 +522,7 @@ describe(test.testName(__filename, 3), function () {
 
       mockResponse.end = function (responseString) {
         var response = JSON.parse(responseString);
-        expect(response.data.number).to.be(2);
+        test.expect(response.data.number).to.be(2);
         done();
       };
 
@@ -573,8 +557,8 @@ describe(test.testName(__filename, 3), function () {
           operation
         )
         .on('complete', function (result) {
-          expect(result.data.$origin.username).to.be('_ADMIN');
-          expect(result.data.$userSession.username).to.be('_ADMIN');
+          test.expect(result.data.$origin.username).to.be('_ADMIN');
+          test.expect(result.data.$userSession.username).to.be('_ADMIN');
           done();
         });
     });
@@ -599,7 +583,7 @@ describe(test.testName(__filename, 3), function () {
           operation
         )
         .on('complete', function (result) {
-          expect(result.data.number).to.be(2);
+          test.expect(result.data.number).to.be(2);
           done();
         });
     });
@@ -625,7 +609,7 @@ describe(test.testName(__filename, 3), function () {
         .on('complete', function (result) {
           //eslint-disable-next-line
             if (result.error) console.log(result.error.message);
-          expect(result.data.number).to.be(2);
+          test.expect(result.data.number).to.be(2);
           done();
         });
     });
@@ -643,7 +627,7 @@ describe(test.testName(__filename, 3), function () {
             result.data.token
         )
         .on('complete', function (result) {
-          expect(result.data.product).to.be(3);
+          test.expect(result.data.product).to.be(3);
           done();
         });
     });
@@ -672,7 +656,7 @@ describe(test.testName(__filename, 3), function () {
             result.data.token
         )
         .on('complete', function (result) {
-          expect(result.data.product).to.be(3);
+          test.expect(result.data.product).to.be(3);
           done();
         });
     });
@@ -684,8 +668,8 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .get('http://localhost:10000/rest/login?username=_ADMIN&password=' + ADMIN_PASSWORD)
       .on('complete', function (result) {
-        expect(result.error).to.be(null);
-        expect(result.data.token).to.not.be(null);
+        test.expect(result.error).to.be(null);
+        test.expect(result.data.token).to.not.be(null);
 
         restClient
           .get(
@@ -693,7 +677,7 @@ describe(test.testName(__filename, 3), function () {
               result.data.token
           )
           .on('complete', function (result) {
-            expect(result.data.product).to.be(3);
+            test.expect(result.data.product).to.be(3);
             done();
           });
       });
@@ -705,8 +689,8 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .get('http://localhost:10000/rest/login?username=_ADMIN&password=wrong')
       .on('complete', function (result) {
-        expect(result.error.message).to.be('Invalid credentials');
-        expect(result.message).to.be('Failure logging in');
+        test.expect(result.error.message).to.be('Invalid credentials');
+        test.expect(result.message).to.be('Failure logging in');
 
         done();
       });
@@ -732,8 +716,8 @@ describe(test.testName(__filename, 3), function () {
           operation
         )
         .on('complete', function (result) {
-          expect(result.error.number).to.not.be(null);
-          expect(result.error.message).to.be('attempt to access security component over rest');
+          test.expect(result.error.number).to.not.be(null);
+          test.expect(result.error.message).to.be('attempt to access security component over rest');
           done();
         });
     });
@@ -760,8 +744,8 @@ describe(test.testName(__filename, 3), function () {
           operation
         )
         .on('complete', function (result) {
-          expect(result.error).to.not.be(null);
-          expect(result.error.message).to.be('attempt to access remote mesh: remoteMesh');
+          test.expect(result.error).to.not.be(null);
+          test.expect(result.error.message).to.be('attempt to access remote mesh: remoteMesh');
 
           done();
         });
@@ -824,13 +808,15 @@ describe(test.testName(__filename, 3), function () {
                   restClient
                     .get('http://localhost:10000/rest/describe?happn_token=' + token)
                     .on('complete', function (result) {
-                      expect(result.data['/security/updateOwnUser']).to.be(undefined);
-                      expect(result.data['/remoteMesh/security/updateOwnUser']).to.be(undefined);
+                      test.expect(result.data['/security/updateOwnUser']).to.be(undefined);
+                      test
+                        .expect(result.data['/remoteMesh/security/updateOwnUser'])
+                        .to.be(undefined);
 
-                      expect(result.data['/testComponent/method1']).to.not.be(null);
-                      expect(result.data['/testComponent/method2']).to.be(undefined);
+                      test.expect(result.data['/testComponent/method1']).to.not.be(null);
+                      test.expect(result.data['/testComponent/method2']).to.be(undefined);
 
-                      expect(Object.keys(result.data).length).to.be(1);
+                      test.expect(Object.keys(result.data).length).to.be(1);
 
                       var operation = {
                         parameters: {
@@ -845,7 +831,7 @@ describe(test.testName(__filename, 3), function () {
                           operation
                         )
                         .on('complete', function (result) {
-                          expect(result.data.number).to.be(2);
+                          test.expect(result.data.number).to.be(2);
 
                           done();
                         });
@@ -929,8 +915,8 @@ describe(test.testName(__filename, 3), function () {
                       operation
                     )
                     .on('complete', function (result) {
-                      expect(result.error).to.not.be(null);
-                      expect(result.error.message).to.be('Access denied');
+                      test.expect(result.error).to.not.be(null);
+                      test.expect(result.error.message).to.be('Access denied');
 
                       var operation = {
                         parameters: {
@@ -948,8 +934,8 @@ describe(test.testName(__filename, 3), function () {
                           operation
                         )
                         .on('complete', function (result) {
-                          expect(result.error).to.be(null);
-                          expect(result.data.number).to.be(2);
+                          test.expect(result.error).to.be(null);
+                          test.expect(result.data.number).to.be(2);
 
                           testGroup.permissions.methods['/testComponent/method2'] = {
                             authorized: false,
@@ -974,8 +960,8 @@ describe(test.testName(__filename, 3), function () {
                                 operation
                               )
                               .on('complete', function (result) {
-                                expect(result.error).to.not.be(null);
-                                expect(result.error.message).to.be('Access denied');
+                                test.expect(result.error).to.not.be(null);
+                                test.expect(result.error.message).to.be('Access denied');
 
                                 done();
                               });
@@ -1052,9 +1038,9 @@ describe(test.testName(__filename, 3), function () {
                         params
                     )
                     .on('complete', function (result) {
-                      expect(result.data.userValue).to.eql(testUser.username);
-                      expect(result.data.$origin.username).to.be('_ADMIN');
-                      expect(result.data.$userSession.username).to.be(testUser.username);
+                      test.expect(result.data.userValue).to.eql(testUser.username);
+                      test.expect(result.data.$origin.username).to.be('_ADMIN');
+                      test.expect(result.data.$userSession.username).to.be(testUser.username);
 
                       done();
                     });
@@ -1082,8 +1068,8 @@ describe(test.testName(__filename, 3), function () {
           operation
         )
         .on('complete', function (result) {
-          expect(result.data.$origin.username).to.be('_ADMIN');
-          expect(result.data.$userSession.username).to.be('_ADMIN');
+          test.expect(result.data.$origin.username).to.be('_ADMIN');
+          test.expect(result.data.$userSession.username).to.be('_ADMIN');
           done();
         });
     });

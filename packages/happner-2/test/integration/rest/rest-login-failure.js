@@ -76,117 +76,100 @@ if (global.TESTING_E3B) return; // When 'requiring' the module above,
 
 var path = require('path');
 
-describe(
-  require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
-  function () {
-    /**
-     * Simon Bishop
-     * @type {expect}
-     */
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const spawn = require('child_process').spawn;
+  const Mesh = test.Mesh;
+  const libFolder =
+    path.resolve(__dirname, '../../..') +
+    path.sep +
+    ['test', '__fixtures', 'test', 'integration', 'rest'].join(path.sep) +
+    path.sep;
 
-    var spawn = require('child_process').spawn;
+  let REMOTE_MESH = 'remote-mesh-secure.js';
+  let ADMIN_PASSWORD = 'ADMIN_PASSWORD';
+  let mesh, remote;
 
-    // Uses unit test 2 modules
-    var expect = require('expect.js');
-
-    var Mesh = require('../../..');
-
-    var libFolder =
-      path.resolve(__dirname, '../../..') +
-      path.sep +
-      ['test', '__fixtures', 'test', 'integration', 'rest'].join(path.sep) +
-      path.sep;
-
-    var REMOTE_MESH = 'remote-mesh-secure.js';
-    var ADMIN_PASSWORD = 'ADMIN_PASSWORD';
-
-    this.timeout(120000);
-
-    var mesh;
-    var remote;
-
-    before(function (done) {
-      // spawn remote mesh in another process
-      remote = spawn('node', [libFolder + REMOTE_MESH]);
-      remote.stdout.on('data', function (data) {
-        if (data.toString().match(/READY/)) {
-          clearTimeout();
-          setTimeout(function () {
-            done();
-          }, 1000);
-        }
-      });
+  before(function (done) {
+    // spawn remote mesh in another process
+    remote = spawn('node', [libFolder + REMOTE_MESH]);
+    remote.stdout.on('data', function (data) {
+      if (data.toString().match(/READY/)) {
+        clearTimeout();
+        setTimeout(function () {
+          done();
+        }, 1000);
+      }
     });
+  });
 
-    before(function (done) {
-      global.TESTING_E3B = true;
-      Mesh.create(
-        {
-          name: 'e3b-test',
-          happn: {
-            secure: true,
-            adminPassword: ADMIN_PASSWORD,
-            port: 10000,
-          },
-          modules: {
-            testComponent: {
-              path: __filename,
-            },
-          },
-          components: {
-            testComponent: {},
+  before(function (done) {
+    global.TESTING_E3B = true;
+    Mesh.create(
+      {
+        name: 'e3b-test',
+        happn: {
+          secure: true,
+          adminPassword: ADMIN_PASSWORD,
+          port: 10000,
+        },
+        modules: {
+          testComponent: {
+            path: __filename,
           },
         },
-        function (err, instance) {
-          delete global.TESTING_E3B;
-          if (err) return done(err);
-          mesh = instance;
-          done();
-        }
-      );
-    });
+        components: {
+          testComponent: {},
+        },
+      },
+      function (err, instance) {
+        delete global.TESTING_E3B;
+        if (err) return done(err);
+        mesh = instance;
+        done();
+      }
+    );
+  });
 
-    after(async () => {
-      if (remote) remote.kill();
-      if (mesh) await mesh.stop({ reconnect: false });
-    });
+  after(async () => {
+    if (remote) remote.kill();
+    if (mesh) await mesh.stop({ reconnect: false });
+  });
 
-    var login = function (done, credentials) {
-      var restClient = require('restler');
+  var login = function (done, credentials) {
+    var restClient = require('restler');
 
-      var operation = {
-        username: '_ADMIN',
-        password: ADMIN_PASSWORD,
-      };
-
-      if (credentials) operation = credentials;
-
-      restClient
-        .postJson('http://localhost:10000/rest/login', operation)
-        .on('complete', function (result) {
-          if (result.error) return done(new Error(result.error.message), result);
-          done(null, result);
-        });
+    var operation = {
+      username: '_ADMIN',
+      password: ADMIN_PASSWORD,
     };
 
-    it('tests the rest components login method over the wire', function (done) {
-      login(function (e, response) {
-        if (e) return done(e);
-        expect(response.data.token).to.not.be(null);
-        done();
-      });
-    });
+    if (credentials) operation = credentials;
 
-    it('tests the rest components login method fails', function (done) {
-      login(
-        function (e, result) {
-          expect(e).to.not.be(null);
-          expect(result.error.message).to.be('Invalid credentials');
-          expect(result.error.code).to.be(401);
-          done();
-        },
-        { username: 'bad', password: 'bad' }
-      );
+    restClient
+      .postJson('http://localhost:10000/rest/login', operation)
+      .on('complete', function (result) {
+        if (result.error) return done(new Error(result.error.message), result);
+        done(null, result);
+      });
+  };
+
+  it('tests the rest components login method over the wire', function (done) {
+    login(function (e, response) {
+      if (e) return done(e);
+      test.expect(response.data.token).to.not.be(null);
+      done();
     });
-  }
-);
+  });
+
+  it('tests the rest components login method fails', function (done) {
+    login(
+      function (e, result) {
+        test.expect(e).to.not.be(null);
+        test.expect(result.error.message).to.be('Invalid credentials');
+        test.expect(result.error.code).to.be(401);
+        done();
+      },
+      { username: 'bad', password: 'bad' }
+    );
+  });
+});

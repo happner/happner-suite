@@ -1,16 +1,10 @@
-const testHelper = require('../../__fixtures/utils/test_helper').create();
-
-describe(testHelper.testName(__filename, 3), function () {
-  this.timeout(120000);
-  require('chai').should();
-  var mesh;
-  var Mesh = require('../../..');
-
-  var adminClient = new Mesh.MeshClient({ secure: true, port: 8003 });
-  var test_id = Date.now() + '_' + require('shortid').generate();
-
-  let DB_NAME = 'test-happner-2-user-group-management';
-  let COLL_NAME = 'test-happner-2-user-group-management-coll';
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  let mesh;
+  const Mesh = test.Mesh;
+  const adminClient = new Mesh.MeshClient({ secure: true, port: 8003 });
+  const test_id = test.newid();
+  const DB_NAME = 'test-happner-2-user-group-management';
+  const COLL_NAME = 'test-happner-2-user-group-management-coll';
   const upsertedGroups = [];
 
   before('should clear the mongo collection', async () => {
@@ -34,7 +28,7 @@ describe(testHelper.testName(__filename, 3), function () {
                 datastores: [
                   {
                     name: 'mongo',
-                    provider: 'happn-service-mongo-2',
+                    provider: 'happn-db-provider-mongo',
                     isDefault: true,
                     settings: {
                       database: DB_NAME,
@@ -79,22 +73,22 @@ describe(testHelper.testName(__filename, 3), function () {
     const admGroup = await adminClient.exchange.security.getGroup('_MESH_ADM');
     const gstGroup = await adminClient.exchange.security.getGroup('_MESH_GST');
 
-    testHelper.expect(admGroup).to.not.be(null);
-    testHelper.expect(gstGroup).to.not.be(null);
+    test.expect(admGroup).to.not.be(null);
+    test.expect(gstGroup).to.not.be(null);
 
-    testHelper.expect(upsertedGroups.length).to.be(2);
+    test.expect(upsertedGroups.length).to.be(2);
 
-    testHelper.delay(2000);
+    test.delay(2000);
   });
 
   it('checks the mesh adm and mesh groups have not been recreated', async () => {
     const admGroup = await adminClient.exchange.security.getGroup('_MESH_ADM');
     const gstGroup = await adminClient.exchange.security.getGroup('_MESH_GST');
 
-    testHelper.expect(admGroup).to.not.be(null);
-    testHelper.expect(gstGroup).to.not.be(null);
+    test.expect(admGroup).to.not.be(null);
+    test.expect(gstGroup).to.not.be(null);
 
-    testHelper.expect(upsertedGroups.length).to.be(2);
+    test.expect(upsertedGroups.length).to.be(2);
     //ensure we are able to add a user after this, and it is part of the _MESH_GST group
     await adminClient.exchange.security.addUser({
       username: 'test',
@@ -102,6 +96,6 @@ describe(testHelper.testName(__filename, 3), function () {
     });
 
     const addedUser = await adminClient.exchange.security.getUser('test');
-    testHelper.expect(addedUser.groups).to.eql({ _MESH_GST: { data: {} } });
+    test.expect(addedUser.groups).to.eql({ _MESH_GST: { data: {} } });
   });
 });

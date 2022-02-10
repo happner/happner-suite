@@ -64,32 +64,17 @@ SeeAbove.prototype.$happner = {
 
 if (global.TESTING_E9) return; // When 'requiring' the module above,
 
-var path = require('path');
-var test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  /**
-   * Simon Bishop
-   * @type {expect}
-   */
-
-  var spawn = require('child_process').spawn;
-
-  // Uses unit test 2 modules
-  var expect = require('expect.js');
-  var Mesh = require('../../..');
-
-  var libFolder =
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  let path = require('path');
+  let spawn = require('child_process').spawn;
+  let libFolder =
     path.resolve(__dirname, '../../..') +
     path.sep +
     ['test', '__fixtures', 'test', 'integration', 'rest'].join(path.sep) +
     path.sep;
 
-  var REMOTE_MESH = 'remote-mesh-insecure.js';
-
-  this.timeout(120000);
-
-  var mesh;
-  var remote;
+  let REMOTE_MESH = 'remote-mesh-insecure.js';
+  let mesh, remote;
 
   var startRemoteMesh = function (callback) {
     var timedOut = setTimeout(function () {
@@ -118,7 +103,7 @@ describe(test.testName(__filename, 3), function () {
     startRemoteMesh(function (e) {
       if (e) return done(e);
 
-      Mesh.create(
+      test.Mesh.create(
         {
           port: 10000,
           util: {
@@ -215,11 +200,11 @@ describe(test.testName(__filename, 3), function () {
 
         var response = JSON.parse(responseString);
 
-        //TODO: an unexpected GET or POST with a non-json content
+        //TODO: an untest.expected GET or POST with a non-json content
 
         if (testStage === 'success') {
-          expect(response.message).to.be('test success response');
-          expect(response.data.test).to.be('data');
+          test.expect(response.message).to.be('test success response');
+          test.expect(response.data.test).to.be('data');
           testStage = 'error';
 
           restModule.__respond(
@@ -232,8 +217,8 @@ describe(test.testName(__filename, 3), function () {
         }
 
         if (testStage === 'error') {
-          expect(response.error).to.not.be(null);
-          expect(response.error.message).to.be('a test error');
+          test.expect(response.error).to.not.be(null);
+          test.expect(response.error.message).to.be('a test error');
 
           testStage = 'done';
 
@@ -273,15 +258,15 @@ describe(test.testName(__filename, 3), function () {
     mockResponse.end = function (responseString) {
       var response = JSON.parse(responseString);
 
-      if (!response.error) return done(new Error('bad response expected error'));
+      if (!response.error) return done(new Error('bad response test.expected error'));
 
       done(new Error(response.error));
     };
 
     restModule.__parseBody(request, mockResponse, mock$Happn, function (body) {
-      expect(body).to.not.be(null);
-      expect(body).to.not.be(undefined);
-      expect(body.parameters.opts.number).to.be(1);
+      test.expect(body).to.not.be(null);
+      test.expect(body).to.not.be(undefined);
+      test.expect(body.parameters.opts.number).to.be(1);
 
       done();
     });
@@ -291,12 +276,12 @@ describe(test.testName(__filename, 3), function () {
     var restClient = require('restler');
 
     restClient.get('http://localhost:10000/rest/describe').on('complete', function (result) {
-      expect(result.data['/testComponent/method1']).to.not.be(null);
-      expect(result.data['/testComponent/method2']).to.not.be(null);
+      test.expect(result.data['/testComponent/method1']).to.not.be(null);
+      test.expect(result.data['/testComponent/method2']).to.not.be(null);
 
-      // expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['one']).to.be('{{one}}');
-      // expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['two']).to.be('{{two}}');
-      // expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['three']).to.be('{{three}}');
+      // test.expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['one']).to.be('{{one}}');
+      // test.expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['two']).to.be('{{two}}');
+      // test.expect(result.data['/remoteMesh/remoteComponent/remoteFunction'].parameters['three']).to.be('{{three}}');
 
       done();
     });
@@ -340,7 +325,7 @@ describe(test.testName(__filename, 3), function () {
     mockResponse.end = function (responseString) {
       var response = JSON.parse(responseString);
       test.log(response);
-      expect(response.data.number).to.be(2);
+      test.expect(response.data.number).to.be(2);
       done();
     };
 
@@ -360,7 +345,7 @@ describe(test.testName(__filename, 3), function () {
       .postJson('http://localhost:10000/rest/method/testComponent/method1', operation)
       .on('complete', function (result) {
         test.log(result);
-        expect(result.data.number).to.be(2);
+        test.expect(result.data.number).to.be(2);
 
         done();
       });
@@ -372,7 +357,7 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .get('http://localhost:10000/rest/method/testComponent/method4?number=1&another=2')
       .on('complete', function (result) {
-        expect(result.data.product).to.be(3);
+        test.expect(result.data.product).to.be(3);
         done();
       });
   });
@@ -383,14 +368,14 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .get('http://localhost:10000/rest/method/testComponent/method5')
       .on('complete', function (result) {
-        expect(result.data).to.not.be(null);
-        expect(result.data.method).to.be('GET');
-        expect(result.data.headers).to.not.be(null);
+        test.expect(result.data).to.not.be(null);
+        test.expect(result.data.method).to.be('GET');
+        test.expect(result.data.headers).to.not.be(null);
         done();
       });
   });
 
-  it('tests request expected falsy params are passed to method and not changed to null', function (done) {
+  it('tests request test.expected falsy params are passed to method and not changed to null', function (done) {
     const restClient = require('restler');
 
     const operation = {
@@ -405,8 +390,8 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .postJson('http://localhost:10000/rest/method/testComponent/method6', operation)
       .on('complete', function (result) {
-        expect(result.error).not.exist;
-        expect(result.data).to.eql(operation.parameters);
+        test.expect(result.error).not.exist;
+        test.expect(result.data).to.eql(operation.parameters);
         done();
       });
   });
@@ -426,7 +411,7 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .get('http://localhost:10000/rest/method/testComponent/method4?encoded_parameters=' + encoded)
       .on('complete', function (result) {
-        expect(result.data.product).to.be(3);
+        test.expect(result.data.product).to.be(3);
         done();
       });
   });
@@ -448,8 +433,8 @@ describe(test.testName(__filename, 3), function () {
         operation
       )
       .on('complete', function (result) {
-        expect(result.error).to.not.be(null);
-        expect(result.error.message).to.be('attempt to access remote mesh: remoteMesh');
+        test.expect(result.error).to.not.be(null);
+        test.expect(result.error.message).to.be('attempt to access remote mesh: remoteMesh');
 
         done();
       });
@@ -466,7 +451,7 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .postJson('http://localhost:10000/rest/method/blithering_idiot/testmethod', operation)
       .on('complete', function (result) {
-        expect(result.error.message).to.be('component blithering_idiot does not exist on mesh');
+        test.expect(result.error.message).to.be('component blithering_idiot does not exist on mesh');
 
         done();
       });
@@ -487,8 +472,8 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .postJson('http://localhost:10000/rest/method/security/updateOwnUser', operation)
       .on('complete', function (result) {
-        expect(result.error.number).to.not.be(null);
-        expect(result.error.message).to.be('attempt to access security component over rest');
+        test.expect(result.error.number).to.not.be(null);
+        test.expect(result.error.message).to.be('attempt to access security component over rest');
         done();
       });
   });
@@ -508,7 +493,7 @@ describe(test.testName(__filename, 3), function () {
         operation
       )
       .on('complete', function (result) {
-        expect(result.data.number).to.be(2);
+        test.expect(result.data.number).to.be(2);
         done();
       });
   });
@@ -524,7 +509,7 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .postJson('http://localhost:10000/rest/method/nonexistant/uri', operation)
       .on('complete', function (result) {
-        expect(result.error.message).to.be('component nonexistant does not exist on mesh');
+        test.expect(result.error.message).to.be('component nonexistant does not exist on mesh');
 
         done();
       });
@@ -541,7 +526,7 @@ describe(test.testName(__filename, 3), function () {
     restClient
       .postJson('http://localhost:10000/rest/method/testComponent/nonexistant', operation)
       .on('complete', function (result) {
-        expect(result.error.message).to.be(
+        test.expect(result.error.message).to.be(
           'method nonexistant does not exist on component testComponent'
         );
 

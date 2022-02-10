@@ -1,15 +1,11 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-describe(test.testName(__filename, 3), function () {
-  this.timeout(10000);
-  const happner = require('../../../lib/mesh');
-
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
   let testClient;
   let serviceInstance;
   let serviceInstanceLocked;
   let serviceInstanceLockedConvenient;
 
   let getService = function (config, cb) {
-    return happner.create(config, cb);
+    return test.Mesh.create(config, cb);
   };
 
   before('it starts secure defaulted service', function (done) {
@@ -128,14 +124,14 @@ describe(test.testName(__filename, 3), function () {
     serviceInstanceLockedConvenient.stop(done);
   });
 
-  this.afterEach(async () => {
+  afterEach(async () => {
     if (testClient) await testClient.disconnect();
   });
 
   //test.showOpenHandles(after, 3000);
 
   it('authenticates with the _ADMIN user, using the default password on the non-locked service', function (done) {
-    testClient = new happner.MeshClient();
+    testClient = new test.Mesh.MeshClient();
 
     testClient.login(
       {
@@ -147,7 +143,7 @@ describe(test.testName(__filename, 3), function () {
   });
 
   it('fails to authenticate with the _ADMIN user, on the locked service', function (done) {
-    var failClient = new happner.MeshClient({ port: 55001 });
+    var failClient = new test.Mesh.MeshClient({ port: 55001 });
 
     failClient.login(
       {
@@ -164,7 +160,7 @@ describe(test.testName(__filename, 3), function () {
   });
 
   it('fails to authenticate with the _ADMIN user, on the convenience locked service', function (done) {
-    var failClient = new happner.MeshClient({ port: 55002 });
+    var failClient = new test.Mesh.MeshClient({ port: 55002 });
 
     failClient.login(
       {

@@ -1,11 +1,6 @@
-const test = require('../../__fixtures/utils/test_helper').create();
-const testName = test.testName(__filename, 3);
-const Mesh = require('../../..');
-
-describe(testName, function () {
-  this.timeout(200000);
-  const test_id = Date.now() + '_' + require('shortid').generate();
-  let mesh = new Mesh();
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  const test_id = test.newid();
+  let mesh = new test.Mesh();
   let groupName = 'TEST GROUP' + test_id;
 
   const config = {
@@ -81,7 +76,7 @@ describe(testName, function () {
   };
 
   before(function (done) {
-    mesh = new Mesh();
+    mesh = new test.Mesh();
     mesh.initialize(config, function (err) {
       if (err) {
         done(err);
@@ -91,8 +86,8 @@ describe(testName, function () {
     });
   });
 
-  let adminClient = new Mesh.MeshClient({ secure: true, test: 'adminClient' });
-  let anonymousUserClient = new Mesh.MeshClient({ secure: true, test: 'anonymousUserClient' });
+  let adminClient = new test.Mesh.MeshClient({ secure: true, test: 'adminClient' });
+  let anonymousUserClient = new test.Mesh.MeshClient({ secure: true, test: 'anonymousUserClient' });
 
   before('logs in with the admin and anonymous users', async () => {
     await adminClient.login({
@@ -256,8 +251,9 @@ describe(testName, function () {
   }
 
   async function tryWeb(client, component, method, verb, body) {
+    let response;
     try {
-      const response = await doRequest(`${component}/${method}`, client.token, verb, body);
+      response = await doRequest(`${component}/${method}`, client.token, verb, body);
       if (response.status === 200) return true;
     } catch (e) {
       if (e.message === 'Request failed with status code 403') return false;
@@ -278,14 +274,14 @@ describe(testName, function () {
   }
 
   async function doRequest(path, token, verb, body) {
-    const axios = require('axios').create({ baseURL: 'http://127.0.0.1:55000' });
+    const requestor = test.axios.create({ baseURL: 'http://127.0.0.1:55000' });
 
     if (verb === 'POST') {
-      return axios.post(path + '?happn_token=' + token, body);
+      return requestor.post(path + '?happn_token=' + token, body);
     }
 
     if (verb === 'GET') {
-      return axios.get(path + '?happn_token=' + token);
+      return requestor.get(path + '?happn_token=' + token);
     }
   }
 });
