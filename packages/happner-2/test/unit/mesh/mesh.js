@@ -1,6 +1,5 @@
-const tests = require('../../__fixtures/utils/test_helper').create();
 const Events = require('events');
-describe(tests.testName(__filename, 3), function () {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   function mockMesh(config) {
     const Mesh = require('../../../lib/mesh');
     const mesh = new Mesh(config || {});
@@ -67,31 +66,21 @@ describe(tests.testName(__filename, 3), function () {
     return mesh;
   }
 
-  this.timeout(5000);
-
-  it('tests the _initializeDataLayer function, empty config', function (done) {
+  it('test the _initializeDataLayer function, empty config', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
     mesh._initializeDataLayer(config, function () {
-      tests.expect(config.happn.name).to.be(undefined);
-      tests.expect(config.happn.port).to.be(55000);
-      tests.expect(config.happn.secure).to.be(undefined);
-      tests.expect(config.happn.persist).to.be(undefined);
-      tests.expect(config.happn.services.data.config).to.eql({
-        datastores: [
-          {
-            name: 'default',
-            provider: './providers/nedb',
-            isDefault: true,
-            settings: {
-              timestampData: true,
-            },
-          },
-        ],
-      });
+      test.expect(config.happn.name).to.be(undefined);
+      test.expect(config.happn.port).to.be(55000);
+      test.expect(config.happn.secure).to.be(undefined);
+      test.expect(config.happn.persist).to.be(undefined);
+      test.expect(config.happn.services.data.config.datastores[0].name).to.equal('default');
+      test
+        .expect(config.happn.services.data.config.datastores[0].provider)
+        .to.equal('happn-db-provider-loki');
 
-      tests.expect(config.happn.setOptions).to.eql({
+      test.expect(config.happn.setOptions).to.eql({
         timeout: 10000,
         noStore: true,
       });
@@ -100,7 +89,7 @@ describe(tests.testName(__filename, 3), function () {
     });
   });
 
-  it('tests the _initializeDataLayer function, config settings', function (done) {
+  it('test the _initializeDataLayer function, config settings', function (done) {
     var config = {
       name: 'test',
       port: 55008,
@@ -111,36 +100,35 @@ describe(tests.testName(__filename, 3), function () {
     var mesh = mockMesh(config);
 
     mesh._initializeDataLayer(config, function () {
-      tests.expect(config.happn.name).to.be('test');
-      tests.expect(config.happn.port).to.be(55008);
-      tests.expect(config.happn.secure).to.be(true);
-      tests.expect(config.happn.persist).to.be(true);
+      test.expect(config.happn.name).to.be('test');
+      test.expect(config.happn.port).to.be(55008);
+      test.expect(config.happn.secure).to.be(true);
+      test.expect(config.happn.persist).to.be(true);
 
       delete config.happn.services.data.config.datastores[0].settings.filename;
 
-      tests.expect(config.happn.services.data.config).to.eql({
+      test.expect(config.happn.services.data.config).to.eql({
         datastores: [
           {
             name: 'persist',
             isDefault: true,
             settings: {
-              autoload: true,
-              timestampData: true,
+              snapshotRollOverThreshold: 1000,
             },
             patterns: ['/_SYSTEM/*'],
-            provider: './providers/nedb',
+            provider: 'happn-db-provider-loki',
           },
           {
             name: 'mem',
             isDefault: false,
             patterns: [],
-            provider: './providers/nedb',
+            provider: 'happn-db-provider-loki',
           },
         ],
         secure: true,
       });
 
-      tests.expect(config.happn.setOptions).to.eql({
+      test.expect(config.happn.setOptions).to.eql({
         timeout: 10000,
         noStore: true,
       });
@@ -149,24 +137,24 @@ describe(tests.testName(__filename, 3), function () {
     });
   });
 
-  it('tests the _destroyElement nonexistent component', function (done) {
+  it('test the _destroyElement nonexistent component', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
     mesh._destroyElement('nonexistent-component', function (e) {
-      tests.expect(e).to.be(undefined);
+      test.expect(e).to.be(undefined);
       done();
     });
   });
 
-  it('tests the describe method', function (done) {
+  it('test the describe method', function (done) {
     const config = {};
     const mesh = mockMesh(config);
     try {
       mesh._mesh.config = {};
       mesh.describe();
     } catch (e) {
-      tests.expect(e.message).to.be('Not ready');
+      test.expect(e.message).to.be('Not ready');
       mesh._mesh = {
         endpoints: {
           test_name: {},
@@ -176,7 +164,7 @@ describe(tests.testName(__filename, 3), function () {
           happn: {},
         },
       };
-      tests.expect(mesh.describe()).to.eql({
+      test.expect(mesh.describe()).to.eql({
         name: undefined,
         initializing: false,
         components: {},
@@ -184,7 +172,7 @@ describe(tests.testName(__filename, 3), function () {
         setOptions: undefined,
       });
       mesh._mesh.config.brokered = true;
-      tests.expect(mesh.describe()).to.eql({
+      test.expect(mesh.describe()).to.eql({
         name: undefined,
         initializing: false,
         components: {},
@@ -195,13 +183,13 @@ describe(tests.testName(__filename, 3), function () {
     }
   });
 
-  it('tests the _addInjectedArgument function', async () => {
+  it('test the _addInjectedArgument function', async () => {
     var config = {};
     var mesh = mockMesh(config);
     var expectedMessageHappened = false;
 
     mesh.log.debug = (msg) => {
-      tests
+      test
         .expect(msg)
         .to.be(
           'cannot check native function testModule:testMethod9 arguments for $happn injection'
@@ -217,24 +205,24 @@ describe(tests.testName(__filename, 3), function () {
     };
 
     mesh._addInjectedArgument(moduleInst, 'happn', function (e) {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
-    await tests.delay(2000);
-    tests.expect(expectedMessageHappened).to.be(true);
-    tests.expect(moduleInst.module.instance.testMethod['$happnSeq']).to.be(0);
-    tests.expect(moduleInst.module.instance.testMethod4['$happnSeq']).to.be(0);
-    tests.expect(moduleInst.module.instance.testMethod5['$happnSeq']).to.be(0);
-    tests.expect(moduleInst.module.instance.testMethod6['$happnSeq']).to.be(0);
-    tests.expect(moduleInst.module.instance.testMethod7['$happnSeq']).to.be(1);
-    tests.expect(moduleInst.module.instance.testMethod8['$happnSeq']).to.be(0);
-    tests.expect(moduleInst.module.instance.testMethod10['$happnSeq']).to.be(0);
+    await test.delay(2000);
+    test.expect(expectedMessageHappened).to.be(true);
+    test.expect(moduleInst.module.instance.testMethod['$happnSeq']).to.be(0);
+    test.expect(moduleInst.module.instance.testMethod4['$happnSeq']).to.be(0);
+    test.expect(moduleInst.module.instance.testMethod5['$happnSeq']).to.be(0);
+    test.expect(moduleInst.module.instance.testMethod6['$happnSeq']).to.be(0);
+    test.expect(moduleInst.module.instance.testMethod7['$happnSeq']).to.be(1);
+    test.expect(moduleInst.module.instance.testMethod8['$happnSeq']).to.be(0);
+    test.expect(moduleInst.module.instance.testMethod10['$happnSeq']).to.be(0);
   });
 
-  it('tests the _updateElement method', function (done) {
+  it('test the _updateElement method', function (done) {
     var config = {};
     var mesh = mockMesh(config);
     mesh._mesh.on('description-updated', (desc) => {
-      tests.expect(JSON.parse(JSON.stringify(desc))).to.eql({
+      test.expect(JSON.parse(JSON.stringify(desc))).to.eql({
         initializing: false,
         components: {
           test: {
@@ -315,7 +303,7 @@ describe(tests.testName(__filename, 3), function () {
     );
   });
 
-  it('tests the componentAsyncMethod method', function (done) {
+  it('test the componentAsyncMethod method', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -324,7 +312,7 @@ describe(tests.testName(__filename, 3), function () {
     };
     //Error Case
     component.instance.operate = (methodName, args, callback) => {
-      tests.expect(methodName).to.be('start');
+      test.expect(methodName).to.be('start');
       callback(new Error('Bad'));
     };
     let calls = ['thisCall'];
@@ -335,14 +323,14 @@ describe(tests.testName(__filename, 3), function () {
       calls,
       0,
       (e) => {
-        tests.expect(calls).to.eql([]);
-        tests.expect(e.toString()).to.be('Error: Bad');
+        test.expect(calls).to.eql([]);
+        test.expect(e.toString()).to.be('Error: Bad');
       }
     );
 
     //Normal Case
     component.instance.operate = (methodName, args, callback) => {
-      tests.expect(methodName).to.be('start');
+      test.expect(methodName).to.be('start');
       callback(null, [null, 'awesome']);
     };
     calls = ['thatCall', 'thisCall'];
@@ -353,20 +341,20 @@ describe(tests.testName(__filename, 3), function () {
       calls,
       1,
       (e, result) => {
-        tests.expect(calls).to.eql(['thatCall']);
-        tests.expect(result).to.be('awesome');
+        test.expect(calls).to.eql(['thatCall']);
+        test.expect(result).to.be('awesome');
       }
     );
 
     //Tests Logging
     component.instance.operate = (methodName, args, callback) => {
-      tests.expect(methodName).to.be('start');
+      test.expect(methodName).to.be('start');
       callback(null, [null, 'awesome']);
     };
     mesh.log.info = (msg, log, component) => {
-      tests.expect(msg).to.be("%s component '%s'");
-      tests.expect(log).to.be.true;
-      tests.expect(component).to.be('componentName');
+      test.expect(msg).to.be("%s component '%s'");
+      test.expect(log).to.be.true;
+      test.expect(component).to.be('componentName');
     };
     mesh.componentAsyncMethod(
       'componentName',
@@ -375,13 +363,13 @@ describe(tests.testName(__filename, 3), function () {
       calls,
       0,
       (e, result) => {
-        tests.expect(result).to.be('awesome');
+        test.expect(result).to.be('awesome');
         done();
       }
     );
   });
 
-  it('tests the deferStartMethod method', async function () {
+  it('test the deferStartMethod method', async function () {
     var config = {};
     var mesh = mockMesh(config);
     let component = {
@@ -391,11 +379,11 @@ describe(tests.testName(__filename, 3), function () {
     let called = false;
     let calls = ['thisCall'];
     mesh.componentAsyncMethod = (name, comp, options, callsIn, call, callback) => {
-      tests.expect(name).to.be('componentName');
-      tests.expect(comp).to.be(component);
-      tests.expect(options).to.eql({ methodName: 'start' });
-      tests.expect(callsIn).to.be(calls);
-      tests.expect(call).to.be(0);
+      test.expect(name).to.be('componentName');
+      test.expect(comp).to.be(component);
+      test.expect(options).to.eql({ methodName: 'start' });
+      test.expect(callsIn).to.be(calls);
+      test.expect(call).to.be(0);
       called = true;
       callback(null, 'awesome');
     };
@@ -406,18 +394,18 @@ describe(tests.testName(__filename, 3), function () {
       calls,
       0,
       (e, result) => {
-        tests.expect(e).to.be.null;
-        tests.expect(result).to.be('awesome');
+        test.expect(e).to.be.null;
+        test.expect(result).to.be('awesome');
       }
     );
-    await tests.delay(2000);
-    tests.expect(called).to.be(false);
+    await test.delay(2000);
+    test.expect(called).to.be(false);
     mesh._mesh.clusterClient.emit('componentName/startup/dependencies/satisfied');
-    await tests.delay(1000);
-    tests.expect(called).to.be(true);
+    await test.delay(1000);
+    test.expect(called).to.be(true);
   }).timeout(6000);
 
-  it('tests the eachComponentDo method - startMethod, no deps', function (done) {
+  it('test the eachComponentDo method - startMethod, no deps', function (done) {
     var config = {};
     var mesh = mockMesh(config);
     mesh._mesh.elements.componentName = {
@@ -433,11 +421,11 @@ describe(tests.testName(__filename, 3), function () {
     };
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests the eachComponentDo method - startMethod, deps not met', function (done) {
+  it('test the eachComponentDo method - startMethod, deps not met', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -457,11 +445,11 @@ describe(tests.testName(__filename, 3), function () {
     mesh.deferStartMethod = () => done();
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests the eachComponentDo method - startMethod, clusterClient, deps met', function (done) {
+  it('test the eachComponentDo method - startMethod, clusterClient, deps met', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -482,11 +470,11 @@ describe(tests.testName(__filename, 3), function () {
     mesh.deferStartMethod = () => done(new Error("defer shouldn't be called"));
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests the eachComponentDo method - startMethod, clusterClient, deps not met', function (done) {
+  it('test the eachComponentDo method - startMethod, clusterClient, deps not met', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -507,11 +495,11 @@ describe(tests.testName(__filename, 3), function () {
     mesh.deferStartMethod = () => done();
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests the eachComponentDo method - startMethod, clusterClient, empty dependencies', function (done) {
+  it('test the eachComponentDo method - startMethod, clusterClient, empty dependencies', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -532,11 +520,11 @@ describe(tests.testName(__filename, 3), function () {
     mesh.deferStartMethod = () => done(new Error("defer shouldn't be called"));
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests the eachComponentDo method - undefinedMethod, not StartMethod category', function (done) {
+  it('test the eachComponentDo method - undefinedMethod, not StartMethod category', function (done) {
     var config = {};
     var mesh = mockMesh(config);
 
@@ -561,11 +549,11 @@ describe(tests.testName(__filename, 3), function () {
     mesh.deferStartMethod = () => done(new Error("defer shouldn't be called"));
     let options = { targets: ['componentName'], methodName: 'unknownMethod' };
     mesh._eachComponentDo(options, (e) => {
-      tests.expect(e).to.be(null);
+      test.expect(e).to.be(null);
     });
   });
 
-  it('tests that the _createElement method will start and intialize an injected component if the mesh is already started and initialized', function (done) {
+  it('test that the _createElement method will start and intialize an injected component if the mesh is already started and initialized', function (done) {
     var config = {};
     var mesh = mockMesh(config);
     let initialized, started;
@@ -597,13 +585,13 @@ describe(tests.testName(__filename, 3), function () {
 
     mesh._createElement(component, true, (e) => {
       if (e) done(e);
-      tests.expect(initialized).to.be(true);
-      tests.expect(started).to.be(true);
+      test.expect(initialized).to.be(true);
+      test.expect(started).to.be(true);
       done();
     });
   });
 
-  it('tests that the _createElement method will NOT start and intialize an injected component if the mesh is not started and not initialized', function (done) {
+  it('test that the _createElement method will NOT start and intialize an injected component if the mesh is not started and not initialized', function (done) {
     var config = {};
     var mesh = mockMesh(config);
     let initialized = false,
@@ -636,13 +624,13 @@ describe(tests.testName(__filename, 3), function () {
 
     mesh._createElement(component, true, (e) => {
       if (e) done(e);
-      tests.expect(initialized).to.be(false);
-      tests.expect(started).to.be(false);
+      test.expect(initialized).to.be(false);
+      test.expect(started).to.be(false);
       done();
     });
   });
 
-  it('tests that the attachSystemComponents method', function () {
+  it('test that the attachSystemComponents method', function () {
     var mesh = mockMesh({});
     const testConfig = {
       modules: {
@@ -655,7 +643,7 @@ describe(tests.testName(__filename, 3), function () {
       },
     };
     mesh.attachSystemComponents(testConfig);
-    tests.expect(testConfig).to.eql({
+    test.expect(testConfig).to.eql({
       modules: {
         api: {
           path: 'system:api',

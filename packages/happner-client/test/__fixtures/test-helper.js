@@ -20,7 +20,7 @@ module.exports = class TestHelper {
     return __dirname;
   }
   log(msg) {
-    if (typeof msg === 'object') msg = JSON.stringify(msg, null, 2)
+    if (typeof msg === 'object') msg = JSON.stringify(msg, null, 2);
     console.log(msg);
   }
   async listOpenHandles(ms) {

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 5e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var path = require('path');
   var test_id = test.newid();
   var logFileName = path.resolve(__dirname, '../../tmp') + '/' + test_id + '.log';

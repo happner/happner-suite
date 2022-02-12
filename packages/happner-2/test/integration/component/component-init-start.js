@@ -179,7 +179,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         if (err) return done(err);
 
         anotherMesh.start(function (err) {
-          should.exist(err);
+          test.expect(err).to.exist;
           done();
         });
       }

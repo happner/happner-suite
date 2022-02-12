@@ -1,4 +1,4 @@
-(function(isBrowser) {
+(function (isBrowser) {
   var EventEmitter;
   var inherits;
   // var Promise; // bluebird already loaded when using /api/client
@@ -12,31 +12,39 @@
 
   if (isBrowser) {
     // window.Happner already defined in /api/client
+    // eslint-disable-next-line no-undef
     Happner.LightHappnerClient = LightHappnerClient;
 
+    // eslint-disable-next-line no-undef
     EventEmitter = Primus.EventEmitter;
 
-    inherits = function(subclass, superclass) {
-      Object.keys(superclass.prototype).forEach(function(method) {
+    inherits = function (subclass, superclass) {
+      Object.keys(superclass.prototype).forEach(function (method) {
         subclass.prototype[method] = superclass.prototype[method];
       });
     };
 
+    // eslint-disable-next-line no-undef
     Promisify = Happner.Promisify; // already defined in /api/client
+    // eslint-disable-next-line no-undef
     semver = Happner.semver;
+    // eslint-disable-next-line no-undef
     ConnectionProvider = Happner.ConnectionProvider;
+    // eslint-disable-next-line no-undef
     ImplementorsProvider = Happner.LightImplementorsProvider;
+    // eslint-disable-next-line no-undef
     OperationsProvider = Happner.OperationsProvider;
 
     Logger = {
-      createLogger: Happner.createLogger
+      // eslint-disable-next-line no-undef
+      createLogger: Happner.createLogger,
     };
   } else {
     module.exports = LightHappnerClient;
 
     EventEmitter = require('events').EventEmitter;
     inherits = require('util').inherits;
-    Promisify = require('./utils/promisify');
+    Promisify = require('happn-commons').maybePromisify;
     semver = require('happner-semver');
 
     ConnectionProvider = require('./providers/connection-provider');
@@ -68,40 +76,40 @@
 
   inherits(LightHappnerClient, EventEmitter);
 
-  LightHappnerClient.prototype.onConnected = async function() {
+  LightHappnerClient.prototype.onConnected = async function () {
     //do nothing
   };
 
-  LightHappnerClient.prototype.connect = Promisify(function(connection, options, callback) {
-    this.__connection.connect(connection, options, e => {
+  LightHappnerClient.prototype.connect = Promisify(function (connection, options, callback) {
+    this.__connection.connect(connection, options, (e) => {
       if (e) return callback(e);
       this.__implementors.sessionId = this.__connection.client.session.id;
       callback();
     });
   });
 
-  LightHappnerClient.prototype.disconnect = function(callback) {
+  LightHappnerClient.prototype.disconnect = function (callback) {
     this.__connection.disconnect(callback);
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.stop();
   };
 
-  LightHappnerClient.prototype.dataClient = function() {
+  LightHappnerClient.prototype.dataClient = function () {
     return this.__connection.client;
   };
 
-  LightHappnerClient.prototype.mount = function(orchestrator) {
+  LightHappnerClient.prototype.mount = function (orchestrator) {
     this.__connection.mount(orchestrator);
   };
 
-  LightHappnerClient.prototype.unmount = function() {
+  LightHappnerClient.prototype.unmount = function () {
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.stop();
   };
 
-  LightHappnerClient.prototype.__exchangeCall = function(parameters, callback) {
+  LightHappnerClient.prototype.__exchangeCall = function (parameters, callback) {
     if (!callback)
       return new Promise((resolve, reject) => {
         this.__operations.request(
@@ -133,12 +141,12 @@
     );
   };
 
-  LightHappnerClient.prototype.construct = function(model, $happn) {
+  LightHappnerClient.prototype.construct = function (model, $happn) {
     if (typeof model !== 'object') throw new Error('Missing model');
 
     var api = $happn || {
       exchange: {},
-      event: {}
+      event: {},
     };
 
     var componentNames = Object.keys(model);
@@ -167,7 +175,7 @@
       }
 
       api.exchange[componentName] = {
-        __version: component.version
+        __version: component.version,
       };
 
       if ($happn) {
@@ -190,9 +198,14 @@
     return api;
   };
 
-  LightHappnerClient.prototype.__mountExchange = function(api, componentName, version, methodName) {
+  LightHappnerClient.prototype.__mountExchange = function (
+    api,
+    componentName,
+    version,
+    methodName
+  ) {
     var _this = this;
-    api.exchange[componentName][methodName] = Promisify(function() {
+    api.exchange[componentName][methodName] = Promisify(function () {
       var args = Array.prototype.slice.call(arguments);
       var callback = args.pop();
       _this.__operations.request(
@@ -206,10 +219,10 @@
     });
   };
 
-  LightHappnerClient.prototype.__mountEvent = function() {
+  LightHappnerClient.prototype.__mountEvent = function () {
     const _this = this;
     const eventAPI = {
-      $on: function(parameters, handler, callback) {
+      $on: function (parameters, handler, callback) {
         if (!callback)
           return new Promise((resolve, reject) => {
             _this.__operations.subscribe(
@@ -236,12 +249,12 @@
           parameters.options
         );
       },
-      $once: function(parameters, handler, callback) {
+      $once: function (parameters, handler, callback) {
         if (!parameters.options) parameters.options = {};
         parameters.options.count = 1;
         return eventAPI.$on(parameters, handler, callback);
       },
-      $off: function(id, callback) {
+      $off: function (id, callback) {
         if (!callback)
           return new Promise((resolve, reject) => {
             _this.__operations.unsubscribe(id, (e, response) => {
@@ -254,7 +267,7 @@
           });
         _this.__operations.unsubscribe(id, callback);
       },
-      $offPath: function(parameters, callback) {
+      $offPath: function (parameters, callback) {
         if (!callback)
           return new Promise((resolve, reject) => {
             _this.__operations.unsubscribePath(
@@ -270,7 +283,7 @@
             );
           });
         _this.__operations.unsubscribePath(parameters.component, parameters.path, callback);
-      }
+      },
     };
     return eventAPI;
   };

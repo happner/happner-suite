@@ -1,5 +1,6 @@
-(function(isBrowser) {
+(function (isBrowser) {
   if (isBrowser) {
+    // eslint-disable-next-line no-undef
     Happner.LightImplementorsProvider = LightImplementorsProvider;
   } else {
     module.exports = LightImplementorsProvider;
@@ -7,7 +8,7 @@
 
   function LightImplementorsProvider(happnerClient, connection, opts) {
     Object.defineProperty(this, 'happnerClient', {
-      value: happnerClient
+      value: happnerClient,
     });
     this.log = happnerClient.log;
     this.connection = connection;
@@ -27,29 +28,29 @@
     happnerClient.on('connected', (this.connected = this.connected.bind(this)));
   }
 
-  LightImplementorsProvider.prototype.clear = function() {
+  LightImplementorsProvider.prototype.clear = function () {
     this.maps = {};
   };
 
-  LightImplementorsProvider.prototype.connected = function() {
+  LightImplementorsProvider.prototype.connected = function () {
     this.clear();
     this.sessionId = this.connection.client.session.id;
     this.secure = this.connection.client.session.happn.secure;
   };
 
-  LightImplementorsProvider.prototype.reconnected = function() {
+  LightImplementorsProvider.prototype.reconnected = function () {
     this.clear();
     this.sessionId = this.connection.client.session.id;
   };
 
-  LightImplementorsProvider.prototype.stop = function() {
+  LightImplementorsProvider.prototype.stop = function () {
     this.happnerClient.removeListener('reconnected', this.reconnectedHandler);
     this.clear();
   };
 
-  LightImplementorsProvider.prototype.getDescriptions = function() {
+  LightImplementorsProvider.prototype.getDescriptions = function () {
     var _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       if (!_this.connection.connected) {
         return reject(new Error('Not connected'));
       }
@@ -57,7 +58,7 @@
     });
   };
 
-  LightImplementorsProvider.prototype.notImplementedError = function(
+  LightImplementorsProvider.prototype.notImplementedError = function (
     componentName,
     version,
     methodName
@@ -65,7 +66,7 @@
     return new Error('Not implemented ' + componentName + ':' + version + ':' + methodName);
   };
 
-  LightImplementorsProvider.prototype.getNextImplementation = function(
+  LightImplementorsProvider.prototype.getNextImplementation = function (
     componentName,
     version,
     methodName
@@ -78,7 +79,7 @@
       let implementation = this.maps[mapKey];
       if (!implementation)
         this.maps[mapKey] = {
-          local: true
+          local: true,
         };
       return resolve(this.maps[mapKey]);
     });

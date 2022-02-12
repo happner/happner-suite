@@ -1,12 +1,11 @@
 // clientside stand-in for actual logger
 // DOES NOT ADHERE TO / HAS NO LOG_LEVEL
-
 /* eslint-disable no-console */
 
 module.exports = {
-  createLogger: function(context) {
+  createLogger: function (context) {
     return {
-      fatal: function() {
+      fatal: function () {
         var args = Array.prototype.slice.call(arguments);
         var string = args.shift();
         string = '[%s] (%s) ' + string;
@@ -15,7 +14,7 @@ module.exports = {
         args.unshift(string);
         console.error.apply(console, args);
       },
-      error: function() {
+      error: function () {
         var args = Array.prototype.slice.call(arguments);
         var string = args.shift();
         string = '[%s] (%s) ' + string;
@@ -24,7 +23,7 @@ module.exports = {
         args.unshift(string);
         console.error.apply(console, args);
       },
-      warn: function() {
+      warn: function () {
         var args = Array.prototype.slice.call(arguments);
         var string = args.shift();
         string = '[%s] (%s) ' + string;
@@ -33,7 +32,7 @@ module.exports = {
         args.unshift(string);
         console.error.apply(console, args);
       },
-      info: function() {
+      info: function () {
         var args = Array.prototype.slice.call(arguments);
         var string = args.shift();
         string = '[%s] (%s) ' + string;
@@ -41,7 +40,7 @@ module.exports = {
         args.unshift(' INFO');
         args.unshift(string);
         console.info.apply(console, args);
-      }
+      },
     };
-  }
+  },
 };

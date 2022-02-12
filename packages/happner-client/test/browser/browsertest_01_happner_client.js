@@ -1,16 +1,17 @@
 /* eslint-disable no-console */
-describe('browsertest_01_happner_client', function() {
+describe('browsertest_01_happner_client', function () {
   // test new client
   let expect = window.expect;
   const DOMAIN = 'DOMAIN_NAME';
   this.timeout(100000);
 
   it('can connect a new client', async () => {
+    // eslint-disable-next-line no-undef
     const client = new Happner.HappnerClient();
     try {
       await client.connect(null, {
         username: 'username',
-        password: 'password'
+        password: 'password',
       });
     } catch (e) {
       console.log(e.message);
@@ -18,29 +19,30 @@ describe('browsertest_01_happner_client', function() {
     }
   });
 
-  it('can call exchange method', function(done) {
+  it('can call exchange method', function (done) {
+    // eslint-disable-next-line no-undef
     var client = new Happner.HappnerClient();
 
     var api = client.construct({
       testComponent2: {
         version: '^2.0.0',
         methods: {
-          method1: {}
-        }
-      }
+          method1: {},
+        },
+      },
     });
 
     client
       .connect(null, {
         username: 'username',
-        password: 'password'
+        password: 'password',
       })
 
-      .then(function() {
+      .then(function () {
         return api.exchange.testComponent2.method1();
       })
 
-      .then(function(result) {
+      .then(function (result) {
         expect(result).to.eql('OK:method1');
       })
 
@@ -48,34 +50,34 @@ describe('browsertest_01_happner_client', function() {
       .catch(done);
   });
 
-  it('can receive events', function(done) {
+  it('can receive events', function (done) {
     var count = 0;
-
+    // eslint-disable-next-line no-undef
     var client = new Happner.HappnerClient();
 
     var api = client.construct({
       testComponent2: {
         version: '^2.0.0',
         methods: {
-          method1: {}
-        }
-      }
+          method1: {},
+        },
+      },
     });
 
     client
       .connect(null, {
         username: 'username',
-        password: 'password'
+        password: 'password',
       })
 
-      .then(function() {
-        return new Promise(function(resolve, reject) {
+      .then(function () {
+        return new Promise(function (resolve, reject) {
           api.event.testComponent2.on(
             'test/event',
-            function() {
+            function () {
               count++;
             },
-            function(e) {
+            function (e) {
               if (e) return reject(e);
               resolve(e);
             }
@@ -83,11 +85,11 @@ describe('browsertest_01_happner_client', function() {
         });
       })
 
-      .then(function() {
-        return new Promise(resolve => setTimeout(resolve, 200));
+      .then(function () {
+        return new Promise((resolve) => setTimeout(resolve, 200));
       })
 
-      .then(function() {
+      .then(function () {
         expect(count > 0).to.equal(true);
       })
 
@@ -99,12 +101,12 @@ describe('browsertest_01_happner_client', function() {
     var client = new MeshClient({ port: 55000 });
     await client.login({
       username: 'username',
-      password: 'password'
+      password: 'password',
     });
 
     const result = await client.exchange.$call({
       component: 'testComponent2',
-      method: 'method1'
+      method: 'method1',
     });
 
     expect(result).to.eql('OK:method1');
@@ -119,17 +121,17 @@ describe('browsertest_01_happner_client', function() {
 
     await client.login({
       username: 'username',
-      password: 'password'
+      password: 'password',
     });
 
-    await client.event.testComponent3.on('test/event', data => {
+    await client.event.testComponent3.on('test/event', (data) => {
       emittedCountNo$++;
       lastDataNo$ = data;
     });
 
     await client.event.$on(
       { mesh: DOMAIN, component: 'testComponent3', path: 'test/event' },
-      data => {
+      (data) => {
         emittedCount++;
         lastData = data;
       }
@@ -145,7 +147,7 @@ describe('browsertest_01_happner_client', function() {
   });
 
   function delay(ms) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
   }

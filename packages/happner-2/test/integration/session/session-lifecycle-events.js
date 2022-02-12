@@ -1,11 +1,7 @@
-const tests = require('../../__fixtures/utils/test_helper').create();
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
+  let socketClientSessionId;
 
-describe(tests.testName(__filename, 3), function () {
-  var Happner = require('../../../lib/mesh');
-  var socketClientSessionId;
-  this.timeout(10000);
-
-  var sessionEventsTest = function (serviceConfig, callback) {
+  const sessionEventsTest = function (serviceConfig, callback) {
     if (typeof serviceConfig === 'function') {
       callback = serviceConfig;
       serviceConfig = {};
@@ -15,19 +11,19 @@ describe(tests.testName(__filename, 3), function () {
     var stopped = false;
 
     var checkSocketEventStructure = function (eventData, protocol, username) {
-      tests.expect(eventData.id).to.be(socketClientSessionId);
-      tests.expect(eventData.legacyPing).to.be(false);
-      tests.expect(Number.isInteger(eventData.msgCount)).to.be(true);
-      tests.expect(eventData.protocol).to.be(protocol || `happn_${tests.happnPackage.protocol}`);
-      tests.expect(eventData.browser).to.be(false);
-      tests.expect(eventData.intraProc).to.be(false);
-      tests.expect(eventData.sourceAddress).to.be('127.0.0.1');
-      tests.expect(eventData.sourcePort > 0).to.be(true);
-      tests.expect(eventData.upgradeUrl != null).to.be(true);
-      if (username) tests.expect(eventData.user.username).to.be(username);
+      test.expect(eventData.id).to.be(socketClientSessionId);
+      test.expect(eventData.legacyPing).to.be(false);
+      test.expect(Number.isInteger(eventData.msgCount)).to.be(true);
+      test.expect(eventData.protocol).to.be(protocol || `happn_${test.happnPackage.protocol}`);
+      test.expect(eventData.browser).to.be(false);
+      test.expect(eventData.intraProc).to.be(false);
+      test.expect(eventData.sourceAddress).to.be('127.0.0.1');
+      test.expect(eventData.sourcePort > 0).to.be(true);
+      test.expect(eventData.upgradeUrl != null).to.be(true);
+      if (username) test.expect(eventData.user.username).to.be(username);
     };
 
-    var checkAllEventsFired = function (callback) {
+    const checkAllEventsFired = function (callback) {
       return () => {
         checkSocketEventStructure(eventsFired['connect-socket'], 'happn');
         checkSocketEventStructure(eventsFired['session-configured-socket']);
@@ -40,11 +36,11 @@ describe(tests.testName(__filename, 3), function () {
           checkSocketEventStructure(eventsFired['disconnect-socket'], null, '_ADMIN');
         else checkSocketEventStructure(eventsFired['disconnect-socket']);
 
-        tests.expect(JSON.stringify(eventsFired, null, 2).indexOf('token":')).to.be(-1);
-        tests.expect(JSON.stringify(eventsFired, null, 2).indexOf('password')).to.be(-1);
-        tests.expect(JSON.stringify(eventsFired, null, 2).indexOf('privateKey')).to.be(-1);
-        tests.expect(JSON.stringify(eventsFired, null, 2).indexOf('keyPair')).to.be(-1);
-        tests.expect(JSON.stringify(eventsFired, null, 2).indexOf('secret')).to.be(-1);
+        test.expect(JSON.stringify(eventsFired, null, 2).indexOf('token":')).to.be(-1);
+        test.expect(JSON.stringify(eventsFired, null, 2).indexOf('password')).to.be(-1);
+        test.expect(JSON.stringify(eventsFired, null, 2).indexOf('privateKey')).to.be(-1);
+        test.expect(JSON.stringify(eventsFired, null, 2).indexOf('keyPair')).to.be(-1);
+        test.expect(JSON.stringify(eventsFired, null, 2).indexOf('secret')).to.be(-1);
 
         if (stopped) return callback();
         stopped = true;
@@ -52,7 +48,7 @@ describe(tests.testName(__filename, 3), function () {
       };
     };
 
-    Happner.create(serviceConfig, (e, happnInst) => {
+    test.Mesh.create(serviceConfig, (e, happnInst) => {
       if (e) return callback(e);
 
       serviceInstance = happnInst;
@@ -73,7 +69,7 @@ describe(tests.testName(__filename, 3), function () {
         eventsFired['session-configured-socket'] = data;
       });
 
-      const socketClient = new Happner.MeshClient({
+      const socketClient = new test.Mesh.MeshClient({
         secure: true,
       });
 
@@ -87,7 +83,7 @@ describe(tests.testName(__filename, 3), function () {
     });
   };
 
-  it('tests session events on a secure mesh', function (callback) {
+  it('test session events on a secure mesh', function (callback) {
     sessionEventsTest(
       {
         secure: true,

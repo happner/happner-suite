@@ -1,7 +1,7 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test) => {
   const mesh = new test.Mesh();
-  const adminClient = new test.Mesh.MeshClient({ secure: true, port: 8004 });
-  const testClient = new test.Mesh.MeshClient({ secure: true, port: 8004 });
+  const adminClient = new test.Mesh.MeshClient({ secure: true });
+  const testClient = new test.Mesh.MeshClient({ secure: true });
   const test_id = Date.now() + '_' + require('shortid').generate();
 
   before(function (done) {
@@ -12,7 +12,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
         happn: {
           secure: true,
           adminPassword: test_id,
-          port: 8004,
         },
       },
       function (err) {

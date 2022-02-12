@@ -1,5 +1,6 @@
-(function(isBrowser) {
+(function (isBrowser) {
   if (isBrowser) {
+    // eslint-disable-next-line no-undef
     Happner.RequestBuilder = RequestBuilder;
   } else {
     module.exports = RequestBuilder;
@@ -9,7 +10,7 @@
     this.reset();
   }
 
-  RequestBuilder.prototype.reset = function() {
+  RequestBuilder.prototype.reset = function () {
     this.component = undefined;
     this.domain = undefined;
     this.method = undefined;
@@ -21,64 +22,64 @@
     this.callbackPeer = undefined;
   };
 
-  RequestBuilder.prototype.withComponent = function(component) {
+  RequestBuilder.prototype.withComponent = function (component) {
     this.component = component;
     return this;
   };
 
-  RequestBuilder.prototype.withDomain = function(domain) {
+  RequestBuilder.prototype.withDomain = function (domain) {
     this.domain = domain;
     return this;
   };
 
-  RequestBuilder.prototype.withVersion = function(version) {
+  RequestBuilder.prototype.withVersion = function (version) {
     this.version = version;
     return this;
   };
 
-  RequestBuilder.prototype.withMethod = function(method) {
+  RequestBuilder.prototype.withMethod = function (method) {
     this.method = method;
     return this;
   };
 
-  RequestBuilder.prototype.withSequence = function(sequence) {
+  RequestBuilder.prototype.withSequence = function (sequence) {
     this.sequence = sequence;
     return this;
   };
 
-  RequestBuilder.prototype.withArgs = function(args) {
+  RequestBuilder.prototype.withArgs = function (args) {
     this.args = args;
     return this;
   };
 
-  RequestBuilder.prototype.withSessionId = function(id) {
+  RequestBuilder.prototype.withSessionId = function (id) {
     this.id = id;
     return this;
   };
 
-  RequestBuilder.prototype.withUsername = function(username) {
+  RequestBuilder.prototype.withUsername = function (username) {
     this.username = username;
     return this;
   };
 
-  RequestBuilder.prototype.withIsSecure = function(isSecure) {
+  RequestBuilder.prototype.withIsSecure = function (isSecure) {
     this.isSecure = isSecure;
     return this;
   };
 
-  RequestBuilder.prototype.withCallbackPeer = function(callbackPeer) {
+  RequestBuilder.prototype.withCallbackPeer = function (callbackPeer) {
     this.callbackPeer = callbackPeer;
     return this;
   };
 
-  RequestBuilder.prototype.build = function() {
+  RequestBuilder.prototype.build = function () {
     var requestArgs = {
       callbackAddress: undefined,
       args: this.args,
       origin: {
-        id: this.id
+        id: this.id,
       },
-      version: this.version
+      version: this.version,
     };
 
     if (this.callbackPeer) requestArgs.callbackPeer = this.callbackPeer;

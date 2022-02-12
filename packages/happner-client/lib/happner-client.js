@@ -1,4 +1,4 @@
-(function(isBrowser) {
+(function (isBrowser) {
   var EventEmitter;
   var inherits;
   // var Promise; // bluebird already loaded when using /api/client
@@ -12,37 +12,43 @@
 
   if (isBrowser) {
     // window.Happner already defined in /api/client
+    // eslint-disable-next-line no-undef
     Happner.HappnerClient = HappnerClient;
-
+    // eslint-disable-next-line no-undef
     EventEmitter = Primus.EventEmitter;
 
-    inherits = function(subclass, superclass) {
-      Object.keys(superclass.prototype).forEach(function(method) {
+    inherits = function (subclass, superclass) {
+      Object.keys(superclass.prototype).forEach(function (method) {
         subclass.prototype[method] = superclass.prototype[method];
       });
     };
-
+    // eslint-disable-next-line no-undef
     Promisify = Happner.Promisify; // already defined in /api/client
+    // eslint-disable-next-line no-undef
     semver = Happner.semver;
+    // eslint-disable-next-line no-undef
     ConnectionProvider = Happner.ConnectionProvider;
+    // eslint-disable-next-line no-undef
     ImplementorsProvider = Happner.ImplementorsProvider;
+    // eslint-disable-next-line no-undef
     OperationsProvider = Happner.OperationsProvider;
 
     Logger = {
-      createLogger: Happner.createLogger
+      // eslint-disable-next-line no-undef
+      createLogger: Happner.createLogger,
     };
   } else {
     module.exports = HappnerClient;
 
     EventEmitter = require('events').EventEmitter;
     inherits = require('util').inherits;
-    Promisify = require('./utils/promisify');
+    Promisify = require('happn-commons').maybePromisify;
     semver = require('happner-semver');
 
     ConnectionProvider = require('./providers/connection-provider');
     ImplementorsProvider = require('./providers/implementors-provider');
     OperationsProvider = require('./providers/operations-provider');
-    Logger = require('./logger'); // TODO: actual logger
+    Logger = require('./logger');
   }
 
   function HappnerClient(opts) {
@@ -65,27 +71,27 @@
 
   inherits(HappnerClient, EventEmitter);
 
-  HappnerClient.prototype.connect = Promisify(function(connection, options, callback) {
+  HappnerClient.prototype.connect = Promisify(function (connection, options, callback) {
     this.__connection.connect(connection, options, callback);
   });
 
-  HappnerClient.prototype.disconnect = function(callback) {
+  HappnerClient.prototype.disconnect = function (callback) {
     this.__connection.disconnect(callback);
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.stop();
   };
 
-  HappnerClient.prototype.dataClient = function() {
+  HappnerClient.prototype.dataClient = function () {
     return this.__connection.client;
   };
 
-  HappnerClient.prototype.mount = function(orchestrator) {
+  HappnerClient.prototype.mount = function (orchestrator) {
     var _this = this;
     this.__connection.mount(orchestrator);
     this.__implementors.subscribeToPeerEvents();
     this.on('description/new', this.newDescription);
-    this.__implementors.getDescriptions().catch(function(e) {
+    this.__implementors.getDescriptions().catch(function (e) {
       // cannot make mount() async because plugins in happner load before component
       // so the description is not ready so get descriptions will fail to do so
       // indefinately
@@ -96,14 +102,14 @@
     });
   };
 
-  HappnerClient.prototype.unmount = function() {
+  HappnerClient.prototype.unmount = function () {
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.unsubscribeFromPeerEvents();
     this.__implementors.stop();
   };
 
-  HappnerClient.prototype.onConnected = async function() {
+  HappnerClient.prototype.onConnected = async function () {
     try {
       if (this.__opts.discoverMethods) {
         this.endPointDescription = await this.__connection.getDescription();
@@ -114,8 +120,8 @@
     }
   };
 
-  HappnerClient.prototype.newDescription = function(description) {
-    Object.keys(description.components).forEach(componentName => {
+  HappnerClient.prototype.newDescription = function (description) {
+    Object.keys(description.components).forEach((componentName) => {
       if (['security', 'system', 'rest', 'api', 'data'].includes(componentName)) {
         return;
       }
@@ -123,13 +129,13 @@
       this.newComponent({
         componentName: component.name,
         description: component,
-        member: description.meshName
+        member: description.meshName,
       });
     });
   };
 
-  HappnerClient.prototype.newComponent = function(component) {
-    this.__apis.forEach(api => {
+  HappnerClient.prototype.newComponent = function (component) {
+    this.__apis.forEach((api) => {
       if (
         api.exchange[component.componentName] == null ||
         api.exchange[component.componentName].__discover
@@ -149,10 +155,10 @@
     });
   };
 
-  HappnerClient.prototype.__decorateModelMethods = function(model) {
-    Object.keys(model).forEach(componentName => {
+  HappnerClient.prototype.__decorateModelMethods = function (model) {
+    Object.keys(model).forEach((componentName) => {
       const foundComponent = this.endPointDescription.components[componentName];
-      Object.keys(foundComponent.methods).forEach(methodName => {
+      Object.keys(foundComponent.methods).forEach((methodName) => {
         if (model[componentName].methods == null) model[componentName].methods = {};
         if (model[componentName].methods[methodName] == null) {
           model[componentName].methods[methodName] = foundComponent.methods[methodName];
@@ -161,12 +167,12 @@
     });
   };
 
-  HappnerClient.prototype.construct = function(model, $happn) {
+  HappnerClient.prototype.construct = function (model, $happn) {
     if (typeof model !== 'object') throw new Error('Missing model');
 
     var api = $happn || {
       exchange: {},
-      event: {}
+      event: {},
     };
 
     api.id = this.__apis.length;
@@ -203,7 +209,7 @@
       }
 
       api.exchange[componentName] = {
-        __version: component.version
+        __version: component.version,
       };
 
       if ($happn) {
@@ -231,7 +237,7 @@
     return api;
   };
 
-  HappnerClient.prototype.getEndpoint = function(parameters, api, callback) {
+  HappnerClient.prototype.getEndpoint = function (parameters, api, callback) {
     try {
       if (parameters.mesh) {
         if (typeof api[parameters.mesh] !== 'object')
@@ -258,9 +264,9 @@
     return parameters.mesh ? api[parameters.mesh][parameters.component] : api[parameters.component];
   };
 
-  HappnerClient.prototype._createDecoupledCall = function(exchangeAPI) {
+  HappnerClient.prototype._createDecoupledCall = function (exchangeAPI) {
     const _this = this;
-    return function(parameters, callback) {
+    return function (parameters, callback) {
       const endpoint = _this.getEndpoint(parameters, exchangeAPI, callback);
       if (endpoint === false) return;
       if (typeof endpoint[parameters.method] !== 'function') {
@@ -276,20 +282,20 @@
     };
   };
 
-  HappnerClient.prototype.__mountMethods = function(api, component, componentName) {
-    Object.keys(component.methods).forEach(methodName => {
+  HappnerClient.prototype.__mountMethods = function (api, component, componentName) {
+    Object.keys(component.methods).forEach((methodName) => {
       this.__mountExchange(api, componentName, component.version, methodName);
     });
   };
 
-  HappnerClient.prototype.__mountExchange = function(api, componentName, version, methodName) {
+  HappnerClient.prototype.__mountExchange = function (api, componentName, version, methodName) {
     var _this = this;
     if (!api.exchange[componentName]) api.exchange[componentName] = {};
     if (!api.exchange[componentName][methodName]) {
       this.log.info(
         `mounting method: [${componentName}.${methodName}] on api [${api.id}] with version: ${version}`
       );
-      api.exchange[componentName][methodName] = Promisify(function() {
+      api.exchange[componentName][methodName] = Promisify(function () {
         var args = Array.prototype.slice.call(arguments);
         var callback = args.pop();
         _this.__operations.request(
@@ -304,35 +310,35 @@
     }
   };
 
-  HappnerClient.prototype.__mountEvent = function(api, componentName, version) {
+  HappnerClient.prototype.__mountEvent = function (api, componentName, version) {
     var _this = this;
     if (!api.event[componentName]) api.event[componentName] = {};
-    api.event[componentName].on = function(key, options, handler, callback) {
+    api.event[componentName].on = function (key, options, handler, callback) {
       if (typeof options === 'function') {
         callback = handler;
         handler = options;
         options = {};
       }
       if (callback == null) {
-        callback = function(e) {
+        callback = function (e) {
           if (e) _this.log.warn("subscribe to '%s' failed", key, e);
         };
       }
       _this.__operations.subscribe(componentName, version, key, handler, callback, options);
     };
 
-    api.event[componentName].off = function(id, callback) {
+    api.event[componentName].off = function (id, callback) {
       if (!callback)
-        callback = function(e) {
+        callback = function (e) {
           if (e) _this.log.warn("unsubscribe from '%s' failed", id, e);
         };
 
       _this.__operations.unsubscribe(id, callback);
     };
 
-    api.event[componentName].offPath = function(key, callback) {
+    api.event[componentName].offPath = function (key, callback) {
       if (!callback)
-        callback = function(e) {
+        callback = function (e) {
           if (e) _this.log.warn("unsubscribe from '%s' failed", key, e);
         };
 

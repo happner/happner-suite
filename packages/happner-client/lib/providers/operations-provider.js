@@ -1,10 +1,13 @@
-(function(isBrowser) {
+(function (isBrowser) {
   var semver;
   var RequestBuilder;
 
   if (isBrowser) {
+    // eslint-disable-next-line no-undef
     Happner.OperationsProvider = OperationsProvider;
+    // eslint-disable-next-line no-undef
     semver = Happner.semver;
+    // eslint-disable-next-line no-undef
     RequestBuilder = Happner.RequestBuilder;
   } else {
     module.exports = OperationsProvider;
@@ -27,11 +30,11 @@
     );
   }
 
-  OperationsProvider.prototype.stop = function() {
+  OperationsProvider.prototype.stop = function () {
     clearInterval(this.pruneResponseSubscriptionsInterval);
   };
 
-  OperationsProvider.prototype.connected = function(callback) {
+  OperationsProvider.prototype.connected = function (callback) {
     if (!this.connection.connected) {
       callback(new Error('Not connected'));
       return false;
@@ -39,7 +42,7 @@
     return true;
   };
 
-  OperationsProvider.prototype.subscribe = function(
+  OperationsProvider.prototype.subscribe = function (
     component,
     version,
     key,
@@ -53,7 +56,7 @@
 
     if (!this.connected(callback)) return;
 
-    var filterByVersion = function(data, meta) {
+    var filterByVersion = function (data, meta) {
       if (meta.componentVersion) {
         // inserted by happner $happn.emit()
         if (!semver.coercedSatisfies(meta.componentVersion, version)) return;
@@ -64,13 +67,13 @@
 
     _this.implementors
       .getDescriptions()
-      .then(function() {
+      .then(function () {
         var path = '/_events/' + _this.implementors.domain + '/' + component + '/' + key;
         var subscribeOptions = {
           event_type: 'set',
           meta: {
-            componentVersion: version
-          }
+            componentVersion: version,
+          },
         };
         return _this.connection.client.on(
           path,
@@ -82,25 +85,25 @@
       .catch(callback);
   };
 
-  OperationsProvider.prototype.unsubscribe = function(id, callback) {
+  OperationsProvider.prototype.unsubscribe = function (id, callback) {
     if (!this.connected(callback)) return;
 
     this.connection.client.off(id, callback);
   };
 
-  OperationsProvider.prototype.unsubscribePath = function(component, key, callback) {
+  OperationsProvider.prototype.unsubscribePath = function (component, key, callback) {
     var _this = this;
 
     if (!this.connected(callback)) return;
 
     Promise.resolve()
 
-      .then(function() {
+      .then(function () {
         // get description for domain name
         return _this.implementors.getDescriptions();
       })
 
-      .then(function() {
+      .then(function () {
         var path = '/_events/' + _this.implementors.domain + '/' + component + '/' + key;
         _this.connection.client.offPath(path, callback);
       })
@@ -108,7 +111,7 @@
       .catch(callback);
   };
 
-  OperationsProvider.prototype.request = function(
+  OperationsProvider.prototype.request = function (
     component,
     version,
     method,
@@ -123,20 +126,20 @@
 
     Promise.resolve()
 
-      .then(function() {
+      .then(function () {
         return _this.implementors.getDescriptions();
       })
 
-      .then(function() {
+      .then(function () {
         return _this.implementors.getNextImplementation(component, version, method);
       })
 
-      .then(function(_implementation) {
+      .then(function (_implementation) {
         implementation = _implementation;
         return _this.subscribeToResponsePaths(component, method);
       })
 
-      .then(function() {
+      .then(function () {
         return _this.executeRequest(
           implementation,
           component,
@@ -151,7 +154,7 @@
       .catch(callback);
   };
 
-  OperationsProvider.prototype.nextSeq = function() {
+  OperationsProvider.prototype.nextSeq = function () {
     this.lastSeq++;
     if (this.lastSeq >= Number.MAX_SAFE_INTEGER) {
       this.lastSeq = 1;
@@ -159,7 +162,7 @@
     return this.lastSeq;
   };
 
-  OperationsProvider.prototype.executeRequest = function(
+  OperationsProvider.prototype.executeRequest = function (
     implementation,
     component,
     version,
@@ -169,7 +172,7 @@
     origin
   ) {
     var _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       if (!_this.connected(reject)) return;
 
       var requestSequence = _this.nextSeq();
@@ -200,7 +203,7 @@
 
       var requestOptions = {
         timeout: _this.happnerClient.__requestTimeout,
-        noStore: true
+        noStore: true,
       };
 
       if (origin) requestOptions.onBehalfOf = origin.username;
@@ -217,15 +220,15 @@
 
       _this.awaitingResponses[requestSequence] = {
         callback: callback,
-        timeout: setTimeout(function() {
+        timeout: setTimeout(function () {
           delete _this.awaitingResponses[requestSequence];
           callback(
             new Error(`Timeout awaiting response on ${component}.${method} version: ${version}`)
           );
-        }, _this.happnerClient.__responseTimeout)
+        }, _this.happnerClient.__responseTimeout),
       };
 
-      client.set(requestPath, requestArgs, requestOptions, function(e) {
+      client.set(requestPath, requestArgs, requestOptions, function (e) {
         var handler = _this.awaitingResponses[requestSequence];
         if (e) {
           if (handler) {
@@ -240,7 +243,7 @@
     });
   };
 
-  OperationsProvider.prototype.response = function(data, meta) {
+  OperationsProvider.prototype.response = function (data, meta) {
     var sequence = meta.path.substr(meta.path.lastIndexOf('/') + 1);
     var handler = this.awaitingResponses[sequence];
 
@@ -257,9 +260,9 @@
     handler.callback(error);
   };
 
-  OperationsProvider.prototype.subscribeToResponsePaths = function(component, method) {
+  OperationsProvider.prototype.subscribeToResponsePaths = function (component, method) {
     var _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // subscribe to response paths
       // insecure: /_exchange/responses/bd826ed2-d9d6-4ca0-9b74-9cb0484432e2/*
       // secure: /_exchange/responses/SERVER_NAME/example/method/f16de5bb-bb62-48f9-b34a-9262b5f5d12b/*
@@ -285,44 +288,47 @@
 
       _this.responsePathsSubscribed[path].push({
         resolve: resolve,
-        reject: reject
+        reject: reject,
       });
 
       if (_this.responsePathsSubscribed[path].length > 1) return;
 
-      _this.connection.client.on(path, { event_type: 'set' }, _this.response.bind(_this), function(
-        e
-      ) {
-        var reply;
-        if (e) {
-          while ((reply = _this.responsePathsSubscribed[path].shift())) {
-            reply.reject(e);
+      _this.connection.client.on(
+        path,
+        { event_type: 'set' },
+        _this.response.bind(_this),
+        function (e) {
+          var reply;
+          if (e) {
+            while ((reply = _this.responsePathsSubscribed[path].shift())) {
+              reply.reject(e);
+            }
+            return;
           }
-          return;
-        }
 
-        while ((reply = _this.responsePathsSubscribed[path].shift())) {
-          reply.resolve();
-        }
+          while ((reply = _this.responsePathsSubscribed[path].shift())) {
+            reply.resolve();
+          }
 
-        _this.responsePathsSubscribed[path] = true;
-      });
+          _this.responsePathsSubscribed[path] = true;
+        }
+      );
     });
   };
 
-  OperationsProvider.prototype.pruneResponseSubscriptions = function() {
+  OperationsProvider.prototype.pruneResponseSubscriptions = function () {
     var _this = this;
 
     if (!this.implementors.sessionId || this.implementors.sessionId.length < 1) return;
     if (!this.connection.connected) return;
 
-    Object.keys(this.responsePathsSubscribed).forEach(function(path) {
+    Object.keys(this.responsePathsSubscribed).forEach(function (path) {
       if (path.indexOf(_this.implementors.sessionId) > 0) return;
       if (!_this.connection.client) return;
 
       delete _this.responsePathsSubscribed[path];
 
-      _this.connection.client.offPath(path, function(e) {
+      _this.connection.client.offPath(path, function (e) {
         if (e) _this.responsePathsSubscribed[path] = true;
       });
     });

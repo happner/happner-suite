@@ -1,8 +1,10 @@
-(function(isBrowser) {
+(function (isBrowser) {
   var semver;
 
   if (isBrowser) {
+    // eslint-disable-next-line no-undef
     Happner.ImplementorsProvider = ImplementorsProvider;
+    // eslint-disable-next-line no-undef
     semver = Happner.semver;
   } else {
     module.exports = ImplementorsProvider;
@@ -11,7 +13,7 @@
 
   function ImplementorsProvider(happnerClient, connection) {
     Object.defineProperty(this, 'happnerClient', {
-      value: happnerClient
+      value: happnerClient,
     });
     this.log = happnerClient.log;
     this.connection = connection;
@@ -40,19 +42,19 @@
     this.awaitingDescriptions = {};
 
     this.events = {
-      once: {}
+      once: {},
     };
 
     happnerClient.on('reconnected', (this.reconnectedHandler = this.clear.bind(this)));
   }
 
-  ImplementorsProvider.prototype.clear = function() {
+  ImplementorsProvider.prototype.clear = function () {
     this.maps = {};
     this.descriptions = [];
     this.callersAwaitingDescriptions = [];
   };
 
-  ImplementorsProvider.prototype.getSingleDescription = function(
+  ImplementorsProvider.prototype.getSingleDescription = function (
     client,
     self,
     cluster,
@@ -62,11 +64,11 @@
   ) {
     var _this = this;
 
-    client.get('/mesh/schema/description', function(e, description) {
+    client.get('/mesh/schema/description', function (e, description) {
       if (e) return onFailure(e);
 
       if (!description || description.initializing) {
-        setTimeout(function() {
+        setTimeout(function () {
           _this.getSingleDescription(client, self, cluster, onSuccess, onFailure, onIgnore);
         }, 1000);
         return;
@@ -101,7 +103,7 @@
     });
   };
 
-  ImplementorsProvider.prototype.subscribeToPeerEvents = function() {
+  ImplementorsProvider.prototype.subscribeToPeerEvents = function () {
     this.connection.clients.on('peer/add', (this.addPeerHandler = this.addPeer.bind(this)));
     this.connection.clients.on(
       'peer/remove',
@@ -109,42 +111,42 @@
     );
   };
 
-  ImplementorsProvider.prototype.unsubscribeFromPeerEvents = function() {
+  ImplementorsProvider.prototype.unsubscribeFromPeerEvents = function () {
     this.connection.clients.removeListener('peer/add', this.addPeerHandler);
     this.connection.clients.removeListener('peer/remove', this.removePeerHandler);
   };
 
-  ImplementorsProvider.prototype.stop = function() {
+  ImplementorsProvider.prototype.stop = function () {
     this.happnerClient.removeListener('reconnected', this.reconnectedHandler);
     this.clear();
   };
 
-  ImplementorsProvider.prototype.addPeer = function(name) {
+  ImplementorsProvider.prototype.addPeer = function (name) {
     var _this = this;
     var peer = this.connection.clients.peers[name];
-    var onSuccess = function(description) {
+    var onSuccess = function (description) {
       var clonedDescription = Object.assign({}, description);
       _this.logDependenciesMet(clonedDescription);
     };
-    var onFailure = function(e) {
+    var onFailure = function (e) {
       _this.happnerClient.log.error('failed to get description for %s', name, e);
     };
-    var onIgnore = function(reason) {
+    var onIgnore = function (reason) {
       _this.happnerClient.log.info(reason);
     };
 
     this.getSingleDescription(peer.client, peer.self, true, onSuccess, onFailure, onIgnore);
   };
 
-  ImplementorsProvider.prototype.removePeer = function(name) {
+  ImplementorsProvider.prototype.removePeer = function (name) {
     var removedPeerDescription = this.removeDescription(name);
     if (removedPeerDescription)
       this.happnerClient.emit('peer/departed/description', removedPeerDescription);
   };
 
-  ImplementorsProvider.prototype.getDescriptions = function() {
+  ImplementorsProvider.prototype.getDescriptions = function () {
     var _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       if (!_this.connection.connected) {
         return reject(new Error('Not connected'));
       }
@@ -155,12 +157,12 @@
 
       _this.callersAwaitingDescriptions.push({
         resolve: resolve,
-        reject: reject
+        reject: reject,
       });
 
       if (_this.callersAwaitingDescriptions.length > 1) return;
 
-      var success = function(description) {
+      var success = function (description) {
         var reply;
         while ((reply = _this.callersAwaitingDescriptions.shift())) {
           reply.resolve();
@@ -170,14 +172,14 @@
         _this.logDependenciesMet(description);
       };
 
-      var failure = function(e) {
+      var failure = function (e) {
         var reply;
         while ((reply = _this.callersAwaitingDescriptions.shift())) {
           reply.reject(e);
         }
       };
 
-      var ignore = function(reason) {
+      var ignore = function (reason) {
         _this.log.info(reason);
         var reply;
         while ((reply = _this.callersAwaitingDescriptions.shift())) {
@@ -187,13 +189,13 @@
         _this.callersAwaitingDescriptions = false;
       };
 
-      var fetchMultiple = function(clients) {
+      var fetchMultiple = function (clients) {
         return Promise.all(
-          Object.keys(clients).map(function(name) {
-            return new Promise(function(resolve) {
+          Object.keys(clients).map(function (name) {
+            return new Promise(function (resolve) {
               var client = clients[name].client;
               var self = clients[name].self;
-              _this.getSingleDescription(client, self, true, resolve, resolve, reason => {
+              _this.getSingleDescription(client, self, true, resolve, resolve, (reason) => {
                 _this.log.info(reason);
                 resolve();
               });
@@ -219,11 +221,11 @@
     });
   };
 
-  ImplementorsProvider.prototype.addDescription = function(description) {
+  ImplementorsProvider.prototype.addDescription = function (description) {
     var _this = this;
     this.descriptions.push(description);
     this.happnerClient.emit('description/new', description);
-    Object.keys(this.maps).forEach(function(mapPath) {
+    Object.keys(this.maps).forEach(function (mapPath) {
       var parts = mapPath.split('/');
       var componentName = parts[0];
       var version = parts[1];
@@ -238,30 +240,30 @@
       var mapData = _this.maps[mapPath];
       mapData.push({
         local: description.self,
-        name: description.meshName
+        name: description.meshName,
       });
     });
   };
 
-  ImplementorsProvider.prototype.removeDescription = function(name) {
+  ImplementorsProvider.prototype.removeDescription = function (name) {
     var _this = this,
       removed;
 
-    this.descriptions = this.descriptions.filter(function(el) {
+    this.descriptions = this.descriptions.filter(function (el) {
       if (el.meshName !== name) return true;
       removed = el;
       return false;
     });
 
-    Object.keys(this.maps).forEach(function(mapPath) {
-      _this.maps[mapPath] = _this.maps[mapPath].filter(function(el) {
+    Object.keys(this.maps).forEach(function (mapPath) {
+      _this.maps[mapPath] = _this.maps[mapPath].filter(function (el) {
         return el.name !== name;
       });
     });
     return removed;
   };
 
-  ImplementorsProvider.prototype.notImplementedError = function(
+  ImplementorsProvider.prototype.notImplementedError = function (
     componentName,
     version,
     methodName
@@ -269,7 +271,7 @@
     return new Error('Not implemented ' + componentName + ':' + version + ':' + methodName);
   };
 
-  ImplementorsProvider.prototype.getNextImplementation = function(
+  ImplementorsProvider.prototype.getNextImplementation = function (
     componentName,
     version,
     methodName
@@ -288,17 +290,17 @@
 
     mapData = [];
 
-    this.descriptions.forEach(function(description) {
+    this.descriptions.forEach(function (description) {
       var components = description.components;
-      Object.keys(components).forEach(function(compName) {
+      Object.keys(components).forEach(function (compName) {
         if (compName !== componentName) return;
         var component = components[compName];
         if (!semver.coercedSatisfies(component.version, version)) return;
-        Object.keys(component.methods).forEach(function(methName) {
+        Object.keys(component.methods).forEach(function (methName) {
           if (methName !== methodName) return;
           mapData.push({
             local: description.self,
-            name: description.meshName
+            name: description.meshName,
           });
         });
       });
@@ -313,7 +315,7 @@
   };
 
   //how round-robining happens
-  ImplementorsProvider.prototype.getNext = function(array) {
+  ImplementorsProvider.prototype.getNext = function (array) {
     if (typeof array.__lastSequence === 'undefined') {
       array.__lastSequence = 0;
       return array[array.__lastSequence];
@@ -326,7 +328,7 @@
     return array[array.__lastSequence];
   };
 
-  ImplementorsProvider.prototype.registerDependency = function(
+  ImplementorsProvider.prototype.registerDependency = function (
     dependorName,
     componentName,
     version
@@ -336,26 +338,26 @@
     this.dependencies[dependorName][componentName] = version;
   };
 
-  ImplementorsProvider.prototype.addAndCheckDependencies = function(dependor, dependencies) {
+  ImplementorsProvider.prototype.addAndCheckDependencies = function (dependor, dependencies) {
     dependencies = dependencies.$broker || dependencies;
-    Object.keys(dependencies).forEach(component => {
+    Object.keys(dependencies).forEach((component) => {
       this.registerDependency(dependor, component, dependencies[component].version);
     });
     return this.logDependenciesMet(this.descriptions);
   };
 
-  ImplementorsProvider.prototype.logDependenciesMet = function(descriptions) {
+  ImplementorsProvider.prototype.logDependenciesMet = function (descriptions) {
     if (!this.gotDescriptions) return false;
     if (!this.dependencies || Object.keys(this.dependencies).length === 0) return true;
 
     let allSatisfied = true;
-    Object.keys(this.dependencies).forEach(dependorName => {
+    Object.keys(this.dependencies).forEach((dependorName) => {
       let satisfied = true;
       let dependencies = {
         tree: this.dependencies[dependorName],
-        keys: Object.keys(this.dependencies[dependorName])
+        keys: Object.keys(this.dependencies[dependorName]),
       };
-      dependencies.keys.forEach(componentName => {
+      dependencies.keys.forEach((componentName) => {
         let version = dependencies.tree[componentName];
         let countMatches = this.countDependencyMatches(componentName, version);
         let log = this.log.info;
@@ -366,7 +368,7 @@
         }
         log('dependent %s has %d of %s %s', dependorName, countMatches, componentName, version);
         this.__getUpdatedDependencyDescriptions(descriptions, componentName, version).forEach(
-          foundComponentDescription => {
+          (foundComponentDescription) => {
             this.happnerClient.emit('peer/arrived/description', {
               dependorName: dependorName,
               countMatches: countMatches,
@@ -374,7 +376,7 @@
               version: version,
               description: foundComponentDescription.components[componentName],
               url: foundComponentDescription.url,
-              meshName: foundComponentDescription.meshName
+              meshName: foundComponentDescription.meshName,
             });
           }
         );
@@ -392,14 +394,14 @@
     return allSatisfied;
   };
 
-  ImplementorsProvider.prototype.__getUpdatedDependencyDescriptions = function(
+  ImplementorsProvider.prototype.__getUpdatedDependencyDescriptions = function (
     descriptions,
     componentName,
     version
   ) {
     if (!Array.isArray(descriptions)) descriptions = [descriptions];
 
-    return descriptions.filter(function(description) {
+    return descriptions.filter(function (description) {
       if (!description || !description.components || !description.components[componentName])
         return false;
       if (semver.coercedSatisfies(description.components[componentName].version, version))
@@ -407,9 +409,9 @@
     });
   };
 
-  ImplementorsProvider.prototype.countDependencyMatches = function(componentName, version) {
+  ImplementorsProvider.prototype.countDependencyMatches = function (componentName, version) {
     var count = 0;
-    this.descriptions.forEach(function(description) {
+    this.descriptions.forEach(function (description) {
       if (!description.components[componentName]) return;
       var gotVersion = description.components[componentName].version;
       if (!semver.coercedSatisfies(gotVersion, version)) return;

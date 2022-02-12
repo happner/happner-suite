@@ -1,8 +1,6 @@
-const testHelper = require('../../__fixtures/utils/test_helper').create();
-describe(testHelper.testName(__filename, 3), function () {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
   const Mesh = require('../../../lib/mesh');
   const Primus = require('happn-primus-wrapper');
-  this.timeout(60000);
 
   var serviceInstance;
   var clientInstance;
@@ -13,27 +11,26 @@ describe(testHelper.testName(__filename, 3), function () {
     zombieSocket();
     zombieSocket();
     zombieSocket();
-    await testHelper.delay(2000);
-    testHelper
+    await test.delay(2000);
+    test
       .expect(
         Object.keys(serviceInstance._mesh.happn.server.services.session.__sessions).length > 1
       )
       .to.be(true);
-    await testHelper.delay(15000);
-    testHelper
+    await test.delay(15000);
+    test
       .expect(Object.keys(serviceInstance._mesh.happn.server.services.session.__sessions).length)
       .to.be(2);
   });
 
   afterEach('disconnects the client and stops the server', async () => {
-    this.timeout(3000);
     await disconnectZombies();
     await disconnectClient();
     await stopService();
   });
 
   // in case this is necessary next time
-  //testHelper.showOpenHandles(after, 5000);
+  //test.showOpenHandles(after, 5000);
 
   const zombies = [];
 

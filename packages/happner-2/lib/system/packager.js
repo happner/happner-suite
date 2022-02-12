@@ -150,37 +150,42 @@ Packager.prototype.readFile = async function (file) {
   return await util.promisify(fs.readFile)(typeof file.then === 'function' ? await file : file);
 };
 
+Packager.prototype.resolveScript = async function (script) {
+  if (utils.isPromise(script.file)) {
+    script.file = await script.file;
+  }
+  return script;
+};
+
 Packager.prototype.initialize = function (callback) {
   if (!this.scripts) {
     return callback();
   }
 
   this.log.$$DEBUG('Building /api/client package');
-  var lstatPromise = util.promisify(fs.lstat);
-  var _this = this;
-
+  const lstatPromise = util.promisify(fs.lstat);
   return (
     Promise.all(
-      _this.scripts.map(function (script) {
-        return new Promise(function (resolve) {
+      this.scripts.map((script) => {
+        return new Promise((resolve) => {
           // handle each script object
 
           if (process.env.NODE_ENV === 'production' && !script.min) {
-            var gotMinFile = script.file.replace(/\.js$/, '.min.js');
-
-            // Production
-            return lstatPromise(gotMinFile)
-              .then(function () {
-                script.file = gotMinFile;
-                script.min = true;
-                resolve(script);
-              })
-              .catch(function () {
-                script.min = false;
-                resolve(script);
-              });
+            return this.resolveScript(script).then((resolvedScript) => {
+              var gotMinFile = resolvedScript.file.replace(/\.js$/, '.min.js');
+              // Production
+              lstatPromise(gotMinFile)
+                .then(() => {
+                  resolvedScript.file = gotMinFile;
+                  resolvedScript.min = true;
+                  resolve(resolvedScript);
+                })
+                .catch(() => {
+                  resolvedScript.min = false;
+                  resolve(resolvedScript);
+                });
+            });
           }
-
           // Not production
           return resolve(script);
         });
@@ -188,19 +193,19 @@ Packager.prototype.initialize = function (callback) {
     )
 
       // Read the files
-      .then(function (scripts) {
+      .then((scripts) => {
         return Promise.all(
-          scripts.map(function (script) {
-            _this.log.$$DEBUG('reading script %s', script.file);
-            return _this.readFile(script.file);
+          scripts.map((script) => {
+            this.log.$$DEBUG('reading script %s', script.file);
+            return this.readFile(script.file);
           })
         );
       })
 
       // Load the buffer data onto the scripts array
-      .then(function (buffers) {
-        buffers.forEach(function (buf, i) {
-          _this.scripts[i].buf = buf;
+      .then((buffers) => {
+        buffers.forEach((buf, i) => {
+          this.scripts[i].buf = buf;
         });
       })
 
@@ -211,44 +216,44 @@ Packager.prototype.initialize = function (callback) {
       //   server to get the updated script to the browser.
 
       // Minifi if production
-      .then(function () {
-        _this.scripts.forEach(function (script) {
+      .then(() => {
+        this.scripts.forEach((script) => {
           if (process.env.NODE_ENV === 'production' && !script.min) {
-            _this.log.$$DEBUG('minify script %s', script.file);
+            this.log.$$DEBUG('minify script %s', script.file);
             script.buf = minify(script.buf.toString()).code;
           }
         });
       })
 
       // Set watchers
-      .then(function () {
-        _this.scripts.forEach(function (script) {
+      .then(() => {
+        this.scripts.forEach((script) => {
           if (!script.watch) return;
           if (process.env.NODE_ENV === 'production') return;
-          _this.log.$$DEBUG('(non-production) watching %s', script.file);
+          this.log.$$DEBUG('(non-production) watching %s', script.file);
 
-          if (_this.__watchedFiles[script.file]) {
+          if (this.__watchedFiles[script.file]) {
             return;
           }
 
-          _this.__watchedFiles[script.file] = 1; // prevent too many listeners on file
+          this.__watchedFiles[script.file] = 1; // prevent too many listeners on file
           // for systems that run many mesh nodes
           // in one process
-          _this.__fileWatchers.push(
-            fs.watch(script.file, { interval: 1000 }, function (curr, prev) {
+          this.__fileWatchers.push(
+            fs.watch(script.file, { interval: 1000 }, (curr, prev) => {
               if (prev.mtime > curr.mtime) return;
-              _this.log.warn('changed %s', script.file);
+              this.log.warn('changed %s', script.file);
 
-              readFilePromise(script.file)
-                .then(function (buf) {
+              this.readFile(script.file)
+                .then((buf) => {
                   script.buf = buf;
-                  return _this.assemble();
+                  return this.assemble();
                 })
-                .then(function () {
-                  _this.log.warn('reload done');
+                .then(() => {
+                  this.log.warn('reload done');
                 })
-                .catch(function (e) {
-                  _this.log.error('reload failed', e);
+                .catch((e) => {
+                  this.log.error('reload failed', e);
                 });
             })
           );
@@ -256,8 +261,8 @@ Packager.prototype.initialize = function (callback) {
       })
 
       // Assemble the package.
-      .then(function () {
-        return _this.assemble();
+      .then(() => {
+        return this.assemble();
       })
 
       .then(function () {

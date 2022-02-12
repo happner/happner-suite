@@ -120,12 +120,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   after(function (done) {
-    delete global.TESTING_INIT_START; //.............
+    delete global.TESTING_INIT_START;
     mesh.stop({ reconnect: false }, done);
   });
 
   it('validates init method created a user', function (done) {
-    this.mesh.api.exchange.explicit.methodName1(function (err, user) {
+    this.mesh.api.exchange.explicit.methodName1(function (_err, user) {
       test.expect(user.username).to.be('TEST USER@blah.com');
       done();
     });

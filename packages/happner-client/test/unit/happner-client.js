@@ -1,7 +1,7 @@
 const test = require('../__fixtures/test-helper').create();
 var HappnerClient = require('../..');
 
-describe(test.name(__filename, 3), function() {
+describe(test.name(__filename, 3), function () {
   this.timeout(10000);
 
   //   after('checks open handles', async () => {
@@ -17,8 +17,8 @@ describe(test.name(__filename, 3), function() {
     client.__operations.unsubscribePath = test.sinon.stub();
     const mockEventApi = {
       event: {
-        testComponent: {}
-      }
+        testComponent: {},
+      },
     };
     client.__mountEvent(mockEventApi, 'testComponent', '*');
     mockEventApi.event.testComponent.on('test/path', { test: 'options' }, handler, callback);

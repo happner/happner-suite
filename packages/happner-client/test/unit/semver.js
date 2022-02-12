@@ -1,6 +1,6 @@
 const test = require('../__fixtures/test-helper').create();
-describe(test.name(__filename, 2), function() {
-  it('tests the semver implementation', function() {
+describe(test.name(__filename, 2), function () {
+  it('tests the semver implementation', function () {
     const semver = require('happner-semver');
     test.expect(semver.satisfies('1.0.1', '^1.0.0')).to.be(true);
     test.expect(semver.satisfies('2.0.0', '^1.0.0')).to.be(false);

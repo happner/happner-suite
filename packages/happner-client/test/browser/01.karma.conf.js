@@ -1,7 +1,7 @@
 // Karma configuration
 // Generated on Tue Dec 01 2015 11:18:30 GMT+0200 (SAST)
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     crossOriginAttribute: false,
 
@@ -15,7 +15,7 @@ module.exports = function(config) {
     files: [
       { pattern: 'http://localhost:55000/api/client', type: 'js' },
       'browsertest_01_happner_client.js',
-      'browsertest_02_happner_client_light.js'
+      'browsertest_02_happner_client_light.js',
     ],
 
     // list of files to exclude
@@ -46,8 +46,8 @@ module.exports = function(config) {
       Chrome_without_security: {
         base: 'ChromeHeadless',
         // base: 'Chrome', // to see output
-        flags: ['--disable-web-security', '--ignore-certificate-errors']
-      }
+        flags: ['--disable-web-security', '--ignore-certificate-errors'],
+      },
     },
 
     // Continuous Integration mode
@@ -58,6 +58,6 @@ module.exports = function(config) {
     // how many browser should be started simultanous
     concurrency: Infinity,
 
-    browserNoActivityTimeout: 60000
+    browserNoActivityTimeout: 60000,
   });
 };

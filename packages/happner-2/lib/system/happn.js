@@ -213,7 +213,7 @@ function __initializeDbConfig(config) {
 
       // creates a new file with every mesh re start
       config.happn.filename =
-        homeDir + path.sep + '.happn' + path.sep + 'data' + path.sep + defaultDBFilepart + '.nedb';
+        homeDir + path.sep + '.happn' + path.sep + 'data' + path.sep + defaultDBFilepart + '.loki';
     }
 
     fs.ensureDirSync(path.dirname(config.happn.filename));

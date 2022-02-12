@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-describe('browsertest_02_happner_client_light', function() {
+describe('browsertest_02_happner_client_light', function () {
   // test new client
   let expect = window.expect;
   let client;
@@ -11,28 +11,28 @@ describe('browsertest_02_happner_client_light', function() {
     client = await createClient({ domain: DOMAIN, secure: true });
   });
 
-  after('stop client', function(done) {
+  after('stop client', function (done) {
     this.timeout(100000);
     if (!client) return done();
     client.disconnect(done);
   });
 
   async function delay(ms) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
   }
 
-  context('callbacks', function() {
-    it('can call a function which returns one argument', function(done) {
+  context('callbacks', function () {
+    it('can call a function which returns one argument', function (done) {
       try {
         client.exchange.$call(
           {
             component: 'component1',
             method: 'methodReturningOneArg',
-            arguments: ['arg1']
+            arguments: ['arg1'],
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             expect(result).to.equal('arg1');
             done();
@@ -43,14 +43,14 @@ describe('browsertest_02_happner_client_light', function() {
       }
     });
 
-    it('fails to call a component that does not exist', function(done) {
+    it('fails to call a component that does not exist', function (done) {
       client.exchange.$call(
         {
           component: 'nonExistentComponent',
           method: 'methodReturningOneArg',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
-        function(e) {
+        function (e) {
           expect(e.message).to.equal(
             'Call to unconfigured component: [nonExistentComponent.methodReturningOneArg]'
           );
@@ -59,14 +59,14 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('fails call a method that does not exist', function(done) {
+    it('fails call a method that does not exist', function (done) {
       client.exchange.$call(
         {
           component: 'component1',
           method: 'nonExistentMethod',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
-        function(e) {
+        function (e) {
           expect(e.message).to.equal(
             'Call to unconfigured method [component1.nonExistentMethod()]'
           );
@@ -75,14 +75,14 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('can call a function which returns two arguments', function(done) {
+    it('can call a function which returns two arguments', function (done) {
       client.exchange.$call(
         {
           component: 'component1',
           method: 'methodReturningTwoArgs',
-          arguments: ['arg1', 'arg2']
+          arguments: ['arg1', 'arg2'],
         },
-        function(e, result1, result2) {
+        function (e, result1, result2) {
           if (e) return done(e);
           expect(result1).to.equal('arg1');
           expect(result2).to.equal('arg2');
@@ -91,14 +91,14 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('can call a function which returns an error', function(done) {
+    it('can call a function which returns an error', function (done) {
       client.exchange.$call(
         {
           component: 'component1',
           method: 'methodReturningError',
-          arguments: []
+          arguments: [],
         },
-        function(e) {
+        function (e) {
           try {
             expect(e.name).to.equal('Error');
             expect(e.message).to.equal('Component error');
@@ -110,14 +110,14 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('cannot call a function that does not exist', function(done) {
+    it('cannot call a function that does not exist', function (done) {
       client.exchange.$call(
         {
           component: 'component1',
           method: 'methodOnApiOnly',
-          arguments: []
+          arguments: [],
         },
-        function(e) {
+        function (e) {
           try {
             expect(e.name).to.equal('Error');
             expect(e.message).to.equal(
@@ -131,15 +131,15 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('cannot call a function with incorrect version', function(done) {
+    it('cannot call a function with incorrect version', function (done) {
       client.exchange.$call(
         {
           component: 'component2',
           version: '1.0.0',
           method: 'methodReturningOneArg',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
-        function(e) {
+        function (e) {
           try {
             expect(e.name).to.equal('Error');
             expect(e.message).to.equal(
@@ -154,12 +154,12 @@ describe('browsertest_02_happner_client_light', function() {
     });
   });
 
-  context('promises', function() {
+  context('promises', function () {
     it('can call a function which returns one argument', async () => {
       const results = await client.exchange.$call({
         component: 'component1',
         method: 'methodReturningOneArg',
-        arguments: ['arg1']
+        arguments: ['arg1'],
       });
       expect(results).to.eql('arg1');
     });
@@ -168,7 +168,7 @@ describe('browsertest_02_happner_client_light', function() {
       const results = await client.exchange.$call({
         component: 'component1',
         method: 'methodReturningTwoArgs',
-        arguments: ['arg1', 'arg2']
+        arguments: ['arg1', 'arg2'],
       });
       expect(results).to.eql(['arg1', 'arg2']);
     });
@@ -188,7 +188,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'nonExistentComponent',
           method: 'methodReturningOneArg',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
         'Call to unconfigured component: [nonExistentComponent.methodReturningOneArg]'
       );
@@ -199,7 +199,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'nonExistentMethod',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
         'Call to unconfigured method [component1.nonExistentMethod()]'
       );
@@ -210,7 +210,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'methodReturningError',
-          arguments: []
+          arguments: [],
         },
         'Component error'
       );
@@ -221,7 +221,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'methodOnApiOnly',
-          arguments: []
+          arguments: [],
         },
         'Call to unconfigured method [component1.methodOnApiOnly()]'
       );
@@ -233,15 +233,15 @@ describe('browsertest_02_happner_client_light', function() {
           component: 'component2',
           version: '1.0.0',
           method: 'methodReturningOneArg',
-          arguments: ['arg1']
+          arguments: ['arg1'],
         },
         `Call to unconfigured method [component2.methodReturningOneArg]: request version [1.0.0] does not match component version [2.0.0]`
       );
     });
   });
 
-  context('timeouts', function() {
-    it('checks the default request and response timeouts are 120 seconds', function() {
+  context('timeouts', function () {
+    it('checks the default request and response timeouts are 120 seconds', function () {
       expect(client.__requestTimeout).to.equal(60e3);
       expect(client.__responseTimeout).to.equal(120e3);
     });
@@ -250,7 +250,7 @@ describe('browsertest_02_happner_client_light', function() {
       const timeoutClient = await createClient({
         domain: DOMAIN,
         requestTimeout: 5e3,
-        responseTimeout: 5e3
+        responseTimeout: 5e3,
       });
       expect(timeoutClient.__requestTimeout).to.equal(5e3);
       expect(timeoutClient.__responseTimeout).to.equal(5e3);
@@ -258,7 +258,7 @@ describe('browsertest_02_happner_client_light', function() {
       try {
         await timeoutClient.exchange.$call({
           component: 'component1',
-          method: 'methodThatTimesOut'
+          method: 'methodThatTimesOut',
         });
       } catch (e) {
         errorMessage = e.message;
@@ -272,20 +272,20 @@ describe('browsertest_02_happner_client_light', function() {
     });
   });
 
-  context('events - promises', function() {
+  context('events - promises', function () {
     it('we are able to call component methods and listen to events', async () => {
       let results = await callAndListen(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' }
       );
       expect(results).to.eql({
         event: { DATA: 1 },
-        exec: null
+        exec: null,
       });
     });
 
@@ -295,7 +295,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' }
       );
@@ -308,7 +308,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         true
@@ -322,7 +322,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' }
       );
@@ -335,7 +335,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         true
@@ -349,7 +349,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' }
       );
@@ -362,7 +362,7 @@ describe('browsertest_02_happner_client_light', function() {
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         true
@@ -371,34 +371,34 @@ describe('browsertest_02_happner_client_light', function() {
     });
   });
 
-  context('events - callbacks', function() {
-    it('we are able to call component methods and listen to events - with callback', function(done) {
+  context('events - callbacks', function () {
+    it('we are able to call component methods and listen to events - with callback', function (done) {
       callAndListenCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         (e, results) => {
           if (e) return done(e);
           expect(results).to.eql({
             event: { DATA: 1 },
-            exec: null
+            exec: null,
           });
           done();
         }
       );
     });
 
-    it('we are able to call component methods and listen to events using $once - with callback', function(done) {
+    it('we are able to call component methods and listen to events using $once - with callback', function (done) {
       callAndListenOnceCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         (e, results) => {
@@ -409,13 +409,13 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('we are able to call component methods and listen to events with an $off - with callback', function(done) {
+    it('we are able to call component methods and listen to events with an $off - with callback', function (done) {
       callAndListenOffCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         false,
@@ -427,13 +427,13 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('we are able to call component methods and listen to events with an $off - with callback - negative test', function(done) {
+    it('we are able to call component methods and listen to events with an $off - with callback - negative test', function (done) {
       callAndListenOffCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         true,
@@ -445,13 +445,13 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('we are able to call component methods and listen to events with an $offPath - with callback', function(done) {
+    it('we are able to call component methods and listen to events with an $offPath - with callback', function (done) {
       callAndListenOffPathCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { component: 'component1', path: 'test/event' },
         false,
@@ -463,13 +463,13 @@ describe('browsertest_02_happner_client_light', function() {
       );
     });
 
-    it('we are able to call component methods and listen to events with an $offPath - with callback - negative test', function(done) {
+    it('we are able to call component methods and listen to events with an $offPath - with callback - negative test', function (done) {
       callAndListenOffPathCallback(
         client,
         {
           component: 'component1',
           method: 'exec',
-          arguments: ['test/event']
+          arguments: ['test/event'],
         },
         { mesh: 'MESH_NAME', component: 'component1', path: 'test/event' },
         true,
@@ -484,7 +484,7 @@ describe('browsertest_02_happner_client_light', function() {
 
   async function callAndListen(client, callParameters, listenParameters) {
     let results = {};
-    await client.event.$on(listenParameters, function(data) {
+    await client.event.$on(listenParameters, function (data) {
       results.event = data;
     });
     results.exec = await client.exchange.$call(callParameters);
@@ -495,11 +495,11 @@ describe('browsertest_02_happner_client_light', function() {
   async function callAndListenOnce(client, callParameters, listenParameters, negative) {
     let eventCounter = 0;
     if (!negative) {
-      await client.event.$once(listenParameters, function() {
+      await client.event.$once(listenParameters, function () {
         eventCounter++;
       });
     } else {
-      await client.event.$on(listenParameters, function() {
+      await client.event.$on(listenParameters, function () {
         eventCounter++;
       });
     }
@@ -513,10 +513,10 @@ describe('browsertest_02_happner_client_light', function() {
 
   async function callAndListenOff(client, callParameters, listenParameters, negative) {
     let eventCounter = 0;
-    const id = await client.event.$on(listenParameters, function() {
+    const id = await client.event.$on(listenParameters, function () {
       eventCounter++;
     });
-    await client.event.$on(listenParameters, function() {
+    await client.event.$on(listenParameters, function () {
       eventCounter++;
     });
     await client.exchange.$call(callParameters);
@@ -528,10 +528,10 @@ describe('browsertest_02_happner_client_light', function() {
 
   async function callAndListenOffPath(client, callParameters, listenParameters, negative) {
     let eventCounter = 0;
-    await client.event.$on(listenParameters, function() {
+    await client.event.$on(listenParameters, function () {
       eventCounter++;
     });
-    await client.event.$on(listenParameters, function() {
+    await client.event.$on(listenParameters, function () {
       eventCounter++;
     });
     await client.exchange.$call(callParameters);
@@ -545,10 +545,10 @@ describe('browsertest_02_happner_client_light', function() {
     let results = {};
     client.event.$on(
       listenParameters,
-      function(data) {
+      function (data) {
         results.event = data;
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
         client.exchange.$call(callParameters, (e, result) => {
           if (e) return callback(e);
@@ -565,16 +565,16 @@ describe('browsertest_02_happner_client_light', function() {
     let eventCounter = 0;
     client.event.$once(
       listenParameters,
-      function() {
+      function () {
         eventCounter++;
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
-        client.exchange.$call(callParameters, e => {
+        client.exchange.$call(callParameters, (e) => {
           if (e) return callback(e);
-          client.exchange.$call(callParameters, e => {
+          client.exchange.$call(callParameters, (e) => {
             if (e) return callback(e);
-            client.exchange.$call(callParameters, e => {
+            client.exchange.$call(callParameters, (e) => {
               if (e) return callback(e);
               setTimeout(() => {
                 callback(null, eventCounter);
@@ -591,7 +591,7 @@ describe('browsertest_02_happner_client_light', function() {
     let id;
 
     let finishCallback = () => {
-      client.exchange.$call(callParameters, e => {
+      client.exchange.$call(callParameters, (e) => {
         if (e) return callback(e);
         setTimeout(() => {
           callback(null, eventCounter);
@@ -601,7 +601,7 @@ describe('browsertest_02_happner_client_light', function() {
 
     client.event.$on(
       listenParameters,
-      function() {
+      function () {
         eventCounter++;
       },
       (e, eventId) => {
@@ -609,15 +609,15 @@ describe('browsertest_02_happner_client_light', function() {
         id = eventId;
         client.event.$on(
           listenParameters,
-          function() {
+          function () {
             eventCounter++;
           },
-          e => {
+          (e) => {
             if (e) return callback(e);
-            client.exchange.$call(callParameters, e => {
+            client.exchange.$call(callParameters, (e) => {
               if (e) return callback(e);
               if (negative) return finishCallback();
-              return client.event.$off(id, e => {
+              return client.event.$off(id, (e) => {
                 if (e) return callback(e);
                 finishCallback();
               });
@@ -637,7 +637,7 @@ describe('browsertest_02_happner_client_light', function() {
   ) {
     let eventCounter = 0;
     let finishCallback = () => {
-      client.exchange.$call(callParameters, e => {
+      client.exchange.$call(callParameters, (e) => {
         if (e) return callback(e);
         setTimeout(() => {
           callback(null, eventCounter);
@@ -646,22 +646,22 @@ describe('browsertest_02_happner_client_light', function() {
     };
     client.event.$on(
       listenParameters,
-      function() {
+      function () {
         eventCounter++;
       },
-      e => {
+      (e) => {
         if (e) return callback(e);
         client.event.$on(
           listenParameters,
-          function() {
+          function () {
             eventCounter++;
           },
-          e => {
+          (e) => {
             if (e) return callback(e);
-            client.exchange.$call(callParameters, e => {
+            client.exchange.$call(callParameters, (e) => {
               if (e) return callback(e);
               if (negative) return finishCallback();
-              client.event.$offPath(listenParameters, e => {
+              client.event.$offPath(listenParameters, (e) => {
                 if (e) return callback(e);
                 finishCallback();
               });
@@ -673,6 +673,7 @@ describe('browsertest_02_happner_client_light', function() {
   }
 
   async function createClient(opts) {
+    // eslint-disable-next-line no-undef
     const createdClient = new Happner.LightHappnerClient(opts);
     await createdClient.connect(null, { username: '_ADMIN', password: 'xxx' });
     return createdClient;
