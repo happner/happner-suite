@@ -56,3 +56,6 @@ report.*
 packages/happner-2/test/temp
 packages/happner-2/test/integration/temp
 packages/happner-2/temp
+
+!packages/happn-3/test/__fixtures/test/integration/data/old-keypair.nedb
+!packages/happn-3/test/__fixtures/test/integration/data/old-keypair-original.nedb

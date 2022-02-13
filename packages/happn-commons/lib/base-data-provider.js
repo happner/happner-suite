@@ -11,36 +11,36 @@ module.exports = class BaseDataProvider extends require('events').EventEmitter {
         path: document.path,
         created: document.created,
         modified: document.modified,
-        modifiedBy: document.modifiedBy
-      }
+        modifiedBy: document.modifiedBy,
+      },
     };
   }
   transformAll(items, fields) {
-    return items.map(item => {
+    return items.map((item) => {
       return this.transform(item, null, fields);
     });
   }
-  getMeta(document) {
+  getMeta(document, pathKey = 'path') {
     return {
       created: document.created,
       modified: document.modified,
       modifiedBy: document.modifiedBy,
-      path: document.path
+      path: document[pathKey],
     };
   }
   addCriteria(pathObject, criteria) {
     return { $and: [pathObject, criteria] };
   }
-  getPathCriteria(path) {
+  getPathCriteria(path, pathKey = 'path') {
     if (path.indexOf('*') === -1) {
-      return { path };
+      return { [pathKey]: path };
     }
     return {
-      path: {
+      [pathKey]: {
         $regex: new RegExp(
           '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$'
-        )
-      }
+        ),
+      },
     };
   }
   preparePath(path) {

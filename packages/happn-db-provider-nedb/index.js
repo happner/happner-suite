@@ -131,7 +131,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
         }
 
         let data = document || setParameters.$set;
-        let meta = this.getMeta(data);
+        let meta = this.getMeta(data, '_id');
 
         if (setParameters.$set.modifiedBy != null) {
           meta.modifiedBy = setParameters.$set.modifiedBy;
@@ -144,7 +144,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
 
   remove(path, callback) {
     return this.db.remove(
-      this.getPathCriteria(path),
+      this.getPathCriteria(path, '_id'),
       {
         multi: true,
       },
@@ -164,6 +164,17 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     );
   }
 
+  parseSortOptions(sortOptions) {
+    return Object.keys(sortOptions).reduce((parsedOptions, key) => {
+      if (key === 'path') {
+        parsedOptions['_id'] = sortOptions[key];
+      } else {
+        parsedOptions[key] = sortOptions[key];
+      }
+      return parsedOptions;
+    }, {});
+  }
+
   find(path, parameters, callback) {
     if (typeof parameters === 'function') {
       callback = parameters;
@@ -172,11 +183,11 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     if (parameters == null) {
       parameters = {};
     }
-    let pathCriteria = this.getPathCriteria(path);
+    let pathCriteria = this.getPathCriteria(path, '_id');
     if (parameters.criteria) {
       pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
     }
-    const sortOptions = parameters.options ? parameters.options.sort : { path: 1 };
+    const sortOptions = parameters.options ? parameters.options.sort : { _id: 1 };
     const searchOptions = {};
     if (parameters.options) {
       if (parameters.options.fields) searchOptions.fields = parameters.options.fields;
@@ -186,7 +197,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
 
     let cursor = this.db.find(pathCriteria, searchOptions.fields);
 
-    if (sortOptions) cursor = cursor.sort(sortOptions);
+    if (sortOptions) cursor = cursor.sort(this.parseSortOptions(sortOptions));
     if (searchOptions.skip) cursor = cursor.skip(searchOptions.skip);
     if (searchOptions.limit) cursor = cursor.limit(searchOptions.limit);
 
@@ -197,7 +208,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
   }
 
   count(path, parameters, callback) {
-    var pathCriteria = this.getPathCriteria(path);
+    var pathCriteria = this.getPathCriteria(path, '_id');
 
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
 
@@ -252,6 +263,12 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     } catch (e) {
       callback(e);
     }
+  }
+
+  transform(document) {
+    const transformed = super.transform(document);
+    transformed._meta.path = document._id;
+    return transformed;
   }
 
   stopCompacting(callback) {
