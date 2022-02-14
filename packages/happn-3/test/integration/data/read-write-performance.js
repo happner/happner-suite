@@ -1,6 +1,6 @@
 const constants = require('happn-commons').constants;
 const test = require('../../__fixtures/utils/test_helper').create();
-describe.only(test.testName(), function () {
+describe(test.testName(), function () {
   this.timeout(20000);
   var expect = require('chai').expect;
   var happnInstance = null;
