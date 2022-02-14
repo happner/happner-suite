@@ -2,6 +2,7 @@ coverage/
 variants/
 __*/
 node_modules
+packages/happn-3/coverage
 packages/happn-3/lib/services/connect/public/browser_primus.js
 packages/happn-3/test/integration/session/management_sanity.js
 packages/happn-3/test/browser/browser-client-02.js

@@ -67,6 +67,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     this.db.update(
       {
         path,
+        _id: path,
       },
       {
         $inc: {
@@ -106,7 +107,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
       $set: {
         data: document.data,
         _id: path,
-        path: path,
+        path,
         modifiedBy: options.modifiedBy, //stripped out if undefined by _utils.clone
       },
     });

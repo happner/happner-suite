@@ -29,5 +29,5 @@ module.exports = {
   nodeUtils: require('util'),
   rimraf: require('rimraf'),
   path: require('path'),
-  BaseDataProvider: require('./lib/base-data-provider')
+  BaseDataProvider: require('./lib/base-data-provider'),
 };
