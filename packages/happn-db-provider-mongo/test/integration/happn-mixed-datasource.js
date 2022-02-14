@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 20000, only: true }, function (test) {
+require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
   let fs = test.commons.fs;
   let async = test.commons.async;
   let mode = 'embedded';
