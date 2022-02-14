@@ -1,11 +1,11 @@
-require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, test => {
+require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, (test) => {
   const LokiDataProvider = require('../..');
   const testFileName = test.newTestFile();
   const mockLogger = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
-    trace: test.sinon.stub()
+    trace: test.sinon.stub(),
   };
   beforeEach('delete temp file', async () => {
     test.unlinkFiles([testFileName]);
@@ -36,31 +36,31 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
 
   it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
     await testPersistence({
-      fsync: true
+      fsync: true,
     });
   });
 
   it('starts up the provider with a persistence filename, does some inserts, tests findOne, upsert and the rollover threshold - fsync', async () => {
     await testRollOverThreshold({
-      fsync: true
+      fsync: true,
     });
   });
 
   it('can count - fsync', async () => {
     await testCount({
-      fsync: true
+      fsync: true,
     });
   });
 
   it('can merge - fsync', async () => {
     await testMerge({
-      fsync: true
+      fsync: true,
     });
   });
 
   it('can increment - fsync', async () => {
     await testIncrement({
-      fsync: true
+      fsync: true,
     });
   });
 
@@ -69,9 +69,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     lokiProvider.settings = {
       ...{
         filename: testFileName,
-        snapshotRollOverThreshold: 5
+        snapshotRollOverThreshold: 5,
       },
-      ...settings
+      ...settings,
     };
     await lokiProvider.initialize();
     await lokiProvider.merge('test/path/1', { data: { test1: 'test1' } });
@@ -87,9 +87,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     lokiProvider.settings = {
       ...{
         filename: testFileName,
-        snapshotRollOverThreshold: 5
+        snapshotRollOverThreshold: 5,
       },
-      ...settings
+      ...settings,
     };
     await lokiProvider.initialize();
     await lokiProvider.increment('test/increment', 'testGauge');
@@ -108,9 +108,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     lokiProvider.settings = {
       ...{
         filename: testFileName,
-        snapshotRollOverThreshold: 5
+        snapshotRollOverThreshold: 5,
       },
-      ...settings
+      ...settings,
     };
     await lokiProvider.initialize();
     await lokiProvider.insert({ path: 'test/path/1', data: { test: 'test1' }, created, modified });
@@ -122,9 +122,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
         await lokiProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test1'
-            }
-          }
+              $eq: 'test1',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 1 } });
@@ -134,9 +134,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
         await lokiProvider.count('test/path/*', {
           criteria: {
             'data.test': {
-              $eq: 'test2'
-            }
-          }
+              $eq: 'test2',
+            },
+          },
         })
       )
       .to.eql({ data: { value: 2 } });
@@ -148,30 +148,30 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     lokiProvider.settings = {
       ...{
         filename: testFileName,
-        snapshotRollOverThreshold: 5
+        snapshotRollOverThreshold: 5,
       },
-      ...settings
+      ...settings,
     };
     await lokiProvider.initialize();
     await lokiProvider.insert({
       path: 'test/path/1',
-      data: { test: 'test' }
+      data: { test: 'test' },
     });
     await lokiProvider.insert({
       path: 'test/path/2',
-      data: { test: 'test' }
+      data: { test: 'test' },
     });
     await lokiProvider.insert({
       path: 'test/path/3',
-      data: { test: 'test' }
+      data: { test: 'test' },
     });
     await lokiProvider.upsert('test/path/3', {
       data: { test: 'changed' },
-      _meta: { modifiedBy }
+      _meta: { modifiedBy },
     });
     test.expect(await test.lineCount(testFileName)).to.be(5);
     await lokiProvider.upsert('test/path/4', {
-      data: { test: 'inserted' }
+      data: { test: 'inserted' },
     });
     test.expect(await test.lineCount(testFileName)).to.be(1);
     let found = await lokiProvider.find('test/path/*', { sort: { path: 1 } });
@@ -201,9 +201,9 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     lokiProvider.settings = {
       ...{
         filename: testFileName,
-        snapshotRollOverThreshold: 5
+        snapshotRollOverThreshold: 5,
       },
-      ...settings
+      ...settings,
     };
     await lokiProvider.initialize();
     await lokiProvider.insert({ path: 'test/path/1', data: { test: 'test' } });
@@ -216,8 +216,8 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
     found = await lokiProvider.find('test/path/*', {
       options: {
         sort: { path: -1 },
-        limit: 2
-      }
+        limit: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/3');
     test.expect(found[1].path).to.be('test/path/2');
@@ -226,8 +226,8 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, tes
       options: {
         sort: { path: -1 },
         limit: 2,
-        skip: 2
-      }
+        skip: 2,
+      },
     });
     test.expect(found[0].path).to.be('test/path/1');
     test.expect(found.length).to.be(1);

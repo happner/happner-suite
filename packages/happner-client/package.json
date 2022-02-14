@@ -16,7 +16,7 @@
   "scripts": {
     "coverage": "npm run test-cover && npm run report",
     "coveralls": "npm run test-cover && nyc report --reporter=text-lcov | coveralls",
-    "test": "mocha test/unit/* test/integration/* --recursive",
+    "test": "mocha silence.js test/unit/* test/integration/* --recursive",
     "test-cover": "env LOG_LEVEL=off nyc --reporter=lcov --reporter=text-summary mocha test/unit/* test/integration/*  --recursive",
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },

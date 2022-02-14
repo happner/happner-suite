@@ -3,7 +3,7 @@ name: CI tests
 on: [push]
 
 jobs:
-  build:
+  db-providers:
     env:
         RUNNING_IN_ACTIONS: yes
     runs-on: ubuntu-latest
@@ -48,19 +48,19 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run lint --package_name=happn-3 
-    - run: npm run-script test-cover --workspace=happn-3
-    - run: npm run-script test-browser --workspace=happn-3
+    - run: npm run lint --package_name=happn-db-provider-loki
+    - run: npm run-script test-cover --workspace=happn-db-provider-loki
 
-    - run: npm run lint --package_name=happner-client
-    - run: npm run-script test-cover --workspace=happner-client
-    - run: npm run-script test-browser --workspace=happner-client
+    - run: npm run lint --package_name=happn-db-provider-mongo
+    - run: npm run-script test-cover --workspace=happn-db-provider-mongo
 
-    - run: npm run lint --package_name=happner-2
-    - run: npm run-script test-cover --workspace=happner-2
-    - run: npm run-script test-browser --workspace=happner-2
+    - run: npm run lint --package_name=happn-db-provider-nedb
+    - run: npm run-script test-cover --workspace=happn-db-provider-nedb
 
-    - run: npm run lint --package_name=happn-cluster
-    - run: npm run-script test-cover --workspace=happn-cluster
+    - run: npm run lint --package_name=happn-db-provider-elasticsearch
+    - run: npm run-script test-cover --workspace=happn-db-provider-elasticsearch
+
+
+
 
 

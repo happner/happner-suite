@@ -4,7 +4,6 @@ const BaseTestHelper = require('happn-commons-test');
 class TestHelper extends BaseTestHelper {
   constructor() {
     super();
-    this.package = require('../../../package.json');
     this.utils = commons.utils;
     this.async = commons.async;
   }

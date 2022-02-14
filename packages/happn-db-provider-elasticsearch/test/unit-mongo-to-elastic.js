@@ -1,18 +1,17 @@
 const MongoToElastic = require('../lib/mongo-to-elastic');
-require('./fixtures/test-helper').describe({ timeout: 5e3 }, function(test) {
-
+require('./fixtures/test-helper').describe({ timeout: 5e3 }, function (test) {
   it('ensures that spaces in the query path are correctly escaped', () => {
     test
       .expect(
         MongoToElastic.convertCriteria({
-          path: '/TEST/PATH/TEST LEAF/*'
+          path: '/TEST/PATH/TEST LEAF/*',
         })
       )
       .to.eql('( path:/\\/TEST\\/PATH\\/TEST LEAF\\/.*/ ) ');
     test
       .expect(
         MongoToElastic.convertCriteria({
-          path: '/TEST/PATH/TEST LEAF/1/2/3'
+          path: '/TEST/PATH/TEST LEAF/1/2/3',
         })
       )
       .to.eql('( path:"/TEST/PATH/TEST LEAF/1/2/3" ) ');
@@ -20,7 +19,7 @@ require('./fixtures/test-helper').describe({ timeout: 5e3 }, function(test) {
       .expect(
         MongoToElastic.convertCriteria({
           path: '/TEST/PATH/TEST LEAF/*',
-          $and: [{ test: { $lte: 1 } }, { test: { $gte: 0 } }]
+          $and: [{ test: { $lte: 1 } }, { test: { $gte: 0 } }],
         })
       )
       .to.eql(
@@ -30,7 +29,7 @@ require('./fixtures/test-helper').describe({ timeout: 5e3 }, function(test) {
       .expect(
         MongoToElastic.convertCriteria({
           path: '/TEST/PATH/TEST LEAF/1/2/3',
-          $and: [{ test: { $lte: 1 } }, { test: { $gte: 0 } }]
+          $and: [{ test: { $lte: 1 } }, { test: { $gte: 0 } }],
         })
       )
       .to.eql(

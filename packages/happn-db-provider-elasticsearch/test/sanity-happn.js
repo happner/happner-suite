@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
   const happn = require('happn-3');
   const service = happn.service;
@@ -814,11 +815,11 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
     listenerclient.onAll(
       function (eventData, meta) {
         if (
-          meta.action ==
+          meta.action ===
             '/REMOVE@/1_eventemitter_embedded_sanity/' +
               test_id +
               '/testsubscribe/data/catch_all' ||
-          meta.action ==
+          meta.action ===
             '/SET@/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/catch_all'
         )
           caughtCount++;

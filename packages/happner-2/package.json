@@ -15,7 +15,7 @@
     ]
   },
   "scripts": {
-    "test": "_mocha test/integration/** test/unit/** --exit",
+    "test": "_mocha silence.js test/integration/** test/unit/** --exit",
     "test-unit": "_mocha --exit test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary npm test",

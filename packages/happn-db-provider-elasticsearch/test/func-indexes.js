@@ -211,7 +211,7 @@ require('./fixtures/test-helper').describe({ timeout: 30e3 }, function (test) {
             routes.push(route);
           }
 
-          for (var i = 0; i < ROW_COUNT; i++) {
+          for (var ii = 0; ii < ROW_COUNT; ii++) {
             var routeIndex = random.integer(0, ROUTE_COUNT);
 
             if (routes[routeIndex] != null)

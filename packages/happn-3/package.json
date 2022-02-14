@@ -18,7 +18,7 @@
   "main": "./lib/index",
   "scripts": {
     "test-browser": "UPDATE_BROWSER_PRIMUS=true gulp --gulpfile test/browser/gulp-01.js",
-    "test": "UPDATE_BROWSER_PRIMUS=true _mocha --recursive --exit test/integration/** test/unit/** test/backward-compatibility/**",
+    "test": "UPDATE_BROWSER_PRIMUS=true _mocha silence.js --recursive --exit test/integration/** test/unit/** test/backward-compatibility/**",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
     "test-unit": "mocha silence.js test/unit/**",
     "prepare": "rm -rf node_modules/happn-cluster/node_modules/happn-3 && rm -rf node_modules/happn/node_modules/happn-util-crypto && require-self"

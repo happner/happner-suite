@@ -27,7 +27,7 @@ function MongoDataStore(config) {
   config.opts.useUnifiedTopology = true;
 
   Object.defineProperty(this, 'config', {
-    value: config
+    value: config,
   });
 }
 
@@ -38,11 +38,11 @@ function initialize(callback) {
     let collection = db.collection(this.config.collection);
 
     Object.defineProperty(this, 'data', {
-      value: collection
+      value: collection,
     });
 
     Object.defineProperty(this, 'connection', {
-      value: client
+      value: client,
     });
 
     return callback();
@@ -84,13 +84,13 @@ function increment(path, counterName, increment, callback) {
   }
   let setParameters = {
     $inc: {
-      [`data.${counterName}.value`]: increment
-    }
+      [`data.${counterName}.value`]: increment,
+    },
   };
 
   this.update(
     {
-      path
+      path,
     },
     setParameters,
     (e, updated) => {
@@ -115,7 +115,7 @@ function update(criteria, data, options, callback) {
   options.upsert = true;
   options.returnDocument = 'after';
 
-  return this.data.findOneAndUpdate(criteria, data, options, function(e, item) {
+  return this.data.findOneAndUpdate(criteria, data, options, function (e, item) {
     if (e) {
       return callback(e);
     }
@@ -143,11 +143,11 @@ function disconnect(callback) {
   callback();
 }
 
-module.exports.create = util.promisify(function(config, callback) {
+module.exports.create = util.promisify(function (config, callback) {
   try {
     let store = new MongoDataStore(config);
 
-    store.initialize(function(e) {
+    store.initialize(function (e) {
       if (e) return callback(e);
       callback(null, store);
     });
