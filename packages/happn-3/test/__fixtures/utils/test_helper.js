@@ -1,4 +1,3 @@
-const readline = require('readline');
 const commons = require('happn-commons');
 const BaseTestHelper = require('happn-commons-test');
 class TestHelper extends BaseTestHelper {
@@ -76,22 +75,6 @@ doRequest (path, token) {
         resolve(response);
       });
     });
-  }
-
-  async lineCount(filePath) {
-    if (!this.fs.existsSync(filePath)) {
-      return 0;
-    }
-    const reader = readline.createInterface({
-      input: this.fs.createReadStream(filePath),
-      crlfDelay: Infinity
-    });
-    let lineIndex = 0;
-    // eslint-disable-next-line no-unused-vars
-    for await (const _line of reader) {
-      lineIndex++;
-    }
-    return lineIndex;
   }
 
   ensureTmpPath(suffix) {

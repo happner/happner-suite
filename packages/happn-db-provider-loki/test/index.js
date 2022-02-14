@@ -1,6 +1,9 @@
-require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, (test) => {
-  const LokiDataProvider = require('../..');
-  const testFileName = test.newTestFile();
+require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
+  const LokiDataProvider = require('..');
+  const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
+  const testFileName = `${testDirPath}${test.commons.path.sep}${test.newid()}`;
+  test.fs.ensureDirSync(testDirPath);
+  test.fs.writeFileSync(testFileName, '');
   const mockLogger = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
@@ -12,7 +15,7 @@ require('../../../__fixtures/utils/test_helper').describe(__filename, 20000, (te
   });
 
   after(async () => {
-    await test.cleanup();
+    test.unlinkFiles([testFileName]);
   });
 
   it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {

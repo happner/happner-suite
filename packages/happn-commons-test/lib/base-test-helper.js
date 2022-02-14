@@ -1,4 +1,5 @@
 let extension;
+const readline = require('readline');
 class TestHelper {
 	constructor() {
 		this.assert = require("assert");
@@ -138,6 +139,22 @@ class TestHelper {
 	compressedUUID() {
 		return this.commons.uuid.v4().replace(/\-/g, '');
 	}
+
+	async lineCount(filePath) {
+		if (!this.fs.existsSync(filePath)) {
+		  return 0;
+		}
+		const reader = readline.createInterface({
+		  input: this.fs.createReadStream(filePath),
+		  crlfDelay: Infinity
+		});
+		let lineIndex = 0;
+		// eslint-disable-next-line no-unused-vars
+		for await (const _line of reader) {
+		  lineIndex++;
+		}
+		return lineIndex;
+	  }
 }
 
 module.exports = TestHelper;
