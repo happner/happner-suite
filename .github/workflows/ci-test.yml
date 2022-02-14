@@ -59,3 +59,8 @@ jobs:
     - run: npm run-script test-cover --workspace=happner-2
     - run: npm run-script test-browser --workspace=happner-2
 
+    - run: npm run lint --package_name=happner-client
+    - run: npm run-script test-cover --workspace=happner-client
+    - run: npm run-script test-browser --workspace=happner-client
+
+

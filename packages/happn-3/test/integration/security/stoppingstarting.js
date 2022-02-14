@@ -147,40 +147,5 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
         });
       });
     });
-
-    it('should stop then start and verify the server keypair', function (callback) {
-      initService(testDbFile, 'b2_eventemitter_security_stoppingstarting', function (e) {
-        if (e) return callback(e);
-
-        var currentPersistedServicePublicKey =
-          currentService.services.security._keyPair.publicKey.toString();
-
-        test.expect(currentPersistedServicePublicKey).to.not.be(null);
-        test.expect(currentPersistedServicePublicKey).to.not.be(undefined);
-        test.expect(currentPersistedServicePublicKey).to.not.be('');
-
-        initService(null, null, function () {
-          var currentUnPersistedServicePublicKey =
-            currentService.services.security._keyPair.publicKey.toString();
-          test
-            .expect(currentUnPersistedServicePublicKey)
-            .to.not.be(currentPersistedServicePublicKey);
-          test.expect(currentUnPersistedServicePublicKey).to.not.be(null);
-          test.expect(currentUnPersistedServicePublicKey).to.not.be(undefined);
-          test.expect(currentUnPersistedServicePublicKey).to.not.be('');
-
-          initService(testDbFile, null, function (e) {
-            if (e) return callback(e);
-
-            var currentPersistedRestartedServicePublicKey =
-              currentService.services.security._keyPair.publicKey.toString();
-            test
-              .expect(currentPersistedRestartedServicePublicKey)
-              .to.be(currentPersistedServicePublicKey);
-            callback();
-          });
-        });
-      });
-    });
   });
 });
