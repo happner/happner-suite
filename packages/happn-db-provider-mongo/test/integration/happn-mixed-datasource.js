@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
+require('happn-commons-test').describe({ timeout: 20000, only: true }, function (test) {
   let fs = test.commons.fs;
   let async = test.commons.async;
   let mode = 'embedded';
@@ -12,7 +12,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
 
   const TEST_COLLECTION_NAME = 'happn-service-mongo-2-tests';
   const db_path = path.resolve(__dirname.replace('test/integration', '')) + path.sep + 'index.js';
-  const db_local_file_path = __dirname + path.sep + 'tmp' + path.sep + 'functional_mixed.nedb';
+  const db_local_file_path = test.commons.path.resolve(
+    __dirname,
+    '..' + path.sep + '__fixtures' + path.sep + 'data' + path.sep + 'functional_mixed.nedb'
+  );
   const config = {
     services: {
       data: {
@@ -22,19 +25,19 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               name: 'mongo',
               provider: db_path,
               isDefault: true,
-              collection: TEST_COLLECTION_NAME
+              collection: TEST_COLLECTION_NAME,
             },
             {
               name: 'nedb',
               settings: {
-                filename: db_local_file_path
+                filename: db_local_file_path,
               },
-              patterns: ['/LOCAL/*']
-            }
-          ]
-        }
-      }
-    }
+              patterns: ['/LOCAL/*'],
+            },
+          ],
+        },
+      },
+    },
   };
 
   before('should initialize the service and clients', async () => {
@@ -54,15 +57,15 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     await happnTestHelper.tearDown();
   });
 
-  var findRecordInDataFile = function(path, filepath, callback) {
+  var findRecordInDataFile = function (path, filepath, callback) {
     try {
-      setTimeout(function() {
+      setTimeout(function () {
         var fs = require('fs'),
           byline = require('byline');
         var stream = byline(fs.createReadStream(filepath, { encoding: 'utf8' }));
         var found = false;
 
-        stream.on('data', function(line) {
+        stream.on('data', function (line) {
           if (found) return;
 
           var record = JSON.parse(line);
@@ -78,7 +81,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           }
         });
 
-        stream.on('end', function() {
+        stream.on('end', function () {
           if (!found) callback(null, null);
         });
       }, 1000);
@@ -87,7 +90,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   };
 
-  it('the publisher should set local new data', function(callback) {
+  it('the publisher should set local new data', function (callback) {
     try {
       var test_path_end = test.commons.nanoid();
 
@@ -96,12 +99,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, result) {
+        function (e, result) {
           if (!e) {
             publisherclient.get(
               '/LOCAL/1_eventemitter_embedded_sanity/' +
@@ -109,7 +112,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                 '/testsubscribe/data/' +
                 test_path_end,
               null,
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
                 test.expect(results.created === results.modified).to.be(true);
 
@@ -119,7 +122,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                     '/testsubscribe/data/' +
                     test_path_end,
                   db_local_file_path,
-                  function(e, record) {
+                  function (e, record) {
                     if (e) return callback(e);
 
                     if (!record)
@@ -138,16 +141,16 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('the listener should pick up a single wildcard event, locally', function(callback) {
+  it('the listener should pick up a single wildcard event, locally', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/LOCAL/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/event/*',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function(message) {
+        function (message) {
           test
             .expect(
               listenerclient.state.events[
@@ -159,7 +162,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -177,10 +180,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e, result) {}
+              function (e, result) {}
             );
           } else callback(e);
         }
@@ -190,12 +193,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('the publisher should get null for unfound data, exact path', function(callback) {
+  it('the publisher should get null for unfound data, exact path', function (callback) {
     var test_path_end = test.commons.nanoid();
     publisherclient.get(
       '/LOCAL/1_eventemitter_embedded_sanity/' + test_id + '/unfound/exact/' + test_path_end,
       null,
-      function(e, results) {
+      function (e, results) {
         ////////////console.log('new data results');
 
         test.expect(e).to.be(null);
@@ -206,7 +209,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function(callback) {
+  it('set_multiple, the publisher should set multiple data items, then do a wildcard get to return them', function (callback) {
     var timesCount = 10;
 
     var testBasePath = '/LOCAL/1_eventemitter_embedded_sanity/' + test_id + '/set_multiple';
@@ -214,7 +217,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     try {
       async.times(
         timesCount,
-        function(n, timesCallback) {
+        function (n, timesCallback) {
           var test_random_path2 = test.commons.nanoid();
 
           publisherclient.set(
@@ -222,23 +225,23 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             {
               property1: 'property1',
               property2: 'property2',
-              property3: 'property3'
+              property3: 'property3',
             },
             {
-              noPublish: true
+              noPublish: true,
             },
             timesCallback
           );
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
 
-          listenerclient.get(testBasePath + '/' + '*', null, function(e, results) {
+          listenerclient.get(testBasePath + '/' + '*', null, function (e, results) {
             if (e) return callback(e);
 
             test.expect(results.length).to.be(timesCount);
 
-            results.every(function(result) {
+            results.every(function (result) {
               /*
                RESULT SHOULD LOOK LIKE THIS
                { property1: 'property1',
@@ -265,7 +268,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('should set data, and then merge a new document into the data without overwriting old fields', function(callback) {
+  it('should set data, and then merge a new document into the data without overwriting old fields', function (callback) {
     try {
       var test_path_end = test.commons.nanoid();
 
@@ -274,10 +277,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, result) {
+        function (e, result) {
           if (e) return callback(e);
 
           publisherclient.set(
@@ -286,12 +289,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               '/testsubscribe/data/merge/' +
               test_path_end,
             {
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              merge: true
+              merge: true,
             },
-            function(e, result) {
+            function (e, result) {
               if (e) return callback(e);
 
               publisherclient.get(
@@ -300,7 +303,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                   '/testsubscribe/data/merge/' +
                   test_path_end,
                 null,
-                function(e, results) {
+                function (e, results) {
                   if (e) return callback(e);
 
                   //////////////console.log('merge get results');
@@ -321,10 +324,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('should contain the same payload between 2 non-merging consecutive stores', function(done) {
+  it('should contain the same payload between 2 non-merging consecutive stores', function (done) {
     var object = {
       param1: 10,
-      param2: 20
+      param2: 20,
     };
     var firstTimeNonMergeConsecutive;
 
@@ -332,9 +335,9 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       'setTest/nonMergeConsecutive',
       {
         event_type: 'set',
-        count: 2
+        count: 2,
       },
-      function(message, meta) {
+      function (message, meta) {
         if (firstTimeNonMergeConsecutive === undefined) {
           firstTimeNonMergeConsecutive = message;
         } else {
@@ -342,11 +345,11 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           done();
         }
       },
-      function(err) {
+      function (err) {
         test.expect(err).to.not.exist;
-        publisherclient.set('setTest/nonMergeConsecutive', object, {}, function(err) {
+        publisherclient.set('setTest/nonMergeConsecutive', object, {}, function (err) {
           test.expect(err).to.not.be.ok();
-          publisherclient.set('setTest/nonMergeConsecutive', object, {}, function(err) {
+          publisherclient.set('setTest/nonMergeConsecutive', object, {}, function (err) {
             test.expect(err).to.not.be.ok();
           });
         });
@@ -354,14 +357,14 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should contain the same payload between a merge and a normal store for first store', function(done) {
+  it('should contain the same payload between a merge and a normal store for first store', function (done) {
     var object = { param1: 10, param2: 20 };
     var firstTime = true;
 
     listenerclient.on(
       'mergeTest/object',
       { event_type: 'set', count: 2 },
-      function(message, meta) {
+      function (message, meta) {
         test.expect(message).to.eql(object);
         if (firstTime) {
           firstTime = false;
@@ -369,11 +372,11 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         }
         done();
       },
-      function(err) {
+      function (err) {
         test.expect(err).to.not.be.ok();
-        publisherclient.set('mergeTest/object', object, { merge: true }, function(err) {
+        publisherclient.set('mergeTest/object', object, { merge: true }, function (err) {
           test.expect(err).to.not.be.ok();
-          publisherclient.set('mergeTest/object', object, { merge: true }, function(err) {
+          publisherclient.set('mergeTest/object', object, { merge: true }, function (err) {
             test.expect(err).to.not.be.ok();
           });
         });
@@ -381,7 +384,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should search for a complex object', function(callback) {
+  it('should search for a complex object', function (callback) {
     var test_path_end = test.commons.nanoid();
     var complex_obj = {
       regions: ['North', 'South'],
@@ -389,36 +392,36 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
     var criteria1 = {
       $or: [
         {
           regions: {
-            $in: ['North', 'South', 'East', 'West']
-          }
+            $in: ['North', 'South', 'East', 'West'],
+          },
         },
         {
           towns: {
-            $in: ['North.Cape Town', 'South.East London']
-          }
+            $in: ['North.Cape Town', 'South.East London'],
+          },
         },
         {
           categories: {
-            $in: ['Action', 'History']
-          }
-        }
+            $in: ['Action', 'History'],
+          },
+        },
       ],
       keywords: {
-        $in: ['bass', 'Penny Siopis']
-      }
+        $in: ['bass', 'Penny Siopis'],
+      },
     };
 
     var options1 = {
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 1
+      limit: 1,
     };
 
     var criteria2 = null;
@@ -426,19 +429,19 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     var options2 = {
       fields: {
         towns: 1,
-        keywords: 1
+        keywords: 1,
       },
       sort: {
-        field1: 1
+        field1: 1,
       },
-      limit: 2
+      limit: 2,
     };
 
     publisherclient.set(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e, put_result) {
+      function (e, put_result) {
         if (e) return callback(e);
 
         publisherclient.set(
@@ -449,7 +452,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             '/1',
           complex_obj,
           null,
-          function(e, put_result) {
+          function (e, put_result) {
             if (e) return callback(e);
 
             ////////////console.log('searching');
@@ -457,9 +460,9 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex*',
               {
                 criteria: criteria1,
-                options: options1
+                options: options1,
               },
-              function(e, search_result) {
+              function (e, search_result) {
                 if (e) return callback(e);
 
                 test.expect(search_result.length === 1).to.be(true);
@@ -468,9 +471,9 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                   '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex*',
                   {
                     criteria: criteria2,
-                    options: options2
+                    options: options2,
                   },
-                  function(e, search_result) {
+                  function (e, search_result) {
                     if (e) return callback(e);
                     test.expect(search_result.length === 2).to.be(true);
                     test.expect(Object.keys(search_result[0]).length).to.be(3);
@@ -485,7 +488,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should search for a complex object by dates', function(callback) {
+  it('should search for a complex object by dates', function (callback) {
     var test_path_end = test.commons.nanoid();
 
     var complex_obj = {
@@ -494,7 +497,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       categories: ['Action', 'History'],
       subcategories: ['Action.angling', 'History.art'],
       keywords: ['bass', 'Penny Siopis'],
-      field1: 'field1'
+      field1: 'field1',
     };
 
     var from = Date.now();
@@ -504,25 +507,25 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex/' + test_path_end,
       complex_obj,
       null,
-      function(e, put_result) {
+      function (e, put_result) {
         test.expect(e == null).to.be(true);
 
-        setTimeout(function() {
+        setTimeout(function () {
           to = Date.now();
 
           var criteria = {
             '_meta.created': {
               $gte: from,
-              $lte: to
-            }
+              $lte: to,
+            },
           };
 
           var options = {
             fields: null,
             sort: {
-              field1: 1
+              field1: 1,
             },
-            limit: 2
+            limit: 2,
           };
 
           ////////////console.log('searching');
@@ -530,9 +533,9 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/complex*',
             {
               criteria: criteria,
-              options: options
+              options: options,
             },
-            function(e, search_result) {
+            function (e, search_result) {
               test.expect(e == null).to.be(true);
 
               if (search_result.length === 0) {
@@ -541,7 +544,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                     test_id +
                     '/testsubscribe/data/complex/' +
                     test_path_end,
-                  function(e, unmatched) {
+                  function (e, unmatched) {
                     callback(new Error('no items found in the date range'));
                   }
                 );
@@ -551,7 +554,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                     test_id +
                     '/testsubscribe/data/complex/' +
                     test_path_end,
-                  function(e, unmatched) {
+                  function (e, unmatched) {
                     callback();
                   }
                 );
@@ -563,7 +566,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should delete some test data', function(callback) {
+  it('should delete some test data', function (callback) {
     try {
       //We put the data we want to delete into the database
       publisherclient.set(
@@ -571,19 +574,19 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, result) {
+        function (e, result) {
           //We perform the actual delete
           publisherclient.remove(
             '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
             {
-              noPublish: true
+              noPublish: true,
             },
-            function(e, result) {
+            function (e, result) {
               test.expect(e).to.be(null);
               test.expect(result._meta.status).to.be('ok');
 
@@ -600,7 +603,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = test.commons.nanoid();
 
@@ -609,12 +612,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         {
-          noPublish: true
+          noPublish: true,
         },
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e).to.be(null);
 
           publisherclient.set(
@@ -623,12 +626,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             {
-              noPublish: true
+              noPublish: true,
             },
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e).to.be(null);
               test.expect(updateResult._meta.id === insertResult._meta.id).to.be(true);
               callback();
@@ -641,16 +644,16 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function(message) {
+        function (message) {
           test
             .expect(
               listenerclient.state.events[
@@ -660,7 +663,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           //////////////////console.log('ON HAS HAPPENED: ' + e);
 
           if (!e) {
@@ -679,10 +682,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e, result) {
+              function (e, result) {
                 ////////////////////////////console.log('put happened - listening for result');
               }
             );
@@ -696,7 +699,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
 
   //We are testing setting data at a specific path
 
-  it('the publisher should set new data ', function(callback) {
+  it('the publisher should set new data ', function (callback) {
     try {
       var test_path_end = test.commons.nanoid();
 
@@ -705,15 +708,15 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, result) {
+        function (e, result) {
           if (!e) {
             publisherclient.get(
               '1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/' + test_path_end,
               null,
-              function(e, results) {
+              function (e, results) {
                 ////////////////////////console.log('new data results');
                 ////////////////////////console.log(results);
                 test.expect(results.property1 === 'property1').to.be(true);
@@ -734,7 +737,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('the publisher should set new data then update the data', function(callback) {
+  it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = test.commons.nanoid();
 
@@ -743,10 +746,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
         {
           property1: 'property1',
           property2: 'property2',
-          property3: 'property3'
+          property3: 'property3',
         },
         null,
-        function(e, insertResult) {
+        function (e, insertResult) {
           test.expect(e == null).to.be(true);
 
           publisherclient.set(
@@ -755,10 +758,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               property1: 'property1',
               property2: 'property2',
               property3: 'property3',
-              property4: 'property4'
+              property4: 'property4',
             },
             null,
-            function(e, updateResult) {
+            function (e, updateResult) {
               test.expect(e == null).to.be(true);
               test.expect(updateResult._meta._id === insertResult._meta._id).to.be(true);
               callback();
@@ -772,16 +775,16 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
   });
   //  We set the listener client to listen for a PUT event according to a path, then we set a value with the publisher client.
 
-  it('the listener should pick up a single published event', function(callback) {
+  it('the listener should pick up a single published event', function (callback) {
     try {
       //first listen for the change
       listenerclient.on(
         '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/event',
         {
           event_type: 'set',
-          count: 1
+          count: 1,
         },
-        function(message) {
+        function (message) {
           test
             .expect(
               listenerclient.state.events[
@@ -791,7 +794,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             .to.be(undefined);
           callback();
         },
-        function(e) {
+        function (e) {
           if (!e) {
             test
               .expect(
@@ -809,10 +812,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               {
                 property1: 'property1',
                 property2: 'property2',
-                property3: 'property3'
+                property3: 'property3',
               },
               null,
-              function(e, result) {
+              function (e, result) {
                 ////////////////////////////console.log('put happened - listening for result');
               }
             );
@@ -824,7 +827,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     }
   });
 
-  it('should get using a wildcard', function(callback) {
+  it('should get using a wildcard', function (callback) {
     var test_path_end = test.commons.nanoid();
 
     publisherclient.set(
@@ -832,26 +835,26 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e, insertResult) {
+      function (e, insertResult) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e, insertResult) {
+          function (e, insertResult) {
             test.expect(e == null).to.be(true);
 
             publisherclient.get(
               '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '*',
               null,
-              function(e, results) {
+              function (e, results) {
                 if (e) return callback();
 
                 test.expect(results.length === 2).to.be(true);
@@ -864,7 +867,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should get paths', function(callback) {
+  it('should get paths', function (callback) {
     var test_path_end = test.commons.nanoid();
 
     publisherclient.set(
@@ -872,25 +875,25 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e, insertResult) {
+      function (e, insertResult) {
         test.expect(e == null).to.be(true);
         publisherclient.set(
           '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '/1',
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e, insertResult) {
+          function (e, insertResult) {
             test.expect(e == null).to.be(true);
 
             publisherclient.getPaths(
               '1_eventemitter_embedded_sanity/' + test_id + '/testwildcard/' + test_path_end + '*',
-              function(e, results) {
+              function (e, results) {
                 test.expect(results.length === 2).to.be(true);
                 callback(e);
               }
@@ -901,17 +904,17 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('the listener should pick up a single delete event', function(callback) {
+  it('the listener should pick up a single delete event', function (callback) {
     //We put the data we want to delete into the database
     publisherclient.set(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
       {
         property1: 'property1',
         property2: 'property2',
-        property3: 'property3'
+        property3: 'property3',
       },
       null,
-      function(e, result) {
+      function (e, result) {
         //////////////////console.log('did delete set');
         //path, event_type, count, handler, done
         //We listen for the DELETE event
@@ -919,9 +922,9 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
           {
             event_type: 'remove',
-            count: 1
+            count: 1,
           },
-          function(eventData) {
+          function (eventData) {
             //we are looking at the event internals on the listener to ensure our event management is working - because we are only listening for 1
             //instance of this event - the event listener should have been removed
             test
@@ -939,7 +942,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
 
             callback();
           },
-          function(e) {
+          function (e) {
             if (!e) return callback(e);
 
             test
@@ -956,7 +959,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
             publisherclient.remove(
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
               null,
-              function(e, result) {}
+              function (e, result) {}
             );
           }
         );
@@ -964,39 +967,39 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should unsubscribe from an event', function(callback) {
+  it('should unsubscribe from an event', function (callback) {
     var currentListenerId;
 
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
       {
         event_type: 'set',
-        count: 0
+        count: 0,
       },
-      function(message) {
+      function (message) {
         //we detach all listeners from the path here
         ////console.log('ABOUT OFF PATH');
         listenerclient.offPath(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
-          function(e) {
+          function (e) {
             if (e) return callback(new Error(e));
 
             listenerclient.on(
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
               {
                 event_type: 'set',
-                count: 0
+                count: 0,
               },
-              function(message) {
+              function (message) {
                 ////console.log('ON RAN');
                 ////console.log(message);
 
-                listenerclient.off(currentListenerId, function(e) {
+                listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
                 });
               },
-              function(e, listenerId) {
+              function (e, listenerId) {
                 if (e) return callback(new Error(e));
 
                 currentListenerId = listenerId;
@@ -1006,10 +1009,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                   {
                     property1: 'property1',
                     property2: 'property2',
-                    property3: 'property3'
+                    property3: 'property3',
                   },
                   {},
-                  function(e, setresult) {
+                  function (e, setresult) {
                     if (e) return callback(new Error(e));
 
                     ////console.log('DID ON SET');
@@ -1021,7 +1024,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           }
         );
       },
-      function(e, listenerId) {
+      function (e, listenerId) {
         if (e) return callback(new Error(e));
 
         currentListenerId = listenerId;
@@ -1031,10 +1034,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {},
-          function(e, setresult) {
+          function (e, setresult) {
             if (e) return callback(new Error(e));
           }
         );
@@ -1042,14 +1045,14 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should subscribe to the catch all notification', function(callback) {
+  it('should subscribe to the catch all notification', function (callback) {
     var caught = {};
 
     this.timeout(10000);
     var caughtCount = 0;
 
     listenerclient.onAll(
-      function(eventData, meta) {
+      function (eventData, meta) {
         if (
           meta.action ===
             '/REMOVE@/1_eventemitter_embedded_sanity/' +
@@ -1062,7 +1065,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
 
         if (caughtCount === 2) callback();
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         publisherclient.set(
@@ -1070,14 +1073,14 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           null,
-          function(e, put_result) {
+          function (e, put_result) {
             publisherclient.remove(
               '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/catch_all',
               null,
-              function(e, del_result) {}
+              function (e, del_result) {}
             );
           }
         );
@@ -1085,33 +1088,33 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should unsubscribe from all events', function(callback) {
+  it('should unsubscribe from all events', function (callback) {
     this.timeout(10000);
 
     var onHappened = false;
 
     listenerclient.onAll(
-      function(message) {
+      function (message) {
         onHappened = true;
         callback(new Error('this wasnt meant to happen'));
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         listenerclient.on(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/off_all_test',
           {
             event_type: 'set',
-            count: 0
+            count: 0,
           },
-          function(message) {
+          function (message) {
             onHappened = true;
             callback(new Error('this wasnt meant to happen'));
           },
-          function(e) {
+          function (e) {
             if (e) return callback(e);
 
-            listenerclient.offAll(function(e) {
+            listenerclient.offAll(function (e) {
               if (e) return callback(e);
 
               publisherclient.set(
@@ -1119,13 +1122,13 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
                 {
                   property1: 'property1',
                   property2: 'property2',
-                  property3: 'property3'
+                  property3: 'property3',
                 },
                 null,
-                function(e, put_result) {
+                function (e, put_result) {
                   if (e) return callback(e);
 
-                  setTimeout(function() {
+                  setTimeout(function () {
                     if (!onHappened) callback();
                   }, 3000);
                 }
@@ -1137,28 +1140,28 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('should not publish with noPublish set', function(done) {
+  it('should not publish with noPublish set', function (done) {
     var timeout;
     //first listen for the change
     listenerclient.on(
       '/1_eventemitter_embedded_sanity/' + test_id + '/testNoPublish',
       {
         event_type: 'set',
-        count: 1
+        count: 1,
       },
-      function(message) {
+      function (message) {
         clearTimeout(timeout);
-        setImmediate(function() {
+        setImmediate(function () {
           test.expect(message).to.not.be.ok();
         });
       },
-      function(e) {
+      function (e) {
         test.expect(e).to.not.be.ok();
 
-        timeout = setTimeout(function() {
+        timeout = setTimeout(function () {
           listenerclient.offPath(
             '/1_eventemitter_embedded_sanity/' + test_id + '/testNoPublish',
-            function() {
+            function () {
               done();
             }
           );
@@ -1168,12 +1171,12 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           {
             property1: 'property1',
             property2: 'property2',
-            property3: 'property3'
+            property3: 'property3',
           },
           {
-            noPublish: true
+            noPublish: true,
           },
-          function(e, result) {
+          function (e, result) {
             test.expect(e).to.not.be.ok();
           }
         );
@@ -1181,35 +1184,35 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('can get using criteria, $regex with params in array', function(done) {
+  it('can get using criteria, $regex with params in array', function (done) {
     publisherclient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: ['.*loadtest.*', 'i']
-          }
+            $regex: ['.*loadtest.*', 'i'],
+          },
         };
 
         listenerclient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             test.expect(result[0].anotherProp).to.be(undefined);
             test.expect(result[0].name).to.be('Loadtest_123');
@@ -1221,35 +1224,35 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('can get using criteria, $regex as string', function(done) {
+  it('can get using criteria, $regex as string', function (done) {
     publisherclient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: '.*Loadtest.*'
-          }
+            $regex: '.*Loadtest.*',
+          },
         };
 
         listenerclient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             if (e) return done(e);
             test.expect(result[0].anotherProp).to.be(undefined);
             test.expect(result[0].name).to.be('Loadtest_123');
@@ -1261,35 +1264,35 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('can get using criteria, bad $regex as boolean', function(done) {
+  it('can get using criteria, bad $regex as boolean', function (done) {
     publisherclient.set(
       '/regex/test/1',
       {
         name: 'Loadtest_123',
-        anotherProp: 'anotherPropValue'
+        anotherProp: 'anotherPropValue',
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return done(e);
 
         var options = {
           fields: {
-            name: 1
-          }
+            name: 1,
+          },
         };
 
         var criteria = {
           name: {
-            $regex: false
-          }
+            $regex: false,
+          },
         };
 
         listenerclient.get(
           '/regex/test/*',
           {
             criteria: criteria,
-            options: options
+            options: options,
           },
-          function(e, result) {
+          function (e, result) {
             test
               .expect(e.toString())
               .to.be('SystemError: $regex parameter value must be an Array or a string');
