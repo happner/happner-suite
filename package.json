@@ -21,6 +21,7 @@
     "packages/happn-stats",
     "packages/happn-util-crypto",
     "packages/happn-cluster",
+    "packages/happner-cluster",
     "packages/happner-client",
     "packages/happner-2"
   ],
