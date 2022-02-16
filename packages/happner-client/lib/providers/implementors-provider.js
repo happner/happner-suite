@@ -62,14 +62,12 @@
     onFailure,
     onIgnore
   ) {
-    var _this = this;
-
-    client.get('/mesh/schema/description', function (e, description) {
+    client.get('/mesh/schema/description', (e, description) => {
       if (e) return onFailure(e);
 
       if (!description || description.initializing) {
-        setTimeout(function () {
-          _this.getSingleDescription(client, self, cluster, onSuccess, onFailure, onIgnore);
+        setTimeout(() => {
+          this.getSingleDescription(client, self, cluster, onSuccess, onFailure, onIgnore);
         }, 1000);
         return;
       }
@@ -82,22 +80,24 @@
 
       if (self) {
         // future: clusters with multiple domains do magic here somehow...
-        _this.domain = description.name;
-        _this.sessionId = client.session.id;
-        _this.secure = client.session.happn.secure;
+        this.domain = description.name;
+        this.sessionId = client.session.id;
+        this.secure = client.session.happn.secure;
 
         if (cluster) {
-          _this.name = client.session.happn.name;
+          this.name = client.session.happn.name;
         } else {
-          _this.addDescription(description);
+          this.addDescription(description);
         }
       } else {
         if (cluster && description.brokered) {
           if (!client.session.info) client.session.info = {};
           client.session.info.clusterName = description.meshName;
+          // ignores mesh 1
           return onIgnore(`ignoring brokered description for peer: ${client.session.happn.name}`);
         }
-        _this.addDescription(description);
+        // adds mesh 2, this is mesh 1
+        this.addDescription(description);
       }
       onSuccess(description);
     });

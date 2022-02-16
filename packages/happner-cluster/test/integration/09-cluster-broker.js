@@ -8,7 +8,7 @@ const getSeq = require('../_lib/helpers/getSeq');
 
 var clearMongoCollection = require('../_lib/clear-mongo-collection');
 
-require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) => {
   var servers = [],
     localInstance;
 
@@ -150,38 +150,19 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
   });
 
   context('rest', function () {
-    it('does a rest call', function (done) {
-      var thisClient;
-      startClusterInternalFirst()
-        .then(function () {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod1'
-          );
-        })
-        .then(function () {
-          //wait for mesh to stabilise - deferListen not true
-          return new Promise((resolve) => {
-            setTimeout(resolve, 3000);
-          });
-        })
-        .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(2));
-        })
-        .then(function (client) {
-          thisClient = client;
-          return testRestCall(
-            thisClient.data.session.token,
-            getSeq.getPort(2),
-            'remoteComponent1',
-            'brokeredMethod1',
-            null,
-            getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
-          );
-        })
-        .then(done);
+    it('does a rest call', async () => {
+      await startClusterInternalFirst();
+      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod1');
+      await test.delay(5000);
+      const thisClient = await testclient.create('username', 'password', getSeq.getPort(2));
+      await testRestCall(
+        thisClient.data.session.token,
+        getSeq.getPort(2),
+        'remoteComponent1',
+        'brokeredMethod1',
+        null,
+        getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
+      );
     });
   });
 

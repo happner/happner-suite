@@ -2,6 +2,7 @@ let Happner = require('happner-2');
 let HappnCluster = require('happn-cluster');
 let ClusterPlugin = require('./cluster-plugin');
 let filterEventVersions = require('./filter-event-versions');
+let localDb = require('./local-db');
 
 module.exports.create = require('util').promisify(function (config, callback) {
   var happner, cursor;
@@ -61,6 +62,11 @@ module.exports.create = require('util').promisify(function (config, callback) {
   config.cluster = config.cluster || {};
 
   config.plugins.push(ClusterPlugin(config.cluster));
+
+  if (!localDb.gotConfig(config)) {
+    localDb.addConfig(config);
+  }
+
   Happner.create(config)
 
     .then(function (_happner) {

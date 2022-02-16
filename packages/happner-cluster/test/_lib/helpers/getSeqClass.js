@@ -2,7 +2,7 @@ const PORT_CONSTANTS = require('./port-constants');
 module.exports = class GetSeq {
   constructor(num, first = null, constants = null) {
     if (first) this.first = first;
-    this.num = num || 1;
+    this.num = num == null ? 1 : num;
     this.constants = constants || PORT_CONSTANTS;
   }
   getNext() {

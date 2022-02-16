@@ -276,7 +276,8 @@ Member.prototype.connect = function (member) {
 
   var config = _this.orchestrator.getLoginConfig();
 
-  _this.log.debug('connect to (->) %s', member.url);
+  _this.log.info('connect to (->) %s', member.url);
+  _this.log.info('as %s', _this.name);
 
   config.url = member.url;
 

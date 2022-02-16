@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
-    "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
+    "test": "mocha test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary npm test"
   },
   "repository": {
@@ -29,6 +29,7 @@
     "bluebird": "^3.5.0",
     "happn-cluster": "^12.0.0",
     "happn-db-provider-mongo": "^1.0.0",
+    "happn-db-provider-loki": "^1.0.0",
     "happner-2": "^12.0.0",
     "happner-client": "^12.0.0",
     "hashring": "^3.2.0",
