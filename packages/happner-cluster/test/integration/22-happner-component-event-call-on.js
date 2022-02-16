@@ -442,11 +442,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   function startInternal(id, clusterMin) {
-    return HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
+    return test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
   }
 
   function startEdge(id, clusterMin) {
-    return HappnerCluster.create(localInstanceConfig(id, clusterMin));
+    return test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
   }
 
   function startClusterEdgeFirst() {

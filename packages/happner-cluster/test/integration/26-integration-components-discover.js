@@ -106,7 +106,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   before('start cluster', async () => {
-    this.timeout(20000);
     servers = await Promise.all([
       test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst())),
       test.HappnerCluster.create(remoteInstance1Config(getSeq.getNext())),
