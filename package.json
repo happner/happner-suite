@@ -23,10 +23,11 @@
     "packages/happn-cluster",
     "packages/happner-cluster",
     "packages/happner-client",
-    "packages/happner-2"
+    "packages/happner-2",
+    "packages/redis-lru-cache"
   ],
   "devDependencies": {
-    "eslint": "^8.8.0",
+    "eslint": "^7.12.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "prettier": "^2.5.1",

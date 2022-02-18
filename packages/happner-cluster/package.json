@@ -19,21 +19,21 @@
   },
   "homepage": "https://github.com/happner/happner-cluster#readme",
   "devDependencies": {
-    "happn-commons-test": "^1.0.0",
     "array-unique": "^0.3.2",
+    "happn-commons-test": "^1.0.0",
     "intercept-stdout": "^0.1.2",
     "restler": "^3.4.0"
   },
   "dependencies": {
-    "happn-commons": "^1.0.0",
     "bluebird": "^3.5.0",
     "happn-cluster": "^12.0.0",
-    "happn-db-provider-mongo": "^1.0.0",
+    "happn-commons": "^1.0.0",
     "happn-db-provider-loki": "^1.0.0",
+    "happn-db-provider-mongo": "^1.0.0",
     "happner-2": "^12.0.0",
     "happner-client": "^12.0.0",
     "hashring": "^3.2.0",
-    "node-http-proxy": "^0.2.3",
+    "http-proxy": "1.18.1",
     "semver": "^5.3.0"
   }
 }

@@ -60,6 +60,15 @@ jobs:
     - run: npm run lint --package_name=happn-db-provider-elasticsearch
     - run: npm run-script test-cover --workspace=happn-db-provider-elasticsearch
 
+    - name: Generate coverage branch
+      uses: team-tenacious/monorepo-coverage@main
+      with:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        COVERAGE_BRANCH: platform-coverage
+        ROOT: "./packages"
+        PACKAGES: db-provider-loki,db-provider-mongo,db-provider-elasticsearch
+
+
 
 
 
