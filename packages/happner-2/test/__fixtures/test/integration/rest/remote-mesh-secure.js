@@ -45,11 +45,11 @@ var config = {
   }
 };
 
-var connectCount = 0;
-var unconnected = true;
-var lastError;
+let connectCount = 0;
+let unconnected = true;
+let lastError;
 
-async.whilst(function(cb){ return cb(null, connectCount < 5 && unconnected);}, function(whileCB){
+async.whilst(async () =>  connectCount < 5 && unconnected , function(whileCB){
 
   connectCount++;
 
