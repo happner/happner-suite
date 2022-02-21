@@ -52,4 +52,4 @@ data providers:
 
 happn-db-provider-loki
 ----------------------
-![coverage](https://github.com/happner/happner-suite/tree/platform-coverage/develop/latest/happn-db-provider-loki.badge.svg?raw=true)
+![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-db-provider-loki.badge.svg?raw=true)
