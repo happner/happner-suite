@@ -17,7 +17,7 @@ module.exports = {
     var protocol = package.protocol;
     var buf = fs.readFileSync(path.resolve(__dirname, './client.js'));
 
-    var constantsbuf = `\r\nthis.CONSTANTS = ${commons.web.constants()}\r\n`;
+    var constantsbuf = `\r\nCONSTANTS = ${commons.web.constants()}\r\n`;
 
     var clientScript = buf
       .toString()
@@ -25,7 +25,7 @@ module.exports = {
       .replace('{{version}}', package.version) //set the happn version here
       .replace('//{{constants}}', constantsbuf)
       .replace('//{{utils}}', () => {
-        return `\r\nthis.utils = ${commons.web.utils()}\r\n`;
+        return `\r\nutils = ${commons.web.utils()}\r\n`;
       });
 
     if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production') {

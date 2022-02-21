@@ -558,66 +558,6 @@ describe(
       });
     });
 
-    it('tests the processMessageIn method, negative test', function (done) {
-      var protocolMock = new Protocol({
-        logger: {
-          createLogger: function () {
-            return {
-              $$TRACE: function () {},
-            };
-          },
-        },
-      });
-
-      protocolMock.happn = {
-        connect: {},
-        log: {
-          warn: function () {},
-        },
-        services: {
-          session: {
-            on: function () {},
-          },
-          error: {
-            SystemError: function (message) {
-              expect(message).to.be('unknown inbound protocol: happn_1.3.0');
-              done();
-            },
-          },
-        },
-      };
-
-      protocolMock.initialize({}, function () {
-        protocolMock.processMessageIn = function processMessageIn(message, callback) {
-          var _this = this;
-
-          var protocol = _this.config.protocols[message.session.protocol];
-          if (!protocol)
-            return callback(
-              _this.happn.services.error.SystemError(
-                'unknown inbound protocol: ' + message.session.protocol,
-                'protocol'
-              )
-            );
-
-          _this
-            .processInboundStack(message, protocol)
-            .then(function (processed) {
-              callback(null, protocol.success(processed));
-            })
-            .catch(function (e) {
-              _this.__handleProtocolError(protocol, message, e, callback);
-            });
-        }.bind(protocolMock);
-
-        protocolMock.processMessageIn({
-          session: {
-            protocol: 'happn_1.3.0',
-          },
-        });
-      });
-    });
-
     it('tests the processMessageIn method, bad protocol', function (done) {
       var protocolMock = new Protocol({
         logger: {
@@ -648,11 +588,14 @@ describe(
       };
 
       protocolMock.initialize({}, function () {
-        protocolMock.processMessageIn({
-          session: {
-            protocol: 'bad',
+        protocolMock.processMessageIn(
+          {
+            session: {
+              protocol: 'bad',
+            },
           },
-        });
+          () => {}
+        );
       });
     });
 
@@ -798,11 +741,14 @@ describe(
       };
 
       protocolMock.initialize({}, function () {
-        protocolMock.processMessageInLayers({
-          session: {
-            protocol: 'bad',
+        protocolMock.processMessageInLayers(
+          {
+            session: {
+              protocol: 'bad',
+            },
           },
-        });
+          () => {}
+        );
       });
     });
 

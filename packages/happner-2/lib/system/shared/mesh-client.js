@@ -16,9 +16,13 @@
     window.Happner = window.Happner || {};
     window.Happner.MeshClient = MeshClient;
     window.MeshClient = MeshClient; // TODO: deprecate this.
+    // eslint-disable-next-line no-undef
     Internals = Happner.Internals;
+    // eslint-disable-next-line no-undef
     EventEmitter = Primus.EventEmitter;
+    // eslint-disable-next-line no-undef
     MeshHappnClient = HappnClient; //we want to keep whatever uses this within local scope
+    // eslint-disable-next-line no-undef
     maybePromisify = Happner.Promisify;
   } else {
     module.exports = MeshClient;

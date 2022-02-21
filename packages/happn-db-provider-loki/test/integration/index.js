@@ -1,5 +1,5 @@
 require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
-  const LokiDataProvider = require('..');
+  const LokiDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
   const testFileName = `${testDirPath}${test.commons.path.sep}${test.newid()}`;
   test.fs.ensureDirSync(testDirPath);

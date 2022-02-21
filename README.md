@@ -4,6 +4,17 @@ This is a work in progress and is not for public consumption yet. We have moved 
 
 We are also modernizing a lot of the internals, and will be re-doing the documentation - which has admittedly prevented adoption by anyone who has not worked on this framework.
 
+setup:
+-----
+
+```bash
+git clone https://github.com/happner/happner-suite.git
+cd happner-suite
+npm i
+```
+
+main modules:
+-------------
 
 happn-3
 -------
@@ -32,3 +43,12 @@ Adds cluster capability to happner-cluster.
 
 [getting started with happner-cluster]()
 [happner-cluster documentation]()
+
+supporting modules:
+--------------------
+
+data providers:
+---------------
+
+happn-db-provider-loki
+----------------------

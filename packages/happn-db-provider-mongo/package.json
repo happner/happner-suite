@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
-    "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
+    "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-unit": "mocha silence.js test/unit/* --recursive",
     "test-happn": "node test/integration/happn*"
   },

@@ -16,12 +16,21 @@
   // allow require when module is defined (needed for NW.js)
   if (typeof module !== 'undefined') module.exports = HappnClient;
 
+  let utils, CONSTANTS;
+
   if (!browser) {
+    console.log(__dirname);
+    CONSTANTS = require('./constants-builder');
+    utils = require('happn-commons').utils;
     Logger = require('happn-logger');
     PROTOCOL = 'happn_' + require('../package.json').protocol; //we can access our package
     HAPPN_VERSION = require('../package.json').version; //we can access our package
     Primus = require('happn-primus-wrapper');
   } else {
+    //DO NOT DELETE
+    //{{utils}}
+    //DO NOT DELETE
+    //{{constants}}
     window.HappnClient = HappnClient;
     Primus = window.Primus;
     // Object.assign polyfill for IE11 (from mozilla)
@@ -52,83 +61,15 @@
       });
     }
   }
-
-  var promisify = function (fn) {
-    // MIT License, - thanks to paulmillr.com
-    if (typeof fn !== 'function') throw new TypeError('micro-promisify must receive a function');
-    return Object.defineProperties(
-      function () {
-        var _this = this;
-        for (var args = new Array(arguments.length), i = 0; i < args.length; ++i)
-          args[i] = arguments[i]; // git.io/vk55A
-        return new Promise(function (resolve, reject) {
-          args.push(function (error, result) {
-            error == null ? resolve(result) : reject(error);
-          });
-          fn.apply(_this, args);
-        });
-      },
-      {
-        length: { value: Math.max(0, fn.length - 1) },
-        name: { value: fn.name },
-      }
-    );
-  };
-
-  var maybePromisify = function (originalFunction, opts) {
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-      var _this = this;
-
-      if (opts && opts.unshift) args.unshift(opts.unshift);
-      if (args[args.length - 1] == null) args.splice(args.length - 1);
-
-      // No promisify if last passed arg is function (ie callback)
-
-      if (typeof args[args.length - 1] === 'function') {
-        return originalFunction.apply(this, args);
-      }
-
-      return new Promise(function (resolve, reject) {
-        // push false callback into arguments
-        args.push(function (error, result, more) {
-          if (error) return reject(error);
-          if (more) {
-            var args = Array.prototype.slice.call(arguments);
-            args.shift(); // toss undefined error
-            return resolve(args); // resolve array of args passed to callback
-          }
-          return resolve(result);
-        });
-        try {
-          return originalFunction.apply(_this, args);
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    };
-  };
-
   function HappnClient() {
-    if (!browser) {
-      this.CONSTANTS = require('.').constants;
-      this.utils = require('happn-commons').utils;
-    }
-
-    //DO NOT DELETE
-    //{{constants}}
-
-    //DO NOT DELETE
-    //{{utils}}
-
-    STATUS = this.CONSTANTS.CLIENT_STATE;
+    STATUS = CONSTANTS.CLIENT_STATE;
   }
 
   HappnClient.__instance = function (options) {
     return new HappnClient().client(options);
   };
 
-  HappnClient.create = maybePromisify(function (connection, options, callback) {
+  HappnClient.create = utils.maybePromisify(function (connection, options, callback) {
     if (typeof connection === 'function') {
       callback = connection;
       options = {};
@@ -160,11 +101,11 @@
     return client.initialize(function (err, createdClient) {
       if (!err) return callback(null, createdClient);
 
-      if (client.state.clientType !== 'eventemitter')
+      if (client.state.clientType !== 'eventemitter') {
         return client.disconnect(function () {
           callback(err);
         });
-
+      }
       client.socket.disconnect();
       callback(err);
     });
@@ -310,27 +251,23 @@
     return this;
   };
 
-  HappnClient.prototype.initialize = maybePromisify(function (callback) {
-    var _this = this;
-
+  HappnClient.prototype.initialize = utils.maybePromisify(function (callback) {
     //ensure session scope is not on the prototype
-    _this.session = null;
-
+    this.session = null;
     if (browser) {
-      return _this.getResources(function (e) {
+      return this.getResources((e) => {
         if (e) return callback(e);
-        _this.authenticate(function (e) {
+        this.authenticate((e) => {
           if (e) return callback(e);
-          _this.status = STATUS.ACTIVE;
-          callback(null, _this);
+          this.status = STATUS.ACTIVE;
+          callback(null, this);
         });
       });
     }
-
-    _this.authenticate(function (e) {
+    this.authenticate((e) => {
       if (e) return callback(e);
-      _this.status = STATUS.ACTIVE;
-      callback(null, _this);
+      this.status = STATUS.ACTIVE;
+      callback(null, this);
     });
   });
 
@@ -472,13 +409,9 @@
   };
 
   HappnClient.prototype.__updateOptions = function (possibility) {
-    var _this = this;
-
-    var syncOption = function (propertyName) {
-      if (possibility[propertyName] != null)
-        _this.options[propertyName] = possibility[propertyName];
+    const syncOption = (propertyName) => {
+      if (possibility[propertyName] != null) this.options[propertyName] = possibility[propertyName];
     };
-
     syncOption('url');
     syncOption('host');
     syncOption('port');
@@ -492,73 +425,77 @@
   };
 
   HappnClient.prototype.__getConnection = function (callback) {
-    var _this = this;
-    this.__connectionCleanup(function (e) {
+    this.__connectionCleanup((e) => {
       if (e) return callback(e);
-      _this.options.socket.manual = true; //because we want to explicitly call open()
-      _this.__connectSocket(callback);
+      this.options.socket.manual = true; //because we want to explicitly call open()
+      this.__connectSocket(callback);
     });
   };
 
-  HappnClient.prototype.__connectSocket = function (callback) {
-    var socket;
-
-    var _this = this;
-
-    _this.status = STATUS.CONNECTING;
-
-    if (browser) socket = new Primus(_this.options.url, _this.options.socket);
-    else {
-      var Socket = Primus.createSocket({
-        transformer: _this.options.transformer,
-        parser: _this.options.parser,
-        manual: true,
-      });
-
-      socket = new Socket(_this.options.url, _this.options.socket);
-    }
-
-    socket.on('timeout', function () {
-      if (_this.status === STATUS.CONNECTING) {
-        _this.status = STATUS.CONNECT_ERROR;
-        return callback(new Error('connection timed out'));
-      }
-      _this.handle_error(new Error('connection timed out'));
-    });
-
-    socket.on('open', function waitForConnection() {
-      if (_this.status === STATUS.CONNECTING) {
-        _this.status = STATUS.ACTIVE;
-        _this.serverDisconnected = false;
-        socket.removeListener('open', waitForConnection);
+  HappnClient.prototype.__waitForConnection = function (socket, callback) {
+    return () => {
+      if (this.status === STATUS.CONNECTING) {
+        this.status = STATUS.ACTIVE;
+        this.serverDisconnected = false;
+        socket.removeListener('open', this.__waitForConnection);
         callback(null, socket);
       }
-    });
+    };
+  };
 
-    socket.on('error', function (e) {
-      if (_this.status === STATUS.CONNECTING) {
+  HappnClient.prototype.__onSocketError = function (socket, callback) {
+    return (e) => {
+      if (this.status === STATUS.CONNECTING) {
         // ERROR before connected,
         // ECONNREFUSED etc. out as errors on callback
-        _this.status = STATUS.CONNECT_ERROR;
-        _this.__endAndDestroySocket(socket, function (destroyErr) {
+        this.status = STATUS.CONNECT_ERROR;
+        this.__endAndDestroySocket(socket, (destroyErr) => {
           if (destroyErr)
-            _this.log.warn(
+            this.log.warn(
               'socket.end failed in client connection failure: ' + destroyErr.toString()
             );
           callback(e.error || e);
         });
       }
-      _this.handle_error(e.error || e);
-    });
+      this.handle_error(e.error || e);
+    };
+  };
+
+  HappnClient.prototype.__onSocketTimeout = function (callback) {
+    return () => {
+      if (this.status === STATUS.CONNECTING) {
+        this.status = STATUS.CONNECT_ERROR;
+        return callback(new Error('connection timed out'));
+      }
+      this.handle_error(new Error('connection timed out'));
+    };
+  };
+
+  HappnClient.prototype.__connectSocket = function (callback) {
+    var socket;
+    this.status = STATUS.CONNECTING;
+
+    if (browser) socket = new Primus(this.options.url, this.options.socket);
+    else {
+      var Socket = Primus.createSocket({
+        transformer: this.options.transformer,
+        parser: this.options.parser,
+        manual: true,
+      });
+
+      socket = new Socket(this.options.url, this.options.socket);
+    }
+
+    socket.on('timeout', this.__onSocketTimeout(callback));
+    socket.on('open', this.__waitForConnection(socket, callback));
+    socket.on('error', this.__onSocketError(socket, callback));
 
     socket.open();
   };
 
   HappnClient.prototype.__initializeState = function () {
     this.state = {};
-    this.state.events = {};
-    this.state.refCount = {};
-    this.state.listenerRefs = {};
+    this.__initializeEventState();
     this.state.requestEvents = {};
     this.state.currentEventId = 0;
     this.state.currentListenerId = 0;
@@ -571,31 +508,25 @@
   };
 
   HappnClient.prototype.__initializeEvents = function () {
-    var _this = this;
-
-    _this.onEvent = function (eventName, eventHandler) {
+    this.onEvent = (eventName, eventHandler) => {
       if (!eventName) throw new Error('event name cannot be blank or null');
-
       if (typeof eventHandler !== 'function') throw new Error('event handler must be a function');
+      if (!this.state.eventHandlers[eventName]) this.state.eventHandlers[eventName] = [];
 
-      if (!_this.state.eventHandlers[eventName]) _this.state.eventHandlers[eventName] = [];
+      this.state.eventHandlers[eventName].push(eventHandler);
 
-      _this.state.eventHandlers[eventName].push(eventHandler);
-
-      return eventName + '|' + (_this.state.eventHandlers[eventName].length - 1);
+      return eventName + '|' + (this.state.eventHandlers[eventName].length - 1);
     };
 
-    _this.offEvent = function (handlerId) {
+    this.offEvent = (handlerId) => {
       var eventName = handlerId.split('|')[0];
-
       var eventIndex = parseInt(handlerId.split('|')[1]);
-
-      _this.state.eventHandlers[eventName][eventIndex] = null;
+      this.state.eventHandlers[eventName][eventIndex] = null;
     };
 
-    _this.emit = function (eventName, eventData) {
-      if (_this.state.eventHandlers[eventName]) {
-        _this.state.eventHandlers[eventName].forEach(function (handler) {
+    this.emit = (eventName, eventData) => {
+      if (this.state.eventHandlers[eventName]) {
+        this.state.eventHandlers[eventName].forEach((handler) => {
           if (!handler) return;
           handler.call(handler, eventData);
         });
@@ -643,11 +574,11 @@
     });
   };
 
-  HappnClient.prototype.stop = maybePromisify(function (callback) {
+  HappnClient.prototype.stop = utils.maybePromisify(function (callback) {
     this.__connectionCleanup(callback);
   });
 
-  HappnClient.prototype.__ensureCryptoLibrary = maybePromisify(function (callback) {
+  HappnClient.prototype.__ensureCryptoLibrary = utils.maybePromisify(function (callback) {
     if (crypto) return callback();
 
     if (browser) {
@@ -699,50 +630,44 @@
   };
 
   HappnClient.prototype.__doLogin = function (loginParameters, callback) {
-    var _this = this;
-
-    var login = function (cb) {
-      _this.__performSystemRequest(
+    var login = (cb) => {
+      this.__performSystemRequest(
         'login',
         loginParameters,
         {
-          timeout: _this.options.loginTimeout,
+          timeout: this.options.loginTimeout,
         },
-        function (e, result) {
+        (e, result) => {
           if (e) return cb(e);
           if (result._meta.status === 'ok') {
-            _this.__attachSession(result, loginParameters.useCookie);
+            this.__attachSession(result, loginParameters.useCookie);
             cb();
-          } else cb(_this.__payloadToError(result.payload));
+          } else cb(this.__payloadToError(result.payload));
         }
       );
     };
 
-    if (!_this.options.loginRetry) return login(callback);
+    if (!this.options.loginRetry) return login(callback);
 
-    if (!_this.options.loginRetryInterval || typeof _this.options.loginRetryInterval !== 'number')
-      _this.options.loginRetryInterval = 5000; //just in case, someone made it 0 or -1 or blah
+    if (!this.options.loginRetryInterval || typeof this.options.loginRetryInterval !== 'number')
+      this.options.loginRetryInterval = 5000; //just in case, someone made it 0 or -1 or blah
 
     var currentAttempt = 0;
-
     var loggedIn = false;
 
-    _this.utils.whilst(
-      function () {
-        return currentAttempt < _this.options.loginRetry && loggedIn === false;
+    utils.whilst(
+      () => {
+        return currentAttempt < this.options.loginRetry && loggedIn === false;
       },
-      function (attempt, next) {
+      (_attempt, next) => {
         currentAttempt++;
-
-        login(function (e) {
+        login((e) => {
           if (e) {
             if ([403, 401].indexOf(e.code) > -1) return next(e); //access was denied
-            if (currentAttempt === _this.options.loginRetry) return next(e);
-            return setTimeout(next, _this.options.loginRetryInterval);
+            if (currentAttempt === this.options.loginRetry) return next(e);
+            return setTimeout(next, this.options.loginRetryInterval);
           }
-
           loggedIn = true;
-
           return next();
         });
       },
@@ -755,37 +680,33 @@
   };
 
   HappnClient.prototype.__prepareLogin = function (loginParameters, callback) {
-    var _this = this;
-
-    if (loginParameters.loginType === 'digest') {
-      _this.__performSystemRequest(
-        'request-nonce',
-        {
-          publicKey: loginParameters.publicKey,
-        },
-        null,
-        function (e, response) {
-          if (e) return callback(e);
-
-          loginParameters.digest = _this.__signNonce(response.nonce);
-          callback(null, loginParameters);
-        }
-      );
-    } else callback(null, loginParameters);
+    if (loginParameters.loginType !== 'digest') {
+      return callback(null, loginParameters);
+    }
+    this.__performSystemRequest(
+      'request-nonce',
+      {
+        publicKey: loginParameters.publicKey,
+      },
+      null,
+      (e, response) => {
+        if (e) return callback(e);
+        loginParameters.digest = this.__signNonce(response.nonce);
+        callback(null, loginParameters);
+      }
+    );
   };
 
   HappnClient.prototype.__prepareAndDoLogin = function (loginParameters, callback) {
-    var _this = this;
-    _this.__prepareLogin(loginParameters, function (e, preparedParameters) {
+    this.__prepareLogin(loginParameters, (e, preparedParameters) => {
       if (e) return callback(e);
-      _this.__doLogin(preparedParameters, callback);
+      this.__doLogin(preparedParameters, callback);
     });
   };
 
   HappnClient.prototype.__sessionConfigureAndDescribe = function () {
-    var _this = this;
-    return new Promise(function (resolve, reject) {
-      _this.__performSystemRequest(
+    return new Promise((resolve, reject) => {
+      this.__performSystemRequest(
         'configure-session',
         {
           protocol: PROTOCOL,
@@ -793,9 +714,9 @@
           browser: browser,
         },
         null,
-        function (e) {
+        (e) => {
           if (e) return reject(e);
-          _this.__performSystemRequest('describe', null, null, function (e, serverInfo) {
+          this.__performSystemRequest('describe', null, null, function (e, serverInfo) {
             if (e) return reject(e);
             resolve(serverInfo);
           });
@@ -804,10 +725,8 @@
     });
   };
 
-  HappnClient.prototype.login = maybePromisify(function (callback) {
-    var _this = this;
-
-    var loginParameters = {
+  HappnClient.prototype.login = utils.maybePromisify(function (callback) {
+    const loginParameters = {
       username: this.options.username,
       info: this.options.info,
       protocol: PROTOCOL,
@@ -815,7 +734,7 @@
     if (this.options && this.options.authType) loginParameters.authType = this.options.authType;
 
     loginParameters.info._browser = loginParameters.info._browser || browser;
-    loginParameters.info._local = _this.socket._local ? true : false;
+    loginParameters.info._local = this.socket._local ? true : false;
 
     if (this.options.password) loginParameters.password = this.options.password;
     if (this.options.publicKey) loginParameters.publicKey = this.options.publicKey;
@@ -823,13 +742,12 @@
 
     if (PROTOCOL === 'happn_{{protocol}}') PROTOCOL = 'happn'; //if this file is being used without a replace on the protocol
 
-    _this
-      .__sessionConfigureAndDescribe()
-      .then(function (serverInfo) {
-        _this.serverInfo = serverInfo;
-        if (!_this.serverInfo.secure) return _this.__doLogin(loginParameters, callback);
+    this.__sessionConfigureAndDescribe()
+      .then((serverInfo) => {
+        this.serverInfo = serverInfo;
+        if (!this.serverInfo.secure) return this.__doLogin(loginParameters, callback);
 
-        if (_this.options.useCookie) {
+        if (this.options.useCookie) {
           if (!browser) {
             return callback(new Error('Logging in with cookie only valid in browser'));
           }
@@ -850,52 +768,48 @@
         }
 
         if (loginParameters.loginType !== 'digest')
-          return _this.__doLogin(loginParameters, callback);
+          return this.__doLogin(loginParameters, callback);
 
-        _this.__ensureCryptoLibrary(function (e) {
+        this.__ensureCryptoLibrary((e) => {
           if (e) return callback(e);
 
-          if (!_this.options.privateKey || !_this.options.publicKey)
+          if (!this.options.privateKey || !this.options.publicKey)
             return callback(
               new Error('login type is digest, but no privateKey and publicKey specified')
             );
 
-          loginParameters.publicKey = _this.options.publicKey;
-          _this.__prepareAndDoLogin(loginParameters, callback);
+          loginParameters.publicKey = this.options.publicKey;
+          this.__prepareAndDoLogin(loginParameters, callback);
         });
       })
-      .catch(function (e) {
-        _this.emit('connect-error', e);
+      .catch((e) => {
+        this.emit('connect-error', e);
         callback(e);
       });
   });
 
-  HappnClient.prototype.authenticate = maybePromisify(function (callback) {
-    var _this = this;
-    if (_this.socket) {
+  HappnClient.prototype.authenticate = utils.maybePromisify(function (callback) {
+    if (this.socket) {
       // handle_reconnection also call through here to 're-authenticate'.
       // this is that happening. Don't make new socket.
       // if the login fails, a setTimeout 3000 and re-authenticate, retry happens
       // see this.__retryReconnect
-      _this.login(callback);
+      this.login(callback);
       return;
     }
 
-    _this.__getConnection(function (e, socket) {
+    this.__getConnection((e, socket) => {
       if (e) return callback(e);
-
-      _this.socket = socket;
-
-      _this.socket.on('data', _this.handle_publication.bind(_this));
-      _this.socket.on('reconnected', _this.reconnect.bind(_this));
-      _this.socket.on('end', _this.handle_end.bind(_this));
-      _this.socket.on('close', _this.handle_end.bind(_this));
-      _this.socket.on('reconnect timeout', _this.handle_reconnect_timeout.bind(_this));
-      _this.socket.on('reconnect scheduled', _this.handle_reconnect_scheduled.bind(_this));
-
+      this.socket = socket;
+      this.socket.on('data', this.handle_publication.bind(this));
+      this.socket.on('reconnected', this.reconnect.bind(this));
+      this.socket.on('end', this.handle_end.bind(this));
+      this.socket.on('close', this.handle_end.bind(this));
+      this.socket.on('reconnect timeout', this.handle_reconnect_timeout.bind(this));
+      this.socket.on('reconnect scheduled', this.handle_reconnect_scheduled.bind(this));
       // login is called before socket connection established...
       // seems ok (streams must be paused till open)
-      _this.login(callback);
+      this.login(callback);
     });
   });
 
@@ -907,7 +821,6 @@
 
   HappnClient.prototype.handle_reconnect_timeout = function (err, opts) {
     this.status = STATUS.DISCONNECTED;
-
     this.emit('reconnect-timeout', {
       err: err,
       opts: opts,
@@ -931,20 +844,18 @@
     path,
     action
   ) {
-    var _this = this;
-
     var callbackHandler = {
       eventId: message.eventId,
     };
 
-    callbackHandler.handleResponse = function (e, response) {
+    callbackHandler.handleResponse = (e, response) => {
       clearTimeout(callbackHandler.timedout);
-      delete _this.state.requestEvents[callbackHandler.eventId];
+      delete this.state.requestEvents[callbackHandler.eventId];
       return callback(e, response);
     };
 
-    callbackHandler.timedout = setTimeout(function () {
-      delete _this.state.requestEvents[callbackHandler.eventId];
+    callbackHandler.timedout = setTimeout(() => {
+      delete this.state.requestEvents[callbackHandler.eventId];
       var errorMessage = 'api request timed out';
       if (path) errorMessage += ' path: ' + path;
       if (action) errorMessage += ' action: ' + action;
@@ -952,7 +863,7 @@
     }, options.timeout);
 
     //we add our event handler to a queue, with the embedded timeout
-    _this.state.requestEvents[eventId] = callbackHandler;
+    this.state.requestEvents[eventId] = callbackHandler;
   };
 
   HappnClient.prototype.__asyncErrorCallback = function (error, callback) {
@@ -993,8 +904,8 @@
 
     if (['set', 'remove'].indexOf(action) >= 0) {
       if (
-        options.consistency === this.CONSTANTS.CONSISTENCY.DEFERRED ||
-        options.consistency === this.CONSTANTS.CONSISTENCY.ACKNOWLEDGED
+        options.consistency === CONSTANTS.CONSISTENCY.DEFERRED ||
+        options.consistency === CONSTANTS.CONSISTENCY.ACKNOWLEDGED
       )
         this.__attachPublishedAck(options, message);
     }
@@ -1027,11 +938,11 @@
   };
 
   HappnClient.prototype.getChannel = function (path, action) {
-    this.utils.checkPath(path);
+    utils.checkPath(path);
     return '/' + action.toUpperCase() + '@' + path;
   };
 
-  HappnClient.prototype.get = maybePromisify(function (path, parameters, handler) {
+  HappnClient.prototype.get = utils.maybePromisify(function (path, parameters, handler) {
     if (typeof parameters === 'function') {
       handler = parameters;
       parameters = {};
@@ -1039,7 +950,12 @@
     this.__performDataRequest(path, 'get', null, parameters, handler);
   });
 
-  HappnClient.prototype.getCreatedBetween = maybePromisify(function (path, from, to, handler) {
+  HappnClient.prototype.getCreatedBetween = utils.maybePromisify(function (
+    path,
+    from,
+    to,
+    handler
+  ) {
     if (typeof handler !== 'function') {
       throw new Error('handler is null or not a function');
     }
@@ -1073,7 +989,7 @@
     );
   });
 
-  HappnClient.prototype.count = maybePromisify(function (path, parameters, handler) {
+  HappnClient.prototype.count = utils.maybePromisify(function (path, parameters, handler) {
     if (typeof parameters === 'function') {
       handler = parameters;
       parameters = {};
@@ -1081,7 +997,7 @@
     this.__performDataRequest(path, 'count', null, parameters, handler);
   });
 
-  HappnClient.prototype.getPaths = maybePromisify(function (path, opts, handler) {
+  HappnClient.prototype.getPaths = utils.maybePromisify(function (path, opts, handler) {
     if (typeof opts === 'function') {
       handler = opts;
       opts = {};
@@ -1094,7 +1010,7 @@
     this.get(path, opts, handler);
   });
 
-  HappnClient.prototype.increment = maybePromisify(function (
+  HappnClient.prototype.increment = utils.maybePromisify(function (
     path,
     gauge,
     increment,
@@ -1126,7 +1042,7 @@
     this.set(path, gauge, opts, handler);
   });
 
-  HappnClient.prototype.publish = maybePromisify(function (path, data, options, handler) {
+  HappnClient.prototype.publish = utils.maybePromisify(function (path, data, options, handler) {
     if (typeof options === 'function') {
       handler = options;
       options = {};
@@ -1139,14 +1055,14 @@
 
     try {
       //in a try/catch to catch checkPath failure
-      this.utils.checkPath(path, 'set');
+      utils.checkPath(path, 'set');
       this.__performDataRequest(path, 'set', data, options, handler);
     } catch (e) {
       return handler(e);
     }
   });
 
-  HappnClient.prototype.set = maybePromisify(function (path, data, options, handler) {
+  HappnClient.prototype.set = utils.maybePromisify(function (path, data, options, handler) {
     if (typeof options === 'function') {
       handler = options;
       options = {};
@@ -1156,14 +1072,14 @@
 
     try {
       //in a try/catch to catch checkPath failure
-      this.utils.checkPath(path, 'set');
+      utils.checkPath(path, 'set');
       this.__performDataRequest(path, 'set', data, options, handler);
     } catch (e) {
       return handler(e);
     }
   });
 
-  HappnClient.prototype.remove = maybePromisify(function (path, parameters, handler) {
+  HappnClient.prototype.remove = utils.maybePromisify(function (path, parameters, handler) {
     if (typeof parameters === 'function') {
       handler = parameters;
       parameters = {};
@@ -1284,21 +1200,19 @@
   };
 
   HappnClient.prototype.__reattachListeners = function (callback) {
-    var _this = this;
-
-    _this.utils.async(
-      Object.keys(_this.state.events),
-      function (eventPath, index, nextEvent) {
-        var listeners = _this.state.events[eventPath];
-        _this.state.refCount = {};
+    utils.async(
+      Object.keys(this.state.events),
+      (eventPath, _index, nextEvent) => {
+        var listeners = this.state.events[eventPath];
+        this.state.refCount = {};
 
         // re-establish each listener individually to preserve original meta and listener id
-        _this.utils.async(
+        utils.async(
           listeners,
-          function (listener, index, nextListener) {
-            if (_this.state.refCount[listener.eventKey]) {
+          (listener, _index, nextListener) => {
+            if (this.state.refCount[listener.eventKey]) {
               //we are already listening on this key
-              _this.state.refCount[listener.eventKey]++;
+              this.state.refCount[listener.eventKey]++;
               return nextListener();
             }
 
@@ -1307,7 +1221,7 @@
 
             if (listener.meta) parameters.meta = listener.meta;
 
-            _this._offPath(eventPath, function (e) {
+            this._offPath(eventPath, (e) => {
               if (e)
                 return nextListener(
                   new Error(
@@ -1316,11 +1230,11 @@
                   )
                 );
 
-              _this._remoteOn(eventPath, parameters, function (e, response) {
+              this._remoteOn(eventPath, parameters, (e, response) => {
                 if (e) {
                   if ([403, 401].indexOf(e.code) > -1) {
                     //permissions may have changed regarding this path
-                    delete _this.state.events[eventPath];
+                    delete this.state.events[eventPath];
                     return nextListener();
                   }
                   return nextListener(
@@ -1329,9 +1243,9 @@
                 }
 
                 //update our ref count so we dont subscribe again
-                _this.state.refCount[listener.eventKey] = 1;
+                this.state.refCount[listener.eventKey] = 1;
                 //create our mapping between the listener id and
-                _this.__updateListenerRef(listener, response.id);
+                this.__updateListenerRef(listener, response.id);
 
                 nextListener();
               });
@@ -1345,38 +1259,35 @@
   };
 
   HappnClient.prototype.__retryReconnect = function (options, reason, e) {
-    var _this = this;
-    _this.emit('reconnect-error', {
+    this.emit('reconnect-error', {
       reason: reason,
       error: e,
     });
-    if (_this.status === STATUS.DISCONNECTED) {
-      clearTimeout(_this.__retryReconnectTimeout);
+    if (this.status === STATUS.DISCONNECTED) {
+      clearTimeout(this.__retryReconnectTimeout);
       return;
     }
-    _this.__retryReconnectTimeout = setTimeout(function () {
-      _this.reconnect.call(_this, options);
+    this.__retryReconnectTimeout = setTimeout(() => {
+      this.reconnect.call(this, options);
     }, 3000);
   };
 
   HappnClient.prototype.reconnect = function (options) {
-    var _this = this;
-
-    _this.status = STATUS.RECONNECT_ACTIVE;
-    _this.emit('reconnect', options);
-    _this.authenticate(function (e) {
+    this.status = STATUS.RECONNECT_ACTIVE;
+    this.emit('reconnect', options);
+    this.authenticate((e) => {
       if (e) {
-        _this.handle_error(e);
-        return _this.__retryReconnect(options, 'authentication-failed', e);
+        this.handle_error(e);
+        return this.__retryReconnect(options, 'authentication-failed', e);
       }
       //we are authenticated and ready for data requests
-      _this.status = STATUS.ACTIVE;
-      _this.__reattachListeners(function (e) {
+      this.status = STATUS.ACTIVE;
+      this.__reattachListeners((e) => {
         if (e) {
-          _this.handle_error(e);
-          return _this.__retryReconnect(options, 'reattach-listeners-failed', e);
+          this.handle_error(e);
+          return this.__retryReconnect(options, 'reattach-listeners-failed', e);
         }
-        _this.emit('reconnect-successful', options);
+        this.emit('reconnect-successful', options);
       });
     });
   };
@@ -1395,20 +1306,17 @@
   };
 
   HappnClient.prototype.__attachPublishedAck = function (options, message) {
-    var _this = this;
-
     if (typeof options.onPublished !== 'function')
       throw new Error('onPublished handler in options is missing');
 
-    var publishedTimeout = options.onPublishedTimeout || 60000; //default is one minute
-
-    var ackHandler = {
+    const publishedTimeout = options.onPublishedTimeout || 60000; //default is one minute
+    const ackHandler = {
       id: message.sessionId + '-' + message.eventId,
       onPublished: options.onPublished,
 
-      handle: function (e, results) {
+      handle: (e, results) => {
         clearTimeout(ackHandler.timeout);
-        delete _this.state.ackHandlers[ackHandler.id];
+        delete this.state.ackHandlers[ackHandler.id];
         ackHandler.onPublished(e, results);
       },
       timedout: function () {
@@ -1417,7 +1325,7 @@
     };
 
     ackHandler.timeout = setTimeout(ackHandler.timedout, publishedTimeout);
-    _this.state.ackHandlers[ackHandler.id] = ackHandler;
+    this.state.ackHandlers[ackHandler.id] = ackHandler;
   };
 
   HappnClient.prototype.handle_ack = function (message) {
@@ -1475,8 +1383,7 @@
   };
 
   HappnClient.prototype.__acknowledge = function (message, callback) {
-    if (message._meta.consistency !== this.CONSTANTS.CONSISTENCY.ACKNOWLEDGED)
-      return callback(message);
+    if (message._meta.consistency !== CONSTANTS.CONSISTENCY.ACKNOWLEDGED) return callback(message);
 
     this.__performDataRequest(message.path, 'ack', message._meta.publicationId, null, function (e) {
       if (e) {
@@ -1505,13 +1412,11 @@
   };
 
   HappnClient.prototype.handle_data = function (path, message) {
-    var _this = this;
-
-    _this.__acknowledge(message, function (acknowledged) {
-      if (!_this.state.events[path]) return;
+    this.__acknowledge(message, (acknowledged) => {
+      if (!this.state.events[path]) return;
 
       if (acknowledged._meta.acknowledgedError)
-        _this.log.error(
+        this.log.error(
           'acknowledgement failure: ',
           acknowledged._meta.acknowledgedError.toString(),
           acknowledged._meta.acknowledgedError
@@ -1519,86 +1424,84 @@
 
       var intermediateData = JSON.stringify(acknowledged.data);
 
-      function doHandover(delegate) {
-        _this.delegate_handover(intermediateData, acknowledged._meta, delegate);
-      }
+      let doHandover = (delegate) => {
+        this.delegate_handover(intermediateData, acknowledged._meta, delegate);
+      };
       //slice necessary so order is not messed with for count based subscriptions
-      _this.state.events[path].slice().forEach(doHandover);
+      this.state.events[path].slice().forEach(doHandover);
     });
   };
 
   HappnClient.prototype.__clearSubscriptionsOnPath = function (eventListenerPath) {
-    var _this = this;
-
     var listeners = this.state.events[eventListenerPath];
-    listeners.forEach(function (listener) {
-      _this.__clearListenerState(eventListenerPath, listener);
+    listeners.forEach((listener) => {
+      this.__clearListenerState(eventListenerPath, listener);
     });
   };
 
   HappnClient.prototype.__clearSecurityDirectorySubscriptions = function (path) {
-    var _this = this;
-
-    Object.keys(this.state.events).forEach(function (eventListenerPath) {
+    Object.keys(this.state.events).forEach((eventListenerPath) => {
       if (path === eventListenerPath.substring(eventListenerPath.indexOf('@') + 1)) {
-        _this.__clearSubscriptionsOnPath(eventListenerPath);
+        this.__clearSubscriptionsOnPath(eventListenerPath);
       }
     });
   };
 
   HappnClient.prototype.__updateSecurityDirectory = function (message) {
-    var _this = this;
-    if (message.data.whatHappnd === _this.CONSTANTS.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED) {
+    if (message.data.whatHappnd === CONSTANTS.SECURITY_DIRECTORY_EVENTS.PERMISSION_REMOVED) {
       if (['*', 'on'].indexOf(message.data.changedData.action) > -1) {
         let permissions = {};
         permissions[message.data.changedData.path] = {
           actions: [message.data.changedData.action],
         };
-        return _this.__reattachListenersOnPermissionChange(permissions);
+        return this.__reattachListenersOnPermissionChange(permissions);
       }
     }
 
-    if (message.data.whatHappnd === _this.CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_GROUP) {
-      Object.keys(message.data.changedData.permissions).forEach(function (permissionPath) {
+    if (message.data.whatHappnd === CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_GROUP) {
+      Object.keys(message.data.changedData.permissions).forEach((permissionPath) => {
         let permission = message.data.changedData.permissions[permissionPath];
         if (
           permission.prohibit &&
           (permission.prohibit.indexOf('on') > -1 || permission.prohibit.indexOf('*') > -1)
-        )
-          return _this.__clearSecurityDirectorySubscriptions(permissionPath);
+        ) {
+          return this.__clearSecurityDirectorySubscriptions(permissionPath);
+        }
+
         if (
           permission.remove &&
           (permission.actions.indexOf('on') > -1 || permission.actions.indexOf('*') > -1)
         ) {
           let permissions = {};
           permissions[permissionPath] = permission;
-          return _this.__reattachListenersOnPermissionChange(permissions);
+          return this.__reattachListenersOnPermissionChange(permissions);
         }
       });
     }
 
-    if (message.data.whatHappnd === _this.CONSTANTS.SECURITY_DIRECTORY_EVENTS.UNLINK_GROUP) {
-      return _this.__reattachListenersOnPermissionChange(message.data.changedData.permissions);
+    if (message.data.whatHappnd === CONSTANTS.SECURITY_DIRECTORY_EVENTS.UNLINK_GROUP) {
+      return this.__reattachListenersOnPermissionChange(message.data.changedData.permissions);
     }
 
     if (
-      message.data.whatHappnd === _this.CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER &&
+      message.data.whatHappnd === CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER &&
       message.data.changedData.permissions //backward compatible older servers that dont have user permissions
     ) {
-      Object.keys(message.data.changedData.permissions).forEach(function (permissionPath) {
+      Object.keys(message.data.changedData.permissions).forEach((permissionPath) => {
         var permission = message.data.changedData.permissions[permissionPath];
         if (
           permission.prohibit &&
           (permission.prohibit.indexOf('on') > -1 || permission.prohibit.indexOf('*') > -1)
-        )
-          return _this.__clearSecurityDirectorySubscriptions(permissionPath);
+        ) {
+          return this.__clearSecurityDirectorySubscriptions(permissionPath);
+        }
         if (
           permission.remove &&
           (permission.actions.indexOf('on') > -1 || permission.actions.indexOf('*') > -1)
         ) {
           let permissions = {};
           permissions[permissionPath] = permission;
-          return _this.__reattachListenersOnPermissionChange(permissions);
+          return this.__reattachListenersOnPermissionChange(permissions);
         }
       });
     }
@@ -1642,11 +1545,9 @@
   };
 
   HappnClient.prototype.__confirmRemoteOn = function (path, parameters, listener, callback) {
-    var _this = this;
-
-    _this._remoteOn(path, parameters, function (e, response) {
+    this._remoteOn(path, parameters, (e, response) => {
       if (e || response.status === 'error') {
-        _this.__clearListenerState(path, listener);
+        this.__clearListenerState(path, listener);
         //TODO: do we want to return something that is not an error (response.payload)
         if (response && response.status === 'error') return callback(response.payload);
         return callback(e);
@@ -1657,12 +1558,12 @@
         response.forEach(function (message) {
           listener.handler(message);
         });
-        _this.__updateListenerRef(listener, response._meta.referenceId);
+        this.__updateListenerRef(listener, response._meta.referenceId);
       } else if (listener.initialCallback) {
         //emit the data in the callback
-        _this.__updateListenerRef(listener, response._meta.referenceId);
+        this.__updateListenerRef(listener, response._meta.referenceId);
       } else {
-        _this.__updateListenerRef(listener, response.id);
+        this.__updateListenerRef(listener, response.id);
       }
 
       if (parameters.onPublished) return callback(null, listener.id);
@@ -1695,7 +1596,7 @@
     };
   };
 
-  HappnClient.prototype.once = promisify(function (path, parameters, handler, callback) {
+  HappnClient.prototype.once = utils.promisify(function (path, parameters, handler, callback) {
     if (typeof parameters === 'function') {
       callback = handler;
       handler = parameters;
@@ -1705,7 +1606,7 @@
     return this.on(path, parameters, handler, callback);
   });
 
-  HappnClient.prototype.on = promisify(function (path, parameters, handler, callback) {
+  HappnClient.prototype.on = utils.promisify(function (path, parameters, handler, callback) {
     if (typeof parameters === 'function') {
       callback = handler;
       handler = parameters;
@@ -1746,12 +1647,13 @@
         listener.initialCallback ||
         listener.initialEmit
       )
-    )
+    ) {
       return callback(null, listener.id);
+    }
     this.__confirmRemoteOn(path, parameters, listener, callback);
   });
 
-  HappnClient.prototype.onAll = promisify(function (handler, callback) {
+  HappnClient.prototype.onAll = utils.promisify(function (handler, callback) {
     return this.on('*', {}, handler, callback);
   });
 
@@ -1777,31 +1679,25 @@
   };
 
   HappnClient.prototype._offListener = function (handle, callback) {
-    var _this = this;
-
-    if (!_this.state.events || _this.state.events.length === 0) return callback();
-    var listenerFound = false;
-
-    Object.keys(_this.state.events).every(function (channel) {
-      var listeners = _this.state.events[channel];
-
+    if (!this.state.events || this.state.events.length === 0) return callback();
+    let listenerFound = false;
+    Object.keys(this.state.events).every((channel) => {
+      let listeners = this.state.events[channel];
       //use every here so we can exit early
-      return listeners.every(function (listener) {
+      return listeners.every((listener) => {
         if (listener.id !== handle) return true;
-
         listenerFound = true;
-
-        var listenerRef = _this.__getListenerRef(listener);
-        _this.__clearListenerState(channel, listener);
+        var listenerRef = this.__getListenerRef(listener);
+        this.__clearListenerState(channel, listener);
 
         //now unsubscribe if we are off
         if (
-          !_this.state.refCount[listener.eventKey] ||
+          !this.state.refCount[listener.eventKey] ||
           listener.initialEmit ||
           listener.initialCallback
-        )
-          _this._remoteOff(channel, listenerRef, callback);
-        else callback();
+        ) {
+          this._remoteOff(channel, listenerRef, callback);
+        } else callback();
 
         return false;
       });
@@ -1811,17 +1707,16 @@
   };
 
   HappnClient.prototype._offPath = function (path, callback) {
-    var _this = this;
     var unsubscriptions = [];
     var channels = [];
 
-    Object.keys(_this.state.events).forEach(function (channel) {
+    Object.keys(this.state.events).forEach((channel) => {
       var channelParts = channel.split('@');
       var channelPath = channelParts.slice(1, channelParts.length).join('@');
 
-      if (_this.utils.wildcardMatch(path, channelPath)) {
+      if (utils.wildcardMatch(path, channelPath)) {
         channels.push(channel);
-        _this.state.events[channel].forEach(function (listener) {
+        this.state.events[channel].forEach(function (listener) {
           unsubscriptions.push(listener);
         });
       }
@@ -1829,44 +1724,42 @@
 
     if (unsubscriptions.length === 0) return callback();
 
-    _this.utils.async(
+    utils.async(
       unsubscriptions,
-      function (listener, index, next) {
-        _this._offListener(listener.id, next);
+      (listener, _index, next) => {
+        this._offListener(listener.id, next);
       },
-      function (e) {
+      (e) => {
         if (e) return callback(e);
-        channels.forEach(function (channel) {
-          delete _this.state.events[channel];
+        channels.forEach((channel) => {
+          delete this.state.events[channel];
         });
         callback();
       }
     );
   };
 
-  HappnClient.prototype.offAll = maybePromisify(function (callback) {
-    var _this = this;
+  HappnClient.prototype.__initializeEventState = function () {
+    this.state.events = {};
+    this.state.refCount = {};
+    this.state.listenerRefs = {};
+  };
 
-    return _this._remoteOff('*', function (e) {
+  HappnClient.prototype.offAll = utils.promisify(function (callback) {
+    return this._remoteOff('*', (e) => {
       if (e) return callback(e);
-
-      _this.state.events = {};
-      _this.state.refCount = {};
-      _this.state.listenerRefs = {};
-
+      this.__initializeEventState();
       callback();
     });
   });
 
-  HappnClient.prototype.off = maybePromisify(function (handle, callback) {
+  HappnClient.prototype.off = utils.maybePromisify(function (handle, callback) {
     if (handle == null) return callback(new Error('handle cannot be null'));
-
     if (typeof handle !== 'number') return callback(new Error('handle must be a number'));
-
     this._offListener(handle, callback);
   });
 
-  HappnClient.prototype.offPath = maybePromisify(function (path, callback) {
+  HappnClient.prototype.offPath = utils.maybePromisify(function (path, callback) {
     if (typeof path === 'function') {
       callback = path;
       path = '*';
@@ -1876,13 +1769,12 @@
   });
 
   HappnClient.prototype.clearTimeouts = function () {
-    var _this = this;
-    clearTimeout(_this.__retryReconnectTimeout);
-    Object.keys(_this.state.ackHandlers).forEach(function (handlerKey) {
-      clearTimeout(_this.state.ackHandlers[handlerKey].timedout);
+    clearTimeout(this.__retryReconnectTimeout);
+    Object.keys(this.state.ackHandlers).forEach((handlerKey) => {
+      clearTimeout(this.state.ackHandlers[handlerKey].timedout);
     });
-    Object.keys(_this.state.requestEvents).forEach(function (handlerKey) {
-      clearTimeout(_this.state.requestEvents[handlerKey].timedout);
+    Object.keys(this.state.requestEvents).forEach((handlerKey) => {
+      clearTimeout(this.state.requestEvents[handlerKey].timedout);
     });
   };
 
@@ -1892,13 +1784,12 @@
 
   HappnClient.prototype.__destroySocket = function (socket, callback) {
     //possible socket end needs to do its thing, we destroy in the next tick
-    var _this = this;
-    setTimeout(function () {
+    setTimeout(() => {
       var destroyError;
       try {
         socket.destroy();
       } catch (e) {
-        _this.log.warn('socket.destroy failed in client: ' + e.toString());
+        this.log.warn('socket.destroy failed in client: ' + e.toString());
         destroyError = e;
       }
       callback(destroyError);
@@ -1908,7 +1799,7 @@
   HappnClient.prototype.__endAndDestroySocket = function (socket, callback) {
     if (socket._local) {
       //this is an eventemitter connection
-      setTimeout(function () {
+      setTimeout(() => {
         socket.end();
         callback();
       }, 0);
@@ -1920,10 +1811,9 @@
       return this.__destroySocket(socket, callback);
     }
     //socket is currently open, close event will be fired
-    var _this = this;
     socket
-      .once('close', function () {
-        _this.__destroySocket(socket, callback);
+      .once('close', () => {
+        this.__destroySocket(socket, callback);
       })
       .end();
   };
@@ -1943,8 +1833,6 @@
     }
 
     if (!options) options = {};
-    var _this = this;
-
     if (browser) {
       if (options.deleteCookie) {
         this.__cookieCleanup(document);
@@ -1952,27 +1840,30 @@
     }
 
     if (options.revokeToken || options.revokeSession)
-      return _this.revokeToken(function (e) {
-        if (e)
-          _this.log.warn(
+      return this.revokeToken((e) => {
+        if (e) {
+          this.log.warn(
             '__connectionCleanup failed in client, revoke-token failed: ' + e.toString()
           );
-        _this.__endAndDestroySocket(_this.socket, callback);
+        }
+        this.__endAndDestroySocket(this.socket, callback);
       });
 
-    if (options.disconnectChildSessions)
-      return _this.__performSystemRequest('disconnect-child-sessions', null, null, function (e) {
-        if (e)
-          _this.log.warn(
+    if (options.disconnectChildSessions) {
+      return this.__performSystemRequest('disconnect-child-sessions', null, null, (e) => {
+        if (e) {
+          this.log.warn(
             '__connectionCleanup failed in client, disconnect-child-sessions failed: ' +
               e.toString()
           );
-        _this.__endAndDestroySocket(_this.socket, callback);
+        }
+        this.__endAndDestroySocket(this.socket, callback);
       });
-    _this.__endAndDestroySocket(_this.socket, callback);
+    }
+    this.__endAndDestroySocket(this.socket, callback);
   };
 
-  HappnClient.prototype.disconnect = maybePromisify(function (options, callback) {
+  HappnClient.prototype.disconnect = utils.maybePromisify(function (options, callback) {
     if (typeof options === 'function') {
       callback = options;
       options = null;
@@ -1982,16 +1873,13 @@
     if (!callback) callback = function () {};
 
     this.clearTimeouts();
-    var _this = this;
-    this.__connectionCleanup(options, function (e) {
+    this.__connectionCleanup(options, (e) => {
       if (e) return callback(e);
-      _this.socket = null;
-      _this.state.systemMessageHandlers = [];
-      _this.state.eventHandlers = {};
-      _this.state.events = {};
-      _this.state.refCount = {};
-      _this.state.listenerRefs = {};
-      _this.status = STATUS.DISCONNECTED;
+      this.socket = null;
+      this.state.systemMessageHandlers = [];
+      this.state.eventHandlers = {};
+      this.__initializeEventState();
+      this.status = STATUS.DISCONNECTED;
       callback();
     });
   });
