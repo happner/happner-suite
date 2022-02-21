@@ -1,5 +1,5 @@
-describe('middleware-test', function() {
-  var chai = require('chai');
+describe('middleware-test', function () {
+  var chai = require('happn-commons-test').chai;
   var expect = chai.expect;
   var crypto = require('../lib/crypto');
   var cryptoUtil = new crypto();
@@ -13,7 +13,7 @@ describe('middleware-test', function() {
 
   var server;
 
-  it('should initialize the service', function(callback) {
+  it('should initialize the service', function (callback) {
     this.timeout(20000);
 
     try {
@@ -35,17 +35,17 @@ describe('middleware-test', function() {
     }
   });
 
-  after(function() {
+  after(function () {
     server.close();
   });
 
-  var getBody = function(url, callback) {
+  var getBody = function (url, callback) {
     require('request')(
       {
         uri: url,
-        method: 'GET'
+        method: 'GET',
       },
-      function(e, r, b) {
+      function (e, r, b) {
         if (!e) {
           callback(null, b);
         } else callback(e);
@@ -53,11 +53,11 @@ describe('middleware-test', function() {
     );
   };
 
-  it('should fetch the browser client on the standard path', function(callback) {
+  it('should fetch the browser client on the standard path', function (callback) {
     this.timeout(5000);
 
     try {
-      getBody('http://127.0.0.1:8080/happn_util_crypto', function(e, body) {
+      getBody('http://127.0.0.1:8080/happn_util_crypto', function (e, body) {
         if (e) return callback(e);
         expect(body.substring(0, 21)).to.equal('/**HAPPN CRYPTO UTILS');
         callback();
@@ -67,11 +67,11 @@ describe('middleware-test', function() {
     }
   });
 
-  it('should fetch the browser client on the alternative path', function(callback) {
+  it('should fetch the browser client on the alternative path', function (callback) {
     this.timeout(5000);
 
     try {
-      getBody('http://127.0.0.1:8080/happn_util_crypto/alternative_route', function(e, body) {
+      getBody('http://127.0.0.1:8080/happn_util_crypto/alternative_route', function (e, body) {
         if (e) return callback(e);
 
         expect(body.substring(0, 21)).to.equal('/**HAPPN CRYPTO UTILS');

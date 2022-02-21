@@ -1,10 +1,9 @@
-var Mesh = require('../../../../../lib/mesh'),
-  async = require('async')
-  ;
+const Mesh = require('../../../../../lib/mesh'),
+  async = require('happn-commons').async;
 
-var ADMIN_PASSWORD = 'ADMIN_PASSWORD';
+const ADMIN_PASSWORD = 'ADMIN_PASSWORD';
 
-var config = {
+const config = {
   name: 'remoteMesh',
   happn: {
     port: 10001,

@@ -1,6 +1,6 @@
 module.exports = EndPointService;
-
-var async = require('async');
+const commons = require('happn-commons');
+const async = commons.async;
 
 function EndPointService(mesh, internals, exchangeAPI, eventAPI, happn) {
   this.mesh = mesh;

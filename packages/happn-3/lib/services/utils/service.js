@@ -3,7 +3,7 @@ var fastClone = require("fast-clone"),
   happnUtils = require("happn-commons").utils,
   fs = require("fs-extra"),
   LRU = require("lru-cache"),
-  _ = require("lodash"),
+  _ = require("happn-commons")._,
   replaceAll = require("string.prototype.replaceall");
 
 module.exports = UtilsService;

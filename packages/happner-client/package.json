@@ -17,13 +17,14 @@
     "coverage": "npm run test-cover && npm run report",
     "coveralls": "npm run test-cover && nyc report --reporter=text-lcov | coveralls",
     "test": "mocha silence.js test/unit/* test/integration/* --recursive",
-    "test-cover": "env LOG_LEVEL=off nyc --reporter=lcov --reporter=text-summary mocha test/unit/* test/integration/*  --recursive",
+    "test-cover": "nyc --reporter=lcov --reporter=text-summary mocha test/unit/* test/integration/*  --recursive",
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },
   "dependencies": {
-    "happn-commons": "^1.0.0",
     "happn-3": "^13.0.0",
-    "happner-semver": "^1.0.1"
+    "happn-commons": "^1.0.0",
+    "happner-semver": "^1.0.1",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "happn-commons-test": "^1.0.0",

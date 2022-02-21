@@ -28,11 +28,12 @@ var depWarned4 = false; // Happner.start()
 if (process.env.START_AS_ROOTED) global.$happner = root;
 
 var Internals = require('./system/shared/internals'),
+  commons = require('happn-commons'),
   MeshClient = require('./system/shared/mesh-client'),
   Happn = require('happn-3'),
   DataLayer = require('./system/happn'),
   Config = require('./system/config'),
-  async = require('async'),
+  async = commons.async,
   MeshError = require('./system/shared/mesh-error'),
   ComponentInstance = require('./system/component-instance'),
   path = require('path'),
@@ -42,7 +43,7 @@ var Internals = require('./system/shared/internals'),
   Logger = require('happn-logger'),
   EventEmitter = require('events').EventEmitter,
   util = require('util'),
-  _ = require('lodash');
+  _ = commons._;
 
 module.exports = Mesh;
 module.exports.Happn = Happn.service;
