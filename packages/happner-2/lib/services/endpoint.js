@@ -35,8 +35,8 @@ EndPointInstance.prototype.connect = function (callback) {
   var attempts = 0;
 
   async.whilst(
-    function (testCB) {
-      testCB(null, connecting);
+    function () {
+      return connecting;
     },
     function (attemptCB) {
       attempts++;

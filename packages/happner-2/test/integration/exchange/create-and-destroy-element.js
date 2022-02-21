@@ -98,7 +98,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     const localEvent = mesh.localEvent;
     Object.keys(mesh._mesh.elements).forEach(function (componentName) {
       const componentInstance = mesh._mesh.elements[componentName].component.instance;
-      Object.keys(componentInstance.exchange).should.eql(Object.keys(exchange));
+      Object.keys(componentInstance.exchange).sort().should.eql(Object.keys(exchange).sort());
       Object.keys(componentInstance.localEvent).sort().should.eql(Object.keys(localEvent).sort());
       Object.keys(componentInstance.event).sort().should.eql(Object.keys(event).sort());
     });
