@@ -1,5 +1,3 @@
-//const log = require('why-is-node-running');
-
 describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
@@ -870,7 +868,8 @@ describe(
     });
 
     it('tests the reconnect function emits a reconnect event', function (done) {
-      var happnClient = mockHappnClient();
+      const happnClient = mockHappnClient();
+      happnClient.__prepareInstanceOptions({});
 
       happnClient.onEvent('reconnect', function (data) {
         expect(data).to.eql(options);

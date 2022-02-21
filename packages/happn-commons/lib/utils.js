@@ -215,6 +215,27 @@ module.exports = {
       });
     };
   },
+  promisify: function (fn) {
+    // MIT License, - thanks to paulmillr.com
+    if (typeof fn !== 'function') throw new TypeError('micro-promisify must receive a function');
+    return Object.defineProperties(
+      function () {
+        var _this = this;
+        for (var args = new Array(arguments.length), i = 0; i < args.length; ++i)
+          args[i] = arguments[i]; // git.io/vk55A
+        return new Promise(function (resolve, reject) {
+          args.push(function (error, result) {
+            error == null ? resolve(result) : reject(error);
+          });
+          fn.apply(_this, args);
+        });
+      },
+      {
+        length: { value: Math.max(0, fn.length - 1) },
+        name: { value: fn.name },
+      }
+    );
+  },
 };
 
 function noop() {}
