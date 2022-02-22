@@ -1,9 +1,9 @@
-var Internals = require('./shared/internals');
-var MeshError = require('./shared/mesh-error');
-var EventEmitter = require('events').EventEmitter;
-var depWarned0 = false; // $happn.mesh.*
-var utilities = require('./utilities');
-var _ = require('lodash');
+const Internals = require('./shared/internals');
+const MeshError = require('./shared/mesh-error');
+const EventEmitter = require('events').EventEmitter;
+const depWarned0 = false; // $happn.mesh.*
+const utilities = require('./utilities');
+const _ = require('happn-commons')._;
 
 module.exports = ComponentInstance;
 

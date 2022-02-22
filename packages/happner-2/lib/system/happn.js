@@ -1,7 +1,8 @@
-var fs = require('fs-extra'),
+const commons = require('happn-commons'),
+  fs = commons.fs,
   path = require('path'),
   EventEmitter = require('events').EventEmitter,
-  _ = require('lodash'),
+  _ = commons._,
   utils = require('./utilities');
 
 module.exports = HappnLayer;

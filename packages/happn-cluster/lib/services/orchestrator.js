@@ -7,8 +7,8 @@ var EventEmitter = require('events').EventEmitter;
 var Member = require('./orchestrator/member');
 var property = require('../utils/property');
 var GetAddress = require('../utils/get-address');
-var clone = require('clone');
-
+const commons = require('happn-commons')
+const clone = commons.fastClone;
 function Orchestrator(opts) {
   this.peers = {}; // list of ready (fully connected) members by happn.name
 

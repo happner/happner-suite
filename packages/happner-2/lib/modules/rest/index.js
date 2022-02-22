@@ -1,6 +1,7 @@
 let utilities = require('../../system/utilities'),
-  async = require('async'),
-  _ = require('lodash');
+  commons = require('happn-commons'),
+  async = commons.async,
+  _ = commons._;
 module.exports = Rest;
 
 /**

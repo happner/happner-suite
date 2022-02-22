@@ -5,8 +5,11 @@
   if (isBrowser) {
     window.Happner = window.Happner || {};
     window.Happner.Internals = Internals;
+    // eslint-disable-next-line no-undef
     Promisify = Happner.Promisify;
+    // eslint-disable-next-line no-undef
     Messenger = Happner.Messenger;
+    // eslint-disable-next-line no-undef
     MeshError = Happner.MeshError;
   } else {
     module.exports = Internals;

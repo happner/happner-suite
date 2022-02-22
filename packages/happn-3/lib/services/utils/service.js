@@ -1,9 +1,10 @@
-var fastClone = require("fast-clone"),
+let commons = require("happn-commons"),
+  fastClone = commons.fastClone,
   ms = require("ms"),
-  happnUtils = require("happn-commons").utils,
-  fs = require("fs-extra"),
-  LRU = require("lru-cache"),
-  _ = require("happn-commons")._,
+  happnUtils = commons.utils,
+  fs = commons.fs,
+  LRU = commons.lruCache,
+  _ = commons._,
   replaceAll = require("string.prototype.replaceall");
 
 module.exports = UtilsService;

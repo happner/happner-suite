@@ -4,7 +4,9 @@
   if (isBrowser) {
     window.Happner = window.Happner || {};
     window.Happner.Messenger = Messenger;
+    // eslint-disable-next-line no-undef
     Promisify = Happner.Promisify;
+    // eslint-disable-next-line no-undef
     MeshError = Happner.MeshError;
   } else {
     module.exports = Messenger;
@@ -15,6 +17,7 @@
 
   function Messenger(endpoint, mesh) {
     const exchange = mesh.exchange;
+    this.meshName = mesh.config.domain || mesh.config.name;
 
     if (typeof mesh.log === 'object' && mesh.log.createLogger) {
       this.log = mesh.log.createLogger('Messenger/' + endpoint.name);
@@ -22,6 +25,7 @@
       if (!Logger.configured) Logger.configure();
       this.log = Logger.createLogger('Messenger/' + endpoint.name);
     } else {
+      // eslint-disable-next-line no-undef
       this.log = Happner.createLogger('Messenger/' + endpoint.name);
     }
 
@@ -153,7 +157,7 @@
                   req: true,
                   res: false,
                   src: {
-                    mesh: mesh.config.name,
+                    mesh: _this.meshName,
                     browser: isBrowser,
                     //////// component: 'possible?'
                   },
@@ -249,7 +253,7 @@
       });
 
       if (schemaValidationFailures.length > 0)
-        return callback(new MeshError('schema validation failed', e));
+        return callback(new MeshError('schema validation failed', schemaValidationFailures));
 
       // NO! if the callback throws then a second callback will be made with the validation 'failed error'
       //
@@ -320,10 +324,13 @@
         //
         // This ability is used in the system/data component's on() function
 
-        if (!args[index]) throw new MeshError('Callback for ' + address + ' was not defined');
+        if (!args[index])
+          throw new MeshError('Callback for ' + message.callbackAddress + ' was not defined');
 
         if (typeof args[index] !== 'function')
-          throw new MeshError('Invalid callback for ' + address + ', callback must be a function');
+          throw new MeshError(
+            'Invalid callback for ' + message.callbackAddress + ', callback must be a function'
+          );
 
         _this.responseHandlers[message.callbackAddress] = _this.__createCallbackHandler(
           args[index],

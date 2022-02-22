@@ -7,8 +7,7 @@ const traverse = require('traverse'),
   EventEmitter = require('events').EventEmitter,
   hyperid = commons.hyperid.create({
     urlSafe: true,
-  }),
-  VersionUpdater = require('./versions/updater');
+  });
 
 const META_FIELDS = [
   '_meta',
@@ -66,7 +65,6 @@ DataService.prototype.__attachProviderEvents = __attachProviderEvents;
 DataService.prototype.__getPullOptions = __getPullOptions;
 DataService.prototype.__upsertInternal = __upsertInternal;
 DataService.prototype.__iterateDataStores = __iterateDataStores;
-DataService.prototype.__updateDatabaseVersions = __updateDatabaseVersions;
 
 DataService.prototype.__providerHasFeature = __providerHasFeature;
 DataService.prototype.__findDataProviderConfig = __findDataProviderConfig;
@@ -121,55 +119,9 @@ function initialize(config, callback) {
 
   this.__initializeProviders()
     .then(() => {
-      return this.__updateDatabaseVersions();
-    })
-    .then(() => {
       callback();
     })
     .catch(callback);
-}
-
-function __updateDatabaseVersions() {
-  return new Promise((resolve, reject) => {
-    var versionUpdater = new VersionUpdater(this, this.happn.services.system);
-
-    versionUpdater.analyzeDB((e, analysis) => {
-      if (e) return reject(e);
-      //make available so we can inspect in our integration tests
-      this.dbVersionAnalysis = analysis;
-
-      if (analysis.isNew)
-        return versionUpdater.writeVersionToDB(analysis.moduleDBVersion, resolve, reject);
-
-      if (analysis.matchingVersion) return resolve(analysis);
-
-      if (!this.config.autoUpdateDBVersion)
-        return reject(
-          new Error(
-            'current database version ' +
-              analysis.currentDBVersion +
-              ' does not match ' +
-              analysis.moduleDBVersion
-          )
-        );
-
-      versionUpdater.updateDB(
-        analysis,
-        (logs) => {
-          this.log.warn(
-            'database upgrade from ' + analysis.currentDBVersion + ' to ' + analysis.moduleDBVersion
-          );
-
-          logs.forEach((log) => {
-            this.log.info(log.message);
-          });
-
-          versionUpdater.writeVersionToDB(analysis.moduleDBVersion, resolve, reject);
-        },
-        reject
-      );
-    });
-  });
 }
 
 function __providerHasFeature(provider, feature) {

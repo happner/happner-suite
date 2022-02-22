@@ -1,5 +1,5 @@
 // var utilities = require('./utilities');
-let deepCopy = require('deep-copy');
+let clone = require('happn-commons').fastClone;
 
 module.exports = Config;
 
@@ -14,7 +14,8 @@ Config.prototype.process = function (mesh, config, callback) {
   this.log = mesh.log.createLogger('Config');
   this.log.$$TRACE('process()');
 
-  var clonedConfig = deepCopy(config);
+  var clonedConfig = clone(config);
+  clonedConfig.modules = config.modules;
 
   // process shortform endpoints
   Object.keys(clonedConfig.endpoints || {}).forEach(function (name) {

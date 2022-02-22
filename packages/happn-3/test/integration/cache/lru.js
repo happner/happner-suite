@@ -1,6 +1,6 @@
 // const test = require('../../__fixtures/utils/test_helper').create();
 // describe(test.testName(), function() {
-require('../../__fixtures/utils/test_helper').describe(function (test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, function (test) {
   const service = require('../../../lib/services/cache/service');
   const serviceInstance = new service();
   const testId = require('shortid').generate();
@@ -318,7 +318,6 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
                 serviceInstance.get(key, function (e, data) {
                   if (e) return done(e);
                   test.expect(data).to.be(null);
-
                   done();
                 });
               }, 1000);
@@ -385,9 +384,11 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
 
           test.expect(data.dkey).to.be(key);
 
+          test.expect(serviceInstance.__defaultCache.__cache.size).to.be(3);
+
           serviceInstance.clear('default');
 
-          test.expect(serviceInstance.__defaultCache.__cache.keys().length).to.be(0);
+          test.expect(serviceInstance.__defaultCache.__cache.size).to.be(0);
 
           serviceInstance.get(key, function (e, data) {
             if (e) return done(e);
@@ -456,7 +457,7 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
 
           serviceInstance.clear('default');
 
-          test.expect(serviceInstance.__defaultCache.__cache.keys().length).to.be(0);
+          test.expect(serviceInstance.__defaultCache.__cache.size).to.be(0);
 
           serviceInstance.get(key, function (e, data) {
             if (e) return done(e);
@@ -525,7 +526,7 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
                       done();
                     })
                     .catch(done);
-                }, 2000);
+                }, 3000);
               })
               .catch(done);
           });
@@ -658,13 +659,11 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
           if (e) return done(e);
 
           test.expect(items.length).to.be(5);
-
-          //backwards because LRU
-          test.expect(items[0].val).to.be('sync_key_' + 4);
-          test.expect(items[1].val).to.be('sync_key_' + 3);
+          test.expect(items[0].val).to.be('sync_key_' + 0);
+          test.expect(items[1].val).to.be('sync_key_' + 1);
           test.expect(items[2].val).to.be('sync_key_' + 2);
-          test.expect(items[3].val).to.be('sync_key_' + 1);
-          test.expect(items[4].val).to.be('sync_key_' + 0);
+          test.expect(items[3].val).to.be('sync_key_' + 3);
+          test.expect(items[4].val).to.be('sync_key_' + 4);
 
           done();
         });
@@ -708,8 +707,8 @@ require('../../__fixtures/utils/test_helper').describe(function (test) {
             test.expect(items.length).to.be(2);
 
             //backwards because LRU
-            test.expect(items[0].val).to.be('sync_key_' + 2);
-            test.expect(items[1].val).to.be('sync_key_' + 1);
+            test.expect(items[0].val).to.be('sync_key_' + 1);
+            test.expect(items[1].val).to.be('sync_key_' + 2);
 
             done();
           }

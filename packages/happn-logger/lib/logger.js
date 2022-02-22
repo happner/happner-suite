@@ -3,16 +3,15 @@ var util = require('util');
 var Cache = [];
 
 Object.defineProperty(module.exports, 'cache', {
-  get: function() {
+  get: function () {
     return Cache;
   },
-  enumerable: true
+  enumerable: true,
 });
 
 var configured = false;
 
 var Config = {
-
   // keep a cache (array) of most recent n messages
   logCacheSize: process.env.LOG_CACHE_SIZE ? parseInt(process.env.LOG_CACHE_SIZE) : 50,
 
@@ -41,23 +40,22 @@ var Config = {
   // if config.logFile is specified:
   logFile: null,
   logFileLayout: null,
-  logFileMaxSize: 20480,     // limit the file size
-  logFileBackups: 10,        // keep history of 10 logfiles
+  logFileMaxSize: 20480, // limit the file size
+  logFileBackups: 10, // keep history of 10 logfiles
   logFileNameAbsolute: true, // is the log filename an absolute path?
-
 };
 
 Object.defineProperty(module.exports, 'configured', {
-  get: function() {
+  get: function () {
     return configured;
   },
-  enumerable: true
+  enumerable: true,
 });
 
 Object.defineProperty(module.exports, 'config', {
-  get: function() {
+  get: function () {
     return Config;
-  }
+  },
 });
 
 var EventEmitter = require('events').EventEmitter;
@@ -65,42 +63,47 @@ var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
 
 Object.defineProperty(module.exports, 'emitter', {
-  value: emitter
+  value: emitter,
 });
 
-module.exports.configure = function(config) {
-  var log4js, fileAppender, previous, defaulting;
+module.exports.configure = function (config) {
+  var log4js, previous, defaulting;
   defaulting = false;
   configured = true;
 
   config = config || {};
 
-  if (typeof config.logCacheSize == 'number')    Config.logCacheSize         = process.env.LOG_CACHE_SIZE ? parseInt(process.env.LOG_CACHE_SIZE) : config.logCacheSize;
-  if (config.logLevel)                           Config.logLevel             = process.env.LOG_LEVEL || config.logLevel;
-  if (typeof config.logTimeDelta == 'boolean')   Config.logTimeDelta         = config.logTimeDelta;
-  if (typeof config.logStackTraces == 'boolean') Config.logStackTraces       = config.logStackTraces;
-  if (config.logComponents)                      Config.logComponents        = process.env.LOG_COMPONENTS ? process.env.LOG_COMPONENTS.split(',') : config.logComponents;
-  if (config.logMessageDelimiter)                Config.logMessageDelimiter  = config.logMessageDelimiter;
-  if (config.logDateFormat)                      Config.logDateFormat        = config.logDateFormat;
-  if (config.logLayout)                          Config.logLayout            = config.logLayout;
-  if (config.logFile)                            Config.logFile              = config.logFile;
-  if (config.logFileLayout)                      Config.logFileLayout        = config.logFileLayout;
-  if (config.logFileMaxSize)                     Config.logFileMaxSize       = config.logFileMaxSize;
-  if (config.logFileBackups)                     Config.logFileBackups       = config.logFileBackups;
-  if (config.logFilelogFileNameAbsolute)         Config.logFileNameAbsolute  = config.logFileNameAbsolute;
-  if (config.logger)                             Config.logger               = config.logger;
-  if (config.listener)                           Config.listener             = config.listener;
+  if (typeof config.logCacheSize === 'number')
+    Config.logCacheSize = process.env.LOG_CACHE_SIZE
+      ? parseInt(process.env.LOG_CACHE_SIZE)
+      : config.logCacheSize;
+  if (config.logLevel) Config.logLevel = process.env.LOG_LEVEL || config.logLevel;
+  if (typeof config.logTimeDelta === 'boolean') Config.logTimeDelta = config.logTimeDelta;
+  if (typeof config.logStackTraces === 'boolean') Config.logStackTraces = config.logStackTraces;
+  if (config.logComponents)
+    Config.logComponents = process.env.LOG_COMPONENTS
+      ? process.env.LOG_COMPONENTS.split(',')
+      : config.logComponents;
+  if (config.logMessageDelimiter) Config.logMessageDelimiter = config.logMessageDelimiter;
+  if (config.logDateFormat) Config.logDateFormat = config.logDateFormat;
+  if (config.logLayout) Config.logLayout = config.logLayout;
+  if (config.logFile) Config.logFile = config.logFile;
+  if (config.logFileLayout) Config.logFileLayout = config.logFileLayout;
+  if (config.logFileMaxSize) Config.logFileMaxSize = config.logFileMaxSize;
+  if (config.logFileBackups) Config.logFileBackups = config.logFileBackups;
+  if (config.logFilelogFileNameAbsolute) Config.logFileNameAbsolute = config.logFileNameAbsolute;
+  if (config.logger) Config.logger = config.logger;
+  if (config.listener) Config.listener = config.listener;
 
   // only build the log4js config if not defined
   if (!Config.logger) {
-
     defaulting = true;
 
     // create the necessary layout if date format is specified
     if (Config.logDateFormat && !Config.logLayout) {
       Config.logLayout = {
         type: 'pattern',
-        pattern: '%d{' + Config.logDateFormat + '} [%5.5p] - %m'
+        pattern: '%d{' + Config.logDateFormat + '} [%5.5p] - %m',
       };
     }
 
@@ -109,7 +112,7 @@ module.exports.configure = function(config) {
       if (!Config.logLayout) {
         Config.logLayout = {
           type: 'pattern',
-          pattern: '[%[%5.5p%]] - %m'
+          pattern: '[%[%5.5p%]] - %m',
         };
       }
     }
@@ -119,59 +122,59 @@ module.exports.configure = function(config) {
       if (!Config.logLayout) {
         Config.logLayout = {
           type: 'pattern',
-          pattern: `%d{${Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS'}} [%5.5p] - %m`
-        }
+          pattern: `%d{${Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS'}} [%5.5p] - %m`,
+        };
       }
     }
 
     // default logger includes console
     Config.logger = {
       appenders: {
-        console: {  
-          type: "console",
-          layout: Config.logLayout 
-        }
-      }
+        console: {
+          type: 'console',
+          layout: Config.logLayout,
+        },
+      },
     };
   }
 
   if (!Config.logger.categories)
-    Config.logger.categories = { 
-      default: { 
-        appenders: Object.keys(Config.logger.appenders), 
-        level: Config.logLevel 
-      }
+    Config.logger.categories = {
+      default: {
+        appenders: Object.keys(Config.logger.appenders),
+        level: Config.logLevel,
+      },
     };
-  
+
   //we add the raw appender and category
   Config.logger.appenders.$$RAW = {
-    type: "console",
-    layout: { type: 'messagePassThrough' }
-  }
+    type: 'console',
+    layout: { type: 'messagePassThrough' },
+  };
 
-  Config.logger.categories.$$RAW = { 
-    appenders: ['$$RAW'], 
-    level: Config.logLevel 
-  }
+  Config.logger.categories.$$RAW = {
+    appenders: ['$$RAW'],
+    level: Config.logLevel,
+  };
 
   // create additional appender for logFile if specified
   if (Config.logFile && defaulting) {
     Config.logger.appenders.file = {
-      "type": "file",
-      "absolute": Config.logFileNameAbsolute,
-      "filename": Config.logFile,
-      "maxLogSize": Config.logFileMaxSize,
-      "backups": Config.logFileBackups,
+      type: 'file',
+      absolute: Config.logFileNameAbsolute,
+      filename: Config.logFile,
+      maxLogSize: Config.logFileMaxSize,
+      backups: Config.logFileBackups,
     };
     if (Config.logFileLayout) {
-      Config.logger.appenders.file.layout = Config.logFileLayout
+      Config.logger.appenders.file.layout = Config.logFileLayout;
     } else {
       Config.logger.appenders.file.layout = {
         type: 'pattern',
-        pattern: '%d{' + (Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS') + '} [%5.5p] - %m'
-      }
+        pattern: '%d{' + (Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS') + '} [%5.5p] - %m',
+      };
     }
-    Config.logger.categories.default.appenders.push('file'); 
+    Config.logger.categories.default.appenders.push('file');
   }
 
   log4js = require('log4js');
@@ -188,36 +191,34 @@ module.exports.configure = function(config) {
     const toStringify = {
       timestamp: Date.now(),
       level,
-      tag : tag ? tag.toString() : undefined
+      tag: tag ? tag.toString() : undefined,
     };
     let data;
     try {
-      if (obj instanceof Error)
-        data = obj.toString();
+      if (obj instanceof Error) data = obj.toString();
       else if (obj == null) {
-        data = "[null]";
+        data = '[null]';
       } else {
         JSON.stringify(obj);
         data = obj;
       }
-    } catch(e) {
+    } catch (e) {
       data = `not stringifyable: ${obj}`;
     }
     toStringify.data = data;
     return JSON.stringify(toStringify);
   }
 
-  Config.$$RAW = function(obj, level = 'info', tag) {
+  Config.$$RAW = function (obj, level = 'info', tag) {
     Config.rawLogWriter[level](tryStringify(obj, level, tag));
-  }
+  };
 
-  Config.log = function(level, context, component, message, array) {
-
+  Config.log = function (level, context, component, message, array) {
     var now, ms, string, last;
 
     if (Config.logComponents.length > 0) {
-      if (level != 'fatal' && level != 'error' && level != 'warn') {
-        if (Config.logComponents.indexOf(component) == -1) return;
+      if (level !== 'fatal' && level !== 'error' && level !== 'warn') {
+        if (Config.logComponents.indexOf(component) === -1) return;
       }
     }
 
@@ -239,7 +240,7 @@ module.exports.configure = function(config) {
         level: level,
         context: context,
         component: component,
-        message: message
+        message: message,
       });
       while (Cache.length > Config.logCacheSize) Cache.pop();
     }
@@ -252,88 +253,86 @@ module.exports.configure = function(config) {
 
     Config.logWriter[level](string);
 
-    if (Config.listener){
+    if (Config.listener) {
       Config.listener(level, string);
     }
 
-    if (level == 'error')
-      Config.logWriter[level](array.pop());
+    if (level === 'error') Config.logWriter[level](array.pop());
 
     if (Config.logStackTraces) {
-      if (last = array[array.length -1]) {
-        if (last.name && last.name == 'MeshError') {
+      if ((last = array[array.length - 1])) {
+        if (last.name && last.name === 'MeshError') {
           if (last.data && last.data.stack) {
             Config.logWriter[level](last.data.stack);
           }
-        }
-        else if (last.stack) {
+        } else if (last.stack) {
           Config.logWriter[level](last.stack);
         }
       }
     }
 
-    emitter.emit('after', level, string, Config.logStackTraces?last:null);
+    emitter.emit('after', level, string, Config.logStackTraces ? last : null);
   };
-}
+};
 
-module.exports.createContext = function(context) {
+module.exports.createContext = function (context) {
   var thisContext = {
-    value: context
-  }
+    value: context,
+  };
 
   var thisInstance = {
-    createLogger: function(component, obj) {
+    createLogger: function (component, obj) {
       return module.exports.createLogger(component, obj, thisContext);
-    }
-  }
+    },
+  };
 
   Object.defineProperty(thisInstance, 'context', {
-    set: function(v) {
+    set: function (v) {
       thisContext.value = v;
     },
-    get: function() {
+    get: function () {
       return thisContext.value;
     },
     enumerable: true,
   });
 
   return thisInstance;
-}
+};
 
-module.exports.createLogger = function(component, obj, thisContext, listener) {
-
-  var thisContext = thisContext || {
+module.exports.createLogger = function (component, obj, thisContext, listener) {
+  thisContext = thisContext || {
     value: undefined,
-  }
+  };
 
-  var logger = obj || function() {
-    logger.debug.apply(this, arguments);
-  }
+  var logger =
+    obj ||
+    function () {
+      logger.debug.apply(this, arguments);
+    };
 
-  if (listener)
-    Config.listener = listener;
+  if (listener) Config.listener = listener;
 
   if (!obj) {
-    logger.createLogger = function(component) {
+    logger.createLogger = function (component) {
       return module.exports.createLogger(component, null, thisContext);
-    }
+    };
   }
 
   if (!obj) {
     Object.defineProperty(logger, 'context', {
-      set: function(v) {
+      set: function (v) {
         thisContext.value = v;
       },
-      get: function() {
+      get: function () {
         return thisContext.value;
       },
       enumerable: true,
     });
   }
 
-  logger.on = function(event, handler) {
+  logger.on = function (event, handler) {
     emitter.on(event, handler);
-  }
+  };
 
   logger.json = {
     fatal: (obj, tag) => {
@@ -365,83 +364,91 @@ module.exports.createLogger = function(component, obj, thisContext, listener) {
       if (!Config.logWriter) return;
       if (!Config.logWriter.isTraceEnabled()) return;
       Config.$$RAW(obj, 'trace', tag);
-    }
-  }
+    },
+  };
 
-  logger.fatal = function() {
+  logger.fatal = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isFatalEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('fatal', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.error = function() {
+  logger.error = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isErrorEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
 
-    var location = new Error().stack.split("\n")[2];
+    var location = new Error().stack.split('\n')[2];
 
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     else array = new Array();
 
     array.push(location);
     Config.log('error', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.warn = function() {
+  logger.warn = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isWarnEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('warn', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.info = function() {
+  logger.info = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isInfoEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('info', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.debug = function() {
+  logger.debug = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isDebugEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('debug', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.$$DEBUG = function() {
+  logger.$$DEBUG = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isDebugEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('debug', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.trace = function() {
+  logger.trace = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isTraceEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('trace', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.$$TRACE = function() {
+  logger.$$TRACE = function () {
     if (!Config.logWriter) return;
     if (!Config.logWriter.isTraceEnabled()) return;
-    var array, message = util.format.apply(this, arguments);
+    var array,
+      message = util.format.apply(this, arguments);
     if (Config.logStackTraces) array = Array.prototype.slice.call(arguments);
     Config.log('trace', thisContext.value, component, message, array);
-  }
+  };
 
-  logger.setLevel = function(level) {
+  logger.setLevel = function (level) {
     Config.logWriter.level = level;
     Config.rawLogWriter.level = level;
-  }
+  };
 
   return logger;
-}
+};
