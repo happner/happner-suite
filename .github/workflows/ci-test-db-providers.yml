@@ -61,11 +61,12 @@ jobs:
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
+      continue-on-error: true
       with:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: db-provider-loki,db-provider-mongo,db-provider-elasticsearch
+        PACKAGES: happn-db-provider-loki,happn-db-provider-mongo,happn-db-provider-elasticsearch
 
 
 

@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^3.2.2",
     "custom-env": "^2.0.1",
+    "fast-clone": "^1.5.13",
     "fs-extra": "^10.0.0",
     "happn-sillyname": "^0.1.1",
     "happner-hyperid": "^2.0.0",

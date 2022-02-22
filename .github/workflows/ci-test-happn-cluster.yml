@@ -3,7 +3,7 @@ name: CI happn-cluster
 on: [push]
 
 jobs:
-  cluster:
+  happn-cluster:
     env:
         RUNNING_IN_ACTIONS: yes
     runs-on: ubuntu-latest

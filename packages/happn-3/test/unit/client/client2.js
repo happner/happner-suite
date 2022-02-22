@@ -27,6 +27,7 @@ describe(
         write: function () {},
         on: function () {},
         destroy: function () {},
+        end: function () {},
       };
 
       happnClient.options = clientOptions || {
@@ -873,7 +874,9 @@ describe(
 
       happnClient.onEvent('reconnect', function (data) {
         expect(data).to.eql(options);
-        done();
+        happnClient.disconnect({}, function () {
+          done();
+        });
       });
 
       var options = {

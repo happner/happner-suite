@@ -15,7 +15,8 @@ const utils = require('happn-commons/lib/utils');
 
 module.exports = Packager;
 
-var fs = require('fs'),
+const commons = require('happn-commons'),
+  fs = commons.fs,
   zlib = require('zlib'),
   md5 = require('md5'),
   minify = require('uglify-es').minify,
@@ -24,7 +25,6 @@ var fs = require('fs'),
   sep = require('path').sep,
   Happn = require('happn-3'),
   homedir = require('homedir'),
-  fsExtra = require('fs-extra'),
   version = require('../../package.json').version,
   cachedDirname = homedir() + sep + '.happner',
   cachedFilename = cachedDirname + sep + 'api-client-' + version + '.min.js.gz',
@@ -108,7 +108,7 @@ function Packager(mesh) {
 }
 
 Packager.prototype.ensureCacheDirectory = function () {
-  fsExtra.ensureDirSync(cachedDirname);
+  fs.ensureDirSync(cachedDirname);
 };
 
 Packager.prototype.loadCachedScript = function () {

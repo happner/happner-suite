@@ -1,7 +1,7 @@
 var repl = require('repl');
 var replHistory = require('repl.history');
 var net = require('net');
-var fs = require('fs');
+var fs = require('happn-commons').fs;
 
 var running = false; // one per process
 var server, log;

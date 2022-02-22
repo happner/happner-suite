@@ -37,7 +37,7 @@ module.exports = class UsersByGroupCache {
     this.__cache.setSync(groupName, result);
   }
 
-  removeMappings(groupName, result) {
+  removeMappings(result, groupName) {
     result.data.forEach((username) => {
       if (this.__mappings[username]) {
         delete this.__mappings[username][groupName];

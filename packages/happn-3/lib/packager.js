@@ -1,4 +1,5 @@
-const fs = require('fs-extra'),
+const commons = require('happn-commons'),
+  fs = commons.fs,
   Utils = require('./services/utils/service'),
   utils = new Utils(),
   path = require('path'),
@@ -12,7 +13,6 @@ module.exports = {
   version: package.version,
   __cachedBrowserClient: null,
   __createBrowserClient: async function (options) {
-    const commons = require('happn-commons');
     var package = require('../package.json');
     var protocol = package.protocol;
     var buf = fs.readFileSync(path.resolve(__dirname, './client.js'));

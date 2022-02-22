@@ -133,11 +133,8 @@ describe(
 
     it('gets the cache keys', function () {
       var key = testId + 'test1';
-
       var data = { dkey: key };
-
       var Cache = require('../../../lib/services/cache/cache_lru');
-
       var cache = new Cache();
       cache.setSync(key + '1', data, { clone: false });
       cache.setSync(key + '2', data, { clone: false });

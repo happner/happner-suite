@@ -94,13 +94,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     // spawn remote mesh in another process
     remote = spawn('node', [libFolder + REMOTE_MESH]);
     remote.stdout.on('data', function (data) {
+      console.log(data.toString());
       if (data.toString().match(/READY/)) {
         clearTimeout(timedOut);
-
         setTimeout(function () {
           callback();
         }, 1000);
       }
+    });
+    remote.stderr.on('data', function (err) {
+      console.log(err.toString());
     });
   };
 

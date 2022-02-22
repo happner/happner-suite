@@ -1,6 +1,6 @@
-var shortId = require('shortid'),
+const commons = require('happn-commons'),
   util = require('util'),
-  fs = require('fs'),
+  fs = commons.fs,
   path = require('path'),
   Logger = require('happn-logger');
 
@@ -61,10 +61,6 @@ module.exports.getFunctionParameters = function (fn) {
 };
 
 module.exports.node = util;
-
-module.exports.generateID = function () {
-  return shortId.generate();
-};
 
 module.exports.findInModules = function (filename, modulePaths, callback) {
   if (typeof modulePaths === 'function') {

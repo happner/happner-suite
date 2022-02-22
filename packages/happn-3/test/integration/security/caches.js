@@ -234,15 +234,9 @@ describe(testHelper.testName(__filename, 3), function () {
       function (e) {
         if (e) return done(e);
 
-        expect(
-          serviceInstance.services.security.groups.__cache_groups.__cache.values().length
-        ).to.be(5);
-        expect(serviceInstance.services.security.users.__cache_users.__cache.values().length).to.be(
-          5
-        );
-        expect(
-          serviceInstance.services.security.users.__cache_passwords.__cache.values().length
-        ).to.be(5);
+        expect(serviceInstance.services.security.groups.__cache_groups.__cache.size).to.be(5);
+        expect(serviceInstance.services.security.users.__cache_users.__cache.size).to.be(5);
+        expect(serviceInstance.services.security.users.__cache_passwords.__cache.size).to.be(5);
 
         done();
       }
@@ -297,16 +291,14 @@ describe(testHelper.testName(__filename, 3), function () {
         if (e) return done(e);
 
         expect(
-          serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache.values()
-            .length
+          serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache.size
         ).to.be(5);
         expect(
-          serviceInstance.services.security.checkpoint.__cache_checkpoint_permissionset.__cache.values()
-            .length
+          serviceInstance.services.security.checkpoint.__cache_checkpoint_permissionset.__cache.size
         ).to.be(6);
-        expect(
-          serviceInstance.services.security.groups.permissionManager.cache.__cache.values().length
-        ).to.be(5);
+        expect(serviceInstance.services.security.groups.permissionManager.cache.__cache.size).to.be(
+          5
+        );
         done();
       }
     );

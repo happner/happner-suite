@@ -1,4 +1,5 @@
-var async = require('async');
+const commons = require('happn-commons'),
+  async = commons.async;
 module.exports = Security;
 
 function Security() {

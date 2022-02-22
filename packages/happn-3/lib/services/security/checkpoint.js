@@ -1,6 +1,6 @@
-const async = require('async');
+const async = require('happn-commons').async;
 const CONSTANTS = require('../..').constants;
-const _ = require('lodash');
+const _ = require('happn-commons')._;
 
 module.exports = CheckPoint;
 

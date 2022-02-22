@@ -1,6 +1,7 @@
 var os = require('os');
 var procStats = require('proc-stats');
-var fs = require('fs-extra');
+const commons = require('happn-commons'),
+  fs = commons.fs;
 var diskspace = require('diskspace');
 var Logger = require('happn-logger');
 

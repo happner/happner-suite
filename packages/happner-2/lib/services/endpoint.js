@@ -1,6 +1,6 @@
 module.exports = EndPointService;
-
-var async = require('async');
+const commons = require('happn-commons');
+const async = commons.async;
 
 function EndPointService(mesh, internals, exchangeAPI, eventAPI, happn) {
   this.mesh = mesh;
@@ -35,8 +35,8 @@ EndPointInstance.prototype.connect = function (callback) {
   var attempts = 0;
 
   async.whilst(
-    function (testCB) {
-      testCB(null, connecting);
+    async () => {
+      return connecting;
     },
     function (attemptCB) {
       attempts++;

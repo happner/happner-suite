@@ -1,8 +1,8 @@
 module.exports = LRUCache;
 
 var EventEmitter = require('events').EventEmitter;
-var LRU = require('lru-cache');
 const commons = require('happn-commons');
+const LRU = commons.lruCache;
 const util = commons.utils;
 
 LRUCache.prototype.setSync = setSync;
@@ -40,9 +40,6 @@ function LRUCache(opts) {
 function setSync(key, data, opts) {
   if (!opts) opts = {};
 
-  var maxAge;
-  if (opts.ttl) maxAge = opts.ttl;
-
   var cacheItem = {
     data: opts.clone === false ? data : this.utilities.clone(data),
     key: key,
@@ -50,8 +47,7 @@ function setSync(key, data, opts) {
     noclone: opts.clone === false,
   };
 
-  this.__cache.set(key, cacheItem, maxAge);
-
+  this.__cache.set(key, cacheItem, opts);
   return cacheItem;
 }
 
@@ -74,21 +70,12 @@ function set(key, data, opts, callback) {
     callback = opts;
     opts = null;
   }
-
-  if (!opts) opts = {};
-
-  var maxAge;
-  if (opts.ttl) maxAge = opts.ttl;
-
-  var cacheItem = {
-    data: opts.clone === false ? data : this.utilities.clone(data),
-    key: key,
-    ttl: opts.ttl,
-    noclone: opts.clone === false,
-  };
-
-  this.__cache.set(key, cacheItem, maxAge);
-
+  let cacheItem;
+  try {
+    cacheItem = this.setSync(key, data, opts);
+  } catch (e) {
+    return callback(e);
+  }
   callback(null, cacheItem);
 }
 
@@ -101,37 +88,36 @@ function get(key, opts, callback) {
   }
 
   if (!opts) opts = {};
+  let found;
+  try {
+    found = this.getSync(key, opts);
+  } catch (e) {
+    return this.__tryCallback(callback, null, e);
+  }
+  if (found != null) {
+    return this.__tryCallback(callback, found);
+  }
 
-  var explicitClone = opts.clone === true; //explicitly clone result, even if it was set with clone:false
-
-  if (opts.clone == null) opts.clone = true; //clone result by default
-
-  var cached = this.__cache.get(key);
-
-  if (cached != null)
-    return this.__tryCallback(callback, cached.data, null, explicitClone || !cached.noclone);
-
-  var _this = this;
-
-  if (opts.retrieveMethod)
-    return opts.retrieveMethod.call(opts.retrieveMethod, function (e, result) {
+  if (opts.retrieveMethod) {
+    return opts.retrieveMethod.call(opts.retrieveMethod, (e, result) => {
       if (e) return callback(e);
       // -1 and 0 are perfectly viable things to cache
-      if (result == null) return _this.__tryCallback(callback, null, null);
-      _this.set(key, result, opts, function (e) {
-        return _this.__tryCallback(callback, result, e, opts.clone);
+      if (result == null) return this.__tryCallback(callback, null, null);
+      this.set(key, result, opts, (e) => {
+        return this.__tryCallback(callback, result, e, opts.clone);
       });
     });
+  }
 
   if (opts.default) {
     var value = opts.default.value;
     delete opts.default.value;
-    return _this.set(key, value, opts.default, function (e) {
-      return _this.__tryCallback(callback, value, e, opts.clone);
+    return this.set(key, value, opts.default, (e) => {
+      return this.__tryCallback(callback, value, e, opts.clone);
     });
   }
 
-  return _this.__tryCallback(callback, null, null);
+  return this.__tryCallback(callback, null, null);
 }
 
 function values() {
@@ -139,7 +125,7 @@ function values() {
 }
 
 function keys() {
-  return this.__cache.keys();
+  return Array.from(this.__cache.keyMap.keys());
 }
 
 function increment(key, by, callback) {
@@ -162,7 +148,7 @@ function update(key, data, callback) {
     var result = this.__cache.get(key);
     if (result != null && result !== undefined) {
       result.data = data;
-      this.__cache.set(key, result, result.ttl);
+      this.__cache.set(key, result, { ttl: result.ttl });
       this.__tryCallback(callback, this.__cache.get(key), null);
     } else this.__tryCallback(callback, null, null);
   } catch (e) {
@@ -176,11 +162,8 @@ function has(key) {
 
 function removeSync(key) {
   if (key == null || key === undefined) throw new Error('invalid key');
-
   var existing = this.__cache.get(key);
-
-  this.__cache.del(key);
-
+  this.__cache.delete(key);
   return existing;
 }
 
@@ -194,7 +177,7 @@ function remove(key, opts, callback) {
 
   var existed = this.__cache.get(key);
   var removed = existed != null && existed !== undefined;
-  this.__cache.del(key);
+  this.__cache.delete(key);
   callback(null, removed);
 }
 
@@ -203,7 +186,7 @@ function stop() {
 }
 
 function clear(callback) {
-  if (this.__cache) this.__cache.reset();
+  if (this.__cache) this.__cache.clear();
   if (callback) callback();
 }
 
@@ -261,7 +244,7 @@ function __tryCallback(callback, data, e, clone) {
 }
 
 function _all() {
-  return this.__cache.values().map(function (value) {
+  return this.__cache.valList.slice(0, this.__cache.size).map(function (value) {
     //dont clone as these may not be POJOS, and may hold volatile state
     return value.data;
   });
