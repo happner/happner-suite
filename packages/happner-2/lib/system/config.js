@@ -1,5 +1,4 @@
-// var utilities = require('./utilities');
-let clone = require('happn-commons').fastClone;
+let clone = require('happn-commons')._.cloneDeep;
 
 module.exports = Config;
 
