@@ -551,10 +551,8 @@ describe(test.testName(__filename, 3), function () {
           },
           function (e) {
             if (e) return done(e);
-
-            expect(checkpoint.__cache_checkpoint_permissionset.values().length).to.be(5);
-            expect(checkpoint.__cache_checkpoint_authorization.values().length).to.be(5);
-
+            expect(checkpoint.__cache_checkpoint_permissionset.__cache.size).to.be(5);
+            expect(checkpoint.__cache_checkpoint_authorization.__cache.size).to.be(5);
             done();
           }
         );
@@ -618,10 +616,8 @@ describe(test.testName(__filename, 3), function () {
           },
           function (e) {
             if (e) return done(e);
-
-            expect(checkpoint.__cache_checkpoint_permissionset.values().length).to.be(10);
-            expect(checkpoint.__cache_checkpoint_authorization.values().length).to.be(10);
-
+            expect(checkpoint.__cache_checkpoint_permissionset.__cache.size).to.be(10);
+            expect(checkpoint.__cache_checkpoint_authorization.__cache.size).to.be(10);
             done();
           }
         );
@@ -635,54 +631,6 @@ describe(test.testName(__filename, 3), function () {
         },
       }
     );
-  });
-
-  xit('it tests _authorizeSession function, early sync return on async callback', function (done) {
-    this.timeout(60000);
-
-    var checks = [];
-
-    for (var i = 0; i < 1000000; i++) {
-      checks.push({
-        session: {
-          policy: {},
-        },
-        path: 'test/path' + i,
-        action: 'SET',
-      });
-    }
-
-    var okCount = 0;
-
-    initializeCheckpoint(function (e, checkpoint) {
-      if (e) {
-        return done(e);
-      }
-
-      checkpoint.__cache_checkpoint_authorization = {
-        getSync: function () {
-          return false;
-        },
-      };
-
-      async.each(
-        checks,
-        function (check, checkCB) {
-          checkpoint._authorizeSession(check.session, check.path, check.action, function (e) {
-            if (e) {
-              // do nothing
-            } else {
-              okCount++;
-            }
-            checkCB();
-          });
-        },
-        function () {
-          expect(okCount).to.be(1000000);
-          done();
-        }
-      );
-    });
   });
 
   it('it tests race condition in loadPermissionSet', function (done) {

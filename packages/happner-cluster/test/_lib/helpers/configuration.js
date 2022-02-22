@@ -1,5 +1,5 @@
 const PORT_CONSTANTS = require('./port-constants');
-const _ = require('lodash');
+const _ = require('happn-commons')._;
 const getSeq = require('./getSeq');
 module.exports = class Configuration extends require('./helper') {
   constructor() {
@@ -15,12 +15,12 @@ module.exports = class Configuration extends require('./helper') {
     return {
       module: {
         name,
-        config: configuration.modules[name]
+        config: configuration.modules[name],
       },
       component: {
         name,
-        config: configuration.components[name]
-      }
+        config: configuration.components[name],
+      },
     };
   }
 
@@ -38,7 +38,7 @@ module.exports = class Configuration extends require('./helper') {
     let [first, portIndex] = seqIndex;
     hosts = hosts || [
       `${this.address.self()}:` + getSeq.getSwimPort(1).toString(),
-      `${this.address.self()}:` + getSeq.getSwimPort(2).toString()
+      `${this.address.self()}:` + getSeq.getSwimPort(2).toString(),
     ];
     joinTimeout = joinTimeout || 1000;
     replicate = replicate || ['*'];
@@ -49,20 +49,20 @@ module.exports = class Configuration extends require('./helper') {
       port: PORT_CONSTANTS.HAPPN_BASE + portIndex,
       cluster: {
         requestTimeout: 10000,
-        responseTimeout: 20000
+        responseTimeout: 20000,
       },
       happn: {
         secure,
         services: {
           security: {
             config: {
-              sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET'
-            }
+              sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET',
+            },
           },
           data: {
             config: {
-              autoUpdateDBVersion: true
-            }
+              autoUpdateDBVersion: true,
+            },
           },
           membership: {
             config: {
@@ -71,22 +71,22 @@ module.exports = class Configuration extends require('./helper') {
               seed: portIndex === first,
               seedWait: 1000,
               hosts,
-              joinTimeout
-            }
+              joinTimeout,
+            },
           },
           proxy: {
             config: {
-              port: PORT_CONSTANTS.PROXY_BASE + portIndex
-            }
+              port: PORT_CONSTANTS.PROXY_BASE + portIndex,
+            },
           },
           orchestrator: {
             config: {
               minimumPeers: minPeers || 3,
-              replicate
-            }
-          }
-        }
-      }
+              replicate,
+            },
+          },
+        },
+      },
     };
   }
 };

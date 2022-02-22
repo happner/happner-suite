@@ -125,7 +125,7 @@ function values() {
 }
 
 function keys() {
-  return this.__cache.keys();
+  return Array.from(this.__cache.keyMap.keys());
 }
 
 function increment(key, by, callback) {
