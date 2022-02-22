@@ -73,7 +73,7 @@ function set(key, data, opts, callback) {
   let cacheItem;
   try {
     cacheItem = this.setSync(key, data, opts);
-  } catch(e) {
+  } catch (e) {
     return callback(e);
   }
   callback(null, cacheItem);
@@ -91,7 +91,7 @@ function get(key, opts, callback) {
   let found;
   try {
     found = this.getSync(key, opts);
-  } catch(e) {
+  } catch (e) {
     return this.__tryCallback(callback, null, e);
   }
   if (found != null) {
