@@ -39,4 +39,13 @@ jobs:
     - run: npm run lint --package_name=happn-cluster
     - run: npm run-script test-cover --workspace=happn-cluster
 
+    - name: Generate coverage branch
+      uses: team-tenacious/monorepo-coverage@main
+      continue-on-error: true
+      with:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        COVERAGE_BRANCH: platform-coverage
+        ROOT: "./packages"
+        PACKAGES: happn-cluster
+
 
