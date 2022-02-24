@@ -5,9 +5,8 @@ const traverse = require('traverse');
 const Cache = require('redis-lru-cache');
 const nanoid = commons.nanoid;
 const micromustache = require('micromustache');
-const sift = require('sift');
+const sift = commons.sift.default;
 const utils = commons.utils;
-
 
 module.exports = class ElasticProvider extends commons.BaseDataProvider {
   UPSERT_TYPE = commons.constants.UPSERT_TYPE;

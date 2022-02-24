@@ -341,12 +341,15 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
   });
 
   it('tests sift', function (callback) {
-    var array = [{ value: 0 }, { value: 1 }, { value: 2 }];
-
-    var sift = require('sift');
-
-    var sifted = sift({ value: { $gte: 0, $lte: 2 } }, array);
-
+    var array = [{ value: 0 }, { value: 1 }, { value: 2, parent: { child: 1 } }];
+    var sift = test.commons.sift.default;
+    let [sifted, sifted1, sifted2] = [
+      array.filter(sift({ value: { $gt: 0, $lt: 2 } })),
+      array.filter(sift({ 'parent.child': { $eq: 1 } })),
+      array.filter(sift({ parent: { child: 1 } })),
+    ];
+    test.expect(sifted).to.eql([{ value: 1 }]);
+    test.expect(sifted1).to.eql(sifted2);
     callback();
   });
 
@@ -679,9 +682,6 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
       },
       null,
       function (e, result) {
-        //////////////////console.log('did delete set');
-        //path, event_type, count, handler, done
-        //We listen for the DELETE event
         listenerclient.on(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
           {
@@ -689,8 +689,6 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
             count: 1,
           },
           function (eventData) {
-            //we are looking at the event internals on the listener to ensure our event management is working - because we are only listening for 1
-            //instance of this event - the event listener should have been removed
             test
               .expect(
                 listenerclient.events[
@@ -755,9 +753,6 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
                 count: 0,
               },
               function (message) {
-                ////console.log('ON RAN');
-                ////console.log(message);
-
                 listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
