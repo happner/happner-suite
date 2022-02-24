@@ -23,28 +23,28 @@ npm i
 main modules:
 -------------
 
-happn-3 ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-3.badge.svg?raw=true)
+happn-3 ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-3.badge.svg?raw=true)
 -------
 This the pub/sub and datastorage layer of the system - happn-3 is similar to firebase in a lot of respects, it combines datastorage with an events communicated over websockets.
 
 [quickstart]()
 [happn-3 documentation]()
 
-happner-2 ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happner-2.badge.svg?raw=true)
+happner-2 ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happner-2.badge.svg?raw=true)
 ---------
 This is the rpc layer, it uses happn-3 for communication, and provides the ability to discover and call server-side components as if they were local.
 
 [quickstart]()
 [happner-2 documentation]()
 
-happn-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-cluster.badge.svg?raw=true)
+happn-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-cluster.badge.svg?raw=true)
 -------------
 Adds cluster capability to happn-3.
 
 [quickstart]()
 [happn-cluster documentation]()
 
-happner-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happner-cluster.badge.svg?raw=true)
+happner-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happner-cluster.badge.svg?raw=true)
 ---------------
 Adds cluster-capability to happner-cluster.
 
@@ -58,7 +58,7 @@ data providers:
 ---------------
 *The data providers are plugins that need to be setup as npm dependencies and configured as data providers*
 
-happn-db-provider-loki ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-db-provider-loki.badge.svg?raw=true)
+happn-db-provider-loki ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-loki.badge.svg?raw=true)
 ----------------------
 *the default embedded data provider, see [loki](https://github.com/techfort/LokiJS)*
 
@@ -69,7 +69,7 @@ happn-db-provider-loki ![coverage](https://github.com/happner/happner-suite/blob
 
 ```
 
-happn-db-provider-mongo ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-db-provider-mongo.badge.svg?raw=true)
+happn-db-provider-mongo ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-mongo.badge.svg?raw=true)
 ----------------------
 *mandatory for clustered setup or situations where there is high data volume*
 
@@ -80,7 +80,7 @@ happn-db-provider-mongo ![coverage](https://github.com/happner/happner-suite/blo
 
 ```
 
-happn-db-provider-nedb ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-db-provider-nedb.badge.svg?raw=true)
+happn-db-provider-nedb ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-nedb.badge.svg?raw=true)
 ----------------------
 *still maintained for backward compatability - this was the original default embedded data provider (will eventually be discontinued)*
 
@@ -91,7 +91,7 @@ happn-db-provider-nedb ![coverage](https://github.com/happner/happner-suite/blob
 
 ```
 
-happn-db-provider-elasticsearch ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/develop/latest/happn-db-provider-elasticsearch.badge.svg?raw=true)
+happn-db-provider-elasticsearch ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-elasticsearch.badge.svg?raw=true)
 ----------------------
 *still maintained for backward compatability - only for elasticsearch 6.4.0 downwards (will eventually be discontinued)*
 
