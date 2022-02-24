@@ -26,6 +26,9 @@
     "packages/happner-2",
     "packages/redis-lru-cache"
   ],
+  "dependencies": {
+    "ws": "6.1.4"
+  },
   "devDependencies": {
     "eslint": "^7.12.1",
     "eslint-config-prettier": "^8.3.0",

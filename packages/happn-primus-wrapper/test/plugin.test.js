@@ -7,6 +7,7 @@ describe('Plugin', function () {
     , expect = common.expect;
 
   it('works with this simple event emitter plugin', function (done) {
+    this.timeout(120e3);
     var server = http.createServer()
       , primus = new Primus(server)
       , port = common.port;

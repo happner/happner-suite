@@ -107,6 +107,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (this.snapshotTimeout) {
       clearTimeout(this.snapshotTimeout);
     }
+    if (this.fileStream) {
+      this.fileStream.end();
+      this.fileStream = null;
+    }
     callback();
   }
   processOperation(operation, callback) {
