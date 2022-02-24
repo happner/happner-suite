@@ -80,7 +80,7 @@ happn-db-provider-mongo ![coverage](https://github.com/happner/happner-suite/blo
 
 ```
 
-happn-db-provider-nedb ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-nedb.badge.svg?raw=true)
+happn-db-provider-nedb
 ----------------------
 *still maintained for backward compatability - this was the original default embedded data provider (will eventually be discontinued)*
 
