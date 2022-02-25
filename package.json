@@ -24,7 +24,8 @@
     "packages/happner-cluster",
     "packages/happner-client",
     "packages/happner-2",
-    "packages/redis-lru-cache"
+    "packages/redis-lru-cache",
+    "packages/tame-search"
   ],
   "dependencies": {
     "ws": "6.1.4"

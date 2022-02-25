@@ -1,7 +1,6 @@
 const { exec } = require('child_process');
-
 // eslint-disable-next-line no-unused-vars
-require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (_test) => {
   it('test to see that the child process does exit if database filename and compactInterval params have been specified', function (done) {
     var procPath = require('path').resolve(
       __dirname,

@@ -5,9 +5,8 @@ const traverse = require('traverse');
 const Cache = require('redis-lru-cache');
 const nanoid = commons.nanoid;
 const micromustache = require('micromustache');
-const sift = require('sift');
+const mongoFilter = commons.mongoFilter;
 const utils = commons.utils;
-
 
 module.exports = class ElasticProvider extends commons.BaseDataProvider {
   UPSERT_TYPE = commons.constants.UPSERT_TYPE;
@@ -489,7 +488,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       path:{
         order:'asc'
       }
-    }]); // this is because the $not keyword works in nedb and sift, but not in elastic
+    }]); // this is because the $not keyword works in nedb and mongoFilter, but not in elastic
 
     if (elasticMessage.body.from == null) elasticMessage.body.from = 0;
 
@@ -557,7 +556,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       body: query
     };
 
-    if (parameters.options) mongoToElastic.convertOptions(parameters.options, elasticMessage); // this is because the $not keyword works in nedb and sift, but not in elastic
+    if (parameters.options) mongoToElastic.convertOptions(parameters.options, elasticMessage); // this is because the $not keyword works in nedb and mongoFilter, but not in elastic
 
     _this
       .__pushElasticMessage('count', elasticMessage)
@@ -691,7 +690,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
   __filter(criteria, items) {
     try {
-      return sift(criteria, items);
+      return mongoFilter(criteria, items);
     } catch (e) {
       throw new Error('filter failed: ' + e.toString(), e);
     }
