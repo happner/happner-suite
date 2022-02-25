@@ -1,0 +1,28 @@
+{
+  "name": "tame-search",
+  "description": "strict wildcard indexing and searching",
+  "version": "2.1.0",
+  "main": "./lib/index",
+  "scripts": {
+    "test": "mocha test/integration test/unit",
+    "test-perf": "mocha test/performance",
+    "test-release": "rm -rf node_modules && rm -f package-lock.json && npm install && npm test"
+  },
+  "author": "Tenacious and NSOFT",
+  "license": "MIT",
+  "keywords": [
+    "wildcard",
+    "search"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/happner/tame-search.git"
+  },
+  "dependencies": {
+    "happn-commons": "^1.0.0"
+  },
+  "devDependencies": {
+    "happn-commons-test": "^1.0.0"
+  },
+  "readmeFilename": "README.md"
+}

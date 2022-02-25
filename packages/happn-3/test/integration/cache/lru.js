@@ -1,5 +1,3 @@
-// const test = require('../../__fixtures/utils/test_helper').create();
-// describe(test.testName(), function() {
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, function (test) {
   const service = require('../../../lib/services/cache/service');
   const serviceInstance = new service();

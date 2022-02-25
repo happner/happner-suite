@@ -21,8 +21,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 session: {
                   $and: [
                     {
-                      'user.username': { $eq: '_ADMIN' },
-                      'info.tokenNotAllowedForLogin': { $eq: true },
+                      user: { username: { $eq: '_ADMIN' } },
+                      info: { tokenNotAllowedForLogin: { $eq: true } },
                     },
                   ],
                 },
@@ -35,8 +35,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 session: {
                   $and: [
                     {
-                      'user.username': { $eq: '_ADMIN' },
-                      'info.shortSession': { $eq: true },
+                      user: { username: { $eq: '_ADMIN' } },
+                      info: { shortSession: { $eq: true } },
                     },
                   ],
                 },
@@ -49,8 +49,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 session: {
                   $and: [
                     {
-                      'user.username': { $eq: '_ADMIN' },
-                      'info._browser': { $eq: true },
+                      user: { username: { $eq: '_ADMIN' } },
+                      info: { _browser: { $eq: true } },
                     },
                   ],
                 },
@@ -63,8 +63,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 session: {
                   $and: [
                     {
-                      'user.username': { $eq: '_ADMIN' },
-                      'info.tokenOriginLocked': { $eq: true },
+                      user: { username: { $eq: '_ADMIN' } },
+                      info: { tokenOriginLocked: { $eq: true } },
                     },
                   ],
                 },
@@ -78,7 +78,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 session: {
                   $and: [
                     {
-                      'user.username': { $eq: '_ADMIN' },
+                      user: { username: { $eq: '_ADMIN' } },
                       _browser: false,
                     },
                   ],
@@ -325,6 +325,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                 if (e) return done(e);
 
                 testOperations(tokenInstance, function (e) {
+                  if (e) return done(e);
                   tryDisconnect(tokenInstance, function () {
                     done(e);
                   });

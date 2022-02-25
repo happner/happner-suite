@@ -16,7 +16,6 @@
     "happn-logger": "^1.1.1",
     "micromustache": "^5.2.0",
     "redis-lru-cache": "^1.0.0",
-    "sift": "3.2.6",
     "traverse": "0.6.6"
   },
   "devDependencies": {
