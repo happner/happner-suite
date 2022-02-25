@@ -1,6 +1,18 @@
 const helper = require('../../lib/base-test-helper').create();
 describe(helper.testName(), function () {
-  it('do a profile based filter', () => {
+  it('can do an arbitrary filter', () => {
+    let array = [{ value: 0 }, { value: 1 }, { value: 2, parent: { child: 1 } }];
+    let mongoFilter = helper.commons.mongoFilter;
+    let [sifted, sifted1, sifted2] = [
+      mongoFilter({ value: { $gt: 0, $lt: 2 } }, array),
+      mongoFilter({ 'parent.child': { $eq: 1 } }, array),
+      mongoFilter({ parent: { child: 1 } }, array),
+    ];
+    test.expect(sifted).to.eql([{ value: 1 }]);
+    test.expect(sifted1).to.eql(sifted2);
+  });
+
+  it('can do a profile based filter', () => {
     const schema = {
       $and: [{ 'user.username': { $eq: '_ADMIN' }, 'info.tokenNotAllowedForLogin': { $eq: true } }],
     };

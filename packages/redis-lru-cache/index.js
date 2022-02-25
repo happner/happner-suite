@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter,
   redis_pubsub = require('node-redis-pubsub'),
   redis = require('redis'),
   async = require('async'),
-  sift = require('sift'),
+  mongoFilter = require('happn-commons').mongoFilter,
   clone = require('clone'),
   hyperid = require('happner-hyperid').create({
     urlSafe: true,
@@ -479,7 +479,7 @@ RedisLRUCache.prototype.all = util.promisify(function (filter, callback) {
     }
 
     try {
-      if (filter) return callback(null, sift({ $and: [filter] }, this.__all()));
+      if (filter) return callback(null, mongoFilter({ $and: [filter] }, this.__all()));
       else return callback(null, this.__all());
     } catch (e) {
       return callback(e);

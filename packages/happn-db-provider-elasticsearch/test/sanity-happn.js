@@ -340,19 +340,6 @@ require('./fixtures/test-helper').describe({ timeout: 60e3 }, function (test) {
     );
   });
 
-  it('tests sift', function (callback) {
-    var array = [{ value: 0 }, { value: 1 }, { value: 2, parent: { child: 1 } }];
-    var sift = test.commons.sift.default;
-    let [sifted, sifted1, sifted2] = [
-      array.filter(sift({ value: { $gt: 0, $lt: 2 } })),
-      array.filter(sift({ 'parent.child': { $eq: 1 } })),
-      array.filter(sift({ parent: { child: 1 } })),
-    ];
-    test.expect(sifted).to.eql([{ value: 1 }]);
-    test.expect(sifted1).to.eql(sifted2);
-    callback();
-  });
-
   it('should delete some test data', function (callback) {
     try {
       //We put the data we want to delete into the database
