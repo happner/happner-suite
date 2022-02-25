@@ -147,8 +147,8 @@ function unsubscribe(subscriberKey, topic, options) {
   if (!this.subscriptions[segments.length]) return 0;
   if (!this.subscriptions[segments.length][topic]) return 0;
 
-  this.cache.search.reset();
-  this.cache.permutation.reset();
+  this.cache.search.clear();
+  this.cache.permutation.clear();
 
   const subscriptions = this.subscriptions[segments.length][topic];
   const filter = options
@@ -265,8 +265,8 @@ function subscribe(subscriberKey, topic, data, options) {
   if (topic.substring(topic.length - 3) === '/**')
     return this.subscribeVariableDepth(subscriberKey, topic, data, options);
 
-  this.cache.search.reset();
-  this.cache.permutation.reset();
+  this.cache.search.clear();
+  this.cache.permutation.clear();
 
   const segments = topic.split('/').slice(1);
   if (!this.subscriptions[segments.length]) this.subscriptions[segments.length] = {};
