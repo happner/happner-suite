@@ -1,6 +1,6 @@
 {
   "name": "happn-nedb",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "File-based embedded data store for node.js",
   "keywords": [
     "database",

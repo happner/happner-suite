@@ -7,11 +7,8 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
   this.happn = happn;
 
   if (!config.services) config.services = {};
-
   if (!config.services.system) config.services.system = {};
-
   if (!config.services.system.config) config.services.system.config = {};
-
   if (config.name) config.services.system.config.name = config.name;
 
   var loadService = function (serviceName, serviceLoaded) {
@@ -41,6 +38,9 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
 
     if (!serviceConfig.instance) {
       try {
+        if (serviceConfig.path.indexOf('stats') > -1) {
+          console.log();
+        }
         ServiceDefinition = require(serviceConfig.path);
         serviceInstance = new ServiceDefinition({
           logger: happn.log,
@@ -103,7 +103,6 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
     'security',
     'subscription',
     'publisher',
-    'stats',
   ];
 
   //these are supplementary services defiend in app-land, will always start after system services

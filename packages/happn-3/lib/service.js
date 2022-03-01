@@ -35,7 +35,7 @@ module.exports = {
     }
     var happn = {
       services: {},
-      config: config,
+      config,
       connections: {},
       __initialized: false,
     };

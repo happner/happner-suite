@@ -1,6 +1,6 @@
 {
   "name": "happner-2",
-  "version": "11.18.0",
+  "version": "12.0.0",
   "description": "distributed application engine with evented storage and mesh services",
   "main": "lib/mesh.js",
   "bin": {
@@ -15,7 +15,7 @@
     ]
   },
   "scripts": {
-    "test": "_mocha test/integration/** test/unit/** --exit",
+    "test": "_mocha silence.js test/integration/** test/unit/** --exit",
     "test-unit": "_mocha --exit test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
@@ -44,15 +44,13 @@
     "tree-kill": "^1.2.1"
   },
   "dependencies": {
-    "async": "^3.2.3",
     "body": "5.1.0",
     "change-case": "2.3.0",
     "commander": "2.9.0",
-    "deep-copy": "1.1.2",
     "diskspace": "0.1.7",
     "happn-3": "^13.0.0",
     "happn-commons": "^1.0.0",
-    "happn-logger": "^1.1.1",
+    "happn-logger": "^1.2.0",
     "happn-sillyname": "^0.1.1",
     "happner-client": "^12.0.0",
     "happner-semver": "^1.0.1",
