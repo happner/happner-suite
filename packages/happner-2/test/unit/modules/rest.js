@@ -349,17 +349,9 @@ describe(test.testName(__filename, 3), function () {
     var $happn = {};
 
     options._mesh = options._mesh || {};
-
     options._mesh.happn = options._mesh.happn || {};
-
     options._mesh.happn.server = options._mesh.happn.server || {};
-
     options._mesh.happn.server.services = options._mesh.happn.server.services || {};
-
-    options._mesh.happn.server.services.stats = options._mesh.happn.server.services.stats || {
-      on: function () {},
-    };
-
     $happn._mesh = options._mesh;
 
     $happn.emitLocal = options.emitLocal || function () {};

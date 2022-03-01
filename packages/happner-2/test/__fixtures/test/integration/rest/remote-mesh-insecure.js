@@ -1,5 +1,5 @@
 var Mesh = require('../../../../../lib/mesh');
-async = require('async')
+async = require('happn-commons').async
 ;
 
 var config = {
