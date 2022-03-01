@@ -13,7 +13,7 @@
     "bluebird": "2.10.2",
     "elasticsearch": "^13.2.0",
     "extract-values": "^0.1.2",
-    "happn-logger": "^1.1.1",
+    "happn-logger": "^2.0.0",
     "micromustache": "^5.2.0",
     "redis-lru-cache": "^1.0.0",
     "traverse": "0.6.6"

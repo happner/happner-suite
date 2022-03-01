@@ -1,7 +1,7 @@
 {
   "name": "tame-search",
   "description": "strict wildcard indexing and searching",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "scripts": {
     "test": "mocha test/integration test/unit",
     "test-perf": "mocha test/performance",

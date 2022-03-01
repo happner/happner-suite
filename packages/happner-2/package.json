@@ -50,7 +50,7 @@
     "diskspace": "0.1.7",
     "happn-3": "^13.0.0",
     "happn-commons": "^1.0.0",
-    "happn-logger": "^1.2.0",
+    "happn-logger": "^2.0.0",
     "happn-sillyname": "^0.1.1",
     "happner-client": "^12.0.0",
     "happner-semver": "^1.0.1",
