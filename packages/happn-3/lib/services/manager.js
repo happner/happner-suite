@@ -38,9 +38,6 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
 
     if (!serviceConfig.instance) {
       try {
-        if (serviceConfig.path.indexOf('stats') > -1) {
-          console.log();
-        }
         ServiceDefinition = require(serviceConfig.path);
         serviceInstance = new ServiceDefinition({
           logger: happn.log,
