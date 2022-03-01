@@ -18,7 +18,6 @@
     "packages/happn-logger",
     "packages/happn-nedb",
     "packages/happn-primus-wrapper",
-    "packages/happn-stats",
     "packages/happn-util-crypto",
     "packages/happn-cluster",
     "packages/happner-cluster",

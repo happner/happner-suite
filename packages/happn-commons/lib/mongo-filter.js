@@ -1,5 +1,4 @@
 const sift = require('sift').default;
-const _ = require('lodash');
 module.exports = (schema, items) => {
   let filterItems = Array.isArray(items) ? items : [items];
   return filterItems.filter(sift(unflattenOperators(flatten(schema)), filterItems));
