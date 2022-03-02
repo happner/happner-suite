@@ -128,11 +128,8 @@ function __initializeBaseConfig(config) {
       }
     }
 
-    if (!config.happn.sessionTokenSecret)
-      config.happn.sessionTokenSecret = require('shortid').generate();
-
+    if (!config.happn.sessionTokenSecret) config.happn.sessionTokenSecret = commons.uuid.v4();
     if (!config.happn.services.connect) config.happn.services.connect = {};
-
     if (!config.happn.services.connect.config) config.happn.services.connect.config = {};
 
     if (!config.happn.services.connect.config.middleware)
