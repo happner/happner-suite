@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "lokijs": "^1.5.12",
+    "happn-nedb": "^2.0.0",
     "happn-commons": "^1.0.0"
   },
   "devDependencies": {
