@@ -1,7 +1,7 @@
 {
   "name": "redis-lru-cache",
   "description": "cluster friendly cache, that relies on redis pub/sub to share data",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "test": "mocha test/functional",
     "test-cover": "nyc npm test"
