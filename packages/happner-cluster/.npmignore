@@ -26,4 +26,8 @@ report.*
 .vscode
 tmp
 test/*
+example/*
+silence.js
+
+
 

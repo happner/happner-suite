@@ -35,4 +35,5 @@ report.*
 .vscode
 tmp
 test/*
+silence.js
 
