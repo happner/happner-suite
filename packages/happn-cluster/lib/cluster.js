@@ -3,11 +3,10 @@ const _ = require('lodash');
 const Happn = require('happn-3');
 const dface = require('dface');
 const path = require('path');
-const utils = require('util');
 const defaultName = require('./utils/default-name');
 const { nodeUtils } = require('happn-commons');
 
-module.exports.create = utils.promisify(async function (config, callback) {
+module.exports.create = nodeUtils.promisify(async function (config, callback) {
   let happn;
   if (!config) throw new Error('missing config');
   config = _.defaultsDeep({}, config, getDefaultConfig());
