@@ -98,7 +98,6 @@ module.exports = class ServiceEntry {
     }
     this.members[member.endpoint].connectionFrom(member);
     await this.members[member.endpoint].connect(this.orchestrator.getLoginConfig());
-    console.log(Object.keys(this.members))
     return this.orchestrator.__stateUpdate(this.members[member.endpoint]);
   }
 

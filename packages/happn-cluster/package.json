@@ -36,7 +36,7 @@
     "request": "^2.81.0"
   },
   "dependencies": {
-    "bluebird": "^3.7.2",
+
     "clone": "^1.0.2",
     "dface": "1.0.1",
     "happn-3": "^13.0.0",

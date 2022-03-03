@@ -328,12 +328,10 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   __onConnectionFrom(data) {
-    console.log('connection forom', data.info);
     if (!data.info) return;
     if (!data.info.clusterName) return;
     this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
     if (data.info.clusterName !== this.clusterName) return;
-    console.log(this.clusterName);
     const { serviceName } = data.info;
     this.registry[serviceName].connectionFrom(data.info);
   }

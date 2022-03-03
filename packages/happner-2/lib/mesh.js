@@ -80,7 +80,6 @@ Logger.emitter.on(
 // Quick start.
 module.exports.create = util.promisify(function MeshFactory(config, callback) {
   // node -e 'require("happner").create()'
-
   if (typeof config === 'function') {
     callback = config;
     config = {};
@@ -114,7 +113,6 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
     config.happn.host = parts[0];
     if (parts[1]) config.happn.port = parseInt(parts[1]);
   }
-
   new Mesh().initialize(config, function (err, mesh) {
     if (err) return callback(err, mesh);
     return mesh.start(function (err, mesh) {

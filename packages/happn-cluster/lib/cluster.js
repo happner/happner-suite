@@ -3,10 +3,11 @@ const _ = require('lodash');
 const Happn = require('happn-3');
 const dface = require('dface');
 const path = require('path');
-
+const utils = require('util');
 const defaultName = require('./utils/default-name');
+const { nodeUtils } = require('happn-commons');
 
-module.exports.create = async function (config) {
+module.exports.create = utils.promisify(async function (config, callback) {
   let happn;
   if (!config) throw new Error('missing config');
   config = _.defaultsDeep({}, config, getDefaultConfig());
@@ -32,14 +33,16 @@ module.exports.create = async function (config) {
     await happn.services.orchestrator.start();
     await happn.services.replicator.start();
     await happn.services.orchestrator.stabilised();
-    if (config.services.proxy.config.defer) return happn;
+    if (config.services.proxy.config.defer) {
+      return callback(null, happn);
+    }
     await happn.services.proxy.start();
-    return happn;
+    return callback(null, happn);
   } catch (error) {
     if (!happn) throw error;
     happn.log.fatal(error);
     await happn.stop();
-    throw error;
+    return callback(error);
   }
 
   function getDefaultConfig() {
@@ -82,4 +85,4 @@ module.exports.create = async function (config) {
       },
     });
   }
-};
+});
