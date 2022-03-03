@@ -5,6 +5,7 @@ var ChildProcess = require('child_process');
 var clone = require('clone');
 var HappnCluster = require('../../');
 var testUtils = require('./test-utils');
+const wait = require('await-delay');
 const test = require('happn-commons-test').create();
 
 module.exports.startCluster = function (clusterOpts) {
@@ -13,7 +14,7 @@ module.exports.startCluster = function (clusterOpts) {
   var happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
   var proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
   var services = clusterOpts.services || {};
-
+  var clusterConfig = clusterOpts.clusterConfig;
   before('clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });
@@ -21,25 +22,37 @@ module.exports.startCluster = function (clusterOpts) {
   before('start cluster', async function () {
     var self = this;
 
-    self.__configs = await testUtils.createMemberConfigs(
-      testSequence,
-      clusterSize,
-      happnSecure,
-      proxySecure,
-      services
-    );
-    let sequence = 0;
-    self.servers = [];
-    for (let config of self.__configs) {
-      if (sequence > 0) {
-        await test.delay(2000);
+    if (!clusterConfig)
+      self.__configs = await testUtils.createMemberConfigs(
+        testSequence,
+        clusterSize,
+        happnSecure,
+        proxySecure,
+        services
+      );
+    else
+      self.__configs = await testUtils.createMultiServiceMemberConfigs(
+        testSequence,
+        clusterSize,
+        happnSecure,
+        proxySecure,
+        services,
+        clusterConfig
+      );
+    let servers = [];
+    servers.push(HappnCluster.create(clone(self.__configs[0])));
+    await test.delay(2000);
+    // start first peer immediately and other a momentf
+    // later so they don't all fight over creating the
+    // admin user in the shared database
+    for (let [sequence, config] of self.__configs.entries()) {
+      if (sequence === 0) {
+        continue;
       }
-      HappnCluster.create(clone(config)).then((server) => {
-        self.servers.push(server);
-      });
-      sequence++;
+      servers.push(HappnCluster.create(clone(config)));
     }
-    await test.delay(10000);
+    self.servers = await Promise.all(servers);
+    return self.servers;
   });
 };
 
@@ -48,6 +61,10 @@ module.exports.stopCluster = function () {
     if (!this.servers) return;
     for (let server of this.servers) {
       await server.stop({ reconnect: false });
+      // stopping all at once causes replicator client happn logouts to timeout
+      // because happn logout attempts unsubscribe on server, and all servers
+      // are gone
+      await wait(1000); // ...so pause between stops (long for travis)
     }
   });
 
@@ -57,7 +74,6 @@ module.exports.stopCluster = function () {
 };
 
 module.exports.startMultiProcessCluster = function (clusterOpts) {
-  let Promise = test.bluebird;
   before('multi clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });
@@ -70,44 +86,32 @@ module.exports.startMultiProcessCluster = function (clusterOpts) {
 
   var peerPath = __dirname + path.sep + 'peer.js';
 
-  before('start cluster', function (done) {
+  before('start cluster', async function () {
     var self = this;
 
-    testUtils.createMemberConfigs(
+    self.__configs = await testUtils.createMemberConfigs(
       testSequence,
       clusterSize,
       happnSecure,
       proxySecure,
-      services,
-      function (err, result) {
-        if (err) return done(err);
-
-        self.__configs = result;
-
-        Promise.resolve(self.__configs)
-          .map(function (config) {
-            var configJson = [JSON.stringify(config)];
-
-            return new Promise(function (resolve) {
-              var peerProcess = ChildProcess.fork(peerPath, configJson);
-              peerProcess.on('message', function (message) {
-                if (message === 'ready') return resolve(peerProcess);
-              });
-            });
-          })
-
-          .then(function (processes) {
-            self.peerProcesses = processes;
-            self.servers = 'see .peerProcesses[n].send';
-          })
-          .then(function (e) {
-            done(e);
-          })
-          .catch(function (e) {
-            done(e);
-          });
-      }
+      services
     );
+
+    let processes = await Promise.all(
+      self.__configs.map(function (config) {
+        var configJson = [JSON.stringify(config)];
+
+        return new Promise(function (resolve) {
+          var peerProcess = ChildProcess.fork(peerPath, configJson);
+          peerProcess.on('message', function (message) {
+            if (message === 'ready') return resolve(peerProcess);
+          });
+        });
+      })
+    );
+
+    self.peerProcesses = processes;
+    self.servers = 'see .peerProcesses[n].send';
   });
 };
 

@@ -2,11 +2,11 @@
  * Created by grant on 2016/09/26.
  */
 var assert = require('assert');
-var Proxy = require('../../lib/services/proxy');
-var MockHappn = require('../mocks/mock-happn');
-var mockOpts = require('../mocks/mock-opts');
+var Proxy = require('../../../lib/services/proxy');
+var MockHappn = require('../../mocks/mock-happn');
+var mockOpts = require('../../mocks/mock-opts');
 
-require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';

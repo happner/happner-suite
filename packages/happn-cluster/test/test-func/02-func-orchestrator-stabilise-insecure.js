@@ -2,38 +2,51 @@ var path = require('path');
 var filename = path.basename(__filename);
 var hooks = require('../lib/hooks');
 
-var testSequence = parseInt(filename.split('-')[0]);
+var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
 var clusterSize = 10;
 var happnSecure = false;
 
-require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
-  before(function () {
-    this.logLevel = process.env.LOG_LEVEL;
-    process.env.LOG_LEVEL = 'off';
-  });
-
-  hooks.startCluster({
+let configs = [
+  {
     testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
-  });
-
-  it('each server stabilised with all 10 peers', function (done) {
-    var self = this;
-
-    var peerCounts = [];
-    self.servers.forEach(function (server) {
-      var count = Object.keys(server.services.orchestrator.peers).length;
-      peerCounts.push(count);
+  }, // Single service ('happn-cluster-node')
+  {
+    testSequence: testSequence,
+    size: clusterSize,
+    happnSecure: happnSecure,
+    clusterConfig: {
+      'cluster-service-1': 4,
+      'cluster-service-2': 6,
+    }, //Multiple services
+  },
+];
+configs.forEach((config) => {
+  require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+    before(function () {
+      this.logLevel = process.env.LOG_LEVEL;
+      process.env.LOG_LEVEL = 'off';
     });
 
-    test.expect(peerCounts).to.eql([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
-    done();
-  });
+    hooks.startCluster(config);
 
-  hooks.stopCluster();
+    it('each server stabilised with all 10 peers', function (done) {
+      let peerCounts = this.servers.map(
+        (server) => Object.keys(server.services.orchestrator.peers).length
+      );
+      test.expect(peerCounts).to.eql([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+      test
+        .expect(this.servers.every((server) => server.services.orchestrator.state === 'STABLE'))
+        .to.be(true);
+      done();
+    });
 
-  after(function () {
-    process.env.LOG_LEVEL = this.logLevel;
+    hooks.stopCluster();
+
+    after(function () {
+      testSequence++;
+      process.env.LOG_LEVEL = this.logLevel;
+    });
   });
 });

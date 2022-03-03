@@ -1,7 +1,12 @@
+const path = require('path');
+const filename = path.basename(__filename);
 const CaptureStdout = require('capture-stdout');
 const getAddress = require('../../lib/utils/get-address');
 
-require('../lib/test-helper').describe({ timeout: 80e3 }, function (test) {
+xdescribe(filename, function () {
+  //NEEDS TO BE REWRITTEN
+  this.timeout(80000);
+
   it('checks cluster health logging is working', async () => {
     const clusterManager = require('../lib/cluster-manager').create({
       minimumPeers: 2,
@@ -13,18 +18,18 @@ require('../lib/test-helper').describe({ timeout: 80e3 }, function (test) {
     captureStdout.startCapture();
     await clusterManager.addSeed();
     const member1Id = await clusterManager.addMember();
-    await test.delay(3000);
+    await delay(3000);
     await clusterManager.setLogLevelOnSeed('debug');
     const member2Id = await clusterManager.addMember();
-    await test.delay(1000);
+    await delay(1000);
     await clusterManager.addMember();
-    await test.delay(1000);
+    await delay(1000);
     await clusterManager.addMember();
-    await test.delay(10000);
+    await delay(10000);
     clusterManager.disconnectMember(member1Id);
-    await test.delay(3000);
+    await delay(3000);
     clusterManager.disconnectPeer(member2Id);
-    await test.delay(3000);
+    await delay(3000);
     captureStdout.stopCapture();
     const seedLogs = captureStdout
       .getCapturedText()
@@ -45,9 +50,9 @@ require('../lib/test-helper').describe({ timeout: 80e3 }, function (test) {
       });
     const states = filteredSeedLogs.join(',');
     try {
-      test.expect(states.indexOf('SWIM-MEMBERS-MISSING')).to.be.greaterThan(-1);
-      test.expect(states.indexOf('CLUSTER-MEMBERS-MISSING')).to.be.greaterThan(-1);
-      test.expect(states.indexOf('WARMUP')).to.be.greaterThan(-1);
+       test.expect(states.indexOf('SWIM-MEMBERS-MISSING')).to.be.greaterThan(-1);
+       test.expect(states.indexOf('CLUSTER-MEMBERS-MISSING')).to.be.greaterThan(-1);
+       test.expect(states.indexOf('WARMUP')).to.be.greaterThan(-1);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('INTERMITTENT TEST FAILURE, HEALTH SERVICE, STATES: ' + states);

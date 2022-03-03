@@ -1,157 +1,247 @@
-module.exports = Member;
+//____________________MEMBER____________
+module.exports = class Member {
+  constructor(info, orchestrator) {
+    this.listedAsPeer = false;
+    this.orchestrator = orchestrator;
+    this.log = this.orchestrator.log;
+    this.updateOwnInfo(info);
 
-var property = require('../../utils/property');
-var getter = require('../../utils/getter');
-
-function Member(parameters) {
-  var member = parameters.member;
-  var memberFromLogin = parameters.memberFromLogin;
-  var orchestrator = parameters.orchestrator;
-  var localClient = parameters.localClient;
-  var clusterName = parameters.clusterName;
-
-  property(this, 'orchestrator', orchestrator);
-  property(this, 'log', orchestrator.log);
-  property(this, 'clusterName', clusterName);
-  property(this, 'HappnClient', orchestrator.HappnClient);
-
-  property(this, 'reservedMeta', [
-    'created',
-    'modified',
-    'path',
-    'type',
-    'status',
-    'published',
-    'eventId',
-    'sessionId',
-    'action',
-    'channel',
-    'sessionId',
-    'consistency',
-    'publicationId',
-  ]);
-
-  // this member represents self in the cluster
-  this.self = false;
-
-  // happn.name
-  this.name = null;
-
-  // this member's id (remote swim host)
-  this.memberId = null;
-
-  // true when swim discovers
-  this.member = false;
-
-  // login in progress
-  this.connectingTo = true;
-
-  // got happn connection to remote happn
-  this.connectedTo = false;
-
-  // got happn connection from remote happn
-  this.connectedFrom = false;
-
-  // set to false on subscription success
-  this.subscribedTo = false;
-
-  // TODO: not truly stabilised until we know the remote has subscribed to us
-  this.subscribedFrom = true; // (not possible to detect yet)
-
-  // orchestrator.stabilized() discovers this error and this
-  // whole cluster node fails to start because it could not
-  // login to one of the other members
-  //
-  // populate it with happn login error or subscribe error
-  this.error = null;
-
-  if (localClient) {
-    this.self = true;
-    this.name = this.orchestrator.happn.name;
-    this.connectedTo = true; // member does not connect to...
-    this.connectedFrom = true; // ...or from itself
+    this.self = false;
     this.connectingTo = false;
-    this.subscribedTo = true; // member does not replicate itself
-    getter(this, 'client', localClient);
+    this.connectedTo = false;
+    this.connectedFrom = false;
+    this.client = null;
+    this.subscribingTo = false;
+    this.subscribedTo = false;
+    this.reservedMeta = [
+      'created',
+      'modified',
+      'path',
+      'type',
+      'status',
+      'published',
+      'eventId',
+      'sessionId',
+      'action',
+      'channel',
+      'sessionId',
+      'consistency',
+      'publicationId',
+    ];
+
+    // // TODO: not truly stabilised until we know the remote has subscribed to us
+    // this.subscribedFrom = true; // (not possible to detect yet)
+
+    if (this.endpoint === this.orchestrator.endpoint) {
+      this.self = true;
+      this.name = this.orchestrator.happn.name;
+      this.connectedTo = true; // member does not connect to...
+      this.connectedFrom = true; // ...or from itselfurl
+      this.subscribedTo = true;
+      this.connectingTo = false;
+      this.client = this.orchestrator.localClient;
+    }
+    this.orchestrator.__stateUpdate(this);
   }
 
-  // member present only if SWIM got first notice of new member
-  if (member) {
-    this.memberId = member.memberId;
-    this.member = true;
-    this.connect(member);
+  static create(info, orchestrator) {
+    return new Member(info, orchestrator);
   }
 
-  // memberFromLogin present only if happn got first notice of new member (via inbound login)
-  if (memberFromLogin) {
-    this.memberId = memberFromLogin.memberId;
-    this.name = memberFromLogin.name;
-    this.connect(memberFromLogin);
-  }
-}
-
-Member.prototype.removeMembership = function () {
-  this.member = false; // swim detected faulty
-};
-
-Member.prototype.addMembership = function () {
-  this.member = true; // swim detected join
-};
-
-Member.prototype.stop = require('util').promisify(function (callback) {
-  if (this.client == null || this.client.status === 2) return callback(); //dont try disconnect again
-
-  return this.client.disconnect((e) => {
-    this.client.session = null;
-    callback(e);
-  });
-  // TODO: handle stop on client that is busy connecting...
-});
-
-Member.prototype.__onHappnDisconnect = function () {
-  this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
-  this.log.debug('arguments', arguments);
-
-  if (!this.connectedTo) return;
-  this.connectedTo = false;
-
-  if (!this.member) {
-    // swim also has this as departed the cluster, remove it
-    this.orchestrator.removePeer(this);
-    this.orchestrator.removeMember(this);
-    return;
+  updateOwnInfo(info) {
+    let { endpoint, name, serviceName } = info;
+    this.name = name || this.name || null;
+    this.endpoint = endpoint || this.endpoint || null;
+    if (this.endpoint) [this.address, this.port] = this.endpoint.split(':');
+    this.serviceName = serviceName || this.serviceName || null;
   }
 
-  // otherwise, leave it in reconnect loop until swim confirms
-  // but remove from peers as unusable
-  this.orchestrator.removePeer(this);
-};
+  get connected() {
+    return this.connectedTo && this.connectedFrom;
+  }
 
-Member.prototype.__onHappnReconnect = function () {
-  this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
-  if (this.connectedTo) return;
-  this.connectedTo = true;
-  this.orchestrator.__stateUpdate();
-};
+  get readyToSubscribe() {
+    return this.connectedTo && !this.subscribingTo && !this.subscribedTo;
+  }
 
-Member.prototype.__subscribe = function (path) {
-  var _this = this;
-  return new Promise(function (resolve, reject) {
-    _this.client.on(path, null, _this.__createReplicationEventHandler(), function (error) {
-      if (error) {
-        _this.log.fatal('could not subscribe to %s at %s', path, _this.name, error);
-        return reject(error);
+  get peer() {
+    return !!(
+      this.name &&
+      this.connectedTo &&
+      this.connectedFrom &&
+      this.subscribedTo &&
+      !this.error
+    );
+  }
+
+  async connect(loginConfig) {
+    if (this.connectingTo || this.connectedTo) return;
+    this.connectingTo = true;
+    loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
+
+    this.log.debug('connect to (->) %s', this.endpoint);
+    if (!loginConfig.connectTimeout) loginConfig.connectTimeout = 5000;
+    let client;
+    try {
+      client = await this.orchestrator.HappnClient.create(loginConfig);
+    } catch (error) {
+      let thisError = error.error || error;
+      if (
+        thisError.code === 'ECONNREFUSED' ||
+        thisError.toString() === 'Error: connection timed out'
+      ) {
+        // This happens when we join, get list of remotes and simultaneously
+        // one of them shuts down.
+        // And we don't want to fail starting this node because another shut down
+        // at the same time as we joined.
+        this.log.warn('FAILED connection to departed %s', loginConfig.url);
+        this.orchestrator.removeMember(this);
+        return;
       }
-      resolve();
-    });
-  });
-};
+      this.error = thisError;
+      this.connectingTo = false;
+      this.log.warn('FAILED connection to  %s', loginConfig.url);
+      this.log.warn(thisError.toString());
+      return this.orchestrator.__stateUpdate(this);
+    }
 
-Member.prototype.__createReplicationEventHandler = function () {
-  var _this = this;
-  var subscription = this.orchestrator.happn.services.subscription;
-  var publisher = this.orchestrator.happn.services.publisher;
+    this.__disconnectServerSide = client.onEvent(
+      'server-side-disconnect',
+      this.__onHappnDisconnect.bind(this)
+    );
+    this.__disconnectSubscriptionId = client.onEvent(
+      'connection-ended',
+      this.__onHappnDisconnect.bind(this)
+    );
+    this.__retryConnectSubscriptionId = client.onEvent(
+      'reconnect-scheduled',
+      this.__onHappnDisconnect.bind(this)
+    );
+    this.__reconnectSubscriptionId = client.onEvent(
+      'reconnect-successful',
+      this.__onHappnReconnect.bind(this)
+    );
 
+    this.connectingTo = false;
+    this.connectedTo = true;
+    this.client = client;
+    this.name = client.serverInfo.name;
+    this.orchestrator.__stateUpdate(this);
+  }
+
+  connectionFrom(member) {
+    this.connectedFrom = true;
+    this.updateOwnInfo(member);
+    if (!this.connectedTo) return this.connect(this.orchestrator.getLoginConfig());
+    this.orchestrator.__stateUpdate(this);
+  }
+
+  async subscribe() {
+    if (!this.readyToSubscribe) return;
+    try {
+      this.subscribingTo = true;
+      await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
+      this.subscribingTo = false;
+      this.subscribedTo = true;
+    } catch (error) {
+      this.error = error;
+      this.subscribingTo = false;
+      this.subscribedTo = false;
+    } finally {
+      this.orchestrator.__stateUpdate(this);
+    }
+  }
+
+  async __subscribe(path) {
+    if (!path) return;
+    try {
+      await this.client.on(path, null, this.__createReplicationEventHandler());
+    } catch (error) {
+      this.log.fatal('could not subscribe to %s at %s', path, this.name, error);
+      throw error;
+    }
+  }
+
+  async stop() {
+    if (this.client == null || this.client.status === 2) return; //dont try disconnect again
+    await this.client.disconnect();
+    this.connectedTo = false;
+    this.client.session = null;
+  }
+
+  __onHappnDisconnect() {
+    this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
+    if (!this.connectedTo) return;
+    this.connectedTo = false;
+    this.orchestrator.__stateUpdate(this);
+    // leave it in reconnect loop until DB confirms
+  }
+
+  __onHappnReconnect() {
+    this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
+    if (this.connectedTo) return;
+    this.connectedTo = true;
+    this.orchestrator.__stateUpdate(this);
+  }
+
+  __createReplicationEventHandler() {
+    let rePublisher = (data, meta) => {
+      let subscription = this.orchestrator.happn.services.subscription;
+      let publisher = this.orchestrator.happn.services.publisher;
+      let action, payload, message, eventId;
+
+      try {
+        action = meta.action.substr(meta.action.indexOf('/') + 1, meta.action.indexOf('@') - 1);
+        action = action.toLowerCase();
+
+        meta.action = action;
+        delete meta.type;
+
+        eventId = meta.publicationId.split('-').pop();
+
+        payload = { data: data, _meta: meta, action: action };
+        message = {
+          session: {
+            id: meta.sessionId,
+          },
+          request: {
+            action: action,
+            path: meta.path,
+            data: data,
+            eventId: eventId,
+            options: {
+              noCluster: true, // don't emit back into cluster
+              meta: {},
+            },
+          },
+          response: payload,
+        };
+
+        Object.keys(meta).forEach((key) => {
+          if (this.reservedMeta.indexOf(key) >= 0) return;
+          message.request.options.meta = message.request.options.meta || {};
+          message.request.options.meta[key] = meta[key];
+        });
+      } catch (error) {
+        // happn changed meta format, unable to replicate, make big noise
+        return this.__emitReplicationError(error, 'unexpected meta format, cannot replicate');
+      }
+
+      try {
+        message.recipients = subscription.getRecipients(message);
+        publisher.processPublish(message, function (error) {
+          if (error)
+            return this.__emitReplicationError(
+              error,
+              'error doing processPublish, cannot replicate'
+            );
+        });
+      } catch (error) {
+        return this.__emitReplicationError(error, 'error doing getRecipients, cannot replicate');
+      }
+    };
+    return rePublisher.bind(this);
+  }
   // Convert event received by subscription to remote peer into the format
   // necessary to re publish directly to local clients !ONLY!
   // (not publishing back into the cluster to prevent infinite loop)
@@ -211,153 +301,12 @@ Member.prototype.__createReplicationEventHandler = function () {
   //
   //
 
-  return function rePublisher(data, meta) {
-    var action, payload, message, eventId;
-
-    var emitError = function (error, message) {
-      if (!_this.orchestrator._events || !_this.orchestrator._events.error) {
-        // only log fatal if there is no error handler
-        _this.log.fatal(message, error);
-      }
-      // will crash process unless there is an error listener
-      return _this.orchestrator.emit('error', error);
-    };
-
-    try {
-      action = meta.action.substr(meta.action.indexOf('/') + 1, meta.action.indexOf('@') - 1);
-      action = action.toLowerCase();
-
-      meta.action = action;
-      delete meta.type;
-
-      eventId = meta.publicationId.split('-').pop();
-
-      payload = { data: data, _meta: meta, action: action };
-      message = {
-        session: {
-          id: meta.sessionId,
-        },
-        request: {
-          action: action,
-          path: meta.path,
-          data: data,
-          eventId: eventId,
-        },
-        response: payload,
-      };
-
-      // don't emit back into cluster
-      message.request.options = message.options || {};
-      message.request.options.noCluster = true;
-
-      Object.keys(meta).forEach(function (key) {
-        if (_this.reservedMeta.indexOf(key) >= 0) return;
-        message.request.options.meta = message.request.options.meta || {};
-        message.request.options.meta[key] = meta[key];
-      });
-    } catch (error) {
-      // happn changed meta format, unable to replicate, make big noise
-      return emitError(error, 'unexpected meta format, cannot replicate');
+  __emitReplicationError(error, message) {
+    if (!this.orchestrator._events || !this.orchestrator._events.error) {
+      // only log fatal if there is no error handler
+      this.log.fatal(message, error);
     }
-
-    try {
-      message.recipients = subscription.getRecipients(message);
-      publisher.processPublish(message, function (error) {
-        if (error) return emitError(error, 'error doing processPublish, cannot replicate');
-      });
-    } catch (error) {
-      return emitError(error, 'error doing getRecipients, cannot replicate');
-    }
-  };
-};
-
-Member.prototype.connect = function (member) {
-  var _this = this;
-
-  var config = _this.orchestrator.getLoginConfig();
-
-  _this.log.info('connect to (->) %s', member.url);
-  _this.log.info('as %s', _this.name);
-
-  config.url = member.url;
-
-  if (!config.connectTimeout) config.connectTimeout = 5000; //connection timeout, before we forget about the peers existence
-
-  _this.HappnClient.create(config, function (error, client) {
-    if (error) {
-      let thisError = error.error ? error.error : error;
-
-      if (
-        thisError.code === 'ECONNREFUSED' ||
-        thisError.toString() === 'Error: connection timed out' ||
-        thisError.message.indexOf('connect ECONNREFUSED') === 0
-      ) {
-        // This happens when we join, get list of remotes and simultaneously
-        // one of them shuts down. We don't get the notification from swim
-        // in time to know not to login.
-        //
-        // And we don't want to fail starting this node because another shut down
-        // at the same time as we joined.
-        _this.log.warn('FAILED connection to departed %s', config.url);
-        _this.orchestrator.removeMember(_this);
-        return;
-      }
-
-      // ignore second error after ECONNREFUSED
-      // https://github.com/happner/happn/issues/138
-      if (!_this.orchestrator.members[_this.memberId]) return;
-
-      _this.error = thisError;
-      _this.log.fatal('could not login to %s', config.url, thisError);
-      _this.orchestrator.__stateUpdate();
-      return;
-    }
-
-    _this.connectingTo = false;
-    _this.connectedTo = true;
-
-    getter(_this, 'client', client);
-
-    _this.name = client.serverInfo.name;
-
-    property(
-      _this,
-      '__disconnectServerSide',
-      client.onEvent('server-side-disconnect', _this.__onHappnDisconnect.bind(_this))
-    );
-
-    property(
-      _this,
-      '__disconnectSubscriptionId',
-      client.onEvent('connection-ended', _this.__onHappnDisconnect.bind(_this))
-    );
-
-    property(
-      _this,
-      '__retryConnectSubscriptionId',
-      client.onEvent('reconnect-scheduled', _this.__onHappnDisconnect.bind(_this))
-    );
-
-    property(
-      _this,
-      '__reconnectSubscriptionId',
-      client.onEvent('reconnect-successful', _this.__onHappnReconnect.bind(_this))
-    );
-
-    _this.__subscribeToReplicate();
-  });
-
-  Member.prototype.__subscribeToReplicate = async function () {
-    for (let replicatePath of this.orchestrator.config.replicate) {
-      try {
-        await this.__subscribe(replicatePath);
-      } catch (e) {
-        this.error = e;
-        this.orchestrator.__stateUpdate();
-        return;
-      }
-    }
-    this.subscribedTo = true;
-    this.orchestrator.__stateUpdate();
-  };
+    // will crash process unless there is an error listener
+    return this.orchestrator.emit('error', error);
+  }
 };

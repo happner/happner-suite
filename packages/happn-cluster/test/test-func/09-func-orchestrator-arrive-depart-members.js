@@ -5,11 +5,14 @@ var HappnCluster = require('../..');
 var hooks = require('../lib/hooks');
 var testUtils = require('../lib/test-utils');
 
-var testSequence = parseInt(filename.split('-')[0]);
+var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
 var clusterSize = 10;
 var happnSecure = false;
 
-require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+xdescribe(filename, function () {
+  //This test will need to be scrapped or rewritten from the ground up.
+  this.timeout(30000);
+
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';
@@ -47,15 +50,15 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     var emittedAdd = {};
     var emittedRemove = {};
 
-    this.servers.forEach(function (server, i) {
-      server.services.membership.on('add', function (info) {
-        emittedAdd[i] = info;
-      });
+    // this.servers.forEach(function(server, i) {
+    //   // server.services.membership.on("add", function(info) {
+    //   //   emittedAdd[i] = info;
+    //   // });
 
-      server.services.membership.on('remove', function (info) {
-        emittedRemove[i] = info;
-      });
-    });
+    //   server.services.membership.on("remove", function(info) {
+    //     emittedRemove[i] = info;
+    //   });
+    // });
 
     HappnCluster.create(this.extraConfig)
 
@@ -89,6 +92,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   hooks.stopCluster();
 
   after(function () {
+    testSequence++;
     process.env.LOG_LEVEL = this.logLevel;
   });
 });

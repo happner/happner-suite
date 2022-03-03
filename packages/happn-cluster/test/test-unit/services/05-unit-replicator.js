@@ -1,10 +1,10 @@
 const EventEmitter = require('events').EventEmitter;
-const Replicator = require('../../lib/services/replicator');
-const MockHappn = require('../mocks/mock-happn');
-const mockOpts = require('../mocks/mock-opts');
+const Replicator = require('../../../lib/services/replicator');
+const MockHappn = require('../../mocks/mock-happn');
+const mockOpts = require('../../mocks/mock-opts');
 const SD_EVENTS = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
 
-require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   it('can initialize the replicator', function (done) {
     const replicator = new Replicator(mockOpts);
     replicator.happn = new MockHappn('http', 9000);
@@ -25,12 +25,8 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     const replicator = new Replicator(mockOpts);
     let started;
     replicator.happn = new MockHappn('http', 9000);
-    replicator.happn.services.orchestrator.members = {
-      __self: {
-        client: {
-          on: () => {},
-        },
-      },
+    replicator.happn.services.orchestrator.localClient = {
+      on: () => {},
     };
     replicator.initialize({}, () => {
       replicator.start();
@@ -146,12 +142,8 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     const replicator = new Replicator(mockOpts);
     let started;
     replicator.happn = new MockHappn('http', 9000);
-    replicator.happn.services.orchestrator.members = {
-      __self: {
-        client: {
-          on: () => {},
-        },
-      },
+    replicator.happn.services.orchestrator.localClient = {
+      on: () => {},
     };
     replicator.initialize(
       {
@@ -464,16 +456,12 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       emitted.push({ topic, payload, isLocal, origin });
     };
 
-    replicator.happn.services.orchestrator.members = {
-      __self: {
-        client: {
-          set: (topic, payload) => {
-            emitter.emit(topic, payload);
-          },
-          on: (topic, cb) => {
-            emitter.on(topic, cb);
-          },
-        },
+    replicator.happn.services.orchestrator.localClient = {
+      set: (topic, payload) => {
+        emitter.emit(topic, payload);
+      },
+      on: (topic, cb) => {
+        emitter.on(topic, cb);
       },
     };
 

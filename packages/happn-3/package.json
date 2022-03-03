@@ -58,7 +58,7 @@
     "debug": "4.1.1",
     "gulp": "^4.0.2",
     "happn": "^2.21.3",
-    "happn-cluster": "^12.0.0",
+    "happn-cluster": "^12.1.0",
     "happn-commons-test": "^1.0.0",
     "happn-db-provider-elasticsearch": "^1.0.0",
     "happn-db-provider-loki": "^1.0.0",
