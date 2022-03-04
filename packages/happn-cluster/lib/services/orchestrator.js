@@ -148,10 +148,16 @@ module.exports = class Orchestrator extends EventEmitter {
       this.stableTimeout = setTimeout(() => {
         var error = new Error('failed to stabilise in time');
         error.name = 'StabiliseTimeout';
-        while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(error);
+        this.clearStabilizedTimeout(error);
       }, this.config.stabiliseTimeout);
     }
     this.__stateUpdate();
+  }
+
+  clearStabilizedTimeout(error) {
+    error = Array.isArray(error) ? error[0] : error;
+    let callback;
+    while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(error);
   }
 
   async stop(opts, cb) {
@@ -240,6 +246,7 @@ module.exports = class Orchestrator extends EventEmitter {
 
   addPeer(member) {
     member.listedAsPeer = true;
+    this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
     // if (!this.registry[member.serviceName][member.endpoint]) this.registry[member.serviceName][member.endpoint] = member;
     this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
@@ -257,7 +264,8 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   __stateUpdate(member) {
-    this.__checkErroredMembers();
+    let errors = this.__checkErroredMembers();
+    if (errors) return this.clearStabilizedTimeout(errors);
     if (member && member.listedAsPeer !== member.peer) this.peerStatusUpdate(member);
     if (
       Object.values(this.registry).every((service) => {
@@ -269,7 +277,7 @@ module.exports = class Orchestrator extends EventEmitter {
         this.log.info(`Node ${this.happn.name} in service ${this.serviceName} stabilized`);
       }
       let callback;
-      while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback();
+      this.clearStabilizedTimeout();
       this.state = this.constants.STABLE;
       this.unstable = false;
       clearTimeout(this.stableTimeout);
@@ -306,12 +314,7 @@ module.exports = class Orchestrator extends EventEmitter {
         errors.push(member.error);
       }
     });
-    if (error) {
-      clearInterval(this.stableTimeout);
-      let callback;
-      while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(errors[0]);
-      // can only callback with one error
-    }
+    if (error) return errors;
   }
 
   healthReport() {

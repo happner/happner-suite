@@ -9,8 +9,12 @@ module.exports.getLastLoginConfig = function () {
 };
 
 var queuedLoginError = null;
-module.exports.queueLoginError = function (error) {
+let loginError = () => {
+  return true;
+};
+module.exports.queueLoginError = function (error, condition) {
   queuedLoginError = error;
+  if (condition) loginError = condition;
 };
 
 var queuedSubscriptionError = null;
@@ -19,7 +23,7 @@ module.exports.queueSubscriptionError = function (error) {
 };
 
 module.exports.create = NodeUtil.promisify(function (config, callback) {
-  if (queuedLoginError) {
+  if (queuedLoginError && loginError()) {
     var error = queuedLoginError;
     queuedLoginError = null;
     process.nextTick(function () {
@@ -77,7 +81,7 @@ MockHappnClient.prototype.onEvent = function (event, handler) {
 };
 
 MockHappnClient.prototype.offEvent = function () {};
-
+MockHappnClient.prototype.disconnect = () => {};
 MockHappnClient.prototype.on = NodeUtil.promisify(function (path, opts, handler, callback) {
   if (queuedSubscriptionError) {
     var error = queuedSubscriptionError;

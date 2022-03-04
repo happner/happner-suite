@@ -118,6 +118,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       done();
     });
   });
+  
   context('methods', () => {
     it('tests setEndpoints method', (done) => {
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);

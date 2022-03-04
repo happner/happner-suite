@@ -11,5 +11,7 @@ module.exports = function(member) {
   delete memberClone.log;
   delete memberClone.HappnClient;
   delete memberClone.client;
+  delete memberClone.reservedMeta;
+
   return memberClone;
 };

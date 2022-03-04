@@ -8,11 +8,11 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       test.expect(member).to.eql({
         orchestrator,
         log: orchestrator.log,
-        name: null,
+        name: undefined,
         endpoint: '1.2.3.5:4321',
         address: '1.2.3.5',
         port: '4321',
-        serviceName: null,
+        serviceName: undefined,
         self: false,
         connectingTo: false,
         connectedTo: false,
@@ -37,7 +37,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
         endpoint: '1.2.3.4:5678',
         address: '1.2.3.4',
         port: '5678',
-        serviceName: null,
+        serviceName: undefined,
         self: true,
         connectingTo: false,
         connectedTo: true,
@@ -51,17 +51,20 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
     });
 
     it('can create an instance of Member (create method, nno IP match)', (done) => {
-      let member = Member.create({ endpoint: '1.2.3.5:4321' }, orchestrator);
+      let member = Member.create(
+        { endpoint: '1.2.3.5:4321', serviceName: 'MY-SERVICE', name: 'MY-NAME' },
+        orchestrator
+      );
       delete member.HappnClient;
 
       test.expect(member).to.eql({
         orchestrator,
         log: orchestrator.log,
-        name: null,
+        name: 'MY-NAME',
         endpoint: '1.2.3.5:4321',
         address: '1.2.3.5',
         port: '4321',
-        serviceName: null,
+        serviceName: 'MY-SERVICE',
         self: false,
         connectingTo: false,
         connectedTo: false,
@@ -259,7 +262,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
           name: 'server name',
         },
       };
-      member.HappnClient = {
+      member.orchestrator.HappnClient = {
         create: () => {
           return client;
         },

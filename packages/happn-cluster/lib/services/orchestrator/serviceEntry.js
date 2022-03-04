@@ -1,6 +1,6 @@
 //____________________________ SERVICE-REGISTRY ENTRY_____________
 const Member = require('./member');
-// const cloneMember = require("../../utils/cloneMember");
+
 module.exports = class ServiceEntry {
   constructor(name, expected, orchestrator) {
     this.name = name;
@@ -69,6 +69,7 @@ module.exports = class ServiceEntry {
     for (let endpoint of this.endpoints) {
       this.members[endpoint] =
         this.members[endpoint] || new Member({ endpoint }, this.orchestrator);
+      this.members[endpoint].connect(this.orchestrator.getLoginConfig());
     }
   }
 

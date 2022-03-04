@@ -50,10 +50,10 @@ module.exports = class Member {
 
   updateOwnInfo(info) {
     let { endpoint, name, serviceName } = info;
-    this.name = name || this.name || null;
-    this.endpoint = endpoint || this.endpoint || null;
+    this.name = name || this.name;
+    this.endpoint = endpoint || this.endpoint;
     if (this.endpoint) [this.address, this.port] = this.endpoint.split(':');
-    this.serviceName = serviceName || this.serviceName || null;
+    this.serviceName = serviceName || this.serviceName;
   }
 
   get connected() {
@@ -132,8 +132,8 @@ module.exports = class Member {
   connectionFrom(member) {
     this.connectedFrom = true;
     this.updateOwnInfo(member);
-    if (!this.connectedTo) return this.connect(this.orchestrator.getLoginConfig());
-    this.orchestrator.__stateUpdate(this);
+    if (!this.connectedTo) this.connect(this.orchestrator.getLoginConfig());
+    return this.orchestrator.__stateUpdate(this);
   }
 
   async subscribe() {
