@@ -1670,7 +1670,7 @@ Mesh.prototype._createComponent = function (spec, callback) {
   //         have accessLevel: 'mesh' (config in component)
   //          and give each component it's own private stats store
 
-  var __addComponentDataStoreRoutes = function (meshConfig, componentConfig) {
+  var __addComponentDataStoreRoutes = function (componentConfig) {
     if (!componentConfig.data || !componentConfig.data.routes) return;
 
     for (var route in componentConfig.data.routes) {
@@ -1692,9 +1692,11 @@ Mesh.prototype._createComponent = function (spec, callback) {
     componentConfig,
     function (e) {
       if (e) return callback(e);
-
-      __addComponentDataStoreRoutes(config, componentConfig);
-
+      try {
+        __addComponentDataStoreRoutes(componentConfig);
+      } catch (e) {
+        return callback(new Error(`bad component data route: ${e.message}`));
+      }
       spec.component.instance = componentInstance;
       _this._mesh.elements[componentName] = spec;
       callback();

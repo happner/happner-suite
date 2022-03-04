@@ -380,8 +380,8 @@ function removeDataStoreFilterSorted(pattern) {
 
 function addDataStoreFilter(pattern, datastoreKey) {
   if (!datastoreKey) throw new Error('missing datastoreKey parameter');
-  var dataStore = this.datastores[datastoreKey];
-  if (!dataStore) throw new Error('no datastore with the key ' + datastoreKey + ', exists');
+  const dataStore = this.datastores[datastoreKey];
+  if (!dataStore) throw new Error(`missing datastore with the key [${datastoreKey}]`);
   this.addDataStoreFilterSorted(pattern, dataStore);
 }
 
