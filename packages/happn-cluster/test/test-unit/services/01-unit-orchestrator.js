@@ -382,8 +382,8 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         // o.registry['happn-cluster-node'].expeccted = 1; //Switch to only expect 1 peer
         o.stabilised()
           .then(function () {
-            test.expect(Object.keys(o.peers)).to.eql([address + ':9000']);
-            test.expect(o.peers.__self).to.equal(o.peers[address + ':9000']);
+            test.expect(Object.keys(o.peers)).to.eql(['local-happn-instance']);
+            test.expect(o.peers.__self).to.equal(o.peers['local-happn-instance']);
             done();
           })
           .catch(done);
@@ -438,7 +438,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         test.expect(o.members['10.0.0.1:55001'].connectedFrom).to.equal(true); // <---- pending login done
 
         // added as peer
-        test.expect(o.peers['10.0.0.1:55001']).to.not.be(undefined);
+        test.expect(o.peers['10-0-0-1_55001']).to.not.be(undefined);
         o.__stateUpdate();
         // stabilised() has resolved (got 2 peers, self + 1)
         test.expect(stable).to.equal(true);
@@ -630,7 +630,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
 
         // not emitted on new member
         test.expect(emitted).to.eql({});
-        test.expect(Object.keys(o.peers)).to.eql([address + ':9000']);
+        test.expect(Object.keys(o.peers)).to.eql(['local-happn-instance']);
 
         // but is emitted once new member fully connected (per login back)
         MockSession.instance.emit('authentic', {
@@ -646,7 +646,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
 
         test.expect(emitted).to.eql({
           name: '10-0-0-1_55001',
-          member: o.peers['10.0.0.1:55001'],
+          member: o.peers['10-0-0-1_55001'],
         });
         o.stop();
       });
@@ -673,7 +673,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         // wait for login
         await test.delay(300);
 
-        test.expect(o.peers['10.0.0.1:55001']).to.not.be(undefined);
+        test.expect(o.peers['10-0-0-1_55001']).to.not.be(undefined);
 
         o.on('peer/remove', async (name, member) => {
           test.expect(name).to.equal('10-0-0-1_55001');
@@ -724,8 +724,8 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         });
 
         await test.delay(200);
-        let a = o.peers['10.0.0.1:55007'];
-        test.expect(o.peers['10.0.0.1:55007']).to.not.be(undefined);
+
+        test.expect(o.peers['10-0-0-1_55007']).to.not.be(undefined);
 
         let peerRemoved = false;
         await test.delay(200);

@@ -40,7 +40,7 @@ module.exports = class ServiceEntry {
   get peers() {
     return Object.values(this.members).reduce((peers, member) => {
       if (member.peer) {
-        peers[member.endpoint] = member;
+        peers[member.name] = member;
       }
       return peers;
     }, {});

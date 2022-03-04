@@ -50,8 +50,8 @@ module.exports = class Member {
 
   updateOwnInfo(info) {
     let { endpoint, name, serviceName } = info;
-    this.name = name || this.name;
     this.endpoint = endpoint || this.endpoint;
+    this.name = name || this.name || this.endpoint;
     if (this.endpoint) [this.address, this.port] = this.endpoint.split(':');
     this.serviceName = serviceName || this.serviceName;
   }
@@ -164,7 +164,7 @@ module.exports = class Member {
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    await this.client.disconnect();
+    this.client.disconnect();
     this.connectedTo = false;
     this.client.session = null;
   }

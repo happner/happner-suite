@@ -78,8 +78,8 @@ module.exports.create = nodeUtils.promisify(async function (config, callback) {
       provider: 'happn-db-provider-mongo',
       isDefault: true,
       settings: {
-        collection: 'happn-cluster-test',
-        database: 'happn-cluster-test',
+        collection: 'happn-cluster',
+        database: 'happn-cluster',
         url: 'mongodb://127.0.0.1:27017',
       },
     });

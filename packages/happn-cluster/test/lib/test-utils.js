@@ -6,7 +6,7 @@ var getAddress = require('../../lib/utils/get-address');
 var Mongo = require('./mongo');
 const Util = require('util');
 var mongoUrl = 'mongodb://127.0.0.1:27017';
-var mongoCollection = 'happn-cluster-test';
+var mongoCollection = 'happn-cluster';
 module.exports.clearMongoCollection = function (callback, mongoCollectionArg, mongoUrlArg) {
   Mongo.clearCollection(mongoUrlArg || mongoUrl, mongoCollectionArg || mongoCollection, callback);
 };

@@ -260,7 +260,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   removeMember(member) {
-    delete this.registry[member.serviceName].removeMember(member);
+    if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);
   }
 
   __stateUpdate(member) {
