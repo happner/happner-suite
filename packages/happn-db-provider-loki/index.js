@@ -31,6 +31,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       indices: ['path', 'created', 'modified'],
       unique: ['path'],
     });
+
     this.persistenceOn = this.settings.filename != null;
     this.operationQueue = async.queue((operation, cb) => {
       this.processOperation(operation, cb);
@@ -158,6 +159,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
     options = options || {};
+
     let document = this.collection.findOne({ path });
     let result,
       created,
@@ -191,6 +193,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   snapshot(callback) {
     this.operationCount = 0;
+    // console.log('this.persistSnapshotData', this.persistSnapshotData());
     this.persistSnapshotData({ snapshot: this.db.serialize() }, callback);
   }
   storePlayback(operation, callback) {
@@ -346,11 +349,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   findInternal(path, parameters) {
     let finalResult = [];
     let pathCriteria = this.getPathCriteria(path);
+
     if (!parameters) parameters = {};
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
     let results = this.collection.chain().find(pathCriteria);
     let options = parameters.options || {};
-
     if (results.count() === 0) {
       return options.count ? { data: { value: 0 } } : finalResult;
     }
