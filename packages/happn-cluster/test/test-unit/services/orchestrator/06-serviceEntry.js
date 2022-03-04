@@ -81,10 +81,10 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
     });
 
     it('gets peers, numPeers and peersFulfilled ', (done) => {
-      let peer1 = { peer: true, endpoint: 'peer1' };
-      let peer2 = { peer: true, endpoint: 'peer2' };
-      let peer3 = { peer: true, endpoint: 'peer3' };
-      let peer4 = { peer: true, endpoint: 'peer4' };
+      let peer1 = { peer: true, endpoint: 'peer1', name: 'peer1' };
+      let peer2 = { peer: true, endpoint: 'peer2', name: 'peer2' };
+      let peer3 = { peer: true, endpoint: 'peer3' , name: 'peer3'};
+      let peer4 = { peer: true, endpoint: 'peer4' , name: 'peer4'};
       let notPeer1 = { peer: false };
       let notPeer2 = { peer: false };
 
@@ -118,7 +118,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       done();
     });
   });
-  
+
   context('methods', () => {
     it('tests setEndpoints method', (done) => {
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);

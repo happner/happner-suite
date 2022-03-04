@@ -8,7 +8,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       test.expect(member).to.eql({
         orchestrator,
         log: orchestrator.log,
-        name: undefined,
+        name: '1.2.3.5:4321', //Defaults to endpiont if not passed in
         endpoint: '1.2.3.5:4321',
         address: '1.2.3.5',
         port: '4321',
