@@ -193,7 +193,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   snapshot(callback) {
     this.operationCount = 0;
-    // console.log('this.persistSnapshotData', this.persistSnapshotData());
     this.persistSnapshotData({ snapshot: this.db.serialize() }, callback);
   }
   storePlayback(operation, callback) {

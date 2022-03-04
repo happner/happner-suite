@@ -35,5 +35,6 @@
   },
   "dependencies": {
     "mock-fs": "^5.1.2"
-  }
+  },
+  "pre-commit": []
 }

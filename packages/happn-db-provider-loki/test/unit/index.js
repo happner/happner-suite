@@ -7,7 +7,7 @@ const path = commons.path;
 const mockFs = require('mock-fs');
 const db = require('lokijs');
 
-describe.only(test.testName(), function () {
+describe(test.testName(), function () {
   this.timeout(120e3);
   let mockSettings;
   let mockLogger;
@@ -577,7 +577,7 @@ describe.only(test.testName(), function () {
         .to.not.haveOwnProperty('meta');
     });
 
-    xit('can upsertInternal', () => {
+    it('can upsertInternal', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const args = [
