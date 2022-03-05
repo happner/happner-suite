@@ -11,6 +11,10 @@ The happner suite has 4 top-level modules:
 3. happn-cluster - sits on top of happn-3, allows for the creation of a pub/sub cluster.
 4. happner-cluster - sits on top of happn-3, happner-2 and happn-cluster, allows for the creation of a clustered rpc setup, where work is distributed across multiple cluster nodes in the cloud.
 
+major releases (migration documentation)
+-----------------------------------------------------------------
+- [2022-03 happn v12-v13 and happner v11-v12](https://github.com/happner/happner-suite/tree/master/documentation/migration/major-release-2022-03.md)
+
 setup:
 -----
 

@@ -1,6 +1,6 @@
 {
   "name": "happner-cluster",
-  "version": "12.0.0",
+  "version": "12.0.2",
   "description": "Extends happner with clustering capabilities",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,6 @@
     "bluebird": "^3.5.0",
     "happn-cluster": "^12.0.0",
     "happn-commons": "^1.0.0",
-    "happn-db-provider-loki": "^1.0.0",
     "happn-db-provider-mongo": "^1.0.0",
     "happner-2": "^12.0.0",
     "happner-client": "^12.0.0",
