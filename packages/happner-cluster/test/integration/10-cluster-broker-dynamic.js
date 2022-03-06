@@ -1,4 +1,4 @@
-const Promise = require('bluebird');
+// const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -412,7 +412,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       startClusterEdgeFirstHighAvailable()
         .then(() => {
-          return Promise.delay(5000);
+          return test.delay(5000);
         })
         .then(function () {
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(4);
@@ -431,7 +431,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
           return stopServer(servers[1]);
         })
         .then(() => {
-          return Promise.delay(3000);
+          return test.delay(3000);
         })
         .then(function () {
           //we check injected components is 1
@@ -445,7 +445,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
           return stopServer(servers[2]);
         })
         .then(() => {
-          return Promise.delay(3000);
+          return test.delay(3000);
         })
         .then(function () {
           //we check injected components is still 1 and injected component meshName is null
@@ -459,7 +459,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
           return startInternal(getSeq.getNext(), 2);
         })
         .then(() => {
-          return Promise.delay(5000);
+          return test.delay(5000);
         })
         .then(function () {
           //we check injected components is still 1 and injected component meshName is null
@@ -473,7 +473,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
           return startInternal(getSeq.getNext(), 3);
         })
         .then(() => {
-          return Promise.delay(5000);
+          return test.delay(5000);
         })
         .then(function () {
           //we check injected components is 2
@@ -815,7 +815,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       // stopping all at once causes replicator client happn logouts to timeout
       // because happn logout attempts unsubscribe on server, and all servers
       // are gone
-      return Promise.delay(200); // ...so pause between stops (long for travis)
+      return test.delay(200); // ...so pause between stops (long for travis)
     });
   }
   function localInstanceConfig(seq, sync, dynamic) {
