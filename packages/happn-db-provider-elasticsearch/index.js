@@ -9,7 +9,7 @@ const mongoFilter = commons.mongoFilter;
 const utils = commons.utils;
 
 module.exports = class ElasticProvider extends commons.BaseDataProvider {
-  this.UPSERT_TYPE = commons.constants.UPSERT_TYPE;
+  UPSERT_TYPE = commons.constants.UPSERT_TYPE;
   constructor(settings, logger) {
     super(settings, logger);
     if (!this.settings.dataroutes) {

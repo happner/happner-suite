@@ -53,7 +53,6 @@ Brokerage.prototype.__checkDependenciesSatisfied = function () {
 };
 
 Brokerage.prototype.__handlePeerArrived = function (peer) {
-  console.log("peer arrived", peer)
   this.__injectedElements
     .filter((injectedComponent) => {
       return injectedComponent.component.name === peer.componentName;
