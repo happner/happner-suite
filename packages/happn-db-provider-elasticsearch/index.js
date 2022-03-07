@@ -13,10 +13,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   constructor(settings, logger) {
     super(settings, logger);
     if (!this.settings.dataroutes) {
-      this.settings.dataroutes = [{
-        pattern: '*',
-        index: 'happner'
-      }];
+      this.settings.dataroutes = [
+        {
+          pattern: '*',
+          index: 'happner',
+        },
+      ];
     }
     if (this.settings.cache) {
       if (this.settings.cache === true) this.settings.cache = {};
@@ -49,15 +51,15 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       _this.__initializeRoutes();
       // yada yada yada: https://github.com/elastic/elasticsearch-js/issues/196
       const AgentKeepAlive = require('agentkeepalive');
-      _this.settings.createNodeAgent = function(connection, config) {
+      _this.settings.createNodeAgent = function (connection, config) {
         return new AgentKeepAlive(connection.makeAgentConfig(config));
       };
       const client = new elasticsearch.Client(_this.settings);
       client.ping(
         {
-          requestTimeout: 30000
+          requestTimeout: 30000,
         },
-        function(e) {
+        function (e) {
           if (e) return callback(e);
 
           Object.defineProperty(_this, 'db', { value: client });
@@ -66,7 +68,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
             value: async.queue(
               _this.__executeElasticMessage.bind(_this),
               _this.settings.elasticCallConcurrency
-            )
+            ),
           });
 
           if (_this.settings.cache) _this.setUpCache();
@@ -89,7 +91,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
   __initializeRoutes() {
     const _this = this;
-    _this.settings.dataroutes.forEach(function(route) {
+    _this.settings.dataroutes.forEach(function (route) {
       if (!route.index) route.index = _this.settings.defaultIndex;
       if (!route.type) route.type = _this.settings.defaultType;
     });
@@ -116,8 +118,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       if (options.upsertType == null) options.upsertType = this.UPSERT_TYPE.UPSERT;
 
       const route = this.__getRoute(path, document.data);
-      this
-        .__ensureDynamic(route) // upserting so we need to make sure our index exists
+      this.__ensureDynamic(route) // upserting so we need to make sure our index exists
 
         .then(() => {
           if (options.retries == null) {
@@ -138,12 +139,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   __ensureDynamic(route) {
     const _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       if (!route.dynamic || _this.__dynamicRoutes[route.index]) return resolve();
 
       _this
         .__createIndex(_this.__buildIndexObj(route))
-        .then(function() {
+        .then(function () {
           _this.__dynamicRoutes[route.index] = true;
 
           resolve();
@@ -169,17 +170,17 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
         path: path,
         data: setData.data,
         modifiedBy: options.modifiedBy,
-        createdBy: options.modifiedBy
+        createdBy: options.modifiedBy,
       },
 
       refresh: options.refresh,
-      opType: 'create'
+      opType: 'create',
     };
 
     _this
       .__pushElasticMessage('index', elasticMessage)
 
-      .then(function(response) {
+      .then(function (response) {
         const inserted = elasticMessage.body;
 
         inserted._index = response._index;
@@ -212,7 +213,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     const bulkResponse = {
       took: 0,
       errors: false,
-      items: []
+      items: [],
     };
 
     async.eachSeries(
@@ -220,10 +221,10 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       (bulkItem, bulkItemCB) => {
         _this
           .__createBulkMessage(path, bulkItem, options, setData)
-          .then(function(bulkMessage) {
+          .then(function (bulkMessage) {
             return _this.__pushElasticMessage('bulk', bulkMessage);
           })
-          .then(function(response) {
+          .then(function (response) {
             bulkResponse.took += response.took;
             bulkResponse.errors = bulkResponse.errors || response.errors;
             bulkResponse.items.push(...response.items);
@@ -231,7 +232,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
           })
           .catch(bulkItemCB);
       },
-      err => {
+      (err) => {
         if (err) return callback(err);
         callback(null, bulkResponse);
       }
@@ -252,14 +253,14 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     // [start:{"key":"__createBulkMessage", "self":"_this", "error":"e"}:start]
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       const bulkMessage = { body: [], refresh: options.refresh, _source: true };
 
       const modifiedOn = Date.now();
 
       async.eachSeries(
         setData,
-        function(bulkItem, bulkItemCB) {
+        function (bulkItem, bulkItemCB) {
           let route;
 
           if (bulkItem.path) route = _this.__getRoute(bulkItem.path, bulkItem.data);
@@ -270,13 +271,13 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
           _this
             .__ensureDynamic(route) // upserting so we need to make sure our index exists
 
-            .then(function() {
+            .then(function () {
               bulkMessage.body.push({
                 index: {
                   _index: route.index,
                   _type: route.type,
-                  _id: route.path
-                }
+                  _id: route.path,
+                },
               });
 
               bulkMessage.body.push({
@@ -286,7 +287,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
                 path: route.path,
                 data: bulkItem.data,
                 modifiedBy: options.modifiedBy,
-                createdBy: options.modifiedBy
+                createdBy: options.modifiedBy,
               });
 
               bulkItemCB();
@@ -294,7 +295,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
             .catch(bulkItemCB);
         },
-        function(e) {
+        function (e) {
           // [end:{"key":"__createBulkMessage", "self":"_this", "error":"e"}:end]
 
           if (e) return reject(e);
@@ -320,7 +321,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
           modified: modifiedOn,
           timestamp: timestamp,
           path: path,
-          data: setData.data
+          data: setData.data,
         },
 
         upsert: {
@@ -328,12 +329,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
           modified: modifiedOn,
           timestamp: timestamp,
           path: path,
-          data: setData.data
-        }
+          data: setData.data,
+        },
       },
       _source: options.source ? options.source : true,
       refresh: options.refresh,
-      retryOnConflict: options.retries
+      retryOnConflict: options.retries,
     };
 
     if (options.modifiedBy) {
@@ -345,7 +346,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     _this
       .__pushElasticMessage('update', elasticMessage)
 
-      .then(function(response) {
+      .then(function (response) {
         let data = null;
         let metadata = null;
         if (response.get && response.get._source) {
@@ -372,18 +373,17 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     const route = _this.__getRoute(path);
 
-    const handleResponse = function(e) {
-
+    const handleResponse = function (e) {
       if (e) return callback(e);
 
       const deleteResponse = {
         data: {
-          removed: deletedCount
+          removed: deletedCount,
         },
         _meta: {
           timestamp: Date.now(),
-          path: path
-        }
+          path: path,
+        },
       };
 
       callback(null, deleteResponse);
@@ -395,22 +395,22 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     const elasticMessage = {
       index: route.index,
       type: route.type,
-      refresh: true
+      refresh: true,
     };
 
     if (multiple) {
       elasticMessage.body = {
         query: {
           wildcard: {
-            path: path
-          }
-        }
+            path: path,
+          },
+        },
       };
 
       // deleteOperation = this.db.deleteByQuery.bind(this.db);
     } else elasticMessage.id = path;
 
-    _this.count(path, function(e, count) {
+    _this.count(path, function (e, count) {
       if (e) {
         if (e.status !== 404)
           return callback(new Error('count operation failed for delete: ' + e.toString()));
@@ -426,7 +426,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       _this
         .__pushElasticMessage(method, elasticMessage)
 
-        .then(function(response) {
+        .then(function (response) {
           handleResponse(null, response);
         })
 
@@ -471,24 +471,26 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
         constant_score: {
           filter: {
             query_string: {
-              query: searchString
-            }
-          }
-        }
-      }
+              query: searchString,
+            },
+          },
+        },
+      },
     };
 
     const elasticMessage = {
       index: route.index,
       type: route.type,
-      body: query
+      body: query,
     };
 
-    mongoToElastic.convertOptions(parameters.options, elasticMessage, [{
-      path:{
-        order:'asc'
-      }
-    }]); // this is because the $not keyword works in nedb and mongoFilter, but not in elastic
+    mongoToElastic.convertOptions(parameters.options, elasticMessage, [
+      {
+        path: {
+          order: 'asc',
+        },
+      },
+    ]); // this is because the $not keyword works in nedb and mongoFilter, but not in elastic
 
     if (elasticMessage.body.from == null) elasticMessage.body.from = 0;
 
@@ -497,14 +499,14 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     _this
       .__pushElasticMessage('search', elasticMessage)
 
-      .then(function(resp) {
+      .then(function (resp) {
         if (resp.hits && resp.hits.hits && resp.hits.hits.length > 0) {
           let found = resp.hits.hits;
 
           callback(null, _this.__partialTransformAll(found));
         } else callback(null, []);
       })
-      .catch(e => {
+      .catch((e) => {
         callback(e);
       });
   }
@@ -543,17 +545,17 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
         constant_score: {
           filter: {
             query_string: {
-              query: searchString
-            }
-          }
-        }
-      }
+              query: searchString,
+            },
+          },
+        },
+      },
     };
 
     const elasticMessage = {
       index: route.index,
       type: route.type,
-      body: query
+      body: query,
     };
 
     if (parameters.options) mongoToElastic.convertOptions(parameters.options, elasticMessage); // this is because the $not keyword works in nedb and mongoFilter, but not in elastic
@@ -561,10 +563,10 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     _this
       .__pushElasticMessage('count', elasticMessage)
 
-      .then(function(resp) {
+      .then(function (resp) {
         callback(null, { data: { value: resp.count } });
       })
-      .catch(e => {
+      .catch((e) => {
         callback(e);
       });
   }
@@ -577,8 +579,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     const _this = this;
     const path = criteria.path;
     delete criteria.path;
-    _this.find(path, { options: fields, criteria: criteria }, function(e, results) {
-
+    _this.find(path, { options: fields, criteria: criteria }, function (e, results) {
       if (e) return callback(e);
 
       if (results.length > 0) {
@@ -590,7 +591,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   __partialTransformAll(dataItems) {
     const _this = this;
 
-    return dataItems.map(function(dataItem) {
+    return dataItems.map(function (dataItem) {
       return _this.__partialTransform(dataItem);
     });
   }
@@ -610,7 +611,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       modifiedBy: dataItem._source.modifiedBy,
       deletedBy: dataItem._source.deletedBy,
       data: dataItem._source.data,
-      timestamp: dataItem._source.timestamp
+      timestamp: dataItem._source.timestamp,
     };
   }
 
@@ -626,12 +627,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       createdBy: createdObj.createdBy,
       modifiedBy: createdObj.modifiedBy,
       deletedBy: createdObj.deletedBy,
-      data: createdObj.data
+      data: createdObj.data,
     };
   }
 
   __parseFields(fields) {
-    traverse(fields).forEach(function(value) {
+    traverse(fields).forEach(function (value) {
       if (value) {
         const _thisNode = this;
 
@@ -705,19 +706,19 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     _this.__oldFind = _this.find;
 
-    _this.find = function(path, parameters, callback) {
+    _this.find = function (path, parameters, callback) {
       if (path.indexOf && path.indexOf('*') === -1) {
-        return _this.cache.get(path, function(e, item) {
+        return _this.cache.get(path, function (e, item) {
           if (e) return callback(e);
 
           if (item) return callback(null, [item]);
 
-          _this.__oldFind(path, parameters, function(e, items) {
+          _this.__oldFind(path, parameters, function (e, items) {
             if (e) return callback(e);
 
             if (!items || items.length === 0) return callback(null, []);
 
-            _this.cache.set(path, items[0], function(e) {
+            _this.cache.set(path, items[0], function (e) {
               return callback(e, items);
             });
           });
@@ -729,16 +730,16 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     this.__oldFindOne = this.findOne;
 
-    _this.findOne = function(criteria, fields, callback) {
+    _this.findOne = function (criteria, fields, callback) {
       if (criteria.path && criteria.path.indexOf('*') > -1)
         return this.__oldFindOne(criteria, fields, callback);
 
-      _this.cache.get(criteria.path, function(e, item) {
+      _this.cache.get(criteria.path, function (e, item) {
         if (e) return callback(e);
 
         if (item) return callback(null, item);
 
-        _this.__oldFindOne(criteria, fields, function(e, item) {
+        _this.__oldFindOne(criteria, fields, function (e, item) {
           if (e) return callback(e);
 
           if (!item) return callback(null, null);
@@ -750,25 +751,25 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     this.__oldRemove = this.remove;
 
-    this.remove = function(path, callback) {
+    this.remove = function (path, callback) {
       if (path.indexOf && path.indexOf('*') === -1) {
         // its ok if the actual remove fails, as the cache will refresh
-        _this.cache.remove(path, function(e) {
+        _this.cache.remove(path, function (e) {
           if (e) return callback(e);
 
           _this.__oldRemove(path, callback);
         });
       } else {
-        _this.find(path, { fields: { path: 1 } }, null, function(e, items) {
+        _this.find(path, { fields: { path: 1 } }, null, function (e, items) {
           if (e) return callback(e);
 
           // clear the items from the cache
           async.eachSeries(
             items,
-            function(item, itemCB) {
+            function (item, itemCB) {
               _this.cache.remove(item.path, itemCB);
             },
-            function(e) {
+            function (e) {
               if (e) return callback(e);
 
               _this.__oldRemove(path, callback);
@@ -780,11 +781,11 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     this.__oldUpdate = this.update;
 
-    _this.update = function(criteria, data, options, callback) {
-      _this.__oldUpdate(criteria, data, options, function(e, response) {
+    _this.update = function (criteria, data, options, callback) {
+      _this.__oldUpdate(criteria, data, options, function (e, response) {
         if (e) return callback(e);
 
-        _this.cache.set(criteria.path, data, function(e) {
+        _this.cache.set(criteria.path, data, function (e) {
           if (e) return callback(e);
 
           return callback(null, response);
@@ -818,7 +819,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     if (routePath.indexOf('{id}') > -1) routePath = routePath.replace('{id}', nanoid());
 
-    _this.settings.dataroutes.every(function(dataStoreRoute) {
+    _this.settings.dataroutes.every(function (dataStoreRoute) {
       let pattern = dataStoreRoute.pattern;
       if (dataStoreRoute.dynamic) pattern = dataStoreRoute.pattern.split('{')[0] + '*';
       if (_this.__matchRoute(routePath, pattern)) route = dataStoreRoute;
@@ -849,7 +850,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     if (!dataStoreRoute.pathLocations) {
       const locations = {};
 
-      dataStoreRoute.pattern.split('/').every(function(segment, segmentIndex) {
+      dataStoreRoute.pattern.split('/').every(function (segment, segmentIndex) {
         if (segment === '{{index}}') locations.index = segmentIndex;
         if (segment === '{{type}}') locations.type = segmentIndex;
         return !(locations.index && locations.type);
@@ -871,15 +872,22 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
   __createIndex(indexConfig) {
     const _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       _this
         .__pushElasticMessage('indices.create', indexConfig)
-        .then(function() {
+        .then(function () {
           resolve();
         })
 
-        .catch(function(e) {
-          if (e && !utils.stringContainsAny(e.message, 'resource_already_exists_exception','index_already_exists_exception')) {
+        .catch(function (e) {
+          if (
+            e &&
+            !utils.stringContainsAny(
+              e.message,
+              'resource_already_exists_exception',
+              'index_already_exists_exception'
+            )
+          ) {
             return reject(
               new Error('failed creating index ' + indexConfig.index + ':' + e.toString(), e)
             );
@@ -902,8 +910,8 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
     const indexJSON = {
       index: indexConfig.index,
       body: {
-        mappings: {}
-      }
+        mappings: {},
+      },
     };
 
     const typeJSON = {
@@ -914,8 +922,8 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
         timestamp: { type: 'date' },
         modified: { type: 'date' },
         modifiedBy: { type: 'keyword' },
-        createdBy: { type: 'keyword' }
-      }
+        createdBy: { type: 'keyword' },
+      },
     };
 
     indexJSON.body.mappings[indexConfig.type] = typeJSON;
@@ -926,7 +934,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
       indexConfig.body.mappings &&
       indexConfig.body.mappings[indexConfig.type]
     ) {
-      Object.keys(indexConfig.body.mappings[indexConfig.type].properties).forEach(function(
+      Object.keys(indexConfig.body.mappings[indexConfig.type].properties).forEach(function (
         fieldName
       ) {
         const mappingFieldName = fieldName;
@@ -950,13 +958,13 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     let defaultIndexFound = false;
 
-    _this.settings.indexes.forEach(function(indexConfig) {
+    _this.settings.indexes.forEach(function (indexConfig) {
       if (indexConfig.index === _this.settings.defaultIndex) defaultIndexFound = true;
     });
 
     let indexJSON = _this.__buildIndexObj({
       index: _this.settings.defaultIndex,
-      type: _this.settings.defaultType
+      type: _this.settings.defaultType,
     });
 
     if (!defaultIndexFound) {
@@ -965,15 +973,12 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
     async.eachSeries(
       _this.settings.indexes,
-      function(index, indexCB) {
+      function (index, indexCB) {
         if (index.index !== _this.defaultIndex) indexJSON = _this.__buildIndexObj(index);
 
-        _this
-          .__createIndex(indexJSON)
-          .then(indexCB)
-          .catch(indexCB);
+        _this.__createIndex(indexJSON).then(indexCB).catch(indexCB);
       },
-      function(e) {
+      function (e) {
         if (e) return callback(e);
 
         if (!_this.settings.dataroutes) _this.settings.dataroutes = [];
@@ -982,7 +987,7 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
 
         let defaultRouteFound = false;
 
-        _this.settings.dataroutes.forEach(function(route) {
+        _this.settings.dataroutes.forEach(function (route) {
           if (route.pattern === '*') defaultRouteFound = true;
         });
 
@@ -997,8 +1002,8 @@ module.exports = class ElasticProvider extends commons.BaseDataProvider {
   __pushElasticMessage(method, message) {
     const _this = this;
 
-    return new Promise(function(resolve, reject) {
-      _this.__elasticCallQueue.push({ method: method, message: message }, function(e, response) {
+    return new Promise(function (resolve, reject) {
+      _this.__elasticCallQueue.push({ method: method, message: message }, function (e, response) {
         if (e) return reject(e);
 
         resolve(response);

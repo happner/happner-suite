@@ -123,8 +123,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     const cluster = helpers.cluster.create();
 
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 4000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 4000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 4000);
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 4000); 
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 9000); //Need mesh to sttabilize before adding component
     //dont await this - as it will hold up the  test
     cluster.component.inject(1, helpers.configuration.extract(20, 2, 'component2'));
     await test.delay(6000);
