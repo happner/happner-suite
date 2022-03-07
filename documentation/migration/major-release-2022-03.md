@@ -39,27 +39,42 @@ db provider configuration:
                     provider: 'happn-db-provider-loki',
                     patterns: [
                         '/goes-into-loki/*'
-                    ]
+                    ],
+                    settings: {
+                        filename: process.env.LOKI_PERSIST_FILE,
+                        fsync: true,
+                    }
                 },
                 {
                     name: 'nedb',
                     provider: 'happn-db-provider-nedb',
                     patterns: [
                         '/goes-into-nedb/*'
-                    ]
+                    ],
+                    settings: {
+                       // no settings - so memory store
+                    }
                 },
                 {
                     name: 'elasticsearch',
                     provider: 'happn-db-provider-elasticsearch',
                     patterns: [
                         '/goes-into-elasticsearch/*'
-                    ]
+                    ],
+                    settings: {
+                        host: process.env.ELASTIC_HOST,
+                        indexes: []
+                    }
                 },
                 {
                     name: 'mongo',
                     provider: 'happn-db-provider-mongo',
+                    settings: {
+                        collection: process.env.MONGO_COLLECTION,
+                        database: process.env.MONGO_DATABASE,
+                        url: process.env.MONGO_URL
+                    },
                     isDefault: true,
-                    collection: 'happn-service-mongo-2-tests'
                 },
             ]
           }
