@@ -51,7 +51,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await test.delay(2000);
   });
 
-  it('starts up the internal cluster node first, with * version and forward declared methods, we start the edge node and ensure the extra api methods have been extended', async () => {
+  it.only('starts up the internal cluster node first, with * version and forward declared methods, we start the edge node and ensure the extra api methods have been extended', async () => {
     await startClusterInternalFirst();
     await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
@@ -65,6 +65,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
     result = await client.exchange.remoteComponent1.declaredMethod();
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:declaredMethod');
+    console.log(Object.keys(client.exchange.remoteComponent1))
     result = await client.exchange.remoteComponent1.undeclaredMethod();
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:undeclaredMethod');
     await test.delay(2000);

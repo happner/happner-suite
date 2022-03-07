@@ -8,7 +8,7 @@ const delay = require('await-delay');
 const getSeq = require('../_lib/helpers/getSeq');
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   const servers = [];
   let localInstance;
 
@@ -407,8 +407,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .catch(done);
     });
 
-    it('injects the correct amount of brokered elements, even when brokered cluster nodes are dropped and restarted', function (done) {
-      this.timeout(40000);
+    it.only('injects the correct amount of brokered elements, even when brokered cluster nodes are dropped and restarted', function (done) {
+      this.timeout(60000);
 
       startClusterEdgeFirstHighAvailable()
         .then(() => {
