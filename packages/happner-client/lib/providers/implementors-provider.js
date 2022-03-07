@@ -369,15 +369,17 @@
         log('dependent %s has %d of %s %s', dependorName, countMatches, componentName, version);
         this.__getUpdatedDependencyDescriptions(descriptions, componentName, version).forEach(
           (foundComponentDescription) => {
-            this.happnerClient.emit('peer/arrived/description', {
-              dependorName: dependorName,
-              countMatches: countMatches,
-              componentName: componentName,
-              version: version,
-              description: foundComponentDescription.components[componentName],
-              url: foundComponentDescription.url,
-              meshName: foundComponentDescription.meshName,
-            });
+            if (!foundComponentDescription.self) {
+              this.happnerClient.emit('peer/arrived/description', {
+                dependorName: dependorName,
+                countMatches: countMatches,
+                componentName: componentName,
+                version: version,
+                description: foundComponentDescription.components[componentName],
+                url: foundComponentDescription.url,
+                meshName: foundComponentDescription.meshName,
+              });
+            }
           }
         );
       });

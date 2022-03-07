@@ -51,7 +51,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await test.delay(2000);
   });
 
-  it.only('starts up the internal cluster node first, with * version and forward declared methods, we start the edge node and ensure the extra api methods have been extended', async () => {
+  it('starts up the internal cluster node first, with * version and forward declared methods, we start the edge node and ensure the extra api methods have been extended', async () => {
     await startClusterInternalFirst();
     await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');

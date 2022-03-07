@@ -407,7 +407,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .catch(done);
     });
 
-    it.only('injects the correct amount of brokered elements, even when brokered cluster nodes are dropped and restarted', function (done) {
+    it('injects the correct amount of brokered elements, even when brokered cluster nodes are dropped and restarted', function (done) {
       this.timeout(60000);
 
       startClusterEdgeFirstHighAvailable()

@@ -245,6 +245,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   addPeer(member) {
+    if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
     this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
