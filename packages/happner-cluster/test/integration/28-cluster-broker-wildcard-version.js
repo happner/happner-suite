@@ -65,7 +65,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
     result = await client.exchange.remoteComponent1.declaredMethod();
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:declaredMethod');
-    console.log(Object.keys(client.exchange.remoteComponent1))
     result = await client.exchange.remoteComponent1.undeclaredMethod();
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:undeclaredMethod');
     await test.delay(2000);

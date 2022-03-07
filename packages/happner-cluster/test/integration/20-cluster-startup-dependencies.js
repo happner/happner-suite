@@ -119,7 +119,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return cluster.destroy();
   });
 
-  it.only('starts up a cluster with interdependencies, we inject a component with dependencies - ensure it start is delayed as it depends on a follow on injected component', async () => {
+  it('starts up a cluster with interdependencies, we inject a component with dependencies - ensure it start is delayed as it depends on a follow on injected component', async () => {
     const cluster = helpers.cluster.create();
 
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 4000);
