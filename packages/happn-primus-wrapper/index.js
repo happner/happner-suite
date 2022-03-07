@@ -44,6 +44,7 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
     const lastPingThreshold = 25e3 * 5;
     if (now - spark.lastPing > lastPingThreshold) {
       spark.alive = false;
+      // eslint-disable-next-line no-console
       console.warn(`legacy client unresponsive after ${lastPingThreshold} seconds`);
       this.endUnresponsive();
     }
