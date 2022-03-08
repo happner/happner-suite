@@ -36,6 +36,7 @@ module.exports = class Configuration extends require('./helper') {
 
   base(index, seqIndex, secure = true, minPeers, hosts, joinTimeout, replicate) {
     let [first, portIndex] = seqIndex;
+    index += first;
     hosts = hosts || [
       `${this.address.self()}:` + getSeq.getSwimPort(1).toString(),
       `${this.address.self()}:` + getSeq.getSwimPort(2).toString(),

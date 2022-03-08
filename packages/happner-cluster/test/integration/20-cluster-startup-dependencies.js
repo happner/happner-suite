@@ -45,23 +45,23 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     const client = await helpers.client.create(username, password, getSeq.getPort(3));
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
-    //check everything started
-    const values = cluster.events.data.map((item) => {
-      return item.value;
-    });
-    values.sort();
-    test.expect(values).to.eql(['MESH_0', 'MESH_1', 'MESH_2', 'MESH_3', 'MESH_4', 'MESH_5']);
     //check the members started in the correct order
-    //sometimes MESH_1 starts before MESH_0, slice away the first 2
-    //sometimes MESH_5 starts before MESH_3, slice away the last 2
+    let values = cluster.events.data.map((item) => item.value);
     test
-      .expect(
-        cluster.events.data
-          .slice(2, 4)
-          .map((event) => event.value)
-          .sort()
-      )
-      .to.eql(['MESH_2', 'MESH_4']);
+      .expect(values.indexOf(getSeq.getMeshName(5)))  // Member 4 should start
+      .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before meber 2
+    //check everything started
+    values.sort();
+    test
+      .expect(values)
+      .to.eql([
+        getSeq.getMeshName(1),
+        getSeq.getMeshName(2),
+        getSeq.getMeshName(3),
+        getSeq.getMeshName(4),
+        getSeq.getMeshName(5),
+        getSeq.getMeshName(6),
+      ]);
     await helpers.client.destroy(client);
     await cluster.destroy();
   });
@@ -78,7 +78,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       return item.value;
     });
     values.sort();
-    test.expect(values).to.eql(['MESH_0', 'MESH_1']);
+    test.expect(values).to.eql([getSeq.getMeshName(1), getSeq.getMeshName(2)]);
     let error;
     try {
       //check member 2 is not accessible - as member 4 has not been started
@@ -123,7 +123,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     const cluster = helpers.cluster.create();
 
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 4000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 4000); 
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 4000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 9000); //Need mesh to sttabilize before adding component
     //dont await this - as it will hold up the  test
     cluster.component.inject(1, helpers.configuration.extract(20, 2, 'component2'));
