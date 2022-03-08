@@ -263,6 +263,14 @@ Rest.prototype.__mapMethodArguments = function (
   if (!body.parameters) body.parameters = {};
 
   const args = methodDescription.parameters.map((parameter) => {
+    if (parameter.name === '$happn') {
+      return $happn;
+    }
+
+    if (parameter.name === '$origin') {
+      return $origin;
+    }
+
     if (parameter.name === 'callback') {
       callbackFound = true;
       return __callback;

@@ -300,42 +300,25 @@ module.exports = class ComponentInstance {
         this.description.methods[methodName] = methodDefined = methodDefined || {
           isAsyncMethod,
         };
-        if (!methodDefined.parameters) {
-          this.__defaultParameters(method, methodDefined);
-        }
+        this.__discoverArguments(method, methodDefined);
         continue;
       }
 
       if (methodDefined) {
         // got schema and exclusive is true (per filter in previous if) and have definition
         this.description.methods[methodName] = methodDefined;
-        if (!methodDefined.parameters) {
-          this.__defaultParameters(method, methodDefined);
-        }
+        this.__discoverArguments(method, methodDefined);
       }
     }
     return this.description;
   }
 
-  _inject(methodDefn, parameters, origin) {
-    // must inject left to right otherwise subsequent left inject slides preceding right inject rightward
-    if (
-      typeof methodDefn.$happnSeq !== 'undefined' &&
-      typeof methodDefn.$originSeq !== 'undefined'
-    ) {
-      if (methodDefn.$happnSeq < methodDefn.$originSeq) {
-        parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-        parameters.splice(methodDefn.$originSeq, 0, origin);
-        return;
-      }
-      parameters.splice(methodDefn.$originSeq, 0, origin);
-      parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-      return;
-    }
-    if (typeof methodDefn.$happnSeq !== 'undefined')
-      parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-    if (typeof methodDefn.$originSeq !== 'undefined')
-      parameters.splice(methodDefn.$originSeq, 0, origin);
+  _inject(methodSchema, parameters, origin) {
+    return methodSchema.parameters.map((schemaParameter) => {
+      if (schemaParameter.name === '$origin') return origin;
+      if (schemaParameter.name === '$happn') return this.bindToOrigin(origin);
+      return parameters.shift();
+    });
   }
 
   __callBackWithWarningAndError(category, message, callback) {
@@ -345,126 +328,130 @@ module.exports = class ComponentInstance {
   }
 
   __loadModule(module) {
-    var _this = this;
     Object.defineProperty(this, 'module', {
       // property: to remove internal components from view.
       value: module,
     });
+  }
 
-    Object.defineProperty(this, 'operate', {
-      value: function (methodName, parameters, callback, origin, version) {
-        _this.__authorizeOriginMethod(methodName, origin, function (e) {
-          if (e) return callback(e);
+  operate(methodName, parameters, callback, origin, version) {
+    this.__authorizeOriginMethod(methodName, origin, (e) => {
+      if (e) return callback(e);
+      var callbackIndex = -1;
+      var callbackCalled = false;
 
+      this.stats.component[this.name].calls++;
+
+      const methodSchema = this.description.methods[methodName];
+      const methodDefn = this.module.instance[methodName];
+
+      if (!methodSchema || typeof methodDefn !== 'function') {
+        return this.__callBackWithWarningAndError(
+          'Missing method',
+          `Call to unconfigured method [${this.name}.${methodName}()]`,
+          callback
+        );
+      }
+
+      if (version != null && !semver.coercedSatisfies(this.module.version, version)) {
+        return this.__callBackWithWarningAndError(
+          'Component version mismatch',
+          `Call to unconfigured method [${this.name}.${methodName}]: request version [${version}] does not match component version [${this.module.version}]`,
+          callback
+        );
+      }
+
+      this.log.$$TRACE('operate( %s', methodName);
+      this.log.$$TRACE('parameters ', parameters);
+      this.log.$$TRACE('methodSchema ', methodSchema);
+
+      if (callback) {
+        if (methodSchema.type === 'sync-promise') {
+          let result;
           try {
-            var callbackIndex = -1;
-            var callbackCalled = false;
-
-            _this.stats.component[_this.name].calls++;
-
-            const methodSchema = _this.description.methods[methodName];
-            const methodDefn = _this.module.instance[methodName];
-
-            if (!methodSchema || typeof methodDefn !== 'function') {
-              return _this.__callBackWithWarningAndError(
-                'Missing method',
-                `Call to unconfigured method [${_this.name}.${methodName}()]`,
-                callback
-              );
-            }
-
-            if (version != null && !semver.coercedSatisfies(_this.module.version, version)) {
-              return _this.__callBackWithWarningAndError(
-                'Component version mismatch',
-                `Call to unconfigured method [${_this.name}.${methodName}]: request version [${version}] does not match component version [${_this.module.version}]`,
-                callback
-              );
-            }
-
-            _this.log.$$TRACE('operate( %s', methodName);
-            _this.log.$$TRACE('parameters ', parameters);
-            _this.log.$$TRACE('methodSchema ', methodSchema);
-
-            if (callback) {
-              if (methodSchema.type === 'sync-promise') {
-                let result;
-                try {
-                  _this._inject(methodDefn, parameters, origin);
-
-                  result = methodDefn.apply(_this.module.instance, parameters);
-                } catch (syncPromiseError) {
-                  return callback(null, [syncPromiseError]);
-                }
-                return callback(null, [null, result]);
-              }
-
-              for (var i in methodSchema.parameters) {
-                if (methodSchema.parameters[i].type === 'callback') callbackIndex = i;
-              }
-
-              var callbackProxy = function () {
-                if (callbackCalled)
-                  return _this.log.error(
-                    'Callback invoked more than once for method %s',
-                    methodName,
-                    callback.toString()
-                  );
-
-                callbackCalled = true;
-                callback(null, Array.prototype.slice.apply(arguments));
-              };
-
-              callbackProxy.$origin = origin;
-
-              if (callbackIndex === -1) {
-                if (!methodSchema.isAsyncMethod) {
-                  parameters.push(callbackProxy);
-                }
-              } else {
-                parameters.splice(callbackIndex, 1, callbackProxy);
-              }
-            }
-
-            _this._inject(methodDefn, parameters, origin);
-
-            let returnObject = methodDefn.apply(_this.module.instance, parameters);
-
-            if (utilities.isPromise(returnObject)) {
-              if (callbackIndex > -1 && utilities.isPromise(returnObject))
-                _this.log.warn('method has been configured as a promise with a callback...');
-              else {
-                returnObject
-                  .then(function (result) {
-                    if (callbackProxy) callbackProxy(null, result);
-                  })
-                  .catch(function (err) {
-                    if (callbackProxy) callbackProxy(err);
-                  });
-              }
-            }
-          } catch (callFailedError) {
-            _this.log.error('Call to method %s failed', methodName, callFailedError);
-            _this.stats.component[_this.name].errors++;
-
-            if (callback) callback(callFailedError);
+            result = methodDefn.apply(
+              this.module.instance,
+              this._inject(methodSchema, parameters, origin)
+            );
+          } catch (syncPromiseError) {
+            return callback(null, [syncPromiseError]);
           }
-        });
-      },
+          return callback(null, [null, result]);
+        }
+
+        for (var i in methodSchema.parameters) {
+          if (methodSchema.parameters[i].type === 'callback') {
+            callbackIndex = i;
+            break;
+          }
+        }
+
+        var callbackProxy = function () {
+          if (callbackCalled)
+            return this.log.error(
+              'Callback invoked more than once for method %s',
+              methodName,
+              callback.toString()
+            );
+
+          callbackCalled = true;
+          callback(null, Array.prototype.slice.apply(arguments));
+        };
+
+        callbackProxy.$origin = origin;
+
+        if (callbackIndex === -1) {
+          if (!methodSchema.isAsyncMethod) {
+            parameters.push(callbackProxy);
+          }
+        } else {
+          parameters.splice(callbackIndex, 1, callbackProxy);
+        }
+      }
+
+      try {
+        let returnObject = methodDefn.apply(
+          this.module.instance,
+          this._inject(methodSchema, parameters, origin)
+        );
+
+        if (utilities.isPromise(returnObject)) {
+          if (callbackIndex > -1) {
+            this.log.warn('method has been configured as a promise with a callback...');
+            return;
+          }
+          returnObject
+            .then(function (result) {
+              if (callbackProxy) callbackProxy(null, result);
+            })
+            .catch(function (err) {
+              if (callbackProxy) callbackProxy(err);
+            });
+        }
+      } catch (callFailedError) {
+        this.log.error('Call to method %s failed', methodName, callFailedError);
+        this.stats.component[this.name].errors++;
+        if (callback) callback(callFailedError);
+      }
     });
   }
 
-  __defaultParameters(method, methodSchema) {
-    if (!methodSchema.parameters) methodSchema.parameters = [];
-    utilities
+  __discoverArguments(method, methodSchema) {
+    // TODO: add caching
+    if (methodSchema.parameters == null) methodSchema.parameters = [];
+    methodSchema.parameters = utilities
       .getFunctionParameters(method)
-      .filter(function (argName) {
-        return argName !== '$happn' && argName !== '$origin';
-      })
-      .map(function (argName) {
-        methodSchema.parameters.push({
-          name: argName,
-        });
-      });
+      .filter((argName) => argName != null)
+      .map(
+        (argName) =>
+          methodSchema.parameters.find((definedArg) => {
+            return definedArg.name === argName;
+          }) || {
+            name: argName,
+          }
+      );
+    console.log(JSON.stringify(methodSchema, null, 2));
+    return methodSchema;
   }
 
   __discardMessage(reason, message) {
@@ -487,9 +474,11 @@ module.exports = class ComponentInstance {
 
   __runWithInjection(args, mesh, methodDefn) {
     const parameters = Array.prototype.slice.call(args);
-    const origin = this._getWebOrigin(mesh, parameters);
-    this._inject(methodDefn, parameters, origin);
-    methodDefn.apply(this.module.instance, parameters);
+    const origin = this.__getWebOrigin(mesh, parameters);
+    methodDefn.apply(
+      this.module.instance,
+      this._inject(this.__discoverArguments(methodDefn, {}), parameters, origin)
+    );
   }
 
   ___attachRouteTarget(mesh, meshRoutePath, componentRoutePath, targetMethod) {
@@ -505,17 +494,10 @@ module.exports = class ComponentInstance {
         `Middleware target ${_this.name}:${targetMethod} not a function or null, check your happner web routes config`
       );
 
-    if (
-      typeof methodDefn.$happnSeq !== 'undefined' ||
-      typeof methodDefn.$originSeq !== 'undefined'
-    ) {
-      serve = function () {
-        // preserve next in signature for connect
-        _this.__runWithInjection(arguments, mesh, methodDefn);
-      };
-    } else {
-      serve = methodDefn.bind(this.module.instance);
-    }
+    serve = function () {
+      // preserve next in signature for connect
+      _this.__runWithInjection(arguments, mesh, methodDefn);
+    };
 
     connect.use(meshRoutePath, serve);
     connect.use(componentRoutePath, serve);

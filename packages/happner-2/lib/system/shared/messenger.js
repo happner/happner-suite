@@ -244,13 +244,17 @@
       //do some schema based validation here
       var schemaValidationFailures = [];
 
-      methodDescription.parameters.map(function (parameterDefinition, index) {
-        if (parameterDefinition.required && !args[index])
-          schemaValidationFailures.push({
-            parameterDefinition: parameterDefinition,
-            message: 'Required parameter not found',
-          });
-      });
+      methodDescription.parameters
+        .filter(
+          (parameterDefinition) => ['$happn', '$origin'].indexOf(parameterDefinition.name) === -1
+        )
+        .forEach(function (parameterDefinition, index) {
+          if (parameterDefinition.required && !args[index])
+            schemaValidationFailures.push({
+              parameterDefinition: parameterDefinition,
+              message: 'Required parameter not found',
+            });
+        });
 
       if (schemaValidationFailures.length > 0)
         return callback(new MeshError('schema validation failed', schemaValidationFailures));
@@ -305,43 +309,47 @@
     var _this = this;
     var message = { callbackAddress: callbackAddress, args: [], origin: _this.session };
 
-    methodDescription.parameters.map(function (parameterDescription, index) {
-      if (
-        parameterDescription.type === 'callback' ||
-        (typeof args[index] === 'function' && index === args.length - 1)
-      ) {
-        // If the argument is a function it is only interpreted as the
-        // callback if it is the last argument.
-        //
-        // But functions as arguments cannot be sent across the network
-        // so in most cases it is inappropriate to pass function arguments
-        // across the exchange.
-        //
-        // Functions can however be sent as arguments across the intra-process
-        // happn.
-        //
-        // So exchange calls from the server to itself can have function params.
-        //
-        // This ability is used in the system/data component's on() function
+    methodDescription.parameters
+      .filter(
+        (parameterDescription) => ['$origin', '$happn'].indexOf(parameterDescription.name) === -1
+      )
+      .forEach(function (parameterDescription, index) {
+        if (
+          parameterDescription.type === 'callback' ||
+          (typeof args[index] === 'function' && index === args.length - 1)
+        ) {
+          // If the argument is a function it is only interpreted as the
+          // callback if it is the last argument.
+          //
+          // But functions as arguments cannot be sent across the network
+          // so in most cases it is inappropriate to pass function arguments
+          // across the exchange.
+          //
+          // Functions can however be sent as arguments across the intra-process
+          // happn.
+          //
+          // So exchange calls from the server to itself can have function params.
+          //
+          // This ability is used in the system/data component's on() function
 
-        if (!args[index])
-          throw new MeshError('Callback for ' + message.callbackAddress + ' was not defined');
+          if (!args[index])
+            throw new MeshError('Callback for ' + message.callbackAddress + ' was not defined');
 
-        if (typeof args[index] !== 'function')
-          throw new MeshError(
-            'Invalid callback for ' + message.callbackAddress + ', callback must be a function'
+          if (typeof args[index] !== 'function')
+            throw new MeshError(
+              'Invalid callback for ' + message.callbackAddress + ', callback must be a function'
+            );
+
+          _this.responseHandlers[message.callbackAddress] = _this.__createCallbackHandler(
+            args[index],
+            message
           );
-
-        _this.responseHandlers[message.callbackAddress] = _this.__createCallbackHandler(
-          args[index],
-          message
-        );
-      } else if (args.length >= index + 1) {
-        // include only args that were in the call
-        // rather that padding in undefined's accoding to the config's arg definitions
-        message.args.push(args[index]);
-      }
-    });
+        } else if (args.length >= index + 1) {
+          // include only args that were in the call
+          // rather that padding in undefined's accoding to the config's arg definitions
+          message.args.push(args[index]);
+        }
+      });
 
     // if the method is sync on the other side with no result expected, we don't create a callback handler
     if (

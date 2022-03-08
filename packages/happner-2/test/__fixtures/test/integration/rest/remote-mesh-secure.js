@@ -31,8 +31,7 @@ const config = {
               {name: 'three', required: true},
               {name: 'callback', type: 'callback', required: true}
             ]
-          }
-          ,
+          },
           "causeError": {
             parameters: [
               {name: 'callback', type: 'callback', required: true}

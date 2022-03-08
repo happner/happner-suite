@@ -74,7 +74,7 @@ SeeAbove.prototype.$happner = {
 
 if (global.TESTING_E3B) return; // When 'requiring' the module above,
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   const spawn = require('child_process').spawn;
   const Mesh = require('../../..');
   const path = require('path');
@@ -545,7 +545,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  it('tests posting an empty operation without parameters to a local method using $restParams', function (done) {
+  it.only('tests posting an empty operation without parameters to a local method using $restParams', function (done) {
     login(function (e, result) {
       if (e) return done(e);
 
