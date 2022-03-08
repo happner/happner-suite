@@ -46,7 +46,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     child.on('message', (msg) => {
       if (msg === 'kill') child.kill('SIGKILL');
     });
-    await test.delay(5000);
+    await test.delay(7000);
 
     client = await testclient.create('username', 'password', getSeq.getPort(1));
     let result = await client.exchange.breakingComponent.happyMethod();
@@ -60,7 +60,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
       test.expect(e).to.be('Request timed out');
     }
     child = await fork(libDir + 'test-25-sub-process.js', ['3', getSeq.lookupFirst().toString()]);
-    await test.delay(10000);
+    await test.delay(8000);
     result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be(getSeq.getMeshName(3) + ':brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
