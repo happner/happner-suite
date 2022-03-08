@@ -1,5 +1,4 @@
-require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  const Promise = require('bluebird');
+require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   const libDir = require('../_lib/lib-dir');
   const baseConfig = require('../_lib/base-config');
   const stopCluster = require('../_lib/stop-cluster');
@@ -223,7 +222,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     return Promise.resolve()
       .then(function () {
         // awiat security sync
-        return Promise.delay(2000);
+        return test.delay(2000);
       })
       .then(function () {
         var i, component;
