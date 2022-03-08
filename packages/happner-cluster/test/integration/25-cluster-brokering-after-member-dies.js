@@ -38,7 +38,6 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
   it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
     let client;
     let child;
-    let errored = false;
     let first = getSeq.getFirst();
     await startEdge(first, 1);
     // getSeq.getNext();
