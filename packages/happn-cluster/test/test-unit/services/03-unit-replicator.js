@@ -4,7 +4,7 @@ const MockHappn = require('../../mocks/mock-happn');
 const mockOpts = require('../../mocks/mock-opts');
 const SD_EVENTS = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
 
-require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
   it('can initialize the replicator', function (done) {
     const replicator = new Replicator(mockOpts);
     replicator.happn = new MockHappn('http', 9000);

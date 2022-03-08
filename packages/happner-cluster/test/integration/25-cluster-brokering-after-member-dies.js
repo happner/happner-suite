@@ -39,7 +39,6 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     let child;
     let first = getSeq.getFirst();
     await startEdge(first, 1);
-    // getSeq.getNext();
     child = fork(libDir + 'test-25-sub-process.js', ['2', getSeq.lookupFirst().toString()]);
     child.on('message', (msg) => {
       if (msg === 'kill') child.kill('SIGKILL');
