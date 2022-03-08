@@ -1,11 +1,9 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-//var log = require('why-is-node-running');
 const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
