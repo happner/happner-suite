@@ -27,7 +27,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
     replicator.initialize({}, () => {
       replicator.start();
       replicator.__replicate = (topic, batch) => {
-        test.expect(Date.now() - started > 3000).to.be(true);
+        test.expect(Date.now() - started >= 3000).to.be(true);
         test.expect(topic).to.be('/security/dataChanged');
         test.expect(batch).to.eql({
           'unlink-group': {
