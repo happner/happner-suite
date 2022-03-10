@@ -914,6 +914,8 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.0.4 2022-03-08
 -----------------
   - SMC-4198: updated dependencies
+  - SMC-4198: fixed datastores configuration and logging in happn configuration
+
 
 
 

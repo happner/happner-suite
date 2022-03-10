@@ -20,20 +20,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
       {
         name: 'persist',
         isDefault: true,
-        settings: { filename: '/Users/simonbishop/.happn/data/test-db.loki' },
+        settings: { filename: happn.getDefaultFileName({ name: 'test-db' }) },
         patterns: ['/_SYSTEM/*'],
       },
       { name: 'mem', isDefault: false, patterns: [] },
     ]);
     test
       .expect(happn.log.info.firstCall.args)
-      .to.eql(['persisting to default file %s', '/Users/simonbishop/.happn/data/test-db.loki']);
+      .to.eql(['persisting to default file %s', happn.getDefaultFileName({ name: 'test-db' })]);
     config = happn.__initializeDbConfig(testScenario3);
     test.expect(config.happn.services.data.config.datastores).to.eql([
       {
         name: 'persist',
         isDefault: true,
-        settings: { filename: '/Users/simonbishop/.happn/data/test-db.loki' },
+        settings: { filename: happn.getDefaultFileName({ name: 'test-db' }) },
         patterns: ['/_SYSTEM/*'],
       },
       { name: 'mem', isDefault: false, patterns: [] },
@@ -56,7 +56,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
                   provider: 'happn-db-provider-nedb',
                   isDefault: true,
                   settings: {
-                    filename: '/home/cc/dev/stash/device-registration-components/test/ut_9_s.nedb',
+                    filename: '[filename]',
                   },
                 },
               ],

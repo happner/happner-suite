@@ -16,6 +16,7 @@ HappnLayer.prototype.__initializeLayersConfig = __initializeLayersConfig;
 HappnLayer.prototype.__inboundLayer = __inboundLayer;
 HappnLayer.prototype.__outboundLayer = __outboundLayer;
 HappnLayer.prototype.connect = connect;
+HappnLayer.prototype.getDefaultFileName = getDefaultFileName;
 
 module.exports.create = function (mesh, happnServer, config, callback) {
   const log = mesh.log.createLogger('Happn');
@@ -190,6 +191,12 @@ function __initializeBaseConfig(config) {
   return config;
 }
 
+function getDefaultFileName(config) {
+  const homeDir = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
+  // creates a new file with every mesh re start
+  return homeDir + path.sep + '.happn' + path.sep + 'data' + path.sep + config.name + '.loki';
+}
+
 function __initializeDbConfig(config) {
   if (config.happn.persist) {
     // Datastores have no starting patterns (see commented out below)
@@ -201,20 +208,7 @@ function __initializeDbConfig(config) {
         if (!config.name) {
           throw new Error('persist option is true, but no filename or mesh name specified');
         }
-
-        var homeDir = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-        var defaultDBFilepart = config.name;
-
-        // creates a new file with every mesh re start
-        config.happn.filename =
-          homeDir +
-          path.sep +
-          '.happn' +
-          path.sep +
-          'data' +
-          path.sep +
-          defaultDBFilepart +
-          '.loki';
+        config.happn.filename = this.getDefaultFileName(config);
       }
 
       fs.ensureDirSync(path.dirname(config.happn.filename));
