@@ -895,6 +895,26 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - SMC-4550: happn-3 upgrade: unified templated path combinations logic
 
+12.0.0 2022-03-01
+-----------------
+  - SMC-4198: monorepo upgrade
+
+12.0.1 2022-03-01
+-----------------
+  - SMC-4198: made smaller dependencies major bumps
+
+12.0.2 2022-03-08
+-----------------
+  - SMC-4198: git and npm ignore updates
+
+12.0.3 2022-03-08
+-----------------
+   - SMC-4198: fixed bad dataroute config to emit a proper error message
+
+12.0.4 2022-03-08
+-----------------
+  - SMC-4198: updated dependencies
+
 
 
 

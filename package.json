@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
+    "publish-all": "node bin/publish",
     "lint": "eslint ./packages/$npm_config_package_name/**/*.js",
     "lint-fix": "eslint ./packages/$npm_config_package_name/**/*.js --fix",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
@@ -27,13 +28,14 @@
     "packages/tame-search"
   ],
   "dependencies": {
+    "axios": "^0.26.0",
     "ws": "6.1.4"
   },
   "devDependencies": {
     "eslint": "^7.12.1",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
     "eslint-plugin-prettier": "^4.0.0",
-    "prettier": "^2.5.1",
-    "eslint-config-standard": "^16.0.3"
+    "prettier": "^2.5.1"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "happn-commons-test",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "coveralls": "^3.1.1",
     "expect.js": "^0.3.1",
     "gulp": "^4.0.2",
-    "happn-commons": "^1.0.0",
+    "happn-commons": "^1.0.1",
     "happner-hyperid": "^2.0.0",
     "http-proxy": "^1.18.1",
     "karma": "^6.3.9",

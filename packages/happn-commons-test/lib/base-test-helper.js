@@ -47,7 +47,8 @@ class TestHelper {
 		if (!options.timeout) options.timeout = 5e3;
 		if (!options.depth) options.depth = 4;
 		const test = new (extension || TestHelper)();
-		const doDescribe = options.only ? describe.only : describe;
+		let doDescribe = options.only ? describe.only : describe;
+		if (options.skip) doDescribe = describe.skip;
 		return doDescribe(test.testName(options.depth), function() {
 		  this.timeout(options.timeout);
 		  handler(test);

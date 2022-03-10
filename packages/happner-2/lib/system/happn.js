@@ -81,17 +81,11 @@ function __initializeBaseConfig(config) {
   config.happn = config.happn || {};
 
   if (config.name) config.happn.name = config.name;
-
   if (config.port) config.happn.port = config.port;
-
   if (config.secure) config.happn.secure = true;
-
   if (config.persist) config.happn.persist = true;
-
   if (!config.happn.services) config.happn.services = {};
-
   if (!config.happn.services.data) config.happn.services.data = {};
-
   if (!config.happn.services.data.config) config.happn.services.data.config = {};
 
   config.happn.setOptions = config.happn.setOptions || {};
@@ -103,9 +97,7 @@ function __initializeBaseConfig(config) {
 
   if (config.happn.secure) {
     if (!config.happn.services.security) config.happn.services.security = {};
-
     if (!config.happn.services.security.config) config.happn.services.security.config = {};
-
     if (!config.happn.services.security.config.adminUser)
       config.happn.services.security.config.adminUser = {};
 
@@ -189,47 +181,51 @@ function __initializeBaseConfig(config) {
     config.happn.filename = utils.getNestedVal(config, 'happn.services.data.config.filename');
 
   if (config.happn.filename) config.happn.persist = true; //we specified a file, so set persist true
-
   if (config.happn.protocol === 'https') config.happn.transport = { transport: { mode: 'https' } };
 
   if (config.happn.transport) {
     if (!config.happn.services.transport) config.happn.services.transport = { config: {} };
-
     _.merge(config.happn.services.transport.config, config.happn.transport);
   }
+  return config;
 }
 
 function __initializeDbConfig(config) {
   if (config.happn.persist) {
-    if (!config.happn.filename) {
-      if (!config.name)
-        throw new Error('persist option is true, but no filename or mesh name specified');
-
-      var homeDir = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-
-      var defaultDBFilepart = config.name;
-
-      // creates a new file with every mesh re start
-      config.happn.filename =
-        homeDir + path.sep + '.happn' + path.sep + 'data' + path.sep + defaultDBFilepart + '.loki';
-    }
-
-    fs.ensureDirSync(path.dirname(config.happn.filename));
-
-    fs.writeFileSync(config.happn.filename + '.test1', 'ping');
-
-    fs.unlinkSync(config.happn.filename + '.test1');
-
-    this.log.info('persisting %s', config.happn.filename);
-
-    if (!config.happn.defaultRoute)
-      config.happn.defaultRoute = config.happn.persist ? 'persist' : 'mem';
-
     // Datastores have no starting patterns (see commented out below)
     // Instead the 'defaultRoute' is used.
     // BUT: components can register their own routes to override the default
 
-    if (!config.happn.services.data.config.datastores)
+    if (!config.happn.services.data.config.datastores) {
+      if (!config.happn.filename) {
+        if (!config.name) {
+          throw new Error('persist option is true, but no filename or mesh name specified');
+        }
+
+        var homeDir = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
+        var defaultDBFilepart = config.name;
+
+        // creates a new file with every mesh re start
+        config.happn.filename =
+          homeDir +
+          path.sep +
+          '.happn' +
+          path.sep +
+          'data' +
+          path.sep +
+          defaultDBFilepart +
+          '.loki';
+      }
+
+      fs.ensureDirSync(path.dirname(config.happn.filename));
+      fs.writeFileSync(config.happn.filename + '.test1', 'ping');
+      fs.unlinkSync(config.happn.filename + '.test1');
+
+      this.log.info('persisting to default file %s', config.happn.filename);
+
+      if (!config.happn.defaultRoute)
+        config.happn.defaultRoute = config.happn.persist ? 'persist' : 'mem';
+
       config.happn.services.data.config.datastores = [
         {
           name: 'persist',
@@ -247,11 +243,13 @@ function __initializeDbConfig(config) {
           patterns: [],
         },
       ];
+    }
 
     //compact interval shortcut
     if (config.happn.compactInterval)
       config.happn.services.data.config.compactInterval = config.happn.compactInterval;
   }
+  return config;
 }
 
 function __inboundLayer(message, callback) {

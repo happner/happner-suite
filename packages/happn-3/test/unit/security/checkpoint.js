@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe.only(test.testName(__filename), function () {
+describe(test.testName(__filename), function () {
   this.timeout(5000);
   const sinon = require('sinon');
   var expect = require('expect.js');

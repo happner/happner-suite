@@ -291,7 +291,7 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
     }
   );
 
-  it.only(
+  it(
     'creates ' +
       SUBSCRIPTION_COUNT +
       ' random paths, subscribes to each path, then loops through the paths and searches ' +
