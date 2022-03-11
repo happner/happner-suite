@@ -940,6 +940,22 @@
   - SMC-4550: subscriptions service does not pollute request with parsed path info
   - SMC-4550: unified tempated permission path combinatorial logic
 
+13.0.1 2022-03-01
+-----------------
+  - SMC-4198: made all dependencies major bumps
+
+13.0.2 2022-03-03
+-----------------
+  - SMC-4198: git and npm ignore updates
+
+13.0.3 2022-03-04
+-----------------
+  - SMC-4198: fixed bad dataroute config to emit a proper error message
+
+13.0.4 2022-03-08
+-----------------
+  - SMC-5125: Permissions-sets now accurately reflect templated paths
+
   
 
 
