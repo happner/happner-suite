@@ -365,7 +365,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ];
 
     finalResult = results.compoundsort(sortOptions).data({ forceClones: true, removeMeta: true });
-
     if (options.skip) {
       finalResult = finalResult.slice(options.skip);
     }
@@ -433,6 +432,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback = increment;
       increment = 1;
     }
+
     this.operationQueue.push(
       {
         operationType: constants.DATA_OPERATION_TYPES.INCREMENT,

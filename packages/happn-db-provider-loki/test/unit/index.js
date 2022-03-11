@@ -8,7 +8,7 @@ const mockFs = require('mock-fs');
 const db = require('lokijs');
 const readline = require('readline');
 
-describe(test.testName(), function () {
+describe.only(test.testName(), function () {
   this.timeout(120e3);
   let mockSettings;
   let mockLogger;
@@ -37,6 +37,7 @@ describe(test.testName(), function () {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
+      mockSettings.snapshotRollOverThreshold = null;
 
       const mockOperation = {
         operationType: constants.DATA_OPERATION_TYPES.UPSERT,
@@ -46,6 +47,7 @@ describe(test.testName(), function () {
           { merge: 'mockMerge' },
         ],
       };
+      const mockCallback = test.sinon.stub();
 
       test.sinon.stub(db.prototype, 'addCollection').returns({
         findOne: test.sinon.stub().returns({
@@ -72,7 +74,7 @@ describe(test.testName(), function () {
 
       test.sinon.stub(db.prototype, 'loadJSON').returns({});
 
-      const asyncInit = lokiDataProvider.initialize();
+      const asyncInit = lokiDataProvider.initialize(mockCallback);
 
       lokiDataProvider.db.collections = [
         {
@@ -89,6 +91,9 @@ describe(test.testName(), function () {
       ];
 
       await asyncInit;
+
+      test.chai.expect(mockCallback).to.have.been.callCount(1);
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly();
     });
 
     it('initialize method returns persistenceOn is equal to null or undefined', (done) => {
@@ -105,30 +110,6 @@ describe(test.testName(), function () {
           done(e);
         }
       }, 200);
-    });
-
-    it('reconstruct, callback gets called with error', () => {
-      mockFs({
-        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
-      });
-
-      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
-      const mockCallback = test.sinon.stub();
-      const mockOn = test.sinon.stub();
-      mockOn.withArgs('error', test.sinon.match.func).callsArgWith(1, { message: 'mockMessage' });
-
-      test.sinon.stub(readline, 'createInterface').returns({
-        on: mockOn,
-      });
-
-      test.sinon.stub(db.prototype, 'loadJSON');
-
-      lokiDataProvider.initialize(mockCallback);
-
-      test.chai
-        .expect(mockLogger.error)
-        .to.have.been.calledWithExactly(`reconstruction reader error ${'mockMessage'}`);
-      test.chai.expect(mockCallback).to.have.been.calledWithExactly({ message: 'mockMessage' });
     });
 
     it('can insert', async () => {
@@ -224,6 +205,21 @@ describe(test.testName(), function () {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
 
+      lokiDataProvider.stop(mockCallback);
+
+      test.chai.expect(mockCallback).to.have.callCount(1);
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly();
+    });
+
+    it('can stop, this.snapshotTimeout equal to 10e3', () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      lokiDataProvider.snapshotTimeout = 10e3;
       lokiDataProvider.stop(mockCallback);
 
       test.chai.expect(mockCallback).to.have.callCount(1);
@@ -334,6 +330,117 @@ describe(test.testName(), function () {
         .which.has.property('modified');
     });
 
+    it('mutateDatabase, test case DATA_OPERATION_TYPES.INCREMENT ', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.INCREMENT,
+        arguments: ['mockPath', 'mockCounterName', 0],
+      };
+
+      lokiDataProvider.initialize(mockCallback);
+      const result = lokiDataProvider.mutateDatabase(mockOperation);
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.equal(0);
+    });
+
+    it('mutateDatabase, test case DATA_OPERATION_TYPES.INSERT ', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.INSERT,
+        arguments: [
+          {
+            created: null,
+            modified: null,
+          },
+          'mockCounterName',
+          0,
+        ],
+      };
+
+      lokiDataProvider.initialize(mockCallback);
+
+      const result = lokiDataProvider.mutateDatabase(mockOperation);
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.haveOwnProperty('created');
+      test.chai.expect(result).to.haveOwnProperty('modified');
+      test.chai.expect(result).to.haveOwnProperty('meta');
+    });
+
+    it('mutateDatabase, test case DATA_OPERATION_TYPES.REMOVE, count equal to 1', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.REMOVE,
+        arguments: [
+          'mockPath',
+          { data: 'mockData', _meta: { path: null } },
+          { merge: 'mockMerge' },
+        ],
+      };
+
+      lokiDataProvider.initialize(test.sinon.stub());
+
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(1),
+            remove: test.sinon.stub(),
+          }),
+        }),
+      };
+
+      const result = lokiDataProvider.mutateDatabase(mockOperation);
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.haveOwnProperty('data');
+      test.chai.expect(result).to.haveOwnProperty('_meta');
+    });
+
+    it('mutateDatabase, test case DATA_OPERATION_TYPES.REMOVE, count equal to 0', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.REMOVE,
+        arguments: [
+          'mockPath',
+          { data: 'mockData', _meta: { path: null } },
+          { merge: 'mockMerge' },
+        ],
+      };
+
+      lokiDataProvider.initialize(test.sinon.stub());
+
+      const result = lokiDataProvider.mutateDatabase(mockOperation);
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.haveOwnProperty('data');
+      test.chai.expect(result).to.haveOwnProperty('_meta');
+    });
+
+    it('can updateInternal', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.UPDATE,
+        arguments: [{}, { data: 'mockData', _meta: { path: null } }, { merge: 'mockMerge' }],
+      };
+
+      lokiDataProvider.collection = {
+        update: test.sinon.stub().returns({}),
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(),
+          }),
+        }),
+      };
+
+      const result = lokiDataProvider.mutateDatabase(mockOperation);
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.eql({});
+    });
+
     it('can incrementInternal', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
 
@@ -341,6 +448,35 @@ describe(test.testName(), function () {
       test.chai
         .expect(lokiDataProvider.incrementInternal('mockPath', 'mockCountername', 1))
         .to.equal(1);
+    });
+
+    it('can incrementInternal, recordToIncrement.data[counterName] equal to null', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+
+      lokiDataProvider.initialize(test.sinon.stub());
+
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(1),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns([
+                {
+                  data: { mockCounterName: { value: 0 } },
+                },
+              ]),
+            }),
+          }),
+        }),
+        findOne: test.sinon.stub(),
+        insert: test.sinon.stub().returns({
+          data: { mockCountername1: { value: 0 } },
+        }),
+      };
+
+      const result = lokiDataProvider.incrementInternal('mockPath', 'mockCountername1', 1);
+
+      test.chai.expect(result).to.equal(1);
     });
 
     it('findInternal returns empty array result count equals 0', () => {
@@ -395,7 +531,7 @@ describe(test.testName(), function () {
         .that.deep.equals([]);
     });
 
-    it('can count', () => {
+    it('can count, with parameters.options', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
 
@@ -409,6 +545,16 @@ describe(test.testName(), function () {
         },
         mockCallback
       );
+
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, { data: { value: 0 } });
+    });
+
+    it('can count, without parameters.options', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      lokiDataProvider.initialize(test.sinon.stub());
+      lokiDataProvider.count('mockFileName', {}, mockCallback);
 
       test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, { data: { value: 0 } });
     });
@@ -445,6 +591,29 @@ describe(test.testName(), function () {
 
       test.chai.expect(storePlacyback(null, 'mockResult')).to.have.returned;
       test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, 'mockResult');
+    });
+
+    it('can storePlayback, calls callback with appendFailure if it is true', () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      lokiDataProvider.persistenceOn = 'mockFileName';
+
+      test.sinon
+        .stub(lokiDataProvider, 'appendOperationData')
+        .withArgs({ operation: {} }, test.sinon.match.func)
+        .callsArgWith(1, 'mockAppendFailure');
+
+      const mockCallback = test.sinon.stub();
+      const storePlayback = lokiDataProvider.storePlayback({}, mockCallback);
+
+      test.chai.expect(storePlayback(null, 'mockResult')).to.have.returned;
+      test.chai
+        .expect(mockLogger.error)
+        .to.have.been.calledWith('failed persisting operation data', 'mockAppendFailure');
+      test.chai.expect(mockCallback).to.have.been.calledWith('mockAppendFailure');
     });
 
     it('can storePlayback, returns if e is true', () => {
@@ -623,10 +792,479 @@ describe(test.testName(), function () {
       lokiDataProvider.initialize(mockCallback);
       lokiDataProvider.upsertInternal(args[0], args[1], args[2]);
     });
+
+    it('upsertInternal, without options.merge', async () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.UPSERT,
+        arguments: ['mockPath', { data: 'mockData', _meta: { path: null } }],
+      };
+
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockPush = test.sinon.stub();
+      const mockAsyncQueue = test.sinon.stub(commons.async, 'queue');
+      const mockCallback = test.sinon.stub();
+      mockAsyncQueue
+        .withArgs(test.sinon.match.func, 1)
+        .callsArgWith(0, mockOperation, test.sinon.stub());
+
+      mockAsyncQueue.returns({
+        push: mockPush,
+      });
+
+      test.sinon.stub(db.prototype, 'loadJSON').returns({});
+
+      await lokiDataProvider.initialize(mockCallback);
+
+      test.chai.expect(mockCallback).to.have.been.callCount(1);
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly();
+    });
+
+    it('can increment, increment as a function', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      const mockPush = test.sinon.stub();
+
+      lokiDataProvider.operationQueue = {
+        push: mockPush,
+      };
+
+      lokiDataProvider.increment('mockPath', 'mockCounterName', test.sinon.stub(), mockCallback);
+
+      test.chai.expect(mockPush).to.have.callCount(1);
+      test.chai.expect(mockPush).to.have.been.calledWith(
+        {
+          operationType: 'INCREMENT',
+          arguments: ['mockPath', 'mockCounterName', 1],
+        },
+        test.sinon.match.func
+      );
+    });
+
+    it('can increment, increment as a number', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      const mockPush = test.sinon.stub();
+
+      lokiDataProvider.operationQueue = {
+        push: mockPush,
+      };
+
+      lokiDataProvider.increment('mockPath', 'mockCounterName', 2, mockCallback);
+
+      test.chai.expect(mockPush).to.have.callCount(1);
+      test.chai.expect(mockPush).to.have.been.calledWith(
+        {
+          operationType: 'INCREMENT',
+          arguments: ['mockPath', 'mockCounterName', 2],
+        },
+        test.sinon.match.func
+      );
+    });
+
+    it('can remove', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      const mockPush = test.sinon.stub();
+
+      lokiDataProvider.operationQueue = {
+        push: mockPush,
+      };
+
+      lokiDataProvider.remove('mockPath', mockCallback);
+
+      test.chai.expect(mockPush).to.have.callCount(1);
+      test.chai.expect(mockPush).to.have.been.calledWith(
+        {
+          operationType: 'REMOVE',
+          arguments: ['mockPath'],
+        },
+        test.sinon.match.func
+      );
+    });
+
+    it('can findOne, fields as a function', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockFields = test.sinon.stub();
+
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(1),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns([]),
+            }),
+          }),
+        }),
+      };
+
+      lokiDataProvider.findOne({}, mockFields, mockCallback);
+
+      test.chai.expect(mockFields).to.have.callCount(1);
+      test.chai.expect(mockFields).to.have.been.calledWithExactly(null, null);
+    });
+
+    it('can upsert, options as a function', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOptions = test.sinon.stub();
+
+      test.chai.expect(lokiDataProvider.upsert('mockPath', {}, mockOptions, mockCallback)).to.have
+        .returned;
+    });
+
+    it('can upsert, persistenceOn equal to true', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOptions = test.sinon.stub();
+      const mockPush = test.sinon.stub();
+
+      mockPush.withArgs({}, test.sinon.match.func).callsArgWith(1, null, { result: {} });
+
+      lokiDataProvider.operationQueue = {
+        push: mockPush,
+      };
+
+      lokiDataProvider.persistenceOn = 'mockFileName';
+
+      lokiDataProvider.upsert('mockPath', {}, mockOptions, mockCallback);
+    });
+
+    it('findInternal returns final result, parameters as an empty object', () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', {})).to.have.returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', {}))
+        .to.eql(['mockResult1', 'mockResult2', 'mockResult3']);
+    });
+
+    it('findInternal returns final result, with parameters:skip equal to 1', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          skip: 1,
+          limit: '',
+          fields: '',
+          count: '',
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Array);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql(['mockResult2', 'mockResult3']);
+    });
+
+    it('findInternal returns final result, with parameters:limit equal to 1', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          skip: '',
+          limit: 1,
+          fields: '',
+          count: '',
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Array);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql(['mockResult1']);
+    });
+
+    it('findInternal returns final result, with parameters:count equal to 1', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          skip: '',
+          limit: '',
+          fields: '',
+          count: 1,
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Object);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql({ data: { value: 3 } });
+    });
+
+    it('findInternal returns if results.count is equal to 0', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          count: 1,
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(0),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Object);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql({ data: { value: 0 } });
+
+      mockParameters.options.count = null;
+
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Array);
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.eql([]);
+    });
+
+    it('findInternal returns, with options.sort', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          count: 1,
+          sort: {
+            mockValue1: 1,
+            mockValue2: -1,
+            mockValue3: -1,
+          },
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockResult1', 'mockResult2', 'mockResult3']),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Object);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql({ data: { value: 3 } });
+    });
+
+    it('findInternal returns an array of fields', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockParameters = {
+        options: {
+          count: null,
+          fields: { mockValue: 'mockValue' },
+        },
+      };
+      lokiDataProvider.collection = {
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(2),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns([{ mockValue: 'mockValue' }]),
+            }),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.findInternal('mockFilePath', mockParameters)).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.be.instanceOf(Array);
+      test.chai
+        .expect(lokiDataProvider.findInternal('mockFilePath', mockParameters))
+        .to.eql([{ mockValue: 'mockValue' }]);
+    });
+
+    it('can transformSortOptions', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const result = lokiDataProvider.transformSortOptions({
+        mockValue1: 1,
+        mockValue2: -1,
+        mockValue3: -1,
+      });
+
+      test.chai.expect(result).to.have.returned;
+      test.chai.expect(result).to.be.an.instanceOf(Array);
+      test.chai.expect(result).to.eql([
+        ['mockValue1', false],
+        ['mockValue2', true],
+        ['mockValue3', true],
+      ]);
+    });
+
+    it('can findOneInternal', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+
+      lokiDataProvider.collection = {
+        update: test.sinon.stub().returns({}),
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(1),
+            compoundsort: test.sinon.stub().returns({
+              data: test.sinon.stub().returns(['mockValue1', 'mockValue2']),
+            }),
+          }),
+        }),
+      };
+      test.chai.expect(lokiDataProvider.findOneInternal({}, { mockValue: 'mockValue' })).to.have
+        .returned;
+      test.chai
+        .expect(lokiDataProvider.findOneInternal({}, { mockValue: 'mockValue' }))
+        .to.equal('mockValue1');
+    });
+
+    it('find method, parameters as a function', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockParameters = test.sinon.stub();
+
+      lokiDataProvider.collection = {
+        update: test.sinon.stub().returns({}),
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(0),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.find('mockPath', mockParameters, mockCallback)).to.have
+        .returned;
+      test.chai.expect(mockParameters).to.have.been.calledWith(null, []);
+    });
+
+    it('find method, parameters as a null', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      lokiDataProvider.collection = {
+        update: test.sinon.stub().returns({}),
+        chain: test.sinon.stub().returns({
+          find: test.sinon.stub().returns({
+            count: test.sinon.stub().returns(0),
+          }),
+        }),
+      };
+
+      test.chai.expect(lokiDataProvider.find('mockPath', null, mockCallback)).to.have.returned;
+      test.chai.expect(mockCallback).to.have.been.calledWith(null, []);
+    });
+
+    it('can merge', (done) => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      lokiDataProvider.initialize();
+      lokiDataProvider.merge('mockPath', {}, mockCallback);
+
+      setTimeout(() => {
+        try {
+          test.chai
+            .expect(mockCallback)
+            .to.have.been.calledWith(null, test.sinon.match.instanceOf(Object));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, 200);
+    });
+
+    it('can merge, persistenceOn equal to null', (done) => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      lokiDataProvider.initialize();
+      lokiDataProvider.persistenceOn = null;
+
+      lokiDataProvider.merge('mockPath', {}, mockCallback);
+      setTimeout(() => {
+        try {
+          test.chai
+            .expect(mockCallback)
+            .to.have.been.calledWith(null, test.sinon.match.instanceOf(Object));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, 200);
+    });
   });
 
   describe('sad paths', () => {
-    it('can upsertInternal, throws error', () => {
+    it('upsertInternal throws error', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
 
       test.chai
@@ -682,6 +1320,104 @@ describe(test.testName(), function () {
           test.chai
             .expect(mockCallback)
             .to.have.been.calledWith(test.sinon.match.instanceOf(Error));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, 200);
+    });
+
+    it('findOne calls callback with error and returns', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      test.chai.expect(lokiDataProvider.findOne({}, {}, mockCallback)).to.have.returned;
+      test.chai.expect(mockCallback).to.have.been.calledWith(test.sinon.match.instanceOf(Error));
+    });
+
+    it('reconstruct calles logger.error with reconstruction reader error', async () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOn = test.sinon.stub();
+
+      test.sinon.stub(readline, 'createInterface').returns({
+        on: mockOn,
+        close: test.sinon.stub(),
+      });
+      test.sinon.stub(db.prototype, 'loadJSON').returns({});
+
+      lokiDataProvider.initialize(mockCallback);
+
+      mockOn.withArgs('line', test.sinon.match.func).callArgWith(1, '{}');
+      mockOn.withArgs('line', test.sinon.match.func).callArgWith(1, '{}');
+      mockOn.withArgs('error', test.sinon.match.func).callArgWith(1, { message: 'mockMessage' });
+
+      test.chai
+        .expect(mockLogger.error)
+        .to.have.been.calledWith(`reconstruction reader error ${'mockMessage'}`);
+    });
+
+    it('reconstruct, callback gets called with error', () => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
+
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockOn = test.sinon.stub();
+      mockOn.withArgs('error', test.sinon.match.func).callsArgWith(1, { message: 'mockMessage' });
+
+      test.sinon.stub(readline, 'createInterface').returns({
+        on: mockOn,
+      });
+
+      test.sinon.stub(db.prototype, 'loadJSON');
+
+      lokiDataProvider.initialize(mockCallback);
+
+      test.chai
+        .expect(mockLogger.error)
+        .to.have.been.calledWithExactly(`reconstruction reader error ${'mockMessage'}`);
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly({ message: 'mockMessage' });
+    });
+
+    it('find method calls callback with error and returns', () => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+
+      test.chai.expect(lokiDataProvider.find('mockPath', null, mockCallback)).to.have.returned;
+      test.chai.expect(mockCallback).to.have.been.calledWith(test.sinon.match.instanceOf(Error));
+    });
+
+    it('can merge, persistenceOn equal to null', (done) => {
+      const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
+      const mockCallback = test.sinon.stub();
+      const mockPush = test.sinon.stub();
+
+      lokiDataProvider.initialize();
+
+      mockPush
+        .withArgs(
+          {
+            operationType: constants.DATA_OPERATION_TYPES.UPSERT,
+            arguments: ['mockPath', 'mockDoc', { merge: true }],
+          },
+          test.sinon.match.func
+        )
+        .callsArgWith(1, 'mockError', null);
+
+      lokiDataProvider.operationQueue = {
+        push: mockPush,
+      };
+
+      lokiDataProvider.merge('mockPath', 'mockDoc', mockCallback);
+
+      setTimeout(() => {
+        try {
+          test.chai.expect(mockCallback).to.have.been.calledWith('mockError');
           done();
         } catch (e) {
           done(e);
