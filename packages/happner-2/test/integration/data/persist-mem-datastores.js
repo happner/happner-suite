@@ -15,7 +15,6 @@
         services: {
           data: {
             config: {
-              autoUpdateDBVersion: true,
               datastores: [
                 {
                   name: 'persist',
