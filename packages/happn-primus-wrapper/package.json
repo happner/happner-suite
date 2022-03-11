@@ -41,7 +41,6 @@
     "faye-websocket": "~0.11.0",
     "inherits": "~2.0.3",
     "mocha": "~5.2.0",
-    "pre-commit": "~1.2.0",
     "primus-msgpack": "~1.0.2",
     "pumpify": "~1.5.0",
     "querystringify": "~2.1.0",

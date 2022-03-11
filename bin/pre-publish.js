@@ -3,7 +3,7 @@ const path = require('path');
 const basePackage = require('../package.json');
 const workspacePackages = basePackage.workspaces.map((path) => require(`../${path}/package.json`));
 const workspacePackageNames = basePackage.workspaces.map((path) => path.split('/')[1]);
-console.log('fetching metadata from npm');
+console.log('fetching metadata from npm...');
 Promise.all(
   workspacePackageNames.map((packageName) =>
     require('axios').default.get(`https://registry.npmjs.org/${packageName}`)
@@ -16,6 +16,7 @@ Promise.all(
       const lastVersion = metaDataItem.data['dist-tags'].latest;
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
+        publishOrder: getPublishOrder(localPackage.name),
         isPrerelease,
         versionJumped: newVersion !== lastVersion,
         versionJumpMadeSense: versionJumpMadeSense(
@@ -47,13 +48,23 @@ function verifyPublish(packagesMetaData) {
     verifyPackage(packageMetaData, packagesMetaData, issues, successes)
   );
   if (issues.length > 0) {
-    console.warn('ISSUES FOUND:');
+    console.warn('issues:');
     issues.forEach((issue) => console.warn(issue));
+    if (successes.length > 0) {
+      console.info('ok:');
+      successes.forEach((success) => console.info(success.name));
+    }
+    return;
   }
-  if (successes.length > 0) {
-    console.warn('OK:');
-    successes.forEach((success) => console.info(success));
-  }
+
+  console.info('ready for publish, in the following order:');
+  successes
+    .sort((a, b) => a.publishOrder - b.publishOrder)
+    .forEach((success) => {
+      if (success.versionJumped) {
+        console.info(`npm publish --workspace=${success.name}`);
+      }
+    });
 }
 
 function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
@@ -93,7 +104,7 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
   });
 
   if (!foundIssue) {
-    successes.push(` ${packageMetaData.name}: ok`);
+    successes.push(packageMetaData);
   }
 }
 
@@ -152,11 +163,32 @@ function checkOnlyInTests(localPackage) {
   let output;
   try {
     output = require('child_process').execSync(
-      `grep -r "\\.only\\| only: true\\| only:true\\|,only: true\\|,only:true" ${testsPath}`
+      `grep -r "\\.only\\| only: true\\| only:true\\|, only: true\\|, only:true\\|,only: true\\|,only:true" ${testsPath}`
     );
   } catch (e) {
     // do nothing
   }
   if (!output) return false;
   return output.toString().trim();
+}
+
+function getPublishOrder(packageName) {
+  return [
+    'happn-commons',
+    'happn-commons-test',
+    'happn-nedb',
+    'redis-lru-cache',
+    'tame-search',
+    'happn-db-provider-loki',
+    'happn-db-provider-nedb',
+    'happn-db-provider-elasticsearch',
+    'happn-db-provider-mongo',
+    'happn-util-crypto',
+    'happn-logger',
+    'happn-3',
+    'happn-cluster',
+    'happner-client',
+    'happner-2',
+    'happner-cluster',
+  ].indexOf(packageName);
 }
