@@ -13,7 +13,7 @@ function SecurityUsers(opts) {
   this.opts = opts;
 }
 
-SecurityUsers.prototype.initialize = util.maybePromisify(initial  ize);
+SecurityUsers.prototype.initialize = util.maybePromisify(initialize);
 SecurityUsers.prototype.clearCaches = clearCaches;
 SecurityUsers.prototype.__validate = __validate;
 SecurityUsers.prototype.getPasswordHash = getPasswordHash;
