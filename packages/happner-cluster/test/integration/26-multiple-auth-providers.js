@@ -3,7 +3,7 @@ const stopCluster = require('../_lib/stop-cluster');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const users = require('../_lib/users');
 const client = require('../_lib/client');
-require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
   let servers;
 
   function serverConfig(seq, minPeers) {
