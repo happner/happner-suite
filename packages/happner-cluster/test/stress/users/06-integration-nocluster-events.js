@@ -19,7 +19,7 @@ let fetchUser = async function (server, username) {
   return await server.exchange.security.getUser(username);
 };
 
-require('../../_lib/test-helper').describe({ timeout:680e3 }, (test) => {
+require('../../_lib/test-helper').describe({ timeout: 680e3 }, (test) => {
   let servers;
 
   beforeEach('clear mongo', function (done) {
@@ -44,9 +44,8 @@ require('../../_lib/test-helper').describe({ timeout:680e3 }, (test) => {
   it('adds 10000 users in batches of 50.', async () => {
     let userPrefixes = [];
 
-
     for (let i = 0; i < 200; i++) {
-      console.log({i})
+      console.log({ i });
       let userPrefix = Date.now().toString();
       userPrefixes.push(userPrefix);
       await Promise.all(
