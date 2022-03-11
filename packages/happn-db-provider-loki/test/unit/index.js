@@ -8,7 +8,7 @@ const mockFs = require('mock-fs');
 const db = require('lokijs');
 const readline = require('readline');
 
-describe.only(test.testName(), function () {
+describe(test.testName(), function () {
   this.timeout(120e3);
   let mockSettings;
   let mockLogger;
@@ -1368,6 +1368,7 @@ describe.only(test.testName(), function () {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const mockOn = test.sinon.stub();
+
       mockOn.withArgs('error', test.sinon.match.func).callsArgWith(1, { message: 'mockMessage' });
 
       test.sinon.stub(readline, 'createInterface').returns({
