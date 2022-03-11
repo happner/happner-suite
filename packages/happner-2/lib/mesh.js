@@ -473,7 +473,7 @@ Mesh.prototype.__initialize = function (config, callback) {
 
         // TODO: capacity to reload config! (?tricky?)
         // process.on('SIGHUP', function() {
-        //   _this.log.info('SIGHUP ignored');
+        //   _this.log.debug('SIGHUP ignored');
         // });
       }
 
@@ -1598,7 +1598,7 @@ Mesh.prototype._addInjectedArgument = function (spec, argName, callback) {
     if (typeof originalFn !== 'function') continue;
     if (utilities.functionIsNative(originalFn)) originalFn = Object.getPrototypeOf(module)[fnName];
     if (typeof originalFn !== 'function' || utilities.functionIsNative(originalFn)) {
-      _this.log.debug(
+      _this.log.$$TRACE(
         `cannot check native function ${spec.module.name}:${fnName} arguments for $${argName} injection`
       );
       continue;
@@ -2025,7 +2025,7 @@ Mesh.prototype.componentAsyncMethod = function (
     delete calls[call];
     if (e) return done(e);
     if (options.logAction) {
-      this.log.info("%s component '%s'", options.logAction, componentName);
+      this.log.debug("%s component '%s'", options.logAction, componentName);
     }
     done.apply(this, responseArgs);
   });
@@ -2113,7 +2113,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
           _this.log.$$DEBUG("calling %s '%s' as configured sync", options.methodCategory, call);
           component.instance.operate(options.methodName, methodParameters);
           if (options.logAction) {
-            _this.log.info("%s component '%s'", options.logAction, componentName);
+            _this.log.debug("%s component '%s'", options.logAction, componentName);
           }
         } catch (e) {
           done(new Error(e));
@@ -2129,7 +2129,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
         delete calls[call];
         if (e) return done(e);
         if (options.logAction) {
-          _this.log.info("%s component '%s'", options.logAction, componentName);
+          _this.log.debug("%s component '%s'", options.logAction, componentName);
         }
         done.apply(_this, responseArgs);
       });

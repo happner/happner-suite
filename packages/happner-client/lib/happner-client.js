@@ -113,7 +113,7 @@
     try {
       if (this.__opts.discoverMethods) {
         this.endPointDescription = await this.__connection.getDescription();
-        this.log.info('fetched description: discover methods activated');
+        this.log.debug('fetched description: discover methods activated');
       }
     } catch (e) {
       this.log.error(e);
@@ -140,13 +140,13 @@
         api.exchange[component.componentName] == null ||
         api.exchange[component.componentName].__discover
       ) {
-        this.log.info(
+        this.log.debug(
           `mounting methods for discovered component on api [${api.id}]: [${component.componentName}], running on member: [${component.member}]`
         );
         this.__mountMethods(api, component.description, component.componentName);
       }
       if (api.event[component.componentName] == null) {
-        this.log.info(
+        this.log.debug(
           `mounting events for discovered component on api [${api.id}]: [${component.componentName}], running on member: [${component.member}]`
         );
         //events have already been mounted by version
@@ -292,7 +292,7 @@
     var _this = this;
     if (!api.exchange[componentName]) api.exchange[componentName] = {};
     if (!api.exchange[componentName][methodName]) {
-      this.log.info(
+      this.log.debug(
         `mounting method: [${componentName}.${methodName}] on api [${api.id}] with version: ${version}`
       );
       api.exchange[componentName][methodName] = Promisify(function () {

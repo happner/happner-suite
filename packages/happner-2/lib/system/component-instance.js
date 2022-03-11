@@ -780,28 +780,28 @@ ComponentInstance.prototype.satisfies = function (moduleVersion, version) {
 
 ComponentInstance.prototype.on = function (event, handler) {
   try {
-    this.log.debug('component on called', event);
+    this.log.$$TRACE('component on called', event);
     return this.localEventEmitter.on(event, handler);
   } catch (e) {
-    this.log.debug('component on error', e);
+    this.log.$$TRACE('component on error', e);
   }
 };
 
 ComponentInstance.prototype.offEvent = function (event, handler) {
   try {
-    this.log.debug('component offEvent called', event);
+    this.log.$$TRACE('component offEvent called', event);
     return this.localEventEmitter.offEvent(event, handler);
   } catch (e) {
-    this.log.debug('component offEvent error', e);
+    this.log.$$TRACE('component offEvent error', e);
   }
 };
 
 ComponentInstance.prototype.emitEvent = function (event, data) {
   try {
-    this.log.debug('component emitEvent called', event);
+    this.log.$$TRACE('component emitEvent called', event);
     return this.localEventEmitter.emit(event, data);
   } catch (e) {
-    this.log.debug('component emitEvent error', e);
+    this.log.$$TRACE('component emitEvent error', e);
   }
 };
 
@@ -1118,7 +1118,7 @@ ComponentInstance.prototype._attachRouteTarget = function (
   connect.use(meshRoutePath, serve);
   connect.use(componentRoutePath, serve);
 
-  this.log.debug(`attached web route for component ${this.name}: ${meshRoutePath}`);
+  this.log.$$TRACE(`attached web route for component ${this.name}: ${meshRoutePath}`);
 
   // tag for _detatch() to be able to remove middleware when removing component
   serve.__tag = this.name;

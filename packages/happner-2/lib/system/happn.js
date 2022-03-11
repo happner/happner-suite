@@ -220,7 +220,7 @@ function __initializeDbConfig(config) {
 
     fs.unlinkSync(config.happn.filename + '.test1');
 
-    this.log.info('persisting %s', config.happn.filename);
+    this.log.debug('persisting %s', config.happn.filename);
 
     if (!config.happn.defaultRoute)
       config.happn.defaultRoute = config.happn.persist ? 'persist' : 'mem';

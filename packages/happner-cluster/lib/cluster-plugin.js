@@ -56,7 +56,7 @@ module.exports = function (clusterConfig) {
 
             if (brokeredDependencies) {
               mesh._mesh.config.brokered = true;
-              logger.info(`setup brokered configuration - updated mesh config...`);
+              logger.debug(`setup brokered configuration - updated mesh config...`);
               brokeredModels[componentName] = {
                 package: brokeredDependencies,
                 $happn: $happn,

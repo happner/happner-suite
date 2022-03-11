@@ -364,7 +364,7 @@ Rest.prototype.initialize = function ($happn, callback) {
   this.__securityService = $happn._mesh.happn.server.services.security;
   if (!this.attachedToMeshEvents) {
     $happn._mesh.on('description-updated', (description) => {
-      $happn.log.info(`description-updated event`);
+      $happn.log.debug(`description-updated event`);
       this.__updateDescription(description, $happn);
     });
     this.attachedToMeshEvents = true;

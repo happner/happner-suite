@@ -459,7 +459,7 @@
                   Internals._updateEndpoint(client, endpointName, exchange, event, function (err) {
                     if (err) return client.log.error('api update failed', err); // Not much can be done...
 
-                    client.log.info('api updated!');
+                    client.log.debug('api updated!');
 
                     var updatedComponents = Object.keys(description.components);
 

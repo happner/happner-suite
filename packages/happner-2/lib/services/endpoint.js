@@ -210,7 +210,7 @@ EndPointInstance.prototype.update = function (description, callback) {
         if (callback) return callback(e);
       }
 
-      _this.mesh.log.info("initialized endpoint '%s'", _this.endpointName);
+      _this.mesh.log.debug("initialized endpoint '%s'", _this.endpointName);
 
       if (callback) return callback(e);
     }
@@ -291,7 +291,7 @@ EndPointService.prototype.stop = function (options, callback) {
     async.each(
       Object.keys(_this.activeEndpoints),
       function (endpointName, endpointCB) {
-        _this.mesh.log.info("disconnecting endpoint '%s'", endpointName);
+        _this.mesh.log.debug("disconnecting endpoint '%s'", endpointName);
         _this.activeEndpoints[endpointName].disconnect(endpointCB);
       },
       function (e) {
