@@ -282,6 +282,18 @@
 -----------------
   - SMC-4550: Fix -correctly calling securityDirectoryChanged on permission removal and group/permission table unlinking - happn-3
 
+12.0.0 2022-03-01
+-----------------
+  - SMC-4198: monorepo upgrade
+
+12.0.1 2022-03-03
+-----------------
+  - SMC-4198: git and npm ignore updates
+
+12.0.2 2022-03-08
+-----------------
+  - SMC-4198: updated dependencies
+
 
 
   

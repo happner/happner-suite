@@ -1,7 +1,7 @@
 {
   "name": "happn-db-provider-mongo",
   "description": "service plugin for running happn on a mongo database, for happn-3 instances",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
@@ -17,15 +17,15 @@
     "url": "https://github.com/happner/happn-service-mongo-2.git"
   },
   "dependencies": {
-    "happn-commons": "^1.0.0",
+    "happn-commons": "^1.0.1",
     "mongodb": "4.4",
     "parse-mongo-url": "^1.1.1"
   },
   "devDependencies": {
     "byline": "^5.0.0",
     "gulp": "^3.9.0",
-    "happn-3": "^13.0.0",
-    "happn-commons-test": "^1.0.0"
+    "happn-3": "^13.0.4",
+    "happn-commons-test": "^1.0.2"
   },
   "readmeFilename": "README.md"
 }
