@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* RUN: LOG_LEVEL=off mocha test/18-exchange-promises.js */
 
 module.exports = SeeAbove;
@@ -74,7 +75,7 @@ SeeAbove.prototype.$happner = {
 
 if (global.TESTING_E3B) return; // When 'requiring' the module above,
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const spawn = require('child_process').spawn;
   const Mesh = require('../../..');
   const path = require('path');
@@ -535,6 +536,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
             methods: {
               method1: {
                 parameters: [{ name: 'opts' }, { name: 'callback' }],
+                parametersNoHappnOrigin: [{ name: 'opts' }, { name: 'callback' }],
               },
             },
           },
@@ -545,14 +547,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     });
   });
 
-  it.only('tests posting an empty operation without parameters to a local method using $restParams', function (done) {
+  it('tests posting an empty operation without parameters to a local method using $restParams', function (done) {
     login(function (e, result) {
       if (e) return done(e);
-
       var restClient = require('restler');
-
       var operation = {};
-
       restClient
         .postJson(
           'http://localhost:10000/rest/method/testComponent/method5?happn_token=' +

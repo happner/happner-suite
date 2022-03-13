@@ -314,7 +314,7 @@ module.exports = class ComponentInstance {
   }
 
   _inject(methodSchema, parameters, origin) {
-    return methodSchema.parameters.map((schemaParameter) => {
+    return methodSchema.$parameters.map((schemaParameter) => {
       if (schemaParameter.name === '$origin') return origin;
       if (schemaParameter.name === '$happn') return this.bindToOrigin(origin);
       return parameters.shift();
@@ -379,16 +379,16 @@ module.exports = class ComponentInstance {
           return callback(null, [null, result]);
         }
 
-        for (var i in methodSchema.parameters) {
-          if (methodSchema.parameters[i].type === 'callback') {
+        for (var i in methodSchema.$parameters) {
+          if (methodSchema.$parameters[i].type === 'callback') {
             callbackIndex = i;
             break;
           }
         }
-
+        const logger = this.log;
         var callbackProxy = function () {
           if (callbackCalled)
-            return this.log.error(
+            return logger.error(
               'Callback invoked more than once for method %s',
               methodName,
               callback.toString()
@@ -438,19 +438,22 @@ module.exports = class ComponentInstance {
 
   __discoverArguments(method, methodSchema) {
     // TODO: add caching
-    if (methodSchema.parameters == null) methodSchema.parameters = [];
-    methodSchema.parameters = utilities
+    if (methodSchema.$parameters == null) methodSchema.$parameters = [];
+    methodSchema.$parameters = utilities
       .getFunctionParameters(method)
       .filter((argName) => argName != null)
       .map(
         (argName) =>
-          methodSchema.parameters.find((definedArg) => {
+          methodSchema.$parameters.find((definedArg) => {
             return definedArg.name === argName;
           }) || {
             name: argName,
           }
       );
-    console.log(JSON.stringify(methodSchema, null, 2));
+    // get the parameters as they should appear to an outside caller
+    methodSchema.parameters = methodSchema.$parameters.filter(
+      (parameter) => parameter.name !== '$happn' && parameter.name !== '$origin'
+    );
     return methodSchema;
   }
 

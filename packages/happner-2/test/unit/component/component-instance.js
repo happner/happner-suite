@@ -52,10 +52,26 @@ describe(
                 name: 'arg12',
               },
             ],
+            $parameters: [
+              {
+                name: 'arg11',
+              },
+              {
+                name: 'arg12',
+              },
+            ],
           },
           testMethod2: {
             isAsyncMethod: true,
             parameters: [
+              {
+                name: 'arg21',
+              },
+              {
+                name: 'arg22',
+              },
+            ],
+            $parameters: [
               {
                 name: 'arg21',
               },
@@ -223,9 +239,7 @@ describe(
     });
 
     it('tests the semver component', () => {
-      var ComponentInstance = require('../../../lib/system/component-instance');
-      var componentInstance = new ComponentInstance();
-      let semver = componentInstance.semver;
+      let semver = require('happner-semver');
       expect(semver.satisfies('1.0.1', '^1.0.0')).to.be(true);
       expect(semver.satisfies('2.0.0', '^1.0.0')).to.be(false);
       expect(semver.satisfies('1.0.0-prerelease-1', '^1.0.0')).to.be(false);

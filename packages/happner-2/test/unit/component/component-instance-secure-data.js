@@ -20,16 +20,16 @@ describe(
         offPath: function (path, callback) {
           return callback();
         },
-        getPaths: function (path, callback) {
+        getPaths: function (path, opts, callback) {
           return callback();
         },
         set: function (path, data, opts, callback) {
           return callback();
         },
-        setSibling: function (path, data, callback) {
+        setSiblinsg: function (path, data, callback) {
           return callback();
         },
-        increment: function (path, gauge, increment, callback) {
+        increment: function (path, gauge, increment, opts, callback) {
           return callback();
         },
         remove: function (path, opts, callback) {
@@ -348,30 +348,6 @@ describe(
       secureData.increment('test/path', 'test-gauge', function (e) {
         expect(e.toString()).to.be(
           'Error: client state not active or connected, increment:' +
-            'test/path' +
-            ', component:' +
-            'test-component'
-        );
-        done();
-      });
-    });
-
-    it('test the setSibling with a connection', function (done) {
-      var ComponentInstance = require('../../../lib/system/component-instance');
-      var componentInstance = new ComponentInstance();
-      var secureData = componentInstance.secureData(mockData(), 'test-component');
-
-      secureData.setSibling('test/path', {}, done);
-    });
-
-    it('test the setSibling without a connection', function (done) {
-      var ComponentInstance = require('../../../lib/system/component-instance');
-      var componentInstance = new ComponentInstance();
-      var secureData = componentInstance.secureData(mockData(2), 'test-component');
-
-      secureData.setSibling('test/path', {}, function (e) {
-        expect(e.toString()).to.be(
-          'Error: client state not active or connected, setSibling:' +
             'test/path' +
             ', component:' +
             'test-component'

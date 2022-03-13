@@ -852,14 +852,28 @@ Mesh.prototype.describe = function (cached, componentCached) {
 
   for (var componentName in this._mesh.elements) {
     if (this._mesh.elements[componentName].deleted) continue;
-    description.components[componentName] =
-      this._mesh.elements[componentName].component.instance.describe(componentCached);
+    description.components[componentName] = this.removeInternalFields(
+      this._mesh.elements[componentName].component.instance.describe(componentCached)
+    );
   }
 
   this._mesh.endpoints[this._mesh.config.name].description = description;
   this._mesh.description = description;
 
   return this._mesh.description;
+};
+
+Mesh.prototype.removeInternalFields = function (description) {
+  return _.transform(description, (result, value, key) => {
+    if (key === 'methods') {
+      result[key] = Object.keys(value).reduce((removed, key) => {
+        removed[key] = _.omit(value[key], '$parameters');
+        return removed;
+      }, {});
+    } else {
+      result[key] = value;
+    }
+  });
 };
 
 Mesh.prototype.getCallerTo = function (skip) {

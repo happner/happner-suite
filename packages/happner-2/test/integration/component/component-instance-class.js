@@ -68,12 +68,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           name: 'MESH_NAME',
           modules: {
             test: {
-              instance: TestInstanceClass.create()
-            }
+              instance: TestInstanceClass.create(),
+            },
           },
           components: {
-            test: {}
-          }
+            test: {},
+          },
         },
         (e, instance) => {
           if (e) return reject(e);
