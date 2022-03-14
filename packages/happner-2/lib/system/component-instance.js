@@ -317,7 +317,7 @@ module.exports = class ComponentInstance {
     return methodSchema.$parameters.map((schemaParameter) => {
       if (schemaParameter.name === '$origin') return origin;
       if (schemaParameter.name === '$happn') return this.bindToOrigin(origin);
-      return parameters.shift();
+      return parameters.shift() || schemaParameter.value;
     });
   }
 
@@ -437,14 +437,15 @@ module.exports = class ComponentInstance {
   }
 
   __discoverArguments(method, methodSchema) {
-    // TODO: add caching
+    if (methodSchema.parameters == null) methodSchema.parameters = [];
     if (methodSchema.$parameters == null) methodSchema.$parameters = [];
     methodSchema.$parameters = utilities
       .getFunctionParameters(method)
       .filter((argName) => argName != null)
       .map(
         (argName) =>
-          methodSchema.$parameters.find((definedArg) => {
+          methodSchema.parameters.find((definedArg) => {
+            //look for pre-configured parameters
             return definedArg.name === argName;
           }) || {
             name: argName,
