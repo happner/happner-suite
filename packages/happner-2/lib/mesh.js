@@ -358,7 +358,7 @@ Mesh.prototype.__initialize = function (config, callback) {
       _this._mesh.config.domain = _this._mesh.config.domain || _this._mesh.config.name;
 
       _this.log.createLogger('Mesh', _this.log);
-      _this.log.$$DEBUG('initialize');
+      _this.log.$$TRACE('initialize');
 
       if (!instanceConfig.home) {
         instanceConfig.home =
@@ -370,15 +370,15 @@ Mesh.prototype.__initialize = function (config, callback) {
       if (!instanceConfig.home) {
         _this.log.warn('home unknown, require() might struggle');
       } else {
-        _this.log.info('home %s', instanceConfig.home);
+        _this.log.debug('home %s', instanceConfig.home);
       }
 
       // Need to add the caller's module path as first for module searches.
       _this.updateSearchPath(instanceConfig.home);
 
-      _this.log.info('happner v%s', _this.version);
-      _this.log.info('config v%s', instanceConfig.version || '..');
-      _this.log.info("localnode '%s' at pid %d", instanceConfig.name, process.pid);
+      _this.log.debug('happner v%s', _this.version);
+      _this.log.debug('config v%s', instanceConfig.version || '..');
+      _this.log.debug("localnode '%s' at pid %d", instanceConfig.name, process.pid);
 
       Object.defineProperty(_this._mesh, 'log', {
         value: _this.log,
@@ -505,28 +505,28 @@ Mesh.prototype.__initialize = function (config, callback) {
             if (!instanceConfig.autoload || process.env.SKIP_AUTO_LOAD) {
               return callback();
             }
-            _this.log.$$DEBUG('searched for autoload');
+            _this.log.$$TRACE('searched for autoload');
             _this.loadPackagedModules(instanceConfig, null, callback);
           },
           function (callback) {
             _this.startupProgress('got autoload modules', 75);
             if (!instanceConfig.autoload || !process.env.SKIP_AUTO_LOAD) {
-              _this.log.$$DEBUG('initialized autoload');
+              _this.log.$$TRACE('initialized autoload');
             }
             _this._loadComponentSuites(instanceConfig, callback);
           },
           function (callback) {
             _this.startupProgress('loaded component suites', 77);
-            _this.log.$$DEBUG('loaded component suites');
+            _this.log.$$TRACE('loaded component suites');
             _this._registerInitialSchema(instanceConfig, callback);
           },
           function (callback) {
             _this.startupProgress('registered initial schema', 80);
-            _this.log.$$DEBUG('registered initial schema');
+            _this.log.$$TRACE('registered initial schema');
             _this._initializePackager(callback);
           },
           function (callback) {
-            _this.log.$$DEBUG('initialized packager');
+            _this.log.$$TRACE('initialized packager');
             _this.startupProgress('initialized packager', 82);
             var isServer = true;
             var describe = {};
@@ -535,36 +535,36 @@ Mesh.prototype.__initialize = function (config, callback) {
           function (callback) {
             _this.initializedServer = true;
             _this.startupProgress('initialized local', 84);
-            _this.log.$$DEBUG('initialized local');
+            _this.log.$$TRACE('initialized local');
             _this._initializeGlobalMiddleware(callback);
           },
           function (callback) {
             _this.startupProgress('initialized global middleware', 86);
-            _this.log.$$DEBUG('initialized global middleware');
+            _this.log.$$TRACE('initialized global middleware');
             _this._initializeRootWebRoutes(callback);
           },
           function (callback) {
             _this.startupProgress('initialized root web routes', 87);
-            _this.log.$$DEBUG('initialized root web routes');
+            _this.log.$$TRACE('initialized root web routes');
             _this._initializeElements(instanceConfig, callback);
           },
           function (callback) {
             _this.startupProgress('initialized elements', 88);
-            _this.log.$$DEBUG('initialized elements');
+            _this.log.$$TRACE('initialized elements');
             _this._startPlugins(instanceConfig, callback);
           },
           function (callback) {
             _this.startupProgress('initialized plugins', 90);
-            _this.log.$$DEBUG('initialized plugins');
+            _this.log.$$TRACE('initialized plugins');
             _this._registerSchema(instanceConfig, true, callback);
           },
           function (callback) {
             _this.startupProgress('registered schema', 95);
-            _this.log.$$DEBUG('registered schema');
+            _this.log.$$TRACE('registered schema');
             _this._initializeEndpoints(callback);
           },
           function (callback) {
-            _this.log.$$DEBUG('initialized endpoints');
+            _this.log.$$TRACE('initialized endpoints');
             // TODO: This point is never reached if any of the endpoints are hung before writing their description
             callback();
           },
@@ -1104,7 +1104,7 @@ Mesh.prototype._initializeElements = function (config, callback) {
 Mesh.prototype._destroyElement = util.promisify(function (componentName, callback) {
   if (!this._mesh.elements[componentName]) return callback();
 
-  this.log.$$DEBUG("destroying element with component '%s'", componentName);
+  this.log.$$TRACE("destroying element with component '%s'", componentName);
   var element = this._mesh.elements[componentName];
   var endpointName = this._mesh.config.name;
   var endpoint = this._mesh.endpoints[endpointName];
@@ -1255,7 +1255,7 @@ Mesh.prototype._createElement = util.promisify(function (spec, writeSchema, call
   }
 
   _this.log.$$TRACE('_createElement( spec', spec);
-  _this.log.$$DEBUG(
+  _this.log.$$TRACE(
     "creating element with component '%s' on module '%s' with writeSchema %s",
     spec.component.name,
     spec.module.name,
@@ -1596,7 +1596,7 @@ Mesh.prototype._addInjectedArgument = function (spec, argName, callback) {
     if (typeof originalFn !== 'function') continue;
     if (utilities.functionIsNative(originalFn)) originalFn = Object.getPrototypeOf(module)[fnName];
     if (typeof originalFn !== 'function' || utilities.functionIsNative(originalFn)) {
-      _this.log.debug(
+      _this.log.$$TRACE(
         `cannot check native function ${spec.module.name}:${fnName} arguments for $${argName} injection`
       );
       continue;
@@ -2023,7 +2023,7 @@ Mesh.prototype.componentAsyncMethod = function (
     delete calls[call];
     if (e) return done(e);
     if (options.logAction) {
-      this.log.info("%s component '%s'", options.logAction, componentName);
+      this.log.debug("%s component '%s'", options.logAction, componentName);
     }
     done.apply(this, responseArgs);
   });
@@ -2067,7 +2067,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
       // default assume async with no args and callback as (error){} only
       if (!config.schema || !config.schema.methods || !config.schema.methods[options.methodName]) {
         calls[call] = Date.now();
-        _this.log.$$DEBUG("calling %s '%s' as default async", options.methodCategory, call);
+        _this.log.$$TRACE("calling %s '%s' as default async", options.methodCategory, call);
         let emptyDependencies = JSON.stringify(config.dependencies) === JSON.stringify({});
 
         if (options.methodCategory === 'startMethod' && !_this._mesh.ignoreDependenciesOnStartup) {
@@ -2108,10 +2108,10 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
 
       if (methodConfig.type === 'sync') {
         try {
-          _this.log.$$DEBUG("calling %s '%s' as configured sync", options.methodCategory, call);
+          _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
           component.instance.operate(options.methodName, methodParameters);
           if (options.logAction) {
-            _this.log.info("%s component '%s'", options.logAction, componentName);
+            _this.log.debug("%s component '%s'", options.logAction, componentName);
           }
         } catch (e) {
           done(new Error(e));
@@ -2122,12 +2122,12 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
       }
 
       calls[call] = Date.now();
-      _this.log.$$DEBUG("calling %s '%s' as configured async", options.methodCategory, call);
+      _this.log.$$TRACE("calling %s '%s' as configured async", options.methodCategory, call);
       component.instance.operate(options.methodName, methodParameters, function (e, responseArgs) {
         delete calls[call];
         if (e) return done(e);
         if (options.logAction) {
-          _this.log.info("%s component '%s'", options.logAction, componentName);
+          _this.log.debug("%s component '%s'", options.logAction, componentName);
         }
         done.apply(_this, responseArgs);
       });
@@ -2139,7 +2139,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
 };
 
 Mesh.prototype.__initComponents = function (callback) {
-  this.log.$$DEBUG('init');
+  this.log.$$TRACE('init');
   this._eachComponentDo(
     {
       methodCategory: 'initMethod',
@@ -2151,7 +2151,7 @@ Mesh.prototype.__initComponents = function (callback) {
 };
 
 Mesh.prototype.__startComponents = function (callback) {
-  this.log.$$DEBUG('start');
+  this.log.$$TRACE('start');
 
   this._eachComponentDo(
     {
@@ -2164,7 +2164,7 @@ Mesh.prototype.__startComponents = function (callback) {
 };
 
 Mesh.prototype.__stopComponents = function (callback) {
-  this.log.$$DEBUG('stopping');
+  this.log.$$TRACE('stopping');
   this._eachComponentDo(
     {
       methodCategory: 'stopMethod',
@@ -2176,7 +2176,7 @@ Mesh.prototype.__stopComponents = function (callback) {
 };
 
 Mesh.prototype.__shutdownComponents = function (callback) {
-  this.log.$$DEBUG('stopping');
+  this.log.$$TRACE('stopping');
   this._eachComponentDo(
     {
       methodCategory: 'shutdownMethod',
@@ -2188,7 +2188,7 @@ Mesh.prototype.__shutdownComponents = function (callback) {
 };
 
 Mesh.prototype.__stopEndPoints = function (options, callback) {
-  this.log.$$DEBUG('stopping endpoints');
+  this.log.$$TRACE('stopping endpoints');
 
   if (!this._endPointService) return callback();
 
@@ -2445,7 +2445,7 @@ Mesh.prototype._loadComponentSuites = function (config, callback) {
       }
 
       happnerFile = path.dirname(resolved) + path.sep + 'happner.js';
-      _this.log.$$DEBUG("loading suite from '%s'", happnerFile);
+      _this.log.$$TRACE("loading suite from '%s'", happnerFile);
 
       try {
         suite = require(happnerFile).configs[suiteName];

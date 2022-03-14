@@ -71,7 +71,7 @@ function __sessionIsUnconfigured(sessionId, config) {
 }
 
 function __configuredSessionLog(message, config) {
-  if (config.verbose) this.log.info(message);
+  if (config.verbose) this.log.debug(message);
 }
 
 function __unconfiguredSessionCleanup(config) {
@@ -95,7 +95,7 @@ function __unconfiguredSessionCleanup(config) {
 function __startUnconfiguredSessionCleanup(cleanupConfig) {
   if (!cleanupConfig) return;
   if (!this.config.secure) throw new Error('unable to cleanup sockets in an unsecure setup');
-  this.log.info(`starting unconfigured session cleanup, at interval: ${cleanupConfig.interval}`);
+  this.log.debug(`starting unconfigured session cleanup, at interval: ${cleanupConfig.interval}`);
   this.__unconfiguredSessionCleanupInterval = setInterval(
     this.__unconfiguredSessionCleanup(cleanupConfig),
     cleanupConfig.interval
@@ -106,7 +106,7 @@ function __stopUnconfiguredSessionCleanup() {
   if (this.__unconfiguredSessionCleanupInterval) {
     clearInterval(this.__unconfiguredSessionCleanupInterval);
     this.__unconfiguredSessionCleanupInterval = null;
-    this.log.info(`stopped unconfigured session cleanup`);
+    this.log.debug(`stopped unconfigured session cleanup`);
   }
 }
 
@@ -401,7 +401,7 @@ function initialize(config, callback) {
     this.script = clientPath + '/browser_primus.js';
 
     if (process.env.UPDATE_BROWSER_PRIMUS) {
-      this.log.info(`writing browser primus: ${this.script}`);
+      this.log.debug(`writing browser primus: ${this.script}`);
       this.primus.save(this.script);
     }
 

@@ -132,7 +132,7 @@
         var requestAddress = '/' + endpoint.name + '/' + componentName + '/' + methodName;
 
         var description = componentDescription.methods[methodName];
-        _this.log.$$DEBUG('creating requestor at %s', requestAddress);
+        _this.log.$$TRACE('creating requestor at %s', requestAddress);
 
         var requestor = function () {
           var origin = arguments[1];
@@ -208,7 +208,7 @@
       Object.keys(componentDescription.methods).forEach(function (methodName) {
         var requestAddress = '/' + endpoint.name + '/' + componentName + '/' + methodName;
 
-        _this.log.$$DEBUG('destroying requestor at %s', requestAddress);
+        _this.log.$$TRACE('destroying requestor at %s', requestAddress);
 
         delete _this.requestors[requestAddress];
         delete _this._exchange[requestAddress];
@@ -435,7 +435,7 @@
       return responseHandler.handleResponse(response.args);
     }
 
-    this.log.$$DEBUG('nohandler', response);
+    this.log.$$TRACE('nohandler', response);
   };
 
   Messenger.prototype._createPubResponseHandle = function (message) {

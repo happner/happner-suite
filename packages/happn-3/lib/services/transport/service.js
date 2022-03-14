@@ -168,7 +168,7 @@ TransportService.prototype.__tryListen = function (options) {
     .then(
       () => {
         clearInterval(waitingForPortMessageInterval);
-        this.happn.log.info('port available, about to listen');
+        this.happn.log.debug('port available, about to listen');
         this.happn.server.listen(options.port, options.host, (e) => {
           if (e) return this.happn.__done(e);
 
@@ -248,7 +248,7 @@ TransportService.prototype.initialize = function (config, callback) {
     this.happn.server.on('close', () => {
       if (this.happn.__info)
         this.happn.log.info('released ' + this.happn.__info.address + ':' + this.happn.__info.port);
-      else this.happn.log.info('released, no info');
+      else this.happn.log.debug('released, no info');
     });
 
     callback();
