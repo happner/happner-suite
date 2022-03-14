@@ -31,7 +31,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           methods: {
             start: {
               type: 'async',
-              parameters: [{ required: true, value: { message: 'this is a start parameter' } }],
+              parameters: [
+                { name: 'arg', required: true, value: { message: 'this is a start parameter' } },
+              ],
             },
           },
         },

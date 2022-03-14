@@ -317,7 +317,12 @@ module.exports = class ComponentInstance {
     return methodSchema.$parameters.map((schemaParameter) => {
       if (schemaParameter.name === '$origin') return origin;
       if (schemaParameter.name === '$happn') return this.bindToOrigin(origin);
-      return parameters.shift() || schemaParameter.value;
+      const foundParameter = parameters.shift();
+      if (foundParameter == null && schemaParameter.value != null) {
+        return schemaParameter.value;
+      }
+      // foundParameter could be null or undefined - we want null injected if it has been specified
+      return foundParameter;
     });
   }
 
@@ -421,10 +426,14 @@ module.exports = class ComponentInstance {
             return;
           }
           returnObject
-            .then(function (result) {
+            .then((result) => {
               if (callbackProxy) callbackProxy(null, result);
             })
-            .catch(function (err) {
+            .catch((err) => {
+              if (callbackCalled) {
+                this.log.error('Call to method %s failed after callback return', methodName, err);
+                return;
+              }
               if (callbackProxy) callbackProxy(err);
             });
         }
@@ -437,25 +446,43 @@ module.exports = class ComponentInstance {
   }
 
   __discoverArguments(method, methodSchema) {
-    if (methodSchema.parameters == null) methodSchema.parameters = [];
     if (methodSchema.$parameters == null) methodSchema.$parameters = [];
+    let preconfiguredParameters = methodSchema.parameters?.slice() || [];
+    methodSchema.parameters = [];
     methodSchema.$parameters = utilities
       .getFunctionParameters(method)
       .filter((argName) => argName != null)
-      .map(
-        (argName) =>
-          methodSchema.parameters.find((definedArg) => {
-            //look for pre-configured parameters
-            return definedArg.name === argName;
-          }) || {
-            name: argName,
-          }
-      );
+      .map(this.__discoverArgument(preconfiguredParameters));
     // get the parameters as they should appear to an outside caller
     methodSchema.parameters = methodSchema.$parameters.filter(
       (parameter) => parameter.name !== '$happn' && parameter.name !== '$origin'
     );
     return methodSchema;
+  }
+
+  __discoverArgument(preconfiguredParameters) {
+    return (argName) => {
+      let found = preconfiguredParameters.find((definedArg) => {
+        //look for pre-configured parameter
+        return definedArg.name === argName;
+      });
+      if (found) {
+        //take this one out, so the shift pulls  the next available 1
+        preconfiguredParameters.splice(preconfiguredParameters.indexOf(found), 1);
+        return found;
+      }
+      if (['$happn', '$origin'].indexOf(argName) === -1) {
+        //slot next available argument in
+        found = preconfiguredParameters.shift();
+      }
+      if (found) {
+        return found;
+      }
+      //no configured argument found, just return the argument with the correct name
+      return {
+        name: argName,
+      };
+    };
   }
 
   __discardMessage(reason, message) {
