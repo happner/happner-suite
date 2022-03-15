@@ -299,7 +299,6 @@ module.exports.createContext = function (context) {
   return thisInstance;
 };
 module.exports.setLogLevel = function (loglevel) {
-  console.log("SETTING LEVEL TO: ", loglevel)
   Config.logWriter.level = loglevel;
   Config.rawLogWriter.level = loglevel;
   Config.level = loglevel
