@@ -899,23 +899,28 @@ ComponentInstance.prototype.describe = function (cached) {
   return this.description;
 };
 
-ComponentInstance.prototype._inject = function (methodDefn, parameters, origin) {
-  // must inject left to right otherwise subsequent left inject slides preceding right inject rightward
-  if (typeof methodDefn.$happnSeq !== 'undefined' && typeof methodDefn.$originSeq !== 'undefined') {
-    if (methodDefn.$happnSeq < methodDefn.$originSeq) {
-      parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-      parameters.splice(methodDefn.$originSeq, 0, origin);
-      return;
-    }
-    parameters.splice(methodDefn.$originSeq, 0, origin);
-    parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-    return;
+ComponentInstance.prototype.__defaultParameterValue = function(argumentName, methodSchema, foundParameter) {
+  const found = methodSchema.parameters.find(parameter => parameter.name === argumentName);
+  if (found?.value != null) return found.value;
+  return foundParameter;
+}
+
+ComponentInstance.prototype._inject = function (methodDefn, parameters, origin, methodSchema) {
+  if (!methodDefn.$arguments) {
+    console.log();
   }
 
-  if (typeof methodDefn.$happnSeq !== 'undefined')
-    parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-  if (typeof methodDefn.$originSeq !== 'undefined')
-    parameters.splice(methodDefn.$originSeq, 0, origin);
+  console.log('injecting:::', methodDefn.$arguments, methodDefn.toString());
+
+  let toInject = methodDefn.$arguments.map(($argument) => {
+    if ($argument === '$origin') return origin;
+    if ($argument === '$happn') return this.bindToOrigin(origin);
+    const foundParameter = parameters.shift();
+    if (foundParameter != null) return foundParameter;
+    return this.__defaultParameterValue($argument, methodSchema, foundParameter);
+  });
+  console.log('to inject:::', toInject);
+  return toInject;
 };
 
 ComponentInstance.prototype.__callBackWithWarningAndError = function (category, message, callback) {
@@ -970,9 +975,7 @@ ComponentInstance.prototype._loadModule = function (module) {
             if (methodSchema.type === 'sync-promise') {
               let result;
               try {
-                _this._inject(methodDefn, parameters, origin);
-
-                result = methodDefn.apply(_this.module.instance, parameters);
+                result = methodDefn.apply(_this.module.instance, _this._inject(methodDefn, parameters, origin, methodSchema));
               } catch (syncPromiseError) {
                 return callback(null, [syncPromiseError]);
               }
@@ -1006,9 +1009,11 @@ ComponentInstance.prototype._loadModule = function (module) {
             }
           }
 
-          _this._inject(methodDefn, parameters, origin);
+          if (methodName === 'brokeredMethod3') {
+            console.log();
+          }
 
-          let returnObject = methodDefn.apply(_this.module.instance, parameters);
+          let returnObject = methodDefn.apply(_this.module.instance, _this._inject(methodDefn, parameters, origin, methodSchema));
 
           if (utilities.isPromise(returnObject)) {
             if (callbackIndex > -1 && utilities.isPromise(returnObject))
@@ -1072,14 +1077,9 @@ ComponentInstance.prototype._getWebOrigin = function (mesh, params) {
 };
 
 ComponentInstance.prototype._runWithInjection = function (args, mesh, methodDefn) {
-  var _this = this;
-
   var parameters = Array.prototype.slice.call(args);
-  var origin = _this._getWebOrigin(mesh, parameters);
-
-  _this._inject(methodDefn, parameters, origin);
-
-  methodDefn.apply(_this.module.instance, parameters);
+  var origin = this._getWebOrigin(mesh, parameters);
+  methodDefn.apply(_this.module.instance, parameters, this._inject(methodDefn, parameters, origin));
 };
 
 ComponentInstance.prototype._attachRouteTarget = function (

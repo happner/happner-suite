@@ -201,7 +201,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .catch(done);
     });
 
-    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
+    it.only('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
       startClusterEdgeFirst()
         .then(function () {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
@@ -231,7 +231,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
             test
               .expect(result)
               .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username');
-            setTimeout(done, 2000);
+            done();
           });
         })
         .catch(done);

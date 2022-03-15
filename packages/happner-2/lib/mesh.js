@@ -1270,10 +1270,7 @@ Mesh.prototype._createElement = util.promisify(function (spec, writeSchema, call
         _this._createModule(spec, done);
       },
       function (done) {
-        _this._happnizeModule(spec, done);
-      },
-      function (done) {
-        _this._originizeModule(spec, done);
+        _this._attachArguments(spec, done);
       },
       function (done) {
         _this._createComponent(spec, done);
@@ -1587,37 +1584,28 @@ Mesh.prototype._createModule = function (spec, callback) {
   return callback();
 };
 
-Mesh.prototype._addInjectedArgument = function (spec, argName, callback) {
-  let args, argSeq, originalFn;
-  const _this = this,
+Mesh.prototype._attachArguments = function (spec, callback) {
+  let originalFn,
     module = spec.module.instance;
 
   //get all methods that are not inherited from Object, Stream, and EventEmitter
   for (let fnName of utilities.getAllMethodNames(module, { ignoreInheritedNativeMethods: true })) {
-    originalFn = module[fnName];
+    originalFn = module[fnName].$originalFunction || module[fnName];
     if (typeof originalFn !== 'function') continue;
     if (utilities.functionIsNative(originalFn)) originalFn = Object.getPrototypeOf(module)[fnName];
     if (typeof originalFn !== 'function' || utilities.functionIsNative(originalFn)) {
-      _this.log.debug(
-        `cannot check native function ${spec.module.name}:${fnName} arguments for $${argName} injection`
+      this.log.debug(
+        `cannot check native function ${spec.module.name} arguments for $${fnName} injection`
       );
       continue;
     }
-    args = utilities.getFunctionParameters(originalFn);
-    argSeq = args.indexOf(`$${argName}`);
-    if (argSeq < 0) continue;
-
-    Object.defineProperty(module[fnName], `$${argName}Seq`, { value: argSeq });
+    if (!module[fnName].$arguments) {
+      module[fnName].$arguments = utilities
+        .getFunctionParameters(originalFn)
+        .filter((argName) => argName !== '');
+    }
   }
   callback(null);
-};
-
-Mesh.prototype._happnizeModule = function (spec, callback) {
-  this._addInjectedArgument(spec, 'happn', callback);
-};
-
-Mesh.prototype._originizeModule = function (spec, callback) {
-  this._addInjectedArgument(spec, 'origin', callback);
 };
 
 Mesh.prototype._createComponent = function (spec, callback) {

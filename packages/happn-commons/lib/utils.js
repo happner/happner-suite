@@ -183,7 +183,7 @@ module.exports = {
     if (originalFunction == null) {
       throw new Error('attempt to promisify a null function');
     }
-    return function () {
+    let promisified = function () {
       var args = Array.prototype.slice.call(arguments);
       var _this = this;
 
@@ -214,6 +214,8 @@ module.exports = {
         }
       });
     };
+    promisified.$originalFunction = originalFunction;
+    return promisified;
   },
   promisify: function (fn) {
     // MIT License, - thanks to paulmillr.com

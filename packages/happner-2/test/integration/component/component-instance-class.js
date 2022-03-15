@@ -9,7 +9,7 @@ class TestInstanceClass {
 const Happner = require('../../..');
 const LightClient = require('happner-client').Light;
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   let server;
   before(createServer);
   after(destroyServer);
@@ -25,7 +25,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   //TODO: figure this out.
-  xit('can call the test method light client missing argument', async () => {
+  it('can call the test method light client missing argument', async () => {
     let client = new LightClient({ domain: 'MESH_NAME', secure: true });
     await client.connect({ username: '_ADMIN', password: 'happn' });
     test

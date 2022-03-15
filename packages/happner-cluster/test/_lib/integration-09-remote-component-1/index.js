@@ -31,7 +31,7 @@ Component.prototype.brokeredMethod2 = function($happn, callback) {
   callback(null, $happn.info.mesh.name + ':remoteComponent1:brokeredMethod2');
 };
 
-Component.prototype.brokeredMethod3 = function($happn, $origin, param, callback) {
+Component.prototype.brokeredMethod3 = function($happn, param, callback, $origin) {
   callback(
     null,
     `${$happn.info.mesh.name}:remoteComponent1:brokeredMethod3:${param}:${$origin.username}`

@@ -18,7 +18,7 @@
         return originalFunction.apply(this, args);
       }
 
-      return new Promise(function (resolve, reject) {
+      let promisified = new Promise(function (resolve, reject) {
         // push false callback into arguments
         args.push(function (error, result, more) {
           if (error) return reject(error);
@@ -35,6 +35,8 @@
           return reject(error);
         }
       });
+      promisified.$originalFunction = originalFunction;
+      return promisified;
     };
   }
 })(typeof module !== 'undefined' && typeof module.exports !== 'undefined' ? false : true);
