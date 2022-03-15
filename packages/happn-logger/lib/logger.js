@@ -156,7 +156,7 @@ module.exports.configure = function (config) {
     appenders: ['$$RAW'],
     level: Config.logLevel,
   };
-
+  
   // create additional appender for logFile if specified
   if (Config.logFile && defaulting) {
     Config.logger.appenders.file = {
@@ -298,7 +298,10 @@ module.exports.createContext = function (context) {
 
   return thisInstance;
 };
-
+module.exports.setLogLevel = function(loglevel) {
+  Config.logWriter.level = loglevel;
+  Config.rawLogWriter.level = loglevel
+}
 module.exports.createLogger = function (component, obj, thisContext, listener) {
   thisContext = thisContext || {
     value: undefined,

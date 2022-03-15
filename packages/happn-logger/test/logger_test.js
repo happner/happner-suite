@@ -2,9 +2,8 @@ var should = require('chai').should();
 var fs = require('fs');
 var Logger;
 
-describe('Logger', function() {
-
-  beforeEach(function() {
+require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
+  beforeEach(function () {
     delete global['happn-logger'];
     delete require.cache[require.resolve('../lib/logger')];
     delete require.cache[require.resolve('../')];
@@ -13,22 +12,21 @@ describe('Logger', function() {
     this.origNow = Date.now;
   });
 
-  afterEach(function() {
+  afterEach(function () {
     Date.now = this.origNow;
     try {
       fs.unlinkSync('file.log');
     } catch (e) {}
   });
 
-  context('configuration', function() {
-
-    it('sets the configured flag', function() {
+  context('configuration', function () {
+    it('sets the configured flag', function () {
       Logger.configured.should.equal(false);
       Logger.configure();
       Logger.configured.should.equal(true);
     });
 
-    it('defaults config', function() {
+    it('defaults config', function () {
       Logger.configure();
       Logger.config.should.eql({
         logCacheSize: 50,
@@ -40,7 +38,7 @@ describe('Logger', function() {
         logDateFormat: null,
         logLayout: {
           pattern: '[%[%5.5p%]] - %m',
-          type: 'pattern'
+          type: 'pattern',
         },
         logFile: null,
         logFileLayout: null,
@@ -51,59 +49,58 @@ describe('Logger', function() {
         rawLogWriter: Logger.config.rawLogWriter, // refer to itself
         logger: {
           appenders: {
-            console: {  
-              type: "console",
-              layout: Logger.config.logLayout 
+            console: {
+              type: 'console',
+              layout: Logger.config.logLayout,
             },
             $$RAW: {
-              type: "console",
+              type: 'console',
               layout: {
-                 type: "messagePassThrough"
-              }
-            }
+                type: 'messagePassThrough',
+              },
+            },
           },
           categories: {
-            default: { 
-              appenders: ['console'], 
-              level: Logger.config.logLevel 
+            default: {
+              appenders: ['console'],
+              level: Logger.config.logLevel,
             },
             $$RAW: {
-              appenders: ["$$RAW"],
-              level: "info"
-            }
-          }
+              appenders: ['$$RAW'],
+              level: 'info',
+            },
+          },
         },
         log: Logger.config.log, // refer to itself
-        $$RAW: Logger.config.$$RAW // refer to itself
-      })
+        $$RAW: Logger.config.$$RAW, // refer to itself
+      });
     });
   });
 
-  context('log functions', function(){
-
-    it('defines a function to emit a log message at each level', function() {
+  context('log functions', function () {
+    it('defines a function to emit a log message at each level', function () {
       Logger.configure();
       var log = Logger.createLogger();
-      log.fatal   .should.be.an.instanceof(Function);
-      log.error   .should.be.an.instanceof(Function);
-      log.warn    .should.be.an.instanceof(Function);
-      log.info    .should.be.an.instanceof(Function);
-      log.debug   .should.be.an.instanceof(Function);
-      log.$$DEBUG .should.be.an.instanceof(Function);
-      log.trace   .should.be.an.instanceof(Function);
-      log.$$TRACE .should.be.an.instanceof(Function);
+      log.fatal.should.be.an.instanceof(Function);
+      log.error.should.be.an.instanceof(Function);
+      log.warn.should.be.an.instanceof(Function);
+      log.info.should.be.an.instanceof(Function);
+      log.debug.should.be.an.instanceof(Function);
+      log.$$DEBUG.should.be.an.instanceof(Function);
+      log.trace.should.be.an.instanceof(Function);
+      log.$$TRACE.should.be.an.instanceof(Function);
     });
 
-    it('calls the log function', function(done) {
+    it('calls the log function', function (done) {
       Logger.configure();
       log = Logger.createLogger();
-      Logger.config.log = function() {
+      Logger.config.log = function () {
         done();
       };
       log.info('message');
     });
 
-    it('tests of level is enabled before logging', function(done) {
+    it('tests of level is enabled before logging', function (done) {
       Logger.configure();
       var called = false;
       var log = Logger.createLogger();
@@ -112,81 +109,105 @@ describe('Logger', function() {
       log.info('message');
     });
 
-    it('formats the log text from multiple arguments', function(done) {
+    it('formats the log text from multiple arguments', function (done) {
       Logger.configure();
-      Logger.config.log = function(level, context, component, message) {
+      Logger.config.log = function (level, context, component, message) {
         message.should.equal('string: STRING, number NUMBER, json {"json":"data"}');
         done();
-      }
+      };
       var log = Logger.createLogger();
-      log.info('string: %s, number %s, json %j', 'STRING', 'NUMBER', {json: 'data'});
+      log.info('string: %s, number %s, json %j', 'STRING', 'NUMBER', { json: 'data' });
     });
 
-    it('includes the array of log arguments in log call if logStackTraces is enabled', function(done) {
+    it('includes the array of log arguments in log call if logStackTraces is enabled', function (done) {
       Logger.configure({
         logStackTraces: true,
       });
-      Logger.config.log =  function(level, context, component, message, array) {
-        array.should.eql([
-          'string: %s, number %s, json %j',
-          'STRING',
-          'NUMBER',
-          {json: 'data'}
-        ]);
+      Logger.config.log = function (level, context, component, message, array) {
+        array.should.eql(['string: %s, number %s, json %j', 'STRING', 'NUMBER', { json: 'data' }]);
         done();
-      }
+      };
       var log = Logger.createLogger();
-      log.info('string: %s, number %s, json %j', 'STRING', 'NUMBER', {json: 'data'});
+      log.info('string: %s, number %s, json %j', 'STRING', 'NUMBER', { json: 'data' });
     });
 
-    it('default log to debug', function() {
+    it('default log to debug', function () {
       Logger.configure();
       var log = Logger.createLogger();
-      Logger.config.log = function(level) {
+      Logger.config.log = function (level) {
         level.should.equal('debug');
         done();
-      }
+      };
       log('message');
     });
 
-    it('can build log functions onto an object', function() {
-      var obj = {};
-      Logger.configure()
-      Logger.createLogger('component', obj);
-      obj.fatal   .should.be.an.instanceof(Function);
-      obj.error   .should.be.an.instanceof(Function);
-      obj.warn    .should.be.an.instanceof(Function);
-      obj.info    .should.be.an.instanceof(Function);
-      obj.debug   .should.be.an.instanceof(Function);
-      obj.$$DEBUG .should.be.an.instanceof(Function);
-      obj.trace   .should.be.an.instanceof(Function);
-      obj.$$TRACE .should.be.an.instanceof(Function);
+    it('can set the log level', function () {
+      Logger.configure();
+      let log = Logger.createLogger();
+      Logger.config.log = test.sinon.spy();
+      log.info('should log info');
+      Logger.config.log.calledOnce.should.equal(true);
+      Logger.config.log
+        .calledWith('info', undefined, undefined, 'should log info')
+        .should.equal(true);
+
+      Logger.setLogLevel('warn');
+      log.info('should not log');
+      log.warn('should log warn');
+      log.debug('should not log');
+      Logger.config.log.callCount.should.equal(2);
+      Logger.config.log
+        .calledWith('warn', undefined, undefined, 'should log warn')
+        .should.equal(true);
+      Logger.config.log
+        .calledWith('info', undefined, undefined, 'should not log')
+        .should.equal(false);
+      Logger.config.log
+        .calledWith('debug', undefined, undefined, 'should not log')
+        .should.equal(false);
+
+      Logger.setLogLevel('debug');
+      log.debug('should log debug');
+      Logger.config.log.callCount.should.equal(3);
+      Logger.config.log
+        .calledWith('debug', undefined, undefined, 'should log debug')
+        .should.equal(true);
     });
 
+    it('can build log functions onto an object', function () {
+      var obj = {};
+      Logger.configure();
+      Logger.createLogger('component', obj);
+      obj.fatal.should.be.an.instanceof(Function);
+      obj.error.should.be.an.instanceof(Function);
+      obj.warn.should.be.an.instanceof(Function);
+      obj.info.should.be.an.instanceof(Function);
+      obj.debug.should.be.an.instanceof(Function);
+      obj.$$DEBUG.should.be.an.instanceof(Function);
+      obj.trace.should.be.an.instanceof(Function);
+      obj.$$TRACE.should.be.an.instanceof(Function);
+    });
   });
 
-  context('logging to console', function() {
-
-    it('logs to console by default', function() {
-      Logger.configure({logLevel: 'info'});
+  context('logging to console', function () {
+    it('logs to console by default', function () {
+      Logger.configure({ logLevel: 'info' });
       var log = Logger.createLogger('component');
       log.info('XXXXX');
     });
-
   });
 
-  context('logging to file', function() {
-
-    it('logs to file if a filename is specified', function(done) {
+  context('logging to file', function () {
+    it('logs to file if a filename is specified', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
-        logFile: 'file.log'
+        logFile: 'file.log',
       });
       var log = Logger.createLogger('component');
       log.info('xxxxx');
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/\(component\) xxxxx/);
         fs.unlinkSync('file.log');
@@ -194,16 +215,16 @@ describe('Logger', function() {
       }, 100);
     });
 
-    it('can includes a stack trace if enabled and the last arg is an error', function(done) {
+    it('can includes a stack trace if enabled and the last arg is an error', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
-        logFile: 'file.log'
+        logFile: 'file.log',
       });
       var log = Logger.createLogger('component');
       log.info('xxxxx', new Error('Something'));
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/ \[ INFO\] - Error: Something/);
         fs.unlinkSync('file.log');
@@ -211,16 +232,16 @@ describe('Logger', function() {
       }, 100);
     });
 
-    it('includes the line number and filename of the caller if we log an error without an error object', function(done) {
+    it('includes the line number and filename of the caller if we log an error without an error object', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
-        logFile: 'file.log'
+        logFile: 'file.log',
       });
       var log = Logger.createLogger('component');
       log.error('xxxxx');
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/happn-logger\/test\/logger_test.js/);
         fs.unlinkSync('file.log');
@@ -228,16 +249,16 @@ describe('Logger', function() {
       }, 100);
     });
 
-    it('includes the line number and filename of the caller if we log an error with an error object', function(done) {
+    it('includes the line number and filename of the caller if we log an error with an error object', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
-        logFile: 'file.log'
+        logFile: 'file.log',
       });
       var log = Logger.createLogger('component');
       log.error('xxxxx', new Error('test error'));
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/happn-logger\/test\/logger_test.js/);
         fs.unlinkSync('file.log');
@@ -246,19 +267,16 @@ describe('Logger', function() {
     });
   });
 
-  context('context', function() {
-
-    it('can change the context', function(done) {
-
+  context('context', function () {
+    it('can change the context', function (done) {
       Logger.configure({
         logFile: 'file.log',
         logFileLayout: {
           type: 'pattern',
-          pattern: '%m'
+          pattern: '%m',
         },
         logTimeDelta: false,
-        logMessageDelimiter: ' '
-
+        logMessageDelimiter: ' ',
       });
 
       var context = Logger.createContext();
@@ -284,25 +302,24 @@ describe('Logger', function() {
       log2.info('message 2');
       log3.info('message 3');
 
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
-        logged.should.equal('(component1) message 1\n(component2) message 2\n(component3) message 3\nxxx (component1) message 1\nxxx (component2) message 2\nxxx (component3) message 3\nyyy (component1) message 1\nyyy (component2) message 2\nyyy (component3) message 3\n');
+        logged.should.equal(
+          '(component1) message 1\n(component2) message 2\n(component3) message 3\nxxx (component1) message 1\nxxx (component2) message 2\nxxx (component3) message 3\nyyy (component1) message 1\nyyy (component2) message 2\nyyy (component3) message 3\n'
+        );
         fs.unlinkSync('file.log');
         done();
       }, 100);
-
     });
-
   });
 
-  context('emitter', function() {
-
-    it('emits an event before writing to log', function() {
+  context('emitter', function () {
+    it('emits an event before writing to log', function () {
       var befores = 0;
-      Logger.emitter.on('before', function() {
+      Logger.emitter.on('before', function () {
         befores++;
       });
-      Logger.configure({logLevel: 'info'});
+      Logger.configure({ logLevel: 'info' });
       var log = Logger.createLogger();
 
       befores.should.equal(0);
@@ -320,12 +337,12 @@ describe('Logger', function() {
       befores.should.equal(4);
     });
 
-    it('emits an event after writing to log', function() {
+    it('emits an event after writing to log', function () {
       var afters = 0;
-      Logger.emitter.on('after', function() {
+      Logger.emitter.on('after', function () {
         afters++;
       });
-      Logger.configure({logLevel: 'info'});
+      Logger.configure({ logLevel: 'info' });
       var log = Logger.createLogger();
 
       afters.should.equal(0);
@@ -342,18 +359,18 @@ describe('Logger', function() {
       log.fatal('xxx');
       afters.should.equal(4);
     });
-
   });
 
-  context('cache', function() {
-
-    it('enables access to array of recent log messages', function() {
+  context('cache', function () {
+    it('enables access to array of recent log messages', function () {
       Logger.configure({
         logCacheSize: 5,
-        logLevel: 'all'
+        logLevel: 'all',
       });
       var count = 0;
-      Date.now = function() {return count++}
+      Date.now = function () {
+        return count++;
+      };
 
       var log = Logger.createLogger();
       log.trace('A');
@@ -404,24 +421,19 @@ describe('Logger', function() {
           timestamp: 1,
           timedelta: 1,
         },
-
-      ])
-
+      ]);
     });
-
   });
 
-  context('component filter', function() {
-
-    it('can filter to log only specified components', function(done) {
+  context('component filter', function () {
+    it('can filter to log only specified components', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
         logFile: 'file.log',
-        logComponents: ['component1', 'component4']
+        logComponents: ['component1', 'component4'],
       });
-
 
       var component1 = Logger.createLogger('component1');
       var component2 = Logger.createLogger('component2');
@@ -431,7 +443,7 @@ describe('Logger', function() {
       component2.info('bbbbb');
       component3.info('ccccc');
 
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/\(component1\) aaaaa/);
         logged.should.not.match(/\(component2\) bbbbb/);
@@ -441,13 +453,13 @@ describe('Logger', function() {
       }, 100);
     });
 
-    it('logs fatal, error and warn from even if filtered out', function(done) {
+    it('logs fatal, error and warn from even if filtered out', function (done) {
       try {
         fs.unlinkSync('file.log');
       } catch (e) {}
       Logger.configure({
         logFile: 'file.log',
-        logComponents: ['component1']
+        logComponents: ['component1'],
       });
 
       var component1 = Logger.createLogger('component1');
@@ -459,7 +471,7 @@ describe('Logger', function() {
       component3.error('bbbbb');
       component4.warn('ccccc');
 
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.match(/\(component2\) aaaaa/);
         logged.should.match(/\(component3\) bbbbb/);
@@ -468,37 +480,34 @@ describe('Logger', function() {
         done();
       }, 100);
     });
-
   });
 
-  context('logger subconfig', function() {
-
-    it('allows for entirely externally defined log4js config', function(done) {
-
+  context('logger subconfig', function () {
+    it('allows for entirely externally defined log4js config', function (done) {
       Logger.configure({
         logMessageDelimiter: ' ',
         logTimeDelta: false,
         logger: {
-          appenders: { 
+          appenders: {
             file: {
               type: 'file',
               filename: 'file.log',
               layout: {
                 type: 'pattern',
-                pattern: '--- %m ---'
-              }
-            }
+                pattern: '--- %m ---',
+              },
+            },
           },
           categories: {
-              default: { appenders: ['file'], level: 'all' }
-          }
-        }
+            default: { appenders: ['file'], level: 'all' },
+          },
+        },
       });
 
       var log = Logger.createLogger();
       log.info('XXX');
 
-      setTimeout(function() {
+      setTimeout(function () {
         var logged = fs.readFileSync('file.log').toString();
         logged.should.equal('--- XXX ---\n');
         fs.unlinkSync('file.log');
@@ -507,19 +516,15 @@ describe('Logger', function() {
     });
   });
 
-  context('logger after event', function() {
-
+  context('logger after event', function () {
     this.timeout(5000);
 
-    it('allows for a listener to be inserted, checks the listener receives all input', function(done) {
-
+    it('allows for a listener to be inserted, checks the listener receives all input', function (done) {
       var listened = {};
 
-      Logger.emitter.on('after', function(level, message) {
-
+      Logger.emitter.on('after', function (level, message) {
         listened[level] = message;
-        if (Object.keys(listened).length == 3){
-
+        if (Object.keys(listened).length == 3) {
           listened['info'].split('ms ')[1].should.equal('INFO-TEST');
           listened['warn'].split('ms ')[1].should.equal('WARN-TEST');
           listened['error'].split('ms ')[1].should.equal('ERROR-TEST');
@@ -531,59 +536,56 @@ describe('Logger', function() {
 
           done();
         }
-
       });
 
-      Logger.configure({logLevel: 'info'});
+      Logger.configure({ logLevel: 'info' });
 
       var log = Logger.createLogger();
 
       log.info('INFO-TEST');
       log.warn('WARN-TEST');
       log.error('ERROR-TEST');
-
     });
-
   });
 
-  context('raw object logging functions', function(){
-    it('defines a function to emit a log message at each level for raw logs', function() {
-      Logger.configure({logLevel: 'debug'});
+  context('raw object logging functions', function () {
+    it('defines a function to emit a log message at each level for raw logs', function () {
+      Logger.configure({ logLevel: 'debug' });
       var log = Logger.createLogger();
-      log.json.fatal   .should.be.an.instanceof(Function);
-      log.json.error   .should.be.an.instanceof(Function);
-      log.json.warn    .should.be.an.instanceof(Function);
-      log.json.info    .should.be.an.instanceof(Function);
-      log.json.debug   .should.be.an.instanceof(Function);
-      log.json.trace   .should.be.an.instanceof(Function);
+      log.json.fatal.should.be.an.instanceof(Function);
+      log.json.error.should.be.an.instanceof(Function);
+      log.json.warn.should.be.an.instanceof(Function);
+      log.json.info.should.be.an.instanceof(Function);
+      log.json.debug.should.be.an.instanceof(Function);
+      log.json.trace.should.be.an.instanceof(Function);
     });
 
-    it('calls the log raw function - fatal', function(done) {
-      testLogWriterRaw('fatal', { test: 'data'}, 'tag-1', done);
+    it('calls the log raw function - fatal', function (done) {
+      testLogWriterRaw('fatal', { test: 'data' }, 'tag-1', done);
     });
 
-    it('calls the log raw function - info', function(done) {
-      testLogWriterRaw('info', { test: 'data'}, 'tag-2', done);
+    it('calls the log raw function - info', function (done) {
+      testLogWriterRaw('info', { test: 'data' }, 'tag-2', done);
     });
 
-    it('calls the log raw function - error', function(done) {
-      testLogWriterRaw('error', { test: 'data'}, 'tag-3', done);
+    it('calls the log raw function - error', function (done) {
+      testLogWriterRaw('error', { test: 'data' }, 'tag-3', done);
     });
 
-    it('calls the log raw function - debug', function(done) {
-      testLogWriterRaw('debug', { test: 'data'}, 'tag-4', done);
+    it('calls the log raw function - debug', function (done) {
+      testLogWriterRaw('debug', { test: 'data' }, 'tag-4', done);
     });
 
-    it('calls the log raw function - warn', function(done) {
-      testLogWriterRaw('warn', { test: 'data'}, 'tag-5', done);
+    it('calls the log raw function - warn', function (done) {
+      testLogWriterRaw('warn', { test: 'data' }, 'tag-5', done);
     });
 
-    it('calls the log raw function - trace', function(done) {
-      testLogWriterRaw('trace', { test: 'data'}, 'tag-6', done);
+    it('calls the log raw function - trace', function (done) {
+      testLogWriterRaw('trace', { test: 'data' }, 'tag-6', done);
     });
 
-    it('calls the log raw functions', function() {
-      Logger.configure({logLevel: 'trace'});
+    it('calls the log raw functions', function () {
+      Logger.configure({ logLevel: 'trace' });
       log = Logger.createLogger();
       const CaptureStdout = require('capture-stdout');
       const captureStdout = new CaptureStdout();
@@ -598,22 +600,22 @@ describe('Logger', function() {
       const arrJson = captureStdout
         .getCapturedText()
         .map(JSON.parse)
-        .map(item => {
+        .map((item) => {
           delete item.timestamp;
           return item;
         });
       arrJson.should.eql([
-        {"level":"fatal", "data":{"test":"fatal"}},
-        {"level":"info", "data":{"test":"info"}},
-        {"level":"error", "data":{"test":"error"}},
-        {"level":"debug", "data":{"test":"debug"}},
-        {"level":"warn", "data":{"test":"warn"}},
-        {"level":"trace", "data":{"test":"trace"}}
+        { level: 'fatal', data: { test: 'fatal' } },
+        { level: 'info', data: { test: 'info' } },
+        { level: 'error', data: { test: 'error' } },
+        { level: 'debug', data: { test: 'debug' } },
+        { level: 'warn', data: { test: 'warn' } },
+        { level: 'trace', data: { test: 'trace' } },
       ]);
     });
 
-    it('calls the log raw functions - non-objects', function() {
-      Logger.configure({logLevel: 'trace'});
+    it('calls the log raw functions - non-objects', function () {
+      Logger.configure({ logLevel: 'trace' });
       log = Logger.createLogger();
       const CaptureStdout = require('capture-stdout');
       const captureStdout = new CaptureStdout();
@@ -630,22 +632,22 @@ describe('Logger', function() {
       const arrJson = captureStdout
         .getCapturedText()
         .map(JSON.parse)
-        .map(item => {
+        .map((item) => {
           delete item.timestamp;
           return item;
         });
       arrJson.should.eql([
-        {"level":"fatal","data": "Error: a fatal error!"},
-        {"level":"info","data":"[null]"},
-        {"level":"error","data":"[null]"},
-        {"level":"debug","data":12345},
-        {"level":"warn","data":'warning!'},
-        {"level":"trace","data":'not stringifyable: [object Object]'}
+        { level: 'fatal', data: 'Error: a fatal error!' },
+        { level: 'info', data: '[null]' },
+        { level: 'error', data: '[null]' },
+        { level: 'debug', data: 12345 },
+        { level: 'warn', data: 'warning!' },
+        { level: 'trace', data: 'not stringifyable: [object Object]' },
       ]);
     });
 
-    it('tests the setLevel function', function() {
-      Logger.configure({logLevel: 'off'});
+    it('tests the setLevel function', function () {
+      Logger.configure({ logLevel: 'off' });
       log = Logger.createLogger();
       const CaptureStdout = require('capture-stdout');
       const captureStdout = new CaptureStdout();
@@ -661,31 +663,31 @@ describe('Logger', function() {
       const arrJson = captureStdout
         .getCapturedText()
         .map(JSON.parse)
-        .map(item => {
+        .map((item) => {
           delete item.timestamp;
           return item;
         });
       arrJson.should.eql([
-        {"level":"debug", "data":{"test":"debug"}},
-        {"level":"warn", "data":{"test":"warn"}},
-        {"level":"trace", "data":{"test":"trace"}}
+        { level: 'debug', data: { test: 'debug' } },
+        { level: 'warn', data: { test: 'warn' } },
+        { level: 'trace', data: { test: 'trace' } },
       ]);
     });
 
-    function testLogWriterRaw(level, obj, tag, done){
-      Logger.configure({logLevel: 'trace'});
+    function testLogWriterRaw(level, obj, tag, done) {
+      Logger.configure({ logLevel: 'trace' });
       log = Logger.createLogger();
-      Logger.config.rawLogWriter[level] = function(stringifiedObj) {
+      Logger.config.rawLogWriter[level] = function (stringifiedObj) {
         const parsed = JSON.parse(stringifiedObj);
         parsed.timestamp.should.be.greaterThan(0);
         delete parsed.timestamp;
         parsed.should.eql({
           data: obj,
           level,
-          tag
+          tag,
         });
         done();
-      }
+      };
       log.json[level](obj, tag);
     }
   });
