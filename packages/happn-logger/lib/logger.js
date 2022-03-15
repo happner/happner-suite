@@ -301,7 +301,7 @@ module.exports.createContext = function (context) {
 module.exports.setLogLevel = function (loglevel) {
   Config.logWriter.level = loglevel;
   Config.rawLogWriter.level = loglevel;
-  Config.level = loglevel
+  Config.level = loglevel;
 };
 module.exports.createLogger = function (component, obj, thisContext, listener) {
   thisContext = thisContext || {
