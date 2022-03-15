@@ -30,7 +30,7 @@
     Internals = require('./internals');
     Logger = require('happn-logger');
     EventEmitter = require('events').EventEmitter;
-    maybePromisify = require('./promisify');
+    maybePromisify = require('happn-commons').utils.maybePromisify;
   }
 
   var extend = function (subclass, superclass) {

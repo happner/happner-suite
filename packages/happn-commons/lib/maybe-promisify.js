@@ -7,7 +7,7 @@
   }
 
   function Promisify(originalFunction, opts) {
-    return function () {
+    const promisified = function () {
       var args = Array.prototype.slice.call(arguments);
       var _this = this;
 
@@ -36,5 +36,13 @@
         }
       });
     };
+
+    Object.defineProperty(promisified, '$originalFunction', {
+      value: originalFunction,
+      writable: false,
+      enumerable: true,
+    });
+
+    return promisified;
   }
 })(typeof module !== 'undefined' && typeof module.exports !== 'undefined' ? false : true);

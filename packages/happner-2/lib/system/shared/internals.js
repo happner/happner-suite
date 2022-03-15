@@ -13,7 +13,7 @@
     MeshError = Happner.MeshError;
   } else {
     module.exports = Internals;
-    Promisify = require('./promisify');
+    Promisify = require('happn-commons').utils.maybePromisify;
     Messenger = require('./messenger');
     MeshError = require('./mesh-error');
   }

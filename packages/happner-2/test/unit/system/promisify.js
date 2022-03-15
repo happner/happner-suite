@@ -2,12 +2,13 @@ describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
     var expect = require('expect.js');
-    const promisify = require('../../../lib/system/shared/promisify');
+    const promisify = require('happn-commons').utils.maybePromisify;
 
     it('can promisify a basic function', async () => {
       let f = (x, callback) => callback(null, x);
       let fpromise = promisify(f);
       expect(await fpromise(4)).to.eql(4);
+      expect(fpromise.$originalFunction).to.exist;
     });
 
     it('can promisify a basic function - error case ', async () => {

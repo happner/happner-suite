@@ -177,38 +177,7 @@ UtilsService.prototype.mergeObjects = function (obj1, obj2, opts) {
   return newObj;
 };
 
-UtilsService.prototype.promisify = function (originalFunction, opts) {
-  return function () {
-    var args = Array.prototype.slice.call(arguments);
-    var _this = this;
-
-    if (opts && opts.unshift) args.unshift(opts.unshift);
-
-    // No promisify if last passed arg is function (ie callback)
-
-    if (typeof args[args.length - 1] === "function") {
-      return originalFunction.apply(this, args);
-    }
-
-    return new Promise(function (resolve, reject) {
-      // push false callback into arguments
-      args.push(function (error, result, more) {
-        if (error) return reject(error);
-        if (more) {
-          var args = Array.prototype.slice.call(arguments);
-          args.shift(); // toss undefined error
-          return resolve(args); // resolve array of args passed to callback
-        }
-        return resolve(result);
-      });
-      try {
-        return originalFunction.apply(_this, args);
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  };
-};
+UtilsService.prototype.promisify = commons.utils.maybePromisify;
 
 UtilsService.prototype.fileExists = function (path) {
   try {

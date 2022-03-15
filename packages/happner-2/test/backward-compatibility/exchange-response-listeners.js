@@ -13,7 +13,6 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
   var OLDFILES_WATCHED = [
     'happn/lib/client/base.js',
     'happner/lib/system/shared/logger.js',
-    'happner/lib/system/shared/promisify.js',
     'happner/lib/system/shared/mesh-error.js',
     'happner/lib/system/shared/messenger.js',
     'happner/lib/system/shared/internals.js',

@@ -180,16 +180,11 @@ module.exports = {
     );
   },
   maybePromisify: function (originalFunction, opts) {
-    if (originalFunction == null) {
-      throw new Error('attempt to promisify a null function');
-    }
-    return function () {
+    const promisified = function () {
       var args = Array.prototype.slice.call(arguments);
       var _this = this;
 
       if (opts && opts.unshift) args.unshift(opts.unshift);
-      if (args[args.length - 1] == null) args.splice(args.length - 1);
-
       // No promisify if last passed arg is function (ie callback)
 
       if (typeof args[args.length - 1] === 'function') {
@@ -214,6 +209,14 @@ module.exports = {
         }
       });
     };
+
+    Object.defineProperty(promisified, '$originalFunction', {
+      value: originalFunction,
+      writable: false,
+      enumerable: true,
+    });
+
+    return promisified;
   },
   promisify: function (fn) {
     // MIT License, - thanks to paulmillr.com
@@ -233,6 +236,7 @@ module.exports = {
       {
         length: { value: Math.max(0, fn.length - 1) },
         name: { value: fn.name },
+        $originalFunction: { value: fn },
       }
     );
   },

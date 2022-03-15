@@ -449,8 +449,11 @@ module.exports = class ComponentInstance {
     if (methodSchema.$parameters == null) methodSchema.$parameters = [];
     let preconfiguredParameters = methodSchema.parameters?.slice() || [];
     methodSchema.parameters = [];
+    if (method.$originalFunction) {
+      console.log();
+    }
     methodSchema.$parameters = utilities
-      .getFunctionParameters(method)
+      .getFunctionParameters(method.$originalFunction || method)
       .filter((argName) => argName != null)
       .map(this.__discoverArgument(preconfiguredParameters));
     // get the parameters as they should appear to an outside caller

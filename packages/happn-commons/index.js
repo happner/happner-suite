@@ -1,14 +1,15 @@
 const path = require('path'),
   fs = require('fs-extra'),
   _ = require('lodash'),
-  libAsync = require('async');
+  libAsync = require('async'),
+  utils = require('./lib/utils');
 const [constantsPath, utilsPath] = ['constants', 'utils'].map((fileName) => {
   return path.resolve(__dirname, `./lib/${fileName}.js`);
 });
 module.exports = {
-  maybePromisify: require('./lib/maybe-promisify'),
+  maybePromisify: utils.maybePromisify,
   constants: require('./lib/constants-builder'),
-  utils: require('./lib/utils'),
+  utils,
   web: {
     constants: () => {
       return fs.readFileSync(constantsPath, 'utf8').replace('module.exports = ', '');
@@ -16,6 +17,7 @@ module.exports = {
     utils: () => {
       return fs.readFileSync(utilsPath, 'utf8').replace('module.exports = ', '');
     },
+    maybePromisifyPath: require.resolve('./lib/maybe-promisify'),
   },
   fs,
   _,

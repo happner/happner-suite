@@ -48,7 +48,7 @@ function Packager(mesh) {
     var script2 = Happn.packager.browserClient();
 
     var script3 = normalize([__dirname, 'shared', 'logger.js'].join(sep));
-    var script4 = normalize([__dirname, 'shared', 'promisify.js'].join(sep));
+    var script4 = commons.web.maybePromisifyPath;
     var script5 = normalize([__dirname, 'shared', 'mesh-error.js'].join(sep));
     var script6 = normalize([__dirname, 'shared', 'messenger.js'].join(sep));
     var script7 = normalize([__dirname, 'shared', 'internals.js'].join(sep));
