@@ -48,7 +48,7 @@ Brokerage.prototype.__checkDependenciesSatisfied = function () {
     //otherwise we get an unecessary "description storm" - clients will get the right description from this point on
     this.__mesh.disableSchemaPublish();
     this.__proxy.start(); //now we can receive client connections
-    this.logger.info('dependencies satisfied, switched off schema publish and started proxy');
+    this.logger.debug('dependencies satisfied, switched off schema publish and started proxy');
   }
 };
 
@@ -110,7 +110,7 @@ Brokerage.prototype.__updateInjectedComponent = function (changedComponent, what
         // pre-injected placeholders would be created by this peer itself
         // and so they should be ignored for satisfaction
         this.__satisfiedElementNames.push(changedComponent.component.name);
-        this.logger.info(
+        this.logger.debug(
           `remote dependency satisfied: ${whatChanged.meshName}.${changedComponent.component.name}`
         );
       }

@@ -162,7 +162,7 @@ Packager.prototype.initialize = function (callback) {
     return callback();
   }
 
-  this.log.$$DEBUG('Building /api/client package');
+  this.log.$$TRACE('Building /api/client package');
   const lstatPromise = util.promisify(fs.lstat);
   return (
     Promise.all(
@@ -196,7 +196,7 @@ Packager.prototype.initialize = function (callback) {
       .then((scripts) => {
         return Promise.all(
           scripts.map((script) => {
-            this.log.$$DEBUG('reading script %s', script.file);
+            this.log.$$TRACE('reading script %s', script.file);
             return this.readFile(script.file);
           })
         );
@@ -219,7 +219,7 @@ Packager.prototype.initialize = function (callback) {
       .then(() => {
         this.scripts.forEach((script) => {
           if (process.env.NODE_ENV === 'production' && !script.min) {
-            this.log.$$DEBUG('minify script %s', script.file);
+            this.log.$$TRACE('minify script %s', script.file);
             script.buf = minify(script.buf.toString()).code;
           }
         });
@@ -230,7 +230,7 @@ Packager.prototype.initialize = function (callback) {
         this.scripts.forEach((script) => {
           if (!script.watch) return;
           if (process.env.NODE_ENV === 'production') return;
-          this.log.$$DEBUG('(non-production) watching %s', script.file);
+          this.log.$$TRACE('(non-production) watching %s', script.file);
 
           if (this.__watchedFiles[script.file]) {
             return;
@@ -297,7 +297,7 @@ Packager.prototype.assemble = function () {
 
     _this.merged.md5 = md5(_this.merged.script);
 
-    _this.log.$$DEBUG('gzip package');
+    _this.log.$$TRACE('gzip package');
 
     gzip(_this.merged.script)
       .then(function (zipped) {
@@ -326,7 +326,7 @@ Packager.prototype.assemble = function () {
         enumerable: true,
         configurable: true,
       });
-      _this.log.$$DEBUG('done');
+      _this.log.$$TRACE('done');
       resolve();
     });
   });

@@ -1,8 +1,10 @@
 var should = require('chai').should();
 var fs = require('fs');
+const logger = require('happner-client/lib/logger');
 var Logger;
 
 require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
+  let log;
   beforeEach(function () {
     delete global['happn-logger'];
     delete require.cache[require.resolve('../lib/logger')];
@@ -143,7 +145,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
 
     it('can set the log level', function () {
       Logger.configure();
-      let log = Logger.createLogger();
+      log = Logger.createLogger();
       Logger.config.log = test.sinon.spy();
       log.info('should log info');
       Logger.config.log.calledOnce.should.equal(true);
@@ -524,7 +526,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
 
       Logger.emitter.on('after', function (level, message) {
         listened[level] = message;
-        if (Object.keys(listened).length == 3) {
+        if (Object.keys(listened).length === 3) {
           listened['info'].split('ms ')[1].should.equal('INFO-TEST');
           listened['warn'].split('ms ')[1].should.equal('WARN-TEST');
           listened['error'].split('ms ')[1].should.equal('ERROR-TEST');
@@ -587,30 +589,22 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     it('calls the log raw functions', function () {
       Logger.configure({ logLevel: 'trace' });
       log = Logger.createLogger();
-      const CaptureStdout = require('capture-stdout');
-      const captureStdout = new CaptureStdout();
-      captureStdout.startCapture();
+      Logger.config.$$RAW = test.sinon.spy();
+
       log.json['fatal']({ test: 'fatal' });
       log.json['info']({ test: 'info' });
       log.json['error']({ test: 'error' });
       log.json['debug']({ test: 'debug' });
       log.json['warn']({ test: 'warn' });
       log.json['trace']({ test: 'trace' });
-      captureStdout.stopCapture();
-      const arrJson = captureStdout
-        .getCapturedText()
-        .map(JSON.parse)
-        .map((item) => {
-          delete item.timestamp;
-          return item;
-        });
-      arrJson.should.eql([
-        { level: 'fatal', data: { test: 'fatal' } },
-        { level: 'info', data: { test: 'info' } },
-        { level: 'error', data: { test: 'error' } },
-        { level: 'debug', data: { test: 'debug' } },
-        { level: 'warn', data: { test: 'warn' } },
-        { level: 'trace', data: { test: 'trace' } },
+      Logger.config.$$RAW.callCount.should.eql(6)
+      Logger.config.$$RAW.args.should.eql([
+        [{ test: 'fatal' }, 'fatal', undefined],
+        [{ test: 'info' }, 'info', undefined],
+        [{ test: 'error' }, 'error', undefined],
+        [{ test: 'debug' }, 'debug', undefined],
+        [{ test: 'warn' }, 'warn', undefined],
+        [{ test: 'trace' }, 'trace', undefined],
       ]);
     });
 

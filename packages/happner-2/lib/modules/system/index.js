@@ -59,4 +59,8 @@ function System() {
       happnerVersion: require('../../../package.json').version,
     };
   };
+
+  this.setLogLevel = function (level) {
+    Logger.setLogLevel(level);
+  };
 }
