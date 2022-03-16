@@ -1,6 +1,6 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   var server;
-
+  if (global['happn-logger']) delete global['happn-logger'];
   before('start server', function (done) {
     this.timeout(5000);
 

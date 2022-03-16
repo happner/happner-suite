@@ -26,7 +26,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
       { name: 'mem', isDefault: false, patterns: [] },
     ]);
     test
-      .expect(happn.log.info.firstCall.args)
+      .expect(happn.log.debug.firstCall.args)
       .to.eql(['persisting to default file %s', happn.getDefaultFileName({ name: 'test-db' })]);
     config = happn.__initializeDbConfig(testScenario3);
     test.expect(config.happn.services.data.config.datastores).to.eql([

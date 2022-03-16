@@ -188,7 +188,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
     var mesh = mockMesh(config);
     var expectedMessageHappened = false;
 
-    mesh.log.debug = (msg) => {
+    mesh.log.$$TRACE = (msg) => {
       test
         .expect(msg)
         .to.be(
