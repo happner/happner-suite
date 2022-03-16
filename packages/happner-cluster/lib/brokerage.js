@@ -105,7 +105,7 @@ Brokerage.prototype.__updateInjectedComponent = function (changedComponent, what
     ._updateElement(updatedElement)
     .then(() => {
       this.__updateInjectedElements(changedComponent, updatedElement);
-      this.logger.info('element re-injected: ' + changedComponent.component.name);
+      this.logger.debug('element re-injected: ' + changedComponent.component.name);
       if (this.__fromRemotePeer(whatChanged)) {
         // pre-injected placeholders would be created by this peer itself
         // and so they should be ignored for satisfaction

@@ -597,7 +597,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       log.json['debug']({ test: 'debug' });
       log.json['warn']({ test: 'warn' });
       log.json['trace']({ test: 'trace' });
-      Logger.config.$$RAW.callCount.should.eql(6)
+      Logger.config.$$RAW.callCount.should.eql(6);
       Logger.config.$$RAW.args.should.eql([
         [{ test: 'fatal' }, 'fatal', undefined],
         [{ test: 'info' }, 'info', undefined],

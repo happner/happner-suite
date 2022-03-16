@@ -227,7 +227,7 @@ describe('02 - unit - brokerage component', function () {
     brokerage.__checkDependenciesSatisfied();
   });
 
-  it('tests the __handleDependencyMet method', function (done) {
+  it.only('tests the __handleDependencyMet method', function (done) {
     //package, mesh, client
     var mockModels = {
       brokerComponent: {
@@ -255,7 +255,7 @@ describe('02 - unit - brokerage component', function () {
     };
     let count = 0;
     var mockLogger = {
-      info: function (msg) {
+      debug: function (msg) {
         count++;
         if (count === 2) {
           expect('remote dependency satisfied: remote-mesh.test').to.be(msg);
