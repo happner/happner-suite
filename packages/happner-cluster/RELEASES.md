@@ -331,6 +331,10 @@
 ----------------- 
   - SMC-4198: SMC-4198: updated dependencies
 
+12.0.4 2022-03-16
+----------------- 
+  - TEN-34: updated happner-client and happner-2
+
 
 
   
