@@ -1,6 +1,5 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   var server;
-  if (global['happn-logger']) delete global['happn-logger'];
   before('start server', function (done) {
     this.timeout(5000);
 
@@ -24,7 +23,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
 
   it('can change log levels', async function () {
     let logger = require('happn-logger');
+    let oldLevel = logger.config.level;
     logger.config.log = test.sinon.spy();
+    server.exchange.system.setLogLevel('info'); //Log may be at some other level due to previous tests.
+    await test.delay(1000);
     server._mesh.happn.server.log.debug('shouldnt log');
     server._mesh.happn.server.log.info('should log');
     test.expect(logger.config.log.neverCalledWith('debug')).to.be(true);
@@ -36,5 +38,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
     test
       .expect(logger.config.log.calledWith('debug', 'MESH_NAME', 'HappnServer', 'should log'))
       .to.be(true);
+    server.exchange.system.setLogLevel(oldLevel);
   });
 });
