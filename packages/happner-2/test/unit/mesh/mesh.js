@@ -51,6 +51,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       error: function () {},
       trace: function () {},
       debug: function () {},
+      warn: function () {},
       $$DEBUG: function () {},
       $$TRACE: function () {},
       createLogger: function () {
