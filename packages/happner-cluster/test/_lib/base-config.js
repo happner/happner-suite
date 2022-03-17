@@ -1,5 +1,5 @@
 const PORT_CONSTANTS = require('./helpers/port-constants');
-module.exports = function(
+module.exports = function (
   extendedSeq,
   minPeers,
   secure,
@@ -23,20 +23,20 @@ module.exports = function(
     ignoreDependenciesOnStartup: true,
     cluster: {
       requestTimeout: clusterRequestTimeout,
-      responseTimeout: clusterResponseTimeout
+      responseTimeout: clusterResponseTimeout,
     },
     happn: {
       secure: secure,
       services: {
         security: {
           config: {
-            sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET'
-          }
+            sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET',
+          },
         },
         data: {
           config: {
-            autoUpdateDBVersion: true
-          }
+            autoUpdateDBVersion: true,
+          },
         },
         membership: {
           config: {
@@ -45,21 +45,26 @@ module.exports = function(
             seed: seq === first,
             seedWait: 1000,
             hosts,
-            joinTimeout
-          }
+            joinTimeout,
+          },
         },
         proxy: {
           config: {
-            port: PORT_CONSTANTS.PROXY_BASE + seq
-          }
+            port: PORT_CONSTANTS.PROXY_BASE + seq,
+          },
         },
         orchestrator: {
           config: {
             minimumPeers: minPeers || 3,
-            replicate
-          }
-        }
-      }
-    }
+            replicate,
+            intervals: {
+              keepAlive: 1e3,
+              membership: 2e3,
+            },
+            keepAliveThreshold: 2e3,
+          },
+        },
+      },
+    },
   };
 };
