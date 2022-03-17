@@ -4,6 +4,7 @@ const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
+const testlightclient = require('../_lib/client-light');
 const delay = require('await-delay');
 const getSeq = require('../_lib/helpers/getSeq');
 
@@ -31,6 +32,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       });
     });
   });
+
+  // in case needed in future
+  //test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
@@ -201,40 +205,150 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .catch(done);
     });
 
-    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
-      startClusterEdgeFirst()
-        .then(function () {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(function () {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-        })
-        .then(function () {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod3'
-          );
-        })
-        .then(function () {
-          return new Promise(function (resolve) {
-            setTimeout(resolve, 5000);
-          });
-        })
-        .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(1));
-        })
-        .then(function (client) {
-          client.exchange.remoteComponent1.brokeredMethod3('test', function (e, result) {
-            test.expect(e).to.be(null);
-            test
-              .expect(result)
-              .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username');
-            setTimeout(done, 2000);
-          });
-        })
-        .catch(done);
+    async function setupPermissionsCorrectOrigin() {
+      await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod3');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod4');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod4');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod5');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod5');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod6');
+      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod6');
+    }
+
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client callback', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
+      await test.delay(2000);
+
+      const client = await testclient.create('username', 'password', getSeq.getPort(1));
+      const result1 = await client.exchange.remoteComponent1.brokeredMethod3('test');
+      const result2 = await client.exchange.remoteComponent1.brokeredMethod3();
+      test
+        .expect(result1)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username');
+      test
+        .expect(result2)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:null:username');
+      const result3 = await client.exchange.remoteComponent1.brokeredMethod4(1, 2);
+      const result4 = await client.exchange.remoteComponent1.brokeredMethod4(2);
+      const result5 = await client.exchange.remoteComponent1.brokeredMethod4(undefined, 2);
+      const result6 = await client.exchange.remoteComponent1.brokeredMethod4();
+      test
+        .expect(result3)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:3');
+      test
+        .expect(result4)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:2');
+      test
+        .expect(result5)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:2');
+      test
+        .expect(result6)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:0');
+
+      await client.disconnect();
+    });
+
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client async', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
+      await test.delay(2000);
+
+      const client = await testclient.create('username', 'password', getSeq.getPort(1));
+      const result1 = await client.exchange.remoteComponent1.brokeredMethod5('test');
+      const result2 = await client.exchange.remoteComponent1.brokeredMethod5();
+      test
+        .expect(result1)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:test:username');
+      test
+        .expect(result2)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:undefined:username');
+      const result3 = await client.exchange.remoteComponent1.brokeredMethod6(1, 2);
+      const result4 = await client.exchange.remoteComponent1.brokeredMethod6(2);
+      const result5 = await client.exchange.remoteComponent1.brokeredMethod6(undefined, 2);
+      const result6 = await client.exchange.remoteComponent1.brokeredMethod6();
+      test
+        .expect(result3)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:3');
+      test
+        .expect(result4)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+      test
+        .expect(result5)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+      test
+        .expect(result6)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
+
+      await client.disconnect();
+    });
+
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin light client', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
+      await test.delay(2000);
+
+      let client = await testlightclient.create(
+        'DOMAIN_NAME',
+        'username',
+        'password',
+        getSeq.getPort(1)
+      );
+      const result1 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod5',
+        arguments: ['test'],
+      });
+      const result2 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod5',
+        arguments: [],
+      });
+      const result3 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod6',
+        arguments: [1, 2],
+      });
+      const result4 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod6',
+        arguments: [2],
+      });
+      const result5 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod6',
+        arguments: [undefined, 2],
+      });
+      const result6 = await client.exchange.$call({
+        component: 'remoteComponent1',
+        method: 'brokeredMethod6',
+        arguments: [],
+      });
+
+      test
+        .expect(result1)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:test:username');
+
+      test
+        .expect(result2)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:undefined:username');
+
+      test
+        .expect(result3)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:3');
+      test
+        .expect(result4)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+      test
+        .expect(result5)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+      test
+        .expect(result6)
+        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
+
+      await client.disconnect();
     });
 
     it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {

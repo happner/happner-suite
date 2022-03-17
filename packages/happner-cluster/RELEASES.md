@@ -315,5 +315,31 @@
 -----------------
   - SMC-4933: $happn.isAuthorized(user)
 
+12.0.0 2022-03-01
+-----------------
+  - SMC-4198: monorepo upgrade
+
+12.0.1 2022-03-03
+-----------------
+  - SMC-4198: git and npm ignore updates
+
+12.0.2 2022-03-03
+-----------------
+  - SMC-4198: loki is a dependency of happn-3, added migration docs
+
+12.0.3 2022-03-08
+----------------- 
+  - SMC-4198: SMC-4198: updated dependencies
+
+12.0.4 2022-03-16
+----------------- 
+  - TEN-34: updated happner-client and happner-2
+
+12.0.5 2022-03-16
+----------------- 
+  - SMC-4817: updated happn-cluster
+
+
+
 
   

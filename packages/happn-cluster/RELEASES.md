@@ -234,5 +234,18 @@ non-release 2017-12-14
   - SMC-4938: lookup tables fail for rest request
   - SMC-4550: lookup tables security sync items
 
+12.0.0 2022-03-01
+-----------------
+  - SMC-4198: monorepo upgrade
 
-  
+12.0.1 2022-03-03
+-----------------
+  - SMC-4198: git and npm ignore updates
+
+12.0.2 2022-03-10
+-----------------
+  - SMC-5125: happn-3: Permissions-sets now accurately reflect templated paths
+
+12.1.0 2022-03-17
+-----------------
+  - SMC-4817: Major refactor, took out swim, replaced with Databased logging of members.
