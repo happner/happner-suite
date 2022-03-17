@@ -926,24 +926,6 @@ ComponentInstance.prototype._inject = function (methodDefn, parameters, origin) 
   return parameters;
 };
 
-// ComponentInstance.prototype._inject = function (methodDefn, parameters, origin) {
-//   let copiedParameters = parameters.slice();
-//   let argumentsLength = methodDefn.$argumentsLength;
-
-//   //make sure we can accomodate $originSeq and $happnSeq
-//   if (methodDefn.$happnSeq > argumentsLength) {
-//     argumentsLength = methodDefn.$happnSeq;
-//   }
-//   if (methodDefn.$originSeq > argumentsLength) {
-//     argumentsLength = methodDefn.$originSeq;
-//   }
-//   return new Array(argumentsLength).fill(undefined).map((_arg, argIndex) => {
-//     if (argIndex === methodDefn.$happnSeq) return this.bindToOrigin(origin);
-//     if (argIndex === methodDefn.$originSeq) return origin;
-//     return copiedParameters.shift();
-//   });
-// };
-
 ComponentInstance.prototype.__callBackWithWarningAndError = function (category, message, callback) {
   const error = new Error(message);
   this.log.warn(`${category}:${message}`);
