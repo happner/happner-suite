@@ -202,8 +202,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .catch(done);
     });
 
-    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', async () => {
-      await startClusterEdgeFirst();
+    async function setupPermissionsCorrectOrigin() {
       await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
       await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
       await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod3');
@@ -213,16 +212,14 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod5');
       await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod6');
       await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod6');
+    }
+
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client callback', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
       await test.delay(2000);
 
-      await testBrokeredMethodsNormalClientCallback('username', 'password');
-      await testBrokeredMethodsNormalClientAsync('username', 'password');
-      await testBrokeredMethodsLightClient('username', 'password');
-      console.log();
-    });
-
-    async function testBrokeredMethodsNormalClientCallback(username, password) {
-      const client = await testclient.create(username, password, getSeq.getPort(1));
+      const client = await testclient.create('username', 'password', getSeq.getPort(1));
       const result1 = await client.exchange.remoteComponent1.brokeredMethod3('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod3();
       test
@@ -249,10 +246,14 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:0');
 
       await client.disconnect();
-    }
+    });
 
-    async function testBrokeredMethodsNormalClientAsync(username, password) {
-      const client = await testclient.create(username, password, getSeq.getPort(1));
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client async', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
+      await test.delay(2000);
+
+      const client = await testclient.create('username', 'password', getSeq.getPort(1));
       const result1 = await client.exchange.remoteComponent1.brokeredMethod5('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod5();
       test
@@ -279,13 +280,17 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
-    }
+    });
 
-    async function testBrokeredMethodsLightClient(username, password) {
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin light client', async () => {
+      await startClusterEdgeFirst();
+      await setupPermissionsCorrectOrigin();
+      await test.delay(2000);
+
       let client = await testlightclient.create(
         'DOMAIN_NAME',
-        username,
-        password,
+        'username',
+        'password',
         getSeq.getPort(1)
       );
       const result1 = await client.exchange.$call({
@@ -341,7 +346,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
-    }
+    });
 
     it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
       startClusterInternalFirst()
