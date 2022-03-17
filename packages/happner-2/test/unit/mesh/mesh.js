@@ -51,6 +51,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       error: function () {},
       trace: function () {},
       debug: function () {},
+      warn: function () {},
       $$DEBUG: function () {},
       $$TRACE: function () {},
       createLogger: function () {
@@ -181,41 +182,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       });
       done();
     }
-  });
-
-  it('test the _addInjectedArgument function', async () => {
-    var config = {};
-    var mesh = mockMesh(config);
-    var expectedMessageHappened = false;
-
-    mesh.log.debug = (msg) => {
-      test
-        .expect(msg)
-        .to.be(
-          'cannot check native function testModule:testMethod9 arguments for $happn injection'
-        );
-      expectedMessageHappened = true;
-    };
-
-    const moduleInst = {
-      module: {
-        name: 'testModule',
-        instance: getTestClass(),
-      },
-    };
-
-    mesh._addInjectedArgument(moduleInst, 'happn', function (e) {
-      test.expect(e).to.be(null);
-    });
-    await test.delay(2000);
-    test.expect(expectedMessageHappened).to.be(true);
-    test.expect(moduleInst.module.instance.testMethod['$happnSeq']).to.be(0);
-    test.expect(moduleInst.module.instance.testMethod4['$happnSeq']).to.be(0);
-    test.expect(moduleInst.module.instance.testMethod5['$happnSeq']).to.be(0);
-    test.expect(moduleInst.module.instance.testMethod6['$happnSeq']).to.be(0);
-    test.expect(moduleInst.module.instance.testMethod7['$happnSeq']).to.be(1);
-    test.expect(moduleInst.module.instance.testMethod8['$happnSeq']).to.be(0);
-    test.expect(moduleInst.module.instance.testMethod10['$happnSeq']).to.be(0);
   });
 
   it('test the _updateElement method', function (done) {
