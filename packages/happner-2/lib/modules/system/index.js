@@ -18,7 +18,7 @@ class SystemComponent {
   }
 
   stop() {
-    Logger.emitter.removeAllListeners('after')
+    Logger.emitter.removeAllListeners('after');
   }
 
   compactDBFile($happn, callback) {
@@ -66,17 +66,17 @@ class SystemComponent {
   }
   publishLogEvent($happn) {
     return (level, msg, additional) => {
-      try {
-        if ($happn.data.noConnection()) return;
-        $happn.emitLocal(`system/log/${level}`, {
+      if ($happn.data.noConnection()) return;
+      $happn.emitLocal(
+        `system/log/${level}`,
+        {
           level,
           msg,
           additional,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
-        "noCallback"
-        );
-      } catch {}
+        () => {}
+      );
     };
   }
 }

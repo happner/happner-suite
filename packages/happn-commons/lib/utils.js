@@ -188,9 +188,7 @@ module.exports = {
       var _this = this;
 
       if (opts && opts.unshift) args.unshift(opts.unshift);
-      if (args[args.length - 1] === 'noCallback') {
-        return originalFunction.apply(this, args.slice(0, -1));
-      }
+
       if (args[args.length - 1] == null) args.splice(args.length - 1);
 
       // No promisify if last passed arg is function (ie callback)
