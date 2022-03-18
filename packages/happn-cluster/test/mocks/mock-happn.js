@@ -38,6 +38,8 @@ Object.defineProperty(MockHappn.prototype, 'log', {
         throw err;
       },
       info: function () {},
+      debug: function () {},
+      $$TRACE: function () {},
     };
   },
 });
