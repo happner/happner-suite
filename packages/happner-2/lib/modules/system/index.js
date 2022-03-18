@@ -1,27 +1,25 @@
 var os = require('os');
 var procStats = require('proc-stats');
-const commons = require('happn-commons'),
-  fs = commons.fs;
-var diskspace = require('diskspace');
 var Logger = require('happn-logger');
 
 module.exports = function () {
-  return new System();
+  return new SystemComponent();
 };
 
-function System() {
-  this.__systemUp = Date.now();
-  this.initialize = function ($happn, callback) {
+class SystemComponent {
+  constructor() {
+    this.__systemUp = Date.now();
+  }
+  initialize($happn, callback) {
     this.__lastTimestamp = Date.now();
     this.$happn = $happn;
+    Logger.emitter.on('after', this.publishLogEvent($happn));
     callback(null);
-  };
-
-  this.compactDBFile = function ($happn, callback) {
+  }
+  compactDBFile($happn, callback) {
     return $happn._mesh.happn.server.services.data.compact(callback);
-  };
-
-  this.getStats = function ($happn, callback) {
+  }
+  getStats($happn, callback) {
     try {
       var now = Date.now();
       var seconds = (now - this.__lastTimestamp) / 1000;
@@ -44,9 +42,8 @@ function System() {
     } catch (e) {
       callback(e);
     }
-  };
-
-  this.systemInfo = function () {
+  }
+  systemInfo() {
     return {
       host: os.hostname(),
       type: os.type(),
@@ -58,9 +55,18 @@ function System() {
       cpus: os.cpus(),
       happnerVersion: require('../../../package.json').version,
     };
-  };
-
-  this.setLogLevel = function (level) {
+  }
+  async setLogLevel(level) {
     Logger.setLogLevel(level);
-  };
+  }
+  publishLogEvent($happn) {
+    return (level, msg, additional) => {
+      $happn.emitLocal(`system/log/${level}`, {
+        level,
+        msg,
+        additional,
+        timestamp: Date.now(),
+      });
+    };
+  }
 }

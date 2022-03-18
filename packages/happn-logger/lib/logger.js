@@ -103,7 +103,7 @@ module.exports.configure = function (config) {
     if (Config.logDateFormat && !Config.logLayout) {
       Config.logLayout = {
         type: 'pattern',
-        pattern: '%d{' + Config.logDateFormat + '} [%5.5p] - %m',
+        pattern: `%d{${Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS'}} [%5.5p] - %m`,
       };
     }
 
@@ -112,7 +112,7 @@ module.exports.configure = function (config) {
       if (!Config.logLayout) {
         Config.logLayout = {
           type: 'pattern',
-          pattern: '[%[%5.5p%]] - %m',
+          pattern: `%d{${Config.logDateFormat || 'yyyy-MM-dd hh:mm:ss.SSS'}} [%5.5p] - %m`,
         };
       }
     }
