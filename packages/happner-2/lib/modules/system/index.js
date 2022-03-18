@@ -16,6 +16,11 @@ class SystemComponent {
     Logger.emitter.on('after', this.publishLogEvent($happn));
     callback(null);
   }
+
+  stop() {
+    Logger.emitter.removeAllListeners('after')
+  }
+
   compactDBFile($happn, callback) {
     return $happn._mesh.happn.server.services.data.compact(callback);
   }
