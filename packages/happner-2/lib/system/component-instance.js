@@ -900,22 +900,30 @@ ComponentInstance.prototype.describe = function (cached) {
 };
 
 ComponentInstance.prototype._inject = function (methodDefn, parameters, origin) {
-  // must inject left to right otherwise subsequent left inject slides preceding right inject rightward
-  if (typeof methodDefn.$happnSeq !== 'undefined' && typeof methodDefn.$originSeq !== 'undefined') {
+  if (parameters.length < methodDefn.$argumentsLength) {
+    // pad undefined values
+    parameters = parameters.concat(
+      new Array(methodDefn.$argumentsLength - parameters.length).fill(undefined)
+    );
+  }
+  if (methodDefn.$happnSeq != null && methodDefn.$originSeq != null) {
+    // these must happen in the order of the smallest sequence first
     if (methodDefn.$happnSeq < methodDefn.$originSeq) {
       parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
       parameters.splice(methodDefn.$originSeq, 0, origin);
-      return;
+    } else {
+      parameters.splice(methodDefn.$originSeq, 0, origin);
+      parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
     }
-    parameters.splice(methodDefn.$originSeq, 0, origin);
-    parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-    return;
+  } else {
+    if (methodDefn.$originSeq != null) {
+      parameters.splice(methodDefn.$originSeq, 0, origin);
+    }
+    if (methodDefn.$happnSeq != null) {
+      parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
+    }
   }
-
-  if (typeof methodDefn.$happnSeq !== 'undefined')
-    parameters.splice(methodDefn.$happnSeq, 0, this.bindToOrigin(origin));
-  if (typeof methodDefn.$originSeq !== 'undefined')
-    parameters.splice(methodDefn.$originSeq, 0, origin);
+  return parameters;
 };
 
 ComponentInstance.prototype.__callBackWithWarningAndError = function (category, message, callback) {
@@ -970,9 +978,10 @@ ComponentInstance.prototype._loadModule = function (module) {
             if (methodSchema.type === 'sync-promise') {
               let result;
               try {
-                _this._inject(methodDefn, parameters, origin);
-
-                result = methodDefn.apply(_this.module.instance, parameters);
+                result = methodDefn.apply(
+                  _this.module.instance,
+                  _this._inject(methodDefn, parameters, origin)
+                );
               } catch (syncPromiseError) {
                 return callback(null, [syncPromiseError]);
               }
@@ -1006,9 +1015,10 @@ ComponentInstance.prototype._loadModule = function (module) {
             }
           }
 
-          _this._inject(methodDefn, parameters, origin);
-
-          let returnObject = methodDefn.apply(_this.module.instance, parameters);
+          let returnObject = methodDefn.apply(
+            _this.module.instance,
+            _this._inject(methodDefn, parameters, origin)
+          );
 
           if (utilities.isPromise(returnObject)) {
             if (callbackIndex > -1 && utilities.isPromise(returnObject))
@@ -1077,9 +1087,7 @@ ComponentInstance.prototype._runWithInjection = function (args, mesh, methodDefn
   var parameters = Array.prototype.slice.call(args);
   var origin = _this._getWebOrigin(mesh, parameters);
 
-  _this._inject(methodDefn, parameters, origin);
-
-  methodDefn.apply(_this.module.instance, parameters);
+  methodDefn.apply(_this.module.instance, _this._inject(methodDefn, parameters, origin));
 };
 
 ComponentInstance.prototype._attachRouteTarget = function (

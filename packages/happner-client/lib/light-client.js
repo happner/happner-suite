@@ -88,12 +88,12 @@
     });
   });
 
-  LightHappnerClient.prototype.disconnect = function (callback) {
+  LightHappnerClient.prototype.disconnect = Promisify(function (callback) {
     this.__connection.disconnect(callback);
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.stop();
-  };
+  });
 
   LightHappnerClient.prototype.dataClient = function () {
     return this.__connection.client;

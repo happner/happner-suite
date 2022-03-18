@@ -75,12 +75,12 @@
     this.__connection.connect(connection, options, callback);
   });
 
-  HappnerClient.prototype.disconnect = function (callback) {
+  HappnerClient.prototype.disconnect = Promisify(function (callback) {
     this.__connection.disconnect(callback);
     // TODO: call clear
     this.__operations.stop();
     this.__implementors.stop();
-  };
+  });
 
   HappnerClient.prototype.dataClient = function () {
     return this.__connection.client;
