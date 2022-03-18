@@ -5,7 +5,7 @@
 var MockPubsub = require('./mock-pubsub');
 var MockTransport = require('./mock-transport');
 var MockSession = require('./mock-session');
-// var MockMembership = require("./mock-membership");
+var MockMembership = require('./mock-membership');
 const mockOpts = require('../mocks/mock-opts');
 var MockOrchestrator = require('./mock-orchestrator');
 
@@ -20,14 +20,14 @@ var MockHappn = function (mode, targetPort, mockDataService) {
     transport: new MockTransport(),
     session: new MockSession(),
     orchestrator: new MockOrchestrator(mockOpts),
-    data: mockDataService || mockData,
+    data: mockDataService,
     proxy: {
       config: {
         host: '0.0.0.0',
         port: 8015,
       },
     },
-    // membership: new MockMembership()
+    membership: new MockMembership(),
   };
 };
 
@@ -73,13 +73,3 @@ Object.defineProperty(MockHappn.prototype, 'server', {
 });
 
 module.exports = MockHappn;
-
-let mockData = {
-  storage: {},
-  upsert: function (key, value) {
-    this.storage[key] = value;
-  },
-  get: function () {
-    return Object.values(this.storage).map((obj) => ({ data: obj }));
-  },
-};

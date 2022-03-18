@@ -1,8 +1,8 @@
-module.exports = function(object, propertyName, value) {
+module.exports = function (object, propertyName, value) {
   Object.defineProperty(object, propertyName, {
-    get: function() {
+    get: function () {
       return value;
     },
-    enumerable: true
+    enumerable: true,
   });
 };

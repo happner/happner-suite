@@ -1,13 +1,12 @@
 /**
  * Created by grant on 2016/09/26.
  */
-
 var format = require('util').format;
 var GetAddress = require('../utils/get-address');
 var proxy = require('http-proxy');
 var dface = require('dface');
 var property = require('../utils/property');
-const Util = require('util');
+
 function Proxy(opts) {
   property(this, 'log', opts.logger.createLogger('Proxy'));
   property(this, 'getAddress', GetAddress(this.log));
@@ -32,7 +31,7 @@ Proxy.prototype.initialize = function (config, callback) {
   }
 };
 
-Proxy.prototype.start = Util.promisify(function (callback) {
+Proxy.prototype.start = require('util').promisify(function (callback) {
   var port,
     host,
     self = this;

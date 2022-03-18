@@ -59,8 +59,8 @@ Replicator.prototype.stop = function (options, callback) {
   callback();
 };
 
-Replicator.prototype.start = util.promisify(function (callback) {
-  property(this, 'localClient', this.happn.services.orchestrator.localClient);
+Replicator.prototype.start = require('util').promisify(function (callback) {
+  property(this, 'localClient', this.happn.services.orchestrator.members.__self.client);
   this.securityChangesetReplicate();
   this.localClient.on(
     '/__REPLICATE',
