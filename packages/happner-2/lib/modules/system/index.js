@@ -61,6 +61,7 @@ class SystemComponent {
   }
   publishLogEvent($happn) {
     return (level, msg, additional) => {
+      if ($happn.data.noConnection()) return;
       $happn.emitLocal(`system/log/${level}`, {
         level,
         msg,
