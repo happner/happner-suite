@@ -188,6 +188,8 @@ module.exports = {
       var _this = this;
 
       if (opts && opts.unshift) args.unshift(opts.unshift);
+      if (args[args.length - 1] === null) return originalFunction.apply(this, args);
+
       if (args[args.length - 1] == null) args.splice(args.length - 1);
 
       // No promisify if last passed arg is function (ie callback)

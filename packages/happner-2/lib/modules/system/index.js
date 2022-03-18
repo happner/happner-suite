@@ -72,8 +72,10 @@ class SystemComponent {
           level,
           msg,
           additional,
-          timestamp: Date.now(),
-        });
+          timestamp: Date.now()
+        },
+        null
+        );
       } catch {}
     };
   }
