@@ -74,7 +74,7 @@ class SystemComponent {
           additional,
           timestamp: Date.now()
         },
-        null
+        "noCallback"
         );
       } catch {}
     };
