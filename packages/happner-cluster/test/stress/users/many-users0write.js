@@ -45,7 +45,6 @@ require('../../_lib/test-helper').describe({ timeout: 680e3 }, (test) => {
     let userPrefixes = [];
 
     for (let i = 0; i < 200; i++) {
-      console.log({ i });
       let userPrefix = Date.now().toString();
       userPrefixes.push(userPrefix);
       await Promise.all(
@@ -57,29 +56,13 @@ require('../../_lib/test-helper').describe({ timeout: 680e3 }, (test) => {
       );
     }
 
-    // let userPrefix = userPrefixes[0]
-    // // userPrefixes.push(userPrefix);
-    // await Promise.all(
-    //   Array(50)
-    //     .fill(1)
-    //     .map((i, o) => {
-    //       return addUser(servers[0], userPrefix + '-' + o.toString());
-    //     })
-    // );
+
     await test.delay(2000);
     for (let j = 0; j < 50; j++) {
       let username = _.sample(userPrefixes) + '-' + j;
       let user = await fetchUser(servers[1], username);
-      if (!user.groups._MESH_GST) console.log(user);
       test.expect(user.groups._MESH_GST).to.be.ok();
     }
   });
-  // it.only('fetches users', async() => {
-  //   for (let j = 0; j < 50; j++) {
-  //     //   let username = _.sample(userPrefixes) + '-' + j;
-  //     let user = await fetchUser(servers[1], '1646823186729' + '-' + j);
-  //     if (!user.groups._MESH_GST) console.log(user);
-  //     test.expect(user.groups._MESH_GST).to.be.ok();
-  //   }
-  // })
+
 });
