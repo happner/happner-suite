@@ -1,4 +1,4 @@
-require('../_lib/test-helper').describe({ timeout: 60e3, only: true }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const helpers = {
     client: require('../_lib/client'),
     configuration: require('../_lib/helpers/configuration').create(),
