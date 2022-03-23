@@ -16,6 +16,11 @@ class SystemComponent {
     Logger.emitter.on('after', this.publishLogEvent($happn));
     callback(null);
   }
+
+  stop() {
+    Logger.emitter.removeAllListeners('after');
+  }
+
   compactDBFile($happn, callback) {
     return $happn._mesh.happn.server.services.data.compact(callback);
   }
@@ -61,12 +66,17 @@ class SystemComponent {
   }
   publishLogEvent($happn) {
     return (level, msg, additional) => {
-      $happn.emitLocal(`system/log/${level}`, {
-        level,
-        msg,
-        additional,
-        timestamp: Date.now(),
-      });
+      if ($happn.data.noConnection()) return;
+      $happn.emitLocal(
+        `system/log/${level}`,
+        {
+          level,
+          msg,
+          additional,
+          timestamp: Date.now(),
+        },
+        () => {}
+      );
     };
   }
 }

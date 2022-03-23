@@ -5,97 +5,87 @@ var HappnCluster = require('../..');
 var hooks = require('../lib/hooks');
 var testUtils = require('../lib/test-utils');
 
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 3;
 var happnSecure = false;
 
 // eslint-disable-next-line no-unused-vars
-let testConfigs = [
-  {
-    testSequence: testSequence,
-    size: clusterSize,
-    happnSceure: happnSecure,
-  }, // Single service ('happn-cluster-node')
-  {
+require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  before(function () {
+    this.logLevel = process.env.LOG_LEVEL;
+    process.env.LOG_LEVEL = 'off';
+  });
+
+  hooks.startCluster({
     testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
-    clusterConfig: {
-      'cluster-service-1': 1,
-      'cluster-service-2': 2,
-    }, //Multiple services
-  },
-];
-testConfigs.forEach((testConfig) => {
-  require('../lib/test-helper').describe({ timeout: 120e3 }, function () {
-    before(function () {
-      this.logLevel = process.env.LOG_LEVEL;
-      process.env.LOG_LEVEL = 'off';
-    });
+    services: {
+      membership: {
+        pingInterval: 2000,
+      },
+    },
+  });
 
-    hooks.startCluster(testConfig);
+  it('starting a new member survives when stopping an existing member simultaneously', function (done) {
+    // the starting member receives the membership list which includes the departed member
+    // so it attempts to login to the departed member - only discovering later (swim lag)
+    // that the departed member is departed.
+    //
+    // so it gets ECONNREFUSED
+    //
+    // safe at this point to assume the member is not there (literally no socket listening)
+    // so the member is removed from the expectation list of members-that-must-be-connected-to-for-stabilise
 
-    it('starting a new member survives when stopping an existing member simultaneously', async function () {
-      // the starting member receives the membership list which includes the departed member
-      // so it attempts to login to the departed member - only discovering later (swim lag)
-      // that the departed member is departed.
-      //
-      // so it gets ECONNREFUSED
-      //
-      // safe at this point to assume the member is not there (literally no socket listening)
-      // so the member is removed from the test.expectation list of members-that-must-be-connected-to-for-stabilise
-      let config;
-      if (!testConfig.clusterConfig)
-        config = (
-          await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {
-            // membership: {
-            //   pingInterval: 2000,
-            // },
-          })
-        ).pop();
-      else {
-        config = (
-          await testUtils.createMultiServiceMemberConfigs(
-            testSequence,
-            clusterSize,
-            false,
-            false,
-            {
-              // membership: {
-              //   pingInterval: 2000,
-              // },
-            },
-            {
-              'cluster-service-1': 1,
-              'cluster-service-2': 2,
-            }
-          )
-        ).pop();
-      }
+    var _this = this;
 
-      // increment ports to one beyond last existing peer
-      config.port++;
-      // config.services.membership.config.port++;
-      config.services.proxy.config.port++;
-      // console.log(config)
-      var stopServer = this.servers.pop();
-      setTimeout(function () {
-        stopServer.stop({ reconnect: false });
-      }, 1500);
+    Promise.resolve()
 
-      config.services.orchestrator.config.minimumPeers--;
-      let newServer = await HappnCluster.create(config);
+      .then(function () {
+        return testUtils.createMemberConfigs(testSequence, clusterSize, happnSecure, false, {
+          membership: {
+            pingInterval: 2000,
+          },
+        });
+      })
 
-      this.servers.push(newServer);
+      .then(function (configs) {
+        return configs.pop();
+      })
 
-      await testUtils.awaitExactMembershipCount(this.servers);
-    });
+      .then(function (config) {
+        // increment ports to one beyond last existing peer
+        config.port++;
+        config.services.membership.config.port++;
+        config.services.proxy.config.port++;
 
-    hooks.stopCluster();
+        var stopServer = _this.servers.pop();
+        setTimeout(function () {
+          stopServer
+            .stop({ reconnect: false })
+            .then(function () {})
+            .catch(done);
+        }, config.services.membership.config.joinTimeout - 20);
 
-    after(function () {
-      testSequence++;
-      process.env.LOG_LEVEL = this.logLevel;
-    });
+        config.services.orchestrator.config.minimumPeers--;
+        return HappnCluster.create(config);
+      })
+
+      .then(function (newServer) {
+        _this.servers.push(newServer);
+      })
+
+      .then(function () {
+        return testUtils.awaitExactMembershipCount(_this.servers);
+      })
+
+      .then(done)
+      .catch(done);
+  });
+
+  hooks.stopCluster();
+
+  after(function () {
+    process.env.LOG_LEVEL = this.logLevel;
   });
 });

@@ -5,7 +5,7 @@ var HappnClient = require('happn-3').client;
 
 var hooks = require('../lib/hooks');
 
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 1;
 var happnSecure = false;
 
@@ -62,7 +62,6 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   hooks.stopCluster();
 
   after(function () {
-    testSequence++;
     process.env.LOG_LEVEL = this.logLevel;
   });
 });

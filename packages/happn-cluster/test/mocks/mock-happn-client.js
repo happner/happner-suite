@@ -1,5 +1,4 @@
 var lastLoginConfig;
-const NodeUtil = require('util');
 module.exports.getLastLoginConfig = function () {
   var cloned = JSON.parse(JSON.stringify(lastLoginConfig));
 
@@ -9,12 +8,8 @@ module.exports.getLastLoginConfig = function () {
 };
 
 var queuedLoginError = null;
-let loginError = () => {
-  return true;
-};
-module.exports.queueLoginError = function (error, condition) {
+module.exports.queueLoginError = function (error) {
   queuedLoginError = error;
-  if (condition) loginError = condition;
 };
 
 var queuedSubscriptionError = null;
@@ -22,8 +17,8 @@ module.exports.queueSubscriptionError = function (error) {
   queuedSubscriptionError = error;
 };
 
-module.exports.create = NodeUtil.promisify(function (config, callback) {
-  if (queuedLoginError && loginError()) {
+module.exports.create = function (config, callback) {
+  if (queuedLoginError) {
     var error = queuedLoginError;
     queuedLoginError = null;
     process.nextTick(function () {
@@ -46,7 +41,7 @@ module.exports.create = NodeUtil.promisify(function (config, callback) {
   process.nextTick(function () {
     callback(null, new MockHappnClient(name));
   });
-});
+};
 
 module.exports.instances = {};
 
@@ -81,8 +76,8 @@ MockHappnClient.prototype.onEvent = function (event, handler) {
 };
 
 MockHappnClient.prototype.offEvent = function () {};
-MockHappnClient.prototype.disconnect = () => {};
-MockHappnClient.prototype.on = NodeUtil.promisify(function (path, opts, handler, callback) {
+
+MockHappnClient.prototype.on = function (path, opts, handler, callback) {
   if (queuedSubscriptionError) {
     var error = queuedSubscriptionError;
     queuedSubscriptionError = null;
@@ -94,7 +89,7 @@ MockHappnClient.prototype.on = NodeUtil.promisify(function (path, opts, handler,
   this.__subscribed.push(path);
   this.__subscriptionHandlers[path] = handler;
   process.nextTick(callback);
-});
+};
 
 MockHappnClient.prototype.emitDisconnect = function () {
   var handlers = this.eventHandlers['reconnect-scheduled'];

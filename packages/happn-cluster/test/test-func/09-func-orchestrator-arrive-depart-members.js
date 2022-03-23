@@ -2,12 +2,11 @@ var path = require('path');
 var filename = path.basename(__filename);
 
 var HappnCluster = require('../..');
-var Member = require('../../lib/services/orchestrator/member');
 var hooks = require('../lib/hooks');
 var testUtils = require('../lib/test-utils');
 
 var testSequence = parseInt(filename.split('-')[0]);
-var clusterSize = 3;
+var clusterSize = 10;
 var happnSecure = false;
 
 require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
@@ -20,6 +19,10 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
+  });
+
+  before('wait for lagging swim membership from initial bootstrap', function (done) {
+    testUtils.awaitExactMembershipCount(this.servers, done);
   });
 
   before('create extra config', function (done) {
@@ -38,36 +41,48 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     );
   });
 
-  before('backup functions being stubbed', function () {
-    this.originalSubscribe = Member.prototype.__subscribe;
-  });
+  it('arriving and departing members become known to all nodes', function (done) {
+    var _this = this;
 
-  after('restore functions being stubbed', function () {
-    Member.prototype.__subscribe = this.originalSubscribe;
-  });
+    var emittedAdd = {};
+    var emittedRemove = {};
 
-  it('stops the server on failure to stabilise', function (done) {
-    Member.prototype.__subscribe = function () {
-      return new Promise(function (resolve, reject) {
-        reject(new Error('Fake failure to subscribe'));
+    this.servers.forEach(function (server, i) {
+      server.services.membership.on('add', function (info) {
+        emittedAdd[i] = info;
       });
-    };
+
+      server.services.membership.on('remove', function (info) {
+        emittedRemove[i] = info;
+      });
+    });
 
     HappnCluster.create(this.extraConfig)
 
       .then(function (server) {
+        _this.servers.push(server); // add new server at end
+      })
+
+      .then(function () {
+        return testUtils.awaitExactMembershipCount(_this.servers);
+      })
+
+      .then(function () {
+        var server = _this.servers.pop(); // remove and stop new server
         return server.stop({ reconnect: false });
       })
 
       .then(function () {
-        throw new Error('should not have started');
+        return testUtils.awaitExactMembershipCount(_this.servers);
       })
 
-      .catch(function (error) {
-        test.expect(error.message).to.equal('Fake failure to subscribe');
-        done();
+      .then(function () {
+        // console.log(emittedAdd);
+        test.expect(Object.keys(emittedAdd).length).to.equal(clusterSize);
+        test.expect(Object.keys(emittedRemove).length).to.equal(clusterSize);
       })
 
+      .then(done)
       .catch(done);
   });
 

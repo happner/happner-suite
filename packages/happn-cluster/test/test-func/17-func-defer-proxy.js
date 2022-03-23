@@ -4,7 +4,7 @@ var net = require('net');
 
 var hooks = require('../lib/hooks');
 
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 1;
 var happnSecure = false;
 
@@ -32,10 +32,8 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
 
   it('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
-
     var port = this.__configs[0].services.proxy.config.port;
-
-    var connection = net.connect(port);
+    let connection = net.connect(port);
 
     connection.on('connect', function () {
       connection.destroy();
@@ -64,7 +62,6 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   hooks.stopCluster();
 
   after(function () {
-    testSequence++;
     process.env.LOG_LEVEL = this.logLevel;
   });
 });

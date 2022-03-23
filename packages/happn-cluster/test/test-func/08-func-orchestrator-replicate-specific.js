@@ -3,12 +3,20 @@ var filename = path.basename(__filename);
 var Happn = require('happn-3');
 
 var hooks = require('../lib/hooks');
-const NodeUtils = require('util');
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
+
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 3;
 var happnSecure = true;
-let testConfigs = [
-  {
+
+require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+  let Promise = test.bluebird;
+
+  before(function () {
+    this.logLevel = process.env.LOG_LEVEL;
+    process.env.LOG_LEVEL = 'off';
+  });
+
+  hooks.startCluster({
     testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
@@ -17,78 +25,61 @@ let testConfigs = [
         replicate: ['/*/*/this', '/and/that'], // <---------------
       },
     },
-  },
-  {
-    testSequence: testSequence,
-    size: clusterSize,
-    happnSecure: happnSecure,
-    services: {
-      orchestrator: {
-        replicate: ['/*/*/this', '/and/that'], // <---------------
+  });
+
+  before('connect a client to each server', function (done) {
+    var _this = this;
+    Promise.resolve(this.__configs)
+      .map(function (config) {
+        var loginConfig = {
+          config: {
+            secure: happnSecure,
+            host: config.services.proxy.config.host,
+            port: config.services.proxy.config.port,
+            protocol: 'http',
+            username: config.services.security.config.adminUser.username,
+            password: config.services.security.config.adminUser.password,
+          },
+        };
+
+        return Happn.client.create(loginConfig);
+      })
+      .then(function (clients) {
+        clients.forEach(function (client) {
+          client.onAsync = Promise.promisify(client.on);
+        });
+        _this.clients = clients;
+        done();
+      })
+      .catch(done);
+  });
+
+  after('disconnect all clients', function (done) {
+    if (!this.clients) return done();
+
+    var async = require('async');
+
+    async.eachSeries(
+      this.clients,
+      function (client, clientCB) {
+        return client.disconnect(clientCB);
       },
-    },
-    clusterConfig: {
-      'cluster-service-1': 1,
-      'cluster-service-2': 2,
-    }, //Multiple services
-  },
-];
-testConfigs.forEach((testConfig) => {
-  require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
-    before(function () {
-      this.logLevel = process.env.LOG_LEVEL;
-      process.env.LOG_LEVEL = 'off';
-    });
+      done
+    );
+  });
 
-    hooks.startCluster(testConfig);
+  it('replicates specified paths', function (done) {
+    var _this = this;
+    var unpause1, unpause2;
+    var controlEvent1,
+      replicatedEvents1 = [];
+    var controlEvent2,
+      replicatedEvents2 = [];
 
-    before('connect a client to each server', async function () {
-      let clients = await Promise.all(
-        this.__configs.map((config) => {
-          var loginConfig = {
-            config: {
-              secure: happnSecure,
-              host: config.services.proxy.config.host,
-              port: config.services.proxy.config.port,
-              protocol: 'http',
-              username: config.services.security.config.adminUser.username,
-              password: config.services.security.config.adminUser.password,
-            },
-          };
+    Promise.resolve()
 
-          return Happn.client.create(loginConfig);
-        })
-      );
-      clients.forEach(function (client) {
-        client.onAsync = NodeUtils.promisify(client.on);
-      });
-      this.clients = clients;
-    });
-
-    after('disconnect all clients', function (done) {
-      if (!this.clients) return done();
-
-      var async = require('async');
-
-      async.eachSeries(
-        this.clients,
-        function (client, clientCB) {
-          return client.disconnect(clientCB);
-        },
-        done
-      );
-    });
-
-    it('replicates specified paths', async function () {
-      var _this = this;
-      var unpause1, unpause2;
-      var controlEvent1,
-        replicatedEvents1 = [];
-      var controlEvent2,
-        replicatedEvents2 = [];
-
-      await Promise.all(
-        this.clients.map((client, i) => {
+      .then(function () {
+        return Promise.resolve(_this.clients).map(function (client, i) {
           return client.onAsync('/something/like/this', function (data, meta) {
             delete meta.sessionId; // not the same across events
             if (i === 0) {
@@ -108,11 +99,11 @@ testConfigs.forEach((testConfig) => {
               }, 100);
             }
           });
-        })
-      );
+        });
+      })
 
-      await Promise.all(
-        this.clients.map((client, i) => {
+      .then(function () {
+        return Promise.resolve(_this.clients).map(function (client, i) {
           return client.onAsync('/*/that', function (data, meta) {
             delete meta.sessionId; // not the same across events
             if (i === 0) {
@@ -132,54 +123,83 @@ testConfigs.forEach((testConfig) => {
               }, 200);
             }
           });
-        })
-      );
+        });
+      })
 
-      await this.clients[0].set('/something/like/this', { some1: 'data1' });
+      .then(function () {
+        return _this.clients[0].set('/something/like/this', { some1: 'data1' });
+      })
 
-      await new Promise(function (resolve) {
-        unpause1 = resolve;
-      });
+      .then(function () {
+        return new Promise(function (resolve) {
+          unpause1 = resolve;
+        });
+      })
 
-      await this.clients[0].set('/and/that', { some2: 'data2' });
+      .then(function () {
+        return _this.clients[0].set('/and/that', { some2: 'data2' });
+      })
 
-      await new Promise(function (resolve) {
-        unpause2 = resolve;
-      });
-      test.expect(replicatedEvents1.length).to.be(2);
-      test.expect(replicatedEvents2.length).to.be(2);
+      .then(function () {
+        return new Promise(function (resolve) {
+          unpause2 = resolve;
+        });
+      })
 
-      for (let event of replicatedEvents1) {
-        test.expect(event).to.eql(controlEvent1);
-      }
-      for (let event of replicatedEvents2) {
-        test.expect(event).to.eql(controlEvent2);
-      }
-    });
+      .then(function () {
+        for (var i = 0; i < replicatedEvents1.length; i++) {
+          test.expect(replicatedEvents1[i]).to.eql(controlEvent1);
+        }
+      })
 
-    it('does not replicate unspecified paths', async function () {
-      var receivedCount = 0;
+      .then(function () {
+        for (var i = 0; i < replicatedEvents2.length; i++) {
+          test.expect(replicatedEvents2[i]).to.eql(controlEvent2);
+        }
+      })
 
-      await Promise.all(
-        this.clients.map((client) => {
-          return client.onAsync('/unreplicated/path', () => {
+      .then(function () {
+        done();
+      })
+      .catch(done);
+  });
+
+  it('does not replicate unspecified paths', function (done) {
+    var _this = this;
+    var receivedCount = 0;
+
+    Promise.resolve()
+
+      .then(function () {
+        return Promise.resolve(_this.clients).map(function (client) {
+          return client.onAsync('/unreplicated/path', function () {
             receivedCount++;
           });
-        })
-      );
+        });
+      })
 
-      await this.clients[0].set('/unreplicated/path', { some: 'data' });
-      await test.delay(500);
+      .then(function () {
+        return _this.clients[0].set('/unreplicated/path', { some: 'data' });
+      })
 
-      // only client logged into original emitting host receives event
-      test.expect(receivedCount).to.eql(1);
-    });
+      .then(function () {
+        return test.delay(404);
+      })
 
-    hooks.stopCluster();
+      .then(function () {
+        // only client logged into original emitting host receives event
+        test.expect(receivedCount).to.eql(1);
+      })
 
-    after(function () {
-      testSequence++;
-      process.env.LOG_LEVEL = this.logLevel;
-    });
+      .then(function () {
+        done();
+      })
+      .catch(done);
+  });
+
+  hooks.stopCluster();
+
+  after(function () {
+    process.env.LOG_LEVEL = this.logLevel;
   });
 });

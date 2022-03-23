@@ -5,105 +5,119 @@ var Orchestrator = require('../../lib/services/orchestrator');
 var hooks = require('../lib/hooks');
 var testUtils = require('../lib/test-utils');
 
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 3;
 
-let clusterConfigs = [
-  null,
-  {
-    'cluster-service-1': 1,
-    'cluster-service-2': 2,
-  },
-];
-clusterConfigs.forEach((clusterConfig) => {
-  require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
-    before(function () {
-      this.logLevel = process.env.LOG_LEVEL;
-      process.env.LOG_LEVEL = 'off';
-    });
+require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+  before(function () {
+    this.logLevel = process.env.LOG_LEVEL;
+    process.env.LOG_LEVEL = 'off';
+  });
 
-    before('backup functions being mocked', function () {
-      this.original__stateUpdate = Orchestrator.prototype.__stateUpdate;
-    });
+  // hooks.startCluster({
+  //   size: clusterSize,
+  //   happnSecure: happnSecure
+  // });
 
-    after('restore functions being mocked', function () {
-      Orchestrator.prototype.__stateUpdate = this.original__stateUpdate;
-    });
+  before('backup functions being mocked', function () {
+    this.original__stateUpdate = Orchestrator.prototype.__stateUpdate;
+  });
 
-    it('pends the stabilise callback till after minimumPeers are fully connected', async function () {
-      var self = this;
-      var configs;
-      var lastConfig;
-      var interval;
+  after('restore functions being mocked', function () {
+    Orchestrator.prototype.__stateUpdate = this.original__stateUpdate;
+  });
 
-      self.servers = []; // servers for hooks.stopCluster(); to stop
+  it('pends the stabilise callback till after minimumPeers are fully connected', function (done) {
+    var self = this;
+    var configs;
+    var lastConfig;
+    var interval;
 
-      // because we get no callback before stabilise we need to intercept internally in order
-      // to know when to start the last server such that we're actually testing for minimumPeers
+    self.servers = []; // servers for hooks.stopCluster(); to stop
 
-      var readyNames = {};
-      Orchestrator.prototype.__stateUpdate = function () {
-        // call original so that nothing is out of the ordinary,
-        // `this` refers to the orchestrator instance for the necessary context
-        self.original__stateUpdate.call(this);
+    // because we get no callback before stabilise we need to intercept internally in order
+    // to know when to start the last server such that we're actually testing for minimumPeers
 
-        if (Object.keys(this.peers).length === clusterSize - 1) {
-          // got all the peers we should have in order to trigger starting the last one
-          readyNames[this.happn.name] = 1;
-        }
-      };
+    var readyNames = {};
+    Orchestrator.prototype.__stateUpdate = function () {
+      // call original so that nothing is out of the ordinary,
+      // `this` refers to the orchestrator instance for the necessary context
+      self.original__stateUpdate.call(this);
 
-      // set test.delaying interval to start last peer
-
-      interval = setInterval(async function () {
-        if (Object.keys(readyNames).length !== clusterSize - 1) return;
-        clearInterval(interval);
-
-        let server = await HappnCluster.create(lastConfig);
-        self.servers.push(server);
-      }, 10);
-
-      // start the first clusterSize - 1 peers
-      if (clusterConfig) {
-        configs = await testUtils.createMultiServiceMemberConfigs(
-          testSequence,
-          clusterSize,
-          false,
-          false,
-          {},
-          clusterConfig
-        );
-      } else {
-        configs = await testUtils.createMemberConfigs(testSequence, clusterSize, false, false, {});
-        test.expect(configs[0].services.orchestrator.config.minimumPeers).to.equal(clusterSize);
+      if (Object.keys(this.peers).length === clusterSize - 1) {
+        // got all the peers we should have in order to trigger starting the last one
+        readyNames[this.happn.name] = 1;
       }
-      lastConfig = configs.pop();
-      let servers = [];
-      servers.push(HappnCluster.create(configs[0]));
-      await test.delay(1000);
-      // start first peer immediately and others a moment
-      // later so they don't all fight over creating the
-      // admin user in the shared database
-      for (let [sequence, config] of configs.entries()) {
-        if (sequence === 0) {
-          continue;
-        }
-        servers.push(HappnCluster.create(config));
-      }
-      self.servers = await Promise.all(servers);
+    };
 
-      await testUtils.awaitExactMembershipCount(self.servers, clusterSize);
+    // set waiting interval to start last peer
 
-      await testUtils.awaitExactPeerCount(self.servers, clusterSize);
-
+    interval = setInterval(function () {
+      if (Object.keys(readyNames).length !== clusterSize - 1) return;
       clearInterval(interval);
-    });
 
-    hooks.stopCluster();
+      HappnCluster.create(lastConfig)
+        .then(function (server) {
+          self.servers.push(server);
+        })
+        .catch(done);
+    }, 10);
 
-    after(function () {
-      testSequence++;
-      process.env.LOG_LEVEL = this.logLevel;
-    });
+    // start the first clusterSize - 1 peers
+
+    Promise.resolve()
+
+      .then(function () {
+        return testUtils.createMemberConfigs(testSequence, clusterSize, false, false, {});
+      })
+
+      .then(function (_configs) {
+        configs = _configs;
+        // relying on minimumPeers being configured in createMemberConfigs
+        test.expect(configs[0].services.orchestrator.config.minimumPeers).to.equal(clusterSize);
+        lastConfig = configs.pop();
+      })
+
+      .then(function () {
+        return createClusters(self, configs);
+      })
+
+      .then(function () {
+        return testUtils.awaitExactMembershipCount(self.servers, clusterSize);
+      })
+
+      .then(function () {
+        return testUtils.awaitExactPeerCount(self.servers, clusterSize);
+      })
+
+      .then(done)
+      .catch(done)
+
+      .finally(function () {
+        clearInterval(interval);
+      });
+  });
+
+  async function createClusters(self, configs) {
+    let sequence = 0;
+    let unresolved = [];
+    for (let config of configs) {
+      if (sequence > 0) {
+        await test.delay(500);
+      }
+      unresolved.push(HappnCluster.create(config));
+
+      sequence++;
+    }
+    await test.delay(2000);
+    for (let promise of unresolved) {
+      self.servers.push(await promise);
+    }
+  }
+
+  hooks.stopCluster();
+
+  after(function () {
+    process.env.LOG_LEVEL = this.logLevel;
   });
 });

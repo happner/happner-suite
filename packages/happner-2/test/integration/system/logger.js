@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   var server;
   before('start server', function (done) {
     this.timeout(5000);
