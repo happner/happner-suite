@@ -23,17 +23,17 @@ describe(test.testName(__filename, 4), function () {
     const apiModule = new ApiModule();
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
-    test.expect(apiModule.__componentExists(mock$happn, 'existing', 'method')).to.be(true);
+    test.expect(apiModule.__destinationExists(mock$happn, 'existing', 'method')).to.be(true);
     await apiModule.stop(mock$happn);
   });
 
-  it('tests component exists, without exact endpoint match', async () => {
+  it('tests component exists but fails, without exact endpoint match', async () => {
     const apiModule = new ApiModule();
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
     test
-      .expect(apiModule.__componentExists(mock$happn, 'component-no-method', 'method'))
-      .to.be(true);
+      .expect(apiModule.__destinationExists(mock$happn, 'component-no-method', 'method'))
+      .to.be(false);
     await apiModule.stop(mock$happn);
   });
 
@@ -41,7 +41,7 @@ describe(test.testName(__filename, 4), function () {
     const apiModule = new ApiModule();
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
-    test.expect(apiModule.__componentExists(mock$happn, 'no-component', 'method')).to.be(false);
+    test.expect(apiModule.__destinationExists(mock$happn, 'no-component', 'method')).to.be(false);
     await apiModule.stop(mock$happn);
   });
 
@@ -63,7 +63,7 @@ describe(test.testName(__filename, 4), function () {
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
     const requestsHandler = apiModule.createAllExchangeRequestsHandler(mock$happn);
-    const __componentExistsSpy = test.sinon.spy(apiModule, '__componentExists');
+    const __destinationExistsSpy = test.sinon.spy(apiModule, '__destinationExists');
 
     requestsHandler(
       {
@@ -73,7 +73,7 @@ describe(test.testName(__filename, 4), function () {
         path: '/test-domain/existing/method',
       }
     );
-    test.expect(__componentExistsSpy.firstCall.returnValue).to.be(true);
+    test.expect(__destinationExistsSpy.firstCall.returnValue).to.be(true);
     test.sinon.assert.notCalled(mock$happn._mesh.data.publish);
 
     requestsHandler(
@@ -84,7 +84,7 @@ describe(test.testName(__filename, 4), function () {
         path: '/test-domain/non-existing/method',
       }
     );
-    test.expect(__componentExistsSpy.secondCall.returnValue).to.be(false);
+    test.expect(__destinationExistsSpy.secondCall.returnValue).to.be(false);
     test
       .expect(
         mock$happn._mesh.data.publish.calledWith('/test/callback', {
@@ -180,11 +180,15 @@ function mockhappn() {
     log: {
       warn: test.sinon.stub(),
     },
-    _mesh: {
-      exchange: {
-        '/existing/method': {},
-        '/component-no-method/noMethod': {},
+    exchange: {
+      existing: {
+        method: () => {},
       },
+      'component-no-method': {
+        noMethod: () => {},
+      },
+    },
+    _mesh: {
       config: {
         domain: 'test-domain',
         name: 'test-name',

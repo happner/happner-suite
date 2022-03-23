@@ -227,7 +227,7 @@ describe('02 - unit - brokerage component', function () {
     brokerage.__checkDependenciesSatisfied();
   });
 
-  it.only('tests the __handleDependencyMet method', function (done) {
+  it('tests the __handleDependencyMet method', function (done) {
     //package, mesh, client
     var mockModels = {
       brokerComponent: {

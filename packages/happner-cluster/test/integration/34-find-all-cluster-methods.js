@@ -36,7 +36,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3, only: true }, (test) =>
   }
 
   async function callMethods() {
-    test.expect(await client.exchange.component2.method()).to.be(3);
+    const result = await client.exchange.component2.method();
+    test.expect(result).to.be(3);
   }
 
   async function disconnectClient() {
