@@ -17,10 +17,8 @@ Api.prototype.stop = async function ($happn) {
   }
 };
 
-Api.prototype.__destinationExists = function ($happn, component, method) {
-  if (!$happn.exchange[component]) return false;
-  if (!$happn.exchange[component][method]) return false;
-  return true;
+Api.prototype.__destinationExists = function ($happn, component) {
+  return $happn.exchange[component] != null;
 };
 
 Api.prototype.getComponentAndMethodFromPath = function (path) {
@@ -35,7 +33,7 @@ Api.prototype.getComponentAndMethodFromPath = function (path) {
 Api.prototype.createAllExchangeRequestsHandler = function ($happn) {
   return (data, meta) => {
     const componentAndMethod = this.getComponentAndMethodFromPath(meta.path);
-    if (this.__destinationExists($happn, componentAndMethod[0], componentAndMethod[1])) return;
+    if (this.__destinationExists($happn, componentAndMethod[0])) return;
     $happn._mesh.data.publish(
       data.callbackAddress,
       {

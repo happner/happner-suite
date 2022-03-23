@@ -23,17 +23,7 @@ describe(test.testName(__filename, 4), function () {
     const apiModule = new ApiModule();
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
-    test.expect(apiModule.__destinationExists(mock$happn, 'existing', 'method')).to.be(true);
-    await apiModule.stop(mock$happn);
-  });
-
-  it('tests component exists but fails, without exact endpoint match', async () => {
-    const apiModule = new ApiModule();
-    const mock$happn = mockhappn();
-    await apiModule.start(mock$happn);
-    test
-      .expect(apiModule.__destinationExists(mock$happn, 'component-no-method', 'method'))
-      .to.be(false);
+    test.expect(apiModule.__destinationExists(mock$happn, 'existing')).to.be(true);
     await apiModule.stop(mock$happn);
   });
 
@@ -41,7 +31,7 @@ describe(test.testName(__filename, 4), function () {
     const apiModule = new ApiModule();
     const mock$happn = mockhappn();
     await apiModule.start(mock$happn);
-    test.expect(apiModule.__destinationExists(mock$happn, 'no-component', 'method')).to.be(false);
+    test.expect(apiModule.__destinationExists(mock$happn, 'no-component')).to.be(false);
     await apiModule.stop(mock$happn);
   });
 
