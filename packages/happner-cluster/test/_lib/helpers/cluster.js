@@ -42,7 +42,12 @@ module.exports = class Cluster extends Helper {
   static create() {
     return new Cluster();
   }
-  async destroy() {
+  async destroy(index) {
+    if (index >= 0) {
+      await this.instances[index].stop();
+      this.instances.splice(index, 1);
+      return;
+    }
     this.instances.sort((a, b) => {
       if (a._mesh.config.name < b._mesh.config.name) return -1;
       return 1;

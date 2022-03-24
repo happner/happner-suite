@@ -57,7 +57,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
     test.expect(results.map((result) => result.name)).to.eql(['MESH_2', 'MESH_2b', 'MESH_2']);
+    //ensure the method was only called 3 times
     test.expect(results.pop().callCount).to.be(3);
+
+    await cluster.destroy(2);
+    await test.delay(2e3);
+    results = [
+      await client.exchange.component2.method(),
+      await client.exchange.component2.method(),
+      await client.exchange.component2.method(),
+    ];
+    //there is only one instance available now, so should always be using the same one
+    test.expect(results.map((result) => result.name)).to.eql(['MESH_2', 'MESH_2', 'MESH_2']);
   }
 
   async function disconnectClient() {
