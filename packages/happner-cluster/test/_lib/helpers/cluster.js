@@ -9,23 +9,19 @@ module.exports = class Cluster extends Helper {
     };
     this.member = {
       start: async (configuration, wait) => {
-        let instance;
-        try {
-          instance = await HappnerCluster.create(configuration);
+        // before you think you can tidy this up, we need to use the callback, otherwise the we cannot move on to start other test peers
+        HappnerCluster.create(configuration, (e, instance) => {
+          if (e) {
+            // eslint-disable-next-line no-console
+            console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
+          }
           this.events.data.push({
             key: 'member-started',
             value: instance._mesh.config.name,
           });
           this.instances.push(instance);
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
-        }
+        });
         await this.delay(wait);
-        if (instance) {
-          return instance._mesh.config.name;
-        }
-        return null;
       },
     };
     this.component = {

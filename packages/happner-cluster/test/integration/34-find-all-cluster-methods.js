@@ -18,39 +18,37 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   async function startCluster() {
     cluster = helpers.cluster.create();
-    meshNames.push(
-      await cluster.member.start(
-        helpers.configuration.construct(34, [helpers.getSeq.getFirst(), 0], true, 1),
-        2000
-      )
+
+    await cluster.member.start(
+      helpers.configuration.construct(34, [helpers.getSeq.getFirst(), 0], true, 1),
+      2000
     );
-    meshNames.push(
-      await cluster.member.start(
-        helpers.configuration.construct(34, [helpers.getSeq.getNext(), 1], true, 1),
-        2000
-      )
+
+    await cluster.member.start(
+      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 1], true, 1),
+      2000
     );
-    meshNames.push(
-      await cluster.member.start(
-        helpers.configuration.construct(
-          34,
-          [helpers.getSeq.getNext(), 1],
-          true,
-          1,
-          undefined,
-          undefined,
-          undefined,
-          'b'
-        ),
-        2000
-      )
+
+    await cluster.member.start(
+      helpers.configuration.construct(
+        34,
+        [helpers.getSeq.getNext(), 1],
+        true,
+        1,
+        undefined,
+        undefined,
+        undefined,
+        'b'
+      ),
+      2000
     );
-    meshNames.push(
-      await cluster.member.start(
-        helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
-        6000
-      )
+
+    await cluster.member.start(
+      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
+      6000
     );
+
+    meshNames = cluster.instances.map((instance) => instance._mesh.config.name);
   }
 
   async function connectClient() {
