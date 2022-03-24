@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3, only: true }, (test) => {
   var server;
   before('start server', function (done) {
     this.timeout(5000);
@@ -46,5 +46,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       { level: 'info', additional: 'should log' },
       { level: 'debug', additional: 'should log' },
     ]);
+    await server.event.system.offPath('system/log/*');
   });
 });

@@ -2599,6 +2599,7 @@ Mesh.prototype.attachSystemComponents = function (config) {
     system: {
       accessLevel: 'mesh',
       initMethod: 'initialize',
+      stopMethod: 'stop',
     },
     rest: {
       accessLevel: 'mesh',
