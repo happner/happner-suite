@@ -5,23 +5,28 @@ module.exports = class Cluster extends Helper {
     super();
     this.instances = [];
     this.events = {
-      data: []
+      data: [],
     };
     this.member = {
       start: async (configuration, wait) => {
-        HappnerCluster.create(configuration, (e, instance) => {
-          if (e) {
-            // eslint-disable-next-line no-console
-            console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
-          }
+        let instance;
+        try {
+          instance = await HappnerCluster.create(configuration);
           this.events.data.push({
             key: 'member-started',
-            value: instance._mesh.config.name
+            value: instance._mesh.config.name,
           });
           this.instances.push(instance);
-        });
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
+        }
         await this.delay(wait);
-      }
+        if (instance) {
+          return instance._mesh.config.name;
+        }
+        return null;
+      },
     };
     this.component = {
       inject: (index, configuration) => {
@@ -31,12 +36,12 @@ module.exports = class Cluster extends Helper {
         });
         const instances = this.instances;
         return new Promise((resolve, reject) => {
-          instances[index]._mesh._createElement(configuration, true, e => {
+          instances[index]._mesh._createElement(configuration, true, (e) => {
             if (e) return reject(e);
             resolve();
           });
         });
-      }
+      },
     };
   }
   static create() {

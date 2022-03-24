@@ -8,7 +8,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   let client,
     username = '_ADMIN',
     password = 'happn',
-    cluster;
+    cluster,
+    meshNames = [];
   before('it starts the cluster', startCluster);
   before('it connects the client', connectClient);
   it('can reach methods inside the cluster', callMethods);
@@ -17,30 +18,38 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   async function startCluster() {
     cluster = helpers.cluster.create();
-    await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getFirst(), 0], true, 1),
-      2000
+    meshNames.push(
+      await cluster.member.start(
+        helpers.configuration.construct(34, [helpers.getSeq.getFirst(), 0], true, 1),
+        2000
+      )
     );
-    await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 1], true, 1),
-      2000
+    meshNames.push(
+      await cluster.member.start(
+        helpers.configuration.construct(34, [helpers.getSeq.getNext(), 1], true, 1),
+        2000
+      )
     );
-    await cluster.member.start(
-      helpers.configuration.construct(
-        34,
-        [helpers.getSeq.getNext(), 1],
-        true,
-        1,
-        undefined,
-        undefined,
-        undefined,
-        'b'
-      ),
-      2000
+    meshNames.push(
+      await cluster.member.start(
+        helpers.configuration.construct(
+          34,
+          [helpers.getSeq.getNext(), 1],
+          true,
+          1,
+          undefined,
+          undefined,
+          undefined,
+          'b'
+        ),
+        2000
+      )
     );
-    await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
-      6000
+    meshNames.push(
+      await cluster.member.start(
+        helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
+        6000
+      )
     );
   }
 
@@ -56,7 +65,9 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     ];
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
-    test.expect(results.map((result) => result.name)).to.eql(['MESH_2', 'MESH_2b', 'MESH_2']);
+    test
+      .expect(results.map((result) => result.name))
+      .to.eql([meshNames[1], meshNames[2], meshNames[1]]);
     //ensure the method was only called 3 times
     test.expect(results.pop().callCount).to.be(3);
 
@@ -68,7 +79,9 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       await client.exchange.component2.method(),
     ];
     //there is only one instance available now, so should always be using the same one
-    test.expect(results.map((result) => result.name)).to.eql(['MESH_2', 'MESH_2', 'MESH_2']);
+    test
+      .expect(results.map((result) => result.name))
+      .to.eql([meshNames[1], meshNames[1], meshNames[1]]);
   }
 
   async function disconnectClient() {
