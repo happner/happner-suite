@@ -595,7 +595,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
     });
   });
 
-  it('test that the attachSystemComponents method', function () {
+  it('test the attachSystemComponents method', function () {
     var mesh = mockMesh({});
     const testConfig = {
       modules: {
@@ -647,6 +647,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
         system: {
           accessLevel: 'mesh',
           initMethod: 'initialize',
+          stopMethod: 'stop',
         },
         rest: {
           accessLevel: 'mesh',
