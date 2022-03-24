@@ -2,7 +2,7 @@ class Component2 {
   async method($happn) {
     const result1 = await $happn.exchange.component0.method();
     const result2 = await $happn.exchange.component1.method();
-    return result1 + result2;
+    return { sum: result1 + result2.number, name: result2.name, callCount: result2.callCount };
   }
   async two() {}
 }

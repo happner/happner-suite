@@ -179,6 +179,7 @@
 
       var requestArgs = _this.requestBuilder
         .withComponent(component)
+        .withTargetMeshName(implementation.name)
         .withDomain(_this.implementors.domain)
         .withVersion(version)
         .withMethod(method)

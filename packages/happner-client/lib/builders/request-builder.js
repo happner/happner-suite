@@ -32,6 +32,11 @@
     return this;
   };
 
+  RequestBuilder.prototype.withTargetMeshName = function (targetMeshName) {
+    this.targetMeshName = targetMeshName;
+    return this;
+  };
+
   RequestBuilder.prototype.withVersion = function (version) {
     this.version = version;
     return this;
@@ -80,6 +85,7 @@
         id: this.id,
       },
       version: this.version,
+      targetMeshName: this.targetMeshName,
     };
 
     if (this.callbackPeer) requestArgs.callbackPeer = this.callbackPeer;
