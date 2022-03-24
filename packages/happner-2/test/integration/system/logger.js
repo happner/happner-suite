@@ -41,6 +41,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       .expect(logger.config.log.calledWith('debug', 'MESH_NAME', 'HappnServer', 'should log'))
       .to.be(true);
     await server.exchange.system.setLogLevel(oldLevel);
+    server._mesh.happn.server.log.debug('shouldnt log');
+    test
+      .expect(logger.config.log.calledWith('debug', 'MESH_NAME', 'HappnServer', 'shouldnt log'))
+      .to.be(false);
     await test.delay(1e3);
     test.expect(logData.map((item) => test.commons._.pick(item, ['level', 'additional']))).to.eql([
       { level: 'info', additional: 'should log' },
