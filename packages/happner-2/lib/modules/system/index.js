@@ -17,8 +17,8 @@ class SystemComponent {
     callback(null);
   }
 
-  async stop() {
-    await this.$happn.event.system.offPath('system/log/*');
+  async stop($happn) {
+    await $happn.event.system.offPath('system/log/*');
     Logger.emitter.removeAllListeners('after');
   }
 
