@@ -27,7 +27,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       logData.push(log);
     });
     let logger = require('happn-logger');
-    let oldLevel = logger.config.logLevel
+    let oldLevel = logger.config.logLevel;
     logger.config.log = test.sinon.spy(logger.config, 'log');
     await server.exchange.system.setLogLevel('info'); //Log may be at some other level due to previous tests.
     server._mesh.happn.server.log.debug('shouldnt log');
