@@ -76,7 +76,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     });
   });
   context('Reconstruction', () => {
-    before('creates test files',  () => {
+    before('creates test files', () => {
       test.fs.copySync(
         `${testFixturesDir}${test.commons.path.sep}bad-data`,
         `${testFixturesDir}${test.commons.path.sep}corrupted-data`,
@@ -97,7 +97,6 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
         `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
         { force: true }
       );
-
     });
     it('can restore from good data', async () => {
       await testRestore({}, 'good-data');
@@ -309,7 +308,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       ...settings,
     };
     await lokiProvider.initialize();
-    found = await lokiProvider.find('test/path/*');
+    const found = await lokiProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
     test.expect(lokiProvider.operationCount).to.be(0);
   }
