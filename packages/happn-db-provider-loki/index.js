@@ -63,8 +63,16 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     this.readDataFile(this.settings.filename, (error1) => {
       if (!error1) return this.snapshot(callback);
+      this.logger.warn(
+        `Could not resconstruct loki db from ${
+          this.settings.filename
+        }, attempting to reconstruct from temp file. ${error1.toString()}`
+      );
       this.readDataFile(this.settings.tempDataFilename, (error2) => {
         if (!error2) return this.snapshot(callback);
+        this.logger.error(
+          `Could not rescpnstruct loki db from file or temp file. Error on tempfile: ${error2.toString()}`
+        );
         callback(error1); //Rather callback with the error on the main file (?)
       });
     });
@@ -80,7 +88,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     reader.on('line', (line) => {
       if (lineIndex === 0) {
-        this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
+        try {
+          this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
+        } catch (e) {
+          callback(e);
+        }
         this.collection = this.db.collections[0];
       } else {
         try {
@@ -219,9 +231,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       this.copyTempDataToMain(callback);
     });
   }
+
   copyTempDataToMain(callback) {
-    fs.cp(this.settings.tempDataFilename, this.settings.filename, { force: true }, callback);
+    if (fs.existsSync(this.settings.filename)) fs.unlinkSync(this.settings.filename);
+    fs.cp(this.settings.tempDataFilename, this.settings.filename, callback);
   }
+
   storePlayback(operation, callback) {
     return (e, result) => {
       if (e) {
