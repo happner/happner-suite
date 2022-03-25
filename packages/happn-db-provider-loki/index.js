@@ -234,7 +234,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   copyTempDataToMain(callback) {
     if (fs.existsSync(this.settings.filename)) fs.unlinkSync(this.settings.filename);
-    fs.copyFile(this.settings.tempDataFilename, this.settings.filename, callback);
+    fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
   }
 
   storePlayback(operation, callback) {
