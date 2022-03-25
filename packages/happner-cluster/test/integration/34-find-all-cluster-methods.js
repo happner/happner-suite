@@ -57,9 +57,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   async function callMethods() {
     let results = [
-      await client.exchange.component2.method(),
-      await client.exchange.component2.method(),
-      await client.exchange.component2.method(),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
     ];
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
@@ -72,9 +81,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await cluster.destroy(2);
     await test.delay(2e3);
     results = [
-      await client.exchange.component2.method(),
-      await client.exchange.component2.method(),
-      await client.exchange.component2.method(),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
+      await client.exchange.$call({
+        component: 'component2',
+        method: 'method',
+      }),
     ];
     //there is only one instance available now, so should always be using the same one
     test

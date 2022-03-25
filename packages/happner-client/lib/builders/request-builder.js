@@ -32,11 +32,6 @@
     return this;
   };
 
-  RequestBuilder.prototype.withTargetMeshName = function (targetMeshName) {
-    this.targetMeshName = targetMeshName;
-    return this;
-  };
-
   RequestBuilder.prototype.withVersion = function (version) {
     this.version = version;
     return this;
@@ -85,43 +80,37 @@
         id: this.id,
       },
       version: this.version,
-      targetMeshName: this.targetMeshName,
     };
 
     if (this.callbackPeer) requestArgs.callbackPeer = this.callbackPeer;
 
-    switch (this.isSecure) {
-      case true:
-        requestArgs.callbackAddress =
-          '/_exchange/responses/' +
-          this.domain +
-          '/' +
-          this.component +
-          '/' +
-          this.method +
-          '/' +
-          this.id +
-          '/' +
-          this.sequence;
-        requestArgs.origin.username = this.username;
-
-        break;
-      default:
-        requestArgs.callbackAddress =
-          '/_exchange/responses/' +
-          this.id +
-          '/' +
-          this.domain +
-          '/' +
-          this.component +
-          '/' +
-          this.method +
-          '/' +
-          this.sequence;
+    if (this.isSecure) {
+      requestArgs.callbackAddress =
+        '/_exchange/responses/' +
+        this.domain +
+        '/' +
+        this.component +
+        '/' +
+        this.method +
+        '/' +
+        this.id +
+        '/' +
+        this.sequence;
+      requestArgs.origin.username = this.username;
+    } else {
+      requestArgs.callbackAddress =
+        '/_exchange/responses/' +
+        this.id +
+        '/' +
+        this.domain +
+        '/' +
+        this.component +
+        '/' +
+        this.method +
+        '/' +
+        this.sequence;
     }
-
     this.reset();
-
     return requestArgs;
   };
 })(typeof module !== 'undefined' && typeof module.exports !== 'undefined' ? false : true);

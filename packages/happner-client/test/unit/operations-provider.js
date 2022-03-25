@@ -437,7 +437,6 @@ describe(test.name(__filename, 2), function () {
               username: '_ADMIN',
             },
             version: 'version',
-            targetMeshName: undefined,
           });
           done();
         };
@@ -465,7 +464,6 @@ describe(test.name(__filename, 2), function () {
               id: 'SESSION_ID',
             },
             version: 'version',
-            targetMeshName: undefined,
           });
           done();
         };
@@ -498,6 +496,7 @@ describe(test.name(__filename, 2), function () {
           test.expect(options).to.eql({
             timeout: 10 * 1000,
             noStore: true,
+            noCluster: true,
           });
           done();
         };

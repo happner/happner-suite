@@ -1174,7 +1174,7 @@ ComponentInstance.prototype.__raiseOnPublishOK = function (response) {
 };
 
 ComponentInstance.prototype.__getSubscribeMask = function () {
-  return '/_exchange/requests/' + this.info.mesh.domain + '/' + this.name + '/*';
+  return `/_exchange/requests/${this.info.mesh.domain}/${this.name}/*`;
 };
 
 ComponentInstance.prototype.__reply = function (
@@ -1290,13 +1290,6 @@ ComponentInstance.prototype._attach = function (config, mesh, callback) {
       event_type: 'set',
     },
     function (publication, meta) {
-      if (
-        publication.targetMeshName != null &&
-        publication.targetMeshName !== _this.info.mesh.name
-      ) {
-        // dont process the request it is being round-robined to someone else
-        return;
-      }
       _this.log.$$TRACE('received request at %s', subscribeMask);
       var message = publication;
       var method = meta.path.split('/').pop();
