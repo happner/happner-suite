@@ -280,13 +280,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   appendOperationData(operationData, callback) {
     this.operationCount++;
-    const fileStream = this.getFileStream(this.settings.tempDataFilename);
+    const fileStream = this.getFileStream(this.settings.filename);
     fileStream.write(
       `${JSON.stringify(operationData)}\r\n`,
-      this.fsync(this.settings.tempDataFilename, (e) => {
-        if (e) callback(e);
-        this.copyTempDataToMain(callback);
-      })
+      this.fsync(this.settings.filename, callback)
     );
   }
 
