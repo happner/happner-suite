@@ -6,8 +6,7 @@ const db = require('lokijs'),
   util = commons.utils,
   fs = commons.fs,
   _ = commons._,
-  path = require('path'),
-  pathSep = commons.path.sep;
+  path = require('path');
 
 module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   constructor(settings, logger) {
@@ -33,11 +32,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       unique: ['path'],
     });
     this.persistenceOn = this.settings.filename != null;
-    if (this.persistenceOn) {
-      let pathArray = this.settings.filename.split(pathSep);
-      pathArray[pathArray.length - 1] = 'temp_' + pathArray[pathArray.length - 1];
-      this.settings.tempDataFilename = pathArray.join(pathSep);
-    }
     this.operationQueue = async.queue((operation, cb) => {
       this.processOperation(operation, cb);
     }, 1);
@@ -55,24 +49,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback();
     });
   }
-
   reconstruct(callback) {
     if (!fs.existsSync(this.settings.filename)) {
       return this.snapshot(callback);
     }
-
-    this.readDataFile(this.settings.filename, (error1) => {
-      if (!error1) return this.snapshot(callback);
-      this.readDataFile(this.settings.tempDataFilename, (error2) => {
-        if (!error2) return this.snapshot(callback);
-        callback(error1); //Rather callback with the error on the main file (?)
-      });
-    });
-  }
-
-  readDataFile(filename, callback) {
     const reader = readline.createInterface({
-      input: fs.createReadStream(filename),
+      input: fs.createReadStream(this.settings.filename),
       crlfDelay: Infinity,
     });
     let lineIndex = 0;
@@ -97,7 +79,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     reader.on('close', () => {
       if (!errorHappened) {
-        callback(null);
+        this.snapshot(callback);
       }
     });
 
@@ -109,7 +91,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       errorHappened = true;
     });
   }
-
   parsePersistedOperation(line) {
     let operation = JSON.parse(line).operation;
     if (operation.operationType === constants.DATA_OPERATION_TYPES.INSERT) {
@@ -214,13 +195,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   snapshot(callback) {
     this.operationCount = 0;
-    this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
-      if (e) callback(e);
-      this.copyTempDataToMain(callback);
-    });
-  }
-  copyTempDataToMain(callback) {
-    fs.cp(this.settings.tempDataFilename, this.settings.filename, { force: true }, callback);
+    this.persistSnapshotData({ snapshot: this.db.serialize() }, callback);
   }
   storePlayback(operation, callback) {
     return (e, result) => {
@@ -254,9 +229,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     };
   }
 
-  getFileStream(filename) {
+  getFileStream() {
     if (this.fileStream == null) {
-      let realPath = fs.realpathSync(filename);
+      let realPath = fs.realpathSync(this.settings.filename);
       fs.ensureDirSync(path.dirname(realPath));
       this.fileStream = fs.createWriteStream(realPath, { flags: 'a' });
     }
@@ -265,28 +240,21 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   appendOperationData(operationData, callback) {
     this.operationCount++;
-    const fileStream = this.getFileStream(this.settings.tempDataFilename);
-    fileStream.write(
-      `${JSON.stringify(operationData)}\r\n`,
-      this.fsync(this.settings.tempDataFilename, (e) => {
-        if (e) callback(e);
-        this.copyTempDataToMain(callback);
-      })
-    );
+    const fileStream = this.getFileStream();
+    fileStream.write(`${JSON.stringify(operationData)}\r\n`, this.fsync(callback));
   }
 
   persistSnapshotData(snapshotData, callback) {
     fs.writeFile(
-      this.settings.tempDataFilename,
+      this.settings.filename,
       `${JSON.stringify(snapshotData)}\r\n`,
       {
         flag: 'w',
       },
-      this.fsync(this.settings.tempDataFilename, callback)
+      this.fsync(callback)
     );
   }
-
-  fsync(filename, callback) {
+  fsync(callback) {
     return (e) => {
       if (e) {
         callback(e);
@@ -296,7 +264,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         callback(null);
         return;
       }
-      fs.open(filename, 'r+', (errorOpening, fd) => {
+      fs.open(this.settings.filename, 'r+', (errorOpening, fd) => {
         if (errorOpening) {
           callback(new Error(`failed syncing to storage device: ${errorOpening.message}`));
           return;
