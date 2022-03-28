@@ -802,7 +802,6 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockPush = test.sinon.stub();
       const mockAsyncQueue = test.sinon.stub(commons.async, 'queue');
-      const mockCallback = test.sinon.stub();
       const mockOperation = {
         operationType: constants.DATA_OPERATION_TYPES.UPSERT,
         arguments: ['mockPath', { data: 'mockData', _meta: { path: null } }],
@@ -1358,7 +1357,6 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
-      const mockCallback = test.sinon.stub();
       const mockOn = test.sinon.stub();
 
       test.sinon.stub(readline, 'createInterface').returns({
