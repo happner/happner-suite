@@ -32,6 +32,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       indices: ['path', 'created', 'modified'],
       unique: ['path'],
     });
+
     this.persistenceOn = this.settings.filename != null;
     if (this.persistenceOn) {
       let pathArray = this.settings.filename.split(pathSep);
@@ -193,6 +194,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
     options = options || {};
+
     let document = this.collection.findOne({ path });
     let result,
       created,
@@ -394,11 +396,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   findInternal(path, parameters) {
     let finalResult = [];
     let pathCriteria = this.getPathCriteria(path);
+
     if (!parameters) parameters = {};
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
     let results = this.collection.chain().find(pathCriteria);
     let options = parameters.options || {};
-
     if (results.count() === 0) {
       return options.count ? { data: { value: 0 } } : finalResult;
     }
@@ -411,7 +413,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ];
 
     finalResult = results.compoundsort(sortOptions).data({ forceClones: true, removeMeta: true });
-
     if (options.skip) {
       finalResult = finalResult.slice(options.skip);
     }
@@ -479,6 +480,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback = increment;
       increment = 1;
     }
+
     this.operationQueue.push(
       {
         operationType: constants.DATA_OPERATION_TYPES.INCREMENT,
