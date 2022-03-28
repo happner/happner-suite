@@ -17,9 +17,9 @@
     "url": "https://github.com/happner/happn-service-mongo-2.git"
   },
   "dependencies": {
-    "happn-commons": "^1.0.1",
-    "mongodb": "4.4",
-    "parse-mongo-url": "^1.1.1"
+    "mongodb": "^4.4.0",
+    "parse-mongo-url": "^1.1.1",
+    "happn-commons": "^1.0.1"
   },
   "devDependencies": {
     "byline": "^5.0.0",
