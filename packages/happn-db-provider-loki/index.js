@@ -25,6 +25,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.operationCount = 0;
   }
+
   initialize(callback) {
     this.dirty = true;
     this.db = new db();
@@ -61,7 +62,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (!fs.existsSync(this.settings.filename)) {
       return this.snapshot(callback);
     }
-
     this.readDataFile(this.settings.filename, (error1) => {
       if (!error1) return this.snapshot(callback);
       this.logger.warn(
@@ -229,7 +229,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   snapshot(callback) {
     this.operationCount = 0;
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
-      if (e) callback(e);
+      if (e) return callback(e);
       this.copyTempDataToMain(callback);
     });
   }
@@ -241,29 +241,21 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   storePlayback(operation, callback) {
     return (e, result) => {
-      if (e) {
-        callback(e);
-        return;
-      }
-      if (!this.persistenceOn) {
-        callback(null, result);
-        return;
-      }
+      if (e) return callback(e);
+      if (!this.persistenceOn) return callback(null, result);
+
       this.appendOperationData({ operation }, (appendFailure) => {
         if (appendFailure) {
           this.logger.error('failed persisting operation data', appendFailure);
-          callback(appendFailure);
-          return;
+          return callback(appendFailure);
         }
         if (this.operationCount < this.settings.snapshotRollOverThreshold) {
-          callback(null, result);
-          return;
+          return callback(null, result);
         }
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
-            callback(e);
-            return;
+            return callback(e);
           }
           callback(null, result);
         });

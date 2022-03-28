@@ -1,16 +1,14 @@
 const LokiDataProvider = require('../..');
 const commons = require('happn-commons');
-const test = require('happn-commons-test').create();
 const fs = commons.fs;
 const constants = commons.constants;
 const path = commons.path;
-const mockFs = require('mock-fs');
+const mockFs = commons.mockFs;
 const db = require('lokijs');
 const readline = require('readline');
 
-describe.only(test.testName(), function () {
-  this.timeout(120e3);
-
+require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
+  const mockFs = test.mockfs;
   let mockSettings;
   let mockLogger;
 
@@ -23,6 +21,7 @@ describe.only(test.testName(), function () {
 
     mockLogger = {
       error: test.sinon.stub(),
+      warn: test.sinon.stub(),
     };
 
     mockFs();
@@ -34,7 +33,7 @@ describe.only(test.testName(), function () {
   });
 
   describe('happy paths', () => {
-    it('can initialize', async () => {
+    it('can initialize', (done) => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
@@ -44,7 +43,7 @@ describe.only(test.testName(), function () {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockPush = test.sinon.stub();
       const mockAsyncQueue = test.sinon.stub(commons.async, 'queue');
-      const mockCallback = test.sinon.stub();
+
       const mockOperation = {
         operationType: constants.DATA_OPERATION_TYPES.UPSERT,
         arguments: [
@@ -76,7 +75,10 @@ describe.only(test.testName(), function () {
 
       test.sinon.stub(db.prototype, 'loadJSON').returns({});
 
-      const asyncInit = lokiDataProvider.initialize(mockCallback);
+      lokiDataProvider.initialize((e) => {
+        test.expect(e).to.be(undefined);
+        done();
+      });
 
       lokiDataProvider.db.collections = [
         {
@@ -91,11 +93,6 @@ describe.only(test.testName(), function () {
           update: test.sinon.stub(),
         },
       ];
-
-      await asyncInit;
-
-      test.chai.expect(mockCallback).to.have.been.callCount(1);
-      test.chai.expect(mockCallback).to.have.been.calledWithExactly();
     });
 
     it('initialize method returns persistenceOn is equal to null or undefined', (done) => {
@@ -175,12 +172,11 @@ describe.only(test.testName(), function () {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
-
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
 
-      test.chai.expect(lokiDataProvider.getFileStream()).to.have.returned;
+      test.chai.expect(lokiDataProvider.getFileStream(mockSettings.filename)).to.have.returned;
       test.chai
-        .expect(lokiDataProvider.getFileStream())
+        .expect(lokiDataProvider.getFileStream(mockSettings.filename))
         .to.be.instanceOf(Object)
         .has.own.property('path');
     });
@@ -231,17 +227,17 @@ describe.only(test.testName(), function () {
     it('fsync returns if this.settings.fsync equal to null', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
-      const fsync = lokiDataProvider.fsync(mockCallback);
+      const fsync = lokiDataProvider.fsync(mockSettings.filename, mockCallback);
 
-      test.chai.expect(fsync()).to.have.returned;
+      test.chai.expect(fsync(mockSettings.filename)).to.have.returned;
       test.chai.expect(mockCallback).to.have.callCount(1);
-      test.chai.expect(mockCallback).to.have.been.calledWithExactly(null);
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockFileName');
     });
 
     it('fsync returns if e is true', () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
-      const fsync = lokiDataProvider.fsync(mockCallback);
+      const fsync = lokiDataProvider.fsync(mockSettings.filename, mockCallback);
 
       test.chai.expect(fsync('mockString')).to.have.returned;
       test.chai.expect(mockCallback).to.have.callCount(1);
@@ -253,7 +249,7 @@ describe.only(test.testName(), function () {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const mockFsOpen = test.sinon.stub(fs, 'open');
-      const fsync = lokiDataProvider.fsync(mockCallback);
+      const fsync = lokiDataProvider.fsync(mockSettings.filename, mockCallback);
 
       fsync();
 
@@ -282,7 +278,7 @@ describe.only(test.testName(), function () {
       const mockFsOpen = test.sinon.stub(fs, 'open');
       const mockFsFsync = test.sinon.stub(fs, 'fsync');
 
-      const fsync = lokiDataProvider.fsync(mockCallback);
+      const fsync = lokiDataProvider.fsync(mockSettings.filename, mockCallback);
 
       fsync();
 
@@ -301,7 +297,7 @@ describe.only(test.testName(), function () {
       const mockCallback = test.sinon.stub();
       const mockFsOpen = test.sinon.stub(fs, 'open');
       const mockFsFsync = test.sinon.stub(fs, 'fsync');
-      const fsync = lokiDataProvider.fsync(mockCallback);
+      const fsync = lokiDataProvider.fsync(mockSettings.filename, mockCallback);
 
       fsync();
 
@@ -561,6 +557,9 @@ describe.only(test.testName(), function () {
     });
 
     it('can storePlayback, successfully saves snapshot', (done) => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
       mockSettings.snapshotRollOverThreshold = 1;
 
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
@@ -646,7 +645,7 @@ describe.only(test.testName(), function () {
         .callsArgWith(1, new Error('test error'));
 
       lokiDataProvider.initialize(test.sinon.stub());
-
+      lokiDataProvider.storePlayback(mockOperation, mockCallback);
       storePlayback(null, 'mockResult');
 
       setTimeout(() => {
@@ -692,6 +691,9 @@ describe.only(test.testName(), function () {
     });
 
     it('can processOperation', (done) => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const mockOperation = {
@@ -781,20 +783,19 @@ describe.only(test.testName(), function () {
         .to.not.haveOwnProperty('meta');
     });
 
-    it('can upsertInternal', () => {
+    it('can upsertInternal', async () => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
-      const mockCallback = test.sinon.stub();
       const args = [
         'mockPath',
         { data: 'mockData', _meta: { path: null } },
         { merge: 'mockMerge' },
       ];
 
-      lokiDataProvider.initialize(mockCallback);
-      lokiDataProvider.upsertInternal(args[0], args[1], args[2]);
+      await lokiDataProvider.initialize();
+      await lokiDataProvider.upsertInternal(args[0], args[1], args[2]);
     });
 
-    it('upsertInternal, without options.merge', async () => {
+    it('upsertInternal, without options.merge', (done) => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
@@ -818,10 +819,10 @@ describe.only(test.testName(), function () {
 
       test.sinon.stub(db.prototype, 'loadJSON').returns({});
 
-      await lokiDataProvider.initialize(mockCallback);
-
-      test.chai.expect(mockCallback).to.have.been.callCount(1);
-      test.chai.expect(mockCallback).to.have.been.calledWithExactly();
+      lokiDataProvider.initialize((e) => {
+        test.expect(e).to.be(undefined);
+        done();
+      });
     });
 
     it('can increment, increment as a function', () => {
@@ -1231,22 +1232,30 @@ describe.only(test.testName(), function () {
     });
 
     it('can merge', (done) => {
+      mockFs({
+        mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+      });
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
 
-      lokiDataProvider.initialize();
-      lokiDataProvider.merge('mockPath', {}, mockCallback);
+      lokiDataProvider.initialize(() => {
+        lokiDataProvider.collection = {
+          findOne: test.sinon.stub().returns({ an: 'object' }),
+          update: (x) => x,
+        };
+        lokiDataProvider.merge('mockPath', {}, mockCallback);
 
-      setTimeout(() => {
-        try {
-          test.chai
-            .expect(mockCallback)
-            .to.have.been.calledWith(null, test.sinon.match.instanceOf(Object));
-          done();
-        } catch (e) {
-          done(e);
-        }
-      }, 200);
+        setTimeout(() => {
+          try {
+            test.chai
+              .expect(mockCallback)
+              .to.have.been.calledWith(null, test.sinon.match.instanceOf(Object));
+            done();
+          } catch (e) {
+            done(e);
+          }
+        }, 200);
+      });
     });
 
     it('can merge, persistenceOn equal to null', (done) => {
@@ -1343,9 +1352,10 @@ describe.only(test.testName(), function () {
       test.chai.expect(mockCallback).to.have.been.calledWith(test.sinon.match.instanceOf(Error));
     });
 
-    it('reconstruct calles logger.error with reconstruction reader error', async () => {
+    it('reconstruct calles logger.error with reconstruction reader error', (done) => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+        temp_mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
 
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
@@ -1357,16 +1367,15 @@ describe.only(test.testName(), function () {
         close: test.sinon.stub(),
       });
       test.sinon.stub(db.prototype, 'loadJSON').returns({});
+      mockOn.withArgs('line', test.sinon.match.func).callsArgWith(1, '{}');
+      mockOn.withArgs('line', test.sinon.match.func).callsArgWith(1, '{}');
+      mockOn.withArgs('error', test.sinon.match.func).callsArgWith(1, { message: 'mockMessage' });
 
-      lokiDataProvider.initialize(mockCallback);
-
-      mockOn.withArgs('line', test.sinon.match.func).callArgWith(1, '{}');
-      mockOn.withArgs('line', test.sinon.match.func).callArgWith(1, '{}');
-      mockOn.withArgs('error', test.sinon.match.func).callArgWith(1, { message: 'mockMessage' });
-
+      lokiDataProvider.initialize(test.sinon.stub());
       test.chai
         .expect(mockLogger.error)
         .to.have.been.calledWith(`reconstruction reader error ${'mockMessage'}`);
+      done();
     });
 
     it('reconstruct, callback gets called with error', () => {
