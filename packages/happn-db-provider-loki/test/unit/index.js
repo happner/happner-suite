@@ -3,7 +3,6 @@ const commons = require('happn-commons');
 const fs = commons.fs;
 const constants = commons.constants;
 const path = commons.path;
-const mockFs = commons.mockFs;
 const db = require('lokijs');
 const readline = require('readline');
 
