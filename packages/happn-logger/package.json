@@ -19,7 +19,7 @@
   "homepage": "https://github.com/happner/happn-logger#readme",
   "devDependencies": {
     "capture-stdout": "^1.0.0",
-    "happn-commons-test": "^1.0.2"
+    "happn-commons-test": "^1.0.3"
   },
   "dependencies": {
     "log4js": "^6.3.0"

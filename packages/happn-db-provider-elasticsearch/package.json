@@ -8,19 +8,19 @@
     "test-unit": "mocha silence.js test/unit/* --recursive"
   },
   "dependencies": {
-    "happn-commons": "^1.0.1",
+    "happn-commons": "^1.0.2",
     "agentkeepalive": "^3.3.0",
     "bluebird": "2.10.2",
     "elasticsearch": "^13.2.0",
     "extract-values": "^0.1.2",
-    "happn-logger": "^2.0.2",
+    "happn-logger": "^2.0.3",
     "micromustache": "^5.2.0",
-    "redis-lru-cache": "^1.0.2",
+    "redis-lru-cache": "^1.0.3",
     "traverse": "0.6.6"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.0.2",
-    "happn-3": "^13.0.4",
+    "happn-commons-test": "^1.0.3",
+    "happn-3": "^13.0.5",
     "json-from-schema": "1.10.0"
   }
 }

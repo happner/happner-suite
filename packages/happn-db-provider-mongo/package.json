@@ -19,13 +19,13 @@
   "dependencies": {
     "mongodb": "^4.4.0",
     "parse-mongo-url": "^1.1.1",
-    "happn-commons": "^1.0.1"
+    "happn-commons": "^1.0.2"
   },
   "devDependencies": {
     "byline": "^5.0.0",
     "gulp": "^3.9.0",
-    "happn-3": "^13.0.4",
-    "happn-commons-test": "^1.0.2"
+    "happn-3": "^13.0.5",
+    "happn-commons-test": "^1.0.3"
   },
   "readmeFilename": "README.md"
 }

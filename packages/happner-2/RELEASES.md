@@ -920,6 +920,12 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-34: fixed no arguments passed by client
 
+12.0.6 2022-03-29
+-----------------
+  - TEN-92, TEN-93: logging levels and events
+  - TEN-102: loki snapshot  file redundancy
+  - TEN-92: made all dependencies test dependencies
+
 
 
 
