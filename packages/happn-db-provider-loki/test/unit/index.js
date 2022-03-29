@@ -693,6 +693,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     it('can processOperation', (done) => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+        temp_mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName'))
       });
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
