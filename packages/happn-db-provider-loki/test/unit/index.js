@@ -629,6 +629,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       mockSettings.snapshotRollOverThreshold = 1;
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+        temp_mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
 
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
@@ -1378,6 +1379,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     it('reconstruct, callback gets called with error', () => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
+        temp_mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
       });
 
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
