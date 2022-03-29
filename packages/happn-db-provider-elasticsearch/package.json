@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-elasticsearch",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": false,
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
