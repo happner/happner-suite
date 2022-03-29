@@ -30,6 +30,7 @@ class TestHelper {
 		this.karma = require("karma");
 		this.bluebird = require("bluebird");
 		this.request = this.nodeUtils.promisify(require('request'), { multiArgs: true });
+		this.mockfs = require('mock-fs')
 		require('chai').should();
 	}
 	static create() {

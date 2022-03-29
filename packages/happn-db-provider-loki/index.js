@@ -6,7 +6,8 @@ const db = require('lokijs'),
   util = commons.utils,
   fs = commons.fs,
   _ = commons._,
-  path = require('path');
+  path = require('path'),
+  pathSep = commons.path.sep;
 
 module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   constructor(settings, logger) {
@@ -24,6 +25,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.operationCount = 0;
   }
+
   initialize(callback) {
     this.dirty = true;
     this.db = new db();
@@ -31,7 +33,13 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       indices: ['path', 'created', 'modified'],
       unique: ['path'],
     });
+
     this.persistenceOn = this.settings.filename != null;
+    if (this.persistenceOn) {
+      let pathArray = this.settings.filename.split(pathSep);
+      pathArray[pathArray.length - 1] = 'temp_' + pathArray[pathArray.length - 1];
+      this.settings.tempDataFilename = pathArray.join(pathSep);
+    }
     this.operationQueue = async.queue((operation, cb) => {
       this.processOperation(operation, cb);
     }, 1);
@@ -49,12 +57,31 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback();
     });
   }
+
   reconstruct(callback) {
     if (!fs.existsSync(this.settings.filename)) {
       return this.snapshot(callback);
     }
+    this.readDataFile(this.settings.filename, (error1) => {
+      if (!error1) return this.snapshot(callback);
+      this.logger.warn(
+        `Could not resconstruct loki db from ${
+          this.settings.filename
+        }, attempting to reconstruct from temp file. ${error1.toString()}`
+      );
+      this.readDataFile(this.settings.tempDataFilename, (error2) => {
+        if (!error2) return this.snapshot(callback);
+        this.logger.error(
+          `Could not rescpnstruct loki db from file or temp file. Error on tempfile: ${error2.toString()}`
+        );
+        callback(error1); //Rather callback with the error on the main file (?)
+      });
+    });
+  }
+
+  readDataFile(filename, callback) {
     const reader = readline.createInterface({
-      input: fs.createReadStream(this.settings.filename),
+      input: fs.createReadStream(filename),
       crlfDelay: Infinity,
     });
     let lineIndex = 0;
@@ -62,7 +89,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     reader.on('line', (line) => {
       if (lineIndex === 0) {
-        this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
+        try {
+          this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
+        } catch (e) {
+          callback(e);
+        }
         this.collection = this.db.collections[0];
       } else {
         try {
@@ -79,7 +110,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     reader.on('close', () => {
       if (!errorHappened) {
-        this.snapshot(callback);
+        callback(null);
       }
     });
 
@@ -91,6 +122,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       errorHappened = true;
     });
   }
+
   parsePersistedOperation(line) {
     let operation = JSON.parse(line).operation;
     if (operation.operationType === constants.DATA_OPERATION_TYPES.INSERT) {
@@ -162,6 +194,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
     options = options || {};
+
     let document = this.collection.findOne({ path });
     let result,
       created,
@@ -195,33 +228,34 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   snapshot(callback) {
     this.operationCount = 0;
-    this.persistSnapshotData({ snapshot: this.db.serialize() }, callback);
+    this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
+      if (e) return callback(e);
+      this.copyTempDataToMain(callback);
+    });
   }
+
+  copyTempDataToMain(callback) {
+    if (fs.existsSync(this.settings.filename)) fs.unlinkSync(this.settings.filename);
+    fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
+  }
+
   storePlayback(operation, callback) {
     return (e, result) => {
-      if (e) {
-        callback(e);
-        return;
-      }
-      if (!this.persistenceOn) {
-        callback(null, result);
-        return;
-      }
+      if (e) return callback(e);
+      if (!this.persistenceOn) return callback(null, result);
+
       this.appendOperationData({ operation }, (appendFailure) => {
         if (appendFailure) {
           this.logger.error('failed persisting operation data', appendFailure);
-          callback(appendFailure);
-          return;
+          return callback(appendFailure);
         }
         if (this.operationCount < this.settings.snapshotRollOverThreshold) {
-          callback(null, result);
-          return;
+          return callback(null, result);
         }
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
-            callback(e);
-            return;
+            return callback(e);
           }
           callback(null, result);
         });
@@ -229,9 +263,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     };
   }
 
-  getFileStream() {
+  getFileStream(filename) {
     if (this.fileStream == null) {
-      let realPath = fs.realpathSync(this.settings.filename);
+      let realPath = fs.realpathSync(filename);
       fs.ensureDirSync(path.dirname(realPath));
       this.fileStream = fs.createWriteStream(realPath, { flags: 'a' });
     }
@@ -240,21 +274,25 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   appendOperationData(operationData, callback) {
     this.operationCount++;
-    const fileStream = this.getFileStream();
-    fileStream.write(`${JSON.stringify(operationData)}\r\n`, this.fsync(callback));
+    const fileStream = this.getFileStream(this.settings.filename);
+    fileStream.write(
+      `${JSON.stringify(operationData)}\r\n`,
+      this.fsync(this.settings.filename, callback)
+    );
   }
 
   persistSnapshotData(snapshotData, callback) {
     fs.writeFile(
-      this.settings.filename,
+      this.settings.tempDataFilename,
       `${JSON.stringify(snapshotData)}\r\n`,
       {
         flag: 'w',
       },
-      this.fsync(callback)
+      this.fsync(this.settings.tempDataFilename, callback)
     );
   }
-  fsync(callback) {
+
+  fsync(filename, callback) {
     return (e) => {
       if (e) {
         callback(e);
@@ -264,7 +302,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         callback(null);
         return;
       }
-      fs.open(this.settings.filename, 'r+', (errorOpening, fd) => {
+      fs.open(filename, 'r+', (errorOpening, fd) => {
         if (errorOpening) {
           callback(new Error(`failed syncing to storage device: ${errorOpening.message}`));
           return;
@@ -350,11 +388,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   findInternal(path, parameters) {
     let finalResult = [];
     let pathCriteria = this.getPathCriteria(path);
+
     if (!parameters) parameters = {};
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
     let results = this.collection.chain().find(pathCriteria);
     let options = parameters.options || {};
-
     if (results.count() === 0) {
       return options.count ? { data: { value: 0 } } : finalResult;
     }
@@ -367,7 +405,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ];
 
     finalResult = results.compoundsort(sortOptions).data({ forceClones: true, removeMeta: true });
-
     if (options.skip) {
       finalResult = finalResult.slice(options.skip);
     }
@@ -435,6 +472,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback = increment;
       increment = 1;
     }
+
     this.operationQueue.push(
       {
         operationType: constants.DATA_OPERATION_TYPES.INCREMENT,

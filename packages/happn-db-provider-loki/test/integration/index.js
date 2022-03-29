@@ -1,72 +1,128 @@
 require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   const LokiDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
-  const testFileName = `${testDirPath}${test.commons.path.sep}${test.newid()}`;
-  test.fs.ensureDirSync(testDirPath);
-  test.fs.writeFileSync(testFileName, '');
+  const testFixturesDir = test.commons.path.resolve(__dirname, `../__fixtures`);
+
+  let fileId = test.newid();
+  const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
+  const tempTestFileName = `${testDirPath}${test.commons.path.sep}temp_${fileId}`;
   const mockLogger = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
     trace: test.sinon.stub(),
   };
-  beforeEach('delete temp file', async () => {
-    test.unlinkFiles([testFileName]);
-  });
 
-  after(async () => {
-    test.unlinkFiles([testFileName]);
-  });
+  context('Data operations', () => {
+    before('ensures temp dir and test file', () => {
+      test.fs.ensureDirSync(testDirPath);
+      test.fs.writeFileSync(testFileName, '');
+    });
+    beforeEach('delete temp file', async () => {
+      test.unlinkFiles([testFileName, tempTestFileName]);
+    });
 
-  it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {
-    await testPersistence();
-  });
+    after(async () => {
+      test.unlinkFiles([testFileName, tempTestFileName]);
+    });
 
-  it('starts up the provider with a persistence filename, does some inserts, tests findOne, upsert and the rollover threshold', async () => {
-    await testRollOverThreshold();
-  });
+    it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {
+      await testPersistence();
+    });
 
-  it('can count', async () => {
-    await testCount();
-  });
-  it('can merge', async () => {
-    await testMerge();
-  });
+    it('starts up the provider with a persistence filename, does some inserts, tests findOne, upsert and the rollover threshold', async () => {
+      await testRollOverThreshold();
+    });
 
-  it('can increment', async () => {
-    await testIncrement();
-  });
+    it('can count', async () => {
+      await testCount();
+    });
+    it('can merge', async () => {
+      await testMerge();
+    });
 
-  it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
-    await testPersistence({
-      fsync: true,
+    it('can increment', async () => {
+      await testIncrement();
+    });
+
+    it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
+      await testPersistence({
+        fsync: true,
+      });
+    });
+
+    it('starts up the provider with a persistence filename, does some inserts, tests findOne, upsert and the rollover threshold - fsync', async () => {
+      await testRollOverThreshold({
+        fsync: true,
+      });
+    });
+
+    it('can count - fsync', async () => {
+      await testCount({
+        fsync: true,
+      });
+    });
+
+    it('can merge - fsync', async () => {
+      await testMerge({
+        fsync: true,
+      });
+    });
+
+    it('can increment - fsync', async () => {
+      await testIncrement({
+        fsync: true,
+      });
     });
   });
+  context('Reconstruction', () => {
+    before('creates test files', () => {
+      test.fs.copySync(
+        `${testFixturesDir}${test.commons.path.sep}bad-data`,
+        `${testFixturesDir}${test.commons.path.sep}corrupted-data`,
+        { force: true }
+      );
+      test.fs.copySync(
+        `${testFixturesDir}${test.commons.path.sep}good-data`,
+        `${testFixturesDir}${test.commons.path.sep}temp_corrupted-data`,
+        { force: true }
+      );
+      test.fs.copySync(
+        `${testFixturesDir}${test.commons.path.sep}good-data-bad-ops`,
+        `${testFixturesDir}${test.commons.path.sep}good-data-corrupt-ops`,
+        { force: true }
+      );
+      test.fs.copySync(
+        `${testFixturesDir}${test.commons.path.sep}good-data-with-ops`,
+        `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
+        { force: true }
+      );
+    });
+    it('can restore from good data', async () => {
+      await testRestore({}, 'good-data');
+    });
 
-  it('starts up the provider with a persistence filename, does some inserts, tests findOne, upsert and the rollover threshold - fsync', async () => {
-    await testRollOverThreshold({
-      fsync: true,
+    it('can restore from bad data if temp file is good', async () => {
+      await testRestore({}, 'corrupted-data');
+    });
+
+    it('can restore from good data with operations', async () => {
+      await testRestoreWithOps({}, 'good-data-with-ops');
+    });
+
+    it('can restore from good data wit bad ops if temp file is good', async () => {
+      await testRestoreWithOps({}, 'good-data-corrupt-ops');
+    });
+    after('deletes files', async () => {
+      await test.delay(1000);
+      test.unlinkFiles([
+        `${testFixturesDir}${test.commons.path.sep}corrupted-data`,
+        `${testFixturesDir}${test.commons.path.sep}temp_corrupted-data`,
+        `${testFixturesDir}${test.commons.path.sep}good-data-corrupt-ops`,
+        `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
+      ]);
     });
   });
-
-  it('can count - fsync', async () => {
-    await testCount({
-      fsync: true,
-    });
-  });
-
-  it('can merge - fsync', async () => {
-    await testMerge({
-      fsync: true,
-    });
-  });
-
-  it('can increment - fsync', async () => {
-    await testIncrement({
-      fsync: true,
-    });
-  });
-
   async function testMerge(settings) {
     const lokiProvider = new LokiDataProvider(mockLogger);
     lokiProvider.settings = {
@@ -200,7 +256,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   }
 
   async function testPersistence(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -240,5 +296,35 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     found = await lokiProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
     test.expect(lokiProvider.operationCount).to.be(0);
+  }
+
+  async function testRestore(settings, fileName) {
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
+    lokiProvider.settings = {
+      ...{
+        filename: `${testFixturesDir}${test.commons.path.sep}${fileName}`,
+        snapshotRollOverThreshold: 5,
+      },
+      ...settings,
+    };
+    await lokiProvider.initialize();
+    const found = await lokiProvider.find('test/path/*');
+    test.expect(found.length).to.be(3);
+    test.expect(lokiProvider.operationCount).to.be(0);
+  }
+
+  async function testRestoreWithOps(settings, fileName) {
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
+    lokiProvider.settings = {
+      ...{
+        filename: `${testFixturesDir}${test.commons.path.sep}${fileName}`,
+        snapshotRollOverThreshold: 5,
+      },
+      ...settings,
+    };
+    await lokiProvider.initialize();
+    const found = await lokiProvider.find('test/increment');
+
+    test.expect(found[0].data.testGauge.value).to.be(4);
   }
 });
