@@ -189,7 +189,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         throw new Error(`unknown data operation type: ${operation.operationType}`);
     }
   }
-  
+
   upsertInternal(path, upsertDocument, options) {
     if (typeof path !== 'string') {
       throw new Error('argument [path] at position 0 is null or not a string');
