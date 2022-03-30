@@ -107,6 +107,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       test.expect(config.happn.persist).to.be(true);
 
       delete config.happn.services.data.config.datastores[0].settings.filename;
+      delete config.happn.services.data.config.datastores[0].settings.tempDataFilename;
+
 
       test.expect(config.happn.services.data.config).to.eql({
         datastores: [
