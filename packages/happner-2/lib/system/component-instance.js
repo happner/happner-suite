@@ -1059,7 +1059,7 @@ ComponentInstance.prototype._defaultParameters = function (method, methodSchema)
 };
 
 ComponentInstance.prototype._discardMessage = function (reason, message) {
-  this.log.error('message discarded: %s', reason, message);
+  this.log.warn('message discarded: %s', reason, message);
 };
 
 ComponentInstance.prototype._hasNext = function (methodDefn) {
@@ -1191,7 +1191,7 @@ ComponentInstance.prototype.__reply = function (
       client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
     } catch (e) {
       // no peer at callback (race conditions on servers stopping and starting) dead end...
-      this.log.error('Failure on callback, missing peer', e);
+      this.log.warn('Failure on callback, missing peer', e);
       return;
     }
   }
