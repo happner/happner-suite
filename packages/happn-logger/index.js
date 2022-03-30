@@ -4,10 +4,10 @@
  *
  */
 
-if (typeof global['happn-logger'] == 'undefined') {
+if (typeof global['happn-logger'] === 'undefined') {
   Object.defineProperty(global, 'happn-logger', {
     value: require('./lib/logger'),
-    configurable: true
+    configurable: true,
   });
 }
 

@@ -1,6 +1,6 @@
 const Primus = require('primus');
 
-Primus.Spark.prototype.getProtocolVersion = function(spark) {
+Primus.Spark.prototype.getProtocolVersion = function (spark) {
   try {
     const parsedVersion = parseInt(spark.happnProtocol.replace('happn_', ''));
     if (isNaN(parsedVersion)) return -1;
@@ -11,7 +11,7 @@ Primus.Spark.prototype.getProtocolVersion = function(spark) {
   }
 };
 
-Primus.Spark.prototype.endUnresponsive = function() {
+Primus.Spark.prototype.endUnresponsive = function () {
   this.emit('unresponsive');
   //skip a single beat, always
   if (!this.primus.options.allowSkippedHeartBeats) this.primus.options.allowSkippedHeartBeats = 1;
@@ -21,7 +21,7 @@ Primus.Spark.prototype.endUnresponsive = function() {
     return; //skip a beat before killing
   }
   this.end(undefined, {
-    reconnect: true
+    reconnect: true,
   });
 };
 
@@ -42,8 +42,9 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
     //lastPing was five times the default legacy ping interval ago
     //even if the spark is non-legacy, the 25 second wait for CONFIGURE-SESSION should be adequate
     const lastPingThreshold = 25e3 * 5;
-    if ((now - spark.lastPing) > lastPingThreshold) {
+    if (now - spark.lastPing > lastPingThreshold) {
       spark.alive = false;
+      // eslint-disable-next-line no-console
       console.warn(`legacy client unresponsive after ${lastPingThreshold} seconds`);
       this.endUnresponsive();
     }
@@ -58,7 +59,7 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
 
 //we receive a client ping, just pong straight back
 // - this function gets called by the handleMessage function in the session service in happn-3
-Primus.Spark.prototype.onLegacyPing = function(pingMessage) {
+Primus.Spark.prototype.onLegacyPing = function (pingMessage) {
   const lastPing = Date.now();
   this.lastPing = lastPing;
   this.alive = true;

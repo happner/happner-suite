@@ -41,6 +41,15 @@ module.exports = {
         args.unshift(string);
         console.info.apply(console, args);
       },
+      debug: function () {
+        var args = Array.prototype.slice.call(arguments);
+        var string = args.shift();
+        string = '[%s] (%s) ' + string;
+        args.unshift(context);
+        args.unshift(' DEBUG');
+        args.unshift(string);
+        console.info.apply(console, args);
+      },
     };
   },
 };

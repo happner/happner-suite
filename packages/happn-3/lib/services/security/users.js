@@ -261,7 +261,7 @@ async function __upsertUser(user) {
     { merge: true }
   );
 
-  this.log.info(`user upserted: ${prepared.username}`);
+  this.log.debug(`user upserted: ${prepared.username}`);
 
   const upserted = this.securityService.serialize('user', result);
   upserted.permissions = permissions || {};
@@ -347,7 +347,7 @@ async function deleteUser(user, callback) {
     const tree = await this.dataService.remove(`/_SYSTEM/_SECURITY/_USER/${preparedUserName}/*`);
     const obj = await this.dataService.remove(`/_SYSTEM/_SECURITY/_USER/${preparedUserName}`);
 
-    this.log.info(`user deleted: ${user.username}`);
+    this.log.debug(`user deleted: ${user.username}`);
     deleted = {
       obj,
       tree,

@@ -109,8 +109,8 @@ Member.prototype.stop = require('util').promisify(function (callback) {
 });
 
 Member.prototype.__onHappnDisconnect = function () {
-  this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
-  this.log.debug('arguments', arguments);
+  this.log.$$TRACE('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
+  this.log.$$TRACE('arguments', arguments);
 
   if (!this.connectedTo) return;
   this.connectedTo = false;
@@ -128,7 +128,7 @@ Member.prototype.__onHappnDisconnect = function () {
 };
 
 Member.prototype.__onHappnReconnect = function () {
-  this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
+  this.log.$$TRACE('reconnected to (->) %s/%s', this.clusterName, this.name);
   if (this.connectedTo) return;
   this.connectedTo = true;
   this.orchestrator.__stateUpdate();
@@ -276,8 +276,8 @@ Member.prototype.connect = function (member) {
 
   var config = _this.orchestrator.getLoginConfig();
 
-  _this.log.info('connect to (->) %s', member.url);
-  _this.log.info('as %s', _this.name);
+  _this.log.debug('connect to (->) %s', member.url);
+  _this.log.debug('as %s', _this.name);
 
   config.url = member.url;
 

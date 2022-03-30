@@ -187,7 +187,7 @@ SystemService.prototype.initialize = function (config, callback) {
     config,
     function (e) {
       if (e) return callback(e);
-      this.log.info('instance name: ' + this.name);
+      this.log.debug('instance name: ' + this.name);
       this.log.context = this.name;
       callback();
     }.bind(this)

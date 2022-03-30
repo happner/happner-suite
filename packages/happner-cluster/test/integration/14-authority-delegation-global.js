@@ -50,7 +50,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   beforeEach('start cluster', function (done) {
-    this.timeout(20000);
+    this.timeout(25000);
     test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
       localInstance = local;
     });
@@ -79,7 +79,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
-    this.timeout(4000);
+    this.timeout(5000);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -104,7 +104,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method, 2 levels deep', function (done) {
-    this.timeout(4000);
+    this.timeout(5000);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -132,7 +132,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event', function (done) {
-    this.timeout(4000);
+    this.timeout(5000);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
@@ -154,7 +154,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event, 2 levels deep', function (done) {
-    this.timeout(4000);
+    this.timeout(5000);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -182,7 +182,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to modify a remote components data', function (done) {
-    this.timeout(4000);
+    this.timeout(5000);
     let thisClient;
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToData')

@@ -9,7 +9,7 @@ function HealthService(opts) {
 
 HealthService.prototype.initialize = function (config, callback) {
   try {
-    this.log.info('initialising health service');
+    this.log.debug('initialising health service');
     property(this, 'happn', this.happn);
     property(this, 'config', config || {});
     if (!this.config.warmupLimit) this.config.warmupLimit = 120000;
@@ -23,7 +23,7 @@ HealthService.prototype.initialize = function (config, callback) {
 HealthService.prototype.start = function () {
   return new Promise((resolve, reject) => {
     try {
-      this.log.info('starting health service');
+      this.log.debug('starting health service');
       this.clusterHealthInterval = setInterval(
         this.reportClusterHealth.bind(this),
         this.config.healthInterval
@@ -37,7 +37,7 @@ HealthService.prototype.start = function () {
 };
 
 HealthService.prototype.stop = function (_options, callback) {
-  this.log.info('stopping health service');
+  this.log.debug('stopping health service');
   clearInterval(this.clusterHealthInterval);
   callback();
 };

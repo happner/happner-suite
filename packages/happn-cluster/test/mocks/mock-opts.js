@@ -2,6 +2,7 @@ module.exports = {
   logger: {
     createLogger: function () {
       return {
+        $$TRACE: function () {},
         debug: function () {
           if (process.env.LOG_LEVEL === 'off');
         },

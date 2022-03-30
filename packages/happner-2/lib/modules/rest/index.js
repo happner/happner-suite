@@ -352,7 +352,7 @@ Rest.prototype.__updateDescription = function (description, $happn) {
   const cleanedDescription = _.omit(description, ['initializing', 'setOptions', '_meta']);
   this.__exchangeDescription = cleanedDescription;
   this.__exchangeDescription.callMenu = this.__buildCallMenu(cleanedDescription);
-  $happn.log.info(`updated mesh description`);
+  $happn.log.debug(`updated mesh description`);
 };
 
 Rest.prototype.start = function ($happn, callback) {
@@ -364,7 +364,7 @@ Rest.prototype.initialize = function ($happn, callback) {
   this.__securityService = $happn._mesh.happn.server.services.security;
   if (!this.attachedToMeshEvents) {
     $happn._mesh.on('description-updated', (description) => {
-      $happn.log.info(`description-updated event`);
+      $happn.log.debug(`description-updated event`);
       this.__updateDescription(description, $happn);
     });
     this.attachedToMeshEvents = true;

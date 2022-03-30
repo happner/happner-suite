@@ -28,7 +28,7 @@ Membership.prototype.initialize = function (config, callback) {
 
 Membership.prototype.stop = function (options, callback) {
   if (typeof options === 'function') callback = options;
-  this.log.info('stopping');
+  this.log.debug('stopping');
 
   if (this.swim) {
     this.swim.leave();
@@ -73,7 +73,7 @@ Membership.prototype.onSwimBootStrapDone = function (config, callback) {
 Membership.prototype.removeMember = function (member) {
   if (!this.members[member.host]) return;
   delete this.members[member.host];
-  this.log.debug('has %d other members (%s left)', Object.keys(this.members).length, member.host);
+  this.log.$$TRACE('has %d other members (%s left)', Object.keys(this.members).length, member.host);
   this.emit('remove', {
     memberId: member.host,
   });
@@ -92,7 +92,7 @@ Membership.prototype.addMember = function (member, update) {
   this.members[member.host] = {
     url: member.meta.url,
   };
-  this.log.debug(
+  this.log.$$TRACE(
     'has %d other members (%s arrived)',
     Object.keys(this.members).length,
     member.host
@@ -106,8 +106,8 @@ Membership.prototype.addMember = function (member, update) {
 Membership.prototype.bootstrap = require('util').promisify(function (callback) {
   let config, protocol, address, happnUrl, wait;
 
-  this.log.info('listening at %s', this.swimAddress);
-  this.log.info("joining cluster '%s'", this.config.clusterName);
+  this.log.debug('listening at %s', this.swimAddress);
+  this.log.debug("joining cluster '%s'", this.config.clusterName);
 
   config = this.config;
   protocol = this.happn.services.transport.config.mode;

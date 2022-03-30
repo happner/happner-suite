@@ -1,11 +1,9 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-//var log = require('why-is-node-running');
 const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
@@ -75,10 +73,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     if (!servers) return done();
     stopCluster(servers.concat(localInstance), done);
   });
-
-  // after('why is node still running', function(){
-  //   setTimeout(log, 5000);
-  // })
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
     this.timeout(4000);

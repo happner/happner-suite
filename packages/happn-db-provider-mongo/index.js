@@ -14,7 +14,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
       aggregate: true,
       count: true,
       collation: true,
-      projection: true
+      projection: true,
     };
     this.batchData = {};
     this.initialize = utils.maybePromisify(this.initialize);
@@ -37,7 +37,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
   }
 
   __createIndexes(config, callback) {
-    let doCallback = function(e) {
+    let doCallback = function (e) {
       if (e) return callback(new Error('failed to create indexes: ' + e.toString(), e));
       callback();
     };
@@ -56,13 +56,13 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
         config.index = {
           happn_path_index: {
             fields: {
-              path: 1
+              path: 1,
             },
             options: {
               unique: true,
-              w: 1
-            }
-          }
+              w: 1,
+            },
+          },
         };
       }
 
@@ -74,7 +74,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
           Object.keys(config.index),
           (indexKey, indexCB) => {
             let found = false;
-            indexes.every(function(indexConfig) {
+            indexes.every(function (indexConfig) {
               if (indexConfig.path === '/_SYSTEM/INDEXES/' + indexKey) found = true;
               return !found;
             });
@@ -87,7 +87,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
                 '/_SYSTEM/INDEXES/' + indexKey,
                 {
                   data: indexConfig,
-                  creation_result: result
+                  creation_result: result,
                 },
                 indexCB
               );
@@ -129,17 +129,19 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
     }
 
     if (parameters.options.aggregate) {
-      this.db.aggregate(pathCriteria, parameters.options.aggregate, searchOptions, function(
-        e,
-        result
-      ) {
-        if (e) return callback(e);
-        callback(null, {
-          data: {
-            value: result
-          }
-        });
-      });
+      this.db.aggregate(
+        pathCriteria,
+        parameters.options.aggregate,
+        searchOptions,
+        function (e, result) {
+          if (e) return callback(e);
+          callback(null, {
+            data: {
+              value: result,
+            },
+          });
+        }
+      );
       return;
     }
 
@@ -148,12 +150,12 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
     if (parameters.options.maxTimeMS) searchOptions.maxTimeMS = parameters.options.maxTimeMS;
 
     if (parameters.count || parameters.options.count) {
-      this.db.count(pathCriteria, searchOptions, function(e, count) {
+      this.db.count(pathCriteria, searchOptions, function (e, count) {
         if (e) return callback(e);
         callback(null, {
           data: {
-            value: count
-          }
+            value: count,
+          },
         });
       });
       return;
@@ -164,7 +166,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
 
     let sortOptions = parameters.options ? parameters.options.sort : null;
 
-    this.db.find(pathCriteria, searchOptions, sortOptions, function(e, items) {
+    this.db.find(pathCriteria, searchOptions, sortOptions, function (e, items) {
       if (e) return callback(e);
       callback(null, items);
     });
@@ -192,11 +194,11 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
       $set: {
         data: setData.data,
         path: path,
-        modified: modifiedOn
+        modified: modifiedOn,
       },
       $setOnInsert: {
-        created: modifiedOn
-      }
+        created: modifiedOn,
+      },
     };
 
     if (options.modifiedBy) setParameters.$set.modifiedBy = options.modifiedBy;
@@ -216,7 +218,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
     if (options.upsertType === commons.constants.UPSERT_TYPE.UPDATE) {
       return this.db.update(
         {
-          path: path
+          path: path,
         },
         setParameters,
         options,
@@ -229,7 +231,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
 
     this.db.findAndModify(
       {
-        path: path
+        path: path,
       },
       setParameters,
       (err, result) => {
@@ -238,7 +240,7 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
             //1 retry - as mongo doesn't seem to understand how upsert:true on a unique index should work...
             return this.db.findAndModify(
               {
-                path: path
+                path: path,
               },
               setParameters,
               (err, result) => {
@@ -255,16 +257,16 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
   }
 
   remove(path, callback) {
-    return this.db.remove(this.getPathCriteria(path), function(e, removed) {
+    return this.db.remove(this.getPathCriteria(path), function (e, removed) {
       if (e) return callback(e);
       callback(null, {
         data: {
-          removed: removed.deletedCount
+          removed: removed.deletedCount,
         },
         _meta: {
           timestamp: Date.now(),
-          path: path
-        }
+          path: path,
+        },
       });
     });
   }
@@ -295,7 +297,7 @@ function BatchDataItem(options, db) {
   this.db = db;
 }
 
-BatchDataItem.prototype.empty = function() {
+BatchDataItem.prototype.empty = function () {
   clearTimeout(this.timeout);
 
   let opIndex = 0;
@@ -316,12 +318,12 @@ BatchDataItem.prototype.empty = function() {
   _this.db.insert(
     emptyQueued,
     this.options,
-    function(e, response) {
+    function (e, response) {
       // do callbacks for all inserted items
-      callbackQueued.forEach(function(cb) {
+      callbackQueued.forEach(function (cb) {
         if (e) return cb.call(cb, e);
         cb.call(cb, null, {
-          ops: [response.ops[opIndex]]
+          ops: [response.ops[opIndex]],
         });
         opIndex++;
       });
@@ -329,7 +331,7 @@ BatchDataItem.prototype.empty = function() {
   );
 };
 
-BatchDataItem.prototype.insert = function(data, callback) {
+BatchDataItem.prototype.insert = function (data, callback) {
   this.queued.push(data);
 
   this.callbacks.push(callback);
@@ -341,7 +343,7 @@ BatchDataItem.prototype.insert = function(data, callback) {
   if (this.queued.length === 1) this.initialize(); //we start the timer now
 };
 
-BatchDataItem.prototype.initialize = function() {
+BatchDataItem.prototype.initialize = function () {
   //empty our batch based on the timeout
   this.timeout = setTimeout(this.empty.bind(this), this.options.batchTimeout);
 };

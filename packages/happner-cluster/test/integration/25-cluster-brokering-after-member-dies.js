@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -19,6 +18,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
       });
     });
   });
+
   after('Move up getSeq sequence to account for subprocesses', (done) => {
     getSeq.getNext();
     getSeq.getNext();
@@ -34,63 +34,35 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     });
   });
 
-  it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
-    var thisClient;
+  it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
+    let client;
     let child;
     let first = getSeq.getFirst();
-    startEdge(first, 1)
-      .then(() => {
-        // getSeq.getNext();
-        child = fork(libDir + 'test-25-sub-process.js', ['2', getSeq.lookupFirst().toString()]);
-        child.on('message', (msg) => {
-          if (msg === 'kill') child.kill('SIGKILL');
-        });
-      })
-      .then(() => {
-        return new Promise((resolve) => {
-          setTimeout(resolve, 5000);
-        });
-      })
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        thisClient = client;
-        return thisClient.exchange.breakingComponent.happyMethod();
-      })
-      .then(function (result) {
-        test.expect(result).to.be(getSeq.getMeshName(2) + ':brokenComponent:happyMethod');
-        return thisClient.exchange.breakingComponent.breakingMethod(1, 2);
-      })
-      .then(function (result) {
-        test.expect(result).to.be('I am happy!');
-        return thisClient.exchange.breakingComponent.breakingMethod(1); // Too few arguments
-      })
-      .catch((e) => {
-        test.expect(e).to.be('Request timed out');
-      })
-      .then(() => {
-        return fork(libDir + 'test-25-sub-process.js', ['3', getSeq.lookupFirst().toString()]);
-      })
-      .then(function (forked) {
-        child = forked;
-        return new Promise((resolve) => {
-          setTimeout(resolve, 5000);
-        });
-      })
-      .then(function () {
-        return thisClient.exchange.breakingComponent.happyMethod();
-      })
-      .then(function (result) {
-        test.expect(result).to.be(getSeq.getMeshName(3) + ':brokenComponent:happyMethod');
-        return thisClient.exchange.breakingComponent.breakingMethod(1, 2);
-      })
-      .then(function (result) {
-        test.expect(result).to.be('I am happy!');
-        child.kill('SIGKILL');
-        done();
-      })
-      .catch(done);
+    await startEdge(first, 1);
+    child = fork(libDir + 'test-25-sub-process.js', ['2', getSeq.lookupFirst().toString()]);
+    child.on('message', (msg) => {
+      if (msg === 'kill') child.kill('SIGKILL');
+    });
+    await test.delay(7000);
+
+    client = await testclient.create('username', 'password', getSeq.getPort(1));
+    let result = await client.exchange.breakingComponent.happyMethod();
+    test.expect(result).to.be(getSeq.getMeshName(2) + ':brokenComponent:happyMethod');
+    result = await client.exchange.breakingComponent.breakingMethod(1, 2);
+    test.expect(result).to.be('I am happy!');
+    try {
+      await client.exchange.breakingComponent.breakingMethod(1); // Too few arguments
+      throw new Error("shouldn't happen");
+    } catch (e) {
+      test.expect(e).to.be('Request timed out');
+    }
+    child = await fork(libDir + 'test-25-sub-process.js', ['3', getSeq.lookupFirst().toString()]);
+    await test.delay(8000);
+    result = await client.exchange.breakingComponent.happyMethod();
+    test.expect(result).to.be(getSeq.getMeshName(3) + ':brokenComponent:happyMethod');
+    result = await client.exchange.breakingComponent.breakingMethod(1, 2);
+    test.expect(result).to.be('I am happy!');
+    child.kill('SIGKILL');
   });
 
   function localInstanceConfig(seq, sync) {

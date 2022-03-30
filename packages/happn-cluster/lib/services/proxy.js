@@ -15,7 +15,7 @@ function Proxy(opts) {
 Proxy.prototype.initialize = function (config, callback) {
   var self = this;
 
-  self.log.info('initialising proxy');
+  self.log.debug('initialising proxy');
 
   try {
     property(this, 'happn', this.happn);
@@ -36,7 +36,7 @@ Proxy.prototype.start = require('util').promisify(function (callback) {
     host,
     self = this;
 
-  this.log.info('starting proxy');
+  this.log.debug('starting proxy');
 
   var defaultPort = function () {
     // Listen on default happn port (if available) so that unmodified happn clients default to the proxy

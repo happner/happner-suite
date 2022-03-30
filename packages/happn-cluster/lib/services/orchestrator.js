@@ -67,7 +67,7 @@ Orchestrator.prototype.stop = function (options, callback) {
   if (typeof options === 'function') callback = options;
   var members = this.members,
     log = this.log;
-  log.info('stopping');
+  log.debug('stopping');
 
   if (this.membership) {
     this.membership.removeListener('remove', this.__removeMembershipHandler);
@@ -171,7 +171,7 @@ Orchestrator.prototype.prepare = require('util').promisify(function (callback) {
 });
 
 Orchestrator.prototype.stabilised = require('bluebird').promisify(function (callback) {
-  this.log.debug('testing stabilised');
+  this.log.$$TRACE('testing stabilised');
 
   var _this = this;
 
@@ -255,12 +255,12 @@ Orchestrator.prototype.__stateUpdate = function (report) {
   }
 
   if (reports.length > 0) {
-    this.log.info('');
-    this.log.info('--- stabilise report ---');
+    this.log.debug('');
+    this.log.debug('--- stabilise report ---');
     reports.forEach(function (line) {
-      _this.log.info(line);
+      _this.log.debug(line);
     });
-    this.log.info('');
+    this.log.debug('');
   }
 
   if (unstableCount !== 0) return;
@@ -294,7 +294,7 @@ Orchestrator.prototype.__addPeer = function (member) {
   this.emit('peer/add', member.name, member);
 
   if (this.stableAwaitingMinimumPeers) {
-    this.log.info(
+    this.log.debug(
       'cluster size %d/%d (%s arrived)',
       Object.keys(this.peers).length,
       this.config.minimumPeers,
@@ -302,7 +302,7 @@ Orchestrator.prototype.__addPeer = function (member) {
     );
     return;
   }
-  this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+  this.log.debug('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
 };
 
 Orchestrator.prototype.removePeer = function (member) {
@@ -312,7 +312,7 @@ Orchestrator.prototype.removePeer = function (member) {
   this.emit('peer/remove', member.name, member);
 
   if (this.stableAwaitingMinimumPeers) {
-    this.log.info(
+    this.log.debug(
       'cluster size %d/%d (%s left)',
       Object.keys(this.peers).length,
       this.config.minimumPeers,
@@ -320,11 +320,11 @@ Orchestrator.prototype.removePeer = function (member) {
     );
     return;
   }
-  this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+  this.log.debug('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
 };
 
 Orchestrator.prototype.removeMember = function (member) {
-  this.log.debug('remove member %s', member.name);
+  this.log.$$TRACE('remove member %s', member.name);
   var _this = this;
   member
     .stop()
@@ -365,7 +365,7 @@ Orchestrator.prototype.__onConnectionFrom = function (data) {
     return;
   }
 
-  this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
+  this.log.$$TRACE('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
 
   if (data.info.clusterName !== this.membership.config.clusterName) {
     this.log.warn(
@@ -404,7 +404,7 @@ Orchestrator.prototype.__onDisconnectionFrom = function (data) {
   if (!data.info) return;
   if (!data.info.clusterName) return;
 
-  this.log.debug('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
+  this.log.$$TRACE('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
 
   if (data.info.clusterName !== this.membership.config.clusterName) return;
 

@@ -132,7 +132,7 @@
       _this.happnerClient.log.error('failed to get description for %s', name, e);
     };
     var onIgnore = function (reason) {
-      _this.happnerClient.log.info(reason);
+      _this.happnerClient.log.debug(reason);
     };
 
     this.getSingleDescription(peer.client, peer.self, true, onSuccess, onFailure, onIgnore);
@@ -180,7 +180,7 @@
       };
 
       var ignore = function (reason) {
-        _this.log.info(reason);
+        _this.log.debug(reason);
         var reply;
         while ((reply = _this.callersAwaitingDescriptions.shift())) {
           reply.resolve();
@@ -196,7 +196,7 @@
               var client = clients[name].client;
               var self = clients[name].self;
               _this.getSingleDescription(client, self, true, resolve, resolve, (reason) => {
-                _this.log.info(reason);
+                _this.log.debug(reason);
                 resolve();
               });
             });
@@ -360,7 +360,7 @@
       dependencies.keys.forEach((componentName) => {
         let version = dependencies.tree[componentName];
         let countMatches = this.countDependencyMatches(componentName, version);
-        let log = this.log.info;
+        let log = this.log.debug;
         if (countMatches === 0) {
           satisfied = false;
           allSatisfied = false;
@@ -369,15 +369,17 @@
         log('dependent %s has %d of %s %s', dependorName, countMatches, componentName, version);
         this.__getUpdatedDependencyDescriptions(descriptions, componentName, version).forEach(
           (foundComponentDescription) => {
-            this.happnerClient.emit('peer/arrived/description', {
-              dependorName: dependorName,
-              countMatches: countMatches,
-              componentName: componentName,
-              version: version,
-              description: foundComponentDescription.components[componentName],
-              url: foundComponentDescription.url,
-              meshName: foundComponentDescription.meshName,
-            });
+            if (!foundComponentDescription.self) {
+              this.happnerClient.emit('peer/arrived/description', {
+                dependorName: dependorName,
+                countMatches: countMatches,
+                componentName: componentName,
+                version: version,
+                description: foundComponentDescription.components[componentName],
+                url: foundComponentDescription.url,
+                meshName: foundComponentDescription.meshName,
+              });
+            }
           }
         );
       });

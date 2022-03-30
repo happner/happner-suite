@@ -31,6 +31,7 @@ describe(test.name(__filename, 2), function () {
   it('emits the peer/arrived/description event', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -90,6 +91,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the logdependencies met function, dependencies not met', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -120,6 +122,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the logdependencies met function, dependencies are met', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -149,6 +152,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the logdependencies met function fires Event when dependencies are met', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -181,6 +185,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the logdependencies met function when dependencies are undefined', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -205,6 +210,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the logdependencies met function when dependencies are empty object', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
@@ -254,6 +260,7 @@ describe(test.name(__filename, 2), function () {
   it('tests the registerAndCheck function registers dependencies and calls logDependenciesMet', function (done) {
     var i = new ImplementorsProvider(mockClient, mockConnection);
     i.log = {
+      debug: () => {},
       info: function () {},
       error: function () {},
       warn: function () {},
