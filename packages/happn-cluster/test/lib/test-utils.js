@@ -77,11 +77,6 @@ module.exports.createMemberConfigs = Util.promisify(function (
             clusterName: 'cluster1',
             minimumPeers: clusterSize,
             deployment: 'myDeploy',
-            intervals: {
-              keepAlive: 1e3,
-              membership: 2e3,
-            },
-            keepAliveThreshold: 2e3,
           },
         },
         proxy: {
@@ -193,11 +188,6 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
             deployment: 'myDeploy',
             cluster: clusterConfig,
             serviceName: clusterServiceNameArr[i - 1],
-            intervals: {
-              keepAlive: 1e3,
-              membership: 2e3,
-            },
-            keepAliveThreshold: 2e3,
           },
         },
         proxy: {

@@ -56,14 +56,14 @@ module.exports = class BrokerWebProxy {
     };
     this.routes[path].peers.add(target.url);
     this.routes[path].size++;
-    this.logger.info(`added route ${target.url}, route handlers count: ${this.routes[path].size}`);
+    this.logger.debug(`added route ${target.url}, route handlers count: ${this.routes[path].size}`);
   }
 
   disconnectRoute(path, target) {
     if (this.routes[path]) {
       this.routes[path].peers.remove(target.url);
       this.routes[path].size--;
-      this.logger.info(
+      this.logger.debug(
         `removed route ${target.url}, route handlers count: ${this.routes[path].size}`
       );
       if (this.routes[path].size === 0) delete this.routes[path];

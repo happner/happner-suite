@@ -107,6 +107,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       test.expect(config.happn.persist).to.be(true);
 
       delete config.happn.services.data.config.datastores[0].settings.filename;
+      delete config.happn.services.data.config.datastores[0].settings.tempDataFilename;
+
 
       test.expect(config.happn.services.data.config).to.eql({
         datastores: [
@@ -183,7 +185,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       done();
     }
   });
-
   it('test the _updateElement method', function (done) {
     var config = {};
     var mesh = mockMesh(config);
@@ -596,7 +597,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
     });
   });
 
-  it('test that the attachSystemComponents method', function () {
+  it('test the attachSystemComponents method', function () {
     var mesh = mockMesh({});
     const testConfig = {
       modules: {
@@ -648,6 +649,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
         system: {
           accessLevel: 'mesh',
           initMethod: 'initialize',
+          stopMethod: 'stop',
         },
         rest: {
           accessLevel: 'mesh',

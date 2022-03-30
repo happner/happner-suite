@@ -246,6 +246,11 @@ non-release 2017-12-14
 -----------------
   - SMC-5125: happn-3: Permissions-sets now accurately reflect templated paths
 
+12.0.3 2022-03-29
+-----------------
+  - TEN-92, TEN-93: logging levels and events
+  - TEN-102: loki snapshot  file redundancy
+  
 12.1.0 2022-03-17
 -----------------
   - SMC-4817: Major refactor, took out swim, replaced with Databased logging of members.

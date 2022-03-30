@@ -54,7 +54,7 @@ module.exports = class Orchestrator extends EventEmitter {
 
     this.announceHost = this.happn.config.announceHost;
     this.registry = {};
-    this.keepAliveThreshold = this.config.keepAliveThreshold;
+    this.keepaliveThreshold = this.config.keepaliveThreshold;
     this.stabiliseWaiting = [];
     this.stabilised = NodeUtil.promisify(this.stabilised);
     for (let [service, expected] of Object.entries(this.config.cluster))
@@ -71,7 +71,7 @@ module.exports = class Orchestrator extends EventEmitter {
   defaults(config) {
     config = config || {};
     config = _.defaults({}, config, {
-      keepAliveThreshold: 6e3,
+      keepaliveThreshold: 2e3,
       replicate: ['*'],
       serviceName: 'happn-cluster-node',
       deployment: 'Test-Deploy',
@@ -89,15 +89,15 @@ module.exports = class Orchestrator extends EventEmitter {
   configureIntervals() {
     let intervals = {
       keepAlive: {
-        time: 5e3,
+        time: 1e3,
         method: 'keepAlive',
       },
       membership: {
-        time: 5e3,
+        time: 2e3,
         method: 'memberCheck',
       },
       health: {
-        time: 10e3,
+        time: 5e3,
         method: 'healthReport',
       },
     };
@@ -189,7 +189,7 @@ module.exports = class Orchestrator extends EventEmitter {
     // Doing this in a seperate function so that we can alter it to allow for non-aws cases if desired.
     let data = await this.happn.services.data.get(`/SYSTEM/DEPLOYMENT/${this.deployment}/**`, {
       criteria: {
-        '_meta.modified': { $gte: Date.now() - this.keepAliveThreshold },
+        '_meta.modified': { $gte: Date.now() - this.keepaliveThreshold },
       },
     });
     return data
@@ -277,7 +277,6 @@ module.exports = class Orchestrator extends EventEmitter {
       if (this.state !== this.constants.STABLE) {
         this.log.info(`Node ${this.happn.name} in service ${this.serviceName} stabilized`);
       }
-      let callback;
       this.clearStabilizedTimeout();
       this.state = this.constants.STABLE;
       this.unstable = false;
@@ -319,7 +318,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   healthReport() {
-    this.log.info(
+    this.log.debug(
       `Member: name ${this.happn.name}, endpoint: ${this.endpoint}, service: ${this.serviceName}, state: ${this.state}`
     );
 
@@ -328,7 +327,7 @@ module.exports = class Orchestrator extends EventEmitter {
         return `\tService ${service.name} has ${service.numPeers} peers of ${service.expected} required`;
       })
       .join('\n');
-    this.log.info(`Node: ${this.happn.name} breakdown: \n` + peerReport);
+    this.log.debug(`Node: ${this.happn.name} breakdown: \n` + peerReport);
   }
 
   __onConnectionFrom(data) {

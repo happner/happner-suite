@@ -215,7 +215,7 @@ function __initializeDbConfig(config) {
       fs.writeFileSync(config.happn.filename + '.test1', 'ping');
       fs.unlinkSync(config.happn.filename + '.test1');
 
-      this.log.info('persisting to default file %s', config.happn.filename);
+      this.log.debug('persisting to default file %s', config.happn.filename);
 
       if (!config.happn.defaultRoute)
         config.happn.defaultRoute = config.happn.persist ? 'persist' : 'mem';
@@ -347,7 +347,7 @@ function connect(mesh, happnServer, callback) {
         return callback(e);
       }
 
-      this.log.$$DEBUG('server ready');
+      this.log.$$TRACE('server ready');
 
       this.access.serverReady = true;
 
@@ -400,7 +400,7 @@ function connect(mesh, happnServer, callback) {
           });
         }
 
-        this.log.$$DEBUG('client ready');
+        this.log.$$TRACE('client ready');
         this.access.clientReady = true;
         this.store.client = clientInstance;
 

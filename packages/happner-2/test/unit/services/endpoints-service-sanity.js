@@ -98,6 +98,9 @@ describe(
           warn: function () {
             mockMesh.action('log-warn', arguments);
           },
+          debug: function () {
+            mockMesh.action('log-debug', arguments);
+          },
           $$DEBUG: function () {
             mockMesh.action('log-debug', arguments);
           },

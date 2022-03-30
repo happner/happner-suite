@@ -255,7 +255,7 @@ describe('02 - unit - brokerage component', function () {
     };
     let count = 0;
     var mockLogger = {
-      info: function (msg) {
+      debug: function (msg) {
         count++;
         if (count === 2) {
           expect('remote dependency satisfied: remote-mesh.test').to.be(msg);

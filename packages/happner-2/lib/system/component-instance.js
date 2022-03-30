@@ -582,7 +582,7 @@ ComponentInstance.prototype.initialize = function (name, root, mesh, module, con
 
   this.log = mesh._mesh.log.createLogger(this.name);
   this.Mesh = require('../mesh'); // local Mesh definition avaliable on $happn
-  this.log.$$DEBUG('create instance');
+  this.log.$$TRACE('create instance');
 
   this.initializeCachedBoundExchange(mesh._mesh, this.name);
 
@@ -780,28 +780,28 @@ ComponentInstance.prototype.satisfies = function (moduleVersion, version) {
 
 ComponentInstance.prototype.on = function (event, handler) {
   try {
-    this.log.debug('component on called', event);
+    this.log.$$TRACE('component on called', event);
     return this.localEventEmitter.on(event, handler);
   } catch (e) {
-    this.log.debug('component on error', e);
+    this.log.$$TRACE('component on error', e);
   }
 };
 
 ComponentInstance.prototype.offEvent = function (event, handler) {
   try {
-    this.log.debug('component offEvent called', event);
+    this.log.$$TRACE('component offEvent called', event);
     return this.localEventEmitter.offEvent(event, handler);
   } catch (e) {
-    this.log.debug('component offEvent error', e);
+    this.log.$$TRACE('component offEvent error', e);
   }
 };
 
 ComponentInstance.prototype.emitEvent = function (event, data) {
   try {
-    this.log.debug('component emitEvent called', event);
+    this.log.$$TRACE('component emitEvent called', event);
     return this.localEventEmitter.emit(event, data);
   } catch (e) {
-    this.log.debug('component emitEvent error', e);
+    this.log.$$TRACE('component emitEvent error', e);
   }
 };
 
@@ -1126,7 +1126,7 @@ ComponentInstance.prototype._attachRouteTarget = function (
   connect.use(meshRoutePath, serve);
   connect.use(componentRoutePath, serve);
 
-  this.log.debug(`attached web route for component ${this.name}: ${meshRoutePath}`);
+  this.log.$$TRACE(`attached web route for component ${this.name}: ${meshRoutePath}`);
 
   // tag for _detatch() to be able to remove middleware when removing component
   serve.__tag = this.name;
@@ -1208,7 +1208,7 @@ ComponentInstance.prototype.__reply = function (
 ComponentInstance.prototype._attach = function (config, mesh, callback) {
   //attach module to the transport layer
 
-  this.log.$$DEBUG('_attach()');
+  this.log.$$TRACE('_attach()');
 
   var _this = this;
 
@@ -1395,7 +1395,7 @@ ComponentInstance.prototype._attach = function (config, mesh, callback) {
 ComponentInstance.prototype._detatch = function (mesh, callback) {
   //
   // mesh._mesh
-  this.log.$$DEBUG('_detatch() removing component from mesh');
+  this.log.$$TRACE('_detatch() removing component from mesh');
 
   var _this = this;
   var connect = mesh.happn.server.connect;

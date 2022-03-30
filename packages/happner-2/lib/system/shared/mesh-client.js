@@ -104,12 +104,12 @@
 
     this.log = opts.log = log;
 
-    this.log.$$DEBUG('created instance with opts', opts);
+    this.log.$$TRACE('created instance with opts', opts);
 
     if (typeof callback === 'function') {
       log.warn('MeshClient() with login callback is deprecated.');
       log.warn('see: https://github.com/happner/happner/blob/master/docs/client.md');
-      log.info('connecting to %s:%s', hostname, port);
+      log.debug('connecting to %s:%s', hostname, port);
       const _this = this;
       return initialize(this, opts, function (e, instance) {
         if (e) return callback(e);
@@ -132,7 +132,7 @@
 
   function login(credentials, callback) {
     setTimeout(() => {
-      this.log.$$DEBUG('login()');
+      this.log.$$TRACE('login()');
 
       if (typeof credentials === 'undefined') credentials = {};
       if (typeof credentials === 'function') {
@@ -459,7 +459,7 @@
                   Internals._updateEndpoint(client, endpointName, exchange, event, function (err) {
                     if (err) return client.log.error('api update failed', err); // Not much can be done...
 
-                    client.log.info('api updated!');
+                    client.log.debug('api updated!');
 
                     var updatedComponents = Object.keys(description.components);
 

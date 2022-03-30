@@ -1,6 +1,6 @@
 {
   "name": "happn-commons-test",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "assert": "^2.0.0",
     "await-delay": "^1.0.0",
     "axios": "^0.25.0",
@@ -20,7 +20,7 @@
     "coveralls": "^3.1.1",
     "expect.js": "^0.3.1",
     "gulp": "^4.0.2",
-    "happn-commons": "^1.0.1",
+    "happn-commons": "^1.0.2",
     "happner-hyperid": "^2.0.0",
     "http-proxy": "^1.18.1",
     "karma": "^6.3.9",
@@ -38,6 +38,7 @@
     "sinon": "^12.0.1",
     "sinon-chai": "^3.7.0",
     "when": "^3.7.8",
-    "why-is-node-running": "^2.2.0"
+    "why-is-node-running": "^2.2.0",
+    "mock-fs": "^5.1.2"
   }
 }
