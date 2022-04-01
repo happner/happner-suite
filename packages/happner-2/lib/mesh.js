@@ -618,7 +618,6 @@ Mesh.prototype.initialize = util.promisify(function (config, callback) {
 // Step2 of two step start (initialize({},function callback(){ start() }))
 Mesh.prototype.start = util.promisify(function (callback) {
   var _this = this;
-
   //eslint-disable-next-line
   if (!_this._mesh.initialized) return console.warn('missing initialize()');
 

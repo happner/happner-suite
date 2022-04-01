@@ -132,4 +132,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       );
     });
   });
+
+  it('tests that the waiting interval is configurable', async function () {
+    this.timeout(8e3);
+    let mesh = await new Mesh().initialize({
+      waitingInterval: 2e3,
+      components: { slowComponent: { startMethod: 'start' } },
+      modules: {
+        slowComponent: {
+          instance: { start: (cb) => setTimeout(cb, 4000) },
+        },
+      },
+    });
+    mesh.log.warn = test.sinon.spy();
+    mesh.start();
+    await test.delay(3000);
+    test.expect(mesh.log.warn.callCount).to.be(1);
+    test
+      .expect(mesh.log.warn.calledWith("awaiting startMethod '%s'", 'slowComponent.start()'))
+      .to.be(true);
+    await test.delay(1500); //Wait for slowComponent to start
+    await mesh.stop({ reconnect: false });
+  });
 });
