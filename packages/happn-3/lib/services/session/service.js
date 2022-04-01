@@ -82,7 +82,7 @@ function __unconfiguredSessionCleanup(config) {
     sessionKeys.forEach((sessionId) => {
       if (this.__sessionIsUnconfigured(sessionId, config)) {
         this.disconnectClient(this.__sessions[sessionId].client, (e) => {
-          if (e) return this.log.error(`unable to remove unconfigured session: ${sessionId}`);
+          if (e) return this.log.warn(`unable to remove unconfigured session: ${sessionId}`);
           this.__configuredSessionLog(`session ${sessionId} not configured, removed`, config);
         });
         cleanedUp++;
@@ -185,7 +185,7 @@ function endSession(sessionId, reason) {
   this.disconnectSession(
     sessionId,
     (e) => {
-      if (e) return this.log.error(`failed to end session ${sessionId}: ${e.message}`);
+      if (e) return this.log.warn(`failed to end session ${sessionId}: ${e.message}`);
     },
     {
       reason,
@@ -299,7 +299,7 @@ function each(eachHandler, callback) {
 
 function destroyPrimus(options, callback) {
   var shutdownTimeout = setTimeout(() => {
-    this.log.error('primus destroy timed out after ' + options.timeout + ' milliseconds');
+    this.log.warn('primus destroy timed out after ' + options.timeout + ' milliseconds');
     this.__shutdownTimeout = true; //instance level flag to ensure callback is not called multiple times
     callback();
   }, options.timeout);
@@ -336,7 +336,7 @@ function stop(options, callback) {
   if (options.reconnect === false)
     // this must happen rarely or in test cases
     return this.disconnectAllClients((e) => {
-      if (e) this.log.error('failed disconnecting clients gracefully', e);
+      if (e) this.log.warn('failed disconnecting clients gracefully', e);
       this.destroyPrimus(options, callback);
     });
 
@@ -599,7 +599,7 @@ function onConnect(client) {
 
 function onDisconnect(client) {
   this.finalizeDisconnect(client, (e) => {
-    if (e) this.log.error('client disconnect error, for session id: ' + client.sessionId, e);
+    if (e) this.log.warn('client disconnect error, for session id: ' + client.sessionId, e);
   });
 }
 

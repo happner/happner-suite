@@ -1167,7 +1167,7 @@
     if (listener.meta) parameters.meta = listener.meta;
     this._offPath(channel, (e) => {
       if (e)
-        this.log.error('failed detaching listener to channel, on re-establishment: ' + channel, e);
+        this.log.warn('failed detaching listener to channel, on re-establishment: ' + channel, e);
       this._remoteOn(channel, parameters, (e, response) => {
         if (e) {
           if ([403, 401].indexOf(e.code) > -1) {
@@ -1175,7 +1175,7 @@
             delete this.state.events[channel];
             return this.__clearListenerRef(listener);
           }
-          this.log.error('failed re-establishing listener to channel: ' + channel, e);
+          this.log.warn('failed re-establishing listener to channel: ' + channel, e);
           return this.__clearListenerRef(listener);
         }
         this.state.refCount[listener.eventKey] = 1;
@@ -1192,7 +1192,7 @@
           delete this.state.events[channel];
           return;
         }
-        this.log.error('Error on channel cleanup after permissions change, channel: ' + channel, e);
+        this.log.warn('Error on channel cleanup after permissions change, channel: ' + channel, e);
       } else {
         this._remoteOff(channel, response.id, () => {});
       }
@@ -1416,7 +1416,7 @@
       if (!this.state.events[path]) return;
 
       if (acknowledged._meta.acknowledgedError)
-        this.log.error(
+        this.log.wa(rn
           'acknowledgement failure: ',
           acknowledged._meta.acknowledgedError.toString(),
           acknowledged._meta.acknowledgedError
