@@ -633,7 +633,7 @@ Mesh.prototype.start = util.promisify(function (callback) {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
       _this.log.warn("awaiting startMethod '%s'", name);
     });
-  },_this._mesh.config.waitingInterval || 30e3);
+  }, _this._mesh.config.waitingInterval || 30e3);
 
   _this.impatient = setTimeout(function () {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
