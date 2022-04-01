@@ -1416,7 +1416,7 @@
       if (!this.state.events[path]) return;
 
       if (acknowledged._meta.acknowledgedError)
-        this.log.wa(rn
+        this.log.warn(
           'acknowledgement failure: ',
           acknowledged._meta.acknowledgedError.toString(),
           acknowledged._meta.acknowledgedError
