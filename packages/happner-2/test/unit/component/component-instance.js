@@ -181,7 +181,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var ComponentInstance = require('../../../lib/system/component-instance');
     var componentInstance = new ComponentInstance();
     componentInstance.log = {
-      error: (msg) => {
+      warn: (msg) => {
         test.expect(msg).to.be('Failure on callback, missing peer');
         done();
       },

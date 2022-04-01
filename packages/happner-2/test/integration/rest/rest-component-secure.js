@@ -182,6 +182,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   var mock$Happn = {
     log: {
       error: test.sinon.stub(),
+      warn: test.sinon.stub(),
       debug: test.sinon.stub(),
       info: test.sinon.stub(),
     },
@@ -267,7 +268,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             test.expect(response.error).to.not.be(null);
             test.expect(response.error.message).to.be('a test error');
             test
-              .expect(mock$Happn.log.error.lastCall.firstArg)
+              .expect(mock$Happn.log.warn.lastCall.firstArg)
               .to.be('rpc request failure: a test error');
             return done();
         }
