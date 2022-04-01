@@ -633,7 +633,7 @@ Mesh.prototype.start = util.promisify(function (callback) {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
       _this.log.warn("awaiting startMethod '%s'", name);
     });
-  }, 10 * 1000);
+  },_this._mesh.config.waitingInterval || 30e3);
 
   _this.impatient = setTimeout(function () {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
@@ -643,7 +643,7 @@ Mesh.prototype.start = util.promisify(function (callback) {
       kill: true,
       wait: 200,
     });
-  }, _this._mesh.config.startTimeout || 5 * 60 * 1000); // Default to 5 minutes for AWS purposes
+  }, _this._mesh.config.startTimeout || 5 * 60e3); // Default to 5 minutes for AWS purposes
 
   _this.__initComponents(function (error) {
     if (error) {
