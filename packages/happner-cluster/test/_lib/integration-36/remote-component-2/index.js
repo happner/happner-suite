@@ -1,6 +1,4 @@
-module.exports = Component;
-
-class Component {
+module.exports = class Component {
   constructor() {
     this.version = '3.4.5';
   }
@@ -16,7 +14,7 @@ class Component {
     callback(null, {
       mesh: $happn.info.mesh.name,
       version: this.version,
-      component: 'remoteComponent1',
+      component: 'remoteComponent2',
     });
   }
 }

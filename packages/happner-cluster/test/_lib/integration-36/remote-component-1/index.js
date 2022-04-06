@@ -1,6 +1,4 @@
-module.exports = Component;
-
-class Component {
+module.exports = class Component {
   constructor() {
     this.version = '2.1.2';
   }
