@@ -241,6 +241,7 @@
       mapData.push({
         local: description.self,
         name: description.meshName,
+        version: component.version,
       });
     });
   };
@@ -301,6 +302,7 @@
           mapData.push({
             local: description.self,
             name: description.meshName,
+            version: component.version,
           });
         });
       });
@@ -316,16 +318,14 @@
 
   //how round-robining happens
   ImplementorsProvider.prototype.getNext = function (array) {
-    if (typeof array.__lastSequence === 'undefined') {
+    if (array.__lastSequence == null || array.__lastSequence > array.length - 1) {
       array.__lastSequence = 0;
-      return array[array.__lastSequence];
     }
-
+    let highestVer = semver.sort(array.map((item) => item.version)).pop();
+    let acceptable = array.filter((comp) => comp.version === highestVer);
+    let next = acceptable[array.__lastSequence % acceptable.length];
     array.__lastSequence++;
-    if (array.__lastSequence >= array.length) {
-      array.__lastSequence = 0;
-    }
-    return array[array.__lastSequence];
+    return next;
   };
 
   ImplementorsProvider.prototype.registerDependency = function (

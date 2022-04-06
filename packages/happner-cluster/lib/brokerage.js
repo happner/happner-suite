@@ -1,5 +1,5 @@
-const semver = require('semver');
 let brokerageInstances = {};
+
 function Brokerage(models, mesh, client, logger, clusterConfig) {
   this.__models = models;
   this.__mesh = mesh;
@@ -88,46 +88,37 @@ Brokerage.prototype.__handlePeerDeparted = function (peer) {
 };
 
 Brokerage.prototype.__updateInjectedComponent = function (changedComponent, whatChanged) {
-  // console.log(whatChanged);
-  let newVersion = whatChanged.description.version;
-  const changedComponentIndex = this.__injectedElements.indexOf(changedComponent);
-  let currentVersion = this.__injectedElements[changedComponentIndex].component.config.version;
-  console.log({ currentVersion, newVersion });
-  if (currentVersion === '*' || semver.lt(currentVersion, newVersion)) {
-    console.log("UPDATIBNG")
-    let newModel = {};
-    newModel[changedComponent.component.name] = { ...whatChanged.description };
-    newModel[changedComponent.component.name].version = whatChanged.version;
-    let newAPI = this.__client.construct(newModel);
-    let updatedElement = this.constructBrokeredElement(
-      changedComponent.component.name,
-      whatChanged.description,
-      newAPI,
-      whatChanged.url,
-      true,
-      whatChanged.meshName
-    );
-    updatedElement.module.version = updatedElement.component.config.version;
-    this.__mesh
-      ._updateElement(updatedElement)
-      .then(() => {
-        this.__updateInjectedElements(changedComponent, updatedElement);
-        this.logger.debug('element re-injected: ' + changedComponent.component.name);
-        if (this.__fromRemotePeer(whatChanged)) {
-          // pre-injected placeholders would be created by this peer itself
-          // and so they should be ignored for satisfaction
-          this.__satisfiedElementNames.push(changedComponent.component.name);
-          this.logger.debug(
-            `remote dependency satisfied: ${whatChanged.meshName}.${changedComponent.component.name}`
-          );
-        }
-        this.__checkDependenciesSatisfied();
-      })
-      .catch((e) => {
-        this.logger.error('element re-injection failed: ' + changedComponent.component.name, e);
-      });
-  }
-  this.__checkDependenciesSatisfied();
+  let newModel = {};
+  newModel[changedComponent.component.name] = { ...whatChanged.description };
+  newModel[changedComponent.component.name].version = whatChanged.version;
+  let newAPI = this.__client.construct(newModel);
+  let updatedElement = this.constructBrokeredElement(
+    changedComponent.component.name,
+    whatChanged.description,
+    newAPI,
+    whatChanged.url,
+    true,
+    whatChanged.meshName
+  );
+  updatedElement.module.version = updatedElement.component.config.version;
+  this.__mesh
+    ._updateElement(updatedElement)
+    .then(() => {
+      this.__updateInjectedElements(changedComponent, updatedElement);
+      this.logger.debug('element re-injected: ' + changedComponent.component.name);
+      if (this.__fromRemotePeer(whatChanged)) {
+        // pre-injected placeholders would be created by this peer itself
+        // and so they should be ignored for satisfaction
+        this.__satisfiedElementNames.push(changedComponent.component.name);
+        this.logger.debug(
+          `remote dependency satisfied: ${whatChanged.meshName}.${changedComponent.component.name}`
+        );
+      }
+      this.__checkDependenciesSatisfied();
+    })
+    .catch((e) => {
+      this.logger.error('element re-injection failed: ' + changedComponent.component.name, e);
+    });
 };
 
 Brokerage.prototype.__fromRemotePeer = function (whatChanged) {
