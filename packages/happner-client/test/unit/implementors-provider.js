@@ -396,6 +396,7 @@ describe(test.name(__filename, 2), function () {
           test.expect(result).to.eql({
             local: true,
             name: 'SERVER_2',
+            version: '1.2.4',
           });
           done();
         })
@@ -674,7 +675,7 @@ describe(test.name(__filename, 2), function () {
           { local: false, name: 'MESH_2' },
           { local: false, name: 'MESH_3' },
           { local: false, name: 'MESH_4' },
-          { local: false, name: 'NAME' },
+          { local: false, name: 'NAME', version: '1.3.1' },
         ],
         'component3/^2.0.0/method1': [
           { local: false, name: 'MESH_2' },
