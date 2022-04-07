@@ -171,11 +171,10 @@ if (!isNaN(commander.port)) {
   delete config.port; // just incase
 }
 
-
 happner.create(config, function (e, mesh) {
   if (e) {
     if (mesh.log) {
-      mesh.log.error(e, e);
+      mesh.log.error(e);
       process.exit(1);
     }
     console.log('EXIT 1 ' + __filename + '\n' + e.toString());

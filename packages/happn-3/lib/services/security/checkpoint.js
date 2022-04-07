@@ -334,7 +334,7 @@ CheckPoint.prototype._authorizeUser = function (session, path, action, callback)
 CheckPoint.prototype.lookupAuthorize = function (session, path, action, callback) {
   this.securityService.lookupTables.authorizeCallback(session, path, action, (e, authorized) => {
     if (e) {
-      this.log.error(e.toString());
+      this.log.warn(e.toString());
       return callback(null, false);
     }
     this.__setAuthCache(session, path, action, authorized);
