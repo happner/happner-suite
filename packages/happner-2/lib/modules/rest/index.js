@@ -103,7 +103,7 @@ Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
     const stringifiedError = utilities.stringifyError(error);
     if (!code) code = 500;
     responseString = responseString.replace('{{ERROR}}', stringifiedError);
-    $happn.log.error(`rpc request failure: ${error.message ? error.message : stringifiedError}`);
+    $happn.log.warn(`rpc request failure: ${error.message ? error.message : stringifiedError}`);
   } else {
     if (!code) code = 200;
     responseString = responseString.replace('{{ERROR}}', 'null');

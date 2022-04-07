@@ -21,6 +21,7 @@ describe(test.testName(__filename, 3), function () {
 
     happnClient.log = log || {
       error: function () {},
+      warn: () => {},
     };
 
     happnClient.status = state != null ? state : Constants.CLIENT_STATE.ACTIVE;
@@ -461,7 +462,7 @@ describe(test.testName(__filename, 3), function () {
     it('tests that __tryReattachListener will call offPath once, and log an error warning if _offPath returns an error (still tries remoteOn', (done) => {
       let happnClient = mockHappnClient();
       happnClient.state.events = { channel1: [{ eventKey: 'event1' }] };
-      happnClient.log.error = sinon.stub();
+      happnClient.log.warn = sinon.stub();
       happnClient._offPath = sinon.stub();
       let err = new Error('bad');
       happnClient._offPath.callsArgWith(1, err);
@@ -470,10 +471,10 @@ describe(test.testName(__filename, 3), function () {
       happnClient.__tryReattachListener({ eventKey: 'event1' }, 'channel1');
       test.expect(happnClient._offPath.calledOnce).to.be(true);
       test.expect(happnClient._offPath.calledWith('channel1')).to.be(true);
-      test.expect(happnClient.log.error.calledOnce).to.be(true);
+      test.expect(happnClient.log.warn.calledOnce).to.be(true);
       test
         .expect(
-          happnClient.log.error.calledWith(
+          happnClient.log.warn.calledWith(
             'failed detaching listener to channel, on re-establishment: channel1',
             err
           )
@@ -522,16 +523,16 @@ describe(test.testName(__filename, 3), function () {
       happnClient._remoteOn = sinon.stub();
       happnClient._remoteOn.callsArgWith(2, { code: 501 });
       happnClient.__clearListenerRef = sinon.stub();
-      happnClient.log.error = sinon.stub();
+      happnClient.log.warn = sinon.stub();
       happnClient.state.events = {
         testChannel: [{ eventKey: 'event1' }, { eventKey: 'event2' }],
       };
       happnClient.__tryReattachListener({ any: 'listener' }, 'testChannel');
       test.expect(happnClient._remoteOn.callCount).to.be(1);
-      test.expect(happnClient.log.error.calledOnce).to.be(true);
+      test.expect(happnClient.log.warn.calledOnce).to.be(true);
       test
         .expect(
-          happnClient.log.error.calledWith(
+          happnClient.log.warn.calledWith(
             'failed re-establishing listener to channel: testChannel',
             { code: 501 }
           )
@@ -597,14 +598,14 @@ describe(test.testName(__filename, 3), function () {
     it('tests that __testAndCleanupChannel will log an error if it recieves a non 401 or 403 error', (done) => {
       let happnClient = mockHappnClient();
       happnClient._remoteOn = sinon.stub();
-      happnClient.log.error = sinon.stub();
+      happnClient.log.warn = sinon.stub();
       happnClient._remoteOn.callsArgWith(2, { code: 501 });
       happnClient.__testAndCleanupChannel('501');
       test.expect(happnClient._remoteOn.callCount).to.be(1);
-      test.expect(happnClient.log.error.callCount).to.be(1);
+      test.expect(happnClient.log.warn.callCount).to.be(1);
       test
         .expect(
-          happnClient.log.error.calledWith(
+          happnClient.log.warn.calledWith(
             'Error on channel cleanup after permissions change, channel: 501',
             { code: 501 }
           )

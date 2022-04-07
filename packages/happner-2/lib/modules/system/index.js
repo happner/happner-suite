@@ -41,7 +41,10 @@ class SystemComponent {
       statistics.timestamp = now;
 
       procStats.stats((e, result) => {
-        if (e) return $happn.log.error('Failure to fetch cpu usage stats: ', e);
+        if (e) {
+          $happn.log.warn('Failure to fetch cpu usage stats: ', e);
+          callback(e);
+        }
         statistics.usage = result;
         callback(null, statistics);
       });
