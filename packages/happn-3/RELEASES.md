@@ -960,6 +960,11 @@
 -----------------
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
+
+13.0.6 2022-04-06
+-----------------
+  - TEN-103: set default timeout on component loading wait warning to 30secs
+  - TEN-104: errors are only logged on system failures
   
 
 

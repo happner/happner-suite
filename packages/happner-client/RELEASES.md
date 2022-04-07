@@ -304,6 +304,11 @@
   - TEN-102: loki snapshot  file redundancy
   - TEN-92: made all dependencies test dependencies
 
+12.0.5 2022-04-06
+-----------------
+  - TEN-103: set default timeout on component loading wait warning to 30secs
+  - TEN-104: errors are only logged on system failures
+
 
 
   
