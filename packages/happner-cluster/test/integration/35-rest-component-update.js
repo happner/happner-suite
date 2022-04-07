@@ -2,7 +2,6 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
-const testclient = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
@@ -32,103 +31,43 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   context('rest', function () {
     it('does a rest call', async function () {
+      let axios = test.axios;
       await startClusterInternalFirst();
-      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'webMethod1');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent2', 'webMethod2');
-
-      let thisClient = await testclient.create('username', 'password', getSeq.getPort(2));
-      await testRestCall(
-        thisClient.data.session.token,
-        getSeq.getPort(2),
-        'remoteComponent',
-        'webMethod1',
-        null,
-        getSeq.getMeshName(1) + ':remoteComponent:webMethod1:true'
-      );
-      try {
-        await testRestCall(
-          thisClient.data.session.token,
-          getSeq.getPort(2),
-          'remoteComponent2',
-          'webMethod2',
-          null,
-          getSeq.getMeshName(1) + ':remoteComponent:webMethod1:true'
-        );
-        throw new Error("SHOUlDN'T BE AVAILABLE");
-      } catch (e) {
-        test
-          .expect(e.message)
-          .to.eql('method webMethod2 does not exist on component remoteComponent2'); //Brokered component placeholder is there
-      }
-      await startInternal2(getSeq.getNext(), 2);
-      await test.delay(8000);
-
-      await testRestCall(
-        thisClient.data.session.token,
-        getSeq.getPort(2),
-        'remoteComponent2',
-        'webMethod2',
-        null,
-        getSeq.getMeshName(3) + ':remoteComponent2:webMethod2:true'
-      );
-    });
-
-    function doRequest(path, token, port, callback) {
-      var request = require('request');
-      var options;
-
-      options = {
-        url: `http://127.0.0.1:${port}${path}?happn_token=${token}`,
+      let port = getSeq.getPort(2);
+      let credentials = {
+        username: '_ADMIN',
+        password: 'ADMIN_PASSWORD',
       };
+      let token = (await axios.post(`http://localhost:${port}/rest/login`, credentials)).data.data
+        .token;
 
-      request(options, function (error, response, body) {
-        callback(error, {
-          response,
-          body,
-        });
-      });
-    }
+      let description = (
+        await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`)
+      ).data.data;
+      test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
+      test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
+      await startInternal2(getSeq.getNext(), 2);
+      await test.delay(1000);
+      description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
+        .data.data;
+      test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
+      test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
 
-    function testRestCall(token, port, component, method, params, expectedResponse) {
-      return new Promise((resolve, reject) => {
-        var restClient = require('restler');
+      //NB: Not sure if the following should work or not.
 
-        var operation = {
-          parameters: params || {},
-        };
-
-        var options = { headers: {} };
-        options.headers.authorization = 'Bearer ' + token;
-
-        restClient
-          .postJson(
-            `http://localhost:${port}/rest/method/${component}/${method}`,
-            operation,
-            options
-          )
-          .on('complete', function (result) {
-            if (result.error) return reject(result.error);
-            test.expect(result.data).to.eql(expectedResponse);
-            resolve();
-          });
-      });
-    }
-
-    function testWebCall(client, path, port) {
-      return new Promise((resolve) => {
-        doRequest(path, client.token, port, function (e, response) {
-          if (e)
-            return resolve({
-              error: e,
-            });
-          resolve(response);
-        });
-      });
-    }
+      // await servers.pop().stop({ reconnect: false });
+      // await test.delay(1000);
+      // description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
+      //   .data.data;
+      // test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
+      // test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
+    });
 
     function localInstanceConfig(seq, sync) {
       var config = baseConfig(seq, sync, true);
+      config.happn.adminPassword = 'ADMIN_PASSWORD';
       config.authorityDelegationOn = true;
+      // config.secure = false
       let brokerComponentPath = libDir + 'integration-35-broker-component';
 
       config.modules = {
@@ -147,13 +86,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     function remoteInstanceConfig(seq, sync) {
       var config = baseConfig(seq, sync, true);
+      config.happn.adminPassword = 'ADMIN_PASSWORD';
       config.modules = {
         remoteComponent: {
           path: libDir + 'integration-35-remote-component',
         },
-        //   remoteComponent1: {
-        //     path: libDir + 'integration-09-remote-component-1',
-        //   },
       };
       config.components = {
         remoteComponent: {
@@ -166,13 +103,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     function remoteInstanceConfig2(seq, sync) {
       var config = baseConfig(seq, sync, true);
+      config.happn.adminPassword = 'ADMIN_PASSWORD';
       config.modules = {
         remoteComponent2: {
           path: libDir + 'integration-35-remote-component2',
         },
-        //   remoteComponent1: {
-        //     path: libDir + 'integration-09-remote-component-1',
-        //   },
       };
       config.components = {
         remoteComponent2: {
