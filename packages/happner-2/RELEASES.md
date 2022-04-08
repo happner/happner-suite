@@ -931,6 +931,11 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - TEN-103: set default timeout on component loading wait warning to 30secs
   - TEN-104: errors are only logged on system failures
 
+12.1.0 2022-04-08
+-----------------
+  - TEN-95: $call discovers components and methods in cluster
+
+
 
 
 
