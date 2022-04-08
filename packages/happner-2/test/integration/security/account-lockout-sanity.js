@@ -131,7 +131,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
               username: 'username',
               password: 'password',
             })
-            .then(itemCB)
+            .then(() => {
+              client.disconnect(itemCB);
+            })
             .catch(itemCB);
         },
       ],

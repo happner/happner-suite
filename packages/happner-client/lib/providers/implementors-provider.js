@@ -316,16 +316,12 @@
 
   //how round-robining happens
   ImplementorsProvider.prototype.getNext = function (array) {
-    if (typeof array.__lastSequence === 'undefined') {
+    if (array.__lastSequence == null || array.__lastSequence > array.length - 1) {
       array.__lastSequence = 0;
-      return array[array.__lastSequence];
     }
-
+    let next = array[array.__lastSequence];
     array.__lastSequence++;
-    if (array.__lastSequence >= array.length) {
-      array.__lastSequence = 0;
-    }
-    return array[array.__lastSequence];
+    return next;
   };
 
   ImplementorsProvider.prototype.registerDependency = function (

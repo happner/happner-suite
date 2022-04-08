@@ -5,10 +5,11 @@ module.exports = class Cluster extends Helper {
     super();
     this.instances = [];
     this.events = {
-      data: []
+      data: [],
     };
     this.member = {
       start: async (configuration, wait) => {
+        // before you think you can tidy this up, we need to use the callback, otherwise the we cannot move on to start other test peers
         HappnerCluster.create(configuration, (e, instance) => {
           if (e) {
             // eslint-disable-next-line no-console
@@ -16,12 +17,12 @@ module.exports = class Cluster extends Helper {
           }
           this.events.data.push({
             key: 'member-started',
-            value: instance._mesh.config.name
+            value: instance._mesh.config.name,
           });
           this.instances.push(instance);
         });
         await this.delay(wait);
-      }
+      },
     };
     this.component = {
       inject: (index, configuration) => {
@@ -31,18 +32,23 @@ module.exports = class Cluster extends Helper {
         });
         const instances = this.instances;
         return new Promise((resolve, reject) => {
-          instances[index]._mesh._createElement(configuration, true, e => {
+          instances[index]._mesh._createElement(configuration, true, (e) => {
             if (e) return reject(e);
             resolve();
           });
         });
-      }
+      },
     };
   }
   static create() {
     return new Cluster();
   }
-  async destroy() {
+  async destroy(index) {
+    if (index >= 0) {
+      await this.instances[index].stop();
+      this.instances.splice(index, 1);
+      return;
+    }
     this.instances.sort((a, b) => {
       if (a._mesh.config.name < b._mesh.config.name) return -1;
       return 1;

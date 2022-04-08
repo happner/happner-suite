@@ -175,9 +175,9 @@
     return new Promise(function (resolve, reject) {
       if (!_this.connected(reject)) return;
 
-      var requestSequence = _this.nextSeq();
+      const requestSequence = _this.nextSeq();
 
-      var requestArgs = _this.requestBuilder
+      let requestArgs = _this.requestBuilder
         .withComponent(component)
         .withDomain(_this.implementors.domain)
         .withVersion(version)
@@ -198,21 +198,17 @@
 
       requestArgs = requestArgs.build();
 
-      var requestPath =
-        '/_exchange/requests/' + _this.implementors.domain + '/' + component + '/' + method;
-
-      var requestOptions = {
+      const requestOptions = {
         timeout: _this.happnerClient.__requestTimeout,
         noStore: true,
+        noCluster: true,
       };
 
       if (origin) requestOptions.onBehalfOf = origin.username;
 
-      var client = _this.connection.client;
-
-      if (!implementation.local) {
-        client = _this.connection.clients.peers[implementation.name].client;
-      }
+      const client = implementation.local
+        ? _this.connection.client
+        : _this.connection.clients.peers[implementation.name].client;
 
       // need to create the response handler before calling set() because
       // if it is only created in set()'s callback there is a race condition
@@ -228,18 +224,22 @@
         }, _this.happnerClient.__responseTimeout),
       };
 
-      client.set(requestPath, requestArgs, requestOptions, function (e) {
-        var handler = _this.awaitingResponses[requestSequence];
-        if (e) {
-          if (handler) {
-            clearTimeout(handler.timeout);
-            delete _this.awaitingResponses[requestSequence];
+      client.set(
+        `/_exchange/requests/${_this.implementors.domain}/${component}/${method}`,
+        requestArgs,
+        requestOptions,
+        function (e) {
+          var handler = _this.awaitingResponses[requestSequence];
+          if (e) {
+            if (handler) {
+              clearTimeout(handler.timeout);
+              delete _this.awaitingResponses[requestSequence];
+            }
+            return reject(e);
           }
-          return reject(e);
+          resolve();
         }
-
-        resolve();
-      });
+      );
     });
   };
 
