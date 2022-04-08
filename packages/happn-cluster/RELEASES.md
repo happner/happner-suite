@@ -251,6 +251,11 @@ non-release 2017-12-14
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
   
+12.0.4 2022-04-06
+-----------------
+  - TEN-103: set default timeout on component loading wait warning to 30secs
+  - TEN-104: errors are only logged on system failures
+
 12.1.0 2022-03-17
 -----------------
   - SMC-4817: Major refactor, took out swim, replaced with Databased logging of members.

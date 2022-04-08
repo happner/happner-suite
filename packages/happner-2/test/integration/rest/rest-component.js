@@ -165,6 +165,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     log: {
       error: test.sinon.stub(),
       info: test.sinon.stub(),
+      warn: test.sinon.stub(),
     },
     _mesh: {
       utilities: happnUtils,
@@ -455,7 +456,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     restClient
       .postJson('http://localhost:10000/rest/method/blithering_idiot/testmethod', operation)
       .on('complete', function (result) {
-        test.expect(result.error.message).to.be('component blithering_idiot does not exist on mesh');
+        test
+          .expect(result.error.message)
+          .to.be('component blithering_idiot does not exist on mesh');
 
         done();
       });
@@ -530,9 +533,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     restClient
       .postJson('http://localhost:10000/rest/method/testComponent/nonexistant', operation)
       .on('complete', function (result) {
-        test.expect(result.error.message).to.be(
-          'method nonexistant does not exist on component testComponent'
-        );
+        test
+          .expect(result.error.message)
+          .to.be('method nonexistant does not exist on component testComponent');
 
         done();
       });

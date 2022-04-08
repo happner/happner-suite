@@ -43,13 +43,13 @@ module.exports = class AuthProvider {
         let SpecificProvider = require(requiredModule)(AuthProvider);
         return SpecificProvider.create(happn, config);
       } catch (e) {
-        happn.services.security.log.error(
+        happn.services.security.log.warn(
           `Could not configure auth provider ${requiredModule}, returning base auth provider with limited functionality.`
         );
         return new AuthProvider(happn, config);
       }
     }
-    happn.services.security.log.error(
+    happn.services.security.log.warn(
       'No auth provider specified, returning base auth provider with limited functionality.'
     );
     return new AuthProvider(happn, config);

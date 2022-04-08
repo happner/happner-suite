@@ -17,12 +17,12 @@ describe(test.testName(), function () {
   });
 
   it('tests the create method, no provider', (done) => {
-    mockHappn.services.security.log.error = test.sinon.spy();
+    mockHappn.services.security.log.warn = test.sinon.spy();
     let baseProvider = BaseAuthProvider.create(mockHappn, {});
-    test.expect(mockHappn.services.security.log.error.calledOnce).to.be(true);
+    test.expect(mockHappn.services.security.log.warn.calledOnce).to.be(true);
     test
       .expect(
-        mockHappn.services.security.log.error.calledWith(
+        mockHappn.services.security.log.warn.calledWith(
           'No auth provider specified, returning base auth provider with limited functionality.'
         )
       )
@@ -41,12 +41,12 @@ describe(test.testName(), function () {
   });
 
   it('tests the create method, bad auth provider', (done) => {
-    mockHappn.services.security.log.error = test.sinon.spy();
+    mockHappn.services.security.log.warn = test.sinon.spy();
     let baseProvider = BaseAuthProvider.create(mockHappn, {}, noAuthProvider);
-    test.expect(mockHappn.services.security.log.error.calledOnce).to.be(true);
+    test.expect(mockHappn.services.security.log.warn.calledOnce).to.be(true);
     test
       .expect(
-        mockHappn.services.security.log.error.calledWith(
+        mockHappn.services.security.log.warn.calledWith(
           `Could not configure auth provider ${noAuthProvider}, returning base auth provider with limited functionality.`
         )
       )
