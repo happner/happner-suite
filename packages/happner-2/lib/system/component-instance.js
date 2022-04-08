@@ -1174,7 +1174,7 @@ ComponentInstance.prototype.__raiseOnPublishOK = function (response) {
 };
 
 ComponentInstance.prototype.__getSubscribeMask = function () {
-  return '/_exchange/requests/' + this.info.mesh.domain + '/' + this.name + '/*';
+  return `/_exchange/requests/${this.info.mesh.domain}/${this.name}/*`;
 };
 
 ComponentInstance.prototype.__reply = function (

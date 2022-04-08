@@ -50,5 +50,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       { level: 'info', additional: 'should log' },
       { level: 'debug', additional: 'should log' },
     ]);
+    await server.event.system.offPath('system/log/*');
   });
 });
