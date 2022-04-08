@@ -54,7 +54,7 @@ module.exports = class Orchestrator extends EventEmitter {
 
     this.announceHost = this.happn.config.announceHost;
     this.registry = {};
-    this.keepaliveThreshold = this.config.keepaliveThreshold;
+    this.keepAliveThreshold = this.config.keepAliveThreshold;
     this.stabiliseWaiting = [];
     this.stabilised = NodeUtil.promisify(this.stabilised);
     for (let [service, expected] of Object.entries(this.config.cluster))
@@ -71,7 +71,7 @@ module.exports = class Orchestrator extends EventEmitter {
   defaults(config) {
     config = config || {};
     config = _.defaults({}, config, {
-      keepaliveThreshold: 2e3,
+      keepAliveThreshold: 6e3,
       replicate: ['*'],
       serviceName: 'happn-cluster-node',
       deployment: 'Test-Deploy',
@@ -89,15 +89,15 @@ module.exports = class Orchestrator extends EventEmitter {
   configureIntervals() {
     let intervals = {
       keepAlive: {
-        time: 1e3,
+        time: 5e3,
         method: 'keepAlive',
       },
       membership: {
-        time: 2e3,
+        time: 5e3,
         method: 'memberCheck',
       },
       health: {
-        time: 5e3,
+        time: 10e3,
         method: 'healthReport',
       },
     };
@@ -189,7 +189,7 @@ module.exports = class Orchestrator extends EventEmitter {
     // Doing this in a seperate function so that we can alter it to allow for non-aws cases if desired.
     let data = await this.happn.services.data.get(`/SYSTEM/DEPLOYMENT/${this.deployment}/**`, {
       criteria: {
-        '_meta.modified': { $gte: Date.now() - this.keepaliveThreshold },
+        '_meta.modified': { $gte: Date.now() - this.keepAliveThreshold },
       },
     });
     return data
@@ -336,6 +336,7 @@ module.exports = class Orchestrator extends EventEmitter {
     this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
     if (data.info.clusterName !== this.clusterName) return;
     const { serviceName } = data.info;
+    if (!this.registry[serviceName]) return;
     this.registry[serviceName].connectionFrom(data.info);
   }
 

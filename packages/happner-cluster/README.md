@@ -62,12 +62,17 @@ var config = {
           ]
         }
       }
-      membership: {
-        // see membership sub-config in happn-cluster docs
-      },
       orchestrator: {
+        // see orchestrator sub-config in happn-cluster docs
           config: {
-            minimumPeers: minPeers || 3, //minimum peers before stabilise
+            serviceName: "SomeService"
+            deployment: "SomeDeploy"
+            clusterName: "Cluster
+            cluster: {
+              SomeService: 2,
+              AnotherService: 3
+              //Key value list of services in cluster and minimum required amound of each
+            }
             replicate: [
               'my-custom-path/*'
             ] //listen to all cluster events on this path, the following are also listened to by default:

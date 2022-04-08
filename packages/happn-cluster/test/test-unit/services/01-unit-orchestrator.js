@@ -41,7 +41,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         if (e) return done(e);
 
         test.expect(o.config).to.eql({
-          keepaliveThreshold: 2000,
+          keepAliveThreshold: 6000,
           replicate: ['*'],
           serviceName: 'happn-cluster-node',
           deployment: 'Test-Deploy',
@@ -61,15 +61,13 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         {
           minimumPeers: 3,
           replicate: [],
-          stableReportInterval: 10000,
         },
         (e) => {
           if (e) return done(e);
           test.expect(o.config).to.eql({
             minimumPeers: 3,
             replicate: ['/__REPLICATE'],
-            stableReportInterval: 10000,
-            keepaliveThreshold: 2000,
+            keepAliveThreshold: 6000,
             serviceName: 'happn-cluster-node',
             deployment: 'Test-Deploy',
             clusterName: 'happn-cluster',
@@ -88,7 +86,6 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       o.initialize(
         {
           replicate: [],
-          stableReportInterval: 10000,
           serviceName: 'service1',
           deployment: 'Another-Deployment',
           clusterName: 'another-cluster',
@@ -102,8 +99,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
 
           test.expect(o.config).to.eql({
             replicate: ['/__REPLICATE'],
-            stableReportInterval: 10000,
-            keepaliveThreshold: 2000,
+            keepAliveThreshold: 6000,
             serviceName: 'service1',
             deployment: 'Another-Deployment',
             clusterName: 'another-cluster',
