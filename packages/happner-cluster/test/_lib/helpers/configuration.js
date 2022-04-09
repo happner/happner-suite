@@ -28,13 +28,31 @@ module.exports = class Configuration extends require('./helper') {
     return require(`../configurations/${test}/${index}`);
   }
 
-  construct(test, extendedIndex, secure = true, minPeers, hosts, joinTimeout, replicate) {
+  construct(
+    test,
+    extendedIndex,
+    secure = true,
+    minPeers,
+    hosts,
+    joinTimeout,
+    replicate,
+    nameSuffix
+  ) {
     let [seqIndex, index] = extendedIndex;
-    const base = this.base(index, seqIndex, secure, minPeers, hosts, joinTimeout, replicate);
+    const base = this.base(
+      index,
+      seqIndex,
+      secure,
+      minPeers,
+      hosts,
+      joinTimeout,
+      replicate,
+      nameSuffix
+    );
     return _.defaultsDeep(base, this.get(test, index));
   }
 
-  base(index, seqIndex, secure = true, minPeers, hosts, joinTimeout, replicate) {
+  base(index, seqIndex, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix = '') {
     let [first, portIndex] = seqIndex;
     index += first;
     hosts = hosts || [
@@ -45,7 +63,7 @@ module.exports = class Configuration extends require('./helper') {
     replicate = replicate || ['*'];
 
     return {
-      name: 'MESH_' + index,
+      name: 'MESH_' + index + nameSuffix,
       domain: 'DOMAIN_NAME',
       port: PORT_CONSTANTS.HAPPN_BASE + portIndex,
       cluster: {

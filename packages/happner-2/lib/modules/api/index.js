@@ -17,37 +17,8 @@ Api.prototype.stop = async function ($happn) {
   }
 };
 
-Api.prototype.__componentExists = function ($happn, component, method) {
-  const possibleEndpointPaths = [
-    `/${$happn._mesh.config.name}/${component}/${method}`,
-    `/${$happn._mesh.config.domain}/${component}/${method}`,
-    `/${component}/${method}`,
-  ];
-  if (
-    $happn._mesh.exchange[possibleEndpointPaths[0]] ||
-    $happn._mesh.exchange[possibleEndpointPaths[1]] ||
-    $happn._mesh.exchange[possibleEndpointPaths[2]]
-  ) {
-    //we found the whole endpoint - return true
-    return true;
-  }
-  // endpoint does not exist, we check for a component match
-  // (a missing method will be handled on the component-instance)
-
-  // first create the component paths, so we dont do splits slices and joins
-  // for every endpoint key we are examining
-  const possibleComponentPaths = [
-    `/${$happn._mesh.config.name}/${component}`,
-    `/${$happn._mesh.config.domain}/${component}`,
-    `/${component}`,
-  ];
-  return (
-    Object.keys($happn._mesh.exchange).find((endpointPath) => {
-      return possibleComponentPaths.find((possibleComponentPath) => {
-        return endpointPath.indexOf(possibleComponentPath) === 0;
-      });
-    }) != null
-  );
+Api.prototype.__destinationExists = function ($happn, component) {
+  return $happn.exchange[component] != null;
 };
 
 Api.prototype.getComponentAndMethodFromPath = function (path) {
@@ -62,7 +33,7 @@ Api.prototype.getComponentAndMethodFromPath = function (path) {
 Api.prototype.createAllExchangeRequestsHandler = function ($happn) {
   return (data, meta) => {
     const componentAndMethod = this.getComponentAndMethodFromPath(meta.path);
-    if (this.__componentExists($happn, componentAndMethod[0], componentAndMethod[1])) return;
+    if (this.__destinationExists($happn, componentAndMethod[0])) return;
     $happn._mesh.data.publish(
       data.callbackAddress,
       {
