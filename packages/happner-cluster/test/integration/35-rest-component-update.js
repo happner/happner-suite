@@ -53,21 +53,19 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
 
-      //NB: Not sure if the following should work or not.
-
-      // await servers.pop().stop({ reconnect: false });
-      // await test.delay(1000);
-      // description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
-      //   .data.data;
-      // test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
-      // test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
+      //Should still have correct description after component leaves
+      await servers.pop().stop({ reconnect: false });
+      await test.delay(1000);
+      description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
+        .data.data;
+      test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
+      test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
     });
 
     function localInstanceConfig(seq, sync) {
       var config = baseConfig(seq, sync, true);
       config.happn.adminPassword = 'ADMIN_PASSWORD';
       config.authorityDelegationOn = true;
-      // config.secure = false
       let brokerComponentPath = libDir + 'integration-35-broker-component';
 
       config.modules = {
@@ -135,7 +133,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       return server;
     }
 
-    function startClusterInternalFirst(dynamic) {
+    function startClusterInternalFirst() {
       return new Promise(function (resolve, reject) {
         startInternal(getSeq.getFirst(), 1)
           .then(function (server) {
