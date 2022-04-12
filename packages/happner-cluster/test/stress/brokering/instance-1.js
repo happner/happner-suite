@@ -11,22 +11,22 @@ commander
   .parse(process.argv);
 
 commander.seq = parseInt(commander.seq || 1);
-commander.hosts = commander.hosts || '127.0.0.1:56001,127.0.0.1:56002,127.0.0.1:56003';
+commander.hosts = commander.hosts || '127.0.0.1:9001,127.0.0.1:9002,127.0.0.1:9003,127.0.0.1:9004';
 
 function internalInstanceConfig(seq, sync) {
-  var config = baseConfig(seq, sync, true, null, null, commander.hosts);
+  var config = baseConfig([seq, seq], sync, true, null, null, commander.hosts);
   config.modules = {
     remoteComponent: {
-      path: libDir + 'integration-09-remote-component'
+      path: libDir + 'integration-09-remote-component',
     },
     remoteComponent1: {
-      path: libDir + 'integration-09-remote-component-1'
-    }
+      path: libDir + 'integration-09-remote-component-1',
+    },
   };
   config.components = {
     remoteComponent: {
       startMethod: 'start',
-      stopMethod: 'stop'
+      stopMethod: 'stop',
     },
     remoteComponent1: {
       startMethod: 'start',
@@ -34,12 +34,12 @@ function internalInstanceConfig(seq, sync) {
       web: {
         routes: {
           testJSON: ['testJSON'],
-          testJSONSticky: ['testJSONSticky']
-        }
-      }
-    }
+          testJSONSticky: ['testJSONSticky'],
+        },
+      },
+    },
   };
   return config;
 }
 
-return HappnerCluster.create(internalInstanceConfig(commander.seq, commander.min));
+HappnerCluster.create(internalInstanceConfig(commander.seq, commander.min));
