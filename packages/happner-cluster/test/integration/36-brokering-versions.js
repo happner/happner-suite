@@ -99,9 +99,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       remoteComponent: {
         path: libDir + 'integration-36/remote-component-1',
       },
-      //   remoteComponent1: {
-      //     path: libDir + 'integration-09-remote-component-1',
-      //   },
     };
     config.components = {
       remoteComponent: {
@@ -118,9 +115,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       remoteComponent: {
         path: libDir + 'integration-36/remote-component-2',
       },
-      //   remoteComponent1: {
-      //     path: libDir + 'integration-09-remote-component-1',
-      //   },
     };
     config.components = {
       remoteComponent: {
