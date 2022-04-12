@@ -314,6 +314,28 @@ describe(test.name(__filename, 2), function () {
         .then(done)
         .catch(done);
     });
+
+    it('addDescription will store version as well', (done) => {
+      var i = new ImplementorsProvider(mockClient, mockConnection);
+      i.maps = { 'newComponent/^1.2.1/newMethod': [] };
+      let description = {
+        self: false,
+        meshName: 'anotherMesh',
+        components: {
+          newComponent: {
+            version: '1.2.6',
+            methods: {
+              newMethod: () => {},
+            },
+          },
+        },
+      };
+      i.addDescription(description);
+      test
+        .expect(i.maps['newComponent/^1.2.1/newMethod'][0])
+        .to.eql({ local: false, name: 'anotherMesh', version: '1.2.6' });
+      done();
+    });
   });
 
   context('getNextImplementation()', function () {
@@ -372,6 +394,32 @@ describe(test.name(__filename, 2), function () {
         .catch(done);
     });
 
+    it('will only roundRobin between highest version available', function (done) {
+      var i = new ImplementorsProvider(mockClient, {});
+
+      i.descriptions = [{}];
+      i.maps['component/version/method'] = [
+        { local: true, version: '1.2.4' },
+        { local: false, name: 'peer1', version: '1.1.1' },
+        { local: false, name: 'peer2', version: '1.2.4' },
+      ];
+
+      i.getNextImplementation('component', 'version', 'method')
+        .then(function (result) {
+          test.expect(result).to.eql({ local: true, version: '1.2.4' });
+          return i.getNextImplementation('component', 'version', 'method');
+        })
+        .then(function (result) {
+          test.expect(result).to.eql({ local: false, name: 'peer2', version: '1.2.4' });
+          return i.getNextImplementation('component', 'version', 'method');
+        })
+        .then(function (result) {
+          test.expect(result).to.eql({ local: true, version: '1.2.4' });
+        })
+        .then(done)
+        .catch(done);
+    });
+
     it('creates the implementation map just-in-time', function (done) {
       var i = new ImplementorsProvider(mockClient, {});
 
@@ -396,6 +444,7 @@ describe(test.name(__filename, 2), function () {
           test.expect(result).to.eql({
             local: true,
             name: 'SERVER_2',
+            version: '1.2.4',
           });
           done();
         })
@@ -674,7 +723,7 @@ describe(test.name(__filename, 2), function () {
           { local: false, name: 'MESH_2' },
           { local: false, name: 'MESH_3' },
           { local: false, name: 'MESH_4' },
-          { local: false, name: 'NAME' },
+          { local: false, name: 'NAME', version: '1.3.1' },
         ],
         'component3/^2.0.0/method1': [
           { local: false, name: 'MESH_2' },
