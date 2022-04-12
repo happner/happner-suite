@@ -1012,7 +1012,7 @@ Mesh.prototype.__getMiddlewareHandlers = function (middleware) {
   // if an upstream next has been invoked with an Error
   // and so the method declaration needs the unused next argument
   //eslint-disable-next-line
-  methods.push(function(err, req, res, next) {
+  methods.push(function (err, req, res, next) {
     _this.log.error(err.message);
     res.statusCode = 500;
     res.statusMessage = 'system middleware failure';
