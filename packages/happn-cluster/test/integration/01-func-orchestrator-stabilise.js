@@ -1,27 +1,33 @@
+const { Console } = require('console');
 var path = require('path');
 var filename = path.basename(__filename);
 var hooks = require('../lib/hooks');
 
 var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
 var clusterSize = 10;
-var happnSecure = false;
 
 let configs = [
   {
     testSequence: testSequence,
     size: clusterSize,
-    happnSecure: happnSecure,
   }, // Single service ('happn-cluster-node')
   {
     testSequence: testSequence,
     size: clusterSize,
-    happnSecure: happnSecure,
     clusterConfig: {
       'cluster-service-1': 4,
       'cluster-service-2': 6,
     }, //Multiple services
   },
-];
+].reduce(
+  (arr, current) =>
+    arr.concat([
+      { ...current, happnSecure: true },
+      { ...current, happnSecure: false },
+    ]),
+  []
+);
+console.log(configs)
 configs.forEach((config) => {
   require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     before(function () {
@@ -32,7 +38,7 @@ configs.forEach((config) => {
     hooks.startCluster(config);
 
     it('each server stabilised with all 10 peers', function (done) {
-      let peerCounts = this.servers.map(
+      const peerCounts = this.servers.map(
         (server) => Object.keys(server.services.orchestrator.peers).length
       );
       test.expect(peerCounts).to.eql([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);

@@ -129,23 +129,20 @@ module.exports = class Member {
     this.orchestrator.__stateUpdate(this);
   }
 
-  connectionFrom(member) {
+  async connectionFrom(member) {
     this.connectedFrom = true;
     this.updateOwnInfo(member);
-    if (!this.connectedTo) this.connect(this.orchestrator.getLoginConfig());
+    await this.connect(this.orchestrator.getLoginConfig());
     return this.orchestrator.__stateUpdate(this);
   }
 
   async subscribe() {
     if (!this.readyToSubscribe) return;
     try {
-      this.subscribingTo = true;
       await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
-      this.subscribingTo = false;
       this.subscribedTo = true;
     } catch (error) {
       this.error = error;
-      this.subscribingTo = false;
       this.subscribedTo = false;
     } finally {
       this.orchestrator.__stateUpdate(this);

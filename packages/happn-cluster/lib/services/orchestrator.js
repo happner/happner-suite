@@ -8,6 +8,7 @@ const getAddress = require('../utils/get-address');
 const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
 const NodeUtil = require('util');
+const { Console } = require('console');
 
 module.exports = class Orchestrator extends EventEmitter {
   constructor(opts) {
@@ -15,7 +16,6 @@ module.exports = class Orchestrator extends EventEmitter {
     this.log = opts.logger.createLogger('Orchestrator');
     this.constants = CONSTANTS.STATES;
     this.state = this.constants.WARMUP;
-    this.unstable = false;
     this.HappnClient = Happn.client;
   }
 
@@ -45,68 +45,47 @@ module.exports = class Orchestrator extends EventEmitter {
 
   initialize(config, callback) {
     this.config = this.defaults(config);
-    this.intervals = this.configureIntervals(this.config);
     this.serviceName = this.config.serviceName;
     this.deployment = this.config.deployment;
     this.clusterName = this.config.clusterName;
-
     this.ip = getAddress()();
-
     this.announceHost = this.happn.config.announceHost;
+    this.memberRefresh = this.config.timing.memberRefresh;
+    this.keepAliveThreshold = this.config.timing.keepAliveThreshold;
+    this.intervals = {};
     this.registry = {};
-    this.keepAliveThreshold = this.config.keepAliveThreshold;
     this.stabiliseWaiting = [];
     this.stabilised = NodeUtil.promisify(this.stabilised);
     for (let [service, expected] of Object.entries(this.config.cluster))
       this.registry[service] = ServiceEntry.create(service, expected, this);
 
     this.secure = this.happn.config.secure;
-
     this.happn.services.session.on('authentic', this.__onConnectionFrom.bind(this));
-
     this.happn.services.session.on('disconnect', this.__onDisconnectionFrom.bind(this));
     callback();
   }
 
   defaults(config) {
     config = config || {};
-    config = _.defaults({}, config, {
-      keepAliveThreshold: 6e3,
-      replicate: ['*'],
+    config = _.defaultsDeep({}, config, {
       serviceName: 'happn-cluster-node',
       deployment: 'Test-Deploy',
       clusterName: 'happn-cluster',
-      stabiliseTimeout: 15e3,
+      timing: {
+        memberRefresh: 5e3,
+        keepAlive: 5e3,
+        keepAliveThreshold: 6e3,
+        healthReport: 10e3,
+      },
     });
+    if (config.stabiliseTimeout) config.timing.stabiliseTimeout = config.stabiliseTimeout;
+    config.replicate = config.replicate || ['*'];
     config.replicate.push('/__REPLICATE');
     config.replicate = this.__reducePaths(config.replicate);
     if (config.cluster && Object.keys(config.cluster).length) return config;
     config.cluster = {};
     config.cluster[config.serviceName] = config.minimumPeers || 1;
     return config;
-  }
-
-  configureIntervals() {
-    let intervals = {
-      keepAlive: {
-        time: 5e3,
-        method: 'keepAlive',
-      },
-      membership: {
-        time: 5e3,
-        method: 'memberCheck',
-      },
-      health: {
-        time: 10e3,
-        method: 'healthReport',
-      },
-    };
-    if (!this.config.intervals) return intervals;
-    for (let name of Object.keys(this.config.intervals)) {
-      if (intervals[name])
-        intervals[name].time = this.config.intervals[name] || this.intervals[name].time;
-    }
-    return intervals;
   }
 
   async start() {
@@ -119,7 +98,6 @@ module.exports = class Orchestrator extends EventEmitter {
         name: this.happn.name, // a.k.a. mesh.name
         clusterName: this.clusterName,
         serviceName: this.serviceName,
-        // memberId: this.happn.services.membership.memberId,
         endpoint: this.endpoint,
       },
     };
@@ -132,29 +110,32 @@ module.exports = class Orchestrator extends EventEmitter {
     delete localLoginConfig.info.clusterName;
     this.localClient = await this.happn.services.session.localClient(localLoginConfig);
     this.startIntervals();
+    this.memberCheck();
   }
 
   startIntervals() {
-    for (let info of Object.values(this.intervals)) {
-      this[info.method].call(this);
-      info.interval = setInterval(this[info.method].bind(this), info.time);
-    }
+    this.intervals.health = setInterval(
+      this.healthReport.bind(this),
+      this.config.timing.healthReport
+    );
+    this.keepAlive();
+    this.intervals.keepAlive = setInterval(this.keepAlive.bind(this), this.config.timing.keepAlive);
   }
 
   stabilised(callback) {
     if (this.stableTimeout) return;
     if (typeof callback === 'function') this.stabiliseWaiting.push(callback);
-    if (this.config.stabiliseTimeout) {
+    if (this.config.timing.stabiliseTimeout) {
       this.stableTimeout = setTimeout(() => {
         var error = new Error('failed to stabilise in time');
         error.name = 'StabiliseTimeout';
-        this.clearStabilizedTimeout(error);
-      }, this.config.stabiliseTimeout);
+        this.doStabilisedCallbacks(error);
+      }, this.config.timing.stabiliseTimeout);
     }
     this.__stateUpdate();
   }
 
-  clearStabilizedTimeout(error) {
+  doStabilisedCallbacks(error) {
     error = Array.isArray(error) ? error[0] : error;
     let callback;
     while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(error);
@@ -162,20 +143,31 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async stop(opts, cb) {
     if (typeof opts === 'function') cb = opts;
-    for (let info of Object.values(this.intervals)) {
-      await clearInterval(info.interval);
+    for (let interval of Object.values(this.intervals)) {
+      clearInterval(interval);
     }
-
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
     await Promise.all(Object.values(this.registry).map((service) => service.stop()));
     if (cb) cb();
   }
 
-  memberCheck() {
-    this.lookup();
-    this.addMembers();
-    this.connect();
-    this.subscribe();
-    this.__stateUpdate();
+  async memberCheck() {
+    let start = performance.now();
+    try {
+      await this.lookup();
+      await this.addMembers();
+      await this.connect();
+      await this.subscribe();
+      await this.__stateUpdate();
+    } catch (e) {
+      this.log.warn(e);
+    }
+    let end = performance.now();
+    if (start - end > this.memberRefresh) return this.memberCheck();
+    this.refreshTimeout = setTimeout(
+      this.memberCheck.bind(this),
+      Math.floor(this.memberRefresh + end - start)
+    );
   }
 
   async lookup() {
@@ -186,7 +178,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   async fetchEndpoints() {
-    // Doing this in a seperate function so that we can alter it to allow for non-aws cases if desired.
+    // Doing this in a seperate function so that we can alter it to allow for non-mongo-db cases if desired.
     let data = await this.happn.services.data.get(`/SYSTEM/DEPLOYMENT/${this.deployment}/**`, {
       criteria: {
         '_meta.modified': { $gte: Date.now() - this.keepAliveThreshold },
@@ -202,20 +194,17 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   async connect() {
-    for (let service of Object.values(this.registry)) {
-      service.connect(this.getLoginConfig());
-    }
-  }
-  async subscribe() {
-    for (let service of Object.values(this.registry)) {
-      service.subscribe();
-    }
+    await Promise.all(
+      Object.values(this.registry).map((service) => service.connect(this.getLoginConfig()))
+    );
   }
 
-  addMembers() {
-    for (let service of Object.values(this.registry)) {
-      service.addMembers();
-    }
+  async subscribe() {
+    await Promise.all(Object.values(this.registry).map((service) => service.subscribe()));
+  }
+
+  async addMembers() {
+    await Promise.all(Object.values(this.registry).map((service) => service.addMembers()));
   }
 
   keepAlive() {
@@ -249,7 +238,6 @@ module.exports = class Orchestrator extends EventEmitter {
     member.listedAsPeer = true;
     this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
-    // if (!this.registry[member.serviceName][member.endpoint]) this.registry[member.serviceName][member.endpoint] = member;
     this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
   }
 
@@ -266,7 +254,7 @@ module.exports = class Orchestrator extends EventEmitter {
 
   __stateUpdate(member) {
     let errors = this.__checkErroredMembers();
-    if (errors) return this.clearStabilizedTimeout(errors);
+    if (errors) return this.doStabilisedCallbacks(errors);
     if (member && member.listedAsPeer !== member.peer) this.peerStatusUpdate(member);
     if (
       Object.values(this.registry).every((service) => {
@@ -277,29 +265,21 @@ module.exports = class Orchestrator extends EventEmitter {
       if (this.state !== this.constants.STABLE) {
         this.log.info(`Node ${this.happn.name} in service ${this.serviceName} stabilized`);
       }
-      this.clearStabilizedTimeout();
       this.state = this.constants.STABLE;
-      this.unstable = false;
+      this.doStabilisedCallbacks();
       clearTimeout(this.stableTimeout);
       return;
     }
-
-    if (this.state === this.constants.STABLE) this.unstable = true; //System was stable, but is no longer.
-
     if (Object.values(this.registry).every((service) => service.isConnected)) {
-      this.state = this.unstable
-        ? this.constants.UNSTABLE_RESUBSCRIBING
-        : this.constants.SUBSCRIBING;
+      this.state = this.constants.SUBSCRIBING;
       return;
     }
     if (Object.values(this.registry).every((service) => service.foundEnoughPeers)) {
-      this.state = this.unstable ? this.constants.UNSTABLE_RECONNECTING : this.constants.CONNECTING;
+      this.state = this.constants.CONNECTING;
       return;
     }
     if (Object.values(this.registry).some((service) => service.foundOthers)) {
-      this.state = this.unstable
-        ? this.constants.UNSTABLE_INSUFFICIENT_PEERS
-        : this.constants.WARMUP_CONNECTING;
+      this.state = this.constants.CONNECTING_INSUFFICIENT_PEERS;
       return;
     }
     this.state = this.constants.ISOLATED;
@@ -318,7 +298,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   healthReport() {
-    this.log.debug(
+    this.log.info(
       `Member: name ${this.happn.name}, endpoint: ${this.endpoint}, service: ${this.serviceName}, state: ${this.state}`
     );
 
@@ -327,7 +307,31 @@ module.exports = class Orchestrator extends EventEmitter {
         return `\tService ${service.name} has ${service.numPeers} peers of ${service.expected} required`;
       })
       .join('\n');
-    this.log.debug(`Node: ${this.happn.name} breakdown: \n` + peerReport);
+    this.log.info(`Node: ${this.happn.name} breakdown: \n` + peerReport);
+    const stats = {
+      MEMBER_ID: this.happn.name,
+      MEMBER_ENDPOINT: this.endpoint,
+      TOTAL_CLUSTER_MEMBERS: Object.keys(this.members).length,
+      TOTAL_CLUSTER_PEERS: Object.keys(this.peers).length,
+      UNHEALTHY_MEMBERS: Object.keys(this.members).filter(
+        (id) => !Object.keys(this.peers).includes(id)
+      ),
+      STATUS: this.state,
+    };
+    if (this.__statsHaveChanged(stats)) {
+      if (stats.STATUS === this.constants.STABLE) return this.log.json.info(stats, 'happn-cluster-health');
+      this.log.json.warn(stats, 'happn-cluster-health');
+    }
+  }
+
+  __statsHaveChanged(stats) {
+    const statsHash = require('crypto')
+      .createHash('sha1')
+      .update(JSON.stringify([stats['UNHEALTHY_MEMBERS'], stats['STATUS']]))
+      .digest('hex');
+    const changed = this.__lastStats !== statsHash;
+    this.__lastStats = statsHash;
+    return changed;
   }
 
   __onConnectionFrom(data) {

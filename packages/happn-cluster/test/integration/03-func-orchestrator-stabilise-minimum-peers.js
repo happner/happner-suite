@@ -46,7 +46,6 @@ clusterConfigs.forEach((clusterConfig) => {
         // call original so that nothing is out of the ordinary,
         // `this` refers to the orchestrator instance for the necessary context
         self.original__stateUpdate.call(this);
-
         if (Object.keys(this.peers).length === clusterSize - 1) {
           // got all the peers we should have in order to trigger starting the last one
           readyNames[this.happn.name] = 1;
@@ -54,14 +53,6 @@ clusterConfigs.forEach((clusterConfig) => {
       };
 
       // set test.delaying interval to start last peer
-
-      interval = setInterval(async function () {
-        if (Object.keys(readyNames).length !== clusterSize - 1) return;
-        clearInterval(interval);
-
-        let server = await HappnCluster.create(lastConfig);
-        self.servers.push(server);
-      }, 10);
 
       // start the first clusterSize - 1 peers
       if (clusterConfig) {
@@ -79,6 +70,13 @@ clusterConfigs.forEach((clusterConfig) => {
       }
       lastConfig = configs.pop();
       let servers = [];
+      interval = setInterval(async function () {
+        if (Object.keys(readyNames).length < clusterSize - 1) return;
+        clearInterval(interval);
+        let server = await HappnCluster.create(lastConfig);
+        self.servers.push(server);
+      }, 100);
+
       servers.push(HappnCluster.create(configs[0]));
       await test.delay(1000);
       // start first peer immediately and others a moment
@@ -90,12 +88,10 @@ clusterConfigs.forEach((clusterConfig) => {
         }
         servers.push(HappnCluster.create(config));
       }
-      self.servers = await Promise.all(servers);
-
+      //We actually hear back from the last server created above first, so need to concat;
+      self.servers = self.servers.concat(await Promise.all(servers));
       await testUtils.awaitExactMembershipCount(self.servers, clusterSize);
-
       await testUtils.awaitExactPeerCount(self.servers, clusterSize);
-
       clearInterval(interval);
     });
 

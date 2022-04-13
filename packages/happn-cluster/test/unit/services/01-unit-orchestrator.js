@@ -1,5 +1,6 @@
 var Orchestrator = require('../../../lib/services/orchestrator');
 var MockHappn = require('../../mocks/mock-happn');
+var cloneMember = require('../../lib/cloneMember');
 var MockHappnClient = require('../../mocks/mock-happn-client');
 var MockSession = require('../../mocks/mock-session');
 var mockOpts = require('../../mocks/mock-opts');
@@ -41,13 +42,17 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         if (e) return done(e);
 
         test.expect(o.config).to.eql({
-          keepAliveThreshold: 6000,
           replicate: ['*'],
           serviceName: 'happn-cluster-node',
           deployment: 'Test-Deploy',
           clusterName: 'happn-cluster',
-          stabiliseTimeout: 15000,
           cluster: { 'happn-cluster-node': 1 },
+          timing: {
+            memberRefresh: 5000,
+            keepAlive: 5000,
+            keepAliveThreshold: 6000,
+            healthReport: 10000,
+          },
         });
 
         done();
@@ -67,12 +72,16 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           test.expect(o.config).to.eql({
             minimumPeers: 3,
             replicate: ['/__REPLICATE'],
-            keepAliveThreshold: 6000,
             serviceName: 'happn-cluster-node',
             deployment: 'Test-Deploy',
             clusterName: 'happn-cluster',
-            stabiliseTimeout: 15000,
             cluster: { 'happn-cluster-node': 3 },
+            timing: {
+              memberRefresh: 5000,
+              keepAlive: 5000,
+              keepAliveThreshold: 6000,
+              healthReport: 10000,
+            },
           });
           done();
         }
@@ -93,20 +102,27 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
             service1: 3,
             service2: 5,
           },
+          stabiliseTimeout: 8000,
         },
         (e) => {
           if (e) return done(e);
 
           test.expect(o.config).to.eql({
             replicate: ['/__REPLICATE'],
-            keepAliveThreshold: 6000,
             serviceName: 'service1',
             deployment: 'Another-Deployment',
             clusterName: 'another-cluster',
-            stabiliseTimeout: 15000,
+            stabiliseTimeout: 8000,
             cluster: {
               service1: 3,
               service2: 5,
+            },
+            timing: {
+              memberRefresh: 5000,
+              keepAlive: 5000,
+              keepAliveThreshold: 6000,
+              healthReport: 10000,
+              stabiliseTimeout: 8000,
             },
           });
           done();
@@ -362,8 +378,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       o = new Orchestrator(mockOpts);
       o.happn = new MockHappn('http', 9000);
       o.HappnClient = MockHappnClient;
-      // o.startIntervals = () => {}; //Don't want to start intervals for these tests, requires too much mocking
-      o.initialize({ intervals: { keepAlive: 200, membership: 200 }, minimumPeers }, function (e) {
+      o.initialize({ timing: { keepAlive: 200, memberRefresh: 200 }, minimumPeers }, function (e) {
         if (e) return done(e);
         o.start().then(done).catch(done);
       });
@@ -402,9 +417,8 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           service: 'happn-cluster-node',
           name: '10-0-0-1_55001',
         });
-        await test.delay(500);
+        await test.delay(2500);
         // member record was added
-
         test.expect(o.members['10.0.0.1:55001']).to.not.be(undefined); // Endpoint as key
 
         // peer record was not added
@@ -515,7 +529,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
             serviceName: 'happn-cluster-node',
           },
         });
-
+        await test.delay(200);
         test.expect(stable).to.equal(true);
       });
     });
@@ -558,7 +572,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
 
         test
           .expect(Object.keys(o.members))
-          .to.eql(['10.0.0.1:56001', '10.0.0.2:56001', '10.0.0.3:56001']);
+          .to.eql([address + ':9000', '10.0.0.1:56001', '10.0.0.2:56001', '10.0.0.3:56001']);
 
         test.expect(o.members['10.0.0.1:56001']).to.not.be(undefined);
         test.expect(o.members['10.0.0.2:56001']).to.not.be(undefined);
@@ -655,8 +669,8 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           service: 'happn-cluster-node',
           name: '10-0-0-1_55001',
         });
+        await o.memberCheck();
 
-        await test.delay(300);
         MockSession.instance.emit('authentic', {
           info: {
             name: '10-0-0-1_55001',
@@ -678,6 +692,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           test.expect(member).to.equal(o.members['10.0.0.1:55001']);
 
           // ...until our client disconnects
+
           MockHappnClient.instances['10-0-0-1_55001'].emitDisconnect();
           test.expect(o.members['10.0.0.1:55001']).to.not.be(undefined);
 
@@ -710,6 +725,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           name: '10-0-0-1_55007',
         });
 
+        await test.delay(300);
         MockSession.instance.emit('authentic', {
           info: {
             name: '10-0-0-1_55007',
@@ -719,12 +735,11 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           },
         });
 
-        await test.delay(200);
+        await test.delay(300);
 
         test.expect(o.peers['10-0-0-1_55007']).to.not.be(undefined);
-
         let peerRemoved = false;
-        await test.delay(200);
+        // await test.delay(200);
 
         o.on('peer/remove', function (name, member) {
           test.expect(name).to.equal('10-0-0-1_55007');
@@ -732,7 +747,8 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
           peerRemoved = true;
         });
         MockHappnClient.instances['10-0-0-1_55007'].emitDisconnect();
-        await test.delay(20);
+
+        await test.delay(300);
 
         test.expect(peerRemoved).to.be(true);
         o.stop();
@@ -831,6 +847,185 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         test.expect(o.members['10-0-0-1_55001']).to.be.undefined;
         done();
       });
+    });
+  });
+
+  context('health', function () {
+    let o;
+    beforeEach(function (done) {
+      o = new Orchestrator(mockOpts);
+      o.happn = new MockHappn('http', 9000);
+      o.HappnClient = MockHappnClient;
+      o.initialize({ timing: { keepAlive: 200, memberRefresh: 200 } }, done);
+    });
+
+    it('tests health logging, single service, alsso will not log JSON again if stats havent changed ', () => {
+      o.log.info = test.sinon.spy();
+      o.log.json.info = test.sinon.spy();
+      o.log.json.warn = test.sinon.spy();
+      o.registry['happn-cluster-node'] = {
+        name: 'happn-cluster-node',
+        expected: 2,
+        members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        numPeers: 2,
+      };
+      o.state = 'STABLE';
+      o.endpoint = '5.6.7.8';
+      o.healthReport();
+      test.expect(o.log.info.callCount).to.be(2);
+      test
+        .expect(
+          o.log.info.calledWith(
+            'Member: name local-happn-instance, endpoint: 5.6.7.8, service: happn-cluster-node, state: STABLE'
+          )
+        )
+        .to.be(true);
+      test
+        .expect(
+          o.log.info.calledWith(
+            'Node: local-happn-instance breakdown: \n' +
+              '\tService happn-cluster-node has 2 peers of 2 required'
+          )
+        )
+        .to.be(true);
+
+      test.expect(o.log.json.info.callCount).to.be(1);
+      test
+        .expect(
+          o.log.json.info.calledWith(
+            {
+              MEMBER_ID: 'local-happn-instance',
+              MEMBER_ENDPOINT: '5.6.7.8',
+              TOTAL_CLUSTER_MEMBERS: 3,
+              TOTAL_CLUSTER_PEERS: 2,
+              UNHEALTHY_MEMBERS: ['1.2.3.4'],
+              STATUS: 'STABLE', // technically, shouldn't be STABLE and have unhealthy members, just for test.
+            },
+            'happn-cluster-health'
+          )
+        )
+        .to.be(true);
+      o.healthReport();
+      test.expect(o.log.json.info.callCount).to.be(1); //Stats haven't changed, shouldn't be called again
+    });
+
+    it('tests health logging, multiple services, alsso will not log JSON again if stats havent changed ', () => {
+      o.log.info = test.sinon.spy();
+      o.log.json.info = test.sinon.spy();
+      o.log.json.warn = test.sinon.spy();
+      o.registry['service-1'] = {
+        name: 'service-1',
+        expected: 2,
+        members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        numPeers: 2,
+      };
+      o.registry['service-2'] = {
+        name: 'service-2',
+        expected: 2,
+        members: { '4.3.2.1': {}, '8.7.6.5': {}, '12.11.10.9': {} },
+        peers: { '4.3.2.1': {}, '8.7.6.5': {} },
+        numPeers: 3,
+      };
+      o.state = 'STABLE';
+      o.endpoint = '5.6.7.8';
+      o.healthReport();
+      test.expect(o.log.info.callCount).to.be(2);
+      test
+        .expect(
+          o.log.info.calledWith(
+            'Member: name local-happn-instance, endpoint: 5.6.7.8, service: happn-cluster-node, state: STABLE'
+          )
+        )
+        .to.be(true);
+      test
+        .expect(
+          o.log.info.calledWith(
+            'Node: local-happn-instance breakdown: \n' +
+              '\tService happn-cluster-node has 0 peers of 1 required\n' + //This is created because of blank config
+              '\tService service-1 has 2 peers of 2 required\n' +
+              '\tService service-2 has 3 peers of 2 required'
+          )
+        )
+        .to.be(true);
+
+      test.expect(o.log.json.info.callCount).to.be(1);
+      test
+        .expect(
+          o.log.json.info.calledWith(
+            {
+              MEMBER_ID: 'local-happn-instance',
+              MEMBER_ENDPOINT: '5.6.7.8',
+              TOTAL_CLUSTER_MEMBERS: 6,
+              TOTAL_CLUSTER_PEERS: 4,
+              UNHEALTHY_MEMBERS: ['1.2.3.4', '12.11.10.9'],
+              STATUS: 'STABLE',
+            },
+            'happn-cluster-health'
+          )
+        )
+        .to.be(true);
+      o.healthReport();
+      test.expect(o.log.json.info.callCount).to.be(1); //Stats haven't changed, shouldn't be called again
+    });
+
+    it('will log.JSON.warn if state is not stable', () => {
+      o.log.info = test.sinon.spy();
+      o.log.json.info = test.sinon.spy();
+      o.log.json.warn = test.sinon.spy();
+      o.registry['happn-cluster-node'] = {
+        name: 'happn-cluster-node',
+        expected: 2,
+        members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        numPeers: 2,
+      };
+      o.state = 'BAD';
+      o.endpoint = '5.6.7.8';
+      o.healthReport();
+      test.expect(o.log.info.callCount).to.be(2);
+      test.expect(o.log.json.info.callCount).to.be(0);
+      test.expect(o.log.json.warn.callCount).to.be(1);
+      test
+        .expect(
+          o.log.json.warn.calledWith(
+            {
+              MEMBER_ID: 'local-happn-instance',
+              MEMBER_ENDPOINT: '5.6.7.8',
+              TOTAL_CLUSTER_MEMBERS: 3,
+              TOTAL_CLUSTER_PEERS: 2,
+              UNHEALTHY_MEMBERS: ['1.2.3.4'],
+              STATUS: 'BAD',
+            },
+            'happn-cluster-health'
+          )
+        )
+        .to.be(true);
+      o.healthReport();
+      test.expect(o.log.json.warn.callCount).to.be(1); //Stats haven't changed, shouldn't be called again
+    });
+
+
+    it('will log.JSON if stats change', () => {
+      o.log.info = test.sinon.spy();
+      o.log.json.info = test.sinon.spy();
+      o.log.json.warn = test.sinon.spy();
+      o.registry['happn-cluster-node'] = {
+        name: 'happn-cluster-node',
+        expected: 2,
+        members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        numPeers: 2,
+      };
+      o.state = 'STABLE';
+      o.endpoint = '5.6.7.8';
+      o.healthReport();
+      test.expect(o.log.info.callCount).to.be(2);
+      test.expect(o.log.json.info.callCount).to.be(1);
+      o.registry['happn-cluster-node'].peers = { '5.6.7.8': {}} // 1 more unhealthy member
+      o.healthReport();
+      test.expect(o.log.json.info.callCount).to.be(2); //Stats havew changed, should be called again
     });
   });
   after(function () {

@@ -56,20 +56,18 @@ module.exports = class ServiceEntry {
 
   setEndpoints(found) {
     this.endpoints = found || [];
-    Object.keys(this.members).forEach((endpoint) => {
+    for (let [endpoint, member] of Object.entries(this.members)) {
       if (!this.endpoints.includes(endpoint)) {
-        this.members[endpoint].stop();
-        this.orchestrator.removePeer(this.members[endpoint]);
+        member.stop();
+        this.orchestrator.removePeer(member);
         delete this.members[endpoint];
       }
-    });
+    }
   }
-
   addMembers() {
     for (let endpoint of this.endpoints) {
       this.members[endpoint] =
         this.members[endpoint] || new Member({ endpoint }, this.orchestrator);
-      this.members[endpoint].connect(this.orchestrator.getLoginConfig());
     }
   }
 
@@ -78,19 +76,15 @@ module.exports = class ServiceEntry {
   }
 
   async connect(loginConfig) {
-    for (let member of Object.values(this.members)) {
-      member.connect(loginConfig);
-    }
+    await Promise.all(Object.values(this.members).map((member) => member.connect(loginConfig)));
   }
 
   async stop() {
-    return Promise.all(Object.values(this.members).map((member) => member.stop()));
+    await Promise.all(Object.values(this.members).map((member) => member.stop()));
   }
 
   async subscribe() {
-    for (let member of Object.values(this.members)) {
-      member.subscribe();
-    }
+    await Promise.all(Object.values(this.members).map((member) => member.subscribe()));
   }
 
   async connectionFrom(member) {
@@ -98,8 +92,6 @@ module.exports = class ServiceEntry {
       this.members[member.endpoint] = new Member(member, this.orchestrator);
     }
     this.members[member.endpoint].connectionFrom(member);
-    await this.members[member.endpoint].connect(this.orchestrator.getLoginConfig());
-    return this.orchestrator.__stateUpdate(this.members[member.endpoint]);
   }
 
   async disconnectionFrom(member) {

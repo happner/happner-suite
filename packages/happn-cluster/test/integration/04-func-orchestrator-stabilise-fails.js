@@ -1,4 +1,3 @@
-
 var path = require('path');
 var filename = path.basename(__filename);
 
@@ -28,15 +27,17 @@ let configs = [
   },
 ];
 configs.forEach((config) => {
-  require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+  require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     before(function () {
       this.logLevel = process.env.LOG_LEVEL;
       process.env.LOG_LEVEL = 'off';
     });
 
     hooks.startCluster(config);
-
-    before('create extra config', async function () {
+    before('PAUSE ', async () => {
+      await test.delay(2000);
+    });
+    before('z.create extra config', async function () {
       if (!config.clusterConfig)
         this.extraConfig = (
           await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {})

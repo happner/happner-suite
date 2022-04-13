@@ -77,11 +77,11 @@ module.exports.createMemberConfigs = Util.promisify(function (
             clusterName: 'cluster1',
             minimumPeers: clusterSize,
             deployment: 'myDeploy',
-            intervals: {
+            timing: {
               keepAlive: 1e3,
-              membership: 2e3,
+              memberRefresh: 2e3,
+              keepAliveThreshold: 2e3,
             },
-            keepAliveThreshold: 2e3,
           },
         },
         proxy: {
@@ -193,11 +193,12 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
             deployment: 'myDeploy',
             cluster: clusterConfig,
             serviceName: clusterServiceNameArr[i - 1],
-            intervals: {
-              keepAlive: 1e3,
-              membership: 2e3,
+            timing: {
+              keepAlive: 2e3,
+              memberRefresh: 3e3,
+              keepAliveThreshold: 3e3,
+              stabilisedTimeout: 7e3,
             },
-            keepAliveThreshold: 2e3,
           },
         },
         proxy: {
@@ -247,7 +248,6 @@ module.exports.awaitExactMembershipCount = Util.promisify(function (servers, cou
 
   interval = setInterval(function () {
     if (servers.length !== count) return;
-
     gotExactCount = true;
 
     servers.forEach(function (server) {
