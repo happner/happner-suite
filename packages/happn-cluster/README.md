@@ -78,12 +78,12 @@ var defaultConfig = {
         clusterName: 'happn-cluster',
         serviceName: 'happn-cluster-node',
         deployment: 'Test-Deploy',
-        keepaliveThreshold: 6e3,
         replicate: ['*'],
-        stabiliseTimeout: 15e3,
-        intervals: {
-          keepalive: 5e3,
-          membership: 5e3
+        timing: {
+          keepaliveThreshold: 6e3,
+          stabiliseTimeout: 15e3,
+          keepAlive: 5e3,
+          memberRefresh: 5e3
           health: 10e3
         }
         cluster: {
@@ -210,9 +210,10 @@ Joining members with a different clusterName will be ignored by the orchestrator
 
 Every member of the cluster should have a serviceName. 
 Cluster will not be stable until a minimum number of each service by name, as defined in `config.cluster`
-have joined the cluster.
+have joined the cluster. The serviceName is not unique by node. Multiple nodes can be of the same servvice, 
+and any requests to components on those nodes will round-robin between the nodes which have that component.
 The name is limited to characters acceptable in happn paths, namely '\_\*-', numbers and letters.
-Joining members with a different clusterName will be ignored by the orchestrator.
+
 
 #### config.deployment
 
@@ -221,26 +222,43 @@ The name is limited to characters acceptable in happn paths, namely '\_\*-', num
 This is used as a part of the path where the keepalives are stored and looked up, so that nodes will only see other nodes in the same deployment.
 
 
-#### config.keepaliveThreshold
-
-The maximum age that keepalive records in the DB can be in order to be considered as still active.
-This should be set to slightly longer than the keepalive interval (see config.intervals, below)
-
 #### config.replicate
 
 Array of happn paths or path masks that will be replicated throughout the cluster.
 
-#### config.stabiliseTimeout
+#### config.timing:
+Contians the timing for variables related to membership, keepAlives,stabilisation, and health reporting
+**NB.** These keepAlive ,keepAliveThreshold, and memberRefresh are set fairly long (around 5 seconds) by default, for regular use.  For testing purposes, it is recommended to shorten them as required, as well as config.keepAliveThreshold (above)  
 
-Defines how long to wait for this starting node to become fully connected (stabilised) before giving up and stopping the node. In all known cases a starting node will either reach stability or fail explicitly with an error. This is a failsafe (for unknown cases) to prevent endlessly awaiting stability where it would be better to stop and try joining the cluster again.  
+##### config.timing.stabiliseTimeout
+
+Defines how long to wait for this starting node to become fully connected (stabilised) before giving up and stopping the node. In all known cases a starting node will either reach stability or fail explicitly with an error. This is a failsafe (for unknown cases) to prevent endlessly awaiting stability where it would be better to stop and try joining the cluster again.  This is not defaulted (i.e. will default to waiting forever to stabilise)
 **Note that this acts in opposition to `config.cluster` - A starting node awaiting minimum services as described in config.cluster will still time out.**
 
-#### config.intervals
-**NB.** THese intervals (keepAlive and Membership, specifically) are set fairly long (around 5 seconds) by default, for regular use.  For testing purposes, it is recommended to shorten them as required, as well as config.keepAliveThreshold (above)  
-Used to change the timing of the three intervals that happn-cluster uses. Any or all of the following may be set:    
-**keepalive:** How often the node sends a keepalive to the DB.
-**membership**: How often the node requests member list from DB, updates, connects and subscribes as required.
-**health**: How often the node reports it's health in a log.
+##### config.timing.keepAlive
+How often the node sends a keepalive to the DB. The keepAlive is set on a path that includes the deployment (see above)
+  
+##### config.timing.keepAliveThreshhold
+The maximum age that keepalive records in the DB can be in order to be considered as still active.
+This should be set to slightly longer than the keepAlive timing above
+
+##### config.timing.memberRefresh:
+How often the node requests member list from DB, and then updates, connects and subscribes as required.
+
+##### config.timing.healthReport: 
+How often the node reports it's health. The health report includes the node's state, and a list of how many peers of each service it has and expects.
+It will also log a JSON which has the following structure:
+```
+      {
+      MEMBER_ID: "Service-1-node-1" 
+      MEMBER_ENDPOINT: "1.2.3.8:1234" // This node's ip address and port in the network
+      TOTAL_CLUSTER_MEMBERS: 4        //Member is another node we know about 
+      TOTAL_CLUSTER_PEERS: 3          // Peer is a node that is ocnnected to, connected from, and subscribed to.
+      UNHEALTHY_MEMBERS: ["1.2.3.4:456", "1.2.2.5:987"] //Array: other cluster nods which are any or all of the following:
+                                                        //  not connected to, connected from, or subscribed to.
+      STATUS: "CONNECTING" //String: the node's current state
+    };
+```    
 
 #### config.cluster 
 An object with key value pairs of serviceName, mimnimumRequired, e.g.

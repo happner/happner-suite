@@ -44,12 +44,10 @@ module.exports = function (clusterConfig) {
               (!dependencies || Object.keys(dependencies).length === 0) &&
               (!brokeredDependencies || Object.keys(brokeredDependencies).length === 0)
             ) {
-              if (
-                ['security', 'system', 'api', 'data', 'rest'].includes($happn.config.moduleName)
-              ) {
-                client.construct({}, $happn);
+              if (['security', 'system', 'data', 'rest'].includes($happn.config.moduleName)) {
+                return;
               }
-              return;
+              return client.construct({}, $happn);
             }
 
             component.dependencies = dependencies;

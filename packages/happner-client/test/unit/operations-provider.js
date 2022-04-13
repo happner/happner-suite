@@ -496,6 +496,7 @@ describe(test.name(__filename, 2), function () {
           test.expect(options).to.eql({
             timeout: 10 * 1000,
             noStore: true,
+            noCluster: true,
           });
           done();
         };
