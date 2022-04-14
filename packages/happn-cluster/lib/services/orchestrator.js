@@ -8,7 +8,6 @@ const getAddress = require('../utils/get-address');
 const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
 const NodeUtil = require('util');
-const { Console } = require('console');
 
 module.exports = class Orchestrator extends EventEmitter {
   constructor(opts) {

@@ -59,7 +59,7 @@ module.exports = function (
             replicate,
             timing: {
               keepAlive: 2e3,
-              memberRefresh: 3e3,
+              memberRefresh: 2e3,
               keepAliveThreshold: 3e3,
               stabilisedTimeout: 10e3,
             },
