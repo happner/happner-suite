@@ -72,9 +72,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     ];
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
-    let resultsMap = results.map((result) => result.name) 
+    let resultsMap = results.map((result) => result.name);
     test
-      .expect(resultsMap === ([meshNames[1], meshNames[2], meshNames[1]] ||resultsMap ===([meshNames[2], meshNames[1], meshNames[2]])
+      .expect(
+        resultsMap === [meshNames[1], meshNames[2], meshNames[1]] ||
+          resultsMap === [meshNames[2], meshNames[1], meshNames[2]]
+      )
       .to.be(true);
     //ensure the method was only called 3 times
     test.expect(results.pop().callCount).to.be(3);
