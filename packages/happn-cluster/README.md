@@ -253,7 +253,7 @@ It will also log a JSON which has the following structure:
       MEMBER_ID: "Service-1-node-1" 
       MEMBER_ENDPOINT: "1.2.3.8:1234" // This node's ip address and port in the network
       TOTAL_CLUSTER_MEMBERS: 4        //Member is another node we know about 
-      TOTAL_CLUSTER_PEERS: 3          // Peer is a node that is ocnnected to, connected from, and subscribed to.
+      TOTAL_CLUSTER_PEERS: 3          // Peer is a node that is connected to, connected from, and subscribed to.
       UNHEALTHY_MEMBERS: ["1.2.3.4:456", "1.2.2.5:987"] //Array: other cluster nods which are any or all of the following:
                                                         //  not connected to, connected from, or subscribed to.
       STATUS: "CONNECTING" //String: the node's current state
@@ -264,7 +264,7 @@ It will also log a JSON which has the following structure:
 An object with key value pairs of serviceName, mimnimumRequired, e.g.
 ```
 {
-    deciveServer: 3,
+    deviceServer: 3,
     userManager: 2
 }
 ```

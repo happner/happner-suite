@@ -29,9 +29,6 @@ module.exports = class Member {
       'publicationId',
     ];
 
-    // // TODO: not truly stabilised until we know the remote has subscribed to us
-    // this.subscribedFrom = true; // (not possible to detect yet)
-
     if (this.endpoint === this.orchestrator.endpoint) {
       this.self = true;
       this.name = this.orchestrator.happn.name;
