@@ -241,11 +241,9 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
           test.expect(path).to.be('*');
           test.expect(opts).to.be(null);
           test.expect(typeof func).to.be('function');
-          test.expect(member.subscribingTo).to.be(true);
         },
       };
       await member.subscribe();
-      test.expect(member.subscribingTo).to.be(false);
       test.expect(member.subscribedTo).to.be(true);
     });
 
