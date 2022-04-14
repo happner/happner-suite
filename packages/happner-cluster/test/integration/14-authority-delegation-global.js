@@ -154,7 +154,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event, 2 levels deep', function (done) {
-    this.timeout(5000);
+    this.timeout(8000);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')

@@ -867,7 +867,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         name: 'happn-cluster-node',
         expected: 2,
         members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
-        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': { endpoint: '5.6.7.8' }, '9.10.11.12': { endpoint: '9.10.11.12' } },
         numPeers: 2,
       };
       o.state = 'STABLE';
@@ -910,7 +910,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       test.expect(o.log.json.info.callCount).to.be(1); //Stats haven't changed, shouldn't be called again
     });
 
-    it('tests health logging, multiple services, alsso will not log JSON again if stats havent changed ', () => {
+    it('tests health logging, multiple services, also will not log JSON again if stats havent changed ', () => {
       o.log.info = test.sinon.spy();
       o.log.json.info = test.sinon.spy();
       o.log.json.warn = test.sinon.spy();
@@ -918,14 +918,14 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         name: 'service-1',
         expected: 2,
         members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
-        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': { endpoint: '5.6.7.8' }, '9.10.11.12': { endpoint: '9.10.11.12' } },
         numPeers: 2,
       };
       o.registry['service-2'] = {
         name: 'service-2',
         expected: 2,
         members: { '4.3.2.1': {}, '8.7.6.5': {}, '12.11.10.9': {} },
-        peers: { '4.3.2.1': {}, '8.7.6.5': {} },
+        peers: { '4.3.2.1': { endpoint: '4.3.2.1' }, '8.7.6.5': { endpoint: '8.7.6.5' } },
         numPeers: 3,
       };
       o.state = 'STABLE';
@@ -978,7 +978,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         name: 'happn-cluster-node',
         expected: 2,
         members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
-        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': { endpoint: '5.6.7.8' }, '9.10.11.12': { endpoint: '9.10.11.12' } },
         numPeers: 2,
       };
       o.state = 'BAD';
@@ -1006,7 +1006,6 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       test.expect(o.log.json.warn.callCount).to.be(1); //Stats haven't changed, shouldn't be called again
     });
 
-
     it('will log.JSON if stats change', () => {
       o.log.info = test.sinon.spy();
       o.log.json.info = test.sinon.spy();
@@ -1015,7 +1014,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         name: 'happn-cluster-node',
         expected: 2,
         members: { '1.2.3.4': {}, '5.6.7.8': {}, '9.10.11.12': {} },
-        peers: { '5.6.7.8': {}, '9.10.11.12': {} },
+        peers: { '5.6.7.8': { endpoint: '5.6.7.8' }, '9.10.11.12': { endpoint: '9.10.11.12' } },
         numPeers: 2,
       };
       o.state = 'STABLE';
@@ -1023,7 +1022,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       o.healthReport();
       test.expect(o.log.info.callCount).to.be(2);
       test.expect(o.log.json.info.callCount).to.be(1);
-      o.registry['happn-cluster-node'].peers = { '5.6.7.8': {}} // 1 more unhealthy member
+      o.registry['happn-cluster-node'].peers = { '5.6.7.8': {} }; // 1 more unhealthy member
       o.healthReport();
       test.expect(o.log.json.info.callCount).to.be(2); //Stats havew changed, should be called again
     });

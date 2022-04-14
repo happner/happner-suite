@@ -308,14 +308,13 @@ module.exports = class Orchestrator extends EventEmitter {
       })
       .join('\n');
     this.log.info(`Node: ${this.happn.name} breakdown: \n` + peerReport);
+    let peerEndpoints = Object.values(this.peers).map((peer) => peer.endpoint);
     const stats = {
       MEMBER_ID: this.happn.name,
       MEMBER_ENDPOINT: this.endpoint,
       TOTAL_CLUSTER_MEMBERS: Object.keys(this.members).length,
       TOTAL_CLUSTER_PEERS: Object.keys(this.peers).length,
-      UNHEALTHY_MEMBERS: Object.keys(this.members).filter(
-        (id) => !Object.keys(this.peers).includes(id)
-      ),
+      UNHEALTHY_MEMBERS: Object.keys(this.members).filter((id) => !peerEndpoints.includes(id)),
       STATUS: this.state,
     };
     if (this.__statsHaveChanged(stats)) {
