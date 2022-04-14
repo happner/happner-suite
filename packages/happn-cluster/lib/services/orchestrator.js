@@ -7,6 +7,7 @@ const ServiceEntry = require('./orchestrator/serviceEntry');
 const getAddress = require('../utils/get-address');
 const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
+const { performance } = require('perf_hooks');
 const NodeUtil = require('util');
 
 module.exports = class Orchestrator extends EventEmitter {
@@ -318,7 +319,8 @@ module.exports = class Orchestrator extends EventEmitter {
       STATUS: this.state,
     };
     if (this.__statsHaveChanged(stats)) {
-      if (stats.STATUS === this.constants.STABLE) return this.log.json.info(stats, 'happn-cluster-health');
+      if (stats.STATUS === this.constants.STABLE)
+        return this.log.json.info(stats, 'happn-cluster-health');
       this.log.json.warn(stats, 'happn-cluster-health');
     }
   }
