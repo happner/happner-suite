@@ -13,6 +13,8 @@ commander
 commander.seq = parseInt(commander.seq || 1);
 commander.hosts = commander.hosts || '127.0.0.1:9001,127.0.0.1:9002,127.0.0.1:9003,127.0.0.1:9004';
 
+console.log(`INSTANCE ${commander.seq}: ${process.pid}`);
+
 function internalInstanceConfig(seq, sync) {
   var config = baseConfig([seq, seq], sync, true, null, null, commander.hosts);
   config.modules = {

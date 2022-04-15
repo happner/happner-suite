@@ -15,6 +15,8 @@ commander.seq = parseInt(commander.seq || 1);
 commander.hosts = commander.hosts || '127.0.0.1:9001,127.0.0.1:9002,127.0.0.1:9003,127.0.0.1:9004';
 commander.joinTimeout = commander.joinTimeout || 300;
 
+console.log(`BROKER ${commander.seq}: ${process.pid}`);
+
 function brokerInstanceConfig(seq, sync) {
   var config = baseConfig(
     [seq, seq],
@@ -43,6 +45,7 @@ function brokerInstanceConfig(seq, sync) {
       startMethod: 'start',
       stopMethod: 'stop',
     },
+    data: {},
   };
   return config;
 }
