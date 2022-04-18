@@ -279,7 +279,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to modify a remote components data', function (done) {
-    this.timeout(4000);
+    this.timeout(6000);
     let thisClient;
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToData')

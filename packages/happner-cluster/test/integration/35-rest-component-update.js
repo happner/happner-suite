@@ -47,7 +47,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
       await startInternal2(getSeq.getNext(), 2);
-      await test.delay(1000);
+      await test.delay(3000);
       description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
@@ -55,7 +55,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
       //Should still have correct description after component leaves
       await servers.pop().stop({ reconnect: false });
-      await test.delay(1000);
+      await test.delay(3000);
       description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
