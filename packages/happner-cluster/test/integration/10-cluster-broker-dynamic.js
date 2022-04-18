@@ -33,10 +33,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   });
   after('Wait', async () => {
-    await test.delay(5000)
-  })
+    await test.printOpenHandlesAfter(5e3);
+    // await test.delay(5000);
+  });
   // in case needed in future
-  // test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
