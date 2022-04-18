@@ -32,7 +32,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       });
     });
   });
-
+  after('Wait' async () => {
+    await test.delay(5000)
+  })
   // in case needed in future
   // test.printOpenHandlesAfter(5e3);
 
