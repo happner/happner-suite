@@ -15,7 +15,7 @@
     "extract-values": "^0.1.2",
     "happn-logger": "^2.0.3",
     "micromustache": "^5.2.0",
-    "redis-lru-cache": "^1.0.4",
+    "redis-lru-cache": "^1.0.5-prerelease-1",
     "traverse": "0.6.6"
   },
   "devDependencies": {
