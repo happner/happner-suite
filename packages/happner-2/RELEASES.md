@@ -935,6 +935,14 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-95: $call discovers components and methods in cluster
 
+12.1.1 2022-04-12
+-----------------
+  - TEN-60: Wildcard-brokering
+  - TEN-42: Rest-discovery
+
+12.1.2 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
 

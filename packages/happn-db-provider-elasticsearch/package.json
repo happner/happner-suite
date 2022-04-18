@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-elasticsearch",
-  "version": "1.0.4",
+  "version": "1.0.5-prerelease-1",
   "private": false,
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "happn-commons-test": "^1.0.3",
-    "happn-3": "^13.0.6",
+    "happn-3": "^13.0.7-prerelease-1",
     "json-from-schema": "1.10.0"
   }
 }

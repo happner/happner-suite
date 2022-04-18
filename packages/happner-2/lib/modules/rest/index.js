@@ -206,7 +206,6 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
       }
       mesh = $happn.exchange[meshName];
     }
-
     if (!mesh[componentName]) {
       return this.__respond(
         $happn,

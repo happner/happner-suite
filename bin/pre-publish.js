@@ -77,7 +77,7 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
   }
   if (packageMetaData.possibleOnlyInTests) {
     issues.push(
-      `${packageMetaData.name}: possible only in tests: ${packageMetaData.possibleOnlyInTests}`
+      `${packageMetaData.name}: possible ".only" in tests: ${packageMetaData.possibleOnlyInTests}`
     );
     foundIssue = true;
   }
@@ -155,7 +155,7 @@ function checkReleasesUpToDate(localPackage) {
     releasesExists = false;
   }
   if (!releasesExists) return true;
-  return releaseText.indexOf(localPackage.version) > -1;
+  return releaseText.indexOf(localPackage.version.split('-')[0]) > -1;
 }
 
 function checkOnlyInTests(localPackage) {

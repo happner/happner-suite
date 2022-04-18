@@ -553,13 +553,18 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         });
     });
 
-    it.only('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', function (done) {
+    it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', function (done) {
       startClusterEdgeFirst()
         .then(function () {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
         .then(function () {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod10');
+          return users.allowMethod(
+            localInstance,
+            'username',
+            'remoteComponent',
+            'brokeredMethod10'
+          );
         })
         .then(function () {
           return new Promise(function (resolve) {
@@ -573,7 +578,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return client.exchange.remoteComponent.brokeredMethod10();
         })
         .catch(function (e) {
-          console.log(e)
+          console.log(e);
           test
             .expect(e.toString())
             .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod10');
