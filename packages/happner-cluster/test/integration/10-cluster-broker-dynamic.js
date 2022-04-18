@@ -34,7 +34,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   });
 
   // in case needed in future
-  test.printOpenHandlesAfter(5e3);
+  // test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
