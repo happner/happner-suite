@@ -259,3 +259,7 @@ non-release 2017-12-14
 12.1.0 2022-03-17
 -----------------
   - SMC-4817: Major refactor, took out swim, replaced with Databased logging of members.
+
+13.0.0 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy

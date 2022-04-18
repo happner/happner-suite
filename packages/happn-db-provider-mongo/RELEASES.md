@@ -20,3 +20,7 @@
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
   - TEN-104: errors are only logged on system failures
+
+1.0.5 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy
