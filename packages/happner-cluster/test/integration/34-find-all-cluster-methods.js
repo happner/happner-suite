@@ -47,8 +47,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
       6000
     );
-
-    meshNames = cluster.instances.map((instance) => instance._mesh.config.name).sort(); //Mesh instances may arrive out of order.
+    cluster.sort()
+    meshNames = cluster.instances.map((instance) => instance._mesh.config.name); //Mesh instances may arrive out of order.
   }
 
   async function connectClient() {
@@ -74,9 +74,9 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     //check round robining happened ok
     let resultsMap = results.map((result) => result.name);
     // eslint-disable-next-line no-console
-    console.log({meshNames})
+    console.log(meshNames)
     // eslint-disable-next-line no-console
-    console.log({resultsMap});
+    // console.log(resultsMap});
     test
       .expect(
         test._.isEqual(resultsMap, [meshNames[1], meshNames[2], meshNames[1]]) ||
