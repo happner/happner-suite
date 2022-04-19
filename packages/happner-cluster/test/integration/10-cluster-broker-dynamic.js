@@ -32,7 +32,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       });
     });
   });
-  test.printOpenHandlesAfter(5e3);
+  // test.printOpenHandlesAfter(5e3);
   // in case needed in future
 
   context('exchange', function () {

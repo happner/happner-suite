@@ -74,8 +74,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     stopCluster(servers.concat(localInstance), done);
   });
 
-  test.printOpenHandlesAfter(5e3);
-
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
     this.timeout(4000);
 
