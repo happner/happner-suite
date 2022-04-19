@@ -15,7 +15,7 @@ module.exports.add = function (server, username, password, permissions) {
   return Promise.all([
     server.exchange.security.addGroup(group),
     server.exchange.security.addUser(user),
-  ]).spread(function (group, user) {
+  ]).then(function ([group, user]) {
     return server.exchange.security.linkGroup(group, user);
   });
 };
