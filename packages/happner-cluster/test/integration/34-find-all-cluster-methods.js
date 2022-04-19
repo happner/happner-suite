@@ -74,6 +74,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     //check round robining happened ok
     let resultsMap = results.map((result) => result.name);
     //eslint-disable-next-line no-console
+    console.log(resultsMap, [meshNames[1], meshNames[2], meshNames[1]] )
     test
       .expect(
         test._.isEqual(resultsMap, [meshNames[1], meshNames[2], meshNames[1]]) ||
