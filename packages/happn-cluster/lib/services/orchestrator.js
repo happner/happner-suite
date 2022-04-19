@@ -156,9 +156,13 @@ module.exports = class Orchestrator extends EventEmitter {
     let start = performance.now();
     try {
       await this.lookup();
+      if (this.stopped) return;
       await this.addMembers();
+      if (this.stopped) return;
       await this.connect();
+      if (this.stopped) return;
       await this.subscribe();
+      if (this.stopped) return;
       await this.__stateUpdate();
     } catch (e) {
       this.log.warn(e);
