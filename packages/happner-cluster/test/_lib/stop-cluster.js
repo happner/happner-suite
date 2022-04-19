@@ -4,5 +4,6 @@ module.exports = async function (servers, done) {
     await server.stop({ reconnect: false });
     await delay(200);
   }
-  done();
+  if (done) return done();
+  return;
 };

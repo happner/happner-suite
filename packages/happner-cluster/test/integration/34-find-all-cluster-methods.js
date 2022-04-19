@@ -77,8 +77,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     console.log(resultsMap, [meshNames[1], meshNames[2], meshNames[1]] )
     test
       .expect(
-        test._.isEqual(resultsMap, [meshNames[1], meshNames[2], meshNames[1]]) ||
-          test._.isEqual(resultsMap, [meshNames[2], meshNames[1], meshNames[2]])
+        test._.isEqual(resultsMap, [meshNames[2], meshNames[3], meshNames[2]]) ||
+          test._.isEqual(resultsMap, [meshNames[3], meshNames[2], meshNames[3]])
       )
       .to.be(true);
     //ensure the method was only called 3 times
