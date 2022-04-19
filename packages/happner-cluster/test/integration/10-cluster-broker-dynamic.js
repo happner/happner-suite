@@ -1,4 +1,3 @@
-// const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');

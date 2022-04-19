@@ -1,4 +1,3 @@
-var Promise = require('bluebird');
 var async = require('async');
 
 module.exports.add = function (server, username, password, permissions) {
@@ -51,7 +50,12 @@ var queue = async.queue(function (task, callback) {
   var group = task.group;
   var permissions = task.permissions;
   var method = task.method;
-  server.exchange.security[method](group, permissions, callback);
+  try {
+    server.exchange.security[method](group, permissions, callback);
+  } catch (e) {
+    console.log(e);
+    callback(e);
+  }
 }, 1);
 
 module.exports.allowMethod = function (server, username, component, method) {

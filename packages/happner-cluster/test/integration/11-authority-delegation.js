@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -86,7 +85,6 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     if (!servers) return done();
     stopCluster(servers.concat(localInstance), done);
   });
-
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
     this.timeout(6000);
