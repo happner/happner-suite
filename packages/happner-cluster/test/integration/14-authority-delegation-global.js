@@ -67,7 +67,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     if (!servers) return;
     await stopCluster(servers);
   });
-  
+
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
     this.timeout(5000);
 
