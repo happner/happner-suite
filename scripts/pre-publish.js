@@ -6,6 +6,7 @@ const workspacePackageNames = basePackage.workspaces.map((path) => path.split('/
 
 let lastHighestVersionJump = -1;
 let packagesMetaData = null;
+let prereleases = [];
 
 console.log('fetching metadata from npm...');
 Promise.all(
@@ -21,7 +22,7 @@ Promise.all(
       const lastVersion = metaDataItem.data['dist-tags'].latest;
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
-        publishOrder: getPublishOrder(localPackage.name),
+        publishOrder: getPackagePublishOrder(localPackage.name),
         isPrerelease,
         versionJumped: newVersion !== lastVersion,
         versionJumpMadeSense: versionJumpMadeSense(
@@ -100,6 +101,15 @@ function verifyPublish(packagesMetaData, masterPackage) {
   }
 
   if (issues.length) {
+    if (prereleases.length > 0) {
+      console.info('prereleases ready for publish:');
+      getPublishOrder().forEach((packageName) => {
+        const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
+        if (found) {
+          console.info(`npm publish ${packageName} --tag prerelease-${found.major}`);
+        }
+      });
+    }
     return;
   }
 
@@ -176,7 +186,10 @@ function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease)
     )}`;
   }
   if (lastHighestVersionJump < jump.section) lastHighestVersionJump = jump.section;
-  if (isPrerelease) return `package version ${newVersion} is pre-release or invalid`;
+  if (isPrerelease) {
+    prereleases.push({ packageName, major: newVersion.split('.').shift() });
+    return `package version ${newVersion} is pre-release or non standard`;
+  }
   return jump.section;
 }
 
@@ -224,7 +237,11 @@ function checkOnlyInTests(localPackage) {
   return output.toString().trim();
 }
 
-function getPublishOrder(packageName) {
+function getPackagePublishOrder(packageName) {
+  return getPublishOrder().indexOf(packageName);
+}
+
+function getPublishOrder() {
   return [
     'happn-commons',
     'happn-commons-test',
@@ -242,5 +259,5 @@ function getPublishOrder(packageName) {
     'happner-client',
     'happner-2',
     'happner-cluster',
-  ].indexOf(packageName);
+  ];
 }
