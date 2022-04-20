@@ -19,7 +19,7 @@ npm i happn-cluster
 let node = await require('happn-cluster').create();
 ```
 
-This will create a single, stable cluster node, which can connect to and be connected to from other nodes with the same cluster name (default: 'happn-cluster') and deployment (default: 'Test-Deploy'). By default, the node will refresh it's list of members every 5 seconds, and send a keepAlive to the database every 5 seconds (so that other nodes can look it up).
+This will create a single, stable cluster node, which can connect to and be connected to from other nodes with the same cluster name (default: 'happn-cluster') and deployment (default: 'Test-Deploy'). By default, the node will refresh its list of members every 5 seconds, and send a keepAlive to the database every 5 seconds (so that other nodes can look it up).
 
 ### Creating a multiple node cluster
 
