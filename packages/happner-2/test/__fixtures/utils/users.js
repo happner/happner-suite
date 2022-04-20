@@ -6,14 +6,12 @@ module.exports.add = async function(server, username, password, permissions, cus
     password: password,
     custom_data
   };
-
   var group = {
     name: username + '_group',
     permissions: permissions || {}
   };
-
-  const addedGroup = await server.exchange.security.addGroup(group);
-  const addedUser = await server.exchange.security.addUser(user);
+  const addedGroup = await server.exchange.security.upsertGroup(group);
+  const addedUser = await server.exchange.security.upsertUser(user);
   await server.exchange.security.linkGroup(addedGroup, addedUser);
 };
 

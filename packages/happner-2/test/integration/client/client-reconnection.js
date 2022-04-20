@@ -1,8 +1,9 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
-  var Mesh = require('../../..');
-  var mesh;
+  const Mesh = require('../../..');
+  let users = require('../../__fixtures/utils/users');
+  let mesh;
 
-  var adminClient = new Mesh.MeshClient({
+  const adminClient = new Mesh.MeshClient({
     secure: true,
     port: 8004,
     reconnect: {
@@ -10,7 +11,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     },
   });
 
-  var testClient = new Mesh.MeshClient({
+  const testClient = new Mesh.MeshClient({
     secure: true,
     port: 8004,
     reconnect: {
@@ -18,8 +19,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     },
   });
 
-  var test_id = Date.now() + '_' + require('shortid').generate();
-
+  var test_id = Date.now() + '_' + test.newid();
+  let filename = require('path').resolve(__dirname, '../../tmp/client-reconnection.loki');
   var startMesh = function (callback) {
     Mesh.create(
       {
@@ -28,41 +29,78 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           secure: true,
           adminPassword: test_id,
           port: 8004,
+          services: {
+            data: {
+              config: {
+                filename,
+              },
+            },
+          },
+        },
+        modules: {
+          test: {
+            instance: {
+              method: async () => {
+                return 1;
+              },
+            },
+          },
         },
         components: {
           data: {},
+          test: {},
         },
       },
       function (e, instance) {
         if (e) return callback(e);
         mesh = instance;
-        callback();
+        createTestUser(mesh, (e) => {
+          if (e) return callback(e);
+          callback();
+        });
       }
     );
   };
 
   before(function (done) {
+    //test.commons.unlinkFiles([filename]);
     startMesh(function (e) {
       if (e) return done(e);
-
-      adminClient.login({ username: '_ADMIN', password: test_id }).then(done).catch(done);
+      testClient
+        .login({ username: 'test', password: 'test' })
+        .then(() => {
+          return adminClient.login({ username: '_ADMIN', password: test_id });
+        })
+        .then(() => {
+          done();
+        })
+        .catch((e) => {
+          done(e);
+        });
     });
   });
 
-  var __stopped = false;
+  let __stopped = false;
 
   after(function (done) {
+    //test.commons.unlinkFiles([filename]);
     if (adminClient) adminClient.disconnect();
     if (__stopped) return done();
     mesh.stop(done);
   });
 
-  var eventsToFire = {
-    'reconnect/scheduled': false,
-    'reconnect/successful': false,
-  };
+  let eventsToFire = ['reconnect/successful', 'reconnect/scheduled'];
 
-  var eventsFired = false;
+  function createTestUser(server, callback) {
+    users
+      .add(server, 'test', 'test', {
+        methods: {
+          //in a /Mesh name/component name/method name - with possible wildcards
+          '/client-reconnection/test/method': { authorized: true },
+        },
+      })
+      .then(callback);
+  }
 
   it('tests the client bad login with callback', function (done) {
     testClient.login({ username: '_ADMIN', password: 'bad' }, (e) => {
@@ -71,35 +109,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  it('tests the client reconnection', function (done) {
-    var fireEvent = function (key) {
-      if (eventsFired) return;
+  it.only('tests the client reconnection', function (done) {
+    testClient.exchange.test.method((e) => {
+      if (e) {
+        return done(new Error(`oh dear: ${e.message}`));
+      }
+      var fireEvent = function (key) {
+        if (eventsToFire.length === 0) return;
+        if (eventsToFire.indexOf(key) > -1) test.log(`fired: ${eventsToFire.pop()}`);
+        if (eventsToFire.length > 0) return;
+        testClient.exchange.test.method((e) => {
+          if (e) {
+            test.log(`oh dear: ${e.message}`);
+          }
+          done();
+        });
+      };
 
-      eventsToFire[key] = true;
-
-      for (var eventKey in eventsToFire) if (eventsToFire[eventKey] === false) return;
-
-      eventsFired = true;
-
-      adminClient.exchange.data.set('/test/path', { test: 'data' }, done);
-    };
-
-    adminClient.exchange.data.set('/test/path', { test: 'data' }, function (e) {
-      if (e) return done(e);
-
-      adminClient.on('reconnect/scheduled', function () {
-        //TODO some test.expect code
+      testClient.on('reconnect/scheduled', function () {
         fireEvent('reconnect/scheduled');
       });
 
-      adminClient.on('reconnect/successful', function () {
-        //TODO some test.expect code
+      testClient.on('reconnect/successful', function () {
         fireEvent('reconnect/successful');
       });
 
       mesh.stop({ reconnect: true }, function (e) {
         if (e) return done(e);
-
         startMesh(function (e) {
           if (e) return done(e);
         });
