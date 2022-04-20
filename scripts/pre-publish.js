@@ -106,7 +106,7 @@ function verifyPublish(packagesMetaData, masterPackage) {
       getPublishOrder().forEach((packageName) => {
         const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
         if (found) {
-          console.info(`npm publish ${packageName} --tag prerelease-${found.major}`);
+          console.info(`npm publish --workspace=${packageName} --tag prerelease-${found.major}`);
         }
       });
     }
