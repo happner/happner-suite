@@ -52,7 +52,7 @@
     "happn-commons": "^1.0.2",
     "happn-logger": "^2.0.3",
     "happn-sillyname": "^0.1.1",
-    "happner-client": "^12.2.0-prerelease-1",
+    "happner-client": "^12.2.1-prerelease-1",
     "happner-semver": "^1.0.1",
     "homedir": "0.6.0",
     "later": "1.2.0",

@@ -3,6 +3,10 @@ const path = require('path');
 const basePackage = require('../package.json');
 const workspacePackages = basePackage.workspaces.map((path) => require(`../${path}/package.json`));
 const workspacePackageNames = basePackage.workspaces.map((path) => path.split('/')[1]);
+
+let lastHighestVersionJump = -1;
+let packagesMetaData = null;
+
 console.log('fetching metadata from npm...');
 Promise.all(
   workspacePackageNames.map((packageName) =>
@@ -10,7 +14,8 @@ Promise.all(
   )
 )
   .then((metaData) => {
-    const packagesMetaData = metaData.map((metaDataItem) => {
+    console.log('fetched data from npm');
+    packagesMetaData = metaData.map((metaDataItem) => {
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
       const newVersion = localPackage.version;
       const lastVersion = metaDataItem.data['dist-tags'].latest;
@@ -35,13 +40,20 @@ Promise.all(
         possibleOnlyInTests: checkOnlyInTests(localPackage),
       };
     });
-    verifyPublish(packagesMetaData);
+    console.log('fetching master package...');
+    return require('axios').default.get(
+      `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
+    );
+  })
+  .then((masterPackage) => {
+    console.log('fetched master package...');
+    verifyPublish(packagesMetaData, masterPackage.data);
   })
   .catch((e) => {
     throw e;
   });
 
-function verifyPublish(packagesMetaData) {
+function verifyPublish(packagesMetaData, masterPackage) {
   let issues = [],
     successes = [];
   packagesMetaData.forEach((packageMetaData) =>
@@ -54,6 +66,40 @@ function verifyPublish(packagesMetaData) {
       console.info('ok:');
       successes.forEach((success) => console.info(success.name));
     }
+  }
+
+  let masterPackageVersion = masterPackage.version;
+  let localMasterPackageVersion = require('../package.json').version;
+
+  if (lastHighestVersionJump > -1 && (successes.length > 0 || issues.length > 0)) {
+    const masterPackageJump = getVersionJump(localMasterPackageVersion, masterPackageVersion);
+    if (masterPackageVersion === localMasterPackageVersion) {
+      console.warn(
+        `local master version same as github master package version, should jump ${[
+          'patch',
+          'minor',
+          'major',
+        ].at(lastHighestVersionJump)}`
+      );
+      return;
+    }
+    if (masterPackageJump.section !== lastHighestVersionJump) {
+      console.warn(
+        `master version should jump ${['patch', 'minor', 'major'].at(lastHighestVersionJump)}`
+      );
+      return;
+    }
+  }
+
+  if (localMasterPackageVersion !== require('../package-lock.json').version) {
+    console.warn(
+      `${localMasterPackageVersion} and package-lock version ${
+        require('../package-lock.json').version
+      } do not match`
+    );
+  }
+
+  if (issues.length) {
     return;
   }
 
@@ -122,22 +168,28 @@ function getWorkspaceDependencies(package, dev) {
 }
 
 function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease) {
-  if (isPrerelease) return `package version ${newVersion} is pre-release or invalid`;
   if (newVersion === oldVersion) return true;
-  let [oldMajor, oldMinor, oldPatch] = oldVersion.split('.');
-
-  let possibleOptions = [
-    [parseInt(oldMajor) + 1, '0', '0'],
-    [oldMajor, parseInt(oldMinor) + 1, '0'],
-    [oldMajor, oldMinor, parseInt(oldPatch) + 1],
-  ].map((optionSet) => optionSet.join('.'));
-
-  if (possibleOptions.indexOf(newVersion) === -1) {
-    return `new version ${newVersion} for package ${packageName} should be one of the following: ${possibleOptions.join(
+  const jump = getVersionJump(newVersion, oldVersion);
+  if (jump.section === -1) {
+    return `new version ${newVersion} for package ${packageName} should be one of the following: ${jump.possibleOptions.join(
       ' || '
     )}`;
   }
-  return true;
+  if (lastHighestVersionJump < jump.section) lastHighestVersionJump = jump.section;
+  if (isPrerelease) return `package version ${newVersion} is pre-release or invalid`;
+  return jump.section;
+}
+
+function getVersionJump(newVersion, oldVersion) {
+  let [oldMajor, oldMinor, oldPatch] = oldVersion.split('.');
+
+  let possibleOptions = [
+    [oldMajor, oldMinor, parseInt(oldPatch) + 1],
+    [oldMajor, parseInt(oldMinor) + 1, '0'],
+    [parseInt(oldMajor) + 1, '0', '0'],
+  ].map((optionSet) => optionSet.join('.'));
+
+  return { section: possibleOptions.indexOf(newVersion.split('-')[0]), possibleOptions };
 }
 
 function getPackageRootPath(packageName) {

@@ -318,7 +318,9 @@
   - TEN-60: Wildcard-brokering
   - TEN-42: Rest-discovery
 
-
+12.2.1 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
   
