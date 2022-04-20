@@ -146,6 +146,7 @@ module.exports = class Orchestrator extends EventEmitter {
     for (let interval of Object.values(this.intervals)) {
       clearInterval(interval);
     }
+    this.stopped = true;
     if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
     await Promise.all(Object.values(this.registry).map((service) => service.stop()));
     if (cb) cb();
@@ -155,19 +156,25 @@ module.exports = class Orchestrator extends EventEmitter {
     let start = performance.now();
     try {
       await this.lookup();
+      if (this.stopped) return;
       await this.addMembers();
+      if (this.stopped) return;
       await this.connect();
+      if (this.stopped) return;
       await this.subscribe();
+      if (this.stopped) return;
       await this.__stateUpdate();
     } catch (e) {
       this.log.warn(e);
     }
-    let end = performance.now();
-    if (start - end > this.memberRefresh) return this.memberCheck();
-    this.refreshTimeout = setTimeout(
-      this.memberCheck.bind(this),
-      Math.floor(this.memberRefresh + end - start)
-    );
+    if (!this.stopped) {
+      let end = performance.now();
+      if (start - end > this.memberRefresh) return this.memberCheck();
+      this.refreshTimeout = setTimeout(
+        this.memberCheck.bind(this),
+        Math.floor(this.memberRefresh + end - start)
+      );
+    }
   }
 
   async lookup() {

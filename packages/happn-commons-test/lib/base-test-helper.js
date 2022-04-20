@@ -89,8 +89,8 @@ class TestHelper {
 	}
 
 	async printOpenHandlesAfter(delayMs) {
-		after(() => {
-			this.printOpenHandles(delayMs);
+		after("zzz - do this last", async () => {
+			await this.printOpenHandles(delayMs);
 		});
 	}
 

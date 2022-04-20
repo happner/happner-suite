@@ -40,7 +40,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(version)
       .to.eql({ mesh: getSeq.getMeshName(1), version: '2.1.2', component: 'remoteComponent1' });
     await startInternal2(getSeq.getNext(), 2);
-    await test.delay(1000);
+    await test.delay(3000);
     let version2;
     [version, version2] = await Promise.all([
       thisClient.exchange.remoteComponent.getVersion(),
@@ -64,7 +64,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(version)
       .to.eql({ mesh: getSeq.getMeshName(1), version: '3.4.5', component: 'remoteComponent2' });
     await startInternal(getSeq.getNext(), 2);
-    await test.delay(1000);
+    await test.delay(3000);
     version = await thisClient.exchange.remoteComponent.getVersion();
     let version2 = await thisClient.exchange.remoteComponent.getVersion(); //To test that it doesn't round robin to a lower version component
     test
@@ -172,21 +172,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(function () {
           setTimeout(resolve, 2000);
         })
-        .catch(reject);
-    });
-  }
-
-  function startClusterEdgeFirst(dynamic) {
-    return new Promise(function (resolve, reject) {
-      startEdge(getSeq.getFirst(), 1, dynamic)
-        .then(function () {
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          localInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
         .catch(reject);
     });
   }

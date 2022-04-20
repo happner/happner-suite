@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -49,33 +48,24 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     });
   });
 
-  beforeEach('start cluster', function (done) {
-    this.timeout(25000);
-    test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
-      localInstance = local;
-    });
-
-    setTimeout(() => {
-      Promise.all([
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      ])
-        .then(function (_servers) {
-          servers = _servers;
-          //localInstance = servers[0];
-          return users.add(servers[0], 'username', 'password');
-        })
-        .then(function () {
-          done();
-        })
-        .catch(done);
-    }, 2000);
+  beforeEach('start cluster', async function () {
+    this.timeout(20000);
+    localInstance = test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1));
+    await test.delay(2000);
+    servers = [
+      localInstance,
+      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+    ];
+    servers = await Promise.all(servers);
+    localInstance = servers[0];
+    await users.add(servers[1], 'username', 'password');
   });
 
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers.concat(localInstance), done);
+  afterEach('stop cluster', async function () {
+    if (!servers) return;
+    await stopCluster(servers);
   });
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
