@@ -2,7 +2,7 @@
 
 ### Motivation
 
-Hapnp-cluster provides clustering capapbilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database and a shared pub-sub event bus.
+Hapnp-cluster provides clustering capapbilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database as well as a shared pub-sub event bus.
 
 ### Installation
 
@@ -115,7 +115,8 @@ let config = {
 };
 ```
 
-By adding an explicit cluster config at `config.services.orchestrator.config.cluster`, we can specify the minimum amount required of each service by name. The cluster will not stabilise until there at least as many nodes of each service as defined in this config. So, the example above will not stabilise until there are at least 3 nodes with serviceName "THIS_SERVICE", and 2 with serviceName "THAT_SERVICE"
+By adding an explicit cluster config at `config.services.orchestrator.config.cluster`, we can specify the minimum amount required of each service by name. The cluster will not stabilise until there at least as many nodes of each service as defined in this config. So, the example above will not stabilise until there are at least 3 nodes with serviceName "THIS_SERVICE", and 2 with serviceName "THAT_SERVICE"  
+
 Notes:
 
 1. As in the example above, the serviceName is also set in the orcchestrator config.
@@ -167,7 +168,7 @@ These are:
 1. keepAlive (default 5e3): how often a keepAlive message is sent to the db.
 2. keepaliveThreshold (default 6e3) : How old another nodes db entry can be, to still be considered an active part of the cluster. This should be slightly longer than the keepAlive.
 3. memberRefresh (default 5e3): How often this node checks the db for a list of active members, and connects and subscribes to those members as required. 
-4. stabiliseTimeout (default undefined): How long the cluster will wait for other required members as defined by config.cluster or config.minimumPeers before shutting down for failure to stabilse.
+4. stabiliseTimeout (default undefined): How long the cluster will wait for other required members as defined by config.cluster or config.minimumPeers before shutting down for failure to stabilse. This needs to be explicitly set, otherwise a node will default to waiting forever for other members to join.
 5. Health (default 10e3): How often this node will log a brief report and JSON detailing its current state and health
 
 As  an example, for testing one might want to set: 
@@ -175,5 +176,8 @@ As  an example, for testing one might want to set:
 config.services.orchestrator.config.timing = {
     keepAlive: 2e3,
     keepAliveThreshold: 3e3,
-    memberRefresh: 2e3
-}  
+    memberRefresh: 2e3,
+    stabiliseTimeout: 15e3
+}  //health is fine at default
+```
+In order to have the tests run faster, and to fail if cluster members do not stabilise timeously.
