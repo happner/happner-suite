@@ -2,11 +2,11 @@
 
 ### Motivation
 
-Hapnp-cluster provides clustering capapbilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database as well as a shared pub-sub event bus.
+Hapnp-cluster provides clustering capabilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database as well as a shared pub-sub event bus.
 
 ### Installation
 
-In youre project's root directory, run
+In your project's root directory, run
 
 ```bash
 npm i happn-cluster
@@ -19,7 +19,7 @@ npm i happn-cluster
 let node = await require('happn-cluster').create();
 ```
 
-This will create a single, satisfied clustrer node, which can be connect and be connected to from other nodes with the same cluster name (default: 'happn-cluster') and deployment (default: 'Test-Deploy'). By default, the node will refresh it's list of members every 5 seconds, and send a keepAlive to the database every 5 seconds (so that other nodes can look it up).
+This will create a single, stable cluster node, which can connect to and be connected to from other nodes with the same cluster name (default: 'happn-cluster') and deployment (default: 'Test-Deploy'). By default, the node will refresh it's list of members every 5 seconds, and send a keepAlive to the database every 5 seconds (so that other nodes can look it up).
 
 ### Creating a multiple node cluster
 
@@ -102,8 +102,8 @@ let config = {
     orchestrator: {
       config: {
         deployment: 'DEPLOYMENT_123', //String, happn-path
-        serviceName: 'THIS_SERVICE',
-        clusterName: 'THIS_CLUSTER',
+        serviceName: 'THIS_SERVICE',  //String, happn-path
+        clusterName: 'THIS_CLUSTER',  //String, happn-path
         cluster: {
           // key-value pairs: service name, and expected minimum nodes of that service
           THIS_SERVICE: 3,
@@ -115,7 +115,7 @@ let config = {
 };
 ```
 
-By adding an explicit cluster config at `config.services.orchestrator.config.cluster`, we can specify the minimum amount required of each service by name. The cluster will not stabilise until there at least as many nodes of each service as defined in this config. So, the example above will not stabilise until there are at least 3 nodes with serviceName "THIS_SERVICE", and 2 with serviceName "THAT_SERVICE"  
+By adding an explicit cluster config at `config.services.orchestrator.config.cluster`, we can specify the minimum amount required of each service by name. The cluster will not stabilise until there are at least as many nodes of each service as defined in this config. So, the example above will not stabilise until there are at least 3 nodes with serviceName "THIS_SERVICE", and 2 with serviceName "THAT_SERVICE"  
 
 Notes:
 
@@ -146,11 +146,11 @@ config = {
 
 ```
 
-As mentioned above, each cluster node must have access to a shared mongo db, using happn-db-provider-mongo. By default, if there is no datastore with happn-db-provider-mongo configured as a provider, one will be added that points to localhost at the default mongo port. This will not work if the nodes are on seperate devices, in which case a mongodb datastore must be explicitly configured in each nodes config, as above.
+As mentioned above, each cluster node must have access to a shared mongo db, using happn-db-provider-mongo. By default, if there is no datastore with happn-db-provider-mongo configured as a provider, one will be added that points to localhost at the default mongo port. This will not work if the nodes are on seperate devices, in which case a mongodb datastore must be explicitly configured in each nodes config, as in the example above.
 
 ### Replication:
 
-By default, the cluster nodes will replicate events on **all** paths. If you want to constrain which events will replicate, you can set `config.services.orchestrator.config.replicate = [....]` This is an array of paths that **will** be replicated, and can accept wildcardsm for example:
+By default, the cluster nodes will replicate events on **all** paths. If you want to constrain which events will replicate, you can set `config.services.orchestrator.config.replicate = [....]` This is an array of paths that **will** be replicated, and can accept wildcards. For example:
 
 ```javascript
 config.services.orchestrator.config.replicate = [
@@ -159,7 +159,7 @@ config.services.orchestrator.config.replicate = [
     'path3/4/5'
 ]
 ```
-Will limit replication to only paths matching (With wildcards) the above.
+Will limit replication to only paths matchingthe above.
 
 
 ### Timing:
