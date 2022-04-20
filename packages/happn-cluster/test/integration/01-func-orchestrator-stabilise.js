@@ -27,7 +27,6 @@ let configs = [
     ]),
   []
 );
-console.log(configs)
 configs.forEach((config) => {
   require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     before(function () {

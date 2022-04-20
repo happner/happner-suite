@@ -271,7 +271,7 @@ An object with key value pairs of serviceName, mimnimumRequired, e.g.
 The cluster will not enter a stable state until it has at least minimumRequired of each service. Note that a node whose service name is not included in cluster.config will not be connected to. (This could be changed to be configurable, if required.)  
 
 #### config.minimumPeers 
-*Deprecated, use config.cluster instead*  
+*Deprecated, use config.cluster instead. If both config.minimumPeers and config.clusster are set, minimumPeers will be ignored* 
 This pends the starting of the proxy until there are this many known peers in the cluster. This prevents
 the `thundering herd` (of clients) from settling all their sockets permanently onto the first started node.
 For backwards compatibility, if minimumPeers is set, and config.cluster is not, config.cluster will be created as `{*this.serviceName*: this.minimumPeers }`
