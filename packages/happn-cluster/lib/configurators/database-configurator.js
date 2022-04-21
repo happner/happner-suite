@@ -12,9 +12,9 @@ module.exports = class DatabaseConfigurator {
           present = true;
         }
       });
-      if (!present) this.addMongoDb(config.services.data);
+      if (!present) this.addMongoDb(config.services.data.config);
     } else {
-      this.addMongoDb(config.services.data);
+      this.addMongoDb(config.services.data.config);
     }
   }
   // addMembershipDatastore(dataConfig) {
@@ -42,3 +42,4 @@ module.exports = class DatabaseConfigurator {
     });
   }
 };
+
