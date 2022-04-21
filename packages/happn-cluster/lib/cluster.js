@@ -5,6 +5,7 @@ const dface = require('dface');
 const path = require('path');
 const defaultName = require('./utils/default-name');
 const { nodeUtils } = require('happn-commons');
+const databaseConfigurator = require('./configurators/database-configurator').create();
 
 module.exports.create = nodeUtils.promisify(async function (config, callback) {
   let happn;
@@ -14,18 +15,7 @@ module.exports.create = nodeUtils.promisify(async function (config, callback) {
   config.host = dface(config.host);
   config.name = defaultName(config);
 
-  if (config.services.data.config.datastores.length > 0) {
-    // check that a mongodb store is present
-    var present = false;
-    config.services.data.config.datastores.forEach(function (ds) {
-      if (ds.provider === 'happn-db-provider-mongo') {
-        present = true;
-      }
-    });
-    if (!present) addMongoDb(config.services.data);
-  } else {
-    addMongoDb(config.services.data);
-  }
+  databaseConfigurator.configure(config);
 
   try {
     happn = await Happn.service.create(config);
@@ -70,18 +60,5 @@ module.exports.create = nodeUtils.promisify(async function (config, callback) {
         },
       },
     };
-  }
-
-  function addMongoDb(cursor) {
-    cursor.config.datastores.push({
-      name: 'mongo',
-      provider: 'happn-db-provider-mongo',
-      isDefault: true,
-      settings: {
-        collection: 'happn-cluster',
-        database: 'happn-cluster',
-        url: 'mongodb://127.0.0.1:27017',
-      },
-    });
   }
 });

@@ -2,7 +2,6 @@
  * Created by grant on 2016/10/05.
  */
 
-var getAddress = require('../../lib/utils/get-address');
 var Mongo = require('./mongo');
 const Util = require('util');
 var mongoUrl = 'mongodb://127.0.0.1:27017';

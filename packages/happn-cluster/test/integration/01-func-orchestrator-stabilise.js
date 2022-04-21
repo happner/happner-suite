@@ -1,4 +1,3 @@
-const { Console } = require('console');
 var path = require('path');
 var filename = path.basename(__filename);
 var hooks = require('../lib/hooks');
@@ -27,7 +26,6 @@ let configs = [
     ]),
   []
 );
-console.log(configs)
 configs.forEach((config) => {
   require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     before(function () {
@@ -37,7 +35,7 @@ configs.forEach((config) => {
 
     hooks.startCluster(config);
 
-    it('each server stabilised with all 10 peers', function (done) {
+    it.only('each server stabilised with all 10 peers', function (done) {
       const peerCounts = this.servers.map(
         (server) => Object.keys(server.services.orchestrator.peers).length
       );
