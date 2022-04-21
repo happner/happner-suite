@@ -18,7 +18,7 @@ module.exports.create = nodeUtils.promisify(async function (config, callback) {
     // check that a mongodb store is present
     var present = false;
     config.services.data.config.datastores.forEach(function (ds) {
-      if (ds.provider === 'happn-service-mongo-2') {
+      if (ds.provider === 'happn-db-provider-mongo') {
         present = true;
       }
     });

@@ -6,15 +6,11 @@ Extends happner with clustering capabilities.
 
 ## Install
 
-`npm install happner-cluster happn-service-mongo-2 —save`
-
-Note data service installed separately.
-
 ## Starting a cluster node
 
-Happner-cluster and happner configs are almost identical excpet that cluster nodes should include a domain name and the happn subconfigs necessary for clustering - as minimum shown below.
+Happner-cluster and happner configs are almost identical excpet that cluster nodes should include a domain name and the happn sub-configs necessary for clustering - as minimum shown below.
 
- For more on happn-cluster subconfig see [happn-cluster docs](https://github.com/happner/happn-cluster)
+ For more on happn-cluster subconfig see [happn-cluster docs](https://github.com/happner/happner-suite/blob/master/packages/happn-cluster/README.md#configure)
 
 ```javascript
 var HappnerCluster = require('happner-cluster');
@@ -23,13 +19,12 @@ var config = {
 
   // name: 'UNIQUE_NAME', // allow default uniqie name
   domain: 'DOMAIN_NAME', // same as other cluster nodes, used for event replication - allows clusters to be segmented by domain
-
   cluster: {
     //  requestTimeout: 20 * 1000, // exchange timeouts
     //  responseTimeout: 30 * 1000
   },
 
-  happn: { // was "datalayer"
+  happn: {
     services: {
       data: {
         // see data sub-config in happn-cluster docs
@@ -38,7 +33,7 @@ var config = {
             // defaulted by happn-cluster
             //{
             //  name: 'mongo',
-            //  provider: 'happn-service-mongo-2',
+            //  provider: 'happn-db-provider-mongo',
             //  isDefault: true,
             //  settings: {
             //    collection: 'happn-cluster',
@@ -61,18 +56,18 @@ var config = {
             //}
           ]
         }
-      }
+      },
       orchestrator: {
         // see orchestrator sub-config in happn-cluster docs
           config: {
-            serviceName: "SomeService"
-            deployment: "SomeDeploy"
-            clusterName: "Cluster
+            serviceName: "SomeService",
+            deployment: "SomeDeploy",
+            clusterName: "Cluster",
             cluster: {
               SomeService: 2,
               AnotherService: 3
-              //Key value list of services in cluster and minimum required amound of each
-            }
+              //Key value list of services in cluster and minimum required amount of each, see serviceName above
+            },
             replicate: [
               'my-custom-path/*'
             ] //listen to all cluster events on this path, the following are also listened to by default:
@@ -95,7 +90,7 @@ var config = {
   }
 }
 
-HappnerCluster.create(config).then...
+const myClusterNode = await HappnerCluster.create(config);
 ```
 
 ##  Using remote components in the cluster

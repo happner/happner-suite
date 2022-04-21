@@ -6,16 +6,6 @@
 
 Extends happn with cluster ability.
 
-Requires that each cluster member mounts the same shared data service. See [happn-service-mongo](https://github.com/happner/happn-service-mongo).
-
-See also [happn cluster aws example](https://github.com/happner/happn-cluster-aws-example)
-
-## Install
-
-`npm install happn-cluster happn-service-mongo-2 --save`
-
-Note data service installed separately.
-
 ## Configure
 
 See [happn](https://github.com/happner/happn) for full complement of happn config.
@@ -23,95 +13,87 @@ See [happn](https://github.com/happner/happn) for full complement of happn confi
 ```javascript
 var HappnCluster = require('happn-cluster');
 var defaultConfig = {
-  // name: undefined,  // defaults from happn service host:port (10-0-0-1_55000)
-  // host: '0.0.0.0', // happn service ip
-  // port: 57000,    // happn service port
-  // secure: true,  // to enable security
-  // announceHost: 'externally-visible-ip-or-hostname', // eg. when docker
-  services: {
+    // name: undefined,  // defaults from happn service host:port (10-0-0-1_55000)
+    // host: '0.0.0.0', // happn service ip
+    // port: 57000,    // happn service port
+    // secure: true,  // to enable security
+    // announceHost: 'externally-visible-ip-or-hostname', // eg. when docker
+    services: {
 
-    // // security sub-config (to enable security)
-    // security: {
-    //   config: {
-    //     adminUser: {
-    //       username: '_ADMIN', // <---- leave this as _ADMIN
-    //       password: 'happn'
-    //     }
-    //   }
-    // },
+      // // security sub-config (to enable security)
+      // security: {
+      //   config: {
+      //     adminUser: {
+      //       username: '_ADMIN', // <---- leave this as _ADMIN
+      //       password: 'happn'
+      //     }
+      //   }
+      // },
 
-    // shared data plugin sub-config (defaults displayed)
-    data: {
-      config: {
-        datastores: [
-          {
-            name: 'mongo',
-            provider: 'happn-service-mongo-2',
-            isDefault: true,
-            settings: {
-              collection: 'happn-cluster',
-              database: 'happn-cluster',
-              url: 'mongodb://127.0.0.1:27017'
-              // url: 'mongodb://username:password@127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/happn?replicaSet=test-set&ssl=true&authSource=admin'
-            }
-          }
-        ]
-      }
-    },
-
-    // proxy sub-config (defaults displayed)
-    proxy: {
-      config: {
-        port: 55000,
-        host: '0.0.0.0',
-        allowSelfSignedCerts: false,
-        // timeout: 20 * 60 * 1000, // request socket idle timeout
-        // defer: false,
-        // keyPath: 'path/to/key',
-        // certPath: 'path/to/cert'
-      }
-    },
-
-    // orchestrator sub-config (defaults displayed)
-    orchestrator: {
-      config: {
-        clusterName: 'happn-cluster',
-        serviceName: 'happn-cluster-node',
-        deployment: 'Test-Deploy',
-        replicate: ['*'],
-        timing: {
-          keepaliveThreshold: 6e3,
-          stabiliseTimeout: 15e3,
-          keepAlive: 5e3,
-          memberRefresh: 5e3
-          health: 10e3
+      // shared data plugin sub-config (defaults displayed)
+      data: {
+        config: {
+          datastores: [
+            //mongo is defaulted:
+            // {
+            //     name: 'mongo',
+            //     provider: 'happn-db-provider-mongo',
+            //     settings: {
+            //         collection: process.env.MONGO_COLLECTION || 'happn-cluster',
+            //         database: process.env.MONGO_DATABASE || 'happn-cluster',,
+            //         url: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017',
+            //     },
+            //     isDefault: true,
+            // },
+          ]
         }
-        cluster: {
-          'happn-cluster-node': 1
-        }
-        minimumePeers: 1 //Deprecated
-      }
+      },
 
-    replicator: {
-      config: {
-        //when users, groups or permissions change - the security directory updates are
-        //batched and pushed out to the cluster, every 3000ms - you can change this to make
-        //the pushes happen less or more often, the batches are also de-duplicated by
-        //whatHappend (link-group, unlink-group etc) and the user or group name in question.
-        securityChangesetReplicateInterval: 3000 //once every 3 seconds
+      // proxy sub-config (defaults displayed)
+      proxy: {
+        config: {
+          port: 55000,
+          host: '0.0.0.0',
+          allowSelfSignedCerts: false,
+          // timeout: 20 * 60 * 1000, // request socket idle timeout
+          // defer: false,
+          // keyPath: 'path/to/key',
+          // certPath: 'path/to/cert'
+        }
+      },
+
+      // orchestrator sub-config (defaults displayed)
+      orchestrator: {
+        config: {
+          clusterName: 'happn-cluster',
+          serviceName: 'happn-cluster-node',
+          deployment: 'Test-Deploy',
+          replicate: ['*'],
+          timing: {
+            keepaliveThreshold: 6e3,
+            stabiliseTimeout: 15e3,
+            keepAlive: 5e3,
+            memberRefresh: 5e3,
+            health: 10e3
+          },
+          cluster: {
+            'happn-cluster-node': 1
+          },
+          minimumePeers: 1 //Deprecated
+      },
+      replicator: {
+        config: {
+          //when users, groups or permissions change - the security directory updates are
+          //batched and pushed out to the cluster, every 3000ms - you can change this to make
+          //the pushes happen less or more often, the batches are also de-duplicated by
+          //whatHappend (link-group, unlink-group etc) and the user or group name in question.
+          securityChangesetReplicateInterval: 3000 //once every 3 seconds
+        }
       }
     }
   }
 }
-
-HappnCluster.create(defaultConfig)
-  .then(function(server) {
-    // ...
-  })
-  .catch(function(error) {
-    process.exit(0);
-  });
-
+let server = await HappnCluster.create(defaultConfig);
 ```
 
 ## NB: by default replicate will replicate all events across the cluster (see above config.replcate is ['\*']) - because we are now using happn-3 version 8.0.0 the / and \* characters have stricter rules, ie: to replicate all events for a set or remove with path /my/test/event you need to set replicate to ['/my/\*/\*'], /my/\* and /my\* or /my/te\*/event will no longer work.
@@ -208,9 +190,9 @@ Joining members with a different clusterName will be ignored by the orchestrator
 
 #### config.serviceName
 
-Every member of the cluster should have a serviceName. 
+Every member of the cluster should have a serviceName.
 Cluster will not be stable until a minimum number of each service by name, as defined in `config.cluster`
-have joined the cluster. The serviceName is not unique by node. Multiple nodes can be of the same servvice, 
+have joined the cluster. The serviceName is not unique by node. Multiple nodes can be of the same service, 
 and any requests to components on those nodes will round-robin between the nodes which have that component.
 The name is limited to characters acceptable in happn paths, namely '\_\*-', numbers and letters.
 
@@ -276,7 +258,3 @@ This pends the starting of the proxy until there are this many known peers in th
 the `thundering herd` (of clients) from settling all their sockets permanently onto the first started node.
 For backwards compatibility, if minimumPeers is set, and config.cluster is not, config.cluster will be created as `{*this.serviceName*: this.minimumPeers }`
 
-
-## Deployment orchestration and automation
-
-Details of automating happn-cluster using Docker and Ansible can be found here: [https://github.com/happner/happner-ansible-orchestration](https://github.com/happner/happner-ansible-orchestration).
