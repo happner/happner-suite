@@ -41,9 +41,9 @@ module.exports.startCluster = function (clusterOpts) {
         clusterConfig
       );
     if (additionalDatastore) {
-      self.__configs.forEach(config => {
-        config.services.data.config.datastores.push(additionalDatastore)
-      })
+      self.__configs.forEach((config) => {
+        config.services.data.config.datastores.push(additionalDatastore);
+      });
     }
     let servers = [];
     servers.push(HappnCluster.create(clone(self.__configs[0])));
@@ -133,5 +133,13 @@ module.exports.stopMultiProcessCluster = function () {
 
   after('multi clear collection (after)', function (done) {
     testUtils.clearMongoCollection(done);
+  });
+};
+module.exports.clearNamedCollection = function (collectionName) {
+  before('clear collection (before)', function (done) {
+    testUtils.clearMongoCollection(done, collectionName);
+  });
+  afterEach('clear collection (after)', function (done) {
+    testUtils.clearMongoCollection(done, collectionName);
   });
 };
