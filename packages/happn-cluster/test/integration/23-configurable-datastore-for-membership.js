@@ -70,6 +70,9 @@ configs.forEach((config) => {
             .expect(result.path.startsWith('/SYSTEM/DEPLOYMENT/myDeploy/happn-cluster-node/'))
             .to.be(true);
         } else {
+          stored.sort((resultA, resultB) => {
+            return resultA.data.endpoint < resultB.data.endpoint ? -1 : 1;
+          });
           if (index < 4) {
             test
               .expect(result.path.startsWith('/SYSTEM/DEPLOYMENT/myDeploy/cluster-service-1'))
