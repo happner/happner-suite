@@ -7,7 +7,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     secure: true,
     port: 8004,
     reconnect: {
-      max: 2000, //we can then wait 10 seconds and should be able to reconnect before the next 10 seconds,
+      max: 2000,
     },
   });
 
@@ -15,24 +15,57 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     secure: true,
     port: 8004,
     reconnect: {
-      max: 2000, //we can then wait 10 seconds and should be able to reconnect before the next 10 seconds,
+      max: 2000,
     },
   });
 
-  var test_id = Date.now() + '_' + test.newid();
-  let filename = require('path').resolve(__dirname, '../../tmp/client-reconnection.loki');
+  const badClient = new Mesh.MeshClient({
+    secure: true,
+    port: 8004,
+    reconnect: {
+      max: 2000,
+    },
+  });
+
+  var adminPassword = 'PASSWORD';
+  let filename = require('path').resolve(__dirname, '../../tmp/client-reconnection.nedb');
   var startMesh = function (callback) {
     Mesh.create(
       {
         name: 'client-reconnection',
         happn: {
+          filename,
+          defaultRoute: 'mem',
+          compactInterval: 600000,
+          //disableDefaultAdminNetworkConnections: true,
           secure: true,
-          adminPassword: test_id,
           port: 8004,
           services: {
+            security: {
+              config: {
+                persistPermissions: false,
+                adminUser: {
+                  password: adminPassword,
+                },
+              },
+            },
             data: {
               config: {
-                filename,
+                datastores: [
+                  {
+                    name: 'persist',
+                    provider: 'happn-db-provider-nedb',
+                    settings: {
+                      filename,
+                      compactInterval: 600000,
+                    },
+                  },
+                  {
+                    name: 'memory',
+                    provider: 'happn-db-provider-nedb',
+                    isDefault: true,
+                  },
+                ],
               },
             },
           },
@@ -54,10 +87,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       function (e, instance) {
         if (e) return callback(e);
         mesh = instance;
-        createTestUser(mesh, (e) => {
-          if (e) return callback(e);
-          callback();
-        });
+        setTimeout(() => {
+          createTestUser(mesh, (e) => {
+            if (e) return callback(e);
+            callback();
+          });
+        }, 1000);
       }
     );
   };
@@ -69,7 +104,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       testClient
         .login({ username: 'test', password: 'test' })
         .then(() => {
-          return adminClient.login({ username: '_ADMIN', password: test_id });
+          return adminClient.login({ username: '_ADMIN', password: adminPassword });
         })
         .then(() => {
           done();
@@ -85,6 +120,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   after(function (done) {
     //test.commons.unlinkFiles([filename]);
     if (adminClient) adminClient.disconnect();
+    if (testClient) testClient.disconnect();
     if (__stopped) return done();
     mesh.stop(done);
   });
@@ -103,13 +139,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   }
 
   it('tests the client bad login with callback', function (done) {
-    testClient.login({ username: '_ADMIN', password: 'bad' }, (e) => {
+    badClient.login({ username: '_ADMIN', password: 'bad' }, (e) => {
       test.expect(e.message).to.be('Invalid credentials');
       setTimeout(done, 2000);
     });
   });
 
-  it.only('tests the client reconnection', function (done) {
+  it('tests the client reconnection', function (done) {
     testClient.exchange.test.method((e) => {
       if (e) {
         return done(new Error(`oh dear: ${e.message}`));
@@ -134,7 +170,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         fireEvent('reconnect/successful');
       });
 
-      mesh.stop({ reconnect: true }, function (e) {
+      mesh.stop(function (e) {
         if (e) return done(e);
         startMesh(function (e) {
           if (e) return done(e);

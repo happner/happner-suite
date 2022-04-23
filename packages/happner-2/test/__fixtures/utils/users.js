@@ -10,9 +10,9 @@ module.exports.add = async function(server, username, password, permissions, cus
     name: username + '_group',
     permissions: permissions || {}
   };
-  const addedGroup = await server.exchange.security.upsertGroup(group);
+  await server.exchange.security.upsertGroup(group);
   const addedUser = await server.exchange.security.upsertUser(user);
-  await server.exchange.security.linkGroup(addedGroup, addedUser);
+  await server.exchange.security.linkGroupName(group.name, addedUser);
 };
 
 module.exports.generatePermissions = function(user) {
