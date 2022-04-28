@@ -19,18 +19,6 @@ module.exports = class DatabaseConfigurator {
       this.addMongoDb(config.services.data.config);
     }
   }
-  // addMembershipDatastore(dataConfig) {
-  //   const defaultDatastore = dataConfig.datastores.find(
-  //     (dataStore) => dataStore.provider === 'happn-db-provider-mongo'
-  //   );
-
-  //   const membershipDatastore = commons.fastClone(defaultDatastore);
-  //   membershipDatastore.patterns = ['/SYSTEM/DEPLOYMENT/*'];
-  //   if (!membershipDatastore.settings) membershipDatastore.settings = {};
-  //   membershipDatastore.settings.collection += "-membership";
-  //   membershipDatastore.settings.database += "-membership";
-  //   dataConfig.datastores.insert(membershipDatastore);
-  // }
   addMongoDb(dataConfig) {
     dataConfig.datastores.push({
       name: 'mongo',
