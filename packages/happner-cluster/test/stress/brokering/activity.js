@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const HappnerClient = require('happner-client');
+const Mesh = require('../../..');
 const commander = require('commander');
 
 commander
@@ -25,7 +26,10 @@ var totalEventsEmittedPrevious = 0;
 var totalWebCallsPrevious = 0;
 var totalDataCallsPrevious = 0;
 var totalMethodCallsPrevious = 0;
-var totalEmits = 0;
+var totalLookupTableCalls = 0;
+var totalLookupTableCallsErrors = 0;
+var totalLookupTableCallsPrevious = 0;
+var totalLookupTableCallsErrorsPrevious = 0;
 var HashRing = require('hashring');
 var randomPort = new HashRing();
 
@@ -61,6 +65,62 @@ function getDescription(api) {
   });
 }
 
+function addUserPermissions(api, user, callback) {
+  api.exchange.security.addUserPermissions(
+    user.username,
+    {
+      methods: {
+        'DOMAIN_NAME/remoteComponent1/testJSON': { authorized: true },
+        'DOMAIN_NAME/remoteComponent1/brokeredMethod1': { authorized: true },
+      },
+      events: {
+        'DOMAIN_NAME/remoteComponent1/*': { authorized: true },
+      },
+      data: {
+        '/_data/set/test/{{custom_data.allowed}}': {
+          actions: ['get', 'set', 'on'],
+          authorized: true,
+        },
+      },
+    },
+    callback
+  );
+}
+
+async function addGroupAndLookupTablePermissions(api, user, callback) {
+  try {
+    let testTable = {
+      name: 'STANDARD_ABC',
+      paths: [
+        '/lookup-path/7/1',
+        '/lookup-path/6/1',
+        '/lookup-path/5/2',
+        '/lookup-path/4/2',
+        '/lookup-path/3/3',
+        '/lookup-path/2/3',
+        '/lookup-path/1/4',
+      ],
+    };
+    let permission = {
+      regex: '^/test-lookup-table/(.*)',
+      actions: ['get', 'set'],
+      table: 'STANDARD_ABC',
+      path: '/lookup-path/{{user.custom_data.allowed}}/{{$1}}',
+    };
+    let testGroup = {
+      name: 'LOOKUP_TABLES_GRP',
+      permissions: {},
+    };
+    const testGroupSaved = await api.exchange.security.upsertGroup(testGroup);
+    await api.exchange.security.upsertLookupTable(testTable);
+    await api.exchange.security.upsertLookupPermission(testGroupSaved.name, permission);
+    await api.exchange.security.linkGroup(testGroupSaved, user);
+    callback();
+  } catch (e) {
+    callback(e);
+  }
+}
+
 let usersCount = 0;
 
 function createUser() {
@@ -82,40 +142,27 @@ function createUser() {
             methods: {
               upsertUser: {},
               addUserPermissions: {},
+              upsertGroup: {},
+              upsertLookupTable: {},
+              upsertLookupPermission: {},
+              linkGroup: {},
             },
           },
         });
         const user = {
           username: `users-${usersCount++}`,
           password: 'password',
-          custom_data: { allowed: [1, 2, 3, 4, 5] },
+          custom_data: { allowed: [1, 2, 3, 4, 5, 6, 7] },
         };
         api.exchange.security.upsertUser(user, (e) => {
           if (e) return failAndExit(e);
-          api.exchange.security.addUserPermissions(
-            user.username,
-            {
-              methods: {
-                'DOMAIN_NAME/data/set': { authorized: true },
-                'DOMAIN_NAME/remoteComponent1/testJSON': { authorized: true },
-                'DOMAIN_NAME/remoteComponent1/brokeredMethod1': { authorized: true },
-              },
-              events: {
-                'DOMAIN_NAME/remoteComponent1/*': { authorized: true },
-              },
-              data: {
-                '/_data/set/test/{{custom_data.allowed}}': {
-                  actions: ['get', 'set', 'on'],
-                  authorized: true,
-                },
-              },
-            },
-            (e) => {
+          addUserPermissions(api, user, (e) => {
+            if (e) return failAndExit(e);
+            addGroupAndLookupTablePermissions(api, user, (e) => {
               if (e) return failAndExit(e);
-              console.log('RESOLVED:::', user);
               resolve(user);
-            }
-          );
+            });
+          });
         });
       }
     );
@@ -136,10 +183,11 @@ function createClient() {
         },
         (e) => {
           if (e) return failAndExit(e);
-          const api = { data: client.dataClient() };
+          const data = client.dataClient();
+          const api = { data };
           getDescription(api).then((schema) => {
             api.happner = client.construct(schema.components);
-            console.log('COMPONENTS', JSON.stringify(schema.components, null, 2));
+            //console.log('COMPONENTS', JSON.stringify(schema.components, null, 2));
             api.port = port;
             api.token = api.data.session.token;
             api.happner.event.remoteComponent1.on(
@@ -148,7 +196,7 @@ function createClient() {
                 totalEventsEmitted++;
               },
               () => {
-                resolve(api);
+                resolve([api, data]);
               }
             );
           });
@@ -185,13 +233,31 @@ async function createClients() {
   return createdClients;
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+let callIndex = 0;
+
 function startActivity(clients) {
-  clients.forEach((client) => {
-    client.happner.exchange.data.set('test/1', { totalDataCalls }, (e) => {
-      if (e) return failAndExit(e);
-      totalMethodCalls++;
+  callIndex++;
+  clients.forEach(([client, data]) => {
+    // client.happner.exchange.data.set('test/1', { totalDataCalls }, (e) => {
+    //   if (e) return failAndExit(e);
+    //   totalMethodCalls++;
+    // });
+    const lookupTablePath = `/test-lookup-table/${getRandomInt(0, 5)}`;
+    //console.log(`lookup table path: ${lookupTablePath}`);
+    data.set(lookupTablePath, { totalLookupTableCalls }, (e) => {
+      if (e) {
+        //console.log(`lookup failure: ${e.message} successes ${totalLookupTableCalls}`);
+        return totalLookupTableCallsErrors++;
+      }
+      totalLookupTableCalls++;
     });
-    client.happner.exchange.remoteComponent1.brokeredMethod1((e) => {
+    client.happner.exchange.remoteComponent1.brokeredMethod1(callIndex, (e) => {
       if (e) return failAndExit(e);
       totalDataCalls++;
     });
@@ -209,23 +275,39 @@ function startActivity(clients) {
 }
 setInterval(() => {
   console.log(
+    `total totalLookupTableCalls:::${totalLookupTableCalls}, per sec: ${
+      (totalLookupTableCalls - totalLookupTableCallsPrevious) / 5
+    }`
+  );
+
+  console.log(
+    `total totalLookupTableCallsErrors:::${totalLookupTableCallsErrors}, per sec: ${
+      (totalLookupTableCallsErrors - totalLookupTableCallsErrorsPrevious) / 5
+    }`
+  );
+
+  console.log(
     `total events emitted calls:::${totalEventsEmitted}, per sec: ${
-      totalEventsEmitted - totalEventsEmittedPrevious
+      (totalEventsEmitted - totalEventsEmittedPrevious) / 5
     }`
   );
   console.log(
-    `total data calls:::${totalDataCalls}, per sec: ${totalDataCalls - totalDataCallsPrevious}`
+    `total data calls:::${totalDataCalls}, per sec: ${
+      (totalDataCalls - totalDataCallsPrevious) / 5
+    }`
   );
   console.log(
-    `total web calls:::${totalWebCalls}, per sec: ${totalWebCalls - totalWebCallsPrevious}`
+    `total web calls:::${totalWebCalls}, per sec: ${(totalWebCalls - totalWebCallsPrevious) / 5}`
   );
   console.log(
     `total method calls:::${totalMethodCalls}, per sec: ${
-      totalMethodCalls - totalMethodCallsPrevious
+      (totalMethodCalls - totalMethodCallsPrevious) / 5
     }`
   );
   totalEventsEmittedPrevious = totalEventsEmitted;
   totalWebCallsPrevious = totalWebCalls;
   totalDataCallsPrevious = totalDataCalls;
   totalMethodCallsPrevious = totalMethodCalls;
-}, 1e3);
+  totalLookupTableCallsPrevious = totalLookupTableCalls;
+  totalLookupTableCallsErrorsPrevious = totalLookupTableCallsErrors;
+}, 5e3);
