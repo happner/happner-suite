@@ -205,10 +205,10 @@ function __upsertGroup(group, options) {
   return new Promise((resolve, reject) => {
     this.dataService.upsert(groupPath, group, async (e, result) => {
       try {
-        group.permissions = permissions; //restore permissions
+        //group.permissions = permissions; //restore permissions
         if (e) return reject(e);
         //set the permissions back again
-        result.data.permissions = permissions;
+        //result.data.permissions = permissions;
         const returnGroup = this.securityService.serialize('group', result);
         if (!permissions) return resolve(returnGroup);
         await this.permissionManager.upsertMultiplePermissions(group.name, permissions);

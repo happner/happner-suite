@@ -25,6 +25,7 @@ StaticCache.prototype.__emit = __emit;
 StaticCache.prototype.__tryCallback = __tryCallback;
 StaticCache.prototype.__all = util.maybePromisify(__all);
 StaticCache.prototype.keys = keys;
+StaticCache.prototype.size = size;
 
 function StaticCache(opts) {
   this.opts = opts || {};
@@ -54,7 +55,7 @@ function set(key, data, opts, callback) {
 
   // eslint-disable-next-line
   if (opts.ttl > 0 && opts.ttl != Infinity) this.appendTimeout(cacheItem, opts.ttl);
-
+  if (!this.__cache[key]) this.__size++;
   this.__cache[key] = cacheItem;
   this.__emit('item-set', cacheItem);
   return this.__tryCallback(callback, cacheItem, null);
@@ -86,6 +87,7 @@ function setSync(key, data, opts) {
     this.appendTimeout(cacheItem, opts.ttl);
   }
 
+  if (!this.__cache[key]) this.__size++;
   this.__cache[key] = cacheItem;
   this.__emit('item-set', cacheItem);
 

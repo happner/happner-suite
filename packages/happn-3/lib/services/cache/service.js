@@ -46,6 +46,7 @@ function CacheService(opts) {
   this.log.$$TRACE('construct(%j)', opts);
 
   this.__cache = {};
+  this.__stats = {};
 }
 
 function initialize(config, callback) {
@@ -87,14 +88,23 @@ function _new(name, opts) {
 
   if (this.__caches[name] && !opts.overwrite)
     throw new Error('a cache by this name already exists');
+  
+  const cacheType = opts.type.toLowerCase();
 
-  if (opts.type.toLowerCase() === 'lru') {
+  if (cacheType === 'lru') {
     this.__caches[name] = new LRUCache(opts.cache);
-  } else if (opts.type.toLowerCase() === 'persist') {
+  } else if (cacheType === 'persist') {
     opts.cache.key_prefix = name;
     this.__caches[name] = new PersistedCache(opts.cache);
   } else {
     this.__caches[name] = new StaticCache(opts.cache);
+  }
+
+  this.__stats[name] = {
+    cacheType,
+    hits: 0,
+    misses: 0,
+    size: 0,
   }
 
   var _this = this;
@@ -102,6 +112,24 @@ function _new(name, opts) {
   Object.defineProperty(this.__caches[name], 'utilities', {
     value: _this.happn.services.utils,
   });
+
+  this.__caches[name].on(
+    'hit',
+    function () {
+      _this.__stats[this.cache].hits++;
+    }.bind({
+      cache: name,
+    })
+  );
+
+  this.__caches[name].on(
+    'miss',
+    function () {
+      _this.__stats[this.cache].misses++;
+    }.bind({
+      cache: name,
+    })
+  );
 
   this.__caches[name].on(
     'error',

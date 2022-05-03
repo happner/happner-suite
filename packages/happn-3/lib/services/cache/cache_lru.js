@@ -27,6 +27,7 @@ LRUCache.prototype.off = off;
 LRUCache.prototype.__emit = __emit;
 LRUCache.prototype.__tryCallback = __tryCallback;
 LRUCache.prototype.__all = _all;
+LRUCache.prototype.size = size;
 
 function LRUCache(opts) {
   if (opts == null) opts = {};
@@ -126,6 +127,10 @@ function values() {
 
 function keys() {
   return Array.from(this.__cache.keyMap.keys());
+}
+
+function size() {
+  return this.__cache.size
 }
 
 function increment(key, by, callback) {

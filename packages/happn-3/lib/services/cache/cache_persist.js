@@ -27,6 +27,7 @@ PersistedCache.prototype.__removeData = __removeData;
 PersistedCache.prototype.__tryCallback = __tryCallback;
 PersistedCache.prototype.__setCallback = __setCallback;
 PersistedCache.prototype.__all = __all;
+PersistedCache.prototype.size = size;
 
 function PersistedCache(opts) {
   if (!opts.dataStore) throw new Error('no dataStore defined for a persisted cache');
@@ -41,6 +42,7 @@ function PersistedCache(opts) {
 
   this.opts = opts;
   this.__timeouts = {};
+  this.__size = 0;
 }
 
 function has(key) {
@@ -48,6 +50,7 @@ function has(key) {
 }
 
 function __setCallback(key, cacheItem, callback) {
+  if (!this.__cache[key]) this.__size++;
   this.__cache[key] = cacheItem;
   this.__emit('item-set', cacheItem);
   return this.__tryCallback(callback, cacheItem, null);
@@ -179,6 +182,7 @@ function remove(key, opts, callback) {
   if (_this.__cache[key]) {
     if (opts.noPersist) {
       delete _this.__cache[key];
+      _this.__size--;
       _this.__emit('item-removed', key);
       return _this.__tryCallback(callback, true, null);
     }
@@ -186,6 +190,7 @@ function remove(key, opts, callback) {
     return _this.__removeData(key, function (e) {
       if (e) return callback(e);
       delete _this.__cache[key];
+      _this.__size--;
       _this.__emit('item-removed', key);
       _this.__tryCallback(callback, true, null);
     });
@@ -364,4 +369,8 @@ function __tryCallback(callback, data, e, clone) {
 
   if (callback) callback(null, callbackData);
   else return callbackData;
+}
+
+function size() {
+  return this.__size
 }
