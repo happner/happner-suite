@@ -202,19 +202,19 @@ function __upsertGroup(group, options) {
   if (options.parent) groupPath = options.parent._meta.path + '/' + group.name;
   else groupPath = '/_SYSTEM/_SECURITY/_GROUP/' + group.name;
   let permissions = this.utilsService.clone(group.permissions);
-
   return new Promise((resolve, reject) => {
     this.dataService.upsert(groupPath, _.omit(group, 'permissions'), async (e, result) => {
       try {
         if (e) return reject(e);
-        const returnGroup = _.merge(this.securityService.serialize('group', result), { permissions });
-        if (!permissions) return resolve(returnGroup);
-        await this.permissionManager.upsertMultiplePermissions(group.name, permissions);
+        if (Object.keys(permissions || {}).length > 0) {
+          await this.permissionManager.upsertMultiplePermissions(group.name, permissions);
+        }
         this.log.debug(`group upserted: ${group.name}`);
-        resolve(returnGroup);
       } catch (e) {
         reject(e);
+        return;
       }
+      resolve(_.merge(this.securityService.serialize('group', result), { permissions }));
     });
   });
 }
