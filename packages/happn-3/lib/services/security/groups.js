@@ -1,6 +1,8 @@
 const CONSTANTS = require('../..').constants;
 const SD_EVENTS = CONSTANTS.SECURITY_DIRECTORY_EVENTS;
-const util = require('happn-commons').utils;
+const commons = require('happn-commons');
+const util = commons.utils;
+const _ = commons._;
 const nodeUtil = require('util');
 function SecurityGroups(opts) {
   this.log = opts.logger.createLogger('SecurityGroups');
@@ -200,16 +202,12 @@ function __upsertGroup(group, options) {
   if (options.parent) groupPath = options.parent._meta.path + '/' + group.name;
   else groupPath = '/_SYSTEM/_SECURITY/_GROUP/' + group.name;
   let permissions = this.utilsService.clone(group.permissions);
-  delete group.permissions; //dont want these ending up in the db
 
   return new Promise((resolve, reject) => {
-    this.dataService.upsert(groupPath, group, async (e, result) => {
+    this.dataService.upsert(groupPath, _.omit(group, 'permissions'), async (e, result) => {
       try {
-        group.permissions = permissions; //restore permissions
         if (e) return reject(e);
-        //set the permissions back again
-        result.data.permissions = permissions;
-        const returnGroup = this.securityService.serialize('group', result);
+        const returnGroup = _.merge(this.securityService.serialize('group', result), { permissions });
         if (!permissions) return resolve(returnGroup);
         await this.permissionManager.upsertMultiplePermissions(group.name, permissions);
         this.log.debug(`group upserted: ${group.name}`);
