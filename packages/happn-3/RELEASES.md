@@ -965,6 +965,11 @@
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
   - TEN-104: errors are only logged on system failures
+
+13.0.7 2022-05-04
+-----------------
+  - TEN-112: group with permissions that have dots in them causes compaction failure
+
   
 
 
