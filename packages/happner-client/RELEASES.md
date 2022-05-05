@@ -318,6 +318,10 @@
   - TEN-60: Wildcard-brokering
   - TEN-42: Rest-discovery
 
+12.2.1 2022-05-04
+-----------------
+  - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
+
 
 
 

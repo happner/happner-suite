@@ -87,8 +87,77 @@ describe(test.testName(__filename, 3), function () {
         if (e) return done(e);
 
         test.expect(result.name).to.be('TEST_GR_1');
-        test.expect(result.permissions).to.be(undefined);
+        test.expect(result.permissions).to.eql(undefined);
 
+        done();
+      });
+    });
+  });
+
+  it('tests adding a group with permissions', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+
+      var testGroup = {
+        name: 'TEST_GR_1',
+        permissions: {
+          '/test/with.a.dot': { actions: ['*'] },
+          '/test/without/a/dot': { actions: ['*'] },
+        },
+      };
+
+      happn.services.security.groups.upsertGroup(testGroup, function (e, result) {
+        if (e) return done(e);
+
+        test.expect(result.name).to.be('TEST_GR_1');
+        test.expect(result.permissions).to.eql(testGroup.permissions);
+
+        done();
+      });
+    });
+  });
+
+  it('tests failing to add a group with permissions', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+
+      var testGroup = {
+        name: 'TEST_GR_1',
+        permissions: {
+          '/test/with.a.dot': { actions: ['*'] },
+          '/test/without/a/dot': { actions: ['*'] },
+        },
+      };
+
+      happn.services.security.groups.permissionManager.upsertMultiplePermissions = test.sinon
+        .stub()
+        .rejects(new Error('test error'));
+
+      happn.services.security.groups.upsertGroup(testGroup, function (e) {
+        test.expect(e.message).to.be('test error');
+        done();
+      });
+    });
+  });
+
+  it('tests failing to add a group', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+
+      var testGroup = {
+        name: 'TEST_GR_1',
+        permissions: {
+          '/test/with.a.dot': { actions: ['*'] },
+          '/test/without/a/dot': { actions: ['*'] },
+        },
+      };
+
+      happn.services.security.groups.dataService.upsert = test.sinon
+        .stub()
+        .callsArgWith(2, new Error('test error'));
+
+      happn.services.security.groups.upsertGroup(testGroup, function (e) {
+        test.expect(e.message).to.be('test error');
         done();
       });
     });
