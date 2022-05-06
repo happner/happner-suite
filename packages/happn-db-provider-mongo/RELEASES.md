@@ -24,3 +24,7 @@
 1.0.5 2022-05-04
 -----------------
   - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
+
+1.0.6 2022-05-06
+-----------------
+  - TEN-114: happn-3: enforce admin group save on startup

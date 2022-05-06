@@ -970,6 +970,10 @@
 -----------------
   - TEN-112: group with permissions that have dots in them causes compaction failure
 
+13.0.8 2022-05-06
+-----------------
+  - TEN-114: enforce admin group save on startup
+
   
 
 
