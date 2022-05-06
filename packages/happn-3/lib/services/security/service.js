@@ -419,11 +419,13 @@ function __ensureAdminUser(config) {
 
     this.users.getUser('_ADMIN', async (e, foundUser) => {
       if (e) return reject(e);
-      if (foundUser) return resolve();
+      const adminGroup = await this.groups.__upsertGroup(config.adminGroup, {});
+      if (foundUser) {
+        return resolve();
+      }
       if (!config.adminUser.password) config.adminUser.password = 'happn';
 
       try {
-        const adminGroup = await this.groups.__upsertGroup(config.adminGroup, {});
         const adminUser = await this.users.__upsertUser(config.adminUser, {});
         await this.groups.linkGroup(adminGroup, adminUser);
         resolve();

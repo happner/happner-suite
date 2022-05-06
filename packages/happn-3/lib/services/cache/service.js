@@ -11,10 +11,8 @@ const util = commons.utils;
 
 CacheService.prototype.initialize = initialize;
 CacheService.prototype.new = _new;
-CacheService.prototype.set = util.maybePromisify(set);
-CacheService.prototype.get = util.maybePromisify(get);
-CacheService.prototype.increment = util.maybePromisify(increment);
-CacheService.prototype.update = util.maybePromisify(update);
+CacheService.prototype.set = set;
+CacheService.prototype.get = get;
 CacheService.prototype.remove = remove;
 CacheService.prototype.clear = clear;
 CacheService.prototype.clearAll = clearAll;
@@ -182,35 +180,12 @@ function _new(name, opts) {
   return this.__caches[name];
 }
 
-function set(itemKey, data, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = {};
-  }
-
-  return this.__defaultCache.set(itemKey, data, opts, callback);
+function set(key, data, opts) {
+  return this.__defaultCache.set(key, data, opts);
 }
 
-function get(itemKey, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = {};
-  }
-
-  return this.__defaultCache.get(itemKey, opts, callback);
-}
-
-function increment(itemKey, by, callback) {
-  if (typeof by === 'function') {
-    callback = by;
-    by = 1;
-  }
-
-  return this.__defaultCache.increment(itemKey, by, callback);
-}
-
-function update(itemKey, data, callback) {
-  return this.__defaultCache.update(itemKey, data, callback);
+function get(key, opts) {
+  return this.__defaultCache.get(key, opts);
 }
 
 function remove(itemKey, opts, callback) {

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, function (test) {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, function (test) {
   const service = require('../../../lib/services/cache/service');
   const serviceInstance = new service();
   const testId = require('shortid').generate();
@@ -30,340 +30,48 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     serviceInstance.stop(done);
   });
 
-  it('sets data, default cache', function (done) {
+  it('sets, gets and removes data, default cache', function () {
     var key = testId + 'test1';
-
-    serviceInstance
-      .set(key, {
-        dkey: key,
-      })
-
-      .then(function (result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance.__defaultCache
-          .get(key)
-          .then(function (result) {
-            test.expect(result.dkey).to.be(key);
-            done();
-          })
-          .catch(done);
-      })
-
-      .catch(done);
+    const result = serviceInstance.set(key, { dkey: key });
+    test.expect(result.key).to.be(key);
+    test.expect(result.data.dkey).to.be(key);
+    const result1 = serviceInstance.__defaultCache.get(key);
+    test.expect(result1.dkey).to.be(key);
+    const result2 = serviceInstance.get(key);
+    test.expect(result2.dkey).to.be(key);
+    const result3 = serviceInstance.get(key + 'bad');
+    test.expect(result3).to.be(null);
+    serviceInstance.remove(key);
+    const result4 = serviceInstance.get(key);
+    test.expect(result4).to.be(null);
   });
 
-  it('gets data, default cache', function (done) {
+  it('sets, gets and removes data, specific cache', function () {
     var key = testId + 'test1';
-
-    serviceInstance
-      .set(key, {
-        dkey: key,
-      })
-
-      .then(function (result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance
-          .get(key)
-          .then(function (result) {
-            test.expect(result.dkey).to.be(key);
-            done();
-          })
-          .catch(done);
-      })
-
-      .catch(done);
-  });
-
-  it('gets no data, default cache', function (done) {
-    var key = testId + 'test55';
-
-    serviceInstance.set(
-      key,
-      {
-        dkey: key,
-      },
-      function (e, result) {
-        if (e) return done(e);
-
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance.__defaultCache
-          .get(key + 'blah')
-
-          .then(function (result) {
-            test.expect(result).to.be(null);
-            done();
-          })
-          .catch(done);
-      }
-    );
-  });
-
-  it('removes data, default cache', function (done) {
-    var key = testId + 'test1';
-
-    serviceInstance
-      .set(key, {
-        dkey: key,
-      })
-
-      .then(function (result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance
-          .get(key)
-          .then(function (result) {
-            test.expect(result.dkey).to.be(key);
-
-            serviceInstance.remove(key, function (e) {
-              if (e) return done(e);
-
-              serviceInstance.get(key, function (e, data) {
-                if (e) return done(e);
-
-                test.expect(data).to.be(null);
-                done();
-              });
-            });
-          })
-          .catch(done);
-      })
-
-      .catch(done);
-  });
-
-  it('retrieves unfound data, default cache', function (done) {
-    var opts = {
-      retrieveMethod: function (callback) {
-        callback(null, {
-          data: 'foundMe',
-        });
-      },
-    };
-
-    serviceInstance.get('totallyCrazyPath', opts, function (e, item) {
-      if (e) return done(e);
-
-      test.expect(item.data).to.be('foundMe');
-
-      serviceInstance
-        .get('totallyCrazyPath')
-        .then(function (result) {
-          test.expect(result.data).to.be('foundMe');
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-  it('gets and sets data, specific cache', function (done) {
-    var key = testId + 'test3';
     var specific = serviceInstance.new('specific', {
       type: 'lru',
     });
-
-    specific.set(
-      key,
-      {
-        dkey: key,
-      },
-      function (e, result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance.__caches.specific
-          .get(key)
-          .then(function (data) {
-            test.expect(data.dkey).to.be(key);
-
-            specific
-              .get(key)
-              .then(function (data) {
-                test.expect(data.dkey).to.be(key);
-                done();
-              })
-              .catch(done);
-          })
-          .catch(done);
-      }
-    );
+    const result = specific.set(key, { dkey: key });
+    test.expect(result.key).to.be(key);
+    test.expect(result.data.dkey).to.be(key);
+    const result2 = specific.get(key);
+    test.expect(result2.dkey).to.be(key);
+    const result3 = specific.get(key + 'bad');
+    test.expect(result3).to.be(null);
+    specific.remove(key);
+    const result4 = specific.get(key);
+    test.expect(result4).to.be(null);
   });
 
-  it('gets no data, specific cache', function (done) {
-    var key = testId + 'test3';
-    var specific = serviceInstance.new('specific-no-data');
-
-    specific.set(
-      key,
-      {
-        dkey: key,
-      },
-      function (e, result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        specific.get('totally-non-existent', function (e, data) {
-          if (e) return done(e);
-
-          test.expect(data).to.be(null);
-
-          serviceInstance.clear('specific-no-data');
-
-          done();
-        });
-      }
-    );
+  it('times data out, default cache', (done) => {
+    testTimeout(serviceInstance, done);
   });
 
-  it('removes data, specific cache', function (done) {
-    var key = testId + 'test3';
-    var specific = serviceInstance.new('specific-remove');
-
-    specific.set(
-      key,
-      {
-        dkey: key,
-      },
-      function (e, result) {
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        specific.get(key, function (e, data) {
-          if (e) return done(e);
-
-          test.expect(data.dkey).to.be(key);
-
-          specific.remove(key, function (e, removed) {
-            if (e) return done(e);
-
-            test.expect(removed).to.be(true);
-
-            specific.get(key, function (e, data) {
-              if (e) return done(e);
-
-              test.expect(data).to.be(null);
-
-              test.expect(serviceInstance.__caches['specific-remove']).to.not.be(undefined);
-              serviceInstance.clear('specific-remove');
-              test.expect(serviceInstance.__caches['specific-remove']).to.be(undefined);
-
-              done();
-            });
-          });
-        });
-      }
-    );
-  });
-
-  it('retrieves unfound data, specific cache', function (done) {
-    var specific = serviceInstance.new('specific-retrieve');
-
-    var opts = {
-      retrieveMethod: function (callback) {
-        callback(null, {
-          data: 'foundMe',
-        });
-      },
-    };
-
-    specific.get('totallyCrazyPath', opts, function (e, item) {
-      if (e) return done(e);
-
-      test.expect(item.data).to.be('foundMe');
-      done();
-    });
-  });
-
-  it('times data out, default cache', function (done) {
-    this.timeout(5000);
-
-    var key = testId + 'test1';
-
-    serviceInstance.set(
-      key,
-      {
-        dkey: key,
-      },
-      function (e, result) {
-        if (e) return done(e);
-
-        test.expect(result.key).to.be(key);
-        test.expect(result.data.dkey).to.be(key);
-
-        serviceInstance.get(key, function (e, data) {
-          if (e) return done(e);
-
-          test.expect(data.dkey).to.be(key);
-
-          serviceInstance.set(
-            key,
-            {
-              dkey: key,
-            },
-            {
-              ttl: 500,
-            },
-            function (e) {
-              if (e) return done(e);
-
-              setTimeout(function () {
-                serviceInstance.get(key, function (e, data) {
-                  if (e) return done(e);
-                  test.expect(data).to.be(null);
-                  done();
-                });
-              }, 1000);
-            }
-          );
-        });
-      }
-    );
-  });
-
-  it('times data out, specific cache', function (done) {
-    this.timeout(10000);
-    var key = testId + 'test1';
-
-    serviceInstance.clear('specific');
-
-    var specific = serviceInstance.new('specific');
-
-    specific.set(
-      key,
-      {
-        dkey: key,
-      },
-      {
-        ttl: 2000,
-      },
-      function (e) {
-        if (e) return done(e);
-
-        specific.get(key, function (e, data) {
-          if (e) return done(e);
-
-          test.expect(data).to.not.be(null);
-
-          setTimeout(function () {
-            specific.get(key, function (e, data) {
-              if (e) return done(e);
-              test.expect(data).to.be(null);
-
-              serviceInstance.clear('specific');
-
-              done();
-            });
-          }, 3000);
-        });
-      }
-    );
-  });
+  it('times data out, specific cache',  (done) => {
+    testTimeout(serviceInstance.new('specific', {
+    type: 'lru',
+    overwrite: true,
+  }), done) });
 
   it('clears the default cache', function (done) {
     var key = testId + 'test1';
@@ -400,38 +108,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     );
   });
 
-  it('clears the specific cache', function (done) {
+  it.only('clears the specific cache', function (done) {
     this.timeout(5000);
-    var key = testId + 'test1';
-
-    var specific = serviceInstance.new('specific');
-
-    specific.set(
-      key,
-      {
-        dkey: key,
-      },
-      {
-        ttl: 2000,
-      },
-      function (e) {
-        if (e) return done(e);
-
-        specific.get(key, function (e, data) {
-          if (e) return done(e);
-
-          test.expect(data).to.not.be(null);
-
-          test.expect(serviceInstance.__caches.specific).to.not.be(undefined);
-
-          serviceInstance.clear('specific');
-
-          test.expect(serviceInstance.__caches.specific).to.be(undefined);
-
-          done();
-        });
-      }
-    );
+    const key = testId + 'test1';
+    const specific = serviceInstance.new('specific', {
+      type: 'lru',
+      overwrite: true,
+    });
+    specific.set(key, { dkey: key });
+    specific.set(key + '1', { dkey: key });
+    test.expect(specific.size()).to.be(2);
+    specific.clear();
+    test.expect(specific.size()).to.be(0);
+    done();
   });
 
   it('clears the default cache, then sets an item on it', function (done) {
@@ -732,4 +421,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       done();
     }, 3001);
   });
+
+  function testTimeout(cacheOrService, done) {
+    var key = testId + 'test1';
+    cacheOrService.set(
+      key,
+      {
+        dkey: key,
+      },
+      {
+        ttl: 500,
+      }
+    );
+    const resultBeforeASecond = cacheOrService.get(key);
+    setTimeout(function () {
+      const resultAfterASecond = cacheOrService.get(key);
+      test.expect(resultAfterASecond).to.be(null);
+      test.expect(resultBeforeASecond).to.not.be(null);
+      done();
+    }, 1000);
+  }
 });

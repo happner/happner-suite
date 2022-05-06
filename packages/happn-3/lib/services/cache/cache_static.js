@@ -1,276 +1,57 @@
-module.exports = StaticCache;
-
-var EventEmitter = require('events').EventEmitter;
-const commons = require('happn-commons');
-const util = commons.utils;
-
-StaticCache.prototype.has = has;
-StaticCache.prototype.set = util.maybePromisify(set);
-StaticCache.prototype.get = util.maybePromisify(get);
-StaticCache.prototype.removeSync = removeSync;
-StaticCache.prototype.setSync = setSync;
-StaticCache.prototype.getSync = getSync;
-StaticCache.prototype.increment = util.maybePromisify(increment);
-StaticCache.prototype.update = util.maybePromisify(update);
-StaticCache.prototype.remove = util.maybePromisify(remove);
-StaticCache.prototype.clear = util.maybePromisify(clear);
-StaticCache.prototype.stop = stop;
-StaticCache.prototype.all = util.maybePromisify(all);
-StaticCache.prototype.on = on;
-StaticCache.prototype.off = off;
-StaticCache.prototype.appendTimeout = appendTimeout;
-StaticCache.prototype.clearTimeout = _clearTimeout;
-
-StaticCache.prototype.__emit = __emit;
-StaticCache.prototype.__tryCallback = __tryCallback;
-StaticCache.prototype.__all = util.maybePromisify(__all);
-StaticCache.prototype.keys = keys;
-StaticCache.prototype.size = size;
-
-function StaticCache(opts) {
-  this.opts = opts || {};
-  this.__cache = {};
-  this.__eventEmitter = new EventEmitter();
-  this.__timeouts = {};
-}
-
-function has(key) {
-  return this.__cache[key] != null;
-}
-
-function set(key, data, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = null;
+module.exports = class LRUCache extends require('./cache-base') {
+  #cache;
+  constructor(opts) {
+    super();
+    if (opts == null) opts = {};
+    if (!opts.max) opts.max = 1e3;
+    this.#cache = {};
   }
 
-  if (!opts) opts = {};
-  if (!opts.ttl) opts.ttl = this.opts.defaultTTL;
-
-  var cacheItem = {
-    data: opts.clone === false ? data : this.utilities.clone(data),
-    key: key,
-    noclone: opts.clone === false,
-  };
-
-  // eslint-disable-next-line
-  if (opts.ttl > 0 && opts.ttl != Infinity) this.appendTimeout(cacheItem, opts.ttl);
-  if (!this.__cache[key]) this.__size++;
-  this.__cache[key] = cacheItem;
-  this.__emit('item-set', cacheItem);
-  return this.__tryCallback(callback, cacheItem, null);
-}
-
-function getSync(key, opts) {
-  if (!opts) opts = {};
-  var explicitClone = opts.clone === true; //explicitly clone result, even if it was set with clone:false
-  if (opts.clone == null) opts.clone = true; //clone result by default
-  var cached = this.__cache[key];
-  if (cached == null) return null;
-  if (cached.noclone && !explicitClone) return cached.data;
-  return this.utilities.clone(cached.data);
-}
-
-function setSync(key, data, opts) {
-  if (!opts) opts = {};
-  if (!opts.ttl) opts.ttl = this.opts.defaultTTL;
-
-  var cacheItem = {
-    data: opts.clone === false ? data : this.utilities.clone(data),
-    key: key,
-    noclone: opts.clone === false,
-  };
-
-  if (opts.ttl > 0) {
-    var preExisting = this.__cache[key];
-    if (preExisting != null) this.clearTimeout(key);
-    this.appendTimeout(cacheItem, opts.ttl);
+  getInternal(key, opts) {
+    if (!opts) opts = {};
+    var explicitClone = opts.clone === true; //explicitly clone result, even if it was set with clone:false
+    var cached = this.#cache[key];
+    if (cached.noclone && !explicitClone) return cached.data;
+    return this.utils.clone(cached.data);
   }
 
-  if (!this.__cache[key]) this.__size++;
-  this.__cache[key] = cacheItem;
-  this.__emit('item-set', cacheItem);
-
-  return cacheItem;
-}
-
-function keys() {
-  return Object.keys(this.__cache);
-}
-
-function removeSync(key) {
-  var existing = this.__cache[key];
-  delete this.__cache[key];
-  this.clearTimeout(key);
-  if (existing) this.__emit('item-removed', key);
-  return existing;
-}
-
-function get(key, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = {};
+  setInternal(key, data, opts) {
+    if (!opts) opts = {};
+    const cacheItem = {
+      data: opts.clone === false ? data : this.utils.clone(data),
+      key: key,
+      ttl: opts.ttl,
+      noclone: opts.clone === false,
+    };
+    this.#cache[key] = cacheItem;
+    return cacheItem;
   }
 
-  if (!opts) opts = {};
-
-  var explicitClone = opts.clone === true; //explicitly clone result, even if it was set with clone:false
-
-  if (opts.clone == null) opts.clone = true; //clone result by default
-
-  var cached = this.__cache[key];
-
-  if (cached != null)
-    return this.__tryCallback(callback, cached.data, null, explicitClone || !cached.noclone);
-
-  var _this = this;
-
-  if (opts.retrieveMethod)
-    return opts.retrieveMethod.call(opts.retrieveMethod, function (e, result) {
-      if (e) return callback(e);
-      // -1 and 0 are perfectly viable things to cache
-      if (result == null) return _this.__tryCallback(callback, null, null);
-      _this.set(key, result, opts, function (e) {
-        return _this.__tryCallback(callback, result, e, opts.clone);
-      });
-    });
-
-  if (opts.default) {
-    var value = opts.default.value;
-    delete opts.default.value;
-    return _this.set(key, value, opts.default, function (e) {
-      return _this.__tryCallback(callback, value, e, opts.clone);
-    });
+  removeInternal(key) {
+    delete this.#cache[key];
   }
 
-  return _this.__tryCallback(callback, null, null);
-}
-
-function increment(key, by, callback) {
-  if (this.__cache[key] && typeof this.__cache[key].data === 'number') {
-    this.__cache[key].data += by;
-    return this.__tryCallback(callback, this.__cache[key].data, null, true);
+  valuesInternal() {
+    return Object.values(this.#cache);
   }
-  return this.__tryCallback(callback, null, null);
-}
-
-function update(key, data, callback) {
-  try {
-    if (this.__cache[key]) {
-      this.__cache[key].data = data;
-      return this.__tryCallback(callback, this.__cache[key], null);
-    } else this.__tryCallback(callback, null, null);
-  } catch (e) {
-    return this.__tryCallback(callback, null, e);
+  
+  keysInternal() {
+    return Object.keys(this.#cache);
   }
-}
-
-function remove(key, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = null;
-  }
-  if (!opts) opts = {};
-  var foundItem = false;
-  if (this.__cache[key]) {
-    foundItem = true;
-    delete this.__cache[key];
-  }
-  this.clearTimeout(key);
-  if (foundItem) this.__emit('item-removed', key);
-  return this.__tryCallback(callback, foundItem, null);
-}
-
-function stop() {
-  Object.keys(this.__timeouts).forEach((key) => {
-    this.clearTimeout(key);
-  });
-}
-
-function clear(callback) {
-  this.stop();
-  this.__cache = {};
-  if (callback) callback();
-}
-
-function all(filter, callback) {
-  if (typeof filter === 'function') {
-    callback = filter;
-    filter = null;
+  
+  sizeInternal() {
+    return this.#cache.size
   }
 
-  this.__all(function (e, items) {
-    if (e) return callback(e);
-    if (filter)
-      return callback(
-        null,
-        commons.mongoFilter(
-          {
-            $and: [filter],
-          },
-          items
-        )
-      );
-    else return callback(null, items);
-  });
-}
-
-function on(key, handler) {
-  return this.__eventEmitter.on(key, handler);
-}
-
-function off(key, handler) {
-  return this.__eventEmitter.removeListener(key, handler);
-}
-
-function appendTimeout(data, ttl) {
-  this.clearTimeout(data.key);
-  data.ttl = ttl;
-  this.__timeouts[data.key] = setTimeout(() => {
-    var thisKey = data.key;
-    this.remove(data.key, (e) => {
-      if (e) this.__emit('error', new Error('failed to remove timed out item'));
-      this.__emit('item-timed-out', {
-        key: thisKey,
-      });
-    });
-  }, ttl);
-}
-
-function _clearTimeout(key) {
-  if (this.__timeouts[key] != null) {
-    clearTimeout(this.__timeouts[key]);
-    delete this.__timeouts[key];
-  }
-}
-
-function __emit(key, data) {
-  return this.__eventEmitter.emit(key, data);
-}
-
-function __tryCallback(callback, data, e, clone) {
-  var callbackData = data;
-
-  if (data && clone) callbackData = this.utilities.clone(data);
-
-  if (e) {
-    if (callback) return callback(e);
-    else throw e;
+  hasInternal(key) {
+    return this.#cache.has(key);
   }
 
-  if (callback) callback(null, callbackData);
-  else return callbackData;
-}
+  clearInternal() {
+    this.#cache.clear();
+  }
 
-function __all(callback) {
-  try {
-    callback(
-      null,
-      Object.keys(this.__cache).map((itemKey) => {
-        return this.utilities.clone(this.__cache[itemKey].data);
-      })
-    );
-  } catch (e) {
-    callback(e);
+  allInternal() {
+    return this.#cache.valList.slice(0, this.#cache.size).map((value) => value.data );
   }
 }

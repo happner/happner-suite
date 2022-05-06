@@ -255,3 +255,7 @@ non-release 2017-12-14
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
   - TEN-104: errors are only logged on system failures
+
+12.0.5 2022-05-04
+-----------------
+  - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
