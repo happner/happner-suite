@@ -944,6 +944,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
 
+12.1.3 2022-05-06
+-----------------
+  - TEN-114: happn-3: enforce admin group save on startup
+
 
 
 

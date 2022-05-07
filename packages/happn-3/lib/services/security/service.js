@@ -393,47 +393,36 @@ function AccessDeniedError(message, reason) {
   return this.happn.services.error.AccessDeniedError(message, reason);
 }
 
-function __ensureAdminUser(config) {
-  return new Promise((resolve, reject) => {
-    if (!config.adminUser)
-      config.adminUser = {
-        custom_data: {},
-      };
-    if (!config.adminGroup)
-      config.adminGroup = {
-        custom_data: {
-          description: 'the default administration group for happn',
-        },
-      };
-
-    config.adminUser.username = '_ADMIN';
-    config.adminGroup.name = '_ADMIN';
-
-    config.adminGroup.permissions = {
-      '*': {
-        actions: ['*'],
+async function __ensureAdminUser(config) {
+  if (!config.adminUser)
+    config.adminUser = {
+      custom_data: {},
+    };
+  if (!config.adminGroup)
+    config.adminGroup = {
+      custom_data: {
+        description: 'the default administration group for happn',
       },
     };
 
-    this.newDB = false;
+  config.adminUser.username = '_ADMIN';
+  config.adminGroup.name = '_ADMIN';
 
-    this.users.getUser('_ADMIN', async (e, foundUser) => {
-      if (e) return reject(e);
-      const adminGroup = await this.groups.__upsertGroup(config.adminGroup, {});
-      if (foundUser) {
-        return resolve();
-      }
-      if (!config.adminUser.password) config.adminUser.password = 'happn';
+  config.adminGroup.permissions = {
+    '*': {
+      actions: ['*'],
+    },
+  };
+  // recreate admin group, so that base system permissions are always in place
+  const adminGroup = await this.groups.__upsertGroup(config.adminGroup, {});
+  const foundUser = await this.users.getUser('_ADMIN');
 
-      try {
-        const adminUser = await this.users.__upsertUser(config.adminUser, {});
-        await this.groups.linkGroup(adminGroup, adminUser);
-        resolve();
-      } catch (e) {
-        reject(e);
-      }
-    });
-  });
+  if (foundUser) return;
+  if (!config.adminUser.password) {
+    config.adminUser.password = 'happn';
+  }
+  const adminUser = await this.users.__upsertUser(config.adminUser, {});
+  await this.groups.linkGroup(adminGroup, adminUser);
 }
 
 async function __ensureAnonymousUser(config) {
