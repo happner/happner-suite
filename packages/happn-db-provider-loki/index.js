@@ -36,6 +36,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     this.persistenceOn = this.settings.filename != null;
     if (this.persistenceOn) {
+      fs.ensureDirSync(commons.path.dirname(this.settings.filename));
       let pathArray = this.settings.filename.split(pathSep);
       pathArray[pathArray.length - 1] = 'temp_' + pathArray[pathArray.length - 1];
       this.settings.tempDataFilename = pathArray.join(pathSep);

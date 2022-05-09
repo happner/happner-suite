@@ -8,6 +8,7 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     if (settings.dbfile) settings.filename = settings.dbfile; //backward compatable
     if (settings.filename) {
       settings.autoload = true; //we definately autoloading
+      fs.ensureDirSync(commons.path.dirname(settings.filename));
     }
     if (settings.timestampData == null) settings.timestampData = true;
     super(settings, logger);

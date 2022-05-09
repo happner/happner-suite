@@ -11,23 +11,18 @@ function Security() {
 }
 
 Security.prototype.__createSystemGroup = function (name, adminUser, permissions, callback) {
-  var group = {
-    name,
-    permissions,
-  };
-  this.__securityService.groups.getGroup(name, (e, found) => {
-    if (e) return callback(e);
-    if (found != null) {
-      this.__systemGroups[name] = found;
-      return callback();
-    }
-    this.__securityService.groups.upsertGroup(group, {}, (e, upsertedGroup) => {
+  this.__securityService.groups.upsertGroup(
+    {
+      name,
+      permissions,
+    },
+    (e, upsertedGroup) => {
       if (e) return callback(e);
       this.__systemGroups[name] = upsertedGroup;
       if (name !== '_MESH_ADM') return callback();
       this.__securityService.users.linkGroup(upsertedGroup, adminUser, callback);
-    });
-  });
+    }
+  );
 };
 
 Security.prototype.__createSystemGroups = function (adminUser, callback) {
