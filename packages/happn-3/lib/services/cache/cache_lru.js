@@ -8,23 +8,11 @@ module.exports = class LRUCache extends require('./cache-base') {
   }
 
   getInternal(key, opts) {
-    if (!opts) opts = {};
-    var explicitClone = opts.clone === true; //explicitly clone result, even if it was set with clone:false
-    var cached = this.#cache.get(key);
-    if (cached.noclone && !explicitClone) return cached.data;
-    return this.utils.clone(cached.data);
+    return this.#cache.get(key, opts);
   }
 
   setInternal(key, data, opts) {
-    if (!opts) opts = {};
-    const cacheItem = {
-      data: opts.clone === false ? data : this.utils.clone(data),
-      key: key,
-      ttl: opts.ttl,
-      noclone: opts.clone === false,
-    };
-    this.#cache.set(key, cacheItem, opts);
-    return cacheItem;
+    this.#cache.set(key, data, opts);
   }
 
   removeInternal(key) {

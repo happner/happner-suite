@@ -9,17 +9,45 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     this.utils = this.commons.utils;
   }
 
-  get(key, opts) {
-    if (!this.has(key)) {
+  get(key, opts = {}) {
+    let cached = this.getInternal(key, opts);
+    if (cached == null) {
       this.#stats.misses++;
-      return null;
+      if (opts.default) {
+        this.set(key, opts.default.value, opts.default.opts);
+        cached = { data: opts.default.value, noclone: opts?.default?.opts?.noclone};
+      } else {
+        return null;
+      }
+    } else {
+      this.#stats.hits++;
     }
-    this.#stats.hits++;
-    return this.getInternal(key, opts);
+    //explicitly clone result, even if it was set with clone:false
+    if (cached.noclone && opts.clone === false) {
+      return cached.data;
+    }
+    return this.utils.clone(cached.data);
   }
 
-  set(key, data, opts) {
-    return this.setInternal(key, data, opts);
+  set(key, data, opts = {}) {
+    const cacheItem = {
+      data: opts.clone === false ? data : this.utils.clone(data),
+      key: key,
+      ttl: opts.ttl,
+      noclone: opts.clone === false,
+    };
+    this.setInternal(key, cacheItem, opts);
+    return cacheItem;
+  }
+
+  increment(key, by = 1, opts = {}) {
+    let currentValue = this.get(key);
+    if (typeof currentValue !== 'number') {
+      currentValue = opts.initial || 0;
+    }
+    currentValue += by;
+    this.set(key, currentValue, opts);
+    return currentValue;
   }
 
   remove(key, opts) {
