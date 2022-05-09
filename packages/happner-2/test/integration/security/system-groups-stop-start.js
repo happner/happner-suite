@@ -1,5 +1,5 @@
 ['loki', 'nedb'].forEach((provider) => {
-  require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+  require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
     let mesh;
     const Mesh = test.Mesh;
     const client = new Mesh.MeshClient({ secure: true, port: 8003 });
