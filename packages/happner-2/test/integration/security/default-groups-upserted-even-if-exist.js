@@ -81,14 +81,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.delay(2000);
   });
 
-  it('checks the mesh adm and mesh groups have not been recreated', async () => {
+  it('checks the mesh adm and mesh groups have been recreated', async () => {
     const admGroup = await adminClient.exchange.security.getGroup('_MESH_ADM');
     const gstGroup = await adminClient.exchange.security.getGroup('_MESH_GST');
 
     test.expect(admGroup).to.not.be(null);
     test.expect(gstGroup).to.not.be(null);
 
-    test.expect(upsertedGroups.length).to.be(2);
+    test.expect(upsertedGroups.length).to.be(4);
     //ensure we are able to add a user after this, and it is part of the _MESH_GST group
     await adminClient.exchange.security.addUser({
       username: 'test',
