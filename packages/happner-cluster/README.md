@@ -6,9 +6,7 @@ Extends happner with clustering capabilities.
 
 ## Install
 
-`npm install happner-cluster happn-service-mongo-2 —save`
-
-Note data service installed separately.
+`npm install happner-cluster —save`
 
 ## Starting a cluster node
 

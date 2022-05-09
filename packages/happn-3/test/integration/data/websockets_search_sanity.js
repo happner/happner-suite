@@ -431,7 +431,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
         },
       },
     });
-
+    test.expect(allResults.length > 0).to.be(true);
     test.expect(allResults.length).to.eql(foundPages.length);
     test.expect(allResults).to.eql(foundPages);
   });
