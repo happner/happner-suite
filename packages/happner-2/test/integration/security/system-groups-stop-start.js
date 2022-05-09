@@ -1,5 +1,5 @@
 ['loki', 'nedb'].forEach((provider) => {
-  require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+  require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
     let mesh;
     const Mesh = test.Mesh;
     const client = new Mesh.MeshClient({ secure: true, port: 8003 });
@@ -22,17 +22,22 @@
               config: {
                 datastores: [
                   {
-                    name: 'persist',
+                    name: 'mem',
                     provider: `happn-db-provider-${provider}`,
                     isDefault: true,
-                    settings: {
-                      filename,
-                    },
                   },
                   {
                     name: 'volatile_permissions',
                     provider: `happn-db-provider-${provider}`,
                     patterns: ['/_SYSTEM/_SECURITY/_PERMISSIONS/*'],
+                  },
+                  {
+                    name: 'persist',
+                    provider: `happn-db-provider-${provider}`,
+                    settings: {
+                      filename,
+                    },
+                    patterns: ['/_SYSTEM/*'],
                   },
                 ],
               },
