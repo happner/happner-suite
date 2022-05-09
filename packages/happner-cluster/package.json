@@ -26,9 +26,9 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "happn-cluster": "^12.0.6",
+    "happn-cluster": "^12.0.7",
     "happn-commons": "^1.0.2",
-    "happn-db-provider-mongo": "^1.0.6",
+    "happn-db-provider-mongo": "^1.0.7",
     "happner-2": "^12.1.4",
     "happner-client": "^12.2.3",
     "hashring": "^3.2.0",

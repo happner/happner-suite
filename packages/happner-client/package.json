@@ -21,7 +21,7 @@
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },
   "dependencies": {
-    "happn-3": "^13.0.8",
+    "happn-3": "^13.0.9",
     "happn-commons": "^1.0.2",
     "happner-semver": "^1.0.1"
   },
