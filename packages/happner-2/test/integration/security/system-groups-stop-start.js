@@ -56,26 +56,28 @@
     after(async () => {
       try {
         test.commons.fs.unlinkSync(filename);
-        const lokiTempfile = test.commons.path
-          .dirname(filename)
-          .concat(test.commons.path.sep)
-          .concat('temp_')
-          .concat(test.commons.path.basename(filename));
-        //whack loki temp file
-        test.commons.fs.unlinkSync(lokiTempfile);
+        if (provider !== 'loki') return;
+        //delete loki temp file
+        test.commons.fs.unlinkSync(
+          test.commons.path
+            .dirname(filename)
+            .concat(test.commons.path.sep)
+            .concat('temp_')
+            .concat(test.commons.path.basename(filename))
+        );
       } catch (e) {
         // do nothing
       }
     });
 
-    it('runs the mesh once and connects with the admin client', async () => {
+    it('runs the mesh once and connects with the test client', async () => {
       await client.login({
         username,
         password,
       });
     });
 
-    it('restarts the mesh connects with the admin client', async () => {
+    it('restarts the mesh connects with the test client', async () => {
       await client.login({
         username,
         password,
