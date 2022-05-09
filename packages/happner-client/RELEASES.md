@@ -326,6 +326,10 @@
 -----------------
   - TEN-114: happn-3: enforce admin group save on startup
 
+12.2.3 2022-05-09
+-----------------
+  - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
+
 
 
 
