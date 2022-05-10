@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-loki",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Loki data provider for happn",
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
