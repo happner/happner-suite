@@ -1,7 +1,8 @@
 var path = require('path');
 var filename = path.basename(__filename);
 var net = require('net');
-
+let dns = require('dns')
+dns.setDefaultResultOrder('ipv4first'); 
 var hooks = require('../lib/hooks');
 
 var testSequence = parseInt(filename.split('-')[0]);
