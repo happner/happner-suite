@@ -197,7 +197,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
       endpoints: {
         secureMesh: {
           config: {
-            host: 'localhost',
+            host: '127.0.0.1',
             username: '_ADMIN',
             password: testId,
             secure: true,

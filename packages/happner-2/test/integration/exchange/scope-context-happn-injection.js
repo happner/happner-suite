@@ -645,7 +645,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
   });
 
   it('injects happn into webmethods', function (done) {
-    request('http://localhost:3001/mesh1/webComponent1/methodWithHappn', function (err, res) {
+    request('http://127.0.0.1:3001/mesh1/webComponent1/methodWithHappn', function (err, res) {
       JSON.parse(res.body).should.eql({
         moduleName: 'module3',
         web: {
@@ -664,7 +664,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
 
   it('injects happn into front of webmethod args', function (done) {
     request(
-      'http://localhost:3001/mesh1/webComponent1/methodWithHappnInFront',
+      'http://127.0.0.1:3001/mesh1/webComponent1/methodWithHappnInFront',
       function (err, res) {
         var response = JSON.parse(res.body);
         response.config.moduleName.should.equal('module3');
@@ -676,7 +676,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
 
   it('injects happn into middle of webmethod args', function (done) {
     request(
-      'http://localhost:3001/mesh1/webComponent1/methodWithHappnInMiddle',
+      'http://127.0.0.1:3001/mesh1/webComponent1/methodWithHappnInMiddle',
       function (err, res) {
         var response = JSON.parse(res.body);
         response.config.moduleName.should.equal('module3');
@@ -687,7 +687,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
   });
 
   it('injects happn into middle of webmethod args', function (done) {
-    request('http://localhost:3001/mesh1/webComponent1/methodWithHappnInEnd', function (err, res) {
+    request('http://127.0.0.1:3001/mesh1/webComponent1/methodWithHappnInEnd', function (err, res) {
       var response = JSON.parse(res.body);
       response.config.moduleName.should.equal('module3');
       response.next.slice(0, 8).should.equal('function');
@@ -696,7 +696,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
   });
 
   it('runs webmethod ok without $happn', function (done) {
-    request('http://localhost:3001/mesh1/webComponent1/methodWithoutHappn', function (err, res) {
+    request('http://127.0.0.1:3001/mesh1/webComponent1/methodWithoutHappn', function (err, res) {
       res.body.should.eql('ok');
       done();
     });
