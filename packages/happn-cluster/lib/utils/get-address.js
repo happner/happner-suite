@@ -1,5 +1,7 @@
 // return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
 // os and env arguments make the code testable
+const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
+const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
 module.exports = function (logger, env, os) {
   logger = logger || console;
   os = os || require('os');
@@ -7,7 +9,7 @@ module.exports = function (logger, env, os) {
   return function (interfaces) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
-    // console.log(JSON.stringify({ interfaces }, null, 2));
+    console.log(interfaces);
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
@@ -15,14 +17,11 @@ module.exports = function (logger, env, os) {
     if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
-    // console.log("CHOSEN INTERFACE IS : ",  interfaces[networkInterfaceId][interfaceItemIndex])
-    // console.log("RETURNING ", interfaces[networkInterfaceId][interfaceItemIndex].address)
     return interfaces[networkInterfaceId][interfaceItemIndex].address;
   };
 };
 
 function getFirstAvailableAddress(interfaceId, logger, os) {
-  // console.log('GETTING FIRST AVAILABLE ADDRESS');
   const interfaces = os.networkInterfaces();
   const candidates = Object.keys(interfaces)
     .sort()
@@ -31,7 +30,7 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       found.forEach((interfaceItem, interfaceItemIndex) => {
         if (
           !interfaceItem.internal &&
-          interfaceItem.family === 4 &&
+          interfaceItem.family === ip4Family &&
           interfaceItem.address.indexOf('169.254') !== 0
         ) {
           candidates.push({
@@ -43,7 +42,7 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       });
       return candidates;
     }, []);
-  // console.log(JSON.stringify({ candidates }, null, 2));
+
   if (candidates.length > 0) {
     logger.warn(
       `get address for SWIM or cluster: interface with id [${interfaceId}] not found or address index out of bounds - dynamically resolved to address [${candidates[0].address}] on NIC [${candidates[0].nic}]`
