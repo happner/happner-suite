@@ -68,7 +68,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       .then(function () {
         return new Promise(function (resolve, reject) {
-          request('http://localhost:55001/api/client', function (e, response, body) {
+          request('http://127.0.0.1:55001/api/client', function (e, response, body) {
             if (e) return reject(e);
             if (response.statusCode !== 200)
               return reject(new Error('untest.expected ' + response.statusCode));

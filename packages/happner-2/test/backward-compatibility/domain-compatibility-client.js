@@ -70,7 +70,7 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
     it('can call component methods through rest', function (done) {
       var restler = require('restler');
       restler
-        .get('http://localhost:55000/rest/method/testComponent/method', {})
+        .get('http://127.0.0.1:55000/rest/method/testComponent/method', {})
         .on('complete', function (result) {
           if (result instanceof Error) return done(result);
           expect(result.error).to.eql(null);
@@ -208,11 +208,11 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
 
     it('can call component methods through rest', function (done) {
       var restler = require('restler');
-      restler.postJson('http://localhost:55000/rest/login', user).on('complete', function (result) {
+      restler.postJson('http://127.0.0.1:55000/rest/login', user).on('complete', function (result) {
         if (result.error) return done(new Error(result.error.message));
         var token = result.data.token;
         restler
-          .get('http://localhost:55000/rest/method/testComponent/method?happn_token=' + token, {})
+          .get('http://127.0.0.1:55000/rest/method/testComponent/method?happn_token=' + token, {})
           .on('complete', function (result) {
             if (result instanceof Error) return done(result);
             expect(result.error).to.eql(null);
