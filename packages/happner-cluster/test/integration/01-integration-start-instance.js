@@ -11,7 +11,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     client.disconnect(done);
   });
 
-  it.only('starts', function (done) {
+  it('starts', function (done) {
     this.timeout(20000);
 
     test.HappnerCluster.create({
