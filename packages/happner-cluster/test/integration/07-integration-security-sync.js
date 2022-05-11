@@ -31,7 +31,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   }
 
   before('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
   });
 
   before('start cluster', function (done) {
@@ -372,7 +372,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     function performAction(port, username, component, method) {
       return new Promise(function (resolve, reject) {
         var client = new test.Happner.MeshClient({
-          hostname: 'localhost',
+          hostname: '127.0.0.1',
           port: port,
         });
 
