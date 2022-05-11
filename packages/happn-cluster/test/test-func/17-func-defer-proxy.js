@@ -1,8 +1,6 @@
 var path = require('path');
 var filename = path.basename(__filename);
 var net = require('net');
-// let dns = require('dns')
-// dns.setDefaultResultOrder('ipv4first'); 
 var hooks = require('../lib/hooks');
 
 var testSequence = parseInt(filename.split('-')[0]);
@@ -34,8 +32,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   it.only('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
     var port = this.__configs[0].services.proxy.config.port;
-    console.log({ port });
-    let connection = net.connect(port, "127.0.0.1");
+    let connection = net.connect(port, '127.0.0.1');
 
     connection.on('connect', function () {
       connection.destroy();
@@ -43,19 +40,12 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     });
 
     connection.on('error', function (e) {
-      console.log('GOT ERROR: ', e);
       test.expect(e.code).to.be('ECONNREFUSED');
 
       _this.servers[0].services.proxy
         .start()
-        .then(() => {
-          // console.log('STARTED PROXY ');
-          return test.delay(500);
-        })
         .then(function () {
-          console.log({ port });
-
-          let connection = net.connect(port, "127.0.0.1");
+          let connection = net.connect(port, '127.0.0.1');
 
           connection.on('connect', function () {
             connection.destroy();
