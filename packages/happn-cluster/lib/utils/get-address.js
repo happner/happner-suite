@@ -9,10 +9,11 @@ module.exports = function (logger, env, os) {
   return function (interfaces) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
-    console.log(interfaces);
+
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
+
     let interfaceItemIndex = parseInt(env['NETWORK_INTERFACE'] || 0);
     if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);

@@ -195,7 +195,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       (testInterface, interfaceKey) => {
         let found = interfaces[interfaceKey];
         found.forEach((interfaceItem, interfaceItemIndex) => {
-          if (!interfaceItem.internal && interfaceItem.family === ip4Family) {{
+          if (!interfaceItem.internal && interfaceItem.family === ip4Family) {
             testInterface = {
               id: interfaceKey,
               index: interfaceItemIndex,
