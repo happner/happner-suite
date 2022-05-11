@@ -1300,7 +1300,7 @@
 
     if (this.state.errors.length === 100) this.state.errors.shift();
     this.state.errors.push(errLog);
-
+    console.log(err.stack)
     this.emit('error', err);
     this.log.error('unhandled error', err);
   };
