@@ -854,7 +854,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       options.headers.authorization = 'Bearer ' + token;
 
       restClient
-        .postJson(`http://localhost:${port}/rest/method/${component}/${method}`, operation, options)
+        .postJson(`http://127.0.0.1:${port}/rest/method/${component}/${method}`, operation, options)
         .on('complete', function (result) {
           if (result.error) return reject(new Error(result.error));
           test.expect(result.data).to.eql(expectedResponse);
