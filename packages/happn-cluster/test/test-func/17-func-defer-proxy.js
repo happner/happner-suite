@@ -33,8 +33,8 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   it.only('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
     var port = this.__configs[0].services.proxy.config.port;
-    // let connection = net.connect(port);
-    let connection = net.connect('0.0.0.0:' + port);
+    let connection = net.connect(port);
+
     connection.on('connect', function () {
       connection.destroy();
       done(new Error('should not be listening'));
@@ -51,7 +51,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
           return test.delay(500);
         })
         .then(function () {
-          var connection = net.connect('0.0.0.0:' + port);
+          var connection = net.connect(port);
 
           connection.on('connect', function () {
             connection.destroy();
