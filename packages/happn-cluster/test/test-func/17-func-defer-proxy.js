@@ -30,7 +30,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     },
   });
 
-  it('deferred proxy does not start the proxy until start is called', function (done) {
+  it.only('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
     var port = this.__configs[0].services.proxy.config.port;
     let connection = net.connect(port);
