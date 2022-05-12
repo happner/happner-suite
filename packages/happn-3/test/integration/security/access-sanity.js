@@ -114,7 +114,9 @@ describe(
 
       testGroup.permissions = {};
 
-      testGroup.permissions['/TEST/a7_eventemitter_security_access/' + test_id + '/test.dots.in.permission'] = {
+      testGroup.permissions[
+        '/TEST/a7_eventemitter_security_access/' + test_id + '/test.dots.in.permission'
+      ] = {
         actions: ['*'],
       };
 

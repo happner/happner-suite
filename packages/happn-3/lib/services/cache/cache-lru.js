@@ -1,7 +1,7 @@
 module.exports = class LRUCache extends require('./cache-base') {
   #cache;
-  constructor(opts) {
-    super();
+  constructor(name, opts) {
+    super(name, opts);
     if (opts == null) opts = {};
     if (!opts.max) opts.max = 1e3;
     this.#cache = new this.commons.lruCache(opts);
@@ -20,15 +20,17 @@ module.exports = class LRUCache extends require('./cache-base') {
   }
 
   valuesInternal() {
-    return this.#cache.values();
+    return Array.from(this.#cache.valList.values())
+      .slice(0, this.#cache.keyMap.size)
+      .map((item) => item.data);
   }
-  
+
   keysInternal() {
     return Array.from(this.#cache.keyMap.keys());
   }
-  
+
   sizeInternal() {
-    return this.#cache.size
+    return this.#cache.size;
   }
 
   hasInternal(key) {
@@ -40,6 +42,6 @@ module.exports = class LRUCache extends require('./cache-base') {
   }
 
   allInternal() {
-    return this.#cache.valList.slice(0, this.#cache.size).map((value) => value.data );
+    return this.#cache.valList.slice(0, this.#cache.size).map((value) => value.data);
   }
-}
+};

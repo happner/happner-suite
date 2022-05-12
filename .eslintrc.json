@@ -1,36 +1,22 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 13
-  },
-  "env": {
-    "es2021": true,
-    "browser": true,
-    "es6": true,
-    "jquery": true,
-    "mocha": true,
-    "node": true
-  },
-  "extends": [
-    "eslint:recommended",
-    "prettier"
-  ],
-  "globals": {
-    "xdescribe": "readonly",
-    "XMLHttpRequest": "writable",
-    "xit": "readonly",
-    "angular": "readonly",
-    "d3": "readonly",
-    "Crypto": "writable",
-    "MeshClient": "readonly"
-  },
-  "plugins": [
-    "prettier"
-  ],
-  "rules": {
-    "default-case": "error",
-    "eqeqeq": ["error", "always", {"null": "ignore"}],
-    "no-console": "warn",
-    "no-useless-return": "error",
-    "prettier/prettier": "error"
-  }
+  	"env": {
+		"es2021": true,
+		"node": true,
+		"browser": true,
+		"mocha": true
+	},
+	"extends": ["eslint:recommended", "prettier"],
+	"plugins": ["prettier"],
+	"ignorePatterns": ["docs", "node_modules/"],
+	"parser": "babel-eslint",
+	"parserOptions": {
+		"ecmaVersion": 2018
+	},
+  	"rules": {
+		"default-case": "error",
+		"eqeqeq": ["error", "always", {"null": "ignore"}],
+		"no-console": "warn",
+		"no-useless-return": "error",
+		"prettier/prettier": "error"
+  	}
 }

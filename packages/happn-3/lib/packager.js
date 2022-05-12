@@ -3,18 +3,17 @@ const commons = require('happn-commons'),
   Utils = require('./services/utils/service'),
   utils = new Utils(),
   path = require('path'),
-  package = require('../package.json'),
+  happnPackage = require('../package.json'),
   md5 = require('md5'),
   { minify } = require('terser');
 
 module.exports = {
-  package: package,
-  protocol: package.protocol,
-  version: package.version,
+  package: happnPackage,
+  protocol: happnPackage.protocol,
+  version: happnPackage.version,
   __cachedBrowserClient: null,
   __createBrowserClient: async function (options) {
-    var package = require('../package.json');
-    var protocol = package.protocol;
+    var protocol = happnPackage.protocol;
     var buf = fs.readFileSync(path.resolve(__dirname, './client.js'));
 
     var constantsbuf = `\r\nCONSTANTS = ${commons.web.constants()}\r\n`;
@@ -22,7 +21,7 @@ module.exports = {
     var clientScript = buf
       .toString()
       .replace('{{protocol}}', protocol) //set the protocol here
-      .replace('{{version}}', package.version) //set the happn version here
+      .replace('{{version}}', happnPackage.version) //set the happn version here
       .replace('//{{constants}}', constantsbuf)
       .replace('//{{utils}}', () => {
         return `\r\nutils = ${commons.web.utils()}\r\n`;
@@ -31,7 +30,7 @@ module.exports = {
     if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production') {
       this.__cachedBrowserClient =
         '//happn client v' +
-        package.version +
+        happnPackage.version +
         '\r\n' +
         '//protocol v' +
         protocol +
@@ -43,7 +42,7 @@ module.exports = {
     } else {
       this.__cachedBrowserClient =
         '//happn client v' +
-        package.version +
+        happnPackage.version +
         '\r\n' +
         '//protocol v' +
         protocol +

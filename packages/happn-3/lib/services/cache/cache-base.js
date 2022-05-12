@@ -1,12 +1,27 @@
+const lt = require('long-timeout');
 module.exports = class CacheBase extends require('events').EventEmitter {
   #stats = {
     hits: 0,
     misses: 0,
   };
-  constructor() {
+  #timeouts = {};
+  #name;
+  #opts;
+  constructor(name, opts) {
     super();
+    if (typeof name !== 'string') throw new Error(`invalid name for cache: ${name}`);
     this.commons = require('happn-commons');
     this.utils = this.commons.utils;
+    this.#name = name;
+    this.#opts = opts;
+  }
+
+  get name() {
+    return this.#name;
+  }
+
+  get opts() {
+    return this.#opts;
   }
 
   get(key, opts = {}) {
@@ -15,7 +30,7 @@ module.exports = class CacheBase extends require('events').EventEmitter {
       this.#stats.misses++;
       if (opts.default) {
         this.set(key, opts.default.value, opts.default.opts);
-        cached = { data: opts.default.value, noclone: opts?.default?.opts?.noclone};
+        cached = { data: opts.default.value, noclone: opts.default?.opts?.noclone };
       } else {
         return null;
       }
@@ -41,7 +56,7 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   increment(key, by = 1, opts = {}) {
-    let currentValue = this.get(key);
+    let currentValue = this.getInternal(key)?.data;
     if (typeof currentValue !== 'number') {
       currentValue = opts.initial || 0;
     }
@@ -78,9 +93,9 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   all(filter) {
-    const all = this.allInternal();
+    let all = this.values();
     if (!filter) return all;
-    return commons.mongoFilter(
+    return this.commons.mongoFilter(
       {
         $and: [filter],
       },
@@ -97,6 +112,29 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   stop() {
-    if (this.stopInternal) return this.stopInternal();
+    Object.keys(this.#timeouts).forEach((key) => {
+      this.clearTimeout(key);
+    });
+  }
+
+  clearTimeout(key) {
+    lt.clearTimeout(this.#timeouts[key]);
+    delete this.#timeouts[key];
+  }
+
+  appendTimeout(key, ttl) {
+    this.clearTimeout(key);
+    this.#timeouts[key] = lt.setTimeout(() => {
+      this.remove(key);
+    }, ttl);
+  }
+
+  createCacheItem(key, data, opts = {}) {
+    return {
+      data: opts.clone === false ? data : this.utils.clone(data),
+      key,
+      ttl: opts.ttl,
+      noclone: opts.clone === false,
+    };
   }
 };
