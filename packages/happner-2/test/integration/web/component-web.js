@@ -47,7 +47,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
         },
         web: {
           routes: {
-            // http://127.0.0.1:3001/neptronicUI/...
             static5: ['preProcessor', 'static'],
             testScope: 'testScope',
           },
@@ -56,13 +55,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
 
       component5Module: {
         moduleName: 'module5',
-        // "scope":"module",
         schema: {
           exclusive: false,
         },
         web: {
           routes: {
-            // http://127.0.0.1:3001/neptronicUI/...
             testScope: 'testScope',
           },
         },
