@@ -74,7 +74,7 @@ var defaultConfig = {
             stabiliseTimeout: 15e3,
             keepAlive: 5e3,
             memberRefresh: 5e3,
-            health: 10e3
+            healthReport: 10e3
           },
           cluster: {
             'happn-cluster-node': 1
@@ -209,7 +209,7 @@ This is used as a part of the path where the keepalives are stored and looked up
 Array of happn paths or path masks that will be replicated throughout the cluster.
 
 #### config.timing:
-Contians the timing for variables related to membership, keepAlives,stabilisation, and health reporting
+Contains the timing for variables related to membership, keepAlives,stabilisation, and health reporting
 **NB.** These keepAlive ,keepAliveThreshold, and memberRefresh are set fairly long (around 5 seconds) by default, for regular use.  For testing purposes, it is recommended to shorten them as required, as well as config.keepAliveThreshold (above)  
 
 ##### config.timing.stabiliseTimeout
@@ -228,7 +228,7 @@ This should be set to slightly longer than the keepAlive timing above
 How often the node requests member list from DB, and then updates, connects and subscribes as required.
 
 ##### config.timing.healthReport: 
-How often the node reports it's health. The health report includes the node's state, and a list of how many peers of each service it has and expects.
+How often the node reports its health. The health report includes the node's state, and a list of how many peers of each service it has and expects.
 It will also log a JSON which has the following structure:
 ```
       {
