@@ -48,14 +48,13 @@ describe(testHelper.testName(__filename, 3), function () {
 
           serviceInstance = service;
 
-          expect(serviceInstance.services.security.groups.__cache_groups.__cache.max).to.be(5);
-          expect(serviceInstance.services.security.users.__cache_users.__cache.max).to.be(5);
+          expect(serviceInstance.services.security.groups.__cache_groups.opts.max).to.be(5);
+          expect(serviceInstance.services.security.users.__cache_users.opts.max).to.be(5);
+          expect(serviceInstance.services.security.groups.permissionManager.cache.opts.max).to.be(
+            5
+          );
           expect(
-            serviceInstance.services.security.groups.permissionManager.cache.__cache.max
-          ).to.be(5);
-          expect(
-            serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache
-              .max
+            serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.opts.max
           ).to.be(5);
 
           serviceInstance.services.session
@@ -196,7 +195,7 @@ describe(testHelper.testName(__filename, 3), function () {
             if (e) return timeCB(e);
 
             expect(
-              serviceInstance.services.security.groups.__cache_groups.getSync(
+              serviceInstance.services.security.groups.__cache_groups.get(
                 'TEST_GRP_' + randomInt.toString()
               ).name
             ).to.be(group.name);
@@ -206,12 +205,12 @@ describe(testHelper.testName(__filename, 3), function () {
               function (e, user) {
                 if (e) return timeCB(e);
                 expect(
-                  serviceInstance.services.security.users.__cache_users.getSync(
+                  serviceInstance.services.security.users.__cache_users.get(
                     'TEST_USR_' + randomInt.toString()
                   ).username
                 ).to.be(user.username);
                 expect(
-                  serviceInstance.services.security.users.__cache_passwords.getSync(
+                  serviceInstance.services.security.users.__cache_passwords.get(
                     'TEST_USR_' + randomInt.toString()
                   )
                 ).to.not.be(null);
@@ -225,9 +224,9 @@ describe(testHelper.testName(__filename, 3), function () {
       function (e) {
         if (e) return done(e);
 
-        expect(serviceInstance.services.security.groups.__cache_groups.__cache.size).to.be(5);
-        expect(serviceInstance.services.security.users.__cache_users.__cache.size).to.be(5);
-        expect(serviceInstance.services.security.users.__cache_passwords.__cache.size).to.be(5);
+        expect(serviceInstance.services.security.groups.__cache_groups.size()).to.be(5);
+        expect(serviceInstance.services.security.users.__cache_users.size()).to.be(5);
+        expect(serviceInstance.services.security.users.__cache_passwords.size()).to.be(5);
 
         done();
       }
@@ -282,9 +281,9 @@ describe(testHelper.testName(__filename, 3), function () {
         if (e) return done(e);
 
         expect(
-          serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.__cache.size
+          serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.size()
         ).to.be(5);
-        expect(serviceInstance.services.security.groups.permissionManager.cache.__cache.size).to.be(
+        expect(serviceInstance.services.security.groups.permissionManager.cache.size()).to.be(
           5
         );
         done();

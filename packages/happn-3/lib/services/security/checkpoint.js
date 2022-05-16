@@ -41,7 +41,7 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
     this.__checkpoint_permissionset = PermissionsStore.create();
     this.__checkpoint_permissionset_token = PermissionsStore.create();
 
-    this.__cache_checkpoint_authorization = this.cacheService.new(
+    this.__cache_checkpoint_authorization = this.cacheService.create(
       'checkpoint_cache_authorization',
       {
         type: 'LRU',
@@ -49,7 +49,7 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
       }
     );
 
-    this.__cache_checkpoint_authorization_token = this.cacheService.new(
+    this.__cache_checkpoint_authorization_token = this.cacheService.create(
       'checkpoint_cache_authorization_token',
       {
         type: 'LRU',
@@ -57,8 +57,8 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
       }
     );
 
-    this.__checkpoint_usage_limit = this.cacheService.new('checkpoint_usage_limit');
-    this.__checkpoint_inactivity_threshold = this.cacheService.new(
+    this.__checkpoint_usage_limit = this.cacheService.create('checkpoint_usage_limit');
+    this.__checkpoint_inactivity_threshold = this.cacheService.create(
       'checkpoint_inactivity_threshold'
     );
 
@@ -136,7 +136,7 @@ CheckPoint.prototype.__loadPermissionSet = function (identity, callback) {
   const permissionSetStore = identity.isToken
     ? this.__checkpoint_permissionset_token
     : this.__checkpoint_permissionset;
-  let permissionSet = permissionSetStore.getSync(identity.permissionSetKey, identity.user.username);
+  let permissionSet = permissionSetStore.get(identity.permissionSetKey, identity.user.username);
   if (permissionSet) {
     return callback(null, permissionSet);
   }
@@ -174,11 +174,7 @@ CheckPoint.prototype.__loadPermissionSet = function (identity, callback) {
           }
         }
         permissionSet = this.__createPermissionSet(permissions, identity);
-        permissionSetStore.setSync(
-          identity.permissionSetKey,
-          identity.user.username,
-          permissionSet
-        );
+        permissionSetStore.set(identity.permissionSetKey, identity.user.username, permissionSet);
         callback(null, permissionSet);
       }
     );
@@ -347,7 +343,7 @@ CheckPoint.prototype.__getAuthCache = function (session, path, action) {
   const authorizationCache = session.isToken
     ? this.__cache_checkpoint_authorization_token
     : this.__cache_checkpoint_authorization;
-  return authorizationCache.getSync(permissionCacheKey);
+  return authorizationCache.get(permissionCacheKey);
 };
 
 CheckPoint.prototype.__setAuthCache = function (session, path, action, authorized) {
@@ -355,7 +351,7 @@ CheckPoint.prototype.__setAuthCache = function (session, path, action, authorize
   const authorizationCache = session.isToken
     ? this.__cache_checkpoint_authorization_token
     : this.__cache_checkpoint_authorization;
-  authorizationCache.setSync(permissionCacheKey, authorized, { clone: false });
+  authorizationCache.set(permissionCacheKey, authorized, { clone: false });
 };
 
 CheckPoint.prototype.listRelevantPermissions = function (session, path, action, callback) {

@@ -55,7 +55,7 @@ function initialize(config, securityService, callback) {
       maxAge: 0,
     };
 
-  _this.__cache_groups = _this.cacheService.new('cache_security_groups', {
+  _this.__cache_groups = _this.cacheService.create('cache_security_groups', {
     type: 'LRU',
     cache: config.__cache_groups,
   });
@@ -356,7 +356,7 @@ function getGroup(groupName, options, callback) {
   if (!groupName || groupName.indexOf('*') > 0)
     return callback(new Error('invalid group name: ' + groupName));
 
-  var cachedGroup = this.__cache_groups.getSync(groupName);
+  var cachedGroup = this.__cache_groups.get(groupName);
   if (cachedGroup) return callback(null, cachedGroup);
   this.dataService.get(
     '/_SYSTEM/_SECURITY/_GROUP/' + groupName,
@@ -374,7 +374,7 @@ function getGroup(groupName, options, callback) {
       this.permissionManager
         .attachPermissions(group)
         .then((attached) => {
-          this.__cache_groups.setSync(groupName, attached, { clone: false });
+          this.__cache_groups.set(groupName, attached, { clone: false });
           callback(null, attached);
         })
         .catch(callback);

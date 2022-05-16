@@ -20,7 +20,7 @@ ComponentInstance.prototype.clearCachedBoundExchange = function () {
 ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, componentName) {
   this.boundExchangeCache =
     mesh.happn.server.services.cache.__caches['happner-bound-exchange' + componentName] ||
-    mesh.happn.server.services.cache.new('happner-bound-exchange' + componentName, {
+    mesh.happn.server.services.cache.create('happner-bound-exchange' + componentName, {
       type: 'LRU',
       cache: {
         max: mesh.config.boundExchangeCacheSize || 10000,
@@ -36,14 +36,14 @@ ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, comp
 
 ComponentInstance.prototype.getCachedBoundExchange = function (origin) {
   if (!this.boundExchangeCache) return null;
-  return this.boundExchangeCache.getSync(origin.username, {
+  return this.boundExchangeCache.get(origin.username, {
     clone: false,
   });
 };
 
 ComponentInstance.prototype.setCachedBoundExchange = function (origin, exchange) {
   if (!this.boundExchangeCache) return exchange;
-  this.boundExchangeCache.setSync(origin.username, exchange, {
+  this.boundExchangeCache.set(origin.username, exchange, {
     clone: false,
   });
   return exchange;

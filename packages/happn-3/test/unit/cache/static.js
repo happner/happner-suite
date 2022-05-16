@@ -131,9 +131,9 @@ describe(
       var Cache = require('../../../lib/services/cache/cache_static');
 
       var cache = new Cache();
-      cache.setSync(key + '1', data, { clone: false });
-      cache.setSync(key + '2', data, { clone: false });
-      cache.setSync(key + '3', data, { clone: false });
+      cache.set(key + '1', data, { clone: false });
+      cache.set(key + '2', data, { clone: false });
+      cache.set(key + '3', data, { clone: false });
       expect(cache.keys().sort()).to.eql([key + '1', key + '2', key + '3']);
     });
   }

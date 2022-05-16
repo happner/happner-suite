@@ -104,7 +104,9 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   clear() {
-    return this.clearInternal();
+    const cleared = this.clearInternal();
+    this.stop();
+    return cleared;
   }
 
   stats() {
@@ -118,6 +120,7 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   clearTimeout(key) {
+    if (!this.#timeouts[key]) return;
     lt.clearTimeout(this.#timeouts[key]);
     delete this.#timeouts[key];
   }

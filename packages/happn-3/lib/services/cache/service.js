@@ -2,12 +2,13 @@ const StaticCache = require('./cache-static');
 const LRUCache = require('./cache-lru');
 const PersistedCache = require('./cache-persist');
 const commons = require('happn-commons');
-const async = commons.async;
 module.exports = class CacheService extends require('events').EventEmitter {
   #caches;
   #config;
   constructor(opts) {
     super();
+    this.initialize = commons.utils.maybePromisify(this.initialize);
+    this.stop = commons.utils.maybePromisify(this.stop);
     let Logger;
 
     if (opts && opts.logger) {
@@ -58,69 +59,85 @@ module.exports = class CacheService extends require('events').EventEmitter {
     if (this.#caches[name] && !opts.overwrite) {
       throw new Error('a cache by this name already exists');
     }
-    const cacheType = opts.type.toLowerCase();
-    if (cacheType === commons.constants.CACHE_TYPES.LRU) {
-      this.#caches[name] = new LRUCache(name, opts.cache);
-    } else if (cacheType === commons.constants.CACHE_TYPES.PERSIST) {
-      opts.cache.key_prefix = name;
-      this.#caches[name] = new PersistedCache(name, opts.cache);
-    } else {
-      this.#caches[name] = new StaticCache(name, opts.cache);
+    const type = opts.type.toLowerCase();
+    if (Object.values(commons.constants.CACHE_TYPES).indexOf(type) === -1) {
+      throw new Error(`unknown cache type: ${type}`);
     }
+
+    this.#caches[name] = { type };
+    let instance;
+
+    if (type === commons.constants.CACHE_TYPES.LRU) {
+      instance = new LRUCache(name, opts.cache);
+    } else if (type === commons.constants.CACHE_TYPES.PERSIST) {
+      opts.cache.key_prefix = name;
+      instance = new PersistedCache(name, opts.cache);
+    } else {
+      instance = new StaticCache(name, opts.cache);
+    }
+    this.#caches[name] = { type, instance };
     Object.defineProperty(this.#caches[name], 'utilities', {
       value: this.happn.services.utils,
     });
-    return this.#caches[name];
+    return this.#caches[name].instance;
   }
 
-  clearAll(callback) {
-    async.eachSeries(
-      Object.keys(this.#caches),
-      (cacheKey, cacheKeyCB) => {
-        this.clear(cacheKey, cacheKeyCB);
-      },
-      callback
-    );
-  }
-
-  clear(cache, callback) {
-    var cacheToClear;
-
-    if (typeof cache === 'function') {
-      callback = cache;
-      cache = null;
+  async clearAll(deleteOnClear) {
+    for (const name of Object.keys(this.#caches)) {
+      await this.clear(name, deleteOnClear);
     }
+  }
 
-    //make empty callback
-    if (!callback) callback = () => {};
+  async clear(name, deleteOnClear = false) {
+    let found = this.#caches[name];
+    if (!found) return;
+    await found.instance.clear();
+    this.emit('cache-cleared', name);
+    if (deleteOnClear) {
+      // dont clear again, so clearOnDelete false
+      this.delete(name, false);
+    }
+  }
 
-    if (!cache || cache === this.#config.defaultCacheName) cacheToClear = this.__defaultCache;
-    else cacheToClear = this.#caches[cache];
-
-    if (!cacheToClear) return callback();
-
-    cacheToClear.clear((e) => {
-      if (e) return callback(e);
-      delete this.#caches[cache];
-      this.__emit('cache-cleared', cache);
-      callback();
-    });
+  delete(name, clearOnDelete = true) {
+    const toDelete = this.#caches[name];
+    if (!toDelete) return;
+    delete this.#caches[name];
+    if (clearOnDelete) {
+      toDelete.clear();
+    }
+    this.emit('cache-deleted', name);
   }
 
   stopAll() {
-    Object.values(this.#caches).forEach((cache) => cache.stop());
+    Object.values(this.#caches).forEach((cache) => cache.instance.stop());
   }
 
-  stop(callback) {
+  stop(options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+    }
     this.stopAll();
-    callback();
+    if (typeof callback === 'function') {
+      callback();
+    }
   }
 
   getStats() {
-    Object.values(this.#caches).reduce((stats, cache) => {
-      const cacheStats = cache.stats();
-      stats[cache.name] = cacheStats;
+    return Object.values(this.#caches).reduce((stats, cache) => {
+      const cacheStats = commons._.merge(cache.instance.stats(), { type: cache.type });
+      stats[cache.instance.name] = cacheStats;
       return stats;
     }, {});
+  }
+
+  getCache(name) {
+    return this.#caches[name];
+  }
+
+  getOrCreate(name, opts) {
+    const found = this.getCache(name);
+    if (found) return found.instance;
+    return this.create(name, opts);
   }
 };

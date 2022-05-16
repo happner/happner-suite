@@ -98,7 +98,7 @@ describe(
           var searchPath = userPath + '*';
 
           //TAKEN OUT TO PROVE TEST
-          // var cachedUser = this.__cache_users.getSync(userName);
+          // var cachedUser = this.__cache_users.get(userName);
           //
           // if (cachedUser) return callback(null, cachedUser);
 
@@ -142,8 +142,8 @@ describe(
 
               user.groups = groups;
 
-              this.__cache_users.setSync(userName, user);
-              this.__cache_passwords.setSync(userName, password);
+              this.__cache_users.set(userName, user);
+              this.__cache_passwords.set(userName, password);
 
               callback(null, user);
             }

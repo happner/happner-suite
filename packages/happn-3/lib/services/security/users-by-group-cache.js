@@ -2,7 +2,7 @@ module.exports = class UsersByGroupCache {
   constructor(cacheService, config) {
     this.__config = this.defaults(config);
     this.__cacheService = cacheService;
-    this.__cache = this.__cache_checkpoint_permissionset = this.__cacheService.new(
+    this.__cache = this.__cache_checkpoint_permissionset = this.__cacheService.create(
       'security_cache_usersbygroup',
       {
         type: 'LRU',
@@ -26,7 +26,7 @@ module.exports = class UsersByGroupCache {
   }
 
   getResult(groupName) {
-    return this.__cache.getSync(groupName);
+    return this.__cache.get(groupName);
   }
 
   cacheResult(groupName, result) {
@@ -34,7 +34,7 @@ module.exports = class UsersByGroupCache {
       if (this.__mappings[username]) this.__mappings[username][groupName] = 1;
       else this.__mappings[username] = { [groupName]: 1 };
     });
-    this.__cache.setSync(groupName, result);
+    this.__cache.set(groupName, result);
   }
 
   removeMappings(result, groupName) {

@@ -113,13 +113,14 @@ describe(
     after('stops the service if it exists', function (done) {
       stopService()
         .then(done)
-        .catch(function () {
+        .catch(function (e) {
+          console.log(`${e.message}`);
           done();
         });
     });
 
     it('does 2 unsuccessful logins out of 3, we wait the ttl and we no longer have a lock record', function (done) {
-      this.timeout(10000);
+      this.timeout(120e3);
 
       activeClient = null;
 
@@ -171,27 +172,19 @@ describe(
               })
               .catch(function (e) {
                 expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-
-                server1.services.security.authProviders.happn.__locks.get(
-                  testUser2.username,
-                  function (e, lock) {
-                    expect(lock.attempts).to.be(2);
-                    setTimeout(itemCB, 3000);
-                  }
+                const lock = server1.services.security.authProviders.happn.__locks.get(
+                  testUser2.username
                 );
+                expect(lock.attempts).to.be(2);
+                setTimeout(itemCB, 3000);
               });
           },
           function (itemCB) {
-            server1.services.security.authProviders.happn.__locks.get(
-              testUser2.username,
-              function (e, lock) {
-                expect(e).to.be(null);
-
-                expect(lock).to.be(null);
-
-                itemCB();
-              }
+            const lock = server1.services.security.authProviders.happn.__locks.get(
+              testUser2.username
             );
+            expect(lock).to.be(null);
+            itemCB();
           },
           function (itemCB) {
             Happn.client
@@ -507,7 +500,6 @@ describe(
               })
               .catch(function (e) {
                 expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-                expect(server1.services.security.authProviders.happn.__locks.get());
                 itemCB();
               });
           },

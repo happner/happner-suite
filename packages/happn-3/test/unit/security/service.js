@@ -2774,10 +2774,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       let fetchedUserFromDb = false;
 
       happnMock.services.security.__cache_session_on_behalf_of = {
-        getSync: () => {
+        get: () => {
           return null;
         },
-        setSync: (username, user) => {
+        set: (username, user) => {
           wasCached = user;
         },
       };
@@ -2822,7 +2822,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       var onBehalfOf = 'test-user';
 
       happnMock.services.security.__cache_session_on_behalf_of = {
-        getSync: () => {
+        get: () => {
           return {
             cached: true,
             user: {
@@ -2831,7 +2831,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             },
           };
         },
-        setSync: () => {},
+        set: () => {},
       };
 
       let fetchedUserFromDb = false;

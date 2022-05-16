@@ -574,7 +574,7 @@ function __initializeOnBehalfOfCache() {
   return new Promise((resolve) => {
     if (!this.config.secure) return resolve();
     if (this.__cache_session_on_behalf_of) return resolve();
-    this.__cache_session_on_behalf_of = this.cacheService.new(
+    this.__cache_session_on_behalf_of = this.cacheService.create(
       'cache_session_on_behalf_of',
       this.options.onBehalfOfCache
     );
@@ -663,7 +663,7 @@ function __loadRevokedTokens(callback) {
     },
   };
 
-  this.__cache_revoked_tokens = this.cacheService.new('cache_revoked_tokens', config);
+  this.__cache_revoked_tokens = this.cacheService.create('cache_revoked_tokens', config);
   this.__cache_revoked_tokens.sync(callback);
 }
 
@@ -692,7 +692,7 @@ function __loadSessionActivity(callback) {
     },
   };
 
-  this.__cache_session_activity = this.cacheService.new('cache_session_activity', config);
+  this.__cache_session_activity = this.cacheService.create('cache_session_activity', config);
   this.__cache_session_activity.sync(callback);
 }
 
@@ -1399,14 +1399,14 @@ function __initializeProfiles(config) {
 
 function __loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
   delete user.password;
-  if (this.__locks) this.__locks.removeSync(user.username); //remove previous locks
+  if (this.__locks) this.__locks.remove(user.username); //remove previous locks
   callback(null, this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo));
 }
 
 function __checkLockedOut(username) {
   if (!username || !this.config.accountLockout || !this.config.accountLockout.enabled) return false;
 
-  let existingLock = this.__locks.getSync(username);
+  let existingLock = this.__locks.get(username);
 
   return existingLock != null && existingLock.attempts >= this.config.accountLockout.attempts;
 }
@@ -1422,7 +1422,7 @@ function __loginFailed(username, specificMessage, e, callback, overrideLockout) 
   }
 
   if (this.config.accountLockout && this.config.accountLockout.enabled && !overrideLockout) {
-    let currentLock = this.__locks.getSync(username);
+    let currentLock = this.__locks.get(username);
 
     if (!currentLock)
       currentLock = {
@@ -1431,7 +1431,7 @@ function __loginFailed(username, specificMessage, e, callback, overrideLockout) 
 
     currentLock.attempts++;
 
-    this.__locks.setSync(username, currentLock, {
+    this.__locks.set(username, currentLock, {
       ttl: this.config.accountLockout.retryInterval,
     });
 
@@ -1575,7 +1575,7 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
 }
 
 function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
-  let behalfOfSession = this.__cache_session_on_behalf_of.getSync(onBehalfOf, { clone: false });
+  let behalfOfSession = this.__cache_session_on_behalf_of.get(onBehalfOf, { clone: false });
   if (behalfOfSession) return callback(null, behalfOfSession);
 
   this.users.getUser(onBehalfOf, (e, onBehalfOfUser) => {
@@ -1587,7 +1587,7 @@ function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
       info: { delegatedBy: delegatedBy.user.username },
     });
     behalfOfSession.happn = delegatedBy.happn;
-    this.__cache_session_on_behalf_of.setSync(onBehalfOf, behalfOfSession, { clone: false });
+    this.__cache_session_on_behalf_of.set(onBehalfOf, behalfOfSession, { clone: false });
     callback(null, behalfOfSession);
   });
 }
