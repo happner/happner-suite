@@ -3,7 +3,7 @@ const baseConfig = require('../_lib/base-config');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
-const clusterHelper = require('../_lib/helpers/muliProcessClusterManager').create();
+const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
@@ -44,7 +44,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     serverPromises.push(clusterHelper.start(brokerComponent));
     return Promise.all(serverPromises);
   });
-  before('creat test clients client', async () => {
+  before('create test clients', async () => {
     _AdminClient = await testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
     await users.add(_AdminClient, 'username', 'password');
     await users.allowMethod(_AdminClient, 'username', 'brokerComponent', 'block');
