@@ -142,6 +142,14 @@ class TestHelper {
 		return this.commons.uuid.v4().replace(/\-/g, '');
 	}
 
+	createTempfilePath(dirname, extension = 'txt', segments = '') {
+		return this.commons.path
+			.resolve(dirname, segments)
+			.concat(this.commons.path.sep)
+			.concat(this.compressedUUID())
+			.concat(`.${extension}`);
+	}
+
 	async lineCount(filePath) {
 		if (!this.fs.existsSync(filePath)) {
 		  return 0;

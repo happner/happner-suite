@@ -3079,4 +3079,43 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       done();
     });
   });
+
+  it('tests __ensureAdminUser, user exists', async () => {
+    const SecurityService = require('../../../lib/services/security/service');
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    serviceInst.users = {
+      getUser: test.sinon.stub().resolves({ username: '_ADMIN' }),
+      __upsertUser: test.sinon.stub().resolves({ username: '_ADMIN' }),
+    };
+    serviceInst.groups = {
+      __upsertGroup: test.sinon.stub().resolves({ username: '_ADMIN' }),
+      linkGroup: test.sinon.stub().resolves({}),
+    };
+    const config = {};
+    await serviceInst.__ensureAdminUser(config);
+    test.expect(serviceInst.users.__upsertUser.callCount).to.be(0);
+    test.expect(serviceInst.groups.__upsertGroup.callCount).to.be(1);
+  });
+
+  it('tests __ensureAdminUser, user does not exist', async () => {
+    const SecurityService = require('../../../lib/services/security/service');
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    serviceInst.users = {
+      getUser: test.sinon.stub().resolves(null),
+      __upsertUser: test.sinon.stub().resolves({ username: '_ADMIN' }),
+    };
+    serviceInst.groups = {
+      __upsertGroup: test.sinon.stub().resolves({ username: '_ADMIN' }),
+      linkGroup: test.sinon.stub().resolves({}),
+    };
+    const config = {};
+    await serviceInst.__ensureAdminUser(config);
+    test.expect(serviceInst.groups.__upsertGroup.callCount).to.be(1);
+    test.expect(serviceInst.groups.linkGroup.callCount).to.be(1);
+    test.expect(serviceInst.users.__upsertUser.callCount).to.be(1);
+  });
 });

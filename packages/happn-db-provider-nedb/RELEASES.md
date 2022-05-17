@@ -15,3 +15,11 @@
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
   - TEN-92: made all dependencies test dependencies
+
+1.0.4 2022-05-09
+-----------------
+  - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
+
+1.0.5 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy

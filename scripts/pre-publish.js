@@ -8,6 +8,14 @@ let lastHighestVersionJump = -1;
 let packagesMetaData = null;
 let prereleases = [];
 
+const { execSync } = require('child_process');
+
+function executeGitCommand(command) {
+  return execSync(command)
+    .toString('utf8')
+    .replace(/[\n\r\s]+$/, '');
+}
+
 console.log('fetching metadata from npm...');
 Promise.all(
   workspacePackageNames.map((packageName) =>
@@ -60,6 +68,51 @@ function verifyPublish(packagesMetaData, masterPackage) {
   packagesMetaData.forEach((packageMetaData) =>
     verifyPackage(packageMetaData, packagesMetaData, issues, successes)
   );
+  const packageLockVersion = require('../package-lock.json').version;
+  const packageVersion = require('../package.json').version;
+  if (packageLockVersion !== packageVersion) {
+    issues.push(
+      `package-lock with version ${packageLockVersion} is not same as package version: ${packageVersion}, run npm i`
+    );
+  }
+  const branch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
+  if (branch !== 'master') {
+    issues.push(`DO NOT PUBLISH FROM FEATURE OR DEV BRANCH: ${branch}`);
+  }
+
+  let masterPackageVersion = masterPackage.version;
+  let localMasterPackageVersion = require('../package.json').version;
+
+  if (
+    lastHighestVersionJump > -1 &&
+    (successes.length > 0 || issues.length > 0) &&
+    branch !== 'master'
+  ) {
+    const masterPackageJump = getVersionJump(localMasterPackageVersion, masterPackageVersion);
+    if (masterPackageVersion === localMasterPackageVersion) {
+      issues.push(
+        `local ${branch} version same as github master package version, should jump ${[
+          'patch',
+          'minor',
+          'major',
+        ].at(lastHighestVersionJump)}`
+      );
+    }
+    if (masterPackageJump.section !== lastHighestVersionJump) {
+      issues.push(
+        `${branch} version should jump ${['patch', 'minor', 'major'].at(lastHighestVersionJump)}`
+      );
+    }
+  }
+
+  if (localMasterPackageVersion !== require('../package-lock.json').version) {
+    issues.push(
+      `${localMasterPackageVersion} and package-lock version ${
+        require('../package-lock.json').version
+      } do not match`
+    );
+  }
+
   if (issues.length > 0) {
     console.warn('issues:');
     issues.forEach((issue) => console.warn(issue));
@@ -67,40 +120,6 @@ function verifyPublish(packagesMetaData, masterPackage) {
       console.info('ok:');
       successes.forEach((success) => console.info(success.name));
     }
-  }
-
-  let masterPackageVersion = masterPackage.version;
-  let localMasterPackageVersion = require('../package.json').version;
-
-  if (lastHighestVersionJump > -1 && (successes.length > 0 || issues.length > 0)) {
-    const masterPackageJump = getVersionJump(localMasterPackageVersion, masterPackageVersion);
-    if (masterPackageVersion === localMasterPackageVersion) {
-      console.warn(
-        `local master version same as github master package version, should jump ${[
-          'patch',
-          'minor',
-          'major',
-        ].at(lastHighestVersionJump)}`
-      );
-      return;
-    }
-    if (masterPackageJump.section !== lastHighestVersionJump) {
-      console.warn(
-        `master version should jump ${['patch', 'minor', 'major'].at(lastHighestVersionJump)}`
-      );
-      return;
-    }
-  }
-
-  if (localMasterPackageVersion !== require('../package-lock.json').version) {
-    console.warn(
-      `${localMasterPackageVersion} and package-lock version ${
-        require('../package-lock.json').version
-      } do not match`
-    );
-  }
-
-  if (issues.length) {
     if (prereleases.length > 0) {
       console.info('prereleases ready for publish:');
       getPublishOrder().forEach((packageName) => {
@@ -112,7 +131,6 @@ function verifyPublish(packagesMetaData, masterPackage) {
     }
     return;
   }
-
   console.info('ready for publish, in the following order:');
   successes
     .sort((a, b) => a.publishOrder - b.publishOrder)
@@ -190,7 +208,7 @@ function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease)
     prereleases.push({ packageName, major: newVersion.split('.').shift() });
     return `package version ${newVersion} is pre-release or non standard`;
   }
-  return jump.section;
+  return true;
 }
 
 function getVersionJump(newVersion, oldVersion) {
