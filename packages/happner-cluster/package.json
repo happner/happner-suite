@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "happn-cluster": "^13.0.0-prerelease.2",
+    "happn-cluster": "^13.0.0-prerelease.3",
     "happn-commons": "^1.0.3-prerelease.1",
     "happn-db-provider-mongo": "^1.0.8-prerelease.1",
     "happner-2": "^12.1.5-prerelease.1",
