@@ -6,7 +6,7 @@
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
     "pre-publish": "node bin/pre-publish",
     "lint": "eslint ./packages/$npm_config_package_name --ext .js",
-    "lint-fix": "eslint ./packages/$npm_config_package_name/**/*.js --fix",
+    "lint-fix": "eslint ./packages/$npm_config_package_name --ext .js --fix",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "workspaces": [

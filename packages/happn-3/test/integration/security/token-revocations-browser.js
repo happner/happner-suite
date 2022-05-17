@@ -22,7 +22,7 @@ describe(
                   },
                 },
                 policy: {
-                  ttl: '10 seconds', //a week
+                  ttl: '10 seconds',
                   inactivity_threshold: '5 seconds',
                 },
               },
@@ -32,7 +32,7 @@ describe(
       },
     };
 
-    it('logs in with a _browser request, then does a series of logins with with the original token, we revoke the token and ensure all children sessions have been disconnected', async () => {
+    it.only('logs in with a _browser request, then does a series of logins with with the original token, we revoke the token and ensure all children sessions have been disconnected', async () => {
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',

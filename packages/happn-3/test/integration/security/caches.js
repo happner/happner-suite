@@ -283,9 +283,7 @@ describe(testHelper.testName(__filename, 3), function () {
         expect(
           serviceInstance.services.security.checkpoint.__cache_checkpoint_authorization.size()
         ).to.be(5);
-        expect(serviceInstance.services.security.groups.permissionManager.cache.size()).to.be(
-          5
-        );
+        expect(serviceInstance.services.security.groups.permissionManager.cache.size()).to.be(5);
         done();
       }
     );

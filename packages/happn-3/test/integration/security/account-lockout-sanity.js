@@ -113,8 +113,7 @@ describe(
     after('stops the service if it exists', function (done) {
       stopService()
         .then(done)
-        .catch(function (e) {
-          console.log(`${e.message}`);
+        .catch(() => {
           done();
         });
     });
