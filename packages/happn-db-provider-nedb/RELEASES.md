@@ -19,3 +19,7 @@
 1.0.4 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
+
+1.0.5 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy

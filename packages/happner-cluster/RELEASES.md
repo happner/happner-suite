@@ -354,6 +354,10 @@
 -----------------
   - TEN-60: Wildcard-brokering
   - TEN-42: Rest-discovery
+  
+13.0.0 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 12.1.2 2022-05-04
 -----------------
@@ -366,6 +370,10 @@
 12.1.4 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
+
+12.1.5 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
 

@@ -250,7 +250,7 @@ non-release 2017-12-14
 -----------------
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
-
+  
 12.0.4 2022-04-06
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
@@ -268,4 +268,7 @@ non-release 2017-12-14
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
+13.0.0 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
 

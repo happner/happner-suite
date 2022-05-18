@@ -56,21 +56,21 @@ var config = {
           datastores: [
             {
               name: 'mongo',
-              provider: 'happn-service-mongo-2',
+              provider: 'happn-db-provider-mongo',
               isDefault: true,
               settings: {
                 collection: mongoCollection,
                 database: mongoCollection,
-                url: mongoUrl
-              }
-            }
-          ]
-        }
+                url: mongoUrl,
+              },
+            },
+          ],
+        },
       },
       security: {
         config: {
-          sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET'
-        }
+          sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET',
+        },
       },
       membership: {
         config: {
@@ -88,48 +88,48 @@ var config = {
           pingReqTimeout: processarguments.pingReqTimeout,
           pingReqGroupSize: processarguments.pingReqGroupSize,
           udp: {
-            maxDgramSize: processarguments.maxDgramSize
+            maxDgramSize: processarguments.maxDgramSize,
           },
-          disseminationFactor: processarguments.disseminationFactor
-        }
+          disseminationFactor: processarguments.disseminationFactor,
+        },
       },
       proxy: {
         config: {
           host: '0.0.0.0',
           port: processarguments.proxyport,
-          allowSelfSignedCerts: true
-        }
-      }
-    }
-  }
+          allowSelfSignedCerts: true,
+        },
+      },
+    },
+  },
 };
 
 config.happn.services.orchestrator = {
   config: {
-    replicate: ['test/**']
-  }
+    replicate: ['test/**'],
+  },
 };
 
 HappnerCluster.create(config)
-  .then(function(server) {
-    server._mesh.happn.server.services.membership.on('update', function(memberInfo) {
+  .then(function (server) {
+    server._mesh.happn.server.services.membership.on('update', function (memberInfo) {
       if (process.send)
         process.send({
           operation: 'update',
           data: {
-            memberId: memberInfo.memberId
-          }
+            memberId: memberInfo.memberId,
+          },
         });
     });
 
-    server._mesh.happn.server.services.membership.on('add', function(memberInfo) {
+    server._mesh.happn.server.services.membership.on('add', function (memberInfo) {
       if (process.send)
         process.send({
           operation: 'add',
           data: {
-            memberId: memberInfo.memberId
-          }
+            memberId: memberInfo.memberId,
+          },
         });
     });
   })
-  .catch(function() {});
+  .catch(function () {});

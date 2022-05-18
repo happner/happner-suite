@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -134,7 +133,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await sync
-        return Promise.delay(300);
+        return test.delay(300);
       })
 
       .then(function () {
@@ -188,7 +187,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await sync
-        return Promise.delay(300);
+        return test.delay(300);
       })
 
       .then(function () {
@@ -276,7 +275,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await sync
-        return Promise.delay(300);
+        return test.delay(300);
       })
 
       .then(function () {
@@ -303,7 +302,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await emit
-        return Promise.delay(200);
+        return test.delay(200);
       })
 
       .then(function () {
@@ -321,7 +320,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await sync
-        return Promise.delay(300);
+        return test.delay(300);
       })
 
       .then(function () {
@@ -331,7 +330,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       .then(function () {
         // await emit
-        return Promise.delay(200);
+        return test.delay(200);
       })
 
       .then(function () {
@@ -428,7 +427,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {
@@ -440,7 +439,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {
@@ -495,7 +494,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {
@@ -507,7 +506,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {
@@ -562,7 +561,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {
@@ -574,7 +573,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         })
 
         .then(function () {
-          return Promise.delay(400);
+          return test.delay(400);
         })
 
         .then(function () {

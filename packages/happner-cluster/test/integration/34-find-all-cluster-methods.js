@@ -47,8 +47,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
       6000
     );
-
-    meshNames = cluster.instances.map((instance) => instance._mesh.config.name);
+    cluster.sort()
+    meshNames = cluster.instances.map((instance) => instance._mesh.config.name); //Mesh instances may arrive out of order.
   }
 
   async function connectClient() {
@@ -72,9 +72,17 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     ];
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
+    let resultsMap = results.map((result) => result.name);
+    // eslint-disable-next-line no-console
+    console.log(meshNames)
+    // eslint-disable-next-line no-console
+    // console.log(resultsMap});
     test
-      .expect(results.map((result) => result.name))
-      .to.eql([meshNames[1], meshNames[2], meshNames[1]]);
+      .expect(
+        test._.isEqual(resultsMap, [meshNames[1], meshNames[2], meshNames[1]]) ||
+          test._.isEqual(resultsMap, [meshNames[2], meshNames[1], meshNames[2]])
+      )
+      .to.be(true);
     //ensure the method was only called 3 times
     test.expect(results.pop().callCount).to.be(3);
 

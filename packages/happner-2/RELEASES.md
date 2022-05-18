@@ -951,6 +951,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.1.4 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
+
+12.1.5 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
  
 
 

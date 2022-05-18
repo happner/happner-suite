@@ -330,6 +330,10 @@
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
 
+12.2.4 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
+
 
 
 
