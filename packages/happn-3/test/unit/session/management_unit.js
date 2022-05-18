@@ -150,19 +150,13 @@ describe(testHelper.testName(__filename, 3), function () {
       var client = mockClient();
 
       happn.services.session.onConnect(client);
-
-      //type, id, username, ttl, securityService
-
       var session = mockSession(1, client.sessionId, 'TESTUSER', null, happn.services.security);
-
       happn.services.session.attachSession(session.id, session);
 
       happn.services.security.listActiveSessions(function (e, list) {
         if (e) return done(e);
-
         expect(list[0].user.username).to.be('TESTUSER');
         expect(list[0].id).to.be(client.sessionId);
-
         done();
       });
     });
@@ -203,9 +197,7 @@ describe(testHelper.testName(__filename, 3), function () {
             setTimeout(function () {
               happn.services.security.listSessionActivity(function (e, items) {
                 if (e) return done(e);
-
                 expect(items.length).to.be(0);
-
                 done();
               });
             }, 7000);
@@ -217,10 +209,8 @@ describe(testHelper.testName(__filename, 3), function () {
 
   it('tests security services list session activity, with a filter', function (done) {
     this.timeout(10000);
-
     mockServices(function (e, happn) {
       if (e) return done(e);
-
       async.times(
         10,
         function (timeIndex, timeCB) {
@@ -243,7 +233,6 @@ describe(testHelper.testName(__filename, 3), function () {
         },
         function (e) {
           if (e) return done(e);
-
           happn.services.security.listSessionActivity(
             {
               action: {
@@ -252,9 +241,7 @@ describe(testHelper.testName(__filename, 3), function () {
             },
             function (e, items) {
               if (e) return done(e);
-
               expect(items.length).to.be(2);
-
               done();
             }
           );
@@ -429,55 +416,24 @@ describe(testHelper.testName(__filename, 3), function () {
   it('tests session revocation times out after restart', function (done) {
     mockServices(true, function (e, happn) {
       var client = mockClient();
-
       happn.services.session.onConnect(client);
-
       var session = mockSession(1, client.sessionId, 'TEST_USER1', 1000, happn.services.security);
-
       happn.services.session.attachSession(session.id, session);
 
       setTimeout(function () {
         happn.services.security.revokeToken(session.token, function (e) {
           if (e) return done(e);
-
           happn.services.security.listRevokedTokens(function (e, list) {
             if (e) return done(e);
-
             expect(list.length).to.be(1);
-
-            expect(
-              Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
-            ).to.be(1);
-
-            happn.services.security.__cache_revoked_tokens.__cache = {};
-
-            expect(
-              Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
-            ).to.be(0);
-
-            delete happn.services.cache.__caches.cache_revoked_tokens;
-            delete happn.services.security.__cache_revoked_tokens;
-
+            expect(happn.services.security.__cache_revoked_tokens.size()).to.be(1);
             happn.services.security.__loadRevokedTokens(function (e) {
               if (e) return done(e);
-
-              expect(
-                Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
-              ).to.be(1);
-              happn.services.security.__cache_revoked_tokens.__cache = {};
-              expect(
-                Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
-              ).to.be(0);
-
+              expect(happn.services.security.__cache_revoked_tokens.size()).to.be(1);
               setTimeout(function () {
-                delete happn.services.cache.__caches.cache_revoked_tokens;
-
                 happn.services.security.__loadRevokedTokens(function (e) {
                   if (e) return done(e);
-                  expect(
-                    Object.keys(happn.services.security.__cache_revoked_tokens.__cache).length
-                  ).to.be(0);
-
+                  expect(happn.services.security.__cache_revoked_tokens.size()).to.be(0);
                   done();
                 });
               }, 5000);

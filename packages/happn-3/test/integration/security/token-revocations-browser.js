@@ -32,7 +32,7 @@ describe(
       },
     };
 
-    it.only('logs in with a _browser request, then does a series of logins with with the original token, we revoke the token and ensure all children sessions have been disconnected', async () => {
+    it('logs in with a _browser request, then does a series of logins with with the original token, we revoke the token and ensure all children sessions have been disconnected', async () => {
       const server = await getServer(serverConfig);
       await upsertUser(server, {
         username: 'user-short-session',

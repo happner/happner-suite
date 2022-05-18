@@ -84,7 +84,11 @@ module.exports = class CachePersist extends require('./cache-static') {
     });
   }
 
-  remove(key, callback) {
+  remove(key, opts, callback) {
+    if (typeof opts === 'function') {
+      callback = opts;
+      opts = {};
+    }
     // ttl remove wont pass in a callback
     callback =
       callback ||
@@ -98,6 +102,10 @@ module.exports = class CachePersist extends require('./cache-static') {
     const existing = this.get(key);
     if (!existing) {
       return callback(null, null);
+    }
+    if (opts.noPersist) {
+      super.removeInternal(key);
+      return callback(null, existing);
     }
     this.#removeData(key, (e) => {
       if (e) return callback(e);

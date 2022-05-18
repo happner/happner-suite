@@ -112,18 +112,13 @@ function clearGroupUsersFromCache(groupName) {
 }
 
 function clearCaches(whatHappnd, changedData) {
-  if (whatHappnd == null)
-    return this.__cache_users
-      .clear()
-      .then(() => {
-        return this.__cache_passwords.clear();
-      })
-      .then(() => {
-        return this.__cache_users_by_groups.clear();
-      })
-      .then(() => {
-        return this.permissionManager.cache.clear();
-      });
+  if (whatHappnd == null) {
+    this.__cache_passwords.clear();
+    this.__cache_users.clear();
+    this.__cache_users_by_groups.clear();
+    this.permissionManager.cache.clear();
+    return;
+  }
   if (
     whatHappnd === SD_EVENTS.DELETE_GROUP ||
     whatHappnd === SD_EVENTS.UNLINK_GROUP ||

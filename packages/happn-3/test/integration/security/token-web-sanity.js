@@ -190,11 +190,8 @@ describe(
         true,
         function (response, body) {
           expect(response.statusCode).to.equal(200);
-
           var nonce = JSON.parse(body).data;
-
           var digest = crypto.sign(nonce, keyPair.privateKey);
-
           var encodedDigest = encodeURIComponent(digest);
 
           doRequest(

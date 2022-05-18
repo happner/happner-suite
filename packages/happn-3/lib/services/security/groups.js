@@ -83,9 +83,8 @@ function initialize(config, securityService, callback) {
 
 function clearCaches(whatHappnd, changedData) {
   if (whatHappnd == null) {
-    this.__cache_groups.clear().then(() => {
-      if (this.permissionManager) this.permissionManager.cache.clear();
-    });
+    this.__cache_groups.clear();
+    if (this.permissionManager) this.permissionManager.cache.clear();
     return;
   }
   return new Promise((resolve, reject) => {

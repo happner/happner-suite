@@ -37,8 +37,9 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     } else {
       this.#stats.hits++;
     }
-    //explicitly clone result, even if it was set with clone:false
-    if (cached.noclone && opts.clone === false) {
+
+    if (cached.noclone && opts.clone !== false) {
+      // explicitly choose not to clone
       return cached.data;
     }
     return this.utils.clone(cached.data);

@@ -955,19 +955,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
             test
               .expect(testServices.security.users.__cache_users.get(linkUser.username))
               .to.not.be(null);
+
             test
               .expect(testServices.security.users.__cache_passwords.get(linkUser.username))
               .to.not.be(null);
 
-            testServices.security.users.clearCaches().then(function () {
-              test
-                .expect(testServices.security.users.__cache_users.get(linkUser.username))
-                .to.be(null);
-              test
-                .expect(testServices.security.users.__cache_passwords.get(linkUser.username))
-                .to.be(null);
-              callback();
-            });
+            testServices.security.users.clearCaches();
+
+            test
+              .expect(testServices.security.users.__cache_users.get(linkUser.username))
+              .to.be(null);
+
+            test
+              .expect(testServices.security.users.__cache_passwords.get(linkUser.username))
+              .to.be(null);
+
+            callback();
           }
         );
       });

@@ -86,18 +86,11 @@ CheckPoint.prototype.stop = function () {
   if (this.__checkpoint_usage_limit) this.__checkpoint_usage_limit.clear();
 };
 
-CheckPoint.prototype.clearCaches = function (effectedSessions) {
-  return new Promise((resolve, reject) => {
-    try {
-      this.__cache_checkpoint_authorization.clear();
-      this.__checkpoint_permissionset.clear();
-      this.__checkpoint_permissionset_token.clear();
-      this.__cache_checkpoint_authorization_token.clear();
-      resolve(effectedSessions); //remember to pass effected sessions through
-    } catch (e) {
-      reject(e);
-    }
-  });
+CheckPoint.prototype.clearCaches = function () {
+  this.__cache_checkpoint_authorization.clear();
+  this.__checkpoint_permissionset.clear();
+  this.__checkpoint_permissionset_token.clear();
+  this.__cache_checkpoint_authorization_token.clear();
 };
 
 CheckPoint.prototype.__authorizedAction = function (action, permission) {
@@ -206,64 +199,38 @@ CheckPoint.prototype.__constructPermissionSet = function (session, callback) {
   });
 };
 
-CheckPoint.prototype.__checkInactivity = function (session, policy, callback) {
-  if (!policy.inactivity_threshold || policy.inactivity_threshold === Infinity)
-    return callback(null, true);
+CheckPoint.prototype.__checkInactivity = function (session, policy) {
+  if (!policy.inactivity_threshold || policy.inactivity_threshold === Infinity) return true;
 
   let now = Date.now();
+  const lastActivity = this.__checkpoint_inactivity_threshold.get(session.id);
+  const lastActivityFrom = lastActivity ? now - lastActivity : now - session.timestamp;
 
-  let doSet = () => {
-    this.__checkpoint_inactivity_threshold.set(
-      session.id,
-      now,
-      {
-        ttl: policy.inactivity_threshold,
-      },
-      (e) => {
-        if (e) return callback(e);
-        else callback(null, true);
-      }
-    );
-  };
+  if (lastActivityFrom > policy.inactivity_threshold) {
+    return false;
+  }
 
-  this.__checkpoint_inactivity_threshold.get(session.id, (e, value) => {
-    if (e) return callback(e);
-
-    if (value == null || value === undefined) {
-      if (now - session.timestamp > policy.inactivity_threshold) return callback(null, false);
-      if (now - session.timestamp < policy.inactivity_threshold) doSet();
-    } else {
-      if (now - value > policy.inactivity_threshold) return callback(null, false);
-      if (now - value < policy.inactivity_threshold) doSet();
-    }
+  this.__checkpoint_inactivity_threshold.set(session.id, now, {
+    ttl: policy.inactivity_threshold,
   });
+
+  return true;
 };
 
-CheckPoint.prototype.__checkUsageLimit = function (session, policy, callback) {
-  if (!policy.usage_limit || policy.usage_limit === Infinity) return callback(null, true);
-
+CheckPoint.prototype.__checkUsageLimit = function (session, policy) {
+  if (!policy.usage_limit || policy.usage_limit === Infinity) return true;
   let ttl = session.ttl - (Date.now() - session.timestamp); //calculate how much longer our session is valid for
 
-  this.__checkpoint_usage_limit.get(
-    session.id,
-    {
-      default: {
-        value: 0,
-        ttl: ttl,
-      },
+  const lastUsageLimit = this.__checkpoint_usage_limit.get(session.id, {
+    default: {
+      value: 0,
+      ttl: ttl,
     },
-    (e, value) => {
-      if (e) return callback(e);
+  });
 
-      if (value >= policy.usage_limit) return callback(null, false);
-      else {
-        this.__checkpoint_usage_limit.increment(session.id, 1, function (e) {
-          if (e) return callback(e);
-          callback(null, true);
-        });
-      }
-    }
-  );
+  if (lastUsageLimit >= policy.usage_limit) return false;
+  this.__checkpoint_usage_limit.increment(session.id, 1);
+  return true;
 };
 
 CheckPoint.prototype.__checkSessionPermissions = function (policy, path, action, session) {
@@ -273,40 +240,47 @@ CheckPoint.prototype.__checkSessionPermissions = function (policy, path, action,
 };
 
 CheckPoint.prototype._authorizeSession = function (session, path, action, callback) {
+  const callbackArgs = [];
   try {
-    if (session.policy == null)
-      return callback(null, false, CONSTANTS.UNAUTHORISED_REASONS.NO_POLICY_SESSION);
+    if (session.policy == null) {
+      return callbackArgs.push(null, false, CONSTANTS.UNAUTHORISED_REASONS.NO_POLICY_SESSION);
+    }
     let policy = session.policy[session.type];
-    if (!policy)
-      return callback(null, false, CONSTANTS.UNAUTHORISED_REASONS.NO_POLICY_SESSION_TYPE);
-    if (policy.ttl > 0 && Date.now() > session.timestamp + policy.ttl)
-      return callback(null, false, CONSTANTS.UNAUTHORISED_REASONS.EXPIRED_TOKEN);
-    this.__checkInactivity(session, policy, (e, ok) => {
-      if (e) return callback(e);
-      if (!ok)
-        return callback(null, false, CONSTANTS.UNAUTHORISED_REASONS.INACTIVITY_THRESHOLD_REACHED);
+    if (!policy) {
+      return callbackArgs.push(null, false, CONSTANTS.UNAUTHORISED_REASONS.NO_POLICY_SESSION_TYPE);
+    }
+    if (policy.ttl > 0 && Date.now() > session.timestamp + policy.ttl) {
+      return callbackArgs.push(null, false, CONSTANTS.UNAUTHORISED_REASONS.EXPIRED_TOKEN);
+    }
+    if (!this.__checkInactivity(session, policy)) {
+      return callbackArgs.push(
+        null,
+        false,
+        CONSTANTS.UNAUTHORISED_REASONS.INACTIVITY_THRESHOLD_REACHED
+      );
+    }
+    if (!this.__checkUsageLimit(session, policy)) {
+      return callbackArgs.push(null, false, CONSTANTS.UNAUTHORISED_REASONS.SESSION_USAGE);
+    }
 
-      this.__checkUsageLimit(session, policy, (e, ok) => {
-        if (e) return callback(e);
+    if (policy.permissions) {
+      // this allows the caller to circumvent any further calls through the security layer
+      // , idea here is that we can have tokens that have permission to do a very specific thing
+      // but we also allow for a fallback to the original session users permissions
+      if (this.__checkSessionPermissions(policy, path, action, session)) {
+        return callbackArgs.push(null, true, null, true);
+      }
+      return callbackArgs.push(null, false, 'token permissions limited');
+    }
 
-        if (!ok) return callback(null, false, CONSTANTS.UNAUTHORISED_REASONS.SESSION_USAGE);
-
-        if (policy.permissions) {
-          // this allows the caller to circumvent any further calls through the security layer
-          // , idea here is that we can have tokens that have permission to do a very specific thing
-          // but we also allow for a fallback to the original session users permissions
-          if (this.__checkSessionPermissions(policy, path, action, session))
-            return callback(null, true, null, true);
-          return callback(null, false, 'token permissions limited');
-        }
-
-        //passthrough happens, as a token has been used to do a login re-attempt
-        if (action === 'login') return callback(null, true, null, true);
-        callback(null, true);
-      });
-    });
+    //passthrough happens, as a token has been used to do a login re-attempt
+    if (action === 'login') return callbackArgs.push(null, true, null, true);
+    return callbackArgs.push(null, true);
   } catch (e) {
-    callback(e);
+    callbackArgs.length = 0;
+    return callbackArgs.push(e);
+  } finally {
+    callback(...callbackArgs);
   }
 };
 

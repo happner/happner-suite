@@ -543,7 +543,7 @@ describe(test.testName(__filename), function () {
           function (e) {
             if (e) return done(e);
 
-            expect(checkpoint.__cache_checkpoint_authorization.__cache.valList.length).to.be(5);
+            expect(checkpoint.__cache_checkpoint_authorization.size()).to.be(5);
 
             done();
           }
@@ -604,7 +604,7 @@ describe(test.testName(__filename), function () {
           },
           function (e) {
             if (e) return done(e);
-            expect(checkpoint.__cache_checkpoint_authorization.__cache.valList.length).to.be(10);
+            expect(checkpoint.__cache_checkpoint_authorization.size()).to.be(10);
             done();
           }
         );
