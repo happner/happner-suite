@@ -12,7 +12,7 @@ npm install happn-3
 
 ### Creating a minimal happn server
 
-Note: To create a more complex, happn-server, with security, users and groups, see [Putting it all together](#alltogether).
+Note: To create a more complex, happn-server, with security, users and groups, see [Putting it all together](#putting-it-all-together).
 By default, the happn server will run on port 55000. To create a happn server
 
 ```js
@@ -38,7 +38,7 @@ happn.service.create((error, happnInstance) => {
 For more details on configuration see:
 
 ### Creating a minimal happn client
-
+'data/myUser1/myLeaf'
 Prequisites: a non-secure happn-server running at default or specified host and port.  
 A happner client can be created in either node or the browser, as follows:  
 Note that some of the default options are used here, as an example. For more info on options, see [Readme - Configuration](https://github.com/happner/happner-suite/tree/master/packages/happn-3#configuration)
@@ -125,7 +125,7 @@ happnClient_instance.remove('my/path/1')
 data = await happnClient_instance.get('my/path/1');
 // data is null
 
-await happnClient_instance.increemnt('my/gauge/1'});
+await happnClient_instance.increment('my/gauge/1'});
 // This  will create a gauage if there isn't one at the path
 data = await happnClient_instance.get('my/gauge/1');
 //data is {counter: {value: 1}, _meta: {...}
@@ -167,7 +167,7 @@ One can also subscribe on paths using wildcards, and also to a variable depth of
 ### Security
 
 Happn has a rich security layer, which at it's simplest consists of users, groups and permissions. In order to use the security service, we first need to create a secure happn server
-
+'data/myUser1/myLeaf'
 #### Creating a secure happn server:
 
 ```js
@@ -279,13 +279,25 @@ await secureHappnSerer.services.security.groups.unlinkGroup(myGroup, myUser);
 
 ### Putting it all together
 
-The following code, will create a secure happn server,
+The following code, will create a secure happn server, a user with permissions, and a group with other permissions. It will link the user to the group.
 
 ```js
 let happn = require('happn-3');
 //async/await
 (async () => {
-  let happnServer = await happn.service.create({ sevure: true }); // Will create default admin user: {username: '_ADMIN", password: 'happn'}
+  let happnServer = await happn.service.create({
+    secure: true,
+    port: 55000 //default - change if needed
+    services: {
+      security: {
+        config: {
+          adminUser: {
+            username: "ADMIN_USER",
+            password: "adminPass"}
+        }
+      }
+    }
+    }); // Will create default admin user: {username: '_ADMIN", password: 'happn'}
   let user = await secureHappnSerer.services.security.users.upsertUser({
     username: 'myUser1@somewhere.com',
     password: 'password',
@@ -301,4 +313,42 @@ let happn = require('happn-3');
   });
   await secureHappnSerer.services.security.groups.linkGroup(myGroup, myUser);
 })();
+```
+
+With the above server running, we can create a client that connects to the server as out created user, `'myUser1@somewhere.com'`as follows
+
+```js
+let happn = require('happn-3');
+(async () => {
+let options = {
+    host: "127.0.0.1",  //default -change if needed
+    port: 55000 //default -change if needed
+    secure: true,
+    username: 'myUser1@somewhere.com',  // User details as created above, alter as required
+    password: 'password',
+}
+let happnClient_instance = await happn.client.create(options);
+
+//We can set and get data on our paths
+await happnClient.instance.set('data/myUser1/myLeaf', {some: 'data'});
+await happnClient.instance.set('data/MY_GROUP1/groupLeaf', {group: 'data'});
+let result = await happnClient.instance.get('data/myUser1/myLeaf');
+// result == {some: 'data', meta: {...}}
+reault = await happnClient.instance.get('data/MY_GROUP1/groupLeaf');
+// result == {group: 'data', meta: {...}};
+try {
+  await happnClient.instance.get('Some/Other/Path')
+} catch(e) {
+  // e will be an AccessDenied error
+};
+
+// We can also subscribe on allowed paths:
+let handler = (data) => {console.log(data)}
+await happnClient.instance.on('data/myUser1/myLeaf', handler);
+await happnClient.instance.set('data/myUser1/myLeaf', {new: 'data'});
+// fires handler with {new: 'data'};
+
+await happnClient.instance.publish('data/myUser1/myLeaf', {data: 'dont store'});
+// fires handler with {data: 'dont store'}, the data stored at 'data/myUser1/myLeaf' remains unchanged.
+})()
 ```

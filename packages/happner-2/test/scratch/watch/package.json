@@ -1,0 +1,16 @@
+{
+  "name": "watch",
+  "version": "1.0.0",
+  "happner": {
+    "dependencies": {
+      "watch": {
+        "timer": {
+          "version": "^1.0.0",
+          "methods": {
+            "getSystemTime" : {}
+          }
+        }
+      }
+    }
+  }
+}
