@@ -145,3 +145,4 @@ To create a happner client in the browser, you can use the following:
 ```
 
 ### Happner-2 Mesh configuration
+For a full list of configuration options, see [Happner-2 documentation - configuuration](https://github.com/happner/happner-2/blob/master/docs/configuration.md]
