@@ -385,7 +385,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
         .catch(done);
     });
 
-    it.only('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', function (done) {
+    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', function (done) {
       let testClient;
 
       startClusterInternalFirst()
@@ -419,7 +419,6 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
           test
             .expect(result)
             .to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod3:test:username');
-          // console.log('RETURNING PROMISE');
           return new Promise((resolve, reject) => {
             localInstance.stop((e) => {
               if (e) return reject(e);
@@ -428,12 +427,9 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
           });
         })
         .then(function () {
-          // console.log('RETURNING METHOD CALL (GONE');
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .catch(function (e) {
-          console.log('CAUGHT ERROR');
-          console.log(e);
           test.expect(e.message).to.be('Not implemented remoteComponent1:^2.0.0:brokeredMethod3');
           done();
         });

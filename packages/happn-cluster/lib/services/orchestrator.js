@@ -179,10 +179,9 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async lookup() {
     let endpoints = await this.fetchEndpoints();
-
-    // this.log.info(
-    //   '<BROKER ISSUES> BROKER ENDPOINTS AT ' + this.happn.name + ':' + endpoints.broker
-    // );
+    this.log.info(
+      '<BROKER ISSUES> BROKER ENDPOINTS AT ' + this.happn.name + ':' + endpoints.broker
+    );
     Object.entries(this.registry).forEach(([name, service]) =>
       service.setEndpoints(endpoints[name] || [])
     );
@@ -219,17 +218,12 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   keepAlive() {
-    // try {
-    //   //<BROKER ISSUES>
-      let keepAlivePath = `/SYSTEM/DEPLOYMENT/${this.deployment}/${this.serviceName}/${this.endpoint}`;
-      let keepAliveData = {
-        service: this.serviceName,
-        endpoint: this.endpoint,
-      };
-      this.happn.services.data.upsert(keepAlivePath, keepAliveData);
-    // } catch (e) {
-    //   this.log.info('<BROKER ISSUES> KEEPALIVE ERROR: '+ e.toString());
-    // }
+    let keepAlivePath = `/SYSTEM/DEPLOYMENT/${this.deployment}/${this.serviceName}/${this.endpoint}`;
+    let keepAliveData = {
+      service: this.serviceName,
+      endpoint: this.endpoint,
+    };
+    this.happn.services.data.upsert(keepAlivePath, keepAliveData);
   }
 
   getLoginConfig() {
@@ -254,27 +248,27 @@ module.exports = class Orchestrator extends EventEmitter {
     member.listedAsPeer = true;
     this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
-    // this.log.info('<BROKER ISSUES> ' + this.happn.name + ' ADDED PEER ' + member.name);
-    // this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+    this.log.info('<BROKER ISSUES> ' + this.happn.name + ' ADDED PEER ' + member.name);
+    this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
   }
 
   removePeer(member) {
     member.listedAsPeer = false;
     this.emit('peer/remove', member.name, member);
-    this.removeMember(member);
-    // member.connectedTo = false;
-    // this.log.info(
-    //   '<BROKER ISSUES> ' +
-    //     this.happn.name +
-    //     ' REMOVED PEER ' +
-    //     member.name +
-    //     ' AND MARKED AS NOT connectedTo'
-    // );
+    // this.removeMember(member);
+    member.connectedTo = false;
+    this.log.info(
+      '<BROKER ISSUES> ' +
+        this.happn.name +
+        ' REMOVED PEER ' +
+        member.name +
+        ' AND MARKED AS NOT connectedTo'
+    );
     this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
   }
 
   removeMember(member) {
-    // this.log.info('<BROKER ISSUES> ' + this.happn.name + ' REMOVED MEMBER  ' + member.name);
+    this.log.info('<BROKER ISSUES> ' + this.happn.name + ' REMOVED MEMBER  ' + member.name);
     if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);
   }
 

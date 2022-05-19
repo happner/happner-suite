@@ -47,8 +47,8 @@ Brokerage.prototype.__checkDependenciesSatisfied = function () {
   if (this.__dependenciesSatisfied) {
     //otherwise we get an unecessary "description storm" - clients will get the right description from this point on
     this.__mesh.disableSchemaPublish();
-    // if (this.__proxy)
-    this.__proxy.start(); //now we can receive client connections
+    // It IS possible this gets called when this doesn't have a proxy.
+    if (this.__proxy) this.__proxy.start(); //now we can receive client connections
     this.logger.debug('dependencies satisfied, switched off schema publish and started proxy');
   }
 };
