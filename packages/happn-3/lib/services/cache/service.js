@@ -5,6 +5,8 @@ const commons = require('happn-commons');
 module.exports = class CacheService extends require('events').EventEmitter {
   #caches;
   #config;
+  #statisticsInterval;
+  #lastStats;
   constructor(opts) {
     super();
     this.initialize = commons.utils.maybePromisify(this.initialize);
@@ -46,6 +48,13 @@ module.exports = class CacheService extends require('events').EventEmitter {
 
       this.#config = config;
       this.#caches = {};
+      if (
+        typeof this.#config.statisticsInterval === 'number' &&
+        this.#config.statisticsInterval < 1e3
+      ) {
+        this.log.warn(`statisticsInterval smaller than a second, ignoring`);
+      }
+      if (this.#config.statisticsInterval >= 1e3) this.#startLoggingStatistics();
       callback();
     } catch (e) {
       callback(e);
@@ -118,6 +127,7 @@ module.exports = class CacheService extends require('events').EventEmitter {
       callback = options;
     }
     this.stopAll();
+    if (this.#statisticsInterval) this.#stopLoggingStatistics();
     if (typeof callback === 'function') {
       callback();
     }
@@ -139,5 +149,49 @@ module.exports = class CacheService extends require('events').EventEmitter {
     const found = this.getCache(name);
     if (found) return found.instance;
     return this.create(name, opts);
+  }
+
+  #startLoggingStatistics() {
+    this.#statisticsInterval = setInterval(() => {
+      try {
+        const stats = this.getStats();
+        this.log.json.info(
+          commons._.merge(this.#calculatePerSecond(stats), {
+            logType: 'statistics',
+            area: 'happn-3 cache service',
+            timestamp: Date.now(),
+          })
+        );
+        this.#lastStats = stats;
+      } catch (e) {
+        this.log.warn(`failure logging statistics: ${e.message}`);
+      }
+    }, this.#config.statisticsInterval);
+  }
+
+  #calculatePerSecond(stats) {
+    return Object.keys(stats).reduce((calculated, statsKey) => {
+      if (!this.#lastStats) {
+        calculated[statsKey] = commons._.merge(stats[statsKey], {
+          hitsPerSec: stats[statsKey].hits / (this.#config.statisticsInterval / 1e3),
+          missesPerSec: stats[statsKey].misses / (this.#config.statisticsInterval / 1e3),
+        });
+      } else {
+        calculated[statsKey] = commons._.merge(stats[statsKey], {
+          hitsPerSec:
+            (stats[statsKey].hits - this.#lastStats[statsKey].hits) /
+            (this.#config.statisticsInterval / 1e3),
+          missesPerSec:
+            (stats[statsKey].misses - this.#lastStats[statsKey].misses) /
+            (this.#config.statisticsInterval / 1e3),
+        });
+      }
+
+      return calculated;
+    }, {});
+  }
+
+  #stopLoggingStatistics() {
+    clearInterval(this.#statisticsInterval);
   }
 };

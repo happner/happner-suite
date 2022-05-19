@@ -12,7 +12,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
         services: {
           cache: {
             __caches: {},
-            new: () => {
+            getOrCreate: () => {
               return {
                 clear: () => {},
               };
