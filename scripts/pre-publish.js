@@ -3,6 +3,19 @@ const path = require('path');
 const basePackage = require('../package.json');
 const workspacePackages = basePackage.workspaces.map((path) => require(`../${path}/package.json`));
 const workspacePackageNames = basePackage.workspaces.map((path) => path.split('/')[1]);
+
+let lastHighestVersionJump = -1;
+let packagesMetaData = null;
+let prereleases = [];
+
+const { execSync } = require('child_process');
+
+function executeGitCommand(command) {
+  return execSync(command)
+    .toString('utf8')
+    .replace(/[\n\r\s]+$/, '');
+}
+
 console.log('fetching metadata from npm...');
 Promise.all(
   workspacePackageNames.map((packageName) =>
@@ -10,13 +23,14 @@ Promise.all(
   )
 )
   .then((metaData) => {
-    const packagesMetaData = metaData.map((metaDataItem) => {
+    console.log('fetched data from npm');
+    packagesMetaData = metaData.map((metaDataItem) => {
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
       const newVersion = localPackage.version;
       const lastVersion = metaDataItem.data['dist-tags'].latest;
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
-        publishOrder: getPublishOrder(localPackage.name),
+        publishOrder: getPackagePublishOrder(localPackage.name),
         isPrerelease,
         versionJumped: newVersion !== lastVersion,
         versionJumpMadeSense: versionJumpMadeSense(
@@ -35,18 +49,70 @@ Promise.all(
         possibleOnlyInTests: checkOnlyInTests(localPackage),
       };
     });
-    verifyPublish(packagesMetaData);
+    console.log('fetching master package...');
+    return require('axios').default.get(
+      `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
+    );
+  })
+  .then((masterPackage) => {
+    console.log('fetched master package...');
+    verifyPublish(packagesMetaData, masterPackage.data);
   })
   .catch((e) => {
     throw e;
   });
 
-function verifyPublish(packagesMetaData) {
+function verifyPublish(packagesMetaData, masterPackage) {
   let issues = [],
     successes = [];
   packagesMetaData.forEach((packageMetaData) =>
     verifyPackage(packageMetaData, packagesMetaData, issues, successes)
   );
+  const packageLockVersion = require('../package-lock.json').version;
+  const packageVersion = require('../package.json').version;
+  if (packageLockVersion !== packageVersion) {
+    issues.push(
+      `package-lock with version ${packageLockVersion} is not same as package version: ${packageVersion}, run npm i`
+    );
+  }
+  const branch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
+  if (branch !== 'master') {
+    issues.push(`DO NOT PUBLISH FROM FEATURE OR DEV BRANCH: ${branch}`);
+  }
+
+  let masterPackageVersion = masterPackage.version;
+  let localMasterPackageVersion = require('../package.json').version;
+
+  if (
+    lastHighestVersionJump > -1 &&
+    (successes.length > 0 || issues.length > 0) &&
+    branch !== 'master'
+  ) {
+    const masterPackageJump = getVersionJump(localMasterPackageVersion, masterPackageVersion);
+    if (masterPackageVersion === localMasterPackageVersion) {
+      issues.push(
+        `local ${branch} version same as github master package version, should jump ${[
+          'patch',
+          'minor',
+          'major',
+        ].at(lastHighestVersionJump)}`
+      );
+    }
+    if (masterPackageJump.section !== lastHighestVersionJump) {
+      issues.push(
+        `${branch} version should jump ${['patch', 'minor', 'major'].at(lastHighestVersionJump)}`
+      );
+    }
+  }
+
+  if (localMasterPackageVersion !== require('../package-lock.json').version) {
+    issues.push(
+      `${localMasterPackageVersion} and package-lock version ${
+        require('../package-lock.json').version
+      } do not match`
+    );
+  }
+
   if (issues.length > 0) {
     console.warn('issues:');
     issues.forEach((issue) => console.warn(issue));
@@ -54,9 +120,17 @@ function verifyPublish(packagesMetaData) {
       console.info('ok:');
       successes.forEach((success) => console.info(success.name));
     }
+    if (prereleases.length > 0) {
+      console.info('prereleases ready for publish:');
+      getPublishOrder().forEach((packageName) => {
+        const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
+        if (found) {
+          console.info(`npm publish --workspace=${packageName} --tag prerelease-${found.major}`);
+        }
+      });
+    }
     return;
   }
-
   console.info('ready for publish, in the following order:');
   successes
     .sort((a, b) => a.publishOrder - b.publishOrder)
@@ -122,22 +196,31 @@ function getWorkspaceDependencies(package, dev) {
 }
 
 function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease) {
-  if (isPrerelease) return `package version ${newVersion} is pre-release or invalid`;
   if (newVersion === oldVersion) return true;
-  let [oldMajor, oldMinor, oldPatch] = oldVersion.split('.');
-
-  let possibleOptions = [
-    [parseInt(oldMajor) + 1, '0', '0'],
-    [oldMajor, parseInt(oldMinor) + 1, '0'],
-    [oldMajor, oldMinor, parseInt(oldPatch) + 1],
-  ].map((optionSet) => optionSet.join('.'));
-
-  if (possibleOptions.indexOf(newVersion) === -1) {
-    return `new version ${newVersion} for package ${packageName} should be one of the following: ${possibleOptions.join(
+  const jump = getVersionJump(newVersion, oldVersion);
+  if (jump.section === -1) {
+    return `new version ${newVersion} for package ${packageName} should be one of the following: ${jump.possibleOptions.join(
       ' || '
     )}`;
   }
+  if (lastHighestVersionJump < jump.section) lastHighestVersionJump = jump.section;
+  if (isPrerelease) {
+    prereleases.push({ packageName, major: newVersion.split('.').shift() });
+    return `package version ${newVersion} is pre-release or non standard`;
+  }
   return true;
+}
+
+function getVersionJump(newVersion, oldVersion) {
+  let [oldMajor, oldMinor, oldPatch] = oldVersion.split('.');
+
+  let possibleOptions = [
+    [oldMajor, oldMinor, parseInt(oldPatch) + 1],
+    [oldMajor, parseInt(oldMinor) + 1, '0'],
+    [parseInt(oldMajor) + 1, '0', '0'],
+  ].map((optionSet) => optionSet.join('.'));
+
+  return { section: possibleOptions.indexOf(newVersion.split('-')[0]), possibleOptions };
 }
 
 function getPackageRootPath(packageName) {
@@ -172,7 +255,11 @@ function checkOnlyInTests(localPackage) {
   return output.toString().trim();
 }
 
-function getPublishOrder(packageName) {
+function getPackagePublishOrder(packageName) {
+  return getPublishOrder().indexOf(packageName);
+}
+
+function getPublishOrder() {
   return [
     'happn-commons',
     'happn-commons-test',
@@ -190,5 +277,5 @@ function getPublishOrder(packageName) {
     'happner-client',
     'happner-2',
     'happner-cluster',
-  ].indexOf(packageName);
+  ];
 }

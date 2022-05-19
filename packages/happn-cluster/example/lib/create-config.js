@@ -14,26 +14,20 @@ module.exports = function (seq, name) {
           },
         },
       },
-      // data: {
-      //   path: 'happn-service-mongo-2',
-      //   config: {
-      //     collection: 'happn-cluster',
-      //     url: 'mongodb://127.0.0.1:27017/happn-cluster'
-      //   }
-      // },
       data: {
         config: {
           datastores: [
-            {
-              name: 'mongo',
-              provider: 'happn-service-mongo-2',
-              isDefault: true,
-              settings: {
-                collection: 'happn-cluster',
-                database: 'happn-cluster',
-                url: 'mongodb://127.0.0.1:27017',
-              },
-            },
+            //mongo is defaulted:
+            // {
+            //     name: 'mongo',
+            //     provider: 'happn-db-provider-mongo',
+            //     settings: {
+            //         collection: process.env.MONGO_COLLECTION || 'happn-cluster',
+            //         database: process.env.MONGO_DATABASE || 'happn-cluster',,
+            //         url: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017',
+            //     },
+            //     isDefault: true,
+            // },
           ],
         },
       },

@@ -256,10 +256,19 @@ non-release 2017-12-14
   - TEN-103: set default timeout on component loading wait warning to 30secs
   - TEN-104: errors are only logged on system failures
 
-12.1.0 2022-03-17
+12.0.5 2022-05-04
 -----------------
-  - SMC-4817: Major refactor, took out swim, replaced with Databased logging of members.
+  - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
 
-13.0.0 2022-04-18
+12.0.6 2022-05-06
+-----------------
+  - TEN-114: happn-3: enforce admin group save on startup
+
+12.0.7 2022-05-09
+-----------------
+  - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
+
+13.0.0 2022-05-17
 -----------------
   - SMC-4817: mongo-based membership strategy
+

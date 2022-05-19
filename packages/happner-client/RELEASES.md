@@ -318,6 +318,23 @@
   - TEN-60: Wildcard-brokering
   - TEN-42: Rest-discovery
 
+12.2.1 2022-05-04
+-----------------
+  - TEN-112: happn-3: group with permissions that have dots in them causes compaction failure
+
+12.2.2 2022-05-06
+-----------------
+  - TEN-114: happn-3: enforce admin group save on startup
+
+12.2.3 2022-05-09
+-----------------
+  - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
+
+12.2.4 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
+
+
 
 
 

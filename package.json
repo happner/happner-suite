@@ -1,10 +1,10 @@
 {
   "name": "happner-suite",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
-    "pre-publish": "node bin/pre-publish",
+    "pre-publish": "node scripts/pre-publish",
     "lint": "eslint ./packages/$npm_config_package_name/**/*.js",
     "lint-fix": "eslint ./packages/$npm_config_package_name/**/*.js --fix",
     "check-env": "node -e 'console.log(process.env)' | grep npm"

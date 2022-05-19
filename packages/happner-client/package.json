@@ -1,6 +1,6 @@
 {
   "name": "happner-client",
-  "version": "12.2.0-prerelease-1",
+  "version": "12.2.4-prerelease.1",
   "description": "The client for happner-2 and happner cluster services",
   "homepage": "https://github.com/happner/happner-client#readme",
   "bugs": {
@@ -21,12 +21,12 @@
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },
   "dependencies": {
-    "happn-3": "^13.0.7-prerelease-1",
-    "happn-commons": "^1.0.2",
+    "happn-3": "^13.0.10-prerelease.1",
+    "happn-commons": "^1.0.3-prerelease.1",
     "happner-semver": "^1.0.1"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.0.3",
-    "happner-2": "^12.1.2-prerelease-1"
+    "happn-commons-test": "^1.0.4-prerelease.1",
+    "happner-2": "^12.1.5-prerelease.1"
   }
 }

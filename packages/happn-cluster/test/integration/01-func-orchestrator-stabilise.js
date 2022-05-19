@@ -1,4 +1,3 @@
-const { Console } = require('console');
 var path = require('path');
 var filename = path.basename(__filename);
 var hooks = require('../lib/hooks');

@@ -247,7 +247,7 @@ module.exports = class Orchestrator extends EventEmitter {
   removePeer(member) {
     member.listedAsPeer = false;
     this.emit('peer/remove', member.name, member);
-
+    this.removeMember(member);
     this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
   }
 
