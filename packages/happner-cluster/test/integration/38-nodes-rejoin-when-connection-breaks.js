@@ -17,6 +17,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   before('start cluster', async () => {
     const serverPromises = [];
     const remoteComponent = baseConfig(getSeq.getFirst(), 2, true, null, null, null, null, null);
+    remoteComponent.happn.services.orchestrator.config.serviceName = 'remote';
+    remoteComponent.happn.services.orchestrator.config.cluster = { broker: 3, remote: 1 };
     remoteComponent.modules = {
       remoteComponent: {
         path: libDir + 'integration-37-remote-component',
@@ -28,20 +30,32 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    remoteComponent.happn.services.orchestrator.config.minimumPeers = 4;
     serverPromises.push(clusterHelper.start(remoteComponent));
     const brokerComponent = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
-    brokerComponent.modules = {
-      brokerComponent: {
-        path: libDir + 'integration-37-broker-component',
-      },
-    };
-    brokerComponent.components = {
-      brokerComponent: {
-        startMethod: 'start',
-        stopMethod: 'stop',
-      },
-    };
-    serverPromises.push(clusterHelper.start(brokerComponent));
+    const brokerComponent2 = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
+    const brokerComponent3 = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
+
+    [brokerComponent, brokerComponent2, brokerComponent3].forEach((brokerComponent) => {
+      brokerComponent.modules = {
+        brokerComponent: {
+          path: libDir + 'integration-37-broker-component',
+        },
+      };
+      brokerComponent.components = {
+        brokerComponent: {
+          startMethod: 'start',
+          stopMethod: 'stop',
+        },
+      };
+      brokerComponent.happn.services.orchestrator.config.serviceName = 'broker';
+      brokerComponent.happn.services.orchestrator.config.cluster = { broker: 3, remote: 1 };
+
+      brokerComponent.happn.services.orchestrator.config.timing.healthReport = 2000;
+      brokerComponent.happn.services.orchestrator.config.minimumPeers = 4;
+
+      serverPromises.push(clusterHelper.start(brokerComponent));
+    });
     return Promise.all(serverPromises);
   });
   before('create test clients', async () => {
@@ -64,13 +78,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
     await testClient.exchange.brokerComponent.block();
-    await test.delay(36000); //wait for component to stop blocking and reconnect to mesh
-    let result 
+    await test.delay(15000); //wait for component to stop blocking and reconnect to mesh
+    let result;
     try {
-    result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
+      result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
     } catch (e) {
-      console.log("GOT ERROR", e)
+      console.log('GOT ERROR', e);
     }
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+    await test.delay(10000);
   });
 });
