@@ -19,8 +19,8 @@ ComponentInstance.prototype.clearCachedBoundExchange = function () {
 
 ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, componentName) {
   this.boundExchangeCache =
-    mesh.happn.server.services.cache.__caches['happner-bound-exchange' + componentName] ||
-    mesh.happn.server.services.cache.create('happner-bound-exchange' + componentName, {
+    mesh.happn.server.services.cache.getCache('happner-bound-exchange-' + componentName) ||
+    mesh.happn.server.services.cache.create('happner-bound-exchange-' + componentName, {
       type: 'LRU',
       cache: {
         max: mesh.config.boundExchangeCacheSize || 10000,
