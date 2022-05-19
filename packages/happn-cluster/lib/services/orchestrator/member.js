@@ -76,9 +76,9 @@ module.exports = class Member {
     //   this.log.info('<BROKER ISSUES>, pre-connect, '  + this.orchestrator.happn.name + ' TO ' + this.name, 'copnnectedTo: '+ this.connectedTo + ' conecctingTo: ' +  this.connecteedFrom)
     // }
     if (this.connectingTo || this.connectedTo) return;
-    this.log.info(
-      '<BROKER_ISSUES>: CONNECTING ' + this.orchestrator.happn.name + ' TO ' + this.name
-    );
+    // this.log.info(
+    //   '<BROKER_ISSUES>: CONNECTING ' + this.orchestrator.happn.name + ' TO ' + this.name
+    // );
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -101,10 +101,10 @@ module.exports = class Member {
         this.orchestrator.removeMember(this);
         return;
       }
-      this.log.info(
-        '<BROKER_ISSUES>:CONNECT ERROR AT ' + this.orchestrator.happn.name + ' TO ' + this.name
-      );
-      this.log.info('<BROKER_ISSUES>:CONNECT ERROR:' + thisError.toString());
+      // this.log.info(
+      //   '<BROKER_ISSUES>:CONNECT ERROR AT ' + this.orchestrator.happn.name + ' TO ' + this.name
+      // );
+      // this.log.info('<BROKER_ISSUES>:CONNECT ERROR:' + thisError.toString());
       this.error = thisError;
       this.connectingTo = false;
       this.log.warn('FAILED connection to  %s', loginConfig.url);
@@ -140,23 +140,23 @@ module.exports = class Member {
   }
 
   async connectionFrom(member) {
-    if (this.error)
-      this.log.warn(
-        '<BROKER ISSUES> NODE ' +
-          this.orchestrator.happn.name +
-          'AT CONNECTION FROM, ERROR IS:' +
-          this.error.toString() +
-          'setting to null'
-      );
+    // if (this.error)
+    //   this.log.warn(
+    //     '<BROKER ISSUES> NODE ' +
+    //       this.orchestrator.happn.name +
+    //       'AT CONNECTION FROM, ERROR IS:' +
+    //       this.error.toString() +
+    //       'setting to null'
+    //   );
     // this.error = null;
-    this.log.warn(
-      '<BROKER_ISSUES>:' +
-        this.orchestrator.happn.name +
-        ' RECIEVED CONNECTION FROM ' +
-        this.name +
-        ' AND connectedTo = ' +
-        this.connectedTo
-    );
+    // this.log.warn(
+    //   '<BROKER_ISSUES>:' +
+    //     this.orchestrator.happn.name +
+    //     ' RECIEVED CONNECTION FROM ' +
+    //     this.name +
+    //     ' AND connectedTo = ' +
+    //     this.connectedTo
+    // );
     this.connectedFrom = true;
     this.updateOwnInfo(member);
     await this.connect(this.orchestrator.getLoginConfig());
@@ -193,12 +193,12 @@ module.exports = class Member {
   }
 
   __onHappnDisconnect() {
-    this.log.info(
-      '<BROKER_ISSUES>: RECEIVED HAPPN DISCONNECT AT ' +
-        this.orchestrator.happn.name +
-        ' FROM ' +
-        this.name
-    );
+    // this.log.info(
+    //   '<BROKER_ISSUES>: RECEIVED HAPPN DISCONNECT AT ' +
+    //     this.orchestrator.happn.name +
+    //     ' FROM ' +
+    //     this.name
+    // );
     this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
     if (!this.connectedTo) return;
     this.connectedTo = false;
@@ -207,12 +207,12 @@ module.exports = class Member {
   }
 
   __onHappnReconnect() {
-    this.log.info(
-      '<BROKER_ISSUES>: RECEIVED HAPPN RECONNECT AT ' +
-        this.orchestrator.happn.name +
-        ' FROM ' +
-        this.name
-    );
+    // this.log.info(
+    //   '<BROKER_ISSUES>: RECEIVED HAPPN RECONNECT AT ' +
+    //     this.orchestrator.happn.name +
+    //     ' FROM ' +
+    //     this.name
+    // );
     this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
     if (this.connectedTo) return;
     this.connectedTo = true;
