@@ -87,31 +87,6 @@ module.exports = class Member {
     let client;
     try {
       client = await this.orchestrator.HappnClient.create(loginConfig);
-      this.__disconnectServerSide = client.onEvent(
-        'server-side-disconnect',
-        this.__onHappnDisconnect.bind(this)
-      );
-      this.__disconnectSubscriptionId = client.onEvent(
-        'connection-ended',
-        this.__onHappnDisconnect.bind(this)
-      );
-      this.__disconnectSubscriptionId = client.onEvent(
-        'connection/ended',
-        this.__onHappnDisconnect.bind(this)
-      );
-      this.__retryConnectSubscriptionId = client.onEvent(
-        'reconnect-scheduled',
-        this.__onHappnDisconnect.bind(this)
-      );
-      this.__reconnectSubscriptionId = client.onEvent(
-        'reconnect-successful',
-        this.__onHappnReconnect.bind(this)
-      );
-
-      this.connectingTo = false;
-      this.connectedTo = true;
-      this.client = client;
-      this.name = client.serverInfo.name;
     } catch (error) {
       let thisError = error.error || error;
       if (
@@ -134,9 +109,34 @@ module.exports = class Member {
       this.connectingTo = false;
       this.log.warn('FAILED connection to  %s', loginConfig.url);
       this.log.warn(thisError.toString());
-    } finally {
-      this.orchestrator.__stateUpdate(this);
+      return this.orchestrator.__stateUpdate(this);
     }
+    this.__disconnectServerSide = client.onEvent(
+      'server-side-disconnect',
+      this.__onHappnDisconnect.bind(this)
+    );
+    this.__disconnectSubscriptionId = client.onEvent(
+      'connection-ended',
+      this.__onHappnDisconnect.bind(this)
+    );
+    // this.__disconnectSubscriptionId = client.onEvent(
+    //   'connection/ended',
+    //   this.__onHappnDisconnect.bind(this)
+    // );
+    this.__retryConnectSubscriptionId = client.onEvent(
+      'reconnect-scheduled',
+      this.__onHappnDisconnect.bind(this)
+    );
+    this.__reconnectSubscriptionId = client.onEvent(
+      'reconnect-successful',
+      this.__onHappnReconnect.bind(this)
+    );
+
+    this.connectingTo = false;
+    this.connectedTo = true;
+    this.client = client;
+    this.name = client.serverInfo.name;
+    this.orchestrator.__stateUpdate(this);
   }
 
   async connectionFrom(member) {
@@ -145,7 +145,7 @@ module.exports = class Member {
         '<BROKER ISSUES> NODE ' +
           this.orchestrator.happn.name +
           'AT CONNECTION FROM, ERROR IS:' +
-          this.error.toString +
+          this.error.toString() +
           'setting to null'
       );
     this.error = null;

@@ -257,8 +257,8 @@ module.exports = class Orchestrator extends EventEmitter {
   removePeer(member) {
     member.listedAsPeer = false;
     this.emit('peer/remove', member.name, member);
-    // this.removeMember(member);
-    member.connectedTo = false;
+    this.removeMember(member);
+    // member.connectedTo = false;
     this.log.info(
       '<BROKER ISSUES> ' +
         this.happn.name +

@@ -419,21 +419,21 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
           test
             .expect(result)
             .to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod3:test:username');
-            console.log("RETURNING PROMISE")
+          console.log('RETURNING PROMISE');
           return new Promise((resolve, reject) => {
-            localInstance.stop({reconnect: false}, (e) => {
+            localInstance.stop((e) => {
               if (e) return reject(e);
               setTimeout(resolve, 2000);
             });
           });
         })
         .then(function () {
-          console.log("RETURNING METHOD CALL (GONE")
+          console.log('RETURNING METHOD CALL (GONE');
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .catch(function (e) {
-          console.log("CAUGHT ERROR")
-          console.log(e)
+          console.log('CAUGHT ERROR');
+          console.log(e);
           test.expect(e.message).to.be('Not implemented remoteComponent1:^2.0.0:brokeredMethod3');
           done();
         });
@@ -1055,7 +1055,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
       startInternal(getSeq.getFirst(), 1)
         .then(function (server) {
           localInstance = server;
-          return startEdge(getSeq.getNext(), 1, dynamic);
+          return startEdge(getSeq.getNext(), 2, dynamic);
         })
         .then(function () {
           return users.add(localInstance, 'username', 'password');
