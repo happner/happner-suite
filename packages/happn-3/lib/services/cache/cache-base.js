@@ -38,8 +38,8 @@ module.exports = class CacheBase extends require('events').EventEmitter {
       this.#stats.hits++;
     }
 
-    if (cached.noclone && opts.clone !== false) {
-      // explicitly choose not to clone
+    // the item was stored with the noclone flag, and the clone option is not explicitly set to true
+    if (cached.noclone && opts.clone !== true) {
       return cached.data;
     }
     return this.utils.clone(cached.data);
