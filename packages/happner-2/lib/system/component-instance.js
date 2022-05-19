@@ -18,14 +18,15 @@ ComponentInstance.prototype.clearCachedBoundExchange = function () {
 };
 
 ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, componentName) {
-  this.boundExchangeCache =
-    mesh.happn.server.services.cache.getCache('happner-bound-exchange-' + componentName) ||
-    mesh.happn.server.services.cache.create('happner-bound-exchange-' + componentName, {
+  this.boundExchangeCache = mesh.happn.server.services.cache.getOrCreate(
+    'happner-bound-exchange-' + componentName,
+    {
       type: 'LRU',
       cache: {
         max: mesh.config.boundExchangeCacheSize || 10000,
       },
-    });
+    }
+  );
   this.clearCachedBoundExchange();
   //ensure if security changes, we discard bound exchanges
   mesh.happn.server.services.security.on(
