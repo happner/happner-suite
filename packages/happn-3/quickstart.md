@@ -140,7 +140,7 @@ The search function allows for querying via mongo style queries and parameters, 
 
 ### Events
 
-Happn-3 will fire an event on setting or removing data on a path. There is also a publish method, which will fire the event without changing the stored data. By default, subscribing on an event will listen to all actions on that path, but this can be configured, see \*\*link to readme https://github.com/happner/happner-suite/tree/master/packages/happn-3#events
+Happn-3 will fire an event on setting or removing data on a path. There is also a publish method, which will fire the event without changing the stored data. By default, subscribing on an event will listen to all actions on that path, but this can be configured, for more information see [Happn readme - Events](https://github.com/happner/happner-suite/tree/master/packages/happn-3#events)  
 As an example:
 
 ```js
@@ -162,7 +162,7 @@ As an example:
 ```
 
 One can also use the once method to only listen to the first event that gets published on that path.  
-One can also subscribe on paths using wildcards, and also to a variable depth of wildcards using `/**` syntax, which is covered in more detail at https://github.com/happner/happner-suite/tree/master/packages/happn-3#variable-depth-subscriptions
+One can also subscribe on paths using wildcards, and also to a variable depth of wildcards using `/**` syntax, which is covered in more detail at [Happn readme - Variable depth subscriptions](https://github.com/happner/happner-suite/tree/master/packages/happn-3#variable-depth-subscriptions)
 
 ### Security
 
