@@ -2,7 +2,7 @@
 
 ### Motivation
 
-Hapnp-cluster provides clustering capabilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database as well as a shared pub-sub event bus.
+Happn-cluster provides clustering capabilities for happn, so that multiple happn cluster nodes will have access to the same data and data structures in a shared database as well as a shared pub-sub event bus.
 
 ### Installation
 
@@ -181,3 +181,6 @@ config.services.orchestrator.config.timing = {
 }  //health is fine at default
 ```
 In order to have the tests run faster, and to fail if cluster members do not stabilise timeously.
+
+### Further configuration details
+For a full list of configuration options, see [Happn-Cluster readme - configure](https://github.com/happner/happner-suite/tree/develop/packages/happn-cluster#configure)
