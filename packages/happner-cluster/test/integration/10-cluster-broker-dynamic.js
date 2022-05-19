@@ -385,7 +385,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
         .catch(done);
     });
 
-    it.only('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', function (done) {
+    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', function (done) {
       let testClient;
 
       startClusterInternalFirst()
