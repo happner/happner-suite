@@ -1,6 +1,4 @@
 module.exports = Component;
-var methodCalls = 0;
-var webMethodCalls = 0;
 
 function Component() {}
 

@@ -1,5 +1,6 @@
 /* RUN: LOG_LEVEL=off mocha test/18-exchange-promises.js */
-
+/* eslint-disable no-undef */
+/* eslint-disable no-console */
 module.exports = SeeAbove;
 
 function SeeAbove() {}
@@ -72,6 +73,7 @@ SeeAbove.prototype.$happner = {
   },
 };
 
+// eslint-disable-next-line
 if (global.TESTING_E3B) return; // When 'requiring' the module above,
 
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {

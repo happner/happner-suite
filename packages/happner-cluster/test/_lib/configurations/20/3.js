@@ -4,9 +4,9 @@ module.exports = {
       instance: {
         initialize: async () => {},
         start: async () => {},
-        use: async () => {}
-      }
-    }
+        use: async () => {},
+      },
+    },
   },
   components: {
     component3: {
@@ -14,9 +14,9 @@ module.exports = {
       startMethod: 'start',
       dependencies: {
         component5: {
-          version: '*'
-        }
-      }
-    }
-  }
+          version: '*',
+        },
+      },
+    },
+  },
 };

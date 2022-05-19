@@ -32,12 +32,6 @@ module.exports = class Broker {
   __mapMethod(methodName) {
     if (typeof this.__internalClient[methodName] === 'function') {
       this[methodName] = this.__internalClient[methodName];
-      // TODO: take this out:
-      // this[methodName] = function () {
-      //   const arrArguments = Array.from(arguments);
-      //   console.log('BROKERED:::', arrArguments);
-      //   return this.__internalClient[methodName].apply(this.__internalClient, arrArguments);
-      // };
     }
   }
 

@@ -1,11 +1,8 @@
-const libDir = require('../../_lib/lib-dir');
+/* eslint-disable no-console */
 const baseConfig = require('../../_lib/base-config');
 const stopCluster = require('../../_lib/stop-cluster');
-const users = require('../../_lib/users');
-const testclient = require('../../_lib/client');
 const clearMongoCollection = require('../../_lib/clear-mongo-collection');
 const getSeq = require('../../_lib/helpers/getSeq');
-const _ = require('lodash');
 const { fork } = require('child_process');
 const path = require('path');
 let addUser = async function (server, username) {
@@ -14,8 +11,6 @@ let addUser = async function (server, username) {
     password: 'password',
   };
   return server.exchange.security.addUser(user);
-  // await  server.exchange.security.addGroup(group),
-  //   return server.exchange.security.linkGroup(group, user);
 };
 
 require('../../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
@@ -57,7 +52,7 @@ require('../../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       });
       child.on('message', (data) => {
         if (data[0] === 'dead') {
-          console.log('CHILD ERROR : ', { e });
+          console.log('CHILD ERROR : ', { data });
         }
         done();
       });

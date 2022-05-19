@@ -1,23 +1,23 @@
 var async = require('async');
 
-module.exports.add = function(server, username, password, permissions, custom_data) {
+module.exports.add = function (server, username, password, permissions, custom_data) {
   var user = {
     username: username,
     password: password,
     permissions: permissions || {},
-    custom_data: custom_data || {}
+    custom_data: custom_data || {},
   };
   return server.exchange.security.addUser(user);
 };
 
-module.exports.generatePermissions = function(user) {
+module.exports.generatePermissions = function (user) {
   var component, event, method, path;
   var allowedEvents = user.allowedEvents;
   var allowedMethods = user.allowedMethods;
 
   var permissions = {
     methods: {},
-    events: {}
+    events: {},
   };
   for (component in allowedMethods) {
     for (method in allowedMethods[component]) {
@@ -35,7 +35,7 @@ module.exports.generatePermissions = function(user) {
 };
 
 // can only process one permission change at a time
-var queue = async.queue(function(task, callback) {
+var queue = async.queue(function (task, callback) {
   var server = task.server;
   var username = task.username;
   var permissions = task.permissions;
@@ -43,7 +43,7 @@ var queue = async.queue(function(task, callback) {
   server.exchange.security[method](username, permissions, callback);
 }, 1);
 
-module.exports.allowMethod = function(server, username, component, method) {
+module.exports.allowMethod = function (server, username, component, method) {
   var path = '/DOMAIN_NAME/' + component + '/' + method;
   var permissions = { methods: {} };
   permissions.methods[path] = { authorized: true };
@@ -52,11 +52,11 @@ module.exports.allowMethod = function(server, username, component, method) {
     server: server,
     username,
     permissions: permissions,
-    method: 'addUserPermissions'
+    method: 'addUserPermissions',
   });
 };
 
-module.exports.denyMethod = function(server, username, component, method) {
+module.exports.denyMethod = function (server, username, component, method) {
   var path = '/DOMAIN_NAME/' + component + '/' + method;
   var permissions = { methods: {} };
   permissions.methods[path] = {};
@@ -65,25 +65,25 @@ module.exports.denyMethod = function(server, username, component, method) {
     server: server,
     username,
     permissions: permissions,
-    method: 'removeUserPermissions'
+    method: 'removeUserPermissions',
   });
 };
 
-module.exports.allowWebMethod = function(server, username, path) {
+module.exports.allowWebMethod = function (server, username, path) {
   var permissions = { web: {} };
   permissions.web[path] = {
     actions: ['get', 'put', 'post'],
-    description: 'a test web permission'
+    description: 'a test web permission',
   };
   return queue.push({
     server: server,
     username,
     permissions: permissions,
-    method: 'addUserPermissions'
+    method: 'addUserPermissions',
   });
 };
 
-module.exports.denyWebMethod = function(server, username, path) {
+module.exports.denyWebMethod = function (server, username, path) {
   var permissions = { web: {} };
   permissions.web[path] = {};
 
@@ -91,11 +91,11 @@ module.exports.denyWebMethod = function(server, username, path) {
     server: server,
     username,
     permissions: permissions,
-    method: 'removeUserPermissions'
+    method: 'removeUserPermissions',
   });
 };
 
-module.exports.allowEvent = function(server, username, component, event) {
+module.exports.allowEvent = function (server, username, component, event) {
   var path = '/DOMAIN_NAME/' + component + '/' + event;
   var permissions = { events: {} };
   permissions.events[path] = { authorized: true };
@@ -104,11 +104,11 @@ module.exports.allowEvent = function(server, username, component, event) {
     server: server,
     username,
     permissions: permissions,
-    method: 'addUserPermissions'
+    method: 'addUserPermissions',
   });
 };
 
-module.exports.denyEvent = function(server, username, component, event) {
+module.exports.denyEvent = function (server, username, component, event) {
   var path = '/DOMAIN_NAME/' + component + '/' + event;
   var permissions = { events: {} };
   permissions.events[path] = {};
@@ -117,11 +117,11 @@ module.exports.denyEvent = function(server, username, component, event) {
     server: server,
     username,
     permissions: permissions,
-    method: 'removeUserPermissions'
+    method: 'removeUserPermissions',
   });
 };
 
-module.exports.allowDataPath = function(server, username, path) {
+module.exports.allowDataPath = function (server, username, path) {
   var permissions = { data: {} };
   permissions.data[path] = { actions: ['*'] };
 
@@ -129,11 +129,11 @@ module.exports.allowDataPath = function(server, username, path) {
     server: server,
     username,
     permissions: permissions,
-    method: 'addUserPermissions'
+    method: 'addUserPermissions',
   });
 };
 
-module.exports.denyDataPath = function(server, username, path) {
+module.exports.denyDataPath = function (server, username, path) {
   var permissions = { data: {} };
   permissions.data[path] = { authorized: false };
 
@@ -141,10 +141,10 @@ module.exports.denyDataPath = function(server, username, path) {
     server: server,
     username,
     permissions: permissions,
-    method: 'removeUserPermissions'
+    method: 'removeUserPermissions',
   });
 };
 
-module.exports.getUser = function(server, username) {
+module.exports.getUser = function (server, username) {
   return server.exchange.security.getUser(username);
 };

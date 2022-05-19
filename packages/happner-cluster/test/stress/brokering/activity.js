@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 const HappnerClient = require('happner-client');
-const Mesh = require('../../..');
 const commander = require('commander');
 
 commander

@@ -1,8 +1,5 @@
-const libDir = require('../../_lib/lib-dir');
 const baseConfig = require('../../_lib/base-config');
 const stopCluster = require('../../_lib/stop-cluster');
-const users = require('../../_lib/users');
-const testclient = require('../../_lib/client');
 const clearMongoCollection = require('../../_lib/clear-mongo-collection');
 const getSeq = require('../../_lib/helpers/getSeq');
 const _ = require('lodash');
@@ -56,7 +53,6 @@ require('../../_lib/test-helper').describe({ timeout: 680e3 }, (test) => {
       );
     }
 
-
     await test.delay(2000);
     for (let j = 0; j < 50; j++) {
       let username = _.sample(userPrefixes) + '-' + j;
@@ -64,5 +60,4 @@ require('../../_lib/test-helper').describe({ timeout: 680e3 }, (test) => {
       test.expect(user.groups._MESH_GST).to.be.ok();
     }
   });
-
 });

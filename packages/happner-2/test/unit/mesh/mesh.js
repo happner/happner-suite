@@ -666,36 +666,4 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       },
     });
   });
-
-  function getTestClass() {
-    class ParentClass {
-      testParentMethod() {}
-    }
-    class Class extends ParentClass {
-      constructor() {
-        super();
-        this.testMethod4 = this.testMethod4.bind(this); // prototype method bound to instance
-        this.testMethod5 = ($happn) => $happn;
-        // prettier-ignore
-        this.testMethod6 = ($happn) => $happn;
-        this.testMethod7 = (param, $happn) => ({ $happn, param });
-        this.testMethod8 = ($happn) => $happn.emit('yay'); // test bugfix for parentheses in body rather than signature
-        this.testMethod9 = function () {}.bind(this); // non-prototype method bound to instance
-        this.testMethod10 = this.testMethod10.bind(this); // async prototype method bound to instance
-        this.property1 = {};
-      }
-
-      // eslint-disable-next-line no-unused-vars
-      testMethod($happn, $origin) {}
-      testMethod1() {}
-      testMethod2() {}
-      __testMethod3() {}
-      // eslint-disable-next-line no-unused-vars
-      testMethod4($happn) {}
-      testMethod__5() {}
-      // eslint-disable-next-line no-unused-vars
-      async testMethod10($happn) {}
-    }
-    return new Class();
-  }
 });

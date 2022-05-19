@@ -1,7 +1,7 @@
 const Internals = require('./shared/internals');
 const MeshError = require('./shared/mesh-error');
 const EventEmitter = require('events').EventEmitter;
-const depWarned0 = false; // $happn.mesh.*
+let depWarned0 = false; // $happn.mesh.*
 const utilities = require('./utilities');
 const _ = require('happn-commons')._;
 
@@ -571,6 +571,7 @@ ComponentInstance.prototype.secureData = function (meshData, componentName) {
 };
 
 ComponentInstance.prototype.initialize = function (name, root, mesh, module, config, callback) {
+  // eslint-disable-next-line no-self-assign
   this.README = this.README; // make visible
   this.name = name;
   this.config = config;
