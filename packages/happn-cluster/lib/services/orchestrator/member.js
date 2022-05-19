@@ -72,7 +72,13 @@ module.exports = class Member {
   }
 
   async connect(loginConfig) {
+    // if (this.orchestrator.happn.name !== this.name) {
+    //   this.log.info('<BROKER ISSUES>, pre-connect, '  + this.orchestrator.happn.name + ' TO ' + this.name, 'copnnectedTo: '+ this.connectedTo + ' conecctingTo: ' +  this.connecteedFrom)
+    // }
     if (this.connectingTo || this.connectedTo) return;
+    this.log.info(
+      '<BROKER_ISSUES>: CONNECTING ' + this.orchestrator.happn.name + ' TO ' + this.name
+    );
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -81,6 +87,31 @@ module.exports = class Member {
     let client;
     try {
       client = await this.orchestrator.HappnClient.create(loginConfig);
+      this.__disconnectServerSide = client.onEvent(
+        'server-side-disconnect',
+        this.__onHappnDisconnect.bind(this)
+      );
+      this.__disconnectSubscriptionId = client.onEvent(
+        'connection-ended',
+        this.__onHappnDisconnect.bind(this)
+      );
+      this.__disconnectSubscriptionId = client.onEvent(
+        'connection/ended',
+        this.__onHappnDisconnect.bind(this)
+      );
+      this.__retryConnectSubscriptionId = client.onEvent(
+        'reconnect-scheduled',
+        this.__onHappnDisconnect.bind(this)
+      );
+      this.__reconnectSubscriptionId = client.onEvent(
+        'reconnect-successful',
+        this.__onHappnReconnect.bind(this)
+      );
+
+      this.connectingTo = false;
+      this.connectedTo = true;
+      this.client = client;
+      this.name = client.serverInfo.name;
     } catch (error) {
       let thisError = error.error || error;
       if (
@@ -95,42 +126,40 @@ module.exports = class Member {
         this.orchestrator.removeMember(this);
         return;
       }
+      this.log.info(
+        '<BROKER_ISSUES>:CONNECT ERROR AT ' + this.orchestrator.happn.name + ' TO ' + this.name
+      );
+      this.log.info('<BROKER_ISSUES>:CONNECT ERROR:' + thisError.toString());
       this.error = thisError;
       this.connectingTo = false;
       this.log.warn('FAILED connection to  %s', loginConfig.url);
       this.log.warn(thisError.toString());
-      return this.orchestrator.__stateUpdate(this);
+    } finally {
+      this.orchestrator.__stateUpdate(this);
     }
-
-    this.__disconnectServerSide = client.onEvent(
-      'server-side-disconnect',
-      this.__onHappnDisconnect.bind(this)
-    );
-    this.__disconnectSubscriptionId = client.onEvent(
-      'connection-ended',
-      this.__onHappnDisconnect.bind(this)
-    );
-    this.__retryConnectSubscriptionId = client.onEvent(
-      'reconnect-scheduled',
-      this.__onHappnDisconnect.bind(this)
-    );
-    this.__reconnectSubscriptionId = client.onEvent(
-      'reconnect-successful',
-      this.__onHappnReconnect.bind(this)
-    );
-
-    this.connectingTo = false;
-    this.connectedTo = true;
-    this.client = client;
-    this.name = client.serverInfo.name;
-    this.orchestrator.__stateUpdate(this);
   }
 
   async connectionFrom(member) {
+    if (this.error)
+      this.log.info(
+        '<BROKER ISSUES> NODE ' +
+          this.orchestrator.happn.name +
+          'AT CONNECTION FROM, ERROR IS:' +
+          this.error.toString +
+          'setting to null'
+      );
+    this.error = null;
+    this.log.info(
+      '<BROKER_ISSUES>:' +
+        this.orchestrator.happn.name +
+        ' RECIEVED CONNECTION FROM ' +
+        this.name +
+        ' AND connectedTo = ' +
+        this.connectedTo
+    );
     this.connectedFrom = true;
     this.updateOwnInfo(member);
     await this.connect(this.orchestrator.getLoginConfig());
-    return this.orchestrator.__stateUpdate(this);
   }
 
   async subscribe() {
@@ -164,6 +193,12 @@ module.exports = class Member {
   }
 
   __onHappnDisconnect() {
+    this.log.info(
+      '<BROKER_ISSUES>: RECEIVED HAPPN DISCONNECT AT ' +
+        this.orchestrator.happn.name +
+        ' FROM ' +
+        this.name
+    );
     this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
     if (!this.connectedTo) return;
     this.connectedTo = false;
@@ -172,6 +207,12 @@ module.exports = class Member {
   }
 
   __onHappnReconnect() {
+    this.log.info(
+      '<BROKER_ISSUES>: RECEIVED HAPPN RECONNECT AT ' +
+        this.orchestrator.happn.name +
+        ' FROM ' +
+        this.name
+    );
     this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
     if (this.connectedTo) return;
     this.connectedTo = true;
