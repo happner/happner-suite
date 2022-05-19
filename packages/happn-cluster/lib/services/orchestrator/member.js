@@ -141,15 +141,15 @@ module.exports = class Member {
 
   async connectionFrom(member) {
     if (this.error)
-      this.log.info(
+      this.log.warn(
         '<BROKER ISSUES> NODE ' +
           this.orchestrator.happn.name +
           'AT CONNECTION FROM, ERROR IS:' +
           this.error.toString() +
           'setting to null'
       );
-    this.error = null;
-    this.log.info(
+    // this.error = null;
+    this.log.warn(
       '<BROKER_ISSUES>:' +
         this.orchestrator.happn.name +
         ' RECIEVED CONNECTION FROM ' +
