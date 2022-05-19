@@ -419,7 +419,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
           test
             .expect(result)
             .to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod3:test:username');
-          console.log('RETURNING PROMISE');
+          // console.log('RETURNING PROMISE');
           return new Promise((resolve, reject) => {
             localInstance.stop((e) => {
               if (e) return reject(e);
@@ -428,7 +428,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
           });
         })
         .then(function () {
-          console.log('RETURNING METHOD CALL (GONE');
+          // console.log('RETURNING METHOD CALL (GONE');
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .catch(function (e) {
