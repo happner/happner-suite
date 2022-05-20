@@ -1188,6 +1188,9 @@ ComponentInstance.prototype.__reply = function (
   if (callbackPeer) {
     // for cluster the set is performed back at the originating peer
     try {
+      console.log({callbackPeer})
+      console.log(Object.keys(mesh.happn.server.services.orchestrator.peers));
+      if (!mesh.happn.server.services.orchestrator.peers[callbackPeer]) throw new Error('Peer no longer in system')
       client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
     } catch (e) {
       // no peer at callback (race conditions on servers stopping and starting) dead end...

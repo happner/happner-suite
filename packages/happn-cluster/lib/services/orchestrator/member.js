@@ -9,7 +9,7 @@ module.exports = class Member {
     this.self = false;
     this.connectingTo = false;
     this.connectedTo = false;
-    this.connectedFrom = false;
+    // this.connectedFrom = false;
     this.client = null;
     this.subscribingTo = false;
     this.subscribedTo = false;
@@ -32,8 +32,8 @@ module.exports = class Member {
     if (this.endpoint === this.orchestrator.endpoint) {
       this.self = true;
       this.name = this.orchestrator.happn.name;
-      this.connectedTo = true; // member does not connect to...
-      this.connectedFrom = true; // ...or from itselfurl
+      this.connectedTo = true; // member does not connect to itself...
+      // this.connectedFrom = true; // ...or from itselfurl
       this.subscribedTo = true;
       this.connectingTo = false;
       this.client = this.orchestrator.localClient;
@@ -54,7 +54,7 @@ module.exports = class Member {
   }
 
   get connected() {
-    return this.connectedTo && this.connectedFrom;
+    return this.connectedTo //&& this.connectedFrom;
   }
 
   get readyToSubscribe() {
@@ -65,7 +65,7 @@ module.exports = class Member {
     return !!(
       this.name &&
       this.connectedTo &&
-      this.connectedFrom &&
+      // this.connectedFrom &&
       this.subscribedTo &&
       !this.error
     );
@@ -83,7 +83,10 @@ module.exports = class Member {
     if (!loginConfig.connectTimeout) loginConfig.connectTimeout = 5000;
     let client;
     try {
-      client = await this.orchestrator.HappnClient.create(loginConfig);
+      client = await this.orchestrator.HappnClient.create({
+        ...loginConfig,
+        info: { ...loginConfig.info, connectedFrom: this.connectedFrom },
+      });
       this.__disconnectServerSide = client.onEvent(
         'server-side-disconnect',
         this.__onHappnDisconnect.bind(this)
@@ -115,6 +118,7 @@ module.exports = class Member {
         // one of them shuts down.
         // And we don't want to fail starting this node because another shut down
         // at the same time as we joined.
+        this.connectingTo = false;
         this.log.warn('FAILED connection to departed %s', loginConfig.url);
         return this.orchestrator.removePeer(this);
       }
@@ -149,7 +153,7 @@ module.exports = class Member {
         ' AND connectedTo = ' +
         this.connectedTo
     );
-    this.connectedFrom = true;
+    // this.connectedFrom = true;
     this.updateOwnInfo(member);
     await this.connect(this.orchestrator.getLoginConfig());
   }

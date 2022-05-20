@@ -64,12 +64,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
     await testClient.exchange.brokerComponent.block();
-    await test.delay(36000); //wait for component to stop blocking and reconnect to mesh
-    let result 
+    await test.delay(16000); //wait for component to stop blocking and reconnect to mesh
+    let result;
     try {
-    result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
+      result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
     } catch (e) {
-      console.log("GOT ERROR", e)
+      console.log('GOT ERROR', e);
     }
     test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
   });

@@ -257,6 +257,8 @@ module.exports = class Orchestrator extends EventEmitter {
     this.emit('peer/remove', member.name, member);
     // this.removeMember(member);
     member.connectedTo = false;
+    member.connectingTo = false;
+
     this.log.info(
       '<BROKER ISSUES> ' +
         this.happn.name +
@@ -355,6 +357,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   __onConnectionFrom(data) {
+    // console.log({data})
     if (!data.info) return;
     if (!data.info.clusterName) return;
     this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
