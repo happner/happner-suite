@@ -4,7 +4,8 @@ describe('crypto-test', function () {
   var cryptoUtil;
   let browserKeys, browserKeys2;
   if (typeof window === 'undefined') {
-    let chai = require('happn-commons-test').chai;
+    let Test = require('happn-commons-test');
+    let chai = new Test().chai;
     crypto = require('../lib/crypto');
     cryptoUtil = new crypto();
     expect = chai.expect;

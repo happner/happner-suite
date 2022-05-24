@@ -324,7 +324,7 @@
       setDefaults('token');
     }
 
-    if (!options.host) options.host = '127.0.0.1';
+    if (!options.host || options.host === 'localhost') options.host = '127.0.0.1';
 
     if (!options.port) options.port = 55000;
 
@@ -1299,7 +1299,6 @@
 
     if (this.state.errors.length === 100) this.state.errors.shift();
     this.state.errors.push(errLog);
-
     this.emit('error', err);
     this.log.error('unhandled error', err);
   };

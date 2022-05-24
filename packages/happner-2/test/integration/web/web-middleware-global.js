@@ -13,7 +13,7 @@ describe(
       const mesh = await startMesh(goodConfig);
       const token = await getSessionToken();
 
-      let response = await cookieRequest('http://localhost:10000/middlewareTest/singular', token);
+      let response = await cookieRequest('http://127.0.0.1:10000/middlewareTest/singular', token);
 
       expect(response.result.statusCode).to.be(200);
       expect(response.body).to.be(
@@ -45,7 +45,7 @@ describe(
       const mesh = await startMesh(badConfigMissingFirstComponent);
       const token = await getSessionToken();
 
-      let response = await cookieRequest('http://localhost:10000/middlewareTest/singular', token);
+      let response = await cookieRequest('http://127.0.0.1:10000/middlewareTest/singular', token);
 
       expect(response.result.statusCode).to.be(500);
       expect(response.result.statusMessage).to.be('system middleware failure');
@@ -57,7 +57,7 @@ describe(
       const mesh = await startMesh(badConfigMissingArbComponent);
       const token = await getSessionToken();
 
-      let response = await cookieRequest('http://localhost:10000/middlewareTest/singular', token);
+      let response = await cookieRequest('http://127.0.0.1:10000/middlewareTest/singular', token);
 
       //because there has been some writing already
       expect(response.result.statusCode).to.be(200);
