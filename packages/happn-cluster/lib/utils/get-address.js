@@ -7,7 +7,6 @@ module.exports = function (logger, env, os) {
   return function (interfaces) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
-    console.log({ interfaces });
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
@@ -20,7 +19,6 @@ module.exports = function (logger, env, os) {
 };
 
 function getFirstAvailableAddress(interfaceId, logger, os) {
-  console.log('GETTING FIRST AVAILABLE ADDRESS');
   const interfaces = os.networkInterfaces();
   const candidates = Object.keys(interfaces)
     .sort()
