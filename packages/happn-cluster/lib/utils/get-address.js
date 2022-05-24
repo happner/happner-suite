@@ -27,7 +27,7 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       found.forEach((interfaceItem, interfaceItemIndex) => {
         if (
           !interfaceItem.internal &&
-          interfaceItem.family === 4 &&
+          interfaceItem.family === '4' &&
           interfaceItem.address.indexOf('169.254') !== 0
         ) {
           candidates.push({
