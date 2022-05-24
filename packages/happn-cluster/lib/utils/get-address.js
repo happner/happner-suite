@@ -15,8 +15,6 @@ module.exports = function (logger, env, os) {
     if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
-    console.log("CHOSEN INTERFACE IS : ",  interfaces[networkInterfaceId][interfaceItemIndex])
-    console.log("RETURNING ", interfaces[networkInterfaceId][interfaceItemIndex].address)
     return interfaces[networkInterfaceId][interfaceItemIndex].address;
   };
 };
