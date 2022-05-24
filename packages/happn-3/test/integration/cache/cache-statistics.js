@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test) => {
   const happn = require('../../../lib/index');
   let serviceInstance;
   let adminClient;
@@ -44,7 +44,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3, only: tr
     test.log('producing stats, please wait...');
     await test.delay(8e3);
     test.expect(logs.length >= 1).to.be(true);
-    test.expect(test.commons._.omit(logs[0], 'timestamp')).to.eql({
+    test.expect(logs[0].name.length > 0).to.be(true);
+    test.expect(test.commons._.omit(logs[0], 'timestamp', 'name')).to.eql({
       service_session_active_sessions: {
         hits: 0,
         misses: 0,
@@ -165,11 +166,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3, only: tr
         hitsPerSec: 0,
         missesPerSec: 0,
       },
-      logType: 'statistics',
-      area: 'happn-3 cache service',
     });
 
-    test.expect(test.commons._.omit(logs[1], 'timestamp')).to.eql({
+    test.expect(test.commons._.omit(logs[1], 'timestamp', 'name')).to.eql({
       service_session_active_sessions: {
         hits: 0,
         misses: 0,
@@ -290,8 +289,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3, only: tr
         hitsPerSec: 0,
         missesPerSec: 0,
       },
-      logType: 'statistics',
-      area: 'happn-3 cache service',
     });
   });
 
