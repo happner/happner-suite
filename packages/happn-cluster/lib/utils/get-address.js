@@ -7,7 +7,7 @@ module.exports = function (logger, env, os) {
   return function (interfaces) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
-    console.log(JSON.stringify({ interfaces }, null,2));
+    console.log({ interfaces });
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
