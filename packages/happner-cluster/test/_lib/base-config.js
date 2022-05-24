@@ -56,7 +56,7 @@ module.exports = function (
         orchestrator: {
           config: {
             minimumPeers: minPeers || 3,
-            replicate,
+            replicate: ['/do/not/replicate'],
             timing: {
               keepAlive: 2e3,
               memberRefresh: 2e3,

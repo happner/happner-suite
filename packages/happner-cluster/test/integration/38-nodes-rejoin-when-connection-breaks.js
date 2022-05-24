@@ -30,7 +30,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
-    remoteComponent.happn.services.orchestrator.config.minimumPeers = 4;
     serverPromises.push(clusterHelper.start(remoteComponent));
     const brokerComponent = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
     const brokerComponent2 = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
@@ -52,7 +51,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       brokerComponent.happn.services.orchestrator.config.cluster = { broker: 3, remote: 1 };
 
       brokerComponent.happn.services.orchestrator.config.timing.healthReport = 2000;
-      brokerComponent.happn.services.orchestrator.config.minimumPeers = 4;
 
       serverPromises.push(clusterHelper.start(brokerComponent));
     });

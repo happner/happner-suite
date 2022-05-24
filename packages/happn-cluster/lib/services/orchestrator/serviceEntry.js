@@ -96,6 +96,7 @@ module.exports = class ServiceEntry {
 
   async disconnectionFrom(member) {
     if (!this.members[member.endpoint]) return;
+    this.members[member.endpoint].connectedTo = false;
     this.members[member.endpoint].connectedFrom = false;
     return this.orchestrator.__stateUpdate(this.members[member.endpoint]);
   }

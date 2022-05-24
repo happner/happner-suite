@@ -314,6 +314,7 @@ function addListener(action, path, sessionId, data, wildPath, searchPath) {
 }
 
 function removeListener(referenceId, sessionId, action, path) {
+  // console.log("REMOVING LISTENR ", {action, path})
   if (action === '*' && path === '*') return this.clearSessionSubscriptions(sessionId);
 
   const unsubOpts = {

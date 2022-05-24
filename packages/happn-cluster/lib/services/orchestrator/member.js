@@ -33,7 +33,7 @@ module.exports = class Member {
       this.self = true;
       this.name = this.orchestrator.happn.name;
       this.connectedTo = true; // member does not connect to itself...
-      // this.connectedFrom = true; // ...or from itselfurl
+      this.connectedFrom = true; // ...or from itselfurl
       this.subscribedTo = true;
       this.connectingTo = false;
       this.client = this.orchestrator.localClient;
@@ -54,7 +54,7 @@ module.exports = class Member {
   }
 
   get connected() {
-    return this.connectedTo //&& this.connectedFrom;
+    return this.connectedTo; //&& this.connectedFrom;
   }
 
   get readyToSubscribe() {
@@ -72,7 +72,9 @@ module.exports = class Member {
   }
 
   async connect(loginConfig) {
-    if (this.connectingTo || this.connectedTo) return;
+    if (this.connectingTo || this.connectedTo) {
+      return this.orchestrator.__stateUpdate(this);
+    }
     this.log.info(
       '<BROKER_ISSUES>: CONNECTING ' + this.orchestrator.happn.name + ' TO ' + this.name
     );
@@ -136,24 +138,11 @@ module.exports = class Member {
   }
 
   async connectionFrom(member) {
-    if (this.error)
-      this.log.warn(
-        '<BROKER ISSUES> NODE ' +
-          this.orchestrator.happn.name +
-          'AT CONNECTION FROM, ERROR IS:' +
-          this.error.toString() +
-          'setting to null'
-      );
-    this.error = null;
-    this.log.warn(
-      '<BROKER_ISSUES>:' +
-        this.orchestrator.happn.name +
-        ' RECIEVED CONNECTION FROM ' +
-        this.name +
-        ' AND connectedTo = ' +
-        this.connectedTo
+    this.log.info(
+      '<BROKER_ISSUES>:' + this.orchestrator.happn.name + ' RECIEVED CONNECTION FROM ' + this.name
     );
-    // this.connectedFrom = true;
+    this.connectedFrom = true;
+    this.error = null;
     this.updateOwnInfo(member);
     await this.connect(this.orchestrator.getLoginConfig());
   }
@@ -196,7 +185,7 @@ module.exports = class Member {
         this.name
     );
     this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
-    if (!this.connectedTo) return;
+    // if (!this.connectedTo) return;
     this.connectedTo = false;
     this.orchestrator.__stateUpdate(this);
     // leave it in reconnect loop until DB confirms

@@ -156,13 +156,9 @@ module.exports = class Orchestrator extends EventEmitter {
     let start = performance.now();
     try {
       await this.lookup();
-      if (this.stopped) return;
       await this.addMembers();
-      if (this.stopped) return;
       await this.connect();
-      if (this.stopped) return;
       await this.subscribe();
-      if (this.stopped) return;
       await this.__stateUpdate();
     } catch (e) {
       this.log.warn(e);
@@ -179,9 +175,6 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async lookup() {
     let endpoints = await this.fetchEndpoints();
-    this.log.info(
-      '<BROKER ISSUES> BROKER ENDPOINTS AT ' + this.happn.name + ':' + endpoints.broker
-    );
     Object.entries(this.registry).forEach(([name, service]) =>
       service.setEndpoints(endpoints[name] || [])
     );
@@ -357,7 +350,6 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   __onConnectionFrom(data) {
-    // console.log({data})
     if (!data.info) return;
     if (!data.info.clusterName) return;
     this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
@@ -370,7 +362,6 @@ module.exports = class Orchestrator extends EventEmitter {
   __onDisconnectionFrom(data) {
     if (!data.info || !data.info.clusterName || !data.info.serviceName) return;
     this.log.debug('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
-
     if (data.info.clusterName !== this.clusterName) return;
     this.registry[data.info.serviceName].disconnectionFrom(data.info);
   }
