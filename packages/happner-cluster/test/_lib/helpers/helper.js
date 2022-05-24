@@ -1,7 +1,5 @@
 // return first external ipv4 address
 const os = require('os');
-const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
-const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
 
 module.exports = class Helper extends require('events').EventEmitter {
   constructor() {
@@ -13,7 +11,7 @@ module.exports = class Helper extends require('events').EventEmitter {
         interfaces = interfaces || os.networkInterfaces();
         let addresses = Object.keys(interfaces)
           .reduce((acc, current) => [...acc, ...interfaces[current]], [])
-          .filter((iface) => !iface.internal && iface.family === ip4Family)
+          .filter((iface) => !iface.internal) // && iface.family === 'IPv4')
           .map((iface) => iface.address);
         if (NETWORK_INTERFACE && addresses.length >= NETWORK_INTERFACE + 1)
           return addresses[NETWORK_INTERFACE];
