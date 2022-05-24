@@ -13,7 +13,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             {
               name: 'config',
               required: true,
-              value: { config: { host: '127.0.0.1', secret: 'mesh' } },
+              value: { config: { host: 'localhost', secret: 'mesh' } },
             },
             { name: 'callback', parameterType: 'callback' },
           ],
@@ -93,7 +93,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   it('starts a local mesh, with a single component that wraps the happn client module and compares the response with a happn client instantiated outside of the mesh', function (done) {
     //we require a 'real' happn client
     require('happn-3').client.create(
-      { config: { host: '127.0.0.1', secret: 'mesh' } },
+      { config: { host: 'localhost', secret: 'mesh' } },
       function (e, client) {
         if (e) {
           // console.log('real client init failure');

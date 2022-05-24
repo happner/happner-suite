@@ -124,7 +124,7 @@ describe(
     };
 
     it('can get from a singular route', function (done) {
-      cookieRequest('http://127.0.0.1:10000/middlewareTest/singular', function (e, res) {
+      cookieRequest('http://localhost:10000/middlewareTest/singular', function (e, res) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -136,7 +136,7 @@ describe(
     });
 
     it('can get from a multi route', function (done) {
-      cookieRequest('http://127.0.0.1:10000/middlewareTest/multi', function (e, res, body) {
+      cookieRequest('http://localhost:10000/middlewareTest/multi', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -150,7 +150,7 @@ describe(
 
     it('can get from an singular active route', function (done) {
       cookieRequest(
-        'http://127.0.0.1:10000/middlewareTest/singularActive',
+        'http://localhost:10000/middlewareTest/singularActive',
         function (e, res, body) {
           if (e) return done(e);
           try {
@@ -165,7 +165,7 @@ describe(
     });
 
     it('can get from a multi active route', function (done) {
-      cookieRequest('http://127.0.0.1:10000/middlewareTest/multiActive', function (e, res, body) {
+      cookieRequest('http://localhost:10000/middlewareTest/multiActive', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -178,7 +178,7 @@ describe(
     });
 
     it('can inject $happn', function (done) {
-      cookieRequest('http://127.0.0.1:10000/middlewareTest/injectHappn', function (e, res, body) {
+      cookieRequest('http://localhost:10000/middlewareTest/injectHappn', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -191,7 +191,7 @@ describe(
     });
 
     it('can inject $origin from cookie', function (done) {
-      cookieRequest('http://127.0.0.1:10000/middlewareTest/injectOrigin', function (e, res, body) {
+      cookieRequest('http://localhost:10000/middlewareTest/injectOrigin', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -205,7 +205,7 @@ describe(
 
     it('can inject $origin from url query', function (done) {
       request(
-        'http://127.0.0.1:10000/middlewareTest/injectOrigin?happn_token=' + client.token,
+        'http://localhost:10000/middlewareTest/injectOrigin?happn_token=' + client.token,
         function (e, res, body) {
           if (e) return done(e);
           try {
@@ -221,7 +221,7 @@ describe(
 
     it('can inject $origin from Bearer token', function (done) {
       var options = {
-        url: 'http://127.0.0.1:10000/middlewareTest/injectOrigin',
+        url: 'http://localhost:10000/middlewareTest/injectOrigin',
         headers: {
           Authorization: 'Bearer ' + client.token,
         },
@@ -241,7 +241,7 @@ describe(
 
     it('can inject $happn and $origin in forward order', function (done) {
       cookieRequest(
-        'http://127.0.0.1:10000/middlewareTest/injectForwardOrder',
+        'http://localhost:10000/middlewareTest/injectForwardOrder',
         function (e, res, body) {
           if (e) return done(e);
           try {
@@ -257,7 +257,7 @@ describe(
 
     it('can inject $origin and $happn in reverse order', function (done) {
       cookieRequest(
-        'http://127.0.0.1:10000/middlewareTest/injectReverseOrder',
+        'http://localhost:10000/middlewareTest/injectReverseOrder',
         function (e, res, body) {
           if (e) return done(e);
           try {
@@ -305,7 +305,7 @@ describe(
     });
 
     it('can get index.html that middleware renames to index.htm', function (done) {
-      request('http://127.0.0.1:10000/index.html', function (e, res) {
+      request('http://localhost:10000/index.html', function (e, res) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -317,7 +317,7 @@ describe(
     });
 
     it('can get from inline root web route', function (done) {
-      cookieRequest('http://127.0.0.1:10000/inline', function (e, res, body) {
+      cookieRequest('http://localhost:10000/inline', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);
@@ -330,7 +330,7 @@ describe(
     });
 
     it("should add route info to 'req' for middleware on component to use if request is directed to root web route", function (done) {
-      cookieRequest('http://127.0.0.1:10000/testAddRouteInfo', function (e, res, body) {
+      cookieRequest('http://localhost:10000/testAddRouteInfo', function (e, res, body) {
         if (e) return done(e);
         try {
           expect(res.statusCode).to.be(200);

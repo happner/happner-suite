@@ -130,7 +130,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               },
               config: {
                 port: 10001,
-                host: '127.0.0.1',
+                host: 'localhost',
               },
             },
           },
@@ -280,7 +280,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   it('tests the rest components describe method over the api', function (done) {
     var restClient = require('restler');
 
-    restClient.get('http://127.0.0.1:10000/rest/describe').on('complete', function (result) {
+    restClient.get('http://localhost:10000/rest/describe').on('complete', function (result) {
       test.expect(result.data['/testComponent/method1']).to.not.be(null);
       test.expect(result.data['/testComponent/method2']).to.not.be(null);
 
@@ -347,7 +347,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     };
 
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/testComponent/method1', operation)
+      .postJson('http://localhost:10000/rest/method/testComponent/method1', operation)
       .on('complete', function (result) {
         test.log(result);
         test.expect(result.data.number).to.be(2);
@@ -360,7 +360,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var restClient = require('restler');
 
     restClient
-      .get('http://127.0.0.1:10000/rest/method/testComponent/method4?number=1&another=2')
+      .get('http://localhost:10000/rest/method/testComponent/method4?number=1&another=2')
       .on('complete', function (result) {
         test.expect(result.data.product).to.be(3);
         done();
@@ -371,7 +371,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var restClient = require('restler');
 
     restClient
-      .get('http://127.0.0.1:10000/rest/method/testComponent/method5')
+      .get('http://localhost:10000/rest/method/testComponent/method5')
       .on('complete', function (result) {
         test.expect(result.data).to.not.be(null);
         test.expect(result.data.method).to.be('GET');
@@ -393,7 +393,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     };
 
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/testComponent/method6', operation)
+      .postJson('http://localhost:10000/rest/method/testComponent/method6', operation)
       .on('complete', function (result) {
         test.expect(result.error).not.exist;
         test.expect(result.data).to.eql(operation.parameters);
@@ -414,7 +414,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var encoded = encodeURIComponent(JSON.stringify(operation));
 
     restClient
-      .get('http://127.0.0.1:10000/rest/method/testComponent/method4?encoded_parameters=' + encoded)
+      .get('http://localhost:10000/rest/method/testComponent/method4?encoded_parameters=' + encoded)
       .on('complete', function (result) {
         test.expect(result.data.product).to.be(3);
         done();
@@ -434,7 +434,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     restClient
       .postJson(
-        'http://127.0.0.1:10000/rest/method/remoteMesh/remoteComponent/remoteFunction',
+        'http://localhost:10000/rest/method/remoteMesh/remoteComponent/remoteFunction',
         operation
       )
       .on('complete', function (result) {
@@ -454,7 +454,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/blithering_idiot/testmethod', operation)
+      .postJson('http://localhost:10000/rest/method/blithering_idiot/testmethod', operation)
       .on('complete', function (result) {
         test
           .expect(result.error.message)
@@ -477,7 +477,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     };
 
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/security/updateOwnUser', operation)
+      .postJson('http://localhost:10000/rest/method/security/updateOwnUser', operation)
       .on('complete', function (result) {
         test.expect(result.error.number).to.not.be(null);
         test.expect(result.error.message).to.be('attempt to access security component over rest');
@@ -496,7 +496,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     restClient
       .postJson(
-        'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' + 'blahblah',
+        'http://localhost:10000/rest/method/testComponent/method1?happn_token=' + 'blahblah',
         operation
       )
       .on('complete', function (result) {
@@ -514,7 +514,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/nonexistant/uri', operation)
+      .postJson('http://localhost:10000/rest/method/nonexistant/uri', operation)
       .on('complete', function (result) {
         test.expect(result.error.message).to.be('component nonexistant does not exist on mesh');
 
@@ -531,7 +531,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
     restClient
-      .postJson('http://127.0.0.1:10000/rest/method/testComponent/nonexistant', operation)
+      .postJson('http://localhost:10000/rest/method/testComponent/nonexistant', operation)
       .on('complete', function (result) {
         test
           .expect(result.error.message)

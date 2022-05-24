@@ -21,7 +21,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       remoteMesh: {
         // remote mesh node
         config: {
-          host: '127.0.0.1',
+          host: 'localhost',
           port: 3001,
           username: '_ADMIN',
           password: 'guessme',

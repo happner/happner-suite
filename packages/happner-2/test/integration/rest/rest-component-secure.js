@@ -139,7 +139,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                 config: {
                   secure: true,
                   port: 10001,
-                  host: '127.0.0.1',
+                  host: 'localhost',
                   username: '_ADMIN',
                   password: ADMIN_PASSWORD,
                 },
@@ -407,7 +407,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     if (credentials) operation = credentials;
 
     restClient
-      .postJson('http://127.0.0.1:10000/rest/login', operation)
+      .postJson('http://localhost:10000/rest/login', operation)
       .on('complete', function (result) {
         if (result.error) return done(new Error(result.error.message));
         done(null, result);
@@ -482,7 +482,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       if (e) return done(e);
 
       restClient
-        .get('http://127.0.0.1:10000/rest/describe?happn_token=' + result.data.token)
+        .get('http://localhost:10000/rest/describe?happn_token=' + result.data.token)
         .on('complete', function (result) {
           test.expect(result.data['/testComponent/method1']).to.not.be(null);
           test.expect(result.data['/testComponent/method2']).to.not.be(null);
@@ -557,7 +557,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .postJson(
-          'http://127.0.0.1:10000/rest/method/testComponent/method5?happn_token=' +
+          'http://localhost:10000/rest/method/testComponent/method5?happn_token=' +
             result.data.token,
           operation
         )
@@ -583,7 +583,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .postJson(
-          'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' +
+          'http://localhost:10000/rest/method/testComponent/method1?happn_token=' +
             result.data.token,
           operation
         )
@@ -610,7 +610,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       options.headers.authorization = 'Bearer ' + result.data.token;
 
       restClient
-        .postJson('http://127.0.0.1:10000/rest/method/testComponent/method1', operation, options)
+        .postJson('http://localhost:10000/rest/method/testComponent/method1', operation, options)
         .on('complete', function (result) {
           //eslint-disable-next-line
             if (result.error) console.log(result.error.message);
@@ -628,7 +628,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .get(
-          'http://127.0.0.1:10000/rest/method/testComponent/method4?number=1&another=2&happn_token=' +
+          'http://localhost:10000/rest/method/testComponent/method4?number=1&another=2&happn_token=' +
             result.data.token
         )
         .on('complete', function (result) {
@@ -655,7 +655,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .get(
-          'http://127.0.0.1:10000/rest/method/testComponent/method4?encoded_parameters=' +
+          'http://localhost:10000/rest/method/testComponent/method4?encoded_parameters=' +
             encoded +
             '&happn_token=' +
             result.data.token
@@ -671,14 +671,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var restClient = require('restler');
 
     restClient
-      .get('http://127.0.0.1:10000/rest/login?username=_ADMIN&password=' + ADMIN_PASSWORD)
+      .get('http://localhost:10000/rest/login?username=_ADMIN&password=' + ADMIN_PASSWORD)
       .on('complete', function (result) {
         test.expect(result.error).to.be(null);
         test.expect(result.data.token).to.not.be(null);
 
         restClient
           .get(
-            'http://127.0.0.1:10000/rest/method/testComponent/method4?number=1&another=2&happn_token=' +
+            'http://localhost:10000/rest/method/testComponent/method4?number=1&another=2&happn_token=' +
               result.data.token
           )
           .on('complete', function (result) {
@@ -692,7 +692,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var restClient = require('restler');
 
     restClient
-      .get('http://127.0.0.1:10000/rest/login?username=_ADMIN&password=wrong')
+      .get('http://localhost:10000/rest/login?username=_ADMIN&password=wrong')
       .on('complete', function (result) {
         test.expect(result.error.message).to.be('Invalid credentials');
         test.expect(result.message).to.be('Failure logging in');
@@ -716,7 +716,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .postJson(
-          'http://127.0.0.1:10000/rest/method/security/updateOwnUser?happn_token=' +
+          'http://localhost:10000/rest/method/security/updateOwnUser?happn_token=' +
             result.data.token,
           operation
         )
@@ -744,7 +744,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .postJson(
-          'http://127.0.0.1:10000/rest/method/remoteMesh/remoteComponent/remoteFunction?happn_token=' +
+          'http://localhost:10000/rest/method/remoteMesh/remoteComponent/remoteFunction?happn_token=' +
             result.data.token,
           operation
         )
@@ -811,7 +811,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                   var restClient = require('restler');
 
                   restClient
-                    .get('http://127.0.0.1:10000/rest/describe?happn_token=' + token)
+                    .get('http://localhost:10000/rest/describe?happn_token=' + token)
                     .on('complete', function (result) {
                       test.expect(result.data['/security/updateOwnUser']).to.be(undefined);
                       test
@@ -831,7 +831,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
                       restClient
                         .postJson(
-                          'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' +
+                          'http://localhost:10000/rest/method/testComponent/method1?happn_token=' +
                             token,
                           operation
                         )
@@ -915,7 +915,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                   //this call fails
                   restClient
                     .postJson(
-                      'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' +
+                      'http://localhost:10000/rest/method/testComponent/method1?happn_token=' +
                         token,
                       operation
                     )
@@ -934,7 +934,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                       //this call works
                       restClient
                         .postJson(
-                          'http://127.0.0.1:10000/rest/method/testComponent/method2?happn_token=' +
+                          'http://localhost:10000/rest/method/testComponent/method2?happn_token=' +
                             token,
                           operation
                         )
@@ -960,7 +960,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                             //this call stops working
                             restClient
                               .postJson(
-                                'http://127.0.0.1:10000/rest/method/testComponent/method2?happn_token=' +
+                                'http://localhost:10000/rest/method/testComponent/method2?happn_token=' +
                                   token,
                                 operation
                               )
@@ -1038,7 +1038,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                   var params = '&userValue=' + testUser.username;
                   restClient
                     .get(
-                      'http://127.0.0.1:10000/rest/method/testComponent/method5?happn_token=' +
+                      'http://localhost:10000/rest/method/testComponent/method5?happn_token=' +
                         token +
                         params
                     )
@@ -1068,7 +1068,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restClient
         .postJson(
-          'http://127.0.0.1:10000/rest/method/testComponent/method5?happn_token=' +
+          'http://localhost:10000/rest/method/testComponent/method5?happn_token=' +
             result.data.token,
           operation
         )

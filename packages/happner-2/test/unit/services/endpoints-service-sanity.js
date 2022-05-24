@@ -17,7 +17,7 @@ describe(
               {
                 name: 'config',
                 required: true,
-                value: { config: { host: '127.0.0.1', secret: 'mesh' } },
+                value: { config: { host: 'localhost', secret: 'mesh' } },
               },
               { name: 'callback', parameterType: 'callback' },
             ],
@@ -250,7 +250,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -260,7 +260,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -294,7 +294,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -304,7 +304,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -337,7 +337,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -349,7 +349,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -384,7 +384,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -396,7 +396,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -431,7 +431,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -442,7 +442,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -478,7 +478,7 @@ describe(
             remoteMesh1: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3001,
                 username: '_ADMIN',
                 password: 'guessme',
@@ -488,7 +488,7 @@ describe(
             remoteMesh2: {
               // remote mesh node
               config: {
-                host: '127.0.0.1',
+                host: 'localhost',
                 port: 3002,
                 username: '_ADMIN',
                 password: 'guessme',

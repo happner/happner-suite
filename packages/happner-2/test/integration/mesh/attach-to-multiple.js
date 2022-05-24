@@ -55,7 +55,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 5e3 }, (test) 
               config.endpoints['mesh' + i] = {
                 config: {
                   port: 3000 + i,
-                  host: '127.0.0.1',
+                  host: 'localhost',
                 },
               };
             }

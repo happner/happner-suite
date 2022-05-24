@@ -13,7 +13,7 @@ module.exports = function (config) {
     frameworks: ['mocha', 'chai'],
 
     files: [
-      { pattern: 'http://127.0.0.1:55000/api/client', type: 'js' },
+      { pattern: 'http://localhost:55000/api/client', type: 'js' },
       'browsertest_01_happner_client.js',
       'browsertest_02_security.js',
       'browsertest_03_events.js',

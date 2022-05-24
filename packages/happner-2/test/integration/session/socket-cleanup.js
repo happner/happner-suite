@@ -38,7 +38,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
     var Socket = Primus.createSocket({
       manual: true,
     });
-    const socket = new Socket('http://127.0.0.1:55000', {
+    const socket = new Socket('http://localhost:55000', {
       strategy: 'disconnect,online',
     });
     socket.once('close', destroyZombie(socket));
