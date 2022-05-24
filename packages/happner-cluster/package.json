@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
-    "test": "LOG_LEVEL=info mocha  test/unit/* test/integration/* --recursive --exit",
+    "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test"
   },
   "repository": {
