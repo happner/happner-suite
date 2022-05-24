@@ -1,4 +1,4 @@
-name: CI Crypto-Utils
+name: CI db-providers
 
 on: [push]
 

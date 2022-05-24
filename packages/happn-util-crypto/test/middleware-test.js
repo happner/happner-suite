@@ -1,6 +1,6 @@
 describe('middleware-test', function () {
   let Test = require('happn-commons-test');
-  let chai = new Test().chai;
+  let chai = (new Test()).chai;
   var expect = chai.expect;
   var crypto = require('../lib/crypto');
   var cryptoUtil = new crypto();
@@ -65,7 +65,7 @@ describe('middleware-test', function () {
       });
     } catch (e) {
       callback(e);
-    }
+    } 
   });
 
   it('should fetch the browser client on the alternative path', function (callback) {
