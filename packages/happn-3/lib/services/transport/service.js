@@ -86,6 +86,7 @@ TransportService.prototype.createServer = function (config, app, log, callback) 
   if (keyFileExists && certFileExists) {
     options.key = this.fs.readFileSync(config.keyPath);
     options.cert = this.fs.readFileSync(config.certPath);
+    return this.__createHttpsServer(options, app, callback);
   }
 
   if (!keyFileExists && !certFileExists) {
