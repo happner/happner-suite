@@ -14,7 +14,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
   const db_path = path.resolve(__dirname.replace('test/integration', '')) + path.sep + 'index.js';
   const db_local_file_path = test.commons.path.resolve(
     __dirname,
-    '..' + path.sep + '__fixtures' + path.sep + 'data' + path.sep + 'functional_mixed.loki'
+    '..' + path.sep + '__fixtures' + path.sep + 'data' + path.sep + 'functional_mixed.nedb'
   );
   const config = {
     services: {
@@ -28,8 +28,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
               collection: TEST_COLLECTION_NAME,
             },
             {
-              name: 'loki',
-              provider: require.resolve('happn-db-provider-loki'),
+              name: 'nedb',
               settings: {
                 filename: db_local_file_path,
               },
@@ -116,23 +115,22 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
               function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
                 test.expect(results.created === results.modified).to.be(true);
-                test.delay(1000).then(() => {
-                  findRecordInDataFile(
-                    '/LOCAL/1_eventemitter_embedded_sanity/' +
-                      test_id +
-                      '/testsubscribe/data/' +
-                      test_path_end,
-                    db_local_file_path,
-                    function (e, record) {
-                      if (e) return callback(e);
 
-                      if (!record)
-                        return callback('record not found in data file: ' + db_local_file_path);
+                findRecordInDataFile(
+                  '/LOCAL/1_eventemitter_embedded_sanity/' +
+                    test_id +
+                    '/testsubscribe/data/' +
+                    test_path_end,
+                  db_local_file_path,
+                  function (e, record) {
+                    if (e) return callback(e);
 
-                      callback();
-                    }
-                  );
-                });
+                    if (!record)
+                      return callback('record not found in data file: ' + db_local_file_path);
+
+                    callback();
+                  }
+                );
               }
             );
           } else callback(e);

@@ -9,7 +9,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   var Logger = require('happn-logger');
   let mockErrorService;
   let dbPath = path.resolve(__dirname, '../../__fixtures/test/test_lookup_db');
-  let tempDbPath = path.resolve(__dirname, '../../__fixtures/test/temp_test_lookup_db');
   let lookupTables;
   let getUserReturns = {};
   let dataChangedSpy = test.sinon.spy();
@@ -63,9 +62,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     done();
   });
 
-  after('deletes test and temp_test DB', (done) => {
+  after('deletes test DB', (done) => {
     if (test.commons.fs.existsSync(dbPath)) test.commons.fs.unlinkSync(dbPath);
-    if (test.commons.fs.existsSync(tempDbPath)) test.commons.fs.unlinkSync(tempDbPath);
     done();
   });
 
