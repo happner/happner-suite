@@ -6,7 +6,7 @@ module.exports = function (logger, env, os) {
   env = env || process.env;
   return function (interfaces) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
-    // interfaces = interfaces || os.networkInterfaces();
+    interfaces = interfaces || os.networkInterfaces();
     console.log(JSON.stringify({ interfaces }, null, 2));
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
@@ -15,14 +15,14 @@ module.exports = function (logger, env, os) {
     if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
-    // console.log("CHOSEN INTERFACE IS : ",  interfaces[networkInterfaceId][interfaceItemIndex])
-    // console.log("RETURNING ", interfaces[networkInterfaceId][interfaceItemIndex].address)
+    console.log("CHOSEN INTERFACE IS : ",  interfaces[networkInterfaceId][interfaceItemIndex])
+    console.log("RETURNING ", interfaces[networkInterfaceId][interfaceItemIndex].address)
     return interfaces[networkInterfaceId][interfaceItemIndex].address;
   };
 };
 
 function getFirstAvailableAddress(interfaceId, logger, os) {
-  // console.log('GETTING FIRST AVAILABLE ADDRESS');
+  console.log('GETTING FIRST AVAILABLE ADDRESS');
   const interfaces = os.networkInterfaces();
   const candidates = Object.keys(interfaces)
     .sort()
@@ -43,7 +43,7 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       });
       return candidates;
     }, []);
-  // console.log(JSON.stringify({ candidates }, null, 2));
+  console.log(JSON.stringify({ candidates }, null, 2));
   if (candidates.length > 0) {
     logger.warn(
       `get address for SWIM or cluster: interface with id [${interfaceId}] not found or address index out of bounds - dynamically resolved to address [${candidates[0].address}] on NIC [${candidates[0].nic}]`
