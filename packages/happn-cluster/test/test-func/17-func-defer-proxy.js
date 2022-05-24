@@ -41,15 +41,11 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     });
 
     connection.on('error', function (e) {
-      console.log('GOT ERROR: ', e);
       test.expect(e.code).to.be('ECONNREFUSED');
 
       _this.servers[0].services.proxy
         .start()
-        .then(() => {
-          console.log('STARTED PROXY ');
-          return test.delay(500);
-        })
+
         .then(function () {
           var connection = net.connect(port);
 
