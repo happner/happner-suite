@@ -39,13 +39,12 @@ var Config = {
 
   // if config.logFile is specified:
   logFile: process.env.LOG_FILE,
+  logRawToFile: process.env.LOG_RAW_TO_FILE,
   logFileLayout: null,
   logFileMaxSize: 20480, // limit the file size
   logFileBackups: 10, // keep history of 10 logfiles
   logFileNameAbsolute: true, // is the log filename an absolute path?
 };
-
-console.log('CONFIG:::', Config);
 
 Object.defineProperty(module.exports, 'configured', {
   get: function () {
@@ -179,7 +178,7 @@ module.exports.configure = function (config) {
     level: Config.logLevel,
   };
 
-  if (Config.logger.appenders.file) {
+  if (Config.logger.appenders.file && Config.logRawToFile === '1') {
     Config.logger.categories.$$RAW.appenders.push('file');
   }
 

@@ -168,17 +168,19 @@ module.exports = class CacheService extends require('events').EventEmitter {
           hitsPerSec: stats[statsKey].hits / (this.#config.statisticsInterval / 1e3),
           missesPerSec: stats[statsKey].misses / (this.#config.statisticsInterval / 1e3),
         });
-      } else {
-        calculated[statsKey] = commons._.merge(stats[statsKey], {
-          hitsPerSec:
-            (stats[statsKey].hits - this.#lastStats[statsKey].hits) /
-            (this.#config.statisticsInterval / 1e3),
-          missesPerSec:
-            (stats[statsKey].misses - this.#lastStats[statsKey].misses) /
-            (this.#config.statisticsInterval / 1e3),
-        });
+        return calculated;
       }
-
+      if (!this.#lastStats[statsKey]) {
+        this.#lastStats[statsKey] = { hits: 0, misses: 0 };
+      }
+      calculated[statsKey] = commons._.merge(stats[statsKey], {
+        hitsPerSec:
+          (stats[statsKey].hits - this.#lastStats[statsKey].hits) /
+          (this.#config.statisticsInterval / 1e3),
+        missesPerSec:
+          (stats[statsKey].misses - this.#lastStats[statsKey].misses) /
+          (this.#config.statisticsInterval / 1e3),
+      });
       return calculated;
     }, {});
   }

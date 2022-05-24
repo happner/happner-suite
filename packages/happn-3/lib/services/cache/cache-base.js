@@ -111,7 +111,6 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   stats() {
-    console.log(`size of ${this.#name}: ${this.size()}`);
     return this.utils.clone(this.commons._.merge(this.#stats, { size: this.size() }));
   }
 
