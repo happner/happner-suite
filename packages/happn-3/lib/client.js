@@ -324,8 +324,8 @@
       setDefaults('privateKey');
       setDefaults('token');
     }
-
-    if (!options.host || options.host === "localhost") options.host = '127.0.0.1';
+    console.log("OPTIONS HOST IS ", options.host)
+    if (!options.host) options.host = '127.0.0.1';
 
     if (!options.port) options.port = 55000;
 
