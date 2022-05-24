@@ -14,7 +14,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     stopCluster(servers, function (e) {
       if (e) return done(e);
       servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
         done();
       });
     });
@@ -23,7 +23,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   after('stop cluster', function (done) {
     this.timeout(20000);
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
         done();
       });
     });
@@ -38,17 +38,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         username: '_ADMIN',
         password: 'ADMIN_PASSWORD',
       };
-      let token = (await axios.post(`http://127.0.0.1:${port}/rest/login`, credentials)).data.data
+      let token = (await axios.post(`http://localhost:${port}/rest/login`, credentials)).data.data
         .token;
 
       let description = (
-        await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`)
+        await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`)
       ).data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
       await startInternal2(getSeq.getNext(), 2);
       await test.delay(1000);
-      description = (await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`))
+      description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
@@ -56,7 +56,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       //Should still have correct description after component leaves
       await servers.pop().stop({ reconnect: false });
       await test.delay(1000);
-      description = (await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`))
+      description = (await axios.get(`http://localhost:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();

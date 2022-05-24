@@ -19,7 +19,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     stopCluster(servers, function () {
       // this should still clear mongo, so we ignore any error in callback
       servers = [];
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function (e) {
+      clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
         if (e) console.log(e);
         setTimeout(done, 2000);
       });
@@ -289,7 +289,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           happnerClient.connect(
             null,
             {
-              host: '127.0.0.1',
+              host: 'localhost',
               port: getSeq.getPort(1),
               username: 'username',
               password: 'password',
@@ -458,7 +458,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     if (!servers) return callback();
     stopCluster(servers, function () {
       servers.forEach((instance) => instance.stop());
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
         if (currentProc) currentProc.kill();
         setTimeout(() => {
           let disconnected =
