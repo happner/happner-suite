@@ -3,6 +3,7 @@ const HappnerCluster = require('../../..');
 const baseConfig = require('../../_lib/base-config');
 const libDir = require('../../_lib/lib-dir');
 const commander = require('commander');
+const path = require('path');
 
 commander
   .option('--seq [number]', 'sequence number')
@@ -17,7 +18,17 @@ commander.hosts = commander.hosts || '127.0.0.1:9001,127.0.0.1:9002,127.0.0.1:90
 console.log(`INSTANCE ${commander.seq}: ${process.pid}`);
 
 function internalInstanceConfig(seq, sync) {
-  var config = baseConfig([seq, seq], sync, true, null, null, commander.hosts);
+  var config = baseConfig(
+    [seq, seq],
+    sync,
+    true,
+    null,
+    null,
+    commander.hosts,
+    null,
+    null,
+    path.resolve(__dirname, `../logs/log-${seq}`)
+  );
   config.modules = {
     remoteComponent: {
       path: libDir + 'integration-09-remote-component',

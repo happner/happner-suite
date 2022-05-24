@@ -11,20 +11,8 @@ module.exports = class CacheService extends require('events').EventEmitter {
     super();
     this.initialize = commons.utils.maybePromisify(this.initialize);
     this.stop = commons.utils.maybePromisify(this.stop);
-    let Logger;
-
-    if (opts && opts.logger) {
-      Logger = opts.logger.createLogger('Cache');
-    } else {
-      Logger = require('happn-logger');
-      Logger.configure({
-        logLevel: 'info',
-      });
-    }
-
-    this.log = Logger.createLogger('Cache');
+    this.log = opts.logger.createLogger('Cache');
     this.log.$$TRACE('construct(%j)', opts);
-
     this.#caches = {};
   }
 
@@ -134,11 +122,16 @@ module.exports = class CacheService extends require('events').EventEmitter {
   }
 
   getStats() {
-    return Object.values(this.#caches).reduce((stats, cache) => {
-      const cacheStats = commons._.merge(cache.instance.stats(), { type: cache.type });
-      stats[cache.instance.name] = cacheStats;
-      return stats;
-    }, {});
+    return Object.values(this.#caches).reduce(
+      (stats, cache) => {
+        const cacheStats = commons._.merge(cache.instance.stats(), { type: cache.type });
+        stats[cache.instance.name] = cacheStats;
+        return stats;
+      },
+      {
+        name: this.happn.name,
+      }
+    );
   }
 
   getCache(name) {
@@ -157,10 +150,9 @@ module.exports = class CacheService extends require('events').EventEmitter {
         const stats = this.getStats();
         this.log.json.info(
           commons._.merge(this.#calculatePerSecond(stats), {
-            logType: 'statistics',
-            area: 'happn-3 cache service',
             timestamp: Date.now(),
-          })
+          }),
+          'cache-service-statistics'
         );
         this.#lastStats = stats;
       } catch (e) {

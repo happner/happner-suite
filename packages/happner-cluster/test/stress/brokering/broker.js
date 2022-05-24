@@ -3,7 +3,7 @@ const HappnerCluster = require('../../..');
 const baseConfig = require('../../_lib/base-config');
 const libDir = require('../../_lib/lib-dir');
 const commander = require('commander');
-
+const path = require('path');
 commander
   .option('--seq [number]', 'sequence number')
   .option('--min [number]', 'minimum peers')
@@ -26,7 +26,9 @@ function brokerInstanceConfig(seq, sync) {
     null,
     null,
     commander.hosts,
-    commander.joinTimeout
+    commander.joinTimeout,
+    null,
+    path.resolve(__dirname, `../logs/log-${seq}`)
   );
   config.authorityDelegationOn = true;
   config.modules = {
@@ -55,9 +57,7 @@ HappnerCluster.create(brokerInstanceConfig(commander.seq, commander.min)).then((
   setInterval(() => {
     // eslint-disable-next-line no-console
     console.log(
-      `active sessions: ${
-        Object.keys(instance._mesh.happn.server.services.session.__activeSessions.__cache).length
-      }`
+      `active sessions: ${instance._mesh.happn.server.services.session.__activeSessions.size()}`
     );
   }, 5000);
 });
