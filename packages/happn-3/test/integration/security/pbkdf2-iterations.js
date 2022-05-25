@@ -74,7 +74,7 @@ describe(
 
       await addUser(testUser);
       await service.services.security.users.getUser(testUser.username);
-      var fetchedUserPassword = service.services.security.users.__cache_passwords.getSync(
+      var fetchedUserPassword = service.services.security.users.__cache_passwords.get(
         testUser.username
       );
       var fetchedUserPasswordSplit = fetchedUserPassword.split('$');
@@ -114,7 +114,7 @@ describe(
 
       await addUser(testUser);
       await service.services.security.users.getUser(testUser.username);
-      var fetchedUserPassword = service.services.security.users.__cache_passwords.getSync(
+      var fetchedUserPassword = service.services.security.users.__cache_passwords.get(
         testUser.username
       );
       var fetchedUserPasswordSplit = fetchedUserPassword.split('$');

@@ -22,7 +22,7 @@ describe(
                   },
                 },
                 policy: {
-                  ttl: '10 seconds', //a week
+                  ttl: '10 seconds',
                   inactivity_threshold: '5 seconds',
                 },
               },

@@ -225,10 +225,6 @@ UtilsService.prototype.isEmptyObject = function (obj) {
   return true;
 };
 
-UtilsService.prototype.omitProperty = function (obj, propertiesToOmit) {
-  return _.omit(obj, propertiesToOmit);
-};
-
 UtilsService.prototype.replaceAll = function (str, search, replacement) {
   if (str.replaceAll) return str.replaceAll(search, replacement);
   return replaceAll(str, search, replacement);

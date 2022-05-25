@@ -209,6 +209,9 @@ async function initialize(config) {
   await this.__initializeReplication(config);
   await this.__initializeSessionTokenSecret(config);
   await this.__initializeAuthProviders(config);
+  this.__cache_security_authentication_nonce = this.cacheService.create(
+    'security_authentication_nonce'
+  );
 }
 
 function getAuditData(message) {
@@ -377,16 +380,22 @@ function processAuthorize(message, callback) {
 }
 
 function processNonceRequest(message, callback) {
-  return this.createAuthenticationNonce(message.request.data, (e, nonce) => {
-    if (e) return callback(e);
+  const callbackArgs = [];
+  try {
+    const nonce = this.createAuthenticationNonce(message.request.data);
     message.response = {
-      nonce: nonce,
+      nonce,
       data: {
-        nonce: nonce,
-      }, //happn-2 backward compatability
+        nonce, //happn-2 backward compatability
+      },
     };
-    return callback(null, message);
-  });
+    callbackArgs.push(null, message);
+  } catch (e) {
+    callbackArgs.length = 0;
+    callbackArgs.push(e);
+  } finally {
+    callback(...callbackArgs);
+  }
 }
 
 function AccessDeniedError(message, reason) {
@@ -564,17 +573,14 @@ function __initializeGroups(config) {
 }
 
 function __clearOnBehalfOfCache() {
-  return new Promise((resolve) => {
-    if (this.__cache_session_on_behalf_of) this.__cache_session_on_behalf_of.clear();
-    resolve();
-  });
+  if (this.__cache_session_on_behalf_of) this.__cache_session_on_behalf_of.clear();
 }
 
 function __initializeOnBehalfOfCache() {
   return new Promise((resolve) => {
     if (!this.config.secure) return resolve();
     if (this.__cache_session_on_behalf_of) return resolve();
-    this.__cache_session_on_behalf_of = this.cacheService.new(
+    this.__cache_session_on_behalf_of = this.cacheService.create(
       'cache_session_on_behalf_of',
       this.options.onBehalfOfCache
     );
@@ -661,9 +667,10 @@ function __loadRevokedTokens(callback) {
     cache: {
       dataStore: this.dataService,
     },
+    overwrite: true,
   };
 
-  this.__cache_revoked_tokens = this.cacheService.new('cache_revoked_tokens', config);
+  this.__cache_revoked_tokens = this.cacheService.create('cache_revoked_tokens', config);
   this.__cache_revoked_tokens.sync(callback);
 }
 
@@ -692,7 +699,7 @@ function __loadSessionActivity(callback) {
     },
   };
 
-  this.__cache_session_activity = this.cacheService.new('cache_session_activity', config);
+  this.__cache_session_activity = this.cacheService.create('cache_session_activity', config);
   this.__cache_session_activity.sync(callback);
 }
 
@@ -851,24 +858,9 @@ function __logSessionActivity(sessionId, path, action, err, authorized, reason, 
   this.__cache_session_activity.set(sessionId, activityInfo, callback);
 }
 
-function __listCache(cacheName, filter, callback) {
-  if (typeof filter === 'function') {
-    callback = filter;
-    filter = null;
-  }
-
-  if (!this[cacheName]) return callback('cache with name ' + cacheName + ' does not exist');
-
-  this[cacheName].all((e, allItems) => {
-    if (e) return callback(e);
-
-    try {
-      if (filter) allItems = this.happn.services.cache.filterCacheItems(filter, allItems);
-      return callback(null, allItems);
-    } catch (filterFailed) {
-      return callback(filterFailed);
-    }
-  });
+function __listCache(cacheName, filter) {
+  if (!this[cacheName]) throw new Error(`cache with name${cacheName} does not exist`);
+  return this[cacheName].all(filter);
 }
 
 function listSessionActivity(filter, callback) {
@@ -876,10 +868,17 @@ function listSessionActivity(filter, callback) {
     callback = filter;
     filter = null;
   }
-
-  if (!this.config.logSessionActivity)
-    return callback(new Error('session activity logging not activated'));
-  return this.__listCache('__cache_session_activity', filter, callback);
+  const callbackArgs = [];
+  try {
+    if (!this.config.logSessionActivity)
+      return callbackArgs.push(new Error('session activity logging not activated'));
+    callbackArgs.push(null, this.__listCache('__cache_session_activity', filter));
+  } catch (e) {
+    callbackArgs.length = 0;
+    return callbackArgs.push(e);
+  } finally {
+    callback(...callbackArgs);
+  }
 }
 
 function listActiveSessions(filter, callback) {
@@ -887,10 +886,18 @@ function listActiveSessions(filter, callback) {
     callback = filter;
     filter = null;
   }
-
-  if (!this.__sessionManagementActive)
-    return callback(new Error('session management not activated'));
-  this.happn.services.session.__activeSessions.all(filter, callback);
+  const callbackArgs = [];
+  try {
+    if (!this.__sessionManagementActive)
+      return callbackArgs.push(new Error('session management not activated'));
+    const activeSessionsList = this.happn.services.session.__activeSessions.all(filter);
+    return callbackArgs.push(null, activeSessionsList);
+  } catch (e) {
+    callbackArgs.length = 0;
+    return callbackArgs.push(e);
+  } finally {
+    callback(...callbackArgs);
+  }
 }
 
 function listRevokedTokens(filter, callback) {
@@ -898,10 +905,18 @@ function listRevokedTokens(filter, callback) {
     callback = filter;
     filter = null;
   }
-
-  if (!this.__sessionManagementActive)
-    return callback(new Error('session management not activated'));
-  return this.__cache_revoked_tokens.all(filter, callback);
+  const callbackArgs = [];
+  try {
+    if (!this.__sessionManagementActive)
+      return callbackArgs.push(new Error('session management not activated'));
+    const revokedList = this.__cache_revoked_tokens.all(filter);
+    return callbackArgs.push(null, revokedList);
+  } catch (e) {
+    callbackArgs.length = 0;
+    return callbackArgs.push(e);
+  } finally {
+    callback(...callbackArgs);
+  }
 }
 
 function offDataChanged(index) {
@@ -1123,20 +1138,12 @@ function dataChanged(whatHappnd, changedData, additionalInfo, callback) {
 
 function __dataChangedInternal(whatHappnd, changedData, additionalInfo, callback) {
   if (CONSTANTS.SECURITY_DIRECTORY_EVENTS_COLLECTION.indexOf(whatHappnd) === -1) return callback();
-  this.__clearOnBehalfOfCache()
-    .then(() => {
-      return this.users.clearCaches(whatHappnd, changedData);
-    })
-    .then(() => {
-      return this.groups.clearCaches(whatHappnd, changedData);
-    })
-    .then(() => {
-      return this.resetSessionPermissions(whatHappnd, changedData, additionalInfo);
-    })
+  this.users.clearCaches();
+  this.groups.clearCaches();
+  this.__clearOnBehalfOfCache();
+  this.resetSessionPermissions(whatHappnd, changedData, additionalInfo)
     .then((effectedSessions) => {
-      return this.checkpoint.clearCaches(effectedSessions);
-    })
-    .then((effectedSessions) => {
+      this.checkpoint.clearCaches();
       return new Promise((resolve, reject) => {
         if (
           this.happn.services.subscription &&
@@ -1399,14 +1406,14 @@ function __initializeProfiles(config) {
 
 function __loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
   delete user.password;
-  if (this.__locks) this.__locks.removeSync(user.username); //remove previous locks
+  if (this.__locks) this.__locks.remove(user.username); //remove previous locks
   callback(null, this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo));
 }
 
 function __checkLockedOut(username) {
   if (!username || !this.config.accountLockout || !this.config.accountLockout.enabled) return false;
 
-  let existingLock = this.__locks.getSync(username);
+  let existingLock = this.__locks.get(username);
 
   return existingLock != null && existingLock.attempts >= this.config.accountLockout.attempts;
 }
@@ -1422,7 +1429,7 @@ function __loginFailed(username, specificMessage, e, callback, overrideLockout) 
   }
 
   if (this.config.accountLockout && this.config.accountLockout.enabled && !overrideLockout) {
-    let currentLock = this.__locks.getSync(username);
+    let currentLock = this.__locks.get(username);
 
     if (!currentLock)
       currentLock = {
@@ -1431,7 +1438,7 @@ function __loginFailed(username, specificMessage, e, callback, overrideLockout) 
 
     currentLock.attempts++;
 
-    this.__locks.setSync(username, currentLock, {
+    this.__locks.set(username, currentLock, {
       ttl: this.config.accountLockout.retryInterval,
     });
 
@@ -1476,23 +1483,13 @@ function checkIPAddressWhitelistPolicy(credentials, sessionId, request) {
   });
 }
 
-function createAuthenticationNonce(request, callback) {
-  if (!request.publicKey) return callback(new Error('no public key with request'));
-
+function createAuthenticationNonce(request) {
+  if (!request.publicKey) throw new Error('no public key with request');
   let nonce = this.cryptoService.generateNonce();
-
-  this.cacheService.set(
-    request.publicKey,
-    nonce,
-    {
-      cache: 'security_authentication_nonce',
-      ttl: this.config.defaultNonceTTL,
-    },
-    (e) => {
-      if (e) return callback(e);
-      else callback(null, nonce);
-    }
-  );
+  this.__cache_security_authentication_nonce.set(request.publicKey, nonce, {
+    ttl: this.config.defaultNonceTTL,
+  });
+  return nonce;
 }
 
 /**
@@ -1500,26 +1497,20 @@ function createAuthenticationNonce(request, callback) {
  * whether the digest and nonce are related by the same private key.
  */
 function verifyAuthenticationDigest(request, callback) {
-  if (!request.publicKey) return callback(new Error('no publicKey in request'));
-  if (!request.digest) return callback(new Error('no digest in request'));
-
-  this.cacheService.get(
-    request.publicKey,
-    {
-      cache: 'security_authentication_nonce',
-    },
-    (e, nonce) => {
-      if (e) return callback(e);
-      if (!nonce) return callback(new Error('nonce expired or public key invalid'));
-
-      try {
-        let verified = this.cryptoService.verify(nonce, request.digest, request.publicKey);
-        callback(null, verified);
-      } catch (verifyFailed) {
-        callback(verifyFailed);
-      }
-    }
-  );
+  const callbackArgs = [];
+  try {
+    if (!request.publicKey) return callbackArgs.push(new Error('no publicKey in request'));
+    if (!request.digest) return callbackArgs.push(new Error('no digest in request'));
+    const nonce = this.__cache_security_authentication_nonce.get(request.publicKey);
+    if (!nonce) return callbackArgs.push(new Error('nonce expired or public key invalid'));
+    let verified = this.cryptoService.verify(nonce, request.digest, request.publicKey);
+    callbackArgs.push(null, verified);
+  } catch (verifyFailed) {
+    callbackArgs.length = 0;
+    callbackArgs.push(verifyFailed);
+  } finally {
+    callback(...callbackArgs);
+  }
 }
 
 function authorize(session, path, action, callback) {
@@ -1575,7 +1566,7 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
 }
 
 function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
-  let behalfOfSession = this.__cache_session_on_behalf_of.getSync(onBehalfOf, { clone: false });
+  let behalfOfSession = this.__cache_session_on_behalf_of.get(onBehalfOf, { clone: false });
   if (behalfOfSession) return callback(null, behalfOfSession);
 
   this.users.getUser(onBehalfOf, (e, onBehalfOfUser) => {
@@ -1587,7 +1578,7 @@ function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
       info: { delegatedBy: delegatedBy.user.username },
     });
     behalfOfSession.happn = delegatedBy.happn;
-    this.__cache_session_on_behalf_of.setSync(onBehalfOf, behalfOfSession, { clone: false });
+    this.__cache_session_on_behalf_of.set(onBehalfOf, behalfOfSession, { clone: false });
     callback(null, behalfOfSession);
   });
 }
@@ -1619,6 +1610,7 @@ function stop(options, callback) {
   if (this.__locks) this.__locks.stop();
   if (this.__cache_session_activity) this.__cache_session_activity.stop();
   if (this.__cache_revoked_tokens) this.__cache_revoked_tokens.stop();
+  if (this.__cache_security_authentication_nonce) this.__cache_security_authentication_nonce.stop();
 
   this.checkpoint.stop();
   callback();

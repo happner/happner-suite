@@ -19,7 +19,6 @@
   let utils, CONSTANTS;
 
   if (!browser) {
-    console.log(__dirname);
     CONSTANTS = require('./constants-builder');
     utils = require('happn-commons').utils;
     Logger = require('happn-logger');
@@ -588,8 +587,8 @@
         callback();
       });
     } else {
-      Crypto = require('happn-util-crypto');
-      crypto = new Crypto();
+      const CryptoUtils = require('happn-util-crypto');
+      crypto = new CryptoUtils();
       callback();
     }
   });

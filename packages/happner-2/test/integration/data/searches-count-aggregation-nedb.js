@@ -159,9 +159,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
         ],
       },
       function (e) {
-        test.expect(e.toString()).to.be(
-          'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
-        );
+        test
+          .expect(e.toString())
+          .to.be(
+            'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
+          );
         callback();
       }
     );
@@ -194,9 +196,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
         },
       },
       function (e) {
-        test.expect(e.toString()).to.be(
-          'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
-        );
+        test
+          .expect(e.toString())
+          .to.be(
+            'SystemError: aggregate feature not available for provider on path: /searches-and-aggregation/*'
+          );
         callback();
       }
     );

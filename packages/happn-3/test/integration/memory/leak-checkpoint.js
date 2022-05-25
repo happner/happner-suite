@@ -58,6 +58,7 @@ describe(
     var listenerclient;
 
     var disconnectClients = function (options, callback) {
+      options = options || {};
       publisherclient.disconnect(
         {
           timeout: 2000,
@@ -68,7 +69,14 @@ describe(
             {
               timeout: 2000,
             },
-            callback
+            (e) => {
+              if (e) return callback(e);
+              if (options.delay) {
+                setTimeout(callback, options.delay);
+                return;
+              }
+              callback();
+            }
           );
         }
       );
@@ -181,33 +189,19 @@ describe(
 
         doOperations(null, function (e) {
           if (e) return done(e);
-
-          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
-            e,
-            items
-          ) {
-            expect(items.length > 0).to.be(true);
-
-            disconnectClients(null, function (e) {
-              if (e) return done(e);
-
-              setTimeout(function () {
-                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
-                  e,
-                  items
-                ) {
-                  expect(items.length === 0).to.be(true);
-
-                  done();
-                });
-              }, 2000);
-            });
+          let items = happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all();
+          expect(items.length > 0).to.be(true);
+          disconnectClients({ delay: 1e3 }, function (e) {
+            if (e) return done(e);
+            items = happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all();
+            expect(items.length === 0).to.be(true);
+            done();
           });
         });
       });
     });
 
-    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the checkpoint_inactivity_threshold', function (done) {
+    it('should do a bunch of operations, then disconnect we ensure that there are no residual sessionIds in the checkpoint_inactivity_threshold cache', function (done) {
       this.timeout(5000);
 
       connectClients(null, function (e) {
@@ -215,27 +209,15 @@ describe(
 
         doOperations(null, function (e) {
           if (e) return done(e);
-
-          happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
-            e,
-            items
-          ) {
-            expect(items.length > 0).to.be(true);
-
-            disconnectClients(null, function (e) {
-              if (e) return done(e);
-
-              setTimeout(function () {
-                happnInstance.services.security.checkpoint.__checkpoint_usage_limit.all(function (
-                  e,
-                  items
-                ) {
-                  expect(items.length === 0).to.be(true);
-
-                  done();
-                });
-              }, 2000);
-            });
+          let items =
+            happnInstance.services.security.checkpoint.__checkpoint_inactivity_threshold.all();
+          expect(items.length > 0).to.be(true);
+          disconnectClients({ delay: 1e3 }, function (e) {
+            if (e) return done(e);
+            items =
+              happnInstance.services.security.checkpoint.__checkpoint_inactivity_threshold.all();
+            expect(items.length === 0).to.be(true);
+            done();
           });
         });
       });

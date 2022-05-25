@@ -34,7 +34,7 @@ describe(
               security: eventEmitter,
               cache: {
                 __caches: {},
-                new: function (key, opts) {
+                getOrCreate: function (key, opts) {
                   expect(opts).to.eql({
                     type: 'LRU',
                     cache: {
@@ -80,7 +80,7 @@ describe(
                     clear: done,
                   },
                 },
-                new: function (key, opts) {
+                getOrCreate: function (key, opts) {
                   expect(opts).to.eql({
                     type: 'LRU',
                     cache: {
@@ -120,7 +120,7 @@ describe(
       var componentInstance = new ComponentInstance();
 
       componentInstance.boundExchangeCache = {
-        getSync: function () {
+        get: function () {
           return {};
         },
       };
@@ -139,10 +139,10 @@ describe(
       var cached = {};
 
       componentInstance.boundExchangeCache = {
-        getSync: function (key) {
+        get: function (key) {
           return this[key];
         },
-        setSync: function (key, value) {
+        set: function (key, value) {
           this[key] = value;
         },
       };

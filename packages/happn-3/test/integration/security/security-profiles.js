@@ -277,15 +277,7 @@ describe(tests.testName(__filename, 3), function () {
   });
 
   function checkLocks(username) {
-    return new Promise((resolve, reject) => {
-      happnInstance1.services.security.authProviders.default.__locks.get(
-        username,
-        function (e, lock) {
-          if (e) reject(e);
-          resolve(lock);
-        }
-      );
-    });
+    return happnInstance1.services.security.authProviders.default.__locks.get(username);
   }
 
   async function startProxyService() {

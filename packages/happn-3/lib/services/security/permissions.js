@@ -19,7 +19,7 @@ module.exports = class Permissions {
     this.cacheService = happn.services.cache;
     this.dataService = happn.services.data;
     this.type = type;
-    this.cache = this.cacheService.new(`cache_security_${this.type}_permissions`, {
+    this.cache = this.cacheService.create(`cache_security_${this.type}_permissions`, {
       type: 'LRU',
       cache: this.__config.__cache_permissions,
     });

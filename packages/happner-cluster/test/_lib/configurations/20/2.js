@@ -15,9 +15,9 @@ module.exports = {
         is: async () => {
           if (!this.state) this.state = {};
           return this.state;
-        }
-      }
-    }
+        },
+      },
+    },
   },
   components: {
     component2: {
@@ -25,9 +25,9 @@ module.exports = {
       startMethod: 'start',
       dependencies: {
         component4: {
-          version: '*'
-        }
-      }
-    }
-  }
+          version: '*',
+        },
+      },
+    },
+  },
 };

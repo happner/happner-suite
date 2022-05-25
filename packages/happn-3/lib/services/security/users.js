@@ -62,11 +62,11 @@ function initialize(config, securityService, callback) {
         maxAge: 0,
       };
 
-    this.__cache_users = this.cacheService.new('cache_security_users', {
+    this.__cache_users = this.cacheService.create('cache_security_users', {
       type: 'LRU',
       cache: config.__cache_users,
     });
-    this.__cache_passwords = this.cacheService.new('cache_security_passwords', {
+    this.__cache_passwords = this.cacheService.create('cache_security_passwords', {
       type: 'LRU',
       cache: config.__cache_users,
     });
@@ -112,18 +112,13 @@ function clearGroupUsersFromCache(groupName) {
 }
 
 function clearCaches(whatHappnd, changedData) {
-  if (whatHappnd == null)
-    return this.__cache_users
-      .clear()
-      .then(() => {
-        return this.__cache_passwords.clear();
-      })
-      .then(() => {
-        return this.__cache_users_by_groups.clear();
-      })
-      .then(() => {
-        return this.permissionManager.cache.clear();
-      });
+  if (whatHappnd == null) {
+    this.__cache_passwords.clear();
+    this.__cache_users.clear();
+    this.__cache_users_by_groups.clear();
+    this.permissionManager.cache.clear();
+    return;
+  }
   if (
     whatHappnd === SD_EVENTS.DELETE_GROUP ||
     whatHappnd === SD_EVENTS.UNLINK_GROUP ||
@@ -211,22 +206,13 @@ function __validate(validationType, options, obj, callback) {
 }
 
 function getPasswordHash(username, callback) {
-  this.__cache_passwords.get(username, (e, hash) => {
+  const hash = this.__cache_passwords.get(username);
+  if (hash) return callback(null, hash);
+  this.dataService.get('/_SYSTEM/_SECURITY/_USER/' + username, (e, user) => {
     if (e) return callback(e);
-
-    if (hash) return callback(null, hash);
-
-    this.dataService.get('/_SYSTEM/_SECURITY/_USER/' + username, (e, user) => {
-      if (e) return callback(e);
-
-      if (!user) return callback(new Error(username + ' does not exist in the system'));
-
-      this.__cache_passwords.set(user.data.username, user.data.password, (e) => {
-        if (e) return callback(e);
-
-        callback(null, user.data.password);
-      });
-    });
+    if (!user) return callback(new Error(username + ' does not exist in the system'));
+    this.__cache_passwords.set(user.data.username, user.data.password);
+    callback(null, user.data.password);
   });
 }
 
@@ -388,7 +374,7 @@ async function getUserNoGroups(userName) {
   const preparedUserName = this.prepareUserName(userName);
   if (this.__cache_users.has(preparedUserName)) {
     //we strip out the groups (cloning the cached user) - just in case it contains groups
-    return this.utilsService.omitProperty(this.__cache_users.getSync(preparedUserName), ['groups']);
+    return commons._.omit(this.__cache_users.get(preparedUserName), 'groups');
   }
 
   const userPath = '/_SYSTEM/_SECURITY/_USER/' + preparedUserName;
@@ -401,8 +387,8 @@ async function getUserNoGroups(userName) {
 
   const attached = await this.permissionManager.attachPermissions(returnUser);
 
-  this.__cache_users.setSync(preparedUserName, attached, { clone: false });
-  this.__cache_passwords.setSync(preparedUserName, password, { clone: false });
+  this.__cache_users.set(preparedUserName, attached, { clone: false });
+  this.__cache_passwords.set(preparedUserName, password, { clone: false });
 
   return attached;
 }
@@ -439,7 +425,7 @@ function getGroupMemberships(username, callback) {
           .map((membership) => {
             return {
               groupName: membership._meta.path.replace(`${userPath}/_USER_GROUP/`, ''),
-              membership: this.utilsService.omitProperty(membership, ['_meta']),
+              membership: commons._.omit(membership, '_meta'),
             };
           })
       );

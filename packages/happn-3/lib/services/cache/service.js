@@ -1,283 +1,196 @@
-module.exports = CacheService;
-
-const EventEmitter = require('events').EventEmitter;
-
-const StaticCache = require('./cache_static');
-const LRUCache = require('./cache_lru');
-const PersistedCache = require('./cache_persist');
+const StaticCache = require('./cache-static');
+const LRUCache = require('./cache-lru');
+const PersistedCache = require('./cache-persist');
 const commons = require('happn-commons');
-const async = commons.async;
-const util = commons.utils;
-
-CacheService.prototype.initialize = initialize;
-CacheService.prototype.new = _new;
-CacheService.prototype.set = util.maybePromisify(set);
-CacheService.prototype.get = util.maybePromisify(get);
-CacheService.prototype.increment = util.maybePromisify(increment);
-CacheService.prototype.update = util.maybePromisify(update);
-CacheService.prototype.remove = remove;
-CacheService.prototype.clear = clear;
-CacheService.prototype.clearAll = clearAll;
-CacheService.prototype.on = on;
-CacheService.prototype.off = off;
-CacheService.prototype.stop = stop;
-CacheService.prototype.stopCache = stopCache;
-CacheService.prototype.stopAll = stopAll;
-CacheService.prototype.filterCacheItems = filterCacheItems;
-CacheService.prototype.filterCache = filterCache;
-CacheService.prototype.getIfExisting = getIfExisting;
-CacheService.prototype.__emit = __emit;
-
-function CacheService(opts) {
-  var Logger;
-
-  if (opts && opts.logger) {
-    Logger = opts.logger.createLogger('Cache');
-  } else {
-    Logger = require('happn-logger');
-    Logger.configure({
-      logLevel: 'info',
-    });
-  }
-
-  this.__eventEmitter = new EventEmitter();
-
-  this.log = Logger.createLogger('Cache');
-  this.log.$$TRACE('construct(%j)', opts);
-
-  this.__cache = {};
-}
-
-function initialize(config, callback) {
-  try {
-    if (typeof config === 'function') {
-      callback = config;
-      config = {};
+module.exports = class CacheService extends require('events').EventEmitter {
+  #caches;
+  #config;
+  #statisticsInterval;
+  #lastStats;
+  constructor(opts = {}) {
+    super();
+    this.initialize = commons.utils.maybePromisify(this.initialize);
+    this.stop = commons.utils.maybePromisify(this.stop);
+    if (opts && opts.logger) {
+      this.log = opts.logger.createLogger('Cache');
+    } else {
+      let logger = require('happn-logger');
+      logger.configure({
+        logLevel: 'info',
+      });
+      this.log = logger.createLogger('Cache');
     }
-
-    if (!config) config = {};
-    if (!config.defaultTTL) config.defaultTTL = 0; //one minute
-    if (!config.defaultCacheName) config.defaultCacheName = 'default'; //one minute
-
-    if (!config.defaultCacheOpts)
-      config.defaultCacheOpts = {
-        type: 'static',
-        cache: {},
-      };
-
-    this.config = config;
-    this.__caches = {};
-    this.__defaultCache = this.new(config.defaultCacheName, config.defaultCacheOpts);
-
-    callback();
-  } catch (e) {
-    callback(e);
-  }
-}
-
-function _new(name, opts) {
-  if (!name) throw new Error('all caches must have a name');
-
-  if (typeof opts === 'function') opts = null;
-
-  if (!opts) opts = this.config.defaultCacheOpts;
-  if (!opts.type) opts.type = 'static';
-
-  if (!opts.cache) opts.cache = {};
-
-  if (this.__caches[name] && !opts.overwrite)
-    throw new Error('a cache by this name already exists');
-
-  if (opts.type.toLowerCase() === 'lru') {
-    this.__caches[name] = new LRUCache(opts.cache);
-  } else if (opts.type.toLowerCase() === 'persist') {
-    opts.cache.key_prefix = name;
-    this.__caches[name] = new PersistedCache(opts.cache);
-  } else {
-    this.__caches[name] = new StaticCache(opts.cache);
+    this.log.$$TRACE('construct(%j)', opts);
+    this.#caches = {};
   }
 
-  var _this = this;
-
-  Object.defineProperty(this.__caches[name], 'utilities', {
-    value: _this.happn.services.utils,
-  });
-
-  this.__caches[name].on(
-    'error',
-    function (e) {
-      _this.__emit('error', {
-        cache: this.cache,
-        error: e,
-      });
-    }.bind({
-      cache: name,
-    })
-  );
-
-  this.__caches[name].on(
-    'item-timed-out',
-    function (item) {
-      _this.__emit('item-timed-out', {
-        cache: this.cache,
-        item: item,
-      });
-    }.bind({
-      cache: name,
-    })
-  );
-
-  this.__caches[name].on(
-    'item-set',
-    function (item) {
-      _this.__emit('item-set', {
-        cache: this.cache,
-        item: item,
-      });
-    }.bind({
-      cache: name,
-    })
-  );
-
-  this.__caches[name].on(
-    'item-removed',
-    function (item) {
-      _this.__emit('item-removed', {
-        cache: this.cache,
-        item: item,
-      });
-    }.bind({
-      cache: name,
-    })
-  );
-
-  return this.__caches[name];
-}
-
-function set(itemKey, data, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = {};
-  }
-
-  return this.__defaultCache.set(itemKey, data, opts, callback);
-}
-
-function get(itemKey, opts, callback) {
-  if (typeof opts === 'function') {
-    callback = opts;
-    opts = {};
-  }
-
-  return this.__defaultCache.get(itemKey, opts, callback);
-}
-
-function increment(itemKey, by, callback) {
-  if (typeof by === 'function') {
-    callback = by;
-    by = 1;
-  }
-
-  return this.__defaultCache.increment(itemKey, by, callback);
-}
-
-function update(itemKey, data, callback) {
-  return this.__defaultCache.update(itemKey, data, callback);
-}
-
-function remove(itemKey, opts, callback) {
-  this.__defaultCache.remove(itemKey, opts, callback);
-}
-
-function clearAll(callback) {
-  async.eachSeries(
-    Object.keys(this.__caches),
-    (cacheKey, cacheKeyCB) => {
-      this.clear(cacheKey, cacheKeyCB);
-    },
-    callback
-  );
-}
-
-function clear(cache, callback) {
-  var cacheToClear;
-
-  if (typeof cache === 'function') {
-    callback = cache;
-    cache = null;
-  }
-
-  //make empty callback
-  if (!callback) callback = () => {};
-
-  if (!cache || cache === this.config.defaultCacheName) cacheToClear = this.__defaultCache;
-  else cacheToClear = this.__caches[cache];
-
-  if (!cacheToClear) return callback();
-
-  cacheToClear.clear((e) => {
-    if (e) return callback(e);
-    delete this.__caches[cache];
-    this.__emit('cache-cleared', cache);
-    callback();
-  });
-}
-
-function stopAll() {
-  Object.keys(this.__caches).forEach((cacheKey) => {
-    this.stopCache(cacheKey);
-  });
-}
-
-function stopCache(cacheKey) {
-  if (this.__caches[cacheKey]) this.__caches[cacheKey].stop();
-}
-
-function on(key, handler) {
-  return this.__eventEmitter.on(key, handler);
-}
-
-function off(key, handler) {
-  return this.__eventEmitter.removeListener(key, handler);
-}
-
-function stop(opts, callback) {
-  if (typeof opts === 'function') callback = opts;
-  this.stopAll();
-  callback();
-}
-
-function getIfExisting(cacheName) {
-  return this.__caches[cacheName] != null ? this.__caches[cacheName] : false;
-}
-
-function filterCacheItems(filter, items) {
-  if (!filter) throw this.happn.services.error.SystemError('filter is missing');
-
-  return commons.mongoFilter(
-    {
-      $and: [filter],
-    },
-    items
-  );
-}
-
-function filterCache(filter, cache, callback) {
-  var _this = this;
-
-  if (!filter) return callback(_this.happn.services.error.SystemError('filter is missing'));
-
-  cache.all(function (e, allItems) {
-    if (e) return callback(e);
-
+  initialize(config, callback) {
     try {
-      return callback(null, _this.filterCacheItems(allItems));
-    } catch (err) {
-      return callback(err);
-    }
-  });
-}
+      if (typeof config === 'function') {
+        callback = config;
+        config = {};
+      }
 
-function __emit(key, data) {
-  return this.__eventEmitter.emit(key, data);
-}
+      if (!config) config = {};
+      if (!config.defaultTTL) config.defaultTTL = 0; //one minute
+      if (!config.defaultCacheName) config.defaultCacheName = 'default'; //one minute
+
+      if (!config.defaultCacheOpts) {
+        config.defaultCacheOpts = {
+          type: 'static',
+          cache: {},
+        };
+      }
+
+      this.#config = config;
+      this.#caches = {};
+      if (
+        typeof this.#config.statisticsInterval === 'number' &&
+        this.#config.statisticsInterval < 1e3
+      ) {
+        this.log.warn(`statisticsInterval smaller than a second, ignoring`);
+      }
+      if (this.#config.statisticsInterval >= 1e3) this.#startLoggingStatistics();
+      callback();
+    } catch (e) {
+      callback(e);
+    }
+  }
+
+  create(name, opts) {
+    opts = opts || this.#config.defaultCacheOpts;
+    opts.cache = opts.cache || {};
+    opts.type = opts.type || commons.constants.CACHE_TYPES.STATIC;
+    if (this.#caches[name] && !opts.overwrite) {
+      throw new Error('a cache by this name already exists');
+    }
+    const type = opts.type.toLowerCase();
+    if (Object.values(commons.constants.CACHE_TYPES).indexOf(type) === -1) {
+      throw new Error(`unknown cache type: ${type}`);
+    }
+
+    this.#caches[name] = { type };
+    let instance;
+
+    if (type === commons.constants.CACHE_TYPES.LRU) {
+      instance = new LRUCache(name, opts.cache);
+    } else if (type === commons.constants.CACHE_TYPES.PERSIST) {
+      opts.cache.key_prefix = name;
+      instance = new PersistedCache(name, opts.cache);
+    } else {
+      instance = new StaticCache(name, opts.cache);
+    }
+    this.#caches[name] = { type, instance };
+    Object.defineProperty(this.#caches[name], 'utilities', {
+      value: this.happn.services.utils,
+    });
+    return this.#caches[name].instance;
+  }
+
+  async clearAll(deleteOnClear) {
+    for (const name of Object.keys(this.#caches)) {
+      await this.clear(name, deleteOnClear);
+    }
+  }
+
+  async clear(name, deleteOnClear = false) {
+    let found = this.#caches[name];
+    if (!found) return;
+    await found.instance.clear();
+    this.emit('cache-cleared', name);
+    if (deleteOnClear) {
+      // dont clear again, so clearOnDelete false
+      this.delete(name, false);
+    }
+  }
+
+  delete(name, clearOnDelete = true) {
+    const toDelete = this.#caches[name];
+    if (!toDelete) return;
+    delete this.#caches[name];
+    if (clearOnDelete) {
+      toDelete.clear();
+    }
+    this.emit('cache-deleted', name);
+  }
+
+  stopAll() {
+    Object.values(this.#caches).forEach((cache) => cache.instance.stop());
+  }
+
+  stop(options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+    }
+    this.stopAll();
+    if (this.#statisticsInterval) this.#stopLoggingStatistics();
+    if (typeof callback === 'function') {
+      callback();
+    }
+  }
+
+  getStats() {
+    return Object.values(this.#caches).reduce((stats, cache) => {
+      const cacheStats = commons._.merge(cache.instance.stats(), { type: cache.type });
+      stats[cache.instance.name] = cacheStats;
+      return stats;
+    }, {});
+  }
+
+  getCache(name) {
+    return this.#caches[name];
+  }
+
+  getOrCreate(name, opts) {
+    const found = this.getCache(name);
+    if (found) return found.instance;
+    return this.create(name, opts);
+  }
+
+  #startLoggingStatistics() {
+    this.#statisticsInterval = setInterval(() => {
+      try {
+        const stats = this.getStats();
+
+        this.log.json.info(
+          commons._.merge(this.#calculatePerSecond(stats), {
+            timestamp: Date.now(),
+            name: this.happn.name,
+          }),
+          'cache-service-statistics'
+        );
+        this.#lastStats = stats;
+      } catch (e) {
+        this.log.warn(`failure logging statistics: ${e.message}`);
+      }
+    }, this.#config.statisticsInterval);
+  }
+
+  #calculatePerSecond(stats) {
+    return Object.keys(stats).reduce((calculated, statsKey) => {
+      if (!this.#lastStats) {
+        calculated[statsKey] = commons._.merge(stats[statsKey], {
+          hitsPerSec: stats[statsKey].hits / (this.#config.statisticsInterval / 1e3),
+          missesPerSec: stats[statsKey].misses / (this.#config.statisticsInterval / 1e3),
+        });
+        return calculated;
+      }
+      if (!this.#lastStats[statsKey]) {
+        this.#lastStats[statsKey] = { hits: 0, misses: 0 };
+      }
+      calculated[statsKey] = commons._.merge(stats[statsKey], {
+        hitsPerSec:
+          (stats[statsKey].hits - this.#lastStats[statsKey].hits) /
+          (this.#config.statisticsInterval / 1e3),
+        missesPerSec:
+          (stats[statsKey].misses - this.#lastStats[statsKey].misses) /
+          (this.#config.statisticsInterval / 1e3),
+      });
+      return calculated;
+    }, {});
+  }
+
+  #stopLoggingStatistics() {
+    clearInterval(this.#statisticsInterval);
+  }
+};

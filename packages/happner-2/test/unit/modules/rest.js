@@ -387,7 +387,7 @@ describe(test.testName(__filename, 3), function () {
           error: function () {},
           trace: function () {},
           warn: function () {},
-          debug: () => {}
+          debug: () => {},
         },
       });
 

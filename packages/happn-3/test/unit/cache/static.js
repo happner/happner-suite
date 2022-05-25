@@ -2,14 +2,10 @@ describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
     this.timeout(20000);
-
     var expect = require('expect.js');
-
     var service = require('../../../lib/services/cache/service');
     var serviceInstance = new service();
-
     var testId = require('shortid').generate();
-
     var config = {};
 
     before('should initialize the service', function (callback) {
@@ -29,111 +25,36 @@ describe(
       serviceInstance.stop(done);
     });
 
-    it('sets data, ensures when we get a value back it is cloned by default', function (done) {
+    it('specific cache, sets data, ensures when we get a value back it is cloned by default', function () {
       var key = testId + 'test1';
-
       var data = { dkey: key };
-
-      serviceInstance
-        .set(key, data)
-
-        .then(function () {
-          serviceInstance.__defaultCache
-            .get(key)
-            .then(function (result) {
-              expect(result === data).to.be(false);
-              done();
-            })
-            .catch(done);
-        })
-
-        .catch(done);
-    });
-
-    it('sets data with clone: false, ensures when we get a value back it is not cloned', function (done) {
-      var key = testId + 'test1';
-
-      var data = { dkey: key };
-
-      serviceInstance
-        .set(key, data, { clone: false })
-
-        .then(function () {
-          serviceInstance
-            .get(key)
-            .then(function (result) {
-              expect(result === data).to.be(true);
-              done();
-            })
-            .catch(done);
-        })
-
-        .catch(done);
-    });
-
-    it('specific cache, sets data, ensures when we get a value back it is cloned by default', function (done) {
-      var key = testId + 'test1';
-
-      var data = { dkey: key };
-
-      var Cache = require('../../../lib/services/cache/cache_static');
-
-      var cache = new Cache({});
+      var Cache = require('../../../lib/services/cache/cache-static');
+      var cache = new Cache('test');
 
       cache.utilities = require('happn-commons').utils;
-
-      cache
-        .set(key, data)
-
-        .then(function () {
-          cache
-            .get(key)
-            .then(function (result) {
-              expect(result === data).to.be(false);
-              done();
-            })
-            .catch(done);
-        })
-
-        .catch(done);
+      cache.set(key, data);
+      const result = cache.get(key);
+      expect(result === data).to.be(false);
     });
 
-    it('specific cache, sets data with clone: false, ensures when we get a value back it is not cloned', function (done) {
+    it('specific cache, sets data with clone: false, ensures when we get a value back it is not cloned', function () {
       var key = testId + 'test1';
-
       var data = { dkey: key };
-
-      var Cache = require('../../../lib/services/cache/cache_static');
-
-      var cache = new Cache({});
-
-      cache
-        .set(key, data, { clone: false })
-
-        .then(function () {
-          cache
-            .get(key)
-            .then(function (result) {
-              expect(result === data).to.be(true);
-              done();
-            })
-            .catch(done);
-        })
-
-        .catch(done);
+      var Cache = require('../../../lib/services/cache/cache-static');
+      var cache = new Cache('test');
+      cache.set(key, data, { clone: false });
+      const result = cache.get(key);
+      expect(result).to.be(data);
     });
 
     it('gets the cache keys', function () {
       var key = testId + 'test1';
-
       var data = { dkey: key };
-
-      var Cache = require('../../../lib/services/cache/cache_static');
-
-      var cache = new Cache();
-      cache.setSync(key + '1', data, { clone: false });
-      cache.setSync(key + '2', data, { clone: false });
-      cache.setSync(key + '3', data, { clone: false });
+      var Cache = require('../../../lib/services/cache/cache-static');
+      var cache = new Cache('test');
+      cache.set(key + '1', data, { clone: false });
+      cache.set(key + '2', data, { clone: false });
+      cache.set(key + '3', data, { clone: false });
       expect(cache.keys().sort()).to.eql([key + '1', key + '2', key + '3']);
     });
   }

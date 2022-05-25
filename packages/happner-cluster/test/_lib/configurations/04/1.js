@@ -4,8 +4,8 @@ module.exports = {
       instance: {
         initialize: async () => {},
         start: async () => {},
-        use: async () => {}
-      }
+        use: async () => {},
+      },
     },
     component: {
       initMethod: 'initialize',
@@ -14,11 +14,11 @@ module.exports = {
         dependencies: {
           $broker: {
             component6: {
-              version: '*'
-            }
-          }
-        }
-      }
-    }
-  }
+              version: '*',
+            },
+          },
+        },
+      },
+    },
+  },
 };

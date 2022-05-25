@@ -47,5 +47,4 @@ packages/happn-3/test/browser/browser-client-02.js
 #db provider rules
 !packages/happn-db-provider-mongo/test/__fixtures/data/*.nedb
 
-
-
+packages/happner-cluster/test/stress/logs/*.log

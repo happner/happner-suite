@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-console */
 describe('browsertest_01_happner_client', function () {
   let client;

@@ -37,9 +37,10 @@ function instanceConfig() {
   return config;
 }
 
-Happner.create(instanceConfig(), (e, serverInstance) => {
+Happner.create(instanceConfig(), (e) => {
   if (e) {
-    consoile.log('start server broke:::', e);
+    // eslint-disable-next-line no-console
+    console.log('start server broke:::', e);
     process.exit(1);
   }
 });

@@ -520,13 +520,13 @@ describe(
 
       happnClient.socket.write = function () {};
 
-      var package = require('../../../package.json');
+      var happnPackage = require('../../../package.json');
 
       happnClient.login(function (data) {
         expect(data).to.eql({
           action: 'configure-session',
           eventId: 1,
-          data: { protocol: 'happn_4', version: package.version, browser: false },
+          data: { protocol: 'happn_4', version: happnPackage.version, browser: false },
           sessionId: 'test',
         });
         done();

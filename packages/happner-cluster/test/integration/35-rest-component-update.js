@@ -149,20 +149,5 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           .catch(reject);
       });
     }
-
-    function startClusterEdgeFirst(dynamic) {
-      return new Promise(function (resolve, reject) {
-        startEdge(getSeq.getFirst(), 1, dynamic)
-          .then(function () {
-            return startInternal(getSeq.getNext(), 2);
-          })
-          .then(function (server) {
-            localInstance = server;
-            return users.add(localInstance, 'username', 'password');
-          })
-          .then(resolve)
-          .catch(reject);
-      });
-    }
   });
 });
