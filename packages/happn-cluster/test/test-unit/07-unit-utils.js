@@ -1,4 +1,6 @@
 require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+  const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
+  const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
   it('tests get-address', () => {
     let logs = [];
     let mockLogger = {
@@ -193,7 +195,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       (testInterface, interfaceKey) => {
         let found = interfaces[interfaceKey];
         found.forEach((interfaceItem, interfaceItemIndex) => {
-          if (!interfaceItem.internal && interfaceItem.family === 'IPv4') {
+          if (!interfaceItem.internal && interfaceItem.family === ip4Family) {
             testInterface = {
               id: interfaceKey,
               index: interfaceItemIndex,

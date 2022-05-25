@@ -9,7 +9,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   let clientPath = path.join(libFolder, 'mesh-security-updateuser-re-accessresource-client.js');
   let serverPath = path.join(libFolder, 'mesh-security-updateuser-re-accessresource-server.js');
-  let SERVER_HOST = 'localhost';
+  let SERVER_HOST = '127.0.0.1';
   let SERVER_PORT = 8092;
   let CLIENT_PORT = 8093;
   let SERVER_COMPONENT_NAME = 'server';

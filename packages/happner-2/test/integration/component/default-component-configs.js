@@ -88,7 +88,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('created the module with the web schema as defaulted', function (done) {
-    request.get('http://localhost:55000/see-above/method', function (err, _, body) {
+    request.get('http://127.0.0.1:55000/see-above/method', function (err, _, body) {
       if (err) return done(err);
       body.should.equal('OK-GOOD');
       done();

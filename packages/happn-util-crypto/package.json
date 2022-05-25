@@ -8,9 +8,9 @@
   },
   "main": "lib/crypto",
   "scripts": {
-    "test": "_mocha --recursive --exit silence.js test/*",
+    "test": "_mocha --recursive --exit test/*",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
-    "test-unit": "mocha silence.js test/unit/* --recursive"
+    "test-unit": "mocha test/unit/* --recursive"
   },
   "dependencies": {
     "happn-commons": "^1.0.2",

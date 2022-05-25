@@ -67,7 +67,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     if (credentials) operation = credentials;
 
     restClient
-      .postJson('http://localhost:10000/rest/login', operation)
+      .postJson('http://127.0.0.1:10000/rest/login', operation)
       .on('complete', function (result) {
         if (result.error) return done(new Error(result.error.message));
         done(null, result);
@@ -220,7 +220,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
                   restClient
                     .postJson(
-                      'http://localhost:10000/rest/method/testComponent/method1?happn_token=' +
+                      'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' +
                         token,
                       operation
                     )
@@ -230,7 +230,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                       setTimeout(function () {
                         restClient
                           .postJson(
-                            'http://localhost:10000/rest/method/testComponent/method1?happn_token=' +
+                            'http://127.0.0.1:10000/rest/method/testComponent/method1?happn_token=' +
                               token,
                             operation
                           )
@@ -314,7 +314,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
                   restClient
                     .postJson(
-                      'http://localhost:10000/rest/method/testComponent/method3?happn_token=' +
+                      'http://127.0.0.1:10000/rest/method/testComponent/method3?happn_token=' +
                         token,
                       operation
                     )
@@ -324,7 +324,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                       setTimeout(function () {
                         restClient
                           .postJson(
-                            'http://localhost:10000/rest/method/testComponent/method2?happn_token=' +
+                            'http://127.0.0.1:10000/rest/method/testComponent/method2?happn_token=' +
                               token,
                             operation
                           )

@@ -549,7 +549,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       webmethod = function (method, path) {
         var j = request.jar();
         var cookie = request.cookie('happn_token=' + client.token);
-        var url = 'http://localhost:55000' + path;
+        var url = 'http://127.0.0.1:55000' + path;
         j.setCookie(cookie, url);
         return request({ method: method, url: url, jar: j }).then(function (res) {
           return res.body; //body
