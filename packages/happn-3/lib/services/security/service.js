@@ -384,9 +384,9 @@ function processNonceRequest(message, callback) {
   try {
     const nonce = this.createAuthenticationNonce(message.request.data);
     message.response = {
-      nonce: nonce,
+      nonce,
       data: {
-        nonce: nonce, //happn-2 backward compatability
+        nonce, //happn-2 backward compatability
       },
     };
     callbackArgs.push(null, message);
