@@ -268,4 +268,10 @@ non-release 2017-12-14
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
+12.0.8 2022-05-26
+-----------------
+  - updates to commons libs, lint-fixes, updated all ip addresses in test to 127.0.0.1:
+  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
+  - TEN-54: all systems tested on node v18
+
 
