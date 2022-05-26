@@ -1,6 +1,6 @@
 //____________________________ SERVICE-REGISTRY ENTRY_____________
 const Member = require('./member');
-
+const cloneMember = require('../../../test/lib/cloneMember');
 module.exports = class ServiceEntry {
   constructor(name, expected, orchestrator) {
     this.name = name;
@@ -56,11 +56,14 @@ module.exports = class ServiceEntry {
 
   setEndpoints(found) {
     this.endpoints = found || [];
+  }
+
+  async cleanupMembers() {
     for (let [endpoint, member] of Object.entries(this.members)) {
       if (!this.endpoints.includes(endpoint)) {
-        member.stop();
+        await member.stop();
         this.orchestrator.removePeer(member);
-        delete this.members[endpoint];
+        this.removeMember(member);
       }
     }
   }
@@ -84,6 +87,7 @@ module.exports = class ServiceEntry {
   }
 
   async subscribe() {
+    // console.log(Object.keys(this.members))
     await Promise.all(Object.values(this.members).map((member) => member.subscribe()));
   }
 

@@ -2,6 +2,7 @@ module.exports = class Component {
   constructor() {}
 
   async start($happn) {
+    if ( $happn.info.mesh.name === "MESH_1") console.log("STARTING TEST COMPONENT AT MESH 1")
     this.receivedEvents = [];
     console.log($happn.info.mesh.name, ' SUBSCRING');
     this.eventHandle = await $happn.event.testComponent.on('YO', (data) => {
@@ -11,7 +12,7 @@ module.exports = class Component {
   }
 
   async stop() {
-    await $happn.event.testComponent.off(this.eventHandle);
+    // await $happn.event.testComponent.off(this.eventHandle);
   }
   async fireEvent($happn) {
     let data = $happn.info.mesh.name + ':TestComponent:event';
@@ -23,7 +24,7 @@ module.exports = class Component {
   }
   async clearEvents($happn) {
     this.receivedEvents = [];
-    console.log('CLEARED AT ', $happn.info.mesh.name);
+    // console.log('CLEARED AT ', $happn.info.mesh.name);
   }
   async getKeys($happn) {
     // console.log(Object.keys($happn.info))

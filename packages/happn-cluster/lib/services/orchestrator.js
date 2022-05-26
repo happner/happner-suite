@@ -9,7 +9,8 @@ const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
 const { performance } = require('perf_hooks');
 const NodeUtil = require('util');
-
+const delay =require('await-delay');
+const service = require('happn-3/lib/service');
 module.exports = class Orchestrator extends EventEmitter {
   constructor(opts) {
     super();
@@ -175,9 +176,10 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async lookup() {
     let endpoints = await this.fetchEndpoints();
-    Object.entries(this.registry).forEach(([name, service]) =>
-      service.setEndpoints(endpoints[name] || [])
-    );
+    for (let [name,service] of Object.entries(this.registry)) {
+      service.setEndpoints(endpoints[name] || []);
+      await service.cleanupMembers();
+    }
   }
 
   async fetchEndpoints() {
@@ -240,7 +242,7 @@ module.exports = class Orchestrator extends EventEmitter {
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
     this.registry[member.serviceName].members[member.endpoint] = member;
-    this.emit('peer/add', member.name, member);
+    this.emit('peer/add', member.name, member)
     this.log.info('<BROKER ISSUES> ' + this.happn.name + ' ADDED PEER ' + member.name);
     this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
   }

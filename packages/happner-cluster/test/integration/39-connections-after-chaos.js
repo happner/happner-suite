@@ -13,7 +13,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
   let nodeConfigs = [];
   let testClients = [];
   let meshNames = [];
-  let clusterSize = 7;
+  let clusterSize = 4;
   let servers;
 
   before('clear mongo collection', (done) => {
@@ -70,9 +70,9 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     }
   });
 
-  after('stop cluster', async () => {
-    await clusterHelper.destroy();
-  });
+  // after('stop cluster', async () => {
+  //   await clusterHelper.destroy();
+  // });
 
   it('short block', async () => {
     blockNode(5, 1000);
@@ -113,32 +113,70 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     await Promise.all(restartClientPromises);
     await testConnections();
   });
-  // it.only('gets keys', async () => {
-  //   let keys = await clusterHelper.listMembers(1);
-  //   console.log(keys);
-  // });
-  it.only('major chaost', async () => {
+
+  it.only('controlled chaos', async () => {
+    blockNode(1);
+    await test.delay(8000);
+    await testConnections();
+    blockNode(2);
+    await test.delay(8000);
+    await testConnections();
+  });
+
+  it('controlled chaos', async () => {
     let restartClientPromises = [];
     let indices = Array.from(Array(clusterSize).keys());
-    let nodes2change = _.sampleSize(indices, 3);
+    let nodes2change = [0, 1, 2]; //_.sampleSize(indices, 3);
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartClientPromises.push(restartNode(index)) : blockNode(index);
+      index > 0 /*Math.random() < 0.5*/
+        ? restartClientPromises.push(restartNode(index))
+        : blockNode(index);
     }
     await test.delay(12000);
-    await Promise.all(restartClientPromises);
+    // await testConnections();
+    // await Promise.all(restartClientPromises);
     restartClientPromises = [];
-    nodes2change = _.sampleSize(indices, 3);
+    nodes2change = [3, 4, 5]; //_.sampleSize(indices, 3);
 
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartClientPromises.push(restartNode(index)) : blockNode(index);
+      index > 4 /* Math.random() < 0.5 */
+        ? restartClientPromises.push(restartNode(index))
+        : blockNode(index);
     }
     await test.delay(12000);
-    await Promise.all(restartClientPromises);
+    // await Promise.all(restartClientPromises);
+    await testConnections();
+    await testConnections();
+  });
+
+  it('major chaost', async () => {
+    let restartClientPromises = [];
+    let indices = Array.from(Array(clusterSize).keys());
+    let nodes2change = [0, 1, 2]; //_.sampleSize(indices, 3);
+    for (let index of nodes2change) {
+      index > 0 /*Math.random() < 0.5*/
+        ? restartClientPromises.push(restartNode(index))
+        : blockNode(index);
+    }
+    await test.delay(12000);
+
+    // await Promise.all(restartClientPromises);
+    restartClientPromises = [];
+    nodes2change = [3, 4, 5]; //_.sampleSize(indices, 3);
+
+    for (let index of nodes2change) {
+      index > 4 /* Math.random() < 0.5 */
+        ? restartClientPromises.push(restartNode(index))
+        : blockNode(index);
+    }
+    await test.delay(12000);
+    // await Promise.all(restartClientPromises);
+    await testConnections();
     await testConnections();
   });
 
   it('major chaos, longer delays', async () => {
-    let delay = 8000;
+    let delay = 10000;
     let indices = Array.from(Array(clusterSize).keys());
 
     let nodes2change = _.sampleSize(indices, 4);
@@ -147,7 +185,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
     }
-    await test.delay(15000);
+    await test.delay(25000);
     await testConnections();
 
     nodes2change = _.sampleSize(indices, 4);
@@ -156,16 +194,16 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
     }
-    await test.delay(15000);
+    await test.delay(25000);
     await testConnections();
 
     nodes2change = _.sampleSize(indices, 4);
-    console.log({ nodes2change });
+    // console.log({ nodes2change });
 
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
     }
-    await test.delay(15000);
+    await test.delay(25000);
     await testConnections();
   });
 
@@ -223,35 +261,41 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
   });
 
   async function testConnections() {
-    for (let [index, client] of testClients.entries()) {
+    for (let client of testClients) {
       await client.exchange.testComponent.clearEvents();
-      console.log('CLEARED ', index);
+      // console.log('CLEARED ', index);
     }
     await test.delay(1000);
     for (let [index, client] of testClients.entries()) {
-      console.log('FIRING ', index);
+      // console.log('FIRING ', index);
       await client.exchange.testComponent.fireEvent();
-      await test.delay(1000);
+      await test.delay(300);
     }
     await test.delay(1000);
-    console.log(testClients.length);
+    // console.log(testClients.length);
+    let errored = false;
     for (let [index, client] of testClients.entries()) {
       let events = await client.exchange.testComponent.getEvents();
       let connected = events.map((event) => event.split(':')[0]);
       try {
         test.expect(_.isEqual(connected, meshNames)).to.be(true);
       } catch (e) {
+        errored = true;
         console.log('ERROR at index ', index);
-        console.log({ connected });
+        console.log({ connected, meshNames });
         let dupes = findDuplicates(connected).map((dupe) => dupe.split('_')[1]);
-
-        let keys = await clusterHelper.listMembers(index);
-        console.log('MEMVERS AT NODE ', keys);
-        for (let index of dupes) {
-          let keys = await clusterHelper.listMembers(index);
-          console.log('MEMVERS AT DUPE ', index, keys);
-        }
+        console.log('dupes at ', index, ' : ', dupes);
+        // throw e;
+        // let keys = await clusterHelper.listMembers(index);
+        // console.log('MEMVERS AT NODE ', keys);
+        // for (let index of dupes) {
+        //   let keys = await clusterHelper.listMembers(index);
+        //   // console.log('MEMVERS AT DUPE ', index, keys);
+        // }
       }
+    }
+    if (errored) {
+      throw new error('Failed');
     }
   }
 

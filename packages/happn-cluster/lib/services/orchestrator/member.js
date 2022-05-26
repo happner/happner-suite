@@ -1,3 +1,4 @@
+const cloneMember = require('../../../test/lib/cloneMember');
 //____________________MEMBER____________
 module.exports = class Member {
   constructor(info, orchestrator) {
@@ -5,18 +6,15 @@ module.exports = class Member {
     this.orchestrator = orchestrator;
     this.log = this.orchestrator.log;
     this.updateOwnInfo(info);
-
     this.self = false;
     this.connectingTo = false;
     this.connectedTo = false;
     // this.connectedFrom = false;
+    this.memberId = Date.now();
     this.client = null;
     this.subscribingTo = false;
     this.subscribedTo = false;
     this.reservedMeta = [
-      'created',
-      'modified',
-      'path',
       'type',
       'status',
       'published',
@@ -75,9 +73,12 @@ module.exports = class Member {
     if (this.connectingTo || this.connectedTo) {
       return this.orchestrator.__stateUpdate(this);
     }
+    this.stateReport('pre-connect', 'MESH_1');
+    console.log('CONNECTING');
     this.log.info(
       '<BROKER_ISSUES>: CONNECTING ' + this.orchestrator.happn.name + ' TO ' + this.name
     );
+    if (this.orchestrator.happn.name === 'MESH_1') console.log('connecting MESH 1 to ', this.name);
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -89,6 +90,7 @@ module.exports = class Member {
         ...loginConfig,
         info: { ...loginConfig.info, connectedFrom: this.connectedFrom },
       });
+      await client.offAll();
       this.__disconnectServerSide = client.onEvent(
         'server-side-disconnect',
         this.__onHappnDisconnect.bind(this)
@@ -149,11 +151,16 @@ module.exports = class Member {
 
   async subscribe() {
     if (!this.readyToSubscribe) return;
+    this.stateReport('subscribe', 'MESH_1');
+    if (this.orchestrator.happn.name === 'MESH_1') console.log('SUBSCRIBING MESH 1 to ', this.name);
+    this.subscribingTo = true;
     try {
       await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
       this.subscribedTo = true;
+      this.subscribingTo = false;
     } catch (error) {
       this.error = error;
+      this.subscribingTo = false;
       this.subscribedTo = false;
     } finally {
       this.orchestrator.__stateUpdate(this);
@@ -163,7 +170,7 @@ module.exports = class Member {
   async __subscribe(path) {
     if (!path) return;
     try {
-      await this.client.on(path, null, this.__createReplicationEventHandler());
+      await this.client.on(path, null, this.__createReplicationEventHandler(this.memberId));
     } catch (error) {
       this.log.fatal('could not subscribe to %s at %s', path, this.name, error);
       throw error;
@@ -172,9 +179,15 @@ module.exports = class Member {
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    this.client.disconnect();
+    await this.client.offPath('*');
+    await this.client.disconnect({ reconnect: false });
+    // if (this.orchestrator.happn.name === "MESH_1")  console.log("AFTER STOP")
     this.connectedTo = false;
     this.client.session = null;
+    if (this.orchestrator.happn.name === 'MESH_1')
+      console.log('STOPPING MESH 1 CONNECTION TO ', this.name, this.memberId);
+    if (this.name === 'MESH_1')
+      console.log('STOPPING ', this.orchestrator.happn.name, ' CONNECTION TO ', this.name);
   }
 
   __onHappnDisconnect() {
@@ -184,9 +197,13 @@ module.exports = class Member {
         ' FROM ' +
         this.name
     );
-    this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
+    // if (this.orchestrator.happn.name === 'MESH_0')
+    this.log.info('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
     // if (!this.connectedTo) return;
     this.connectedTo = false;
+    // this.subscribedTo = false;
+    // if (this.client.state === 1) this.client.offAll();
+    // this.cliient = null;
     this.orchestrator.__stateUpdate(this);
     // leave it in reconnect loop until DB confirms
   }
@@ -198,14 +215,21 @@ module.exports = class Member {
         ' FROM ' +
         this.name
     );
-    this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
+    // if (this.orchestrator.happn.name === 'MESH_0')
+    this.log.info('reconnected to (->) %s/%s', this.clusterName, this.name);
+
     if (this.connectedTo) return;
     this.connectedTo = true;
+    // console.log(this.client));
     this.orchestrator.__stateUpdate(this);
   }
 
-  __createReplicationEventHandler() {
+  __createReplicationEventHandler(handlerIndex) {
+    if (this.orchestrator.happn.name === 'MESH_1')
+      console.log('CREATING REPLICAITON TO ', this.name, handlerIndex);
     let rePublisher = (data, meta) => {
+      if (this.orchestrator.happn.name === 'MESH_1')
+        console.log('HSNDLING REPLICAITON TO ', this.name, handlerIndex);
       let subscription = this.orchestrator.happn.services.subscription;
       let publisher = this.orchestrator.happn.services.publisher;
       let action, payload, message, eventId;
@@ -328,5 +352,19 @@ module.exports = class Member {
     }
     // will crash process unless there is an error listener
     return this.orchestrator.emit('error', error);
+  }
+  stateReport(step, meshName) {
+    if (this.orchestrator.happn.name === meshName && this.name === 'MESH_2') {
+      let clientState = this.client ? this.client.status : 'noClient';
+      console.log({
+        step,
+        clientState,
+        target: this.name,
+        subscribedTo: this.subscribedTo,
+        subscribingTo: this.subscribingTo,
+        connectedTo: this.connectedTo,
+        connectingTo: this.connectingTo,
+      });
+    }
   }
 };

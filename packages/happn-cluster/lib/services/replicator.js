@@ -17,6 +17,7 @@ function Replicator(opts) {
 util.inherits(Replicator, EventEmitter);
 
 Replicator.prototype.send = function (topic, payload, callback) {
+  if (!topic.startsWith('/security')) console.log("SENDING: ", topic, payload)
   if (!this.localClient) return callback(new Error('Replicator not ready'));
   if (topic === '/security/dataChanged') {
     this.securityChangeset.push(payload);

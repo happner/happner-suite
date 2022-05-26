@@ -295,6 +295,7 @@ function __doSubscriptionCallback(message, reference, callback, errors) {
 }
 
 function addListener(action, path, sessionId, data, wildPath, searchPath) {
+  // if (path.split('/').some(segment => ["fireEvent", "getEvents", "YO"].includes(segment))) console.log("ADDING LISTENER ON ", path)
   data.action = action;
   data.searchPath = searchPath || path;
   data.path = wildPath || path;

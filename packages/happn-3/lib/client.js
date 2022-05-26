@@ -494,6 +494,14 @@
   };
 
   HappnClient.prototype.__initializeState = function () {
+    // setInterval(() => {
+    //   if (this.state.refCount)
+    //     console.log(
+    //       this.state.refCount[
+    //         '{"path":"/SET@/_events/DOMAIN_NAME/testComponent/YO","event_type":"set","count":0}'
+    //       ]
+    //     );
+    // }, 3e3);
     this.state = {};
     this.__initializeEventState();
     this.state.requestEvents = {};
@@ -1106,7 +1114,8 @@
     return this.state.listenerRefs[listener.eventKey];
   };
 
-  HappnClient.prototype.__reattachListenersOnPermissionChange = function (permissions) {
+  HappnClient.prototype.__reattachListenersOnPermissionChange = function (permissions) {    
+    console.log("REATTACHING ON PERMISSION CHANGe")
     if (!permissions || Object.keys(permissions).length === 0) return;
     let listenerPermPaths = Object.keys(permissions).filter(
       (key) =>
@@ -1142,6 +1151,7 @@
   };
 
   HappnClient.prototype.__resetListenerRefs = function (listeners) {
+    console.log('RESSETTING');
     if (!listeners) return;
     listeners.forEach((listener) => (this.state.refCount[listener.eventKey] = 0));
   };
@@ -1157,6 +1167,7 @@
   };
 
   HappnClient.prototype.__tryReattachListener = function (listener, channel) {
+    console.log('TRY REATTACH');
     if (!this.state.events[channel]) return this.__clearListenerRef(listener); // We  have deleted this key.
     if (this.state.refCount[listener.eventKey]) {
       //we are already listening on this key
@@ -1200,63 +1211,139 @@
   };
 
   HappnClient.prototype.__reattachListeners = function (callback) {
-    utils.async(
-      Object.keys(this.state.events),
-      (eventPath, _index, nextEvent) => {
-        var listeners = this.state.events[eventPath];
-        this.state.refCount = {};
-
-        // re-establish each listener individually to preserve original meta and listener id
-        utils.async(
-          listeners,
-          (listener, _index, nextListener) => {
-            if (this.state.refCount[listener.eventKey]) {
-              //we are already listening on this key
-              this.state.refCount[listener.eventKey]++;
-              return nextListener();
-            }
-
-            // we don't pass any additional parameters like initialValueEmit and initialValueCallback
-            var parameters = {};
-
-            if (listener.meta) parameters.meta = listener.meta;
-
-            this._offPath(eventPath, (e) => {
-              if (e)
-                return nextListener(
-                  new Error(
-                    'failed detaching listener to path, on re-establishment: ' + eventPath,
-                    e
-                  )
-                );
-
-              this._remoteOn(eventPath, parameters, (e, response) => {
-                if (e) {
-                  if ([403, 401].indexOf(e.code) > -1) {
-                    //permissions may have changed regarding this path
-                    delete this.state.events[eventPath];
-                    return nextListener();
-                  }
-                  return nextListener(
-                    new Error('failed re-establishing listener to path: ' + eventPath, e)
-                  );
-                }
-
-                //update our ref count so we dont subscribe again
-                this.state.refCount[listener.eventKey] = 1;
-                //create our mapping between the listener id and
-                this.__updateListenerRef(listener, response.id);
-
-                nextListener();
-              });
-            });
-          },
-          nextEvent
-        );
-      },
-      callback
-    );
+    console.log("REATTACHING")
+    this.state.refCount = this.state.refCount || {};
+    let channels = this.__getChannelsFromPaths(Object.keys(this.state.events));
+    if (channels && channels.length) {
+      this.__resetListenersRefsOnChannels(channels);
+      channels.forEach((channel) => {
+        this.__reattachListenersOnChannel(channel);
+      });
+    }
+    callback();
   };
+
+  // HappnClient.prototype.__reattachListeners = function (callback) {
+  //   console.log('__REATAACHLISTENERES');
+  //   utils.async(
+  //     Object.keys(this.state.events),
+  //     (eventPath, _index, nextEvent) => {
+  //       var listeners = this.state.events[eventPath];
+  //       this.state.refCount = {};
+
+  //       // re-establish each listener individually to preserve original meta and listener id
+  //       utils.async(
+  //         listeners,
+  //         (listener, _index, nextListener) => {
+  //           if (this.state.refCount[listener.eventKey]) {
+  //             //we are already listening on this key
+  //             this.state.refCount[listener.eventKey]++;
+  //             return nextListener();
+  //           }
+
+  //           // we don't pass any additional parameters like initialValueEmit and initialValueCallback
+  //           var parameters = {};
+
+  //           if (listener.meta) parameters.meta = listener.meta;
+
+  //           this._offPath(eventPath, (e) => {
+  //             if (e) console.log('ERROR AT OFFPATH ', e);
+  //             if (e)
+  //               return nextListener(
+  //                 new Error(
+  //                   'failed detaching listener to path, on re-establishment: ' + eventPath,
+  //                   e
+  //                 )
+  //               );
+
+  //             this._remoteOn(eventPath, parameters, (e, response) => {
+  //               if (e) {
+  //                 if ([403, 401].indexOf(e.code) > -1) {
+  //                   //permissions may have changed regarding this path
+  //                   delete this.state.events[eventPath];
+  //                   return nextListener();
+  //                 }
+  //                 return nextListener(
+  //                   new Error('failed re-establishing listener to path: ' + eventPath, e)
+  //                 );
+  //               }
+
+  //               //update our ref count so we dont subscribe again
+  //               this.state.refCount[listener.eventKey] = 1;
+  //               //create our mapping between the listener id and
+  //               this.__updateListenerRef(listener, response.id);
+
+  //               nextListener();
+  //             });
+  //           });
+  //         },
+  //         nextEvent
+  //       );
+  //     },
+  //     callback
+  //   );
+  // };
+
+  // HappnClient.prototype.__reattachListeners = function (callback) {
+  //   console.log('__REATAACHLISTENERES');
+  //   utils.async(
+  //     Object.keys(this.state.events),
+  //     (eventPath, _index, nextEvent) => {
+  //       var listeners = this.state.events[eventPath];
+  //       this.state.refCount = {};
+
+  //       // re-establish each listener individually to preserve original meta and listener id
+  //       utils.async(
+  //         listeners,
+  //         (listener, _index, nextListener) => {
+  //           if (this.state.refCount[listener.eventKey]) {
+  //             //we are already listening on this key
+  //             this.state.refCount[listener.eventKey]++;
+  //             return nextListener();
+  //           }
+
+  //           // we don't pass any additional parameters like initialValueEmit and initialValueCallback
+  //           var parameters = {};
+
+  //           if (listener.meta) parameters.meta = listener.meta;
+
+  //           this._offPath(eventPath, (e) => {
+  //             if (e) console.log('ERROR AT OFFPATH ', e);
+  //             if (e)
+  //               return nextListener(
+  //                 new Error(
+  //                   'failed detaching listener to path, on re-establishment: ' + eventPath,
+  //                   e
+  //                 )
+  //               );
+
+  //             this._remoteOn(eventPath, parameters, (e, response) => {
+  //               if (e) {
+  //                 if ([403, 401].indexOf(e.code) > -1) {
+  //                   //permissions may have changed regarding this path
+  //                   delete this.state.events[eventPath];
+  //                   return nextListener();
+  //                 }
+  //                 return nextListener(
+  //                   new Error('failed re-establishing listener to path: ' + eventPath, e)
+  //                 );
+  //               }
+
+  //               //update our ref count so we dont subscribe again
+  //               this.state.refCount[listener.eventKey] = 1;
+  //               //create our mapping between the listener id and
+  //               this.__updateListenerRef(listener, response.id);
+
+  //               nextListener();
+  //             });
+  //           });
+  //         },
+  //         nextEvent
+  //       );
+  //     },
+  //     callback
+  //   );
+  // };
 
   HappnClient.prototype.__retryReconnect = function (options, reason, e) {
     this.emit('reconnect-error', {
@@ -1273,6 +1360,7 @@
   };
 
   HappnClient.prototype.reconnect = function (options) {
+    console.log('GOT RECONNECT!!', this.serverInfo.name);
     this.status = STATUS.RECONNECT_ACTIVE;
     this.emit('reconnect', options);
     this.authenticate((e) => {
@@ -1282,8 +1370,11 @@
       }
       //we are authenticated and ready for data requests
       this.status = STATUS.ACTIVE;
+      console.log('ACTIVE');
       this.__reattachListeners((e) => {
+        console.log('REATTACHING');
         if (e) {
+          console.log(e);
           this.handle_error(e);
           return this.__retryReconnect(options, 'reattach-listeners-failed', e);
         }
@@ -1607,6 +1698,7 @@
   });
 
   HappnClient.prototype.on = utils.promisify(function (path, parameters, handler, callback) {
+    if (path.includes('YO')) console.log('ON , PATH ', path);
     if (typeof parameters === 'function') {
       callback = handler;
       handler = parameters;
@@ -1636,7 +1728,7 @@
 
     path = this.getChannel(path, parameters.event_type);
     var listener = this.__getListener(handler, parameters, path, variableDepth);
-
+    if (path.includes('YO')) console.log('ON , PATH ', path);
     if (!this.state.events[path]) this.state.events[path] = [];
     if (!this.state.refCount[listener.eventKey]) this.state.refCount[listener.eventKey] = 0;
     this.state.events[path].push(listener);
@@ -1679,6 +1771,7 @@
   };
 
   HappnClient.prototype._offListener = function (handle, callback) {
+    console.log('OFF LISTENER');
     if (!this.state.events || this.state.events.length === 0) return callback();
     let listenerFound = false;
     Object.keys(this.state.events).every((channel) => {
@@ -1740,6 +1833,15 @@
   };
 
   HappnClient.prototype.__initializeEventState = function () {
+    // console.log('INITIALIZING');
+    if (this.state.events)
+      Object.keys(this.state.events).forEach((eventListenerPath) => {
+        this.__clearSubscriptionsOnPath(eventListenerPath);
+      });
+    if (this.state.refCount) {
+      Object.keys(this.state.refCount).forEach((key) => delete this.state.refCount[key]);
+    }
+    // if this.state await this.offAll();
     this.state.events = {};
     this.state.refCount = {};
     this.state.listenerRefs = {};
