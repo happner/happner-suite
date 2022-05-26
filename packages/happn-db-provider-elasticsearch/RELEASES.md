@@ -32,3 +32,8 @@
 1.0.7 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
+
+1.0.8 2022-05-26
+-----------------
+  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
+  - TEN-54: all systems tested on node v18
