@@ -16,18 +16,6 @@ function SecurityService(opts) {
   //security-data-changed event causes warning
   this.setMaxListeners(35);
 
-  if (!opts.groupCache)
-    opts.groupCache = {
-      max: 10e3,
-      maxAge: 0,
-    };
-
-  if (!opts.userCache)
-    opts.userCache = {
-      max: 10e3,
-      maxAge: 0,
-    };
-
   if (!opts.onBehalfOfCache)
     opts.onBehalfOfCache = {
       max: 1e3,

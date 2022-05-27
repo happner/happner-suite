@@ -43,17 +43,12 @@ function initialize(config, securityService, callback) {
   _this.cryptoService = _this.happn.services.crypto;
   _this.sessionService = _this.happn.services.session;
 
-  if (!config.__cache_groups)
+  if (!config.__cache_groups) {
     config.__cache_groups = {
-      max: 5000,
+      max: 5e3,
       maxAge: 0,
     };
-
-  if (!config.__cache_permissions)
-    config.__cache_permissions = {
-      max: 10000,
-      maxAge: 0,
-    };
+  }
 
   _this.__cache_groups = _this.cacheService.create('cache_security_groups', {
     type: 'LRU',

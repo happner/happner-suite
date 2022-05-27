@@ -23,7 +23,7 @@ ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, comp
     {
       type: 'LRU',
       cache: {
-        max: mesh.config.boundExchangeCacheSize || 10000,
+        max: mesh.config.boundExchangeCacheSize || 10e3,
       },
     }
   );
