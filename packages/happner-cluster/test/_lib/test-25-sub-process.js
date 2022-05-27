@@ -6,7 +6,7 @@ let localInstance;
 const GetSeq = require('./helpers/getSeqClass');
 let getSeq;
 
-let inputArgs = process.argv.slice(2).map(num => parseInt(num));
+let inputArgs = process.argv.slice(2).map((num) => parseInt(num));
 
 (async () => {
   if (inputArgs[0] === 2) {
@@ -31,14 +31,14 @@ function remoteInstanceConfig(seq, sync) {
   var config = baseConfig(seq, sync, true);
   config.modules = {
     breakingComponent: {
-      path: libDir + 'integration-25-breaking-component'
-    }
+      path: libDir + 'integration-25-breaking-component',
+    },
   };
   config.components = {
     breakingComponent: {
       startMethod: 'start',
-      stopMethod: 'stop'
-    }
+      stopMethod: 'stop',
+    },
   };
   return config;
 }

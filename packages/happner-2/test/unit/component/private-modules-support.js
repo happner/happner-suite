@@ -2,6 +2,7 @@ describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
     var Mesh = require('../../..');
+    var meshInstance;
     require('chai').should();
 
     this.timeout(120000);

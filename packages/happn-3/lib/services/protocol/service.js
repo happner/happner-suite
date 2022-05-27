@@ -191,11 +191,12 @@ function __processSinglePath(transformed, callback) {
         callback(null, result);
       });
 
-    if (authorized.request.action === 'request-nonce')
+    if (authorized.request.action === 'request-nonce') {
       return this.happn.services.security.processNonceRequest(authorized, function (e, result) {
         if (e) return callback(e);
         callback(null, result);
       });
+    }
 
     if (authorized.request.action === 'describe')
       return callback(null, this.happn.services.system.processMessage(authorized));

@@ -247,9 +247,7 @@ describe(test.testName(__filename), function () {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
       expect(
-        checkpoint.__cache_checkpoint_authorization.getSync(
-          'TEST-SESSION-ID' + '/test/path' + 'set'
-        )
+        checkpoint.__cache_checkpoint_authorization.get('TEST-SESSION-ID' + '/test/path' + 'set')
       ).to.be(null);
 
       //session, path, action, callback
@@ -275,7 +273,7 @@ describe(test.testName(__filename), function () {
 
           expect(authorized).to.be(false);
 
-          var cached = checkpoint.__cache_checkpoint_authorization.getSync(
+          var cached = checkpoint.__cache_checkpoint_authorization.get(
             'TEST-SESSION-ID:/test/path:set'
           );
 
@@ -288,7 +286,7 @@ describe(test.testName(__filename), function () {
           ]);
 
           expect(
-            checkpoint.__cache_checkpoint_authorization.getSync(
+            checkpoint.__cache_checkpoint_authorization.get(
               'TEST-SESSION-ID' + '/test/path' + 'set'
             )
           ).to.be(null);
@@ -308,7 +306,7 @@ describe(test.testName(__filename), function () {
     initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
-      expect(checkpoint.__checkpoint_permissionset.getSync(testPermissionSetKey)).to.be(null);
+      expect(checkpoint.__checkpoint_permissionset.get(testPermissionSetKey)).to.be(null);
       const permissionSetKey = require('crypto')
         .createHash('sha1')
         .update(['TEST1', 'TEST2'].join('/'))
@@ -337,13 +335,13 @@ describe(test.testName(__filename), function () {
 
           expect(authorized).to.be(false);
 
-          var cached = checkpoint.__checkpoint_permissionset.getSync(testPermissionSetKey);
+          var cached = checkpoint.__checkpoint_permissionset.get(testPermissionSetKey);
 
           expect(cached).to.not.be(null);
 
           checkpoint.clearCaches();
 
-          expect(checkpoint.__checkpoint_permissionset.getSync(testPermissionSetKey)).to.be(null);
+          expect(checkpoint.__checkpoint_permissionset.get(testPermissionSetKey)).to.be(null);
 
           done();
         }
@@ -368,7 +366,7 @@ describe(test.testName(__filename), function () {
     initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
-      expect(checkpoint.__checkpoint_permissionset.getSync(testPermissionSetKey)).to.be(null);
+      expect(checkpoint.__checkpoint_permissionset.get(testPermissionSetKey)).to.be(null);
       checkpoint._authorizeUser(
         {
           isToken: true,
@@ -384,19 +382,14 @@ describe(test.testName(__filename), function () {
 
           expect(authorized).to.be(false);
 
-          var cached = checkpoint.__checkpoint_permissionset.getSync(testPermissionSetKey, 'TEST');
+          var cached = checkpoint.__checkpoint_permissionset.get(testPermissionSetKey, 'TEST');
           expect(cached).to.be(null);
 
-          cached = checkpoint.__checkpoint_permissionset_token.getSync(
-            testPermissionSetKey,
-            'TEST'
-          );
+          cached = checkpoint.__checkpoint_permissionset_token.get(testPermissionSetKey, 'TEST');
           expect(cached).to.not.be(null);
           checkpoint.clearCaches();
 
-          expect(checkpoint.__checkpoint_permissionset_token.getSync(testPermissionSetKey)).to.be(
-            null
-          );
+          expect(checkpoint.__checkpoint_permissionset_token.get(testPermissionSetKey)).to.be(null);
 
           done();
         }
@@ -420,7 +413,7 @@ describe(test.testName(__filename), function () {
     initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
-      expect(checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey)).to.be(null);
+      expect(checkpoint.__cache_checkpoint_authorization.get(authorizationKey)).to.be(null);
       //session, path, action, callback
       checkpoint._authorizeUser(
         {
@@ -443,10 +436,10 @@ describe(test.testName(__filename), function () {
         function (e, authorized) {
           if (e) return done(e);
           expect(authorized).to.be(false);
-          var cached = checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey);
+          var cached = checkpoint.__cache_checkpoint_authorization.get(authorizationKey);
           expect(cached).to.not.be(null);
           checkpoint.clearCaches();
-          expect(checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey)).to.be(null);
+          expect(checkpoint.__cache_checkpoint_authorization.get(authorizationKey)).to.be(null);
           done();
         }
       );
@@ -469,9 +462,7 @@ describe(test.testName(__filename), function () {
     initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
       mockLookup(checkpoint, null, false);
-      expect(checkpoint.__cache_checkpoint_authorization_token.getSync(authorizationKey)).to.be(
-        null
-      );
+      expect(checkpoint.__cache_checkpoint_authorization_token.get(authorizationKey)).to.be(null);
       checkpoint._authorizeUser(
         {
           isToken: true,
@@ -487,14 +478,14 @@ describe(test.testName(__filename), function () {
 
           expect(authorized).to.be(false);
 
-          var cached = checkpoint.__cache_checkpoint_authorization.getSync(authorizationKey);
+          var cached = checkpoint.__cache_checkpoint_authorization.get(authorizationKey);
           expect(cached).to.be(null);
 
-          cached = checkpoint.__cache_checkpoint_authorization_token.getSync(authorizationKey);
+          cached = checkpoint.__cache_checkpoint_authorization_token.get(authorizationKey);
           expect(cached).to.not.be(null);
           checkpoint.clearCaches();
 
-          expect(checkpoint.__cache_checkpoint_authorization_token.getSync(authorizationKey)).to.be(
+          expect(checkpoint.__cache_checkpoint_authorization_token.get(authorizationKey)).to.be(
             null
           );
 
@@ -540,7 +531,7 @@ describe(test.testName(__filename), function () {
 
               expect(authorized).to.be(false);
 
-              var cached = checkpoint.__checkpoint_permissionset.getSync(
+              var cached = checkpoint.__checkpoint_permissionset.get(
                 testPermissionSetKey,
                 identity.user.username
               );
@@ -552,7 +543,7 @@ describe(test.testName(__filename), function () {
           function (e) {
             if (e) return done(e);
 
-            expect(checkpoint.__cache_checkpoint_authorization.__cache.valList.length).to.be(5);
+            expect(checkpoint.__cache_checkpoint_authorization.size()).to.be(5);
 
             done();
           }
@@ -601,7 +592,7 @@ describe(test.testName(__filename), function () {
 
               expect(authorized).to.be(false);
 
-              var cached = checkpoint.__checkpoint_permissionset.getSync(
+              var cached = checkpoint.__checkpoint_permissionset.get(
                 testPermissionSetKey,
                 identity.user.username
               );
@@ -613,7 +604,7 @@ describe(test.testName(__filename), function () {
           },
           function (e) {
             if (e) return done(e);
-            expect(checkpoint.__cache_checkpoint_authorization.__cache.valList.length).to.be(10);
+            expect(checkpoint.__cache_checkpoint_authorization.size()).to.be(10);
             done();
           }
         );
@@ -649,7 +640,7 @@ describe(test.testName(__filename), function () {
       }
 
       checkpoint.__cache_checkpoint_authorization = {
-        getSync: function () {
+        get: function () {
           return false;
         },
       };
@@ -705,7 +696,7 @@ describe(test.testName(__filename), function () {
     ];
     initializeCheckpoint(function (e, checkpoint) {
       if (e) return done(e);
-      checkpoint.__checkpoint_permissionset.getSync = () => {
+      checkpoint.__checkpoint_permissionset.get = () => {
         return null;
       };
       checkpoint.securityService.groups.getGroup = (groupName, opts, cb) => {
@@ -752,7 +743,7 @@ describe(test.testName(__filename), function () {
       };
 
       checkpoint.__cache_checkpoint_authorization = {
-        getSync: function () {
+        get: function () {
           return false;
         },
       };

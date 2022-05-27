@@ -2,7 +2,7 @@
 Simon: run up a happner-endpoint for testing, copied from FieldServer's happner-endpoint
 this will eventually fall behind from the original module, but creates a dynamic endpoint to the server for stress testing
 */
-
+/* eslint-disable no-console */
 const Happner = require('../../lib/mesh');
 const path = require('path');
 

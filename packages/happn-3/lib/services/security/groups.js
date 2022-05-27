@@ -43,19 +43,14 @@ function initialize(config, securityService, callback) {
   _this.cryptoService = _this.happn.services.crypto;
   _this.sessionService = _this.happn.services.session;
 
-  if (!config.__cache_groups)
+  if (!config.__cache_groups) {
     config.__cache_groups = {
-      max: 5000,
+      max: 5e3,
       maxAge: 0,
     };
+  }
 
-  if (!config.__cache_permissions)
-    config.__cache_permissions = {
-      max: 10000,
-      maxAge: 0,
-    };
-
-  _this.__cache_groups = _this.cacheService.new('cache_security_groups', {
+  _this.__cache_groups = _this.cacheService.create('cache_security_groups', {
     type: 'LRU',
     cache: config.__cache_groups,
   });
@@ -83,9 +78,8 @@ function initialize(config, securityService, callback) {
 
 function clearCaches(whatHappnd, changedData) {
   if (whatHappnd == null) {
-    this.__cache_groups.clear().then(() => {
-      if (this.permissionManager) this.permissionManager.cache.clear();
-    });
+    this.__cache_groups.clear();
+    if (this.permissionManager) this.permissionManager.cache.clear();
     return;
   }
   return new Promise((resolve, reject) => {
@@ -356,7 +350,7 @@ function getGroup(groupName, options, callback) {
   if (!groupName || groupName.indexOf('*') > 0)
     return callback(new Error('invalid group name: ' + groupName));
 
-  var cachedGroup = this.__cache_groups.getSync(groupName);
+  var cachedGroup = this.__cache_groups.get(groupName);
   if (cachedGroup) return callback(null, cachedGroup);
   this.dataService.get(
     '/_SYSTEM/_SECURITY/_GROUP/' + groupName,
@@ -374,7 +368,7 @@ function getGroup(groupName, options, callback) {
       this.permissionManager
         .attachPermissions(group)
         .then((attached) => {
-          this.__cache_groups.setSync(groupName, attached, { clone: false });
+          this.__cache_groups.set(groupName, attached, { clone: false });
           callback(null, attached);
         })
         .catch(callback);

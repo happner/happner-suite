@@ -317,7 +317,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                       test.expect(list.length <= 2).to.be(true);
 
                       clientInstance.exchange.security.listSessionActivity(function (e) {
-                        test.expect(e.toString()).to.be('Error: session activity logging not activated');
+                        test
+                          .expect(e.toString())
+                          .to.be('Error: session activity logging not activated');
 
                         callback();
                       });

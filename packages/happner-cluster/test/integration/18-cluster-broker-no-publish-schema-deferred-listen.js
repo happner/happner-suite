@@ -12,7 +12,7 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
     stopCluster(servers, function (e) {
       if (e) return done(e);
       servers = [];
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
       });
     });
@@ -39,7 +39,7 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
   afterEach('stop cluster', function (done) {
     if (!servers) return done();
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
       });
     });

@@ -24,7 +24,7 @@ describe(test.testName(__filename), function () {
         try {
           await session.get('test/**');
         } catch (error) {
-          errorMessage = error.message;
+          errorMessage = error.toString();
         }
 
         test.expect(errorMessage).to.be('test: error');
@@ -40,7 +40,7 @@ describe(test.testName(__filename), function () {
         try {
           await session.get('test/**');
         } catch (error) {
-          errorMessage = error.message;
+          errorMessage = error.toString();
         }
 
         test.expect(errorMessage).to.be('test: error');

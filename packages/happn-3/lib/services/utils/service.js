@@ -4,8 +4,7 @@ let commons = require("happn-commons"),
   happnUtils = commons.utils,
   fs = commons.fs,
   LRU = commons.lruCache,
-  _ = commons._,
-  replaceAll = require("string.prototype.replaceall");
+  _ = commons._;
 
 module.exports = UtilsService;
 
@@ -51,7 +50,7 @@ function ensureRegexCache(cacheKey, cacheSize, cacheAsObject) {
       };
     else {
       this.regexCaches[cacheKey] = new LRU({
-        max: cacheSize || 10000,
+        max: cacheSize || 10e3,
         maxAge: 0,
       });
     }
@@ -225,13 +224,8 @@ UtilsService.prototype.isEmptyObject = function (obj) {
   return true;
 };
 
-UtilsService.prototype.omitProperty = function (obj, propertiesToOmit) {
-  return _.omit(obj, propertiesToOmit);
-};
-
 UtilsService.prototype.replaceAll = function (str, search, replacement) {
-  if (str.replaceAll) return str.replaceAll(search, replacement);
-  return replaceAll(str, search, replacement);
+  return str.replaceAll(search, replacement);
 };
 
 UtilsService.prototype.getTemplatedPathCombinations = function (template, context, validator) {

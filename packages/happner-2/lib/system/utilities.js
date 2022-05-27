@@ -44,6 +44,7 @@ Object.defineProperty(module.exports, 'log', {
 module.exports.getFunctionParameters = function (fn) {
   // eslint-disable-next-line no-useless-escape
   const FN_ARGS =
+    // eslint-disable-next-line no-useless-escape
     /^(?:async +)?(?:function)?\s*[^\(=>]*\(\s*([^\)]*)\)|(?:async\s+)?\(?\s*([^\)]*).*=>.*/m;
   const FN_ARG_SPLIT = /,/;
   const FN_ARG = /^\s*(_?)(.+?)\1\s*$/;
@@ -267,6 +268,7 @@ function getAllMethodNames(toCheck, options) {
       //remove system method names if they are not explicitly overriden by the instance or first level prototype
       //we also ignore constructors
       return (
+        // eslint-disable-next-line no-prototype-builtins
         (Object.getPrototypeOf(toCheck).hasOwnProperty(fn) || toCheck.hasOwnProperty(fn)) &&
         fn !== 'constructor'
       );

@@ -2,14 +2,14 @@ module.exports = {
   integer: function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
-  string: function(options) {
+  string: function (options) {
     if (options == null) options = {};
 
     if (options.length == null) options.length = 20;
 
     var loopCount = options.length / 10 + 2;
 
-    var createString = function() {
+    var createString = function () {
       var str = '';
 
       for (var i = 0; i < loopCount; i++) {
@@ -27,7 +27,7 @@ module.exports = {
       return stringArr;
     } else return createString();
   },
-  randomPaths: function(options) {
+  randomPaths: function (options) {
     if (options == null) options = {};
 
     if (options.count == null) options.count = 10;
@@ -59,5 +59,5 @@ module.exports = {
     }
 
     return paths;
-  }
+  },
 };

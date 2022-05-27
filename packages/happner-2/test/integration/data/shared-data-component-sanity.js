@@ -2,6 +2,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
   const util = require('util');
   var should = test.chai.should();
   var Mesh = require('../../..');
+  var dataComponent;
   var meshInstance;
   var dataEvents;
   var TestModule1 = {

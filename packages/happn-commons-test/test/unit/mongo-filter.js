@@ -1,4 +1,5 @@
 const helper = require('../../lib/base-test-helper').create();
+const test = helper;
 describe(helper.testName(), function () {
   it('can do an arbitrary filter', () => {
     let array = [{ value: 0 }, { value: 1 }, { value: 2, parent: { child: 1 } }];

@@ -1,35 +1,35 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
+require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
   var service = require('../../index');
   var config = {
-    url: 'mongodb://127.0.0.1:27017/happn'
+    url: 'mongodb://127.0.0.1:27017/happn',
   };
 
   var serviceInstance = new service(config);
 
-  before('should clear the mongo collection', function(callback) {
+  before('should clear the mongo collection', function (callback) {
     let clearMongo = require('../__fixtures/clear-mongo-collection');
     clearMongo('mongodb://localhost/happn', 'happn', callback);
   });
 
-  before('should initialize the service', function(callback) {
-    serviceInstance.initialize(function(e) {
+  before('should initialize the service', function (callback) {
+    serviceInstance.initialize(function (e) {
       if (e) return callback(e);
 
       if (!serviceInstance.happn)
         serviceInstance.happn = {
           services: {
             utils: {
-              wildcardMatch: function(pattern, matchTo) {
+              wildcardMatch: function (pattern, matchTo) {
                 var regex = new RegExp(pattern.replace(/[*]/g, '.*'));
                 var matchResult = matchTo.match(regex);
 
                 if (matchResult) return true;
 
                 return false;
-              }
-            }
-          }
+              },
+            },
+          },
         };
 
       callback();
@@ -44,10 +44,10 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
           data: {
             group,
             custom,
-            id
-          }
+            id,
+          },
         },
-        function(e, response, created) {
+        function (e, response, created) {
           if (e) return reject(e);
           resolve(created);
         }
@@ -70,27 +70,27 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     await createTestItem(12, 'even', 'even', '/other');
   });
 
-  after(function(done) {
+  after(function (done) {
     serviceInstance.stop(done);
   });
 
-  it('tests a normal search', function(callback) {
-    serviceInstance.find('/searches-and-aggregation/*', {}, function(e, items) {
+  it('tests a normal search', function (callback) {
+    serviceInstance.find('/searches-and-aggregation/*', {}, function (e, items) {
       if (e) return callback(e);
       test.expect(items.length).to.be(10);
       callback();
     });
   });
 
-  it('tests a normal search, with the count option and $not', function(callback) {
+  it('tests a normal search, with the count option and $not', function (callback) {
     serviceInstance.count(
       '/searches-and-aggregation/*',
       {
         criteria: {
-          'data.custom': { $not: { $eq: 'Odd' } }
-        }
+          'data.custom': { $not: { $eq: 'Odd' } },
+        },
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         test.expect(result.data.value).to.be(9);
         callback();
@@ -98,21 +98,21 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('tests a normal search, with the count option, collation case insensitive', function(callback) {
+  it('tests a normal search, with the count option, collation case insensitive', function (callback) {
     serviceInstance.count(
       '/searches-and-aggregation/*',
       {
         criteria: {
-          'data.custom': { $eq: 'Odd' }
+          'data.custom': { $eq: 'Odd' },
         },
         options: {
           collation: {
             locale: 'en_US',
-            strength: 1
-          }
-        }
+            strength: 1,
+          },
+        },
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         test.expect(result.data.value).to.be(5);
         callback();
@@ -120,16 +120,16 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('tests a normal search, with the count option, case sensitive', function(callback) {
+  it('tests a normal search, with the count option, case sensitive', function (callback) {
     serviceInstance.count(
       '/searches-and-aggregation/*',
       {
         criteria: {
-          'data.custom': { $eq: 'Odd' }
+          'data.custom': { $eq: 'Odd' },
         },
-        options: {}
+        options: {},
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         test.expect(result.data.value).to.be(1);
         callback();
@@ -137,14 +137,14 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
     );
   });
 
-  it('tests an aggregated search', function(callback) {
+  it('tests an aggregated search', function (callback) {
     serviceInstance.find(
       '/searches-and-aggregation/*',
       {
         criteria: {
           'data.group': {
-            $eq: 'odd'
-          }
+            $eq: 'odd',
+          },
         },
         options: {
           aggregate: [
@@ -152,48 +152,48 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               $group: {
                 _id: '$data.custom',
                 total: {
-                  $sum: '$data.id'
-                }
-              }
+                  $sum: '$data.id',
+                },
+              },
             },
-            { $sort: { total: 1 } }
-          ]
-        }
+            { $sort: { total: 1 } },
+          ],
+        },
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         test.expect(result.data.value.length).to.be(4);
         test.expect(result.data.value).to.eql([
           {
             _id: 'Odd',
-            total: 1
+            total: 1,
           },
           {
             _id: 'ODD',
-            total: 5
+            total: 5,
           },
           {
             _id: 'odD',
-            total: 7
+            total: 7,
           },
           {
             _id: 'odd',
-            total: 12
-          }
+            total: 12,
+          },
         ]);
         callback();
       }
     );
   });
 
-  it('tests an aggregated search with a case-insensitive collation', function(callback) {
+  it('tests an aggregated search with a case-insensitive collation', function (callback) {
     serviceInstance.find(
       '/searches-and-aggregation/*',
       {
         criteria: {
           'data.group': {
-            $eq: 'odd'
-          }
+            $eq: 'odd',
+          },
         },
         options: {
           aggregate: [
@@ -201,25 +201,25 @@ require('happn-commons-test').describe({ timeout: 20000 }, function(test) {
               $group: {
                 _id: '$data.custom',
                 total: {
-                  $sum: '$data.id'
-                }
-              }
-            }
+                  $sum: '$data.id',
+                },
+              },
+            },
           ],
           collation: {
             locale: 'en_US',
-            strength: 1
-          }
-        }
+            strength: 1,
+          },
+        },
       },
-      function(e, result) {
+      function (e, result) {
         if (e) return callback(e);
         test.expect(result.data.value.length).to.be(1);
         test.expect(result.data.value).to.eql([
           {
             _id: 'Odd',
-            total: 25
-          }
+            total: 25,
+          },
         ]);
         callback();
       }

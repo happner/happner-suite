@@ -33,7 +33,7 @@ describe(
       };
 
       obj.happn.services.cache = {
-        new: function () {},
+        create: function () {},
       };
 
       obj.happn.services.data = {

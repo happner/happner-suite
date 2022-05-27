@@ -1454,10 +1454,10 @@ Mesh.prototype._createModule = function (spec, callback) {
       },
     });
 
-    var package = utilities.getPackageJson(home, spec.module.version);
+    var modulePackage = utilities.getPackageJson(home, spec.module.version);
     Object.defineProperty(spec.module, 'package', {
       get: function () {
-        return package;
+        return modulePackage;
       },
       enumerable: true,
     });

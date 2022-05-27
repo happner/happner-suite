@@ -3,6 +3,7 @@ var path = require('path');
 describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
+    var remote;
     this.timeout(120000);
 
     var Mesh = require('../../..');

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  Simon: run up an old school mesh client, for emulating reconnection logic and some activity
  */
@@ -16,7 +17,7 @@ adminClient.login({ username: '_ADMIN', password: 'happn' }).then(() => {
       () => {
         console.log('emit: 1 done');
       },
-      (e) => {
+      () => {
         doClientActivity();
       }
     );

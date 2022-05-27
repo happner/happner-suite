@@ -1,4 +1,4 @@
-module.exports = function(ParentClass) {
+module.exports = function (ParentClass) {
   return class TestAuthProvider extends ParentClass {
     constructor(happn, config) {
       super(happn, config);
@@ -14,7 +14,7 @@ module.exports = function(ParentClass) {
       ) {
         let user = {
           username: 'secondTestuser@somewhere.com',
-          groups: { _MESH_GST: { data: {} } }
+          groups: { _MESH_GST: { data: {} } },
         };
         return this.__loginOK(credentials, user, sessionId, callback);
       }

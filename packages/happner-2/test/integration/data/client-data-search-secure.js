@@ -192,7 +192,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           );
         },
         function (e) {
-          if (e) return callback(e);
+          if (e) return done(e);
 
           var options = {
             sort: { '_meta.created': -1 },
@@ -219,7 +219,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               test.expect(latestResult._meta.created).to.not.be(undefined);
 
               meshInstance.exchange.data.get('movie/family/*', function (e, result) {
-                if (e) return callback(e);
+                if (e) return done(e);
 
                 for (var resultItemIndex in result) {
                   var resultItem = result[resultItemIndex];

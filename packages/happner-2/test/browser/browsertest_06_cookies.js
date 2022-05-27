@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 describe('browsertest_06_cookies', function () {
   this.timeout(60000);
 

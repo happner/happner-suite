@@ -1,4 +1,4 @@
-module.exports = function(
+module.exports = function (
   seq,
   minPeers,
   secure,
@@ -22,7 +22,7 @@ module.exports = function(
     ignoreDependenciesOnStartup: true,
     cluster: {
       requestTimeout: clusterRequestTimeout,
-      responseTimeout: clusterResponseTimeout
+      responseTimeout: clusterResponseTimeout,
     },
     happn: {
       secure: secure,
@@ -30,16 +30,16 @@ module.exports = function(
         security: {
           config: {
             authProviders: {
-              second: path.resolve(__dirname, './workingAuth.js')
+              second: path.resolve(__dirname, './workingAuth.js'),
             },
             defaultAuthProvider: 'second',
-            sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET'
-          }
+            sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET',
+          },
         },
         data: {
           config: {
-            autoUpdateDBVersion: true
-          }
+            autoUpdateDBVersion: true,
+          },
         },
         membership: {
           config: {
@@ -48,21 +48,21 @@ module.exports = function(
             seed: seq === 1,
             seedWait: 1000,
             hosts,
-            joinTimeout
-          }
+            joinTimeout,
+          },
         },
         proxy: {
           config: {
-            port: 55000 + seq
-          }
+            port: 55000 + seq,
+          },
         },
         orchestrator: {
           config: {
             minimumPeers: minPeers || 3,
-            replicate
-          }
-        }
-      }
-    }
+            replicate,
+          },
+        },
+      },
+    },
   };
 };

@@ -9,7 +9,7 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const getSeq = require('../_lib/helpers/getSeq');
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   beforeEach('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
       done();
     });
   });
@@ -48,7 +48,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     //check the members started in the correct order
     let values = cluster.events.data.map((item) => item.value);
     test
-      .expect(values.indexOf(getSeq.getMeshName(5)))  // Member 4 should start
+      .expect(values.indexOf(getSeq.getMeshName(5))) // Member 4 should start
       .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before meber 2
     //check everything started
     values.sort();

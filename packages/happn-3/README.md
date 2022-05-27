@@ -1,12 +1,4 @@
-[![npm](https://img.shields.io/npm/v/happn-3.svg)](https://www.npmjs.com/package/happn-3)
-[![Build Status](https://travis-ci.org/happner/happn-3.svg?branch=master)](https://travis-ci.org/happner/happn-3)
-[![Coverage Status](https://coveralls.io/repos/happner/happn-3/badge.svg?branch=master&service=github)](https://coveralls.io/github/happner/happn-3?branch=master)
-[![David](https://img.shields.io/david/happner/happn-3.svg)](https://img.shields.io/david/happner/happn-3.svg)
-
 <img src="https://raw.githubusercontent.com/happner/happner-website/master/images/HAPPN%20Logo%20B.png" width="300"></img>
-
-VERSION 3
----------
 
 Introduction
 -------------------------
@@ -16,27 +8,6 @@ Happn is a mini database combined with pub/sub, the system stores json objects o
 Happn stores its data in a collection called 'happn' by default on your mongodb/nedb. The happn system is actually built to be a module, this is because the idea is that you will be able to initialize a server in your own code, and possibly attach your own plugins to various system events.
 
 A paid for alternative to happn would be [firebase](https://www.firebase.com)
-
-Key technologies used:
-Happn uses [Primus](https://github.com/primus/primus) to power websockets for its pub/sub framework and mongo or nedb depending on the mode it is running in as its data store, the API uses [connect](https://github.com/senchalabs/connect).
-[nedb](https://github.com/louischatriot/nedb) as the embedded database, although we have forked it happn's purposes [here](https://github.com/happner/happn-nedb)
-
-VERSION 2 and what has changed
-------------------------------
-
-Happn v2 can be found [here](https://github.com/happner/happn)
-
-changes are:
-
-1. more modular layout, services are broken up into logical modules
-2. introduction of a queue service
-3. introduction of a protocol service, this allows for the creation of protocol plugins that take messages of the inbound and outbound queues and convert them into happn messages, essentially means we are able to use different protocols to talk to happn (ie. MQTT)
-4. simplified intra process client instantiation
-5. intra process client shares the same code as the websockets client, using a special intra-proc socket, instead of a primus spark
-6. database is now versioned and must be in sync with package.json
-
-[Migration plan from happn 2 to happn-3](https://github.com/happner/happn-3/blob/master/docs/migration-plan.md)
---------------------------------------
 
 Getting started
 ---------------------------
@@ -59,7 +30,7 @@ Create a directory you want to run your happn in, create a node application in i
 
 *In node_modules/happn/test in your folder, the 1_eventemitter_embedded_sanity.js and 2_websockets_embedded_sanity.js scripts demonstrate the server and client interactions shown in the following code snippets*
 
-[configuration](https://github.com/happner/happn-3/blob/master/docs/config.md)
+[configuration](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/config.md)
 --------------------------------------
 *for full service and client configuration options*
 
@@ -233,17 +204,6 @@ my_client_instance.publish('e2e_test1/testsubscribe/data/', {property1:'property
   }
 });
 
-```
-
-SET SIBLING
--------------------------
-
-*sets your data to a unique path starting with the path you passed in as a parameter, suffixed with a random short id*
-
-```javascript
-	my_client_instance.setSibling('e2e_test1/siblings', {property1:'sib_post_property1',property2:'sib_post_property2'}, function(e, results){
-		//you get back {property1:'sib_post_property1',property2:'sib_post_property2', _meta:{path:'e2e_test1/siblings/yCZ678__'}}
-		//you would get all siblings by querying the path e2e_test1/siblings*
 ```
 
 INCREMENT
@@ -857,19 +817,6 @@ myclient.on('/test/path/**', {
 
 ```
 
-TAGGING
-----------------------------
-
-*You can do a set command and specify that you want to tag the data at the end of the path (or the data that is created as a result of the command), tagging will take a snapshot of the data as it currently stands, and will save the snapshot to a path that starts with the path you specify, and a '/' with the tag you specify at the end*
-
-```javascript
-
-var randomTag = require('shortid').generate();
-
-my_client_instance.set('e2e_test1/test/tag', {property1:'property1',property2:'property2',property3:'property3'}, {tag:randomTag}, function(e, result){
-
-```
-
 MERGING
 ----------------------------
 
@@ -940,8 +887,8 @@ let myService = await Happn.service.create({
 });
 ```
 
-SECURITY SERVER
----------------
+SECURITY
+--------
 
 *happn server instances can be secured with user and group authentication and authorisation, a default user and group called _ADMIN is created per happn instance, the admin password is 'happn' but is configurable (MAKE SURE PRODUCTION INSTANCES DO NOT RUN OFF THE DEFAULT PASSWORD)*
 
@@ -963,7 +910,7 @@ function (e, instance) {
 
 ```
 
-*at the moment, adding users, groups and permissions can only be done by directly accessing the security service, to see how this is done - please look at the [functional test for security](https://github.com/happner/happn-3/blob/master/test/integration/security/access_sanity.js)*
+*at the moment, adding users, groups and permissions can only be done by directly accessing the security service, to see how this is done - please look at the [functional test for security](https://github.com/happner/happner-suite/blob/master/packages/happn-3/test/integration/security/access-sanity.js)*
 
 SECURITY CLIENT
 ----------------
@@ -1061,7 +1008,7 @@ function (e, myHappn3Instance) {
 });
 ```
 
-#### if we are using mongodb, we are able to specify collation for listing users see the [mongo tests](https://github.com/happner/happn-3/blob/master/test/integration/security/groups_users_permissions_sanity-mongo.js).
+#### if we are using mongodb, we are able to specify collation for listing users see the [mongo tests](https://github.com/happner/happner-suite/blob/master/packages/happn-3/test/integration/security/groups-users-permissions-sanity-mongo.js).
 
 #### NB! permissions are separate to the group, so when upserting the group and it already exists with other permissions the current upserts permissions are merged with the existing ones, down to action level
 
@@ -1515,10 +1462,9 @@ SECURITY PROFILES
       }
     }
   };
-
 ```
 
-*the test that clearly demonstrates profiles can be found [here](https://github.com/happner/happn-3/blob/master/test/integration/security/default_profiles.js)*
+*the test that clearly demonstrates profiles can be found [here](https://github.com/happner/happner-suite/blob/master/packages/happn-3/test/integration/security/security-profiles.js)*
 
 *the default policies look like this:*
 
@@ -1557,7 +1503,7 @@ TEMPLATED PERMISSIONS
 
 *permissions can be templated to the current session using {{handlebars}} syntax, the template context is the current session and its sub-objects*
 
-code snippets have been taken from the [this test](https://github.com/happner/happn-3/blob/master/test/integration/security/templated_permissions.js)
+code snippets have been taken from the [this test](https://github.com/happner/happner-suite/blob/master/packages/happn-3/test/integration/security/templated-permissions.js)
 
 average session object looks like this:
 
@@ -2161,11 +2107,6 @@ service.create(serviceConfig, function(e, happnInst) {
 });
 ```
 
-PAYLOAD ENCRYPTION
-------------------
-
-*if the server is running in secure mode, it can also be configured to encrypt payloads between it and socket clients, this means that the client must include a keypair as part of its credentials on logging in, to see payload encryption in action plase go to the [following test](https://github.com/happner/happn-3/blob/master/test/integration/security/encryptedpayloads_sanity.js)*
-
 INBOUND AND OUTBOUND LAYERS (MIDDLEWARE)
 -----------------------------------------
 
@@ -2303,14 +2244,24 @@ clientInstance1.set('/test/path/acknowledged/1', {test: 'data'}, {
 
 ```
 
-STANDARDS COMPLIANCE
---------------------
-- password hashes - pkdbf2, SHA512 (SHA1 previously or on node v0.*)
-- asynchronous encryption (session secret teleportation) - ECIES (bitcore)
-- synchronous encryption - AES-256
-- signing and verifying - ECDSA (bitcore)
+HAPPN-3 SERVICES AND THEIR CONFIGURATIONS:
+-----------------------------------------
+*the happn-3 framework is comprised of a series of core services, these services can be configured to change the behavior of the system, what follows is a list of services that you are able to configure:*
 
-####*NB: the strict bucket is not backwards compatible with happn-1*
+- cache - system and security caches - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/cache/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/cache)
+- connect - manages the websocket and http requests - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/connect/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/connect)
+- crypto - manages cryptographical operations - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/crypto/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/crypto)
+- data - manages persistence to storage - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/data/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/data)
+- error - manages system failures - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/error/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/error)
+- log - managed logging - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/log/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/log)
+- protocol - manages incoming and outgoing protocol transformations - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/protocol/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/protocol)
+- publisher - manages event publishing - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/publisher/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/publisher)
+- security - manages authentication and authorization - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/security/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/security)
+- session - manages user sessions - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/session/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/session)
+- subscription - manages subscriptions to events - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/subscription/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/subscription)
+- system - various system functions - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/system/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/system)
+- transport - manages http/s server - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/transport/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/transport)
+- utils - various utility functions - [configuration howto](https://github.com/happner/happner-suite/blob/master/packages/happn-3/docs/services/utils/configuration.md) - [code](https://github.com/happner/happner-suite/tree/master/packages/happn-3/lib/services/utils)
 
 TESTING WITH KARMA
 ------------------
@@ -2318,7 +2269,3 @@ TESTING WITH KARMA
 testing payload encryption on the browser:
 gulp --gulpfile test/browser/gulp-01.js
 
-
-OTHER PLACES WHERE HAPPN-3 IS USED:
-----------------------------------
-HAPPNER - an experimental application engine that uses happn for its nervous system, see: www.github.com/happner/happner-2 - happner is now on version 2 so relatively mature.

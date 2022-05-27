@@ -39,7 +39,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
         logTimeDelta: true,
         logDateFormat: null,
         logLayout: {
-          pattern: '[%[%5.5p%]] - %m',
+          pattern: `%d{yyyy-MM-dd hh:mm:ss.SSS} [%5.5p] - %m`,
           type: 'pattern',
         },
         logFile: null,

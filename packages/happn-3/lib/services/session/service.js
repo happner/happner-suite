@@ -152,7 +152,7 @@ function initializeCaches(callback) {
       type: 'static',
     };
 
-  this.__activeSessions = this.happn.services.cache.new(
+  this.__activeSessions = this.happn.services.cache.create(
     'service_session_active_sessions',
     this.config.activeSessionsCache
   );

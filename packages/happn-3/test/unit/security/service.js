@@ -623,7 +623,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -631,13 +631,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       var securityService = {
@@ -646,7 +646,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             utils: utils,
           },
         },
-        cacheService: cacheInstance,
+        cacheService: cacheService,
         onDataChanged: function () {},
       };
 
@@ -678,7 +678,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       checkpoint.happn = {
         services: {
           utils: utils,
-          cache: cacheInstance,
+          cache: cacheService,
           session: sessionInstance,
         },
       };
@@ -727,7 +727,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -735,13 +735,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       var securityService = {
@@ -750,7 +750,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             utils: utils,
           },
         },
-        cacheService: cacheInstance,
+        cacheService: cacheService,
         onDataChanged: function () {},
       };
 
@@ -784,7 +784,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       checkpoint.happn = {
         services: {
           utils: utils,
-          cache: cacheInstance,
+          cache: cacheService,
           session: sessionInstance,
         },
       };
@@ -830,7 +830,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -838,13 +838,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       var securityService = {
@@ -853,7 +853,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             utils: utils,
           },
         },
-        cacheService: cacheInstance,
+        cacheService: cacheService,
         onDataChanged: function () {},
       };
 
@@ -887,7 +887,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       checkpoint.happn = {
         services: {
           utils: utils,
-          cache: cacheInstance,
+          cache: cacheService,
           session: sessionInstance,
         },
       };
@@ -927,7 +927,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -935,13 +935,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       var securityService = {
@@ -950,7 +950,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             utils: utils,
           },
         },
-        cacheService: cacheInstance,
+        cacheService: cacheService,
         onDataChanged: function () {},
       };
 
@@ -982,7 +982,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       checkpoint.happn = {
         services: {
           utils: utils,
-          cache: cacheInstance,
+          cache: cacheService,
           session: sessionInstance,
         },
       };
@@ -1036,7 +1036,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -1044,7 +1044,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
@@ -1070,7 +1070,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
           utils: utils,
         },
       },
-      cacheService: cacheInstance,
+      cacheService: cacheService,
       onDataChanged: function () {},
     };
 
@@ -1088,13 +1088,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     checkpoint.happn = {
       services: {
         utils: utils,
-        cache: cacheInstance,
+        cache: cacheService,
         security: securityService,
         session: sessionInstance,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       checkpoint.initialize({}, securityService, function (e) {
@@ -1130,7 +1130,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -1138,7 +1138,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
@@ -1171,7 +1171,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
           utils: utils,
         },
       },
-      cacheService: cacheInstance,
+      cacheService: cacheService,
       onDataChanged: function () {},
     };
 
@@ -1189,13 +1189,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     checkpoint.happn = {
       services: {
         utils: utils,
-        cache: cacheInstance,
+        cache: cacheService,
         security: securityService,
         session: sessionInstance,
       },
     };
 
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
 
       checkpoint.initialize({}, securityService, function (e) {
@@ -1238,7 +1238,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     var CacheService = require('../../../lib/services/cache/service');
-    var cacheInstance = new CacheService();
+    var cacheService = new CacheService();
 
     var Utils = require('../../../lib/services/utils/service.js');
 
@@ -1246,7 +1246,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: require('happn-logger'),
     });
 
-    cacheInstance.happn = {
+    cacheService.happn = {
       services: {
         utils: utils,
       },
@@ -1273,7 +1273,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
           utils: utils,
         },
       },
-      cacheService: cacheInstance,
+      cacheService,
       onDataChanged: function () {},
     };
 
@@ -1291,36 +1291,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     checkpoint.happn = {
       services: {
         utils: utils,
-        cache: cacheInstance,
+        cache: cacheService,
         security: securityService,
         session: sessionInstance,
       },
     };
-
-    cacheInstance.initialize({}, function (e) {
+    cacheService.initialize({}, function (e) {
       if (e) return done(e);
-
       checkpoint.initialize({}, securityService, function (e) {
         if (e) return done(e);
-
-        checkpoint.__checkUsageLimit(testSession, testSession.policy[1], function (e, ok) {
-          if (e) return done(e);
-
-          test.expect(ok).to.be(true);
-
-          checkpoint.__checkUsageLimit(testSession, testSession.policy[1], function (e) {
-            if (e) return done(e);
-
-            checkpoint.__checkUsageLimit(testSession, testSession.policy[1], function (e, ok) {
-              if (e) return done(e);
-
-              test.expect(ok).to.be(false);
-
-              checkpoint.stop();
-              done();
-            });
-          });
-        });
+        test.expect(checkpoint.__checkUsageLimit(testSession, testSession.policy[1])).to.be(true);
+        test.expect(checkpoint.__checkUsageLimit(testSession, testSession.policy[1])).to.be(true);
+        test.expect(checkpoint.__checkUsageLimit(testSession, testSession.policy[1])).to.be(false);
+        checkpoint.stop();
+        done();
       });
     });
   });
@@ -1375,20 +1359,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
         test.expect(happnMock.services.security.config.defaultNonceTTL).to.be(60000);
 
-        happnMock.services.security.createAuthenticationNonce(mockSession, function (e, nonce) {
+        const nonce = happnMock.services.security.createAuthenticationNonce(mockSession);
+        mockSession.digest = clientInstance.__signNonce(nonce);
+
+        happnMock.services.security.verifyAuthenticationDigest(mockSession, function (e, verified) {
           if (e) return done(e);
-
-          mockSession.digest = clientInstance.__signNonce(nonce);
-
-          happnMock.services.security.verifyAuthenticationDigest(
-            mockSession,
-            function (e, verified) {
-              if (e) return done(e);
-              test.expect(verified).to.be(true);
-
-              stopServices(happnMock, done);
-            }
-          );
+          test.expect(verified).to.be(true);
+          stopServices(happnMock, done);
         });
       });
     });
@@ -1419,19 +1396,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         test.expect(happnMock.services.security.config.defaultNonceTTL).to.be(60000);
 
         happnMock.services.security.config.defaultNonceTTL = 500; //set it to something small
-
-        happnMock.services.security.createAuthenticationNonce(mockSession, function (e, nonce) {
-          if (e) return done(e);
-
-          mockSession.digest = clientInstance.__signNonce(nonce);
-
-          setTimeout(function () {
-            happnMock.services.security.verifyAuthenticationDigest(mockSession, function (e) {
-              test.expect(e.toString()).to.be('Error: nonce expired or public key invalid');
-              stopServices(happnMock, done);
-            });
-          }, 1000);
-        });
+        const nonce = happnMock.services.security.createAuthenticationNonce(mockSession);
+        mockSession.digest = clientInstance.__signNonce(nonce);
+        setTimeout(function () {
+          happnMock.services.security.verifyAuthenticationDigest(mockSession, function (e) {
+            test.expect(e.toString()).to.be('Error: nonce expired or public key invalid');
+            stopServices(happnMock, done);
+          });
+        }, 1000);
       });
     });
   });
@@ -2774,10 +2746,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       let fetchedUserFromDb = false;
 
       happnMock.services.security.__cache_session_on_behalf_of = {
-        getSync: () => {
+        get: () => {
           return null;
         },
-        setSync: (username, user) => {
+        set: (username, user) => {
           wasCached = user;
         },
       };
@@ -2822,7 +2794,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       var onBehalfOf = 'test-user';
 
       happnMock.services.security.__cache_session_on_behalf_of = {
-        getSync: () => {
+        get: () => {
           return {
             cached: true,
             user: {
@@ -2831,7 +2803,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
             },
           };
         },
-        setSync: () => {},
+        set: () => {},
       };
 
       let fetchedUserFromDb = false;
