@@ -31,29 +31,29 @@ happn-3 ![coverage](https://github.com/happner/happner-suite/blob/platform-cover
 -------
 This the pub/sub and datastorage layer of the system - happn-3 is similar to firebase in a lot of respects, it combines datastorage with an events communicated over websockets.
 
-[quickstart]()
-[happn-3 documentation]()
+- [quickstart]()
+- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happn-3/README.md)
 
 happner-2 ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happner-2.badge.svg?raw=true)
 ---------
 This is the rpc layer, it uses happn-3 for communication, and provides the ability to discover and call server-side components as if they were local.
 
-[quickstart]()
-[happner-2 documentation]()
+- [quickstart]()
+- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happner-2/README.md)
 
 happn-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-cluster.badge.svg?raw=true)
 -------------
 Adds cluster capability to happn-3.
 
-[quickstart]()
-[happn-cluster documentation]()
+- [quickstart]()
+- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happn-cluster/README.md)
 
 happner-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happner-cluster.badge.svg?raw=true)
 ---------------
 Adds cluster-capability to happner-cluster.
 
-[quickstart]()
-[happner-cluster documentation]()
+- [quickstart]()
+- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happner-cluster/README.md)
 
 supporting modules:
 --------------------

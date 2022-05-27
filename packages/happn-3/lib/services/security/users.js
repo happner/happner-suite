@@ -58,7 +58,7 @@ function initialize(config, securityService, callback) {
 
     if (!config.__cache_users)
       config.__cache_users = {
-        max: 5000,
+        max: 10e3,
         maxAge: 0,
       };
 
@@ -73,7 +73,7 @@ function initialize(config, securityService, callback) {
 
     if (!config.__cache_users_by_groups)
       config.__cache_users_by_groups = {
-        max: 10000,
+        max: 10e3,
         maxAge: 0,
       };
     this.__cache_users_by_groups = UsersByGroupCache.create(

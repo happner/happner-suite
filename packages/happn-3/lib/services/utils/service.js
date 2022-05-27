@@ -50,7 +50,7 @@ function ensureRegexCache(cacheKey, cacheSize, cacheAsObject) {
       };
     else {
       this.regexCaches[cacheKey] = new LRU({
-        max: cacheSize || 10000,
+        max: cacheSize || 10e3,
         maxAge: 0,
       });
     }

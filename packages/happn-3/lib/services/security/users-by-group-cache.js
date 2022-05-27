@@ -64,7 +64,7 @@ module.exports = class UsersByGroupCache {
 
   defaults(config) {
     let defaultConfig = !config ? {} : { ...config };
-    defaultConfig.max = defaultConfig.max || 10000;
+    defaultConfig.max = defaultConfig.max || 10e3;
     return defaultConfig;
   }
 };

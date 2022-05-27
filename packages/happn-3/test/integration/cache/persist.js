@@ -2,14 +2,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   const service = require('../../../lib/services/cache/service');
   const dataService = require('../../../lib/services/data/service');
   const serviceInstance = new service();
-  const dataServiceInstance = new dataService();
+  const dataStore = new dataService();
   const testId = test.newid();
-  const config = {
-    defaultCacheOpts: {
-      type: test.commons.constants.CACHE_TYPES.PERSIST,
-      cache: {
-        key_prefix: 'PERSIST_TEST',
-      },
+  const config = {};
+  const cacheConfig = {
+    type: test.commons.constants.CACHE_TYPES.PERSIST,
+    cache: {
+      key_prefix: 'PERSIST_TEST',
+      dataStore,
     },
   };
 
@@ -17,7 +17,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     var UtilService = require('../../../lib/services/utils/service');
     var utilService = new UtilService();
 
-    dataServiceInstance.happn = {
+    dataStore.happn = {
       services: {
         utils: utilService,
         system: {
@@ -26,10 +26,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       },
     };
 
-    dataServiceInstance.initialize({}, function (e) {
+    dataStore.initialize({}, function (e) {
       if (e) return callback(e);
-      config.defaultCacheOpts.cache.dataStore = dataServiceInstance;
-      config.defaultCacheOpts.type = test.commons.constants.CACHE_TYPES.PERSIST;
       serviceInstance.happn = {
         services: {
           utils: utilService,
@@ -45,7 +43,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
 
   it(`sets, gets and removes data, specific cache, type: persist`, async () => {
     var key = testId + 'test1';
-    var specific = serviceInstance.create('specific');
+    var specific = serviceInstance.create('specific', cacheConfig);
     await specific.sync();
     const result = await specific.set(key, { dkey: key });
     test.expect(result.key).to.be(key);
@@ -60,14 +58,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   });
 
   it(`times data out, specific cache, type: persist`, async () => {
-    const specific = serviceInstance.create('specific');
+    const specific = serviceInstance.create('specific', cacheConfig);
     await specific.sync();
     await testTimeout(specific);
   });
 
   it(`clears the specific cache, type: persist`, async () => {
     const key = testId + 'test1';
-    const specific = serviceInstance.create('specific-clear');
+    const specific = serviceInstance.create('specific-clear', cacheConfig);
     await specific.sync();
     await specific.clear();
     await specific.set(key, { dkey: key });
@@ -82,7 +80,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
 
   it(`tests the increment and default option, specific cache, type: persist`, async () => {
     const key = testId + 'test1DefaultItemNotFound';
-    const specific = serviceInstance.create('specific-increment-default');
+    const specific = serviceInstance.create('specific-increment-default', cacheConfig);
     await specific.sync();
     let item = await specific.get(key, {
       default: {
@@ -113,7 +111,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   });
 
   it(`tests the all function, specific cache, type: persist`, async () => {
-    const specific = serviceInstance.create('specific-all');
+    const specific = serviceInstance.create('specific-all', cacheConfig);
     await specific.sync();
     for (let time = 0; time < 5; time++) {
       const key = 'sync_key_' + time;

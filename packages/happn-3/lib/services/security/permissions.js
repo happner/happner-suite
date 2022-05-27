@@ -34,7 +34,7 @@ module.exports = class Permissions {
     let defaultConfig = !config ? {} : { ...config };
     if (!defaultConfig.__cache_permissions)
       defaultConfig.__cache_permissions = {
-        max: 10000,
+        max: 10e3,
         maxAge: 0,
       };
     defaultConfig.__userPermissionsPrefix = defaultConfig.__userPermissionsPrefix || '_USER/';

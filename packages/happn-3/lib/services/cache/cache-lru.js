@@ -3,7 +3,7 @@ module.exports = class LRUCache extends require('./cache-base') {
   constructor(name, opts) {
     super(name, opts);
     if (opts == null) opts = {};
-    if (!opts.max) opts.max = 1e3;
+    if (!opts.max) opts.max = 10e3;
     this.#cache = new this.commons.lruCache(opts);
   }
 
