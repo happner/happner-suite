@@ -4,8 +4,7 @@ let commons = require("happn-commons"),
   happnUtils = commons.utils,
   fs = commons.fs,
   LRU = commons.lruCache,
-  _ = commons._,
-  replaceAll = require("string.prototype.replaceall");
+  _ = commons._;
 
 module.exports = UtilsService;
 
@@ -226,8 +225,7 @@ UtilsService.prototype.isEmptyObject = function (obj) {
 };
 
 UtilsService.prototype.replaceAll = function (str, search, replacement) {
-  if (str.replaceAll) return str.replaceAll(search, replacement);
-  return replaceAll(str, search, replacement);
+  return str.replaceAll(search, replacement);
 };
 
 UtilsService.prototype.getTemplatedPathCombinations = function (template, context, validator) {
