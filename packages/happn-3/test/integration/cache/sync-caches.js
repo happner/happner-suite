@@ -1,25 +1,13 @@
 [
   {
-    service: {
-      defaultCacheOpts: {
-        type: 'LRU',
-        cache: {
-          max: 300,
-          maxAge: 0,
-        },
-      },
-    },
+    service: {},
     specific: {
       type: 'lru',
       overwrite: true,
     },
   },
   {
-    service: {
-      defaultCacheOpts: {
-        type: 'static',
-      },
-    },
+    service: {},
     specific: {
       type: 'static',
       overwrite: true,
@@ -48,7 +36,7 @@
       serviceInstance.stop(done);
     });
 
-    it(`sets, gets and removes data, specific cache, type: ${config.service.defaultCacheOpts.type}`, function () {
+    it(`sets, gets and removes data, specific cache, type: ${config.specific.type}`, function () {
       var key = testId + 'test1';
       var specific = serviceInstance.create('specific', config.specific);
       const result = specific.set(key, { dkey: key });
@@ -63,11 +51,11 @@
       test.expect(result4).to.be(null);
     });
 
-    it(`times data out, specific cache, type: ${config.service.defaultCacheOpts.type}`, (done) => {
+    it(`times data out, specific cache, type: ${config.specific.type}`, (done) => {
       testTimeout(serviceInstance.create('specific', config.specific), done);
     });
 
-    it(`clears the specific cache, type: ${config.service.defaultCacheOpts.type}`, function () {
+    it(`clears the specific cache, type: ${config.specific.type}`, function () {
       this.timeout(5000);
       const key = testId + 'test1';
       const specific = serviceInstance.create('specific-clear', config.specific);
@@ -82,7 +70,7 @@
       test.expect(specific.size()).to.be(1);
     });
 
-    it(`tests the increment and default option, specific cache, type: ${config.service.defaultCacheOpts.type}`, async () => {
+    it(`tests the increment and default option, specific cache, type: ${config.specific.type}`, async () => {
       const key = testId + 'test1DefaultItemNotFound';
       const specific = serviceInstance.create('specific-increment-default', config.specific);
       let item = specific.get(key, {
@@ -114,7 +102,7 @@
       test.expect(item).to.be(null);
     });
 
-    it(`tests the all function, specific cache, type: ${config.service.defaultCacheOpts.type}`, function () {
+    it(`tests the all function, specific cache, type: ${config.specific.type}`, function () {
       const specific = serviceInstance.create('specific-all', config.specific);
       for (let time = 0; time < 5; time++) {
         const key = 'sync_key_' + time;

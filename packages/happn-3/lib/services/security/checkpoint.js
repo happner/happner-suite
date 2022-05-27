@@ -31,7 +31,7 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
 
     if (!config.__cache_checkpoint_authorization)
       config.__cache_checkpoint_authorization = {
-        max: 5000,
+        max: 10e3,
         maxAge: 0,
       };
 

@@ -2,40 +2,8 @@ describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
     this.timeout(20000);
-
     var expect = require('expect.js');
-
-    var service = require('../../../lib/services/cache/service');
-    var serviceInstance = new service();
-
     var testId = require('shortid').generate();
-
-    var lru_config = {
-      defaultCacheOpts: {
-        type: 'LRU',
-        cache: {
-          max: 300,
-          maxAge: 0,
-        },
-      },
-    };
-
-    before('should initialize the service', function (callback) {
-      var UtilService = require('../../../lib/services/utils/service');
-      var utilService = new UtilService();
-
-      serviceInstance.happn = {
-        services: {
-          utils: utilService,
-        },
-      };
-
-      serviceInstance.initialize(lru_config, callback);
-    });
-
-    after(function (done) {
-      serviceInstance.stop(done);
-    });
 
     it('specific cache, sets data, ensures when we get a value back it is cloned by default', function () {
       var key = testId + 'test1';

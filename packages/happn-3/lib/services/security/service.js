@@ -18,19 +18,19 @@ function SecurityService(opts) {
 
   if (!opts.groupCache)
     opts.groupCache = {
-      max: 300,
+      max: 10e3,
       maxAge: 0,
     };
 
   if (!opts.userCache)
     opts.userCache = {
-      max: 300,
+      max: 10e3,
       maxAge: 0,
     };
 
   if (!opts.onBehalfOfCache)
     opts.onBehalfOfCache = {
-      max: 1000,
+      max: 1e3,
       maxAge: 0,
     };
 

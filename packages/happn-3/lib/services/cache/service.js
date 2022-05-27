@@ -30,19 +30,7 @@ module.exports = class CacheService extends require('events').EventEmitter {
         callback = config;
         config = {};
       }
-
-      if (!config) config = {};
-      if (!config.defaultTTL) config.defaultTTL = 0; //one minute
-      if (!config.defaultCacheName) config.defaultCacheName = 'default'; //one minute
-
-      if (!config.defaultCacheOpts) {
-        config.defaultCacheOpts = {
-          type: 'static',
-          cache: {},
-        };
-      }
-
-      this.#config = config;
+      this.#config = config || {};
       this.#caches = {};
       if (
         typeof this.#config.statisticsInterval === 'number' &&
@@ -57,8 +45,7 @@ module.exports = class CacheService extends require('events').EventEmitter {
     }
   }
 
-  create(name, opts) {
-    opts = opts || this.#config.defaultCacheOpts;
+  create(name, opts = {}) {
     opts.cache = opts.cache || {};
     opts.type = opts.type || commons.constants.CACHE_TYPES.STATIC;
     if (this.#caches[name] && !opts.overwrite) {
