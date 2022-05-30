@@ -1578,7 +1578,7 @@ Mesh.prototype._scanArguments = function (spec, callback) {
     if (typeof originalFn !== 'function') continue;
     if (utilities.functionIsNative(originalFn)) originalFn = Object.getPrototypeOf(module)[fnName];
     if (typeof originalFn !== 'function' || utilities.functionIsNative(originalFn)) {
-      this.log.warn(
+      this.log.debug(
         `cannot check native function ${spec.module.name}:${fnName} arguments for injection`
       );
       continue;
