@@ -424,7 +424,7 @@ Mesh.prototype.__initialize = function (config, callback) {
       _this.__onExit = function (code) {
         Object.keys(root.nodes).forEach(function (name) {
           if (!root.nodes[name]._mesh.stopped) root.nodes[name].stop();
-          root.nodes[name].log.info('exit %s', code);
+          root.nodes[name].log.debug('exit %s', code);
         });
       };
 
@@ -460,19 +460,10 @@ Mesh.prototype.__initialize = function (config, callback) {
       if (Object.keys(root.nodes).length === 1) {
         // only one listener for each below
         // no matter how many mesh nodes in process
-
         process.on('uncaughtException', _this.__onUncaughtException);
-
         process.on('exit', _this.__onExit);
-
         process.on('SIGTERM', _this.onSIGTERM);
-
         process.on('SIGINT', _this.onSIGINT);
-
-        // TODO: capacity to reload config! (?tricky?)
-        // process.on('SIGHUP', function() {
-        //   _this.log.info('SIGHUP ignored');
-        // });
       }
 
       if (!instanceConfig.modules) instanceConfig.modules = {};
@@ -487,9 +478,7 @@ Mesh.prototype.__initialize = function (config, callback) {
       }
 
       _this.attachSystemComponents(instanceConfig);
-
       _this.startupProgress('attached system components', 65);
-
       _this.initializedServer = false;
 
       async.series(
@@ -578,7 +567,7 @@ Mesh.prototype.__initialize = function (config, callback) {
               callback(e, _this);
             });
           }
-          _this.log.info('initialized!');
+          _this.log.debug('initialized!');
           _this._mesh.initialized = true;
           _this._mesh.initializing = false;
           callback(e, _this);
@@ -661,10 +650,8 @@ Mesh.prototype.start = util.promisify(function (callback) {
       function done(e) {
         _this._mesh.starting = false;
         _this._mesh.started = true;
-        _this.log.info('started!');
-
+        _this.log.debug('started!');
         _this.startupProgress('mesh started', 100);
-
         callback(e, _this);
       }
 
