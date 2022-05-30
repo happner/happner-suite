@@ -284,7 +284,7 @@ Mesh.unsubscribeFromProcessEvents = function (meshInstance, logStopEvent) {
       delete root.processEventHandlersToRemove[meshName];
     });
 
-    logStopEvent('info', 'unsubscribed from process events');
+    logStopEvent('$$DEBUG', 'unsubscribed from process events');
   } catch (e) {
     logStopEvent('error', 'failed to unsubscribe from process events', e);
     //do nothing
@@ -804,7 +804,7 @@ Mesh.prototype.stop = util.promisify(function (options, callback) {
 
             // we unsubscribe from the process level events
             Mesh.unsubscribeFromProcessEvents(_this, logStopEvent);
-            logStopEvent('info', 'stopped!');
+            logStopEvent('$$DEBUG', 'stopped!');
             _this._mesh.stopped = true; //this state allows for graceful reinitialization
             if (callback) callback(e, _this, stopEventLog);
           });
