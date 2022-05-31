@@ -65,7 +65,7 @@ module.exports = class Member {
     return !!(
       this.name &&
       this.connectedTo &&
-      this.connectedFrom &&
+      //this.connectedFrom &&
       this.subscribedTo &&
       !this.error
     );
@@ -158,7 +158,7 @@ module.exports = class Member {
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    this.client.disconnect();
+    await this.client.disconnect();
     this.connectedTo = false;
     this.client.session = null;
   }
