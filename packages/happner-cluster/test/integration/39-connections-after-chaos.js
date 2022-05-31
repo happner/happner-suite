@@ -129,13 +129,12 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     // await testConnections();
   });
 
-
   it.only('controlled chaos', async () => {
     blockNode(1);
-    await test.delay(12e3);
+    await test.delay(14e3);
     await testConnections();
     blockNode(2);
-    await test.delay(12e3);
+    await test.delay(14e3);
     await testConnections();
   });
 
@@ -325,7 +324,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     testClients[index] = await testclient.create('username', 'password', getSeq.getPort(index + 1));
   }
 
-  async function blockNode(index, delay = 8000) {
+  async function blockNode(index, delay = 10e3) {
     try {
       console.log('BLOCKING NODE ', index);
       await testClients[index].exchange.testComponent.block(delay);
