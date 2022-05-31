@@ -153,7 +153,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   async memberCheck() {
-    let start = performance.now();
+    let start = performance.now();  
     try {
       await this.lookup();
       await this.addMembers();
