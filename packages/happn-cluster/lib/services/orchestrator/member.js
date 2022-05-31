@@ -5,7 +5,6 @@ module.exports = class Member {
     this.orchestrator = orchestrator;
     this.log = this.orchestrator.log;
     this.updateOwnInfo(info);
-
     this.self = false;
     this.connectingTo = false;
     this.connectedTo = false;
@@ -51,6 +50,7 @@ module.exports = class Member {
     this.name = name || this.name || this.endpoint;
     if (this.endpoint) [this.address, this.port] = this.endpoint.split(':');
     this.serviceName = serviceName || this.serviceName;
+    this.error = null;
   }
 
   get connected() {
@@ -65,14 +65,14 @@ module.exports = class Member {
     return !!(
       this.name &&
       this.connectedTo &&
-      this.connectedFrom &&
+      // this.connectedFrom &&
       this.subscribedTo &&
       !this.error
     );
   }
 
   async connect(loginConfig) {
-    if (this.connectingTo || this.connectedTo) return;
+    if (this.connectingTo || this.connectedTo /*|| this.error*/) return;
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -158,7 +158,7 @@ module.exports = class Member {
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    this.client.disconnect();
+    await this.client.disconnect({reconnect: false});
     this.connectedTo = false;
     this.client.session = null;
   }

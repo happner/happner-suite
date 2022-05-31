@@ -13,7 +13,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
   let nodeConfigs = [];
   let testClients = [];
   let meshNames = [];
-  let clusterSize = 5;
+  let clusterSize = 6;
   let servers;
 
   before('clear mongo collection', (done) => {
@@ -115,13 +115,13 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
   });
 
   it.only('controlled chaos', async () => {
-    blockNode(1, 5000);
-    blockNode(3, 5000);
+    blockNode(1, 4000);
+    blockNode(2, 4000);
 
-    await test.delay(12000);
+    await test.delay(11000);
     await testConnections();
-    blockNode(2, 5000);
-    await test.delay(12000);
+    blockNode(3, 4000);
+    await test.delay(11000);
     await testConnections();
     // await test.delay(8000);
     // await testConnections();

@@ -156,14 +156,11 @@ module.exports = class Orchestrator extends EventEmitter {
     let start = performance.now();
     try {
       await this.lookup();
-      if (this.stopped) return;
       await this.addMembers();
-      if (this.stopped) return;
       await this.connect();
-      if (this.stopped) return;
       await this.subscribe();
-      if (this.stopped) return;
       await this.__stateUpdate();
+      // await this.removeErrored();
     } catch (e) {
       this.log.warn(e);
     }
@@ -179,9 +176,10 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async lookup() {
     let endpoints = await this.fetchEndpoints();
-    Object.entries(this.registry).forEach(([name, service]) =>
-      service.setEndpoints(endpoints[name] || [])
-    );
+    for (let [name, service] of Object.entries(this.registry)) {
+      service.setEndpoints(endpoints[name] || []);
+      await service.cleanupMembers();
+    }
   }
 
   async fetchEndpoints() {
@@ -243,19 +241,27 @@ module.exports = class Orchestrator extends EventEmitter {
   addPeer(member) {
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
-    this.registry[member.serviceName].members[member.endpoint] = member;
+    // this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
     this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+  }
+
+  async removeErrored() {
+    await Promise.all(Object.values(this.registry).map((service) => service.clearErroredMembers()));
   }
 
   removePeer(member) {
     member.listedAsPeer = false;
     this.emit('peer/remove', member.name, member);
-    this.removeMember(member);
+    // this.removeMember(member);
+    member.connectedTo = false;
+    member.connectingTo = false;
     this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
   }
 
   removeMember(member) {
+    member.connectedTo = false;
+    member.connectingTo = false;
     if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);
   }
 
