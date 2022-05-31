@@ -114,7 +114,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     await testConnections();
   });
 
-  it.only('controlled chaos', async () => {
+  it('controlled chaos', async () => {
     blockNode(1, 4000);
     blockNode(2, 4000);
 
@@ -127,6 +127,16 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     // await testConnections();
     // await test.delay(30000);
     // await testConnections();
+  });
+
+
+  it.only('controlled chaos', async () => {
+    blockNode(1);
+    await test.delay(8500);
+    await testConnections();
+    blockNode(2);
+    await test.delay(8500);
+    await testConnections();
   });
 
   it('controlled chaos', async () => {
