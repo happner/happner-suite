@@ -9,7 +9,7 @@ const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
 const { performance } = require('perf_hooks');
 const NodeUtil = require('util');
-const delay =require('await-delay');
+const delay = require('await-delay');
 const service = require('happn-3/lib/service');
 module.exports = class Orchestrator extends EventEmitter {
   constructor(opts) {
