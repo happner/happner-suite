@@ -12,8 +12,11 @@ Component.prototype.stop = function ($happn, callback) {
 
 Component.prototype.block = function ($happn, callback) {
   setTimeout(() => {
-    const target = Date.now() + 10000;
+    console.log("BEFORE BLOCK")
+    const target = Date.now() + 5000;
     while (Date.now() <= target) {}
+    console.log("AFTER BLOCK")
+
   }, 100);
   callback(null, $happn.info.mesh.name + ':brokerComponent:block');
 };
