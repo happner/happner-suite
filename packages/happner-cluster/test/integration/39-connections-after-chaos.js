@@ -70,9 +70,9 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
     }
   });
 
-  // after('stop cluster', async () => {
-  //   await clusterHelper.destroy();
-  // });
+  after('stop cluster', async () => {
+    await clusterHelper.destroy();
+  });
 
   it('short block', async () => {
     blockNode(5, 1000);
@@ -116,10 +116,10 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
 
   it.only('controlled chaos', async () => {
     blockNode(1);
-    await test.delay(8000);
+    await test.delay(9000);
     await testConnections();
     blockNode(2);
-    await test.delay(8000);
+    await test.delay(9000);
     await testConnections();
   });
 
@@ -295,7 +295,7 @@ require('../_lib/test-helper').describe({ timeout: 180e3 }, (test) => {
       }
     }
     if (errored) {
-      throw new error('Failed');
+      throw new Error('Failed');
     }
   }
 
