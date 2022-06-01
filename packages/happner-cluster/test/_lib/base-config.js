@@ -60,7 +60,7 @@ module.exports = function (
             timing: {
               keepAlive: 2e3,
               memberRefresh: 2e3,
-              keepAliveThreshold: 4e3,
+              keepAliveThreshold: 3e3,
               stabilisedTimeout: 10e3,
             },
           },

@@ -24,6 +24,9 @@ process.on('message', async (m) => {
     process.send(
       JSON.stringify({
         peers: Object.keys(meshInstance._mesh.happn.server.services.orchestrator.peers),
+        peerEndpoints: Object.values(
+          meshInstance._mesh.happn.server.services.orchestrator.peers
+        ).map((peer) => peer.endpoint),
         members: Object.keys(meshInstance._mesh.happn.server.services.orchestrator.members),
       })
     );
