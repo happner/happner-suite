@@ -1,8 +1,6 @@
 //____________________MEMBER____________
 module.exports = class Member {
   constructor(info, orchestrator) {
-    // console.log(`CREATING MEMBER ${info.name} @ ${orchestrator.happn.name} `);
-    // if (info.name === 'MESH_0') console.log(new Error('trace').stack);
     this.listedAsPeer = false;
     this.orchestrator = orchestrator;
     this.log = this.orchestrator.log;
@@ -143,7 +141,7 @@ module.exports = class Member {
       await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
       this.subscribedTo = true;
     } catch (error) {
-      await this.stopClient();
+      await this.stopClient()
       this.error = error;
       this.subscribedTo = false;
     } finally {

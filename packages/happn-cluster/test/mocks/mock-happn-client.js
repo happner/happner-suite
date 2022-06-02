@@ -79,7 +79,7 @@ MockHappnClient.prototype.onEvent = function (event, handler) {
   this.eventHandlers[event] = this.eventHandlers[event] || [];
   this.eventHandlers[event].push(handler);
 };
-
+MockHappnClient.prototype.stop = function () {};
 MockHappnClient.prototype.offEvent = function () {};
 MockHappnClient.prototype.disconnect = () => {};
 MockHappnClient.prototype.on = NodeUtil.promisify(function (path, opts, handler, callback) {

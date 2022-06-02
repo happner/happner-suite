@@ -386,7 +386,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
           .to.be(true);
       } catch (e) {
         errored = true;
-        errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(index + 1)}`));
+        errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(i + 1)}`));
       }
     }
     if (errored) {

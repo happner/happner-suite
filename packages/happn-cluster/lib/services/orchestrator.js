@@ -353,11 +353,10 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   __onDisconnectionFrom(data) {
-    if (!data.info || !data.info.clusterName || !data.info.serviceName) return;
-    this.log.debug('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
-
-    if (data.info.clusterName !== this.clusterName) return;
-    this.registry[data.info.serviceName].disconnectionFrom(data.info);
+      if (!data.info || !data.info.clusterName || !data.info.serviceName) return;
+      this.log.debug('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
+      if (data.info.clusterName !== this.clusterName) return;
+      this.registry[data.info.serviceName].disconnectionFrom(data.info);
   }
 
   __reducePaths(paths) {
