@@ -11,6 +11,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       key_prefix: 'PERSIST_TEST',
       dataStore,
     },
+    overwrite: true,
   };
 
   beforeEach('should initialize the service', function (callback) {
@@ -61,6 +62,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     const specific = serviceInstance.create('specific', cacheConfig);
     await specific.sync();
     await testTimeout(specific);
+  });
+
+  it(`times data out offline, then tries to sync again`, async () => {
+    const specific = serviceInstance.create('specific', cacheConfig);
+    await specific.sync();
+    await testTimeoutSyncAgain(specific);
   });
 
   it(`clears the specific cache, type: persist`, async () => {
@@ -134,10 +141,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     test.expect(filtered[1].val).to.be('sync_key_' + 2);
   });
 
-  function testTimeout(cacheOrService) {
+  function testTimeout(cache) {
     return new Promise((resolve, reject) => {
       var key = testId + 'test1';
-      cacheOrService
+      cache
         .set(
           key,
           {
@@ -148,9 +155,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
           }
         )
         .then(async () => {
-          const resultBeforeASecond = await cacheOrService.get(key);
+          const resultBeforeASecond = await cache.get(key);
           setTimeout(async () => {
-            const resultAfterASecond = await cacheOrService.get(key);
+            const resultAfterASecond = await cache.get(key);
             test.expect(resultAfterASecond).to.be(null);
             test.expect(resultBeforeASecond).to.not.be(null);
             resolve();
@@ -158,5 +165,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
         })
         .catch(reject);
     });
+  }
+
+  async function testTimeoutSyncAgain(cache) {
+    var key = testId + 'test1';
+    await cache.set(
+      key,
+      {
+        dkey: key,
+      },
+      {
+        ttl: 2000,
+      }
+    );
+    await cache.stop();
+    await test.delay(2100);
+    var recreated = serviceInstance.create('specific', cacheConfig);
+    await recreated.sync();
+    const resultAfterASecond = await recreated.get(key);
+    test.expect(resultAfterASecond).to.be(null);
+    await recreated.stop();
   }
 });

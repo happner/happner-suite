@@ -1,5 +1,6 @@
 module.exports = class CachePersist extends require('./cache-static') {
   #synced = false;
+  #syncing = false;
   #dataStore;
   #basePath;
   constructor(name, opts) {
@@ -46,7 +47,7 @@ module.exports = class CachePersist extends require('./cache-static') {
       callback = opts;
       opts = {};
     }
-    if (!this.#checkSynced(callback)) {
+    if (!this.#syncing && !this.#checkSynced(callback)) {
       return;
     }
 
@@ -54,7 +55,7 @@ module.exports = class CachePersist extends require('./cache-static') {
     if (!opts.ttl) opts.ttl = this.opts.defaultTTL;
     if (opts.noPersist) {
       const result = super.set(key, data, opts);
-      callback(null, result);
+      return callback(null, result);
     }
 
     this.#persistData(key, this.createCacheItem(key, data, opts), (e) => {
@@ -126,6 +127,7 @@ module.exports = class CachePersist extends require('./cache-static') {
   }
 
   sync(callback) {
+    this.#syncing = true;
     this.#dataStore.get(`${this.#basePath}/*`, (e, items) => {
       if (e) return callback(e);
 
@@ -142,7 +144,6 @@ module.exports = class CachePersist extends require('./cache-static') {
               return this.#removeData(item.data.key, itemCB);
             }
           }
-
           this.set(
             item.data.key,
             item.data.data,
@@ -154,6 +155,7 @@ module.exports = class CachePersist extends require('./cache-static') {
           );
         },
         (e) => {
+          this.#syncing = false;
           if (e) return callback(e);
           this.#synced = true;
           callback();
