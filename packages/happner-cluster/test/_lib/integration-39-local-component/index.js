@@ -10,12 +10,20 @@ module.exports = class Component {
 
   async stop() {
     await $happn.event.testComponent.off(this.eventHandle);
-    if (this.eventHandle2) $happn.event.testComponent.off(this.eventHandle2);
+    await $happn.event.testComponent.off(this.eventHandle2);
   }
   async subscribeSecondEvent($happn) {
     this.eventHandle2 = await $happn.event.testComponent.on('SECOND', (data) => {
       this.receivedEvents.push(data.value);
     });
+  }
+  async offSecondEvent($happn) {
+    await $happn.event.testComponent.off(this.eventHandle2);
+  }
+  async fireSecondEvent($happn) {
+    let eventId = Date.now();
+    let data = $happn.info.mesh.name + ':TestComponent:event:second:' + eventId;
+    $happn.emit('SECOND', data);
   }
   async fireEvent($happn) {
     let eventId = Date.now();

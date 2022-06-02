@@ -56,7 +56,9 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'getKeys');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'fireEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'clearEvents');
+    await users.allowMethod(_AdminClient, 'username', 'testComponent', 'subscribeSecondEvent');
 
+    
     for (let i = 1; i <= clusterSize; i++) {
       testClients.push(await testclient.create('username', 'password', getSeq.getPort(i)));
     }
@@ -148,33 +150,33 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     });
   });
 
-  // it('minor chaos', async () => {
-  //   restartNode(1);
-  //   restartNode(3);
-  //   blockNode(6);
-  //   await test.delay(12000);
-  //   await testConnections();
-  // });
+  it('minor chaos', async () => {
+    restartNode(1);
+    restartNode(3);
+    blockNode(6);
+    await test.delay(12000);
+    await testConnections();
+  });
 
-  // it('major chaost', async () => {
-  //   let restartClientPromises = [];
-  //   let indices = Array.from(Array(clusterSize).keys());
-  //   let nodes2change = [1, 2]; //_.sampleSize(indices, 4);
-  //   for (let index of nodes2change) {
-  //     index / 3 < 0.5 ? restartClientPromises.push(restartNode(index)) : blockNode(index);
-  //   }
-  //   await test.delay(12000);
-  //   await Promise.all(restartClientPromises);
-  //   restartClientPromises = [];
-  //   // nodes2change = _.sampleSize(indices, 4);
+  it('major chaost', async () => {
+    let restartClientPromises = [];
+    let indices = Array.from(Array(clusterSize).keys());
+    let nodes2change = [1, 2]; //_.sampleSize(indices, 4);
+    for (let index of nodes2change) {
+      index / 3 < 0.5 ? restartClientPromises.push(restartNode(index)) : blockNode(index);
+    }
+    await test.delay(12000);
+    await Promise.all(restartClientPromises);
+    restartClientPromises = [];
+    // nodes2change = _.sampleSize(indices, 4);
 
-  //   for (let index of nodes2change) {
-  //     index / 3 < 0.5 ? blockNode(index) : restartClientPromises.push(restartNode(index));
-  //   }
-  //   await test.delay(12000);
-  //   await Promise.all(restartClientPromises);
-  //   await testConnections();
-  // });
+    for (let index of nodes2change) {
+      index / 3 < 0.5 ? blockNode(index) : restartClientPromises.push(restartNode(index));
+    }
+    await test.delay(12000);
+    await Promise.all(restartClientPromises);
+    await testConnections();
+  });
 
   // it('controlled chaos', async () => {
   //   blockNode(1);
@@ -406,17 +408,6 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   async function blockNode(index, delay = 8e3) {
     await testClients[index].exchange.testComponent.block(delay);
-  }
-  async function retestConnectionsAfterDelayWrapper(testFunc) {
-    try {
-      await test.delay(5000);
-      await testFunc();
-    } catch (e) {
-      console.log(`TEST ERRORED, Waiting for 10 seconds and trying again `);
-      await test.delay(10000);
-      await testConnections();
-      await checkPeers();
-    }
   }
 
   function pickNexcluding(arr, n, exclude) {
