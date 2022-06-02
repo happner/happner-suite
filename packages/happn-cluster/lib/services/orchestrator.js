@@ -156,13 +156,9 @@ module.exports = class Orchestrator extends EventEmitter {
     let start = performance.now();
     try {
       await this.lookup();
-      //if (this.stopped) return;
       await this.addMembers();
-      //if (this.stopped) return;
       await this.connect();
-      //if (this.stopped) return;
       await this.subscribe();
-      //if (this.stopped) return;
       await this.__stateUpdate();
     } catch (e) {
       this.log.warn(e);
@@ -244,7 +240,7 @@ module.exports = class Orchestrator extends EventEmitter {
   addPeer(member) {
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
-    this.registry[member.serviceName].members[member.endpoint] = member;
+    // this.registry[member.serviceName].members[member.endpoint] = member;
     this.emit('peer/add', member.name, member);
     this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
   }

@@ -22,6 +22,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 3000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 5000);
 
+  
     const client = await helpers.client.create(username, password, getSeq.getPort(2)); //Unlike others, membership starts at 0 here
 
     const result = await client.exchange.component1.use();
@@ -51,6 +52,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(values.indexOf(getSeq.getMeshName(5)))  // Member 4 should start
       .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before meber 2
     //check everything started
+    console.log("GOT VALUES ", values)
     values.sort();
     test
       .expect(values)

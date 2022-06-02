@@ -56,18 +56,12 @@ module.exports = class ServiceEntry {
 
   setEndpoints(found) {
     this.endpoints = found || [];
-    for (let [endpoint, member] of Object.entries(this.members)) {
-      if (!this.endpoints.includes(endpoint)) {
-        member.stop();
-        this.orchestrator.removePeer(member);
-        delete this.members[endpoint];
-      }
-    }
   }
+
   addMembers() {
     for (let endpoint of this.endpoints) {
       this.members[endpoint] =
-        this.members[endpoint] || new Member({ endpoint }, this.orchestrator);
+        this.members[endpoint] || Member.create({ endpoint }, this.orchestrator);
     }
   }
 
@@ -88,10 +82,10 @@ module.exports = class ServiceEntry {
   }
 
   async connectionFrom(member) {
-    if (!this.members[member.endpoint]) {
-      this.members[member.endpoint] = new Member(member, this.orchestrator);
-    }
-    this.members[member.endpoint].connectionFrom(member);
+    this.members[member.endpoint] =
+      this.members[member.endpoint] || Member.create(member, this.orchestrator);
+
+    await this.members[member.endpoint].connectionFrom(member);
   }
 
   async disconnectionFrom(member) {
@@ -103,7 +97,7 @@ module.exports = class ServiceEntry {
   async cleanupMembers() {
     for (let [endpoint, member] of Object.entries(this.members)) {
       if (!this.endpoints.includes(endpoint)) {
-        await member.client.offAll();
+        // await member.client.offAll();
         await member.stop();
         this.orchestrator.removePeer(member);
         this.removeMember(member);

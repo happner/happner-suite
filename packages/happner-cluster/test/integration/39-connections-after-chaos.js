@@ -77,7 +77,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   it('short block', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
       blockNode(5, 1000);
-      await test.delay(4000);
+      await test.delay(15e3);
       await testConnections();
       await checkPeers();
     });
@@ -85,7 +85,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   it('short kill', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
       await restartNode(5, 0);
-      await test.delay(4000);
+      await test.delay(10e3);
       await testConnections();
       await checkPeers();
     });
@@ -94,7 +94,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   it('long block', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
       blockNode(5, 5000);
-      await test.delay(10000);
+      await test.delay(20e3);
       await testConnections();
       await checkPeers();
     });
@@ -103,7 +103,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   it('long kill', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
       await restartNode(5, 5000);
-      await test.delay(5000);
+      await test.delay(10e3);
       await testConnections();
       await checkPeers();
     });
@@ -111,13 +111,34 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('longest block', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
-      blockNode(5, 8000);
-      await test.delay(15000);
+      blockNode(5, 8e3);
+      await test.delay(15e3);
       await testConnections();
       await checkPeers();
     });
   });
-
+  
+  it('longest block with early test', async () => {
+    await retestConnectionsAfterDelayWrapper(async () => {
+      blockNode(5, 8e3);
+      await test.delay(10e3);
+      try {
+        await testConnections();
+        await checkPeers();
+      } catch (e) {
+        console.log('EXPECTE ERROR', e.err.toString());
+        test
+          .expect(e.err.toString())
+          .to.eql('Error: Test failed due to duplicate or insufficient connections');
+        e.errors.forEach((error) =>
+          test.expect(error.toString().startsWith('Error: Insufficients connections')).to.be(true)
+        );
+      }
+      await test.delay(10e3);
+      await testConnections();
+      await checkPeers();
+    });
+  });
   it('longest kill', async () => {
     await retestConnectionsAfterDelayWrapper(async () => {
       await restartNode(5, 8000);
@@ -336,14 +357,19 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       } catch (e) {
         errored = true;
         let dupes = findDuplicates(connected).map((dupe) => dupe.split('_')[1]);
-        errors.push(
-          new Error(`Duplicate connections at ${getSeq.getMeshName(index + 1)}: ${dupes}`)
-        );
+        if (dupes.length) {
+          errors.push(
+            new Error(`Duplicate connections at ${getSeq.getMeshName(index + 1)}: ${dupes}`)
+          );
+        } else {
+          errors.push(
+            new Error(`Insufficients connections at ${getSeq.getMeshName(index + 1)}: ${dupes}`)
+          );
+        }
       }
     }
     if (errored) {
-      console.log(errors);
-      throw new Error('Test failed due to duplicate connections');
+      throw { err: new Error('Test failed due to duplicate or insufficient connections'), errors };
     }
   }
   async function checkPeers() {

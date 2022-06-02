@@ -1,6 +1,8 @@
 //____________________MEMBER____________
 module.exports = class Member {
   constructor(info, orchestrator) {
+    // console.log(`CREATING MEMBER ${info.name} @ ${orchestrator.happn.name} `);
+    // if (info.name === 'MESH_0') console.log(new Error('trace').stack);
     this.listedAsPeer = false;
     this.orchestrator = orchestrator;
     this.log = this.orchestrator.log;
@@ -72,7 +74,8 @@ module.exports = class Member {
   }
 
   async connect(loginConfig) {
-    if (this.connectingTo || this.connectedTo) return;
+    if (this.connectingTo || this.connectedTo || this.client) return;
+
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -82,6 +85,7 @@ module.exports = class Member {
     try {
       client = await this.orchestrator.HappnClient.create(loginConfig);
     } catch (error) {
+      if (client) await client.stop();
       let thisError = error.error || error;
       if (
         thisError.code === 'ECONNREFUSED' ||
@@ -101,6 +105,7 @@ module.exports = class Member {
       this.log.warn(thisError.toString());
       return this.orchestrator.__stateUpdate(this);
     }
+    this.connectedTo = true;
 
     this.__disconnectServerSide = client.onEvent(
       'server-side-disconnect',
@@ -120,7 +125,6 @@ module.exports = class Member {
     );
 
     this.connectingTo = false;
-    this.connectedTo = true;
     this.client = client;
     this.name = client.serverInfo.name;
     this.orchestrator.__stateUpdate(this);
@@ -139,6 +143,7 @@ module.exports = class Member {
       await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
       this.subscribedTo = true;
     } catch (error) {
+      await this.stopClient();
       this.error = error;
       this.subscribedTo = false;
     } finally {
@@ -155,12 +160,18 @@ module.exports = class Member {
       throw error;
     }
   }
+  async stopClient() {
+    if (this.client) {
+      await this.client.disconnect({reconnect: false});
+      await this.client.stop();
+      this.client = null;
+    }
+  }
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    await this.client.disconnect();
+    await this.stopClient();
     this.connectedTo = false;
-    this.client.session = null;
   }
 
   __onHappnDisconnect() {
