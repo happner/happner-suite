@@ -12,7 +12,7 @@ module.exports = class Cluster extends Helper {
           JSON.stringify(configuration),
         ]);
         this.childProcess[childProcess.pid] = childProcess;
-        if (index) this.pids[index] = childProcess.pid;
+        if (index || index === 0) this.pids[index] = childProcess.pid;
         else this.pids.push(childProcess.pid);
         childProcess.on('message', function (message) {
           if (message === 'ready') return resolve(childProcess);

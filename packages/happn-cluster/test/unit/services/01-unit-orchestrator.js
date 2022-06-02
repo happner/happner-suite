@@ -624,7 +624,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
     });
 
     context('event peer/remove', function () {
-      it.only('is emitted when a peer socket disconnects from us', async function () {
+      it('is emitted when a peer happn disconnects from us', async function () {
         o.happn.services.data.upsert('/_SYSTEM/DEPLOYMENT/10.0.0.1:55001', {
           endpoint: '10.0.0.1:55001',
           service: 'happn-cluster-node',
@@ -645,27 +645,24 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         await test.delay(300);
 
         test.expect(o.peers['10-0-0-1_55001']).to.not.be(undefined);
-        console.log("SUBSCRIBING")
         await o.on('peer/remove', async (name, member) => {
           test.expect(name).to.equal('10-0-0-1_55001');
 
           // it remains a member (reconnect loop) ...
           test.expect(member).to.equal(o.members['10.0.0.1:55001']);
 
-          // ...until our client disconnects
-
-          MockHappnClient.instances['10-0-0-1_55001'].emitDisconnect();
           test.expect(o.members['10.0.0.1:55001']).to.not.be(undefined);
 
-          // ...and DB confirms
-
+          // ...until DB confirms
+          delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.1:55001'];
+          await test.delay(300);
           await o.memberCheck();
           test.expect(o.members['10.0.0.1:55001']).to.be(undefined);
 
           done();
         });
-
-        MockSession.instance.emit('disconnect', {
+        MockHappnClient.instances['10-0-0-1_55001'].emitDisconnect();
+        MockSession.instance.emit('connection-ended', {
           info: {
             name: '10-0-0-1_55001',
             clusterName: 'happn-cluster',
@@ -673,8 +670,8 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
             serviceName: 'happn-cluster-node',
           },
         });
-        delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.1:55001'];
-        await test.delay(300);
+
+
         await new Promise((resolve) => {
           done = resolve;
         });

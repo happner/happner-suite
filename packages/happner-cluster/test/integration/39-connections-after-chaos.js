@@ -14,7 +14,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   let nodeConfigs = [];
   let testClients = [];
   let meshNames = [];
-  let clusterSize = 7;
+  let clusterSize = 8;
   let servers;
 
   before('clear mongo collection', (done) => {
@@ -57,8 +57,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'fireEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'clearEvents');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'subscribeSecondEvent');
-
-    
+    await users.allowMethod(_AdminClient, 'username', 'testComponent', 'fireSecondEvent');
+    await users.allowMethod(_AdminClient, 'username', 'testComponent', 'offSecondEvent');
     for (let i = 1; i <= clusterSize; i++) {
       testClients.push(await testclient.create('username', 'password', getSeq.getPort(i)));
     }
@@ -77,274 +77,240 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   });
 
   it('short block', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      blockNode(5, 1000);
-      await test.delay(15e3);
-      await testConnections();
-      await checkPeers();
-    });
+    blockNode(5, 1e3);
+    await test.delay(5e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
   });
   it('short kill', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      await restartNode(5, 0);
-      await test.delay(10e3);
-      await testConnections();
-      await checkPeers();
-    });
+    await restartNode(5, 0);
+    await test.delay(3e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
   });
 
-  it('long block', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      blockNode(5, 5000);
-      await test.delay(20e3);
-      await testConnections();
-      await checkPeers();
-    });
+  it('longer block', async () => {
+    blockNode(5, 5e3);
+    await test.delay(9e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
   });
 
-  it('long kill', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      await restartNode(5, 5000);
-      await test.delay(10e3);
-      await testConnections();
-      await checkPeers();
-    });
+  it('longer kill', async () => {
+    await restartNode(5, 5e3);
+    await test.delay(5e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
   });
 
   it('longest block', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      blockNode(5, 8e3);
-      await test.delay(15e3);
-      await testConnections();
-      await checkPeers();
-    });
-  });
-  
-  it('longest block with early test', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      blockNode(5, 8e3);
-      await test.delay(10e3);
-      try {
-        await testConnections();
-        await checkPeers();
-      } catch (e) {
-        console.log('EXPECTE ERROR', e.err.toString());
-        test
-          .expect(e.err.toString())
-          .to.eql('Error: Test failed due to duplicate or insufficient connections');
-        e.errors.forEach((error) =>
-          test.expect(error.toString().startsWith('Error: Insufficients connections')).to.be(true)
-        );
-      }
-      await test.delay(10e3);
-      await testConnections();
-      await checkPeers();
-    });
-  });
-  it('longest kill', async () => {
-    await retestConnectionsAfterDelayWrapper(async () => {
-      await restartNode(5, 8000);
-      await test.delay(8000);
-      await testConnections();
-      await checkPeers();
-    });
+    blockNode(5, 8e3);
+    await test.delay(14e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
   });
 
-  it('minor chaos', async () => {
+  it('longest block with early test', async () => {
+    blockNode(5, 8e3);
+    await test.delay(10e3);
+    try {
+      await testConnections();
+      await checkPeers();
+    } catch (e) {
+      console.log('EXPECTED ERROR', e.err.toString());
+      test
+        .expect(e.err.toString())
+        .to.eql('Error: Test failed due to duplicate or insufficient connections');
+      e.errors.forEach((error) =>
+        test.expect(error.toString().startsWith('Error: Insufficients connections')).to.be(true)
+      );
+    }
+    await test.delay(10e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
+  });
+  it('longest kill', async () => {
+    await restartNode(5, 8e3);
+    await test.delay(5e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 5]);
+  });
+
+  it('block block', async () => {
+    blockNode(1);
+    await test.delay(9e3);
+    await testConnections();
+    blockNode(2);
+    await test.delay(9e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 2, 5]);
+  });
+
+  it('kill kill', async () => {
+    await restartNode(1, 5e3);
+    await test.delay(5e3);
+    await testConnections();
+    await restartNode(2, 5e3);
+    await test.delay(5e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 2, 5]);
+  });
+
+  it('block kill', async () => {
+    blockNode(1);
+    await test.delay(9e3);
+    await testConnections();
+    await restartNode(2, 5e3);
+    await test.delay(5e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 2, 5]);
+  });
+
+  it('kill block', async () => {
+    await restartNode(1, 5e3);
+    await test.delay(5e3);
+    await testConnections();
+    blockNode(2);
+    await test.delay(9e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([1, 2, 5]);
+  });
+
+  it('multiple changes at once ', async () => {
     restartNode(1);
     restartNode(3);
     blockNode(6);
-    await test.delay(12000);
+    await test.delay(15e3);
     await testConnections();
+    await checkPeers();
+    await testNewSubscriptions([0, 1, 3, 6]);
   });
 
-  it('major chaost', async () => {
-    let restartClientPromises = [];
+  it('minor chaos', async () => {
     let indices = Array.from(Array(clusterSize).keys());
-    let nodes2change = [1, 2]; //_.sampleSize(indices, 4);
+    let nodes2change = _.sampleSize(indices, 3);
     for (let index of nodes2change) {
-      index / 3 < 0.5 ? restartClientPromises.push(restartNode(index)) : blockNode(index);
+      Math.random() < 0.5 ? restartNode(index) : blockNode(index);
     }
-    await test.delay(12000);
-    await Promise.all(restartClientPromises);
-    restartClientPromises = [];
-    // nodes2change = _.sampleSize(indices, 4);
+    await test.delay(15e3);
+    await testConnections();
+
+    nodes2change = _.sampleSize(indices, 3);
 
     for (let index of nodes2change) {
-      index / 3 < 0.5 ? blockNode(index) : restartClientPromises.push(restartNode(index));
+      Math.random() < 0.5 ? restartNode(index) : blockNode(index);
     }
-    await test.delay(12000);
-    await Promise.all(restartClientPromises);
+    await test.delay(15e3);
     await testConnections();
+    await checkPeers();
+    await testNewSubscriptions();
   });
 
-  // it('controlled chaos', async () => {
-  //   blockNode(1);
-  //   await test.delay(14e3);
-  //   await testConnections();
-  //   blockNode(2);
-  //   await test.delay(14e3);
-  //   await testConnections();
-  // });
+  it('major chaos, longer delays', async () => {
+    let delay = 10e3;
+    let indices = Array.from(Array(clusterSize).keys());
 
-  // it('controlled chaos', async () => {
-  //   let restartClientPromises = [];
-  //   let indices = Array.from(Array(clusterSize).keys());
-  //   let nodes2change = [0, 1, 2]; //_.sampleSize(indices, 3);
-  //   for (let index of nodes2change) {
-  //     index > 0 /*Math.random() < 0.5*/
-  //       ? restartClientPromises.push(restartNode(index))
-  //       : blockNode(index);
-  //   }
-  //   await test.delay(12000);
-  //   // await testConnections();
-  //   // await Promise.all(restartClientPromises);
-  //   restartClientPromises = [];
-  //   nodes2change = [3, 4, 5]; //_.sampleSize(indices, 3);
+    let nodes2change = _.sampleSize(indices, 4);
 
-  //   for (let index of nodes2change) {
-  //     index > 4 /* Math.random() < 0.5 */
-  //       ? restartClientPromises.push(restartNode(index))
-  //       : blockNode(index);
-  //   }
-  //   await test.delay(12000);
-  //   // await Promise.all(restartClientPromises);
-  //   await testConnections();
-  //   await testConnections();
-  // });
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
+    }
+    await test.delay(20e3);
+    await testConnections();
+    await checkPeers();
+    nodes2change = _.sampleSize(indices, 4);
 
-  // it.only('major chaost', async () => {
-  //   // blockNode(1, 2000);
-  //   // blockNode(2, 3000);
-  //   await restartNode(0, 7000);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
+    }
+    await test.delay(20e3);
+    await testConnections();
+    await checkPeers();
+    nodes2change = _.sampleSize(indices, 4);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
+    }
+    await test.delay(20e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions();
+  });
 
-  //   await test.delay(17000);
-  //   await testConnections();
-  // });
-  // it('major chaost', async () => {
-  //   // let restartClientPromises = [];
-  //   // let indices = Array.from(Array(clusterSize).keys());
-  //   // let nodes2change = [0, 1, 2]; //_.sampleSize(indices, 3);
-  //   // for (let index of nodes2change) {
-  //   //   index > 0 /*Math.random() < 0.5*/
-  //   //     ? restartNode(index)
-  //   //     : blockNode(index);
-  //   // }
-  //   restartNode(0);
-  //   blockNode(1);
-  //   blockNode(2);
+  it('major chaos, roughly simultaneous arrive/depart', async () => {
+    let delay = 8e3;
+    let restartDelay = 4e3;
+    let pick = 3;
+    let indices = Array.from(Array(clusterSize).keys());
+    let nodes2change = pickNexcluding(indices, pick, []);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(delay);
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(delay);
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(delay);
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
 
-  //   await test.delay(15e3);
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(20e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions();
 
-  //   // await Promise.all(restartClientPromises);
-  //   // restartClientPromises = [];
-  //   // nodes2change = [3, 4, 5]; //_.sampleSize(indices, 3);
-  //   blockNode(3);
-  //   blockNode(4);
-  //   restartNode(5);
-  //   // for (let index of nodes2change) {
-  //   //   index > 4 /* Math.random() < 0.5 */ ? restartNode(index) : blockNode(index);
-  //   // }
-  //   await test.delay(15e3);
-  //   // await Promise.all(restartClientPromises);
-  //   await testConnections();
-  //   await checkPeers();
-  //   let members = await clusterHelper.listMembers(1);
-  //   console.log(members);
-  // });
+    nodes2change = pickNexcluding(indices, pick, []);
 
-  // it('major chaos, longer delays', async () => {
-  //   let delay = 10000;
-  //   let indices = Array.from(Array(clusterSize).keys());
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(delay);
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
 
-  //   let nodes2change = _.sampleSize(indices, 4);
-  //   console.log({ nodes2change });
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(delay);
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
 
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(25000);
-  //   await testConnections();
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    nodes2change = pickNexcluding(indices, pick, nodes2change);
 
-  //   nodes2change = _.sampleSize(indices, 4);
-  //   console.log({ nodes2change });
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(25000);
-  //   await testConnections();
-
-  //   nodes2change = _.sampleSize(indices, 4);
-  //   // console.log({ nodes2change });
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(25000);
-  //   await testConnections();
-  // });
-
-  // it('major chaos, roughly simultaneous arrive/depart', async () => {
-  //   let delay = 8000;
-  //   let pick = 3;
-  //   let indices = Array.from(Array(clusterSize).keys());
-  //   let nodes2change = pickNexcluding(indices, pick, []);
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(delay);
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(delay);
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(delay);
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(17000);
-  //   await testConnections();
-
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(delay);
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(delay);
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-  //   for (let index of nodes2change) {
-  //     Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
-  //   }
-  //   await test.delay(17000);
-  //   await testConnections();
-  // });
+    for (let index of nodes2change) {
+      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+    }
+    await test.delay(20e3);
+    await testConnections();
+    await checkPeers();
+    await testNewSubscriptions();
+  });
 
   async function testConnections() {
     for (let client of testClients) {
       await client.exchange.testComponent.clearEvents();
-      // console.log('CLEARED ', index);
     }
     await test.delay(1000);
-    for (let [index, client] of testClients.entries()) {
+    for (let client of testClients) {
       await client.exchange.testComponent.fireEvent();
       await test.delay(300);
     }
@@ -374,6 +340,29 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       throw { err: new Error('Test failed due to duplicate or insufficient connections'), errors };
     }
   }
+
+  async function testNewSubscriptions(indices) {
+    indices = indices || Array.from(Array(clusterSize).keys());
+    let clients = indices.map((index) => testClients[index]);
+    let meshNames = indices.map((index) => getSeq.getMeshName(index + 1));
+
+    for (let client of clients) {
+      await client.exchange.testComponent.subscribeSecondEvent();
+      await client.exchange.testComponent.clearEvents();
+    }
+    await test.delay(1000);
+    for (let client of clients) {
+      await client.exchange.testComponent.fireSecondEvent();
+    }
+    for (let client of clients) {
+      await client.exchange.testComponent.offSecondEvent();
+    }
+    for (let client of clients) {
+      let events = await client.exchange.testComponent.getEvents();
+      let connected = events.map((event) => event.split(':')[0]);
+      test.expect(_.isEqual(connected, meshNames)).to.be(true);
+    }
+  }
   async function checkPeers() {
     let errored = false;
     let errors = [];
@@ -392,7 +381,6 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       }
     }
     if (errored) {
-      console.log(errors);
       throw new Error('Test failed due to peer/member mismatch (some membersin unstable state)');
     }
   }
@@ -407,6 +395,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   }
 
   async function blockNode(index, delay = 8e3) {
+    console.log('BLOCKING NODE ', index);
+
     await testClients[index].exchange.testComponent.block(delay);
   }
 
