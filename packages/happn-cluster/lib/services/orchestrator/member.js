@@ -83,7 +83,7 @@ module.exports = class Member {
     try {
       client = await this.orchestrator.HappnClient.create(loginConfig);
     } catch (error) {
-      if (client) await client.stop();
+      // if (client) await client.stop();
       let thisError = error.error || error;
       if (
         thisError.code === 'ECONNREFUSED' ||
@@ -141,7 +141,6 @@ module.exports = class Member {
       await Promise.all(this.orchestrator.config.replicate.map(this.__subscribe.bind(this)));
       this.subscribedTo = true;
     } catch (error) {
-      await this.stopClient()
       this.error = error;
       this.subscribedTo = false;
     } finally {

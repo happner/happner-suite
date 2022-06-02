@@ -16,7 +16,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   let meshNames = [];
   let clusterSize = 8;
   let servers;
-  let erroredMesh
+  let erroredMesh;
   before('clear mongo collection', (done) => {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
@@ -194,6 +194,4 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       throw new Error('Test failed due to peer/member mismatch (some membersin unstable state)');
     }
   }
-  async function restartNode(index, restartDelay = 5000) {
-  const findDuplicates = (arr) => arr.filter((item, index) => arr.indexOf(item) !== index);
 });

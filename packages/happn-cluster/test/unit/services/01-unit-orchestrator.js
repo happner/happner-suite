@@ -474,7 +474,6 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
           },
         };
 
-        await o.memberCheck();
         // members already created  (asynchronously) on discovery
         await test.delay(300);
         test.expect(o.members['10.0.0.1:56001']).to.not.be(undefined);
@@ -494,6 +493,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         await test.delay(300);
 
         test.expect(stable).to.equal(true);
+        await o.stop()
       });
     });
 
@@ -656,7 +656,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
           // ...until DB confirms
           delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.1:55001'];
           await test.delay(300);
-          await o.memberCheck();
+          // await o.memberCheck();
           test.expect(o.members['10.0.0.1:55001']).to.be(undefined);
 
           done();
@@ -711,7 +711,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         await test.delay(300);
 
         test.expect(peerRemoved).to.be(true);
-        o.stop();
+        await o.stop();
       });
     });
 

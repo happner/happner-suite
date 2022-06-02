@@ -150,7 +150,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
         subscribedTo: true,
         error: null,
       });
-      test.expect(member.peer).to.be(false);
+      test.expect(member.peer).to.be(true); //ConectedFrom no longer matters
       setMember(member, {
         name: 'member',
         connectedTo: true,
@@ -324,6 +324,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
           on: () => {
             throw err;
           },
+          disconnect: () => {}
         };
         await member.__subscribe('path');
         throw new Error("SHOULDN'T GET HERE");

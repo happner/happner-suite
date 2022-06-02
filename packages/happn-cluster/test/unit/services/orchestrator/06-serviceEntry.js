@@ -83,8 +83,8 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
     it('gets peers, numPeers and peersFulfilled ', (done) => {
       let peer1 = { peer: true, endpoint: 'peer1', name: 'peer1' };
       let peer2 = { peer: true, endpoint: 'peer2', name: 'peer2' };
-      let peer3 = { peer: true, endpoint: 'peer3' , name: 'peer3'};
-      let peer4 = { peer: true, endpoint: 'peer4' , name: 'peer4'};
+      let peer3 = { peer: true, endpoint: 'peer3', name: 'peer3' };
+      let peer4 = { peer: true, endpoint: 'peer4', name: 'peer4' };
       let notPeer1 = { peer: false };
       let notPeer2 = { peer: false };
 
@@ -120,11 +120,17 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
   });
 
   context('methods', () => {
-    it('tests setEndpoints method', (done) => {
+    it('tests setEndpoints method', () => {
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
       serviceEntry.setEndpoints(['1', '2', '3']);
       test.expect(serviceEntry.endpoints).to.eql(['1', '2', '3']);
+    });
+
+    it('tests the cleanupEndpoints method', () => {
+      let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
+
       let stopped = false;
+      serviceEntry.setEndpoints(['1', '2', '3']);
       serviceEntry.members = {
         member1: { endpoint: 'member1' },
         member2: { endpoint: 'member2' },
@@ -138,9 +144,14 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       orchestrator.removePeer = (peer) => {
         test.expect(peer).to.be(serviceEntry.members.member3);
         test.expect(stopped).to.be(true);
+        test.expect(ServiceEntry.members).to.eql({
+          member1: { endpoint: 'member1' },
+          member2: { endpoint: 'member2' },
+        });
         done();
       };
       serviceEntry.setEndpoints(['member1', 'member2']);
+      serviceEntry.cleanupMembers();
     });
 
     it('tests addMembers method', (done) => {
