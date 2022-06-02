@@ -133,6 +133,7 @@ module.exports = class CachePersist extends require('./cache-static') {
 
       if (!items || items.length === 0) {
         this.#synced = true;
+        this.#syncing = false;
         return callback(null);
       }
 

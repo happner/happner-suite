@@ -37,3 +37,7 @@
 -----------------
   - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
   - TEN-54: all systems tested on node v18
+
+1.0.9 2022-06-02
+-----------------
+  - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
