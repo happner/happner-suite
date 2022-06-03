@@ -130,25 +130,30 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
 
       let stopped = false;
-      serviceEntry.setEndpoints(['1', '2', '3']);
+
       serviceEntry.members = {
         member1: { endpoint: 'member1' },
         member2: { endpoint: 'member2' },
         member3: {
           endpoint: 'member3',
-          stop: () => {
+          stop: async () => {
             stopped = true;
           },
         },
       };
-      orchestrator.removePeer = (peer) => {
-        test.expect(peer).to.be(serviceEntry.members.member3);
-        test.expect(stopped).to.be(true);
-        test.expect(ServiceEntry.members).to.eql({
-          member1: { endpoint: 'member1' },
-          member2: { endpoint: 'member2' },
-        });
-        done();
+      orchestrator.removePeer = async (peer) => {
+        try {
+          test.expect(peer).to.be(serviceEntry.members.member3);
+          test.expect(stopped).to.be(true);
+          await test.delay(100); // peer removed is called before member is deleted
+          test.expect(serviceEntry.members).to.eql({
+            member1: { endpoint: 'member1' },
+            member2: { endpoint: 'member2' },
+          });
+          done();
+        } catch (e) {
+          done(e);
+        }
       };
       serviceEntry.setEndpoints(['member1', 'member2']);
       serviceEntry.cleanupMembers();

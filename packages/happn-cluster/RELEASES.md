@@ -268,11 +268,6 @@ non-release 2017-12-14
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
-<<<<<<< HEAD
-13.0.0 2022-05-17
------------------
-  - SMC-4817: mongo-based membership strategy
-=======
 12.0.8 2022-05-26
 -----------------
   - updates to commons libs, lint-fixes, updated all ip addresses in test to 127.0.0.1:
@@ -283,5 +278,7 @@ non-release 2017-12-14
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
 
->>>>>>> aa80fc115771301400606b7d4e0c861939741299
+13.0.0 2022-06-01
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
