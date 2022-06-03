@@ -246,29 +246,44 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   });
 
   it('major chaos, roughly simultaneous arrive/depart', async () => {
+    let restartPromises = [];
     let delay = 10e3;
     let restartDelay = 4e3;
     let pick = 3;
     let indices = Array.from(Array(clusterSize).keys());
     let nodes2change = pickNexcluding(indices, pick, []);
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(delay);
+    await Promise.all(restartPromises); //Need to ensure all nodes have a user client
+    restartPromises = [];
     nodes2change = pickNexcluding(indices, pick, nodes2change);
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(delay);
+    await Promise.all(restartPromises);
+    restartPromises = [];
     nodes2change = pickNexcluding(indices, pick, nodes2change);
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(delay);
+    await Promise.all(restartPromises);
+    restartPromises = [];
     nodes2change = pickNexcluding(indices, pick, nodes2change);
 
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(25e3);
     await testConnections();
@@ -278,27 +293,32 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     nodes2change = pickNexcluding(indices, pick, []);
 
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(delay);
+    await Promise.all(restartPromises);
+    restartPromises = [];
     nodes2change = pickNexcluding(indices, pick, nodes2change);
 
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(delay);
+    await Promise.all(restartPromises);
+    restartPromises = [];
     nodes2change = pickNexcluding(indices, pick, nodes2change);
 
     for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
-    }
-    nodes2change = pickNexcluding(indices, pick, nodes2change);
-
-    for (let index of nodes2change) {
-      Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
+      Math.random() < 0.5
+        ? restartPromises.push(restartNode(index, restartDelay))
+        : blockNode(index, delay);
     }
     await test.delay(25e3);
-    await testConnections();
+    await Promise.all(restartPromises); //Shouldn't be necessary, just in case
     await checkPeers();
     await testNewSubscriptions();
   });
