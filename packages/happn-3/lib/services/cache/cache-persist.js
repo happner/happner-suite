@@ -18,6 +18,14 @@ module.exports = class CachePersist extends require('./cache-static') {
     this.#dataStore = opts.dataStore;
   }
 
+  get isSynced() {
+    return this.#synced;
+  }
+
+  get isSyncing() {
+    return this.#syncing;
+  }
+
   get(key, opts = {}, callback) {
     if (typeof opts === 'function') {
       callback = opts;
@@ -129,7 +137,10 @@ module.exports = class CachePersist extends require('./cache-static') {
   sync(callback) {
     this.#syncing = true;
     this.#dataStore.get(`${this.#basePath}/*`, (e, items) => {
-      if (e) return callback(e);
+      if (e) {
+        this.#syncing = false;
+        return callback(e);
+      }
 
       if (!items || items.length === 0) {
         this.#synced = true;
