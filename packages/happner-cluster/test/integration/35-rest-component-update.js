@@ -47,7 +47,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
       await startInternal2(getSeq.getNext(), 2);
-      await test.delay(3000);
+      await test.delay(4000);
       description = (await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
