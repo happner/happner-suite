@@ -145,7 +145,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
 
       .then(function () {
         // use new component's web method
-        return request('http://localhost:55000/newComponent1/page');
+        return request('http://127.0.0.1:55000/newComponent1/page');
       })
 
       .then(function (result) {
@@ -346,7 +346,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       })
 
       .then(function () {
-        return request('http://localhost:55000/anotherComponent/page');
+        return request('http://127.0.0.1:55000/anotherComponent/page');
       })
 
       .then(function (result) {
@@ -365,7 +365,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
 
       // web route is gone
       .then(function () {
-        return request('http://localhost:55000/anotherComponent/page');
+        return request('http://127.0.0.1:55000/anotherComponent/page');
       })
 
       .then(function (result) {

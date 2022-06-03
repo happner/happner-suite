@@ -1,6 +1,6 @@
 {
   "name": "happn-util-crypto",
-  "version": "3.0.4-prerelease.1",
+  "version": "3.0.4",
   "description": "Happn cryptograpy utilities",
   "repository": {
     "type": "git",
@@ -8,18 +8,18 @@
   },
   "main": "lib/crypto",
   "scripts": {
-    "test": "_mocha --recursive --exit silence.js test/*",
+    "test": "_mocha --recursive --exit test/*",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --reporter=html npm test",
-    "test-unit": "mocha silence.js test/unit/* --recursive"
+    "test-unit": "mocha test/unit/* --recursive"
   },
   "dependencies": {
-    "happn-commons": "^1.0.3-prerelease.1",
+    "happn-commons": "^1.1.0",
     "crypto-browserify": "^3.12.0",
     "randombytes": "^2.0.6",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.0.4-prerelease.1",
+    "happn-commons-test": "^1.0.4",
     "browserify": "^16.2.3",
     "connect": "^3.6.6",
     "gulp": "^4.0.0",

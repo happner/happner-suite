@@ -6,15 +6,15 @@ module.exports = {
         start: async () => {},
         use: async () => {
           return 1;
-        }
-      }
-    }
+        },
+      },
+    },
   },
   components: {
     component1: {
       initMethod: 'initialize',
       startMethod: 'start',
-      dependencies: {}
-    }
-  }
+      dependencies: {},
+    },
+  },
 };

@@ -4,15 +4,15 @@ module.exports = {
       instance: {
         initialize: async () => {},
         start: async () => {},
-        use: async () => {}
-      }
-    }
+        use: async () => {},
+      },
+    },
   },
   components: {
     component4: {
       initMethod: 'initialize',
       startMethod: 'start',
-      dependencies: {}
-    }
-  }
+      dependencies: {},
+    },
+  },
 };

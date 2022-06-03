@@ -7,7 +7,8 @@ module.exports = function (
   responseTimeout,
   hosts,
   joinTimeout,
-  replicate
+  replicate,
+  logFile
 ) {
   let [first, seq] = extendedSeq;
   var clusterRequestTimeout = requestTimeout ? requestTimeout : 10 * 1000;
@@ -15,6 +16,11 @@ module.exports = function (
 
   hosts = hosts ? hosts.split(',') : ['127.0.0.1:' + (PORT_CONSTANTS.SWIM_BASE + first).toString()];
   joinTimeout = joinTimeout || 300;
+  if (logFile) {
+    process.env.LOG_FILE = logFile;
+    // eslint-disable-next-line no-console
+    console.log(`LOG FILE: ${logFile}`);
+  }
 
   return {
     name: 'MESH_' + seq,
@@ -27,7 +33,15 @@ module.exports = function (
     },
     happn: {
       secure: secure,
+      utils: {
+        logFile,
+      },
       services: {
+        cache: {
+          config: {
+            statisticsInterval: 3e3,
+          },
+        },
         security: {
           config: {
             sessionTokenSecret: 'TEST-SESSION-TOKEN-SECRET',

@@ -1,11 +1,12 @@
 /*
 Simon: run up a happner-client, for emulating reconnection logic and some activity
 */
+/* eslint-disable no-console */
 const commander = require('commander');
 commander.option('--activity [number]', 'activity interval').parse(process.argv);
 
 const HappnerClient = require('happner-client');
-client = new HappnerClient();
+let client = new HappnerClient();
 
 var model = {
   localComponent: {
@@ -33,7 +34,7 @@ client.connect(null, { username: '_ADMIN', password: 'happn' }, (e) => {
       () => {
         console.log('emit: 1 done');
       },
-      (e) => {
+      () => {
         doClientActivity();
       }
     );
@@ -47,10 +48,10 @@ function doClientActivity() {
   });
 }
 
-function reconnectScheduled(clientInstance) {
+function reconnectScheduled() {
   console.log('happner-client: reconnect scheduled:::');
 }
 
-function reconnectSuccessful(clientInstance) {
+function reconnectSuccessful() {
   console.log('happner-client: reconnect successful:::');
 }

@@ -17,16 +17,22 @@ module.exports = class Broker {
   }
 
   __mapExternalToInternalMethods(dynamic) {
-    if (dynamic)
+    if (dynamic) {
       return Object.keys(this.__internalClient).forEach((methodName) => {
-        if (typeof this.__internalClient[methodName] === 'function')
-          this[methodName] = this.__internalClient[methodName];
+        this.__mapMethod(methodName);
       });
-
-    if (this.__model.methods)
+    }
+    if (this.__model.methods) {
       Object.keys(this.__model.methods).forEach((methodName) => {
-        this[methodName] = this.__internalClient[methodName];
+        this.__mapMethod(methodName);
       });
+    }
+  }
+
+  __mapMethod(methodName) {
+    if (typeof this.__internalClient[methodName] === 'function') {
+      this[methodName] = this.__internalClient[methodName];
+    }
   }
 
   __proxyExternalToInternalRoutes(model, $happn, mesh, url) {

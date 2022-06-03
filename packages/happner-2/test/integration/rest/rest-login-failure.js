@@ -146,7 +146,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     if (credentials) operation = credentials;
 
     restClient
-      .postJson('http://localhost:10000/rest/login', operation)
+      .postJson('http://127.0.0.1:10000/rest/login', operation)
       .on('complete', function (result) {
         if (result.error) return done(new Error(result.error.message), result);
         done(null, result);

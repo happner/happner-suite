@@ -3,7 +3,7 @@ const delay = require('await-delay');
 
 function Component() {}
 
-Component.prototype.start = function($happn, callback) {
+Component.prototype.start = function ($happn, callback) {
   let counter = 0;
   this.interval = setInterval(() => {
     counter++;
@@ -12,24 +12,24 @@ Component.prototype.start = function($happn, callback) {
   callback();
 };
 
-Component.prototype.stop = function(callback) {
+Component.prototype.stop = function (callback) {
   clearInterval(this.interval);
   callback();
 };
 
-Component.prototype.directMethod = function($happn, callback) {
+Component.prototype.directMethod = function ($happn, callback) {
   callback(null, $happn.info.mesh.name + ':brokerComponent:directMethod');
 };
 
-Component.prototype.subscribeToRemoteAndGetEvent = async function($happn) {
+Component.prototype.subscribeToRemoteAndGetEvent = async function ($happn) {
   let events = [];
   let eventId = await $happn.event.$on(
     {
       component: 'remoteComponent1',
       path: '*',
-      options: {}
+      options: {},
     },
-    data => {
+    (data) => {
       events.push(data);
     }
   );
@@ -37,7 +37,7 @@ Component.prototype.subscribeToRemoteAndGetEvent = async function($happn) {
   await delay(2000);
   await $happn.event.$off({
     component: 'remoteComponent1',
-    id: eventId
+    id: eventId,
   });
   return events;
 };

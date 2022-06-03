@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 describe('browsertest_05_login_promise', function () {
   this.timeout(10000);
   var client;

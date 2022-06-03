@@ -38,7 +38,8 @@ var Config = {
   logLayout: null,
 
   // if config.logFile is specified:
-  logFile: null,
+  logFile: process.env.LOG_FILE,
+  logRawToFile: process.env.LOG_RAW_TO_FILE,
   logFileLayout: null,
   logFileMaxSize: 20480, // limit the file size
   logFileBackups: 10, // keep history of 10 logfiles
@@ -146,17 +147,6 @@ module.exports.configure = function (config) {
       },
     };
 
-  //we add the raw appender and category
-  Config.logger.appenders.$$RAW = {
-    type: 'console',
-    layout: { type: 'messagePassThrough' },
-  };
-
-  Config.logger.categories.$$RAW = {
-    appenders: ['$$RAW'],
-    level: Config.logLevel,
-  };
-
   // create additional appender for logFile if specified
   if (Config.logFile && defaulting) {
     Config.logger.appenders.file = {
@@ -175,6 +165,21 @@ module.exports.configure = function (config) {
       };
     }
     Config.logger.categories.default.appenders.push('file');
+  }
+
+  //we add the raw appender and category
+  Config.logger.appenders.$$RAW = {
+    type: 'console',
+    layout: { type: 'messagePassThrough' },
+  };
+
+  Config.logger.categories.$$RAW = {
+    appenders: ['$$RAW'],
+    level: Config.logLevel,
+  };
+
+  if (Config.logger.appenders.file && Config.logRawToFile === '1') {
+    Config.logger.categories.$$RAW.appenders.push('file');
   }
 
   log4js = require('log4js');

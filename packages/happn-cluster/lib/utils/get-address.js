@@ -1,20 +1,33 @@
 // return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
 // os and env arguments make the code testable
+<<<<<<< HEAD
 module.exports = function(logger, env, os) {
+=======
+const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
+const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
+module.exports = function (logger, env, os) {
+>>>>>>> aa80fc115771301400606b7d4e0c861939741299
   logger = logger || console;
   os = os || require("os");
   env = env || process.env;
   return function(interfaces) {
     let networkInterfaceId = env["NETWORK_INTERFACE_ID"] || "eth0";
     interfaces = interfaces || os.networkInterfaces();
+
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
+<<<<<<< HEAD
     let interfaceItemIndex = parseInt(env["NETWORK_INTERFACE"] || 0);
     if (
       isNaN(interfaceItemIndex) ||
       interfaceItemIndex >= interfaces[networkInterfaceId].length
     ) {
+=======
+
+    let interfaceItemIndex = parseInt(env['NETWORK_INTERFACE'] || 0);
+    if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
+>>>>>>> aa80fc115771301400606b7d4e0c861939741299
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
     return interfaces[networkInterfaceId][interfaceItemIndex].address;
@@ -30,8 +43,13 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       found.forEach((interfaceItem, interfaceItemIndex) => {
         if (
           !interfaceItem.internal &&
+<<<<<<< HEAD
           interfaceItem.family === "IPv4" &&
           interfaceItem.address.indexOf("169.254") !== 0
+=======
+          interfaceItem.family === ip4Family &&
+          interfaceItem.address.indexOf('169.254') !== 0
+>>>>>>> aa80fc115771301400606b7d4e0c861939741299
         ) {
           candidates.push({
             nic: interfaceKey,

@@ -6,7 +6,7 @@ describe(
     const HappnLayer = require('../../../lib/system/happn');
     const happnLayer = new HappnLayer({});
 
-    EventEmitter = require('events').EventEmitter;
+    const EventEmitter = require('events').EventEmitter;
 
     it('tests the __initializeAccess function', function () {
       var initialAccess = happnLayer.__initializeAccess();

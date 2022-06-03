@@ -21,18 +21,18 @@ module.exports = function (clusterConfig) {
             let module = mesh._mesh.elements[componentName].module;
             let component = mesh._mesh.elements[componentName].component;
             let $happn = component.instance;
-            let package = module.package || {};
+            let modulePackage = module.package || {};
             // package dependencies trump component configured dependencies
-            let dependencies = package.happner
-              ? package.happner.dependencies[componentName] //package.happner exists
-                ? package.happner.dependencies[componentName] //package.happner.dependencies[componentName] exists
+            let dependencies = modulePackage.happner
+              ? modulePackage.happner.dependencies[componentName] //package.happner exists
+                ? modulePackage.happner.dependencies[componentName] //package.happner.dependencies[componentName] exists
                 : component.config.dependencies //no package.happner.dependencies[componentName]
               : component.config.dependencies; //no package.happner
 
             let brokeredDependencies =
-              package.happner &&
-              package.happner.dependencies &&
-              package.happner.dependencies.$broker;
+              modulePackage.happner &&
+              modulePackage.happner.dependencies &&
+              modulePackage.happner.dependencies.$broker;
 
             brokeredDependencies =
               brokeredDependencies ||

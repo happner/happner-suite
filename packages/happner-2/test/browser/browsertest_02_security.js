@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 describe('browsertest_02_security', function () {
   this.timeout(10000);
   let client;

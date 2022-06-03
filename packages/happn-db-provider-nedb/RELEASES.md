@@ -20,6 +20,8 @@
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
-1.0.5 2022-05-17
+1.0.5 2022-05-26
 -----------------
-  - SMC-4817: mongo-based membership strategy
+  - updates to commons libs, lint fixes, due to:
+  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
+  - TEN-54: all systems tested on node v18

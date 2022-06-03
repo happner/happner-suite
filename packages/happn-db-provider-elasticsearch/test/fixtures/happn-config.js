@@ -1,6 +1,6 @@
 const test = require('./test-helper').create();
 module.exports = {
-  get: function(dbPath, testId) {
+  get: function (dbPath, testId) {
     return {
       services: {
         data: {
@@ -17,8 +17,8 @@ module.exports = {
                     {
                       index: 'happner',
                       body: {
-                        mappings: {}
-                      }
+                        mappings: {},
+                      },
                     },
                     {
                       index: 'sortedandlimitedindex1',
@@ -27,11 +27,11 @@ module.exports = {
                           happner: {
                             properties: {
                               'data.field1': { type: 'keyword' },
-                              'data.item_sort_id': { type: 'integer' }
-                            }
-                          }
-                        }
-                      }
+                              'data.item_sort_id': { type: 'integer' },
+                            },
+                          },
+                        },
+                      },
                     },
                     {
                       index: 'sortedandlimitedindex2',
@@ -40,12 +40,12 @@ module.exports = {
                           happner: {
                             properties: {
                               'data.field1': { type: 'keyword' },
-                              'data.item_sort_id': { type: 'integer' }
-                            }
-                          }
-                        }
-                      }
-                    }
+                              'data.item_sort_id': { type: 'integer' },
+                            },
+                          },
+                        },
+                      },
+                    },
                   ],
                   dataroutes: [
                     {
@@ -53,27 +53,27 @@ module.exports = {
                         '/1_eventemitter_embedded_sanity/' +
                         testId +
                         '/testsubscribe/data/complex*',
-                      index: 'sortedandlimitedindex1'
+                      index: 'sortedandlimitedindex1',
                     },
                     {
                       pattern: `/complexsearch/${testId}/*`,
-                      index: 'sortedandlimitedindex2'
+                      index: 'sortedandlimitedindex2',
                     },
                     {
                       dynamic: true, //dynamic routes generate a new index/type according to the items in the path
-                      pattern: '/dynamic/{{index}}/{{type}}/*'
+                      pattern: '/dynamic/{{index}}/{{type}}/*',
                     },
                     {
                       pattern: '*',
-                      index: 'happner'
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      }
+                      index: 'happner',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
     };
-  }
+  },
 };

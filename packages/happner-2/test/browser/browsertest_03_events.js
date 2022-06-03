@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 describe('browsertest_03_events', function () {
   this.timeout(10000);
 

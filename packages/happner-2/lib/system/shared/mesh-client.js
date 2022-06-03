@@ -91,6 +91,7 @@
     this.opts = opts;
 
     if (isBrowser) {
+      // eslint-disable-next-line no-undef
       log = Happner.createLogger('MeshClient');
     } else {
       if (opts.logger && opts.logger.createLogger) {
@@ -98,6 +99,7 @@
       } else if (Logger) {
         log = Logger.createContext('client').createLogger('MeshClient');
       } else {
+        // eslint-disable-next-line no-undef
         log = Happner.createLogger('MeshClient');
       }
     }

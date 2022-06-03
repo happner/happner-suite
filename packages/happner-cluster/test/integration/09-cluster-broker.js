@@ -90,7 +90,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   beforeEach('clear mongo collection', function (done) {
     stopCluster(servers, function () {
       servers = [];
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
       });
     });
@@ -141,7 +141,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   after('stop cluster', function (done) {
     if (!servers) return done();
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
       });
     });
@@ -176,7 +176,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       options.headers.authorization = 'Bearer ' + token;
 
       restClient
-        .postJson(`http://localhost:${port}/rest/method/${component}/${method}`, operation, options)
+        .postJson(`http://127.0.0.1:${port}/rest/method/${component}/${method}`, operation, options)
         .on('complete', function (result) {
           if (result.error) return reject(new Error(result.error.message));
           test.expect(result.data).to.eql(expectedResponse);

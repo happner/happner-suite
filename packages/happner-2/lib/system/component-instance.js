@@ -1,7 +1,7 @@
 const Internals = require('./shared/internals');
 const MeshError = require('./shared/mesh-error');
 const EventEmitter = require('events').EventEmitter;
-const depWarned0 = false; // $happn.mesh.*
+let depWarned0 = false; // $happn.mesh.*
 const utilities = require('./utilities');
 const _ = require('happn-commons')._;
 
@@ -18,14 +18,15 @@ ComponentInstance.prototype.clearCachedBoundExchange = function () {
 };
 
 ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, componentName) {
-  this.boundExchangeCache =
-    mesh.happn.server.services.cache.__caches['happner-bound-exchange' + componentName] ||
-    mesh.happn.server.services.cache.new('happner-bound-exchange' + componentName, {
+  this.boundExchangeCache = mesh.happn.server.services.cache.getOrCreate(
+    'happner-bound-exchange-' + componentName,
+    {
       type: 'LRU',
       cache: {
-        max: mesh.config.boundExchangeCacheSize || 10000,
+        max: mesh.config.boundExchangeCacheSize || 10e3,
       },
-    });
+    }
+  );
   this.clearCachedBoundExchange();
   //ensure if security changes, we discard bound exchanges
   mesh.happn.server.services.security.on(
@@ -36,14 +37,14 @@ ComponentInstance.prototype.initializeCachedBoundExchange = function (mesh, comp
 
 ComponentInstance.prototype.getCachedBoundExchange = function (origin) {
   if (!this.boundExchangeCache) return null;
-  return this.boundExchangeCache.getSync(origin.username, {
+  return this.boundExchangeCache.get(origin.username, {
     clone: false,
   });
 };
 
 ComponentInstance.prototype.setCachedBoundExchange = function (origin, exchange) {
   if (!this.boundExchangeCache) return exchange;
-  this.boundExchangeCache.setSync(origin.username, exchange, {
+  this.boundExchangeCache.set(origin.username, exchange, {
     clone: false,
   });
   return exchange;
@@ -571,6 +572,7 @@ ComponentInstance.prototype.secureData = function (meshData, componentName) {
 };
 
 ComponentInstance.prototype.initialize = function (name, root, mesh, module, config, callback) {
+  // eslint-disable-next-line no-self-assign
   this.README = this.README; // make visible
   this.name = name;
   this.config = config;

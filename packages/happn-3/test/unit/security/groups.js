@@ -29,19 +29,13 @@ describe(test.testName(__filename, 3), function () {
 
     try {
       var serviceClass = Services[serviceName + 'Service'];
-
       var serviceInstance = new serviceClass({
         logger: Logger,
       });
-
       serviceInstance.happn = happn;
-
       serviceInstance.config = config;
-
       happn.services[serviceName.toLowerCase()] = serviceInstance;
-
       if (typeof serviceInstance.initialize !== 'function' || config === false) return callback();
-
       serviceInstance.initialize(config, callback);
     } catch (e) {
       callback(e);
@@ -55,19 +49,43 @@ describe(test.testName(__filename, 3), function () {
     };
 
     mockService(happn, 'Crypto')
-      .then(mockService(happn, 'Utils'))
-      .then(mockService(happn, 'Log'))
-      .then(mockService(happn, 'Error'))
-      .then(mockService(happn, 'Session', false))
-      .then(mockService(happn, 'Protocol'))
-      .then(mockService(happn, 'Publisher'))
-      .then(mockService(happn, 'Data'))
-      .then(mockService(happn, 'Cache'))
-      .then(mockService(happn, 'System'))
-      .then(mockService(happn, 'Security'))
-      .then(mockService(happn, 'Subscription'))
+      .then(() => {
+        return mockService(happn, 'Utils');
+      })
+      .then(() => {
+        return mockService(happn, 'Log');
+      })
+      .then(() => {
+        return mockService(happn, 'Error');
+      })
+      .then(() => {
+        return mockService(happn, 'Session', false);
+      })
+      .then(() => {
+        return mockService(happn, 'Protocol');
+      })
+      .then(() => {
+        return mockService(happn, 'Publisher');
+      })
+      .then(() => {
+        return mockService(happn, 'Data');
+      })
+      .then(() => {
+        return mockService(happn, 'Cache');
+      })
+      .then(() => {
+        return mockService(happn, 'System');
+      })
+      .then(() => {
+        return mockService(happn, 'Security', {
+          secure: true,
+        });
+      })
+      .then(() => {
+        return mockService(happn, 'Subscription');
+      })
       .then(function () {
-        happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
+        happn.services.session.initializeCaches.bind(happn.services.session)(async (e) => {
           if (e) return callback(e);
           callback(null, happn);
         });
@@ -593,10 +611,13 @@ describe(test.testName(__filename, 3), function () {
           return happn.services.security.groups.getGroup('TEST_ALL_GR_400');
         })
         .then(function () {
-          return test.delay(3000);
+          return happn.services.security.groups.getGroup('_ADMIN');
         })
         .then(function () {
-          test.expect(happn.services.security.groups.__cache_groups.keys().length).to.be(5);
+          return test.delay(1000);
+        })
+        .then(function () {
+          test.expect(happn.services.security.groups.__cache_groups.keys().length).to.be(5); // 5 including _ADMIN
           test
             .expect(happn.services.security.groups.permissionManager.cache.keys().length)
             .to.be(5);

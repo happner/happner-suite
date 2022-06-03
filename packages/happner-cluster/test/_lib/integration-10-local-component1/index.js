@@ -2,7 +2,7 @@ module.exports = Component;
 
 function Component() {}
 
-Component.prototype.localMethodToRemoteMethod = function(
+Component.prototype.localMethodToRemoteMethod = function (
   $origin,
   $happn,
   component,
@@ -17,17 +17,17 @@ Component.prototype.localMethodToRemoteMethod = function(
 
   if (asAdmin) {
     //console.log('running asAdmin...');
-    return $happn.asAdmin.exchange[component][method](function(e) {
+    return $happn.asAdmin.exchange[component][method](function (e) {
       callback(e);
     });
   }
 
-  $happn.exchange[component][method](function(e) {
+  $happn.exchange[component][method](function (e) {
     callback(e);
   });
 };
 
-Component.prototype.localMethodToRemoteEvent = function($happn, $origin, asAdmin, callback) {
+Component.prototype.localMethodToRemoteEvent = function ($happn, $origin, asAdmin, callback) {
   if (typeof asAdmin === 'function') {
     callback = asAdmin;
     asAdmin = false;
@@ -37,14 +37,14 @@ Component.prototype.localMethodToRemoteEvent = function($happn, $origin, asAdmin
 
   eventAPI.localComponent1.on(
     'test-event',
-    function() {},
-    function(e) {
+    function () {},
+    function (e) {
       callback(e);
     }
   );
 };
 
-Component.prototype.localMethodToData = function($origin, $happn, asAdmin, callback) {
+Component.prototype.localMethodToData = function ($origin, $happn, asAdmin, callback) {
   if (typeof asAdmin === 'function') {
     callback = asAdmin;
     asAdmin = false;
@@ -55,7 +55,7 @@ Component.prototype.localMethodToData = function($origin, $happn, asAdmin, callb
   dataAPI.set(
     '/test/data',
     {
-      test: 'data'
+      test: 'data',
     },
     callback
   );

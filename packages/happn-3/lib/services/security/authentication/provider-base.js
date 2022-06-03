@@ -28,9 +28,7 @@ module.exports = class AuthProvider {
     if (typeof this.config.accountLockout !== 'object') this.config.accountLockout = {};
     if (this.config.accountLockout.enabled == null) this.config.accountLockout.enabled = true;
     if (this.config.accountLockout.enabled) {
-      this.__locks =
-        this.cacheService.getIfExisting('security_account_lockout') ||
-        this.cacheService.new('security_account_lockout');
+      this.__locks = this.cacheService.getOrCreate('security_account_lockout');
       if (!this.config.accountLockout.attempts) this.config.accountLockout.attempts = 4;
       if (!this.config.accountLockout.retryInterval)
         this.config.accountLockout.retryInterval = 60 * 1000 * 10; //10 minutes
@@ -167,16 +165,17 @@ module.exports = class AuthProvider {
     }
 
     if (this.config.accountLockout && this.config.accountLockout.enabled && !overrideLockout) {
-      let currentLock = this.__locks.getSync(username);
+      let currentLock = this.__locks.get(username);
 
-      if (!currentLock)
+      if (!currentLock) {
         currentLock = {
           attempts: 0,
         };
+      }
 
       currentLock.attempts++;
 
-      this.__locks.setSync(username, currentLock, {
+      this.__locks.set(username, currentLock, {
         ttl: this.config.accountLockout.retryInterval,
       });
     }
@@ -186,7 +185,7 @@ module.exports = class AuthProvider {
 
   __loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
     delete user.password;
-    if (this.__locks) this.__locks.removeSync(user.username); //remove previous locks
+    if (this.__locks) this.__locks.remove(user.username); //remove previous locks
     callback(null, this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo));
   }
 
@@ -204,7 +203,7 @@ module.exports = class AuthProvider {
   __checkLockedOut(username) {
     if (!username || !this.config.accountLockout || !this.config.accountLockout.enabled)
       return false;
-    let existingLock = this.__locks.getSync(username);
+    let existingLock = this.__locks.get(username);
     return existingLock != null && existingLock.attempts >= this.config.accountLockout.attempts;
   }
 };

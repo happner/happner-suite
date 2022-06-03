@@ -1,35 +1,35 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 60000 }, function(test) {
+require('happn-commons-test').describe({ timeout: 60000 }, function (test) {
   const service = require('../../index');
   let config = {
-    url: 'mongodb://127.0.0.1:27017/happn'
+    url: 'mongodb://127.0.0.1:27017/happn',
   };
 
   let serviceInstance = new service(config);
 
-  before('should clear the mongo collection', function(callback) {
+  before('should clear the mongo collection', function (callback) {
     let clearMongo = require('../__fixtures/clear-mongo-collection');
     clearMongo('mongodb://localhost/happn', 'happn', callback);
   });
 
-  before('should initialize the service', function(callback) {
-    serviceInstance.initialize(function(e) {
+  before('should initialize the service', function (callback) {
+    serviceInstance.initialize(function (e) {
       if (e) return callback(e);
 
       if (!serviceInstance.happn)
         serviceInstance.happn = {
           services: {
             utils: {
-              wildcardMatch: function(pattern, matchTo) {
+              wildcardMatch: function (pattern, matchTo) {
                 var regex = new RegExp(pattern.replace(/[*]/g, '.*'));
                 var matchResult = matchTo.match(regex);
 
                 if (matchResult) return true;
 
                 return false;
-              }
-            }
-          }
+              },
+            },
+          },
         };
 
       callback();
@@ -44,10 +44,10 @@ require('happn-commons-test').describe({ timeout: 60000 }, function(test) {
           data: {
             group,
             custom,
-            id
-          }
+            id,
+          },
         },
-        function(e, response, created) {
+        function (e, response, created) {
           if (e) return reject(e);
           resolve(created);
         }
@@ -69,13 +69,13 @@ require('happn-commons-test').describe({ timeout: 60000 }, function(test) {
         '/searches-and-aggregation/*',
         {
           criteria: {
-            'data.custom': { $regex: '.*data to search on 4900.*' }
+            'data.custom': { $regex: '.*data to search on 4900.*' },
           },
           options: {
-            maxTimeMS: 1
-          }
+            maxTimeMS: 1,
+          },
         },
-        err => {
+        (err) => {
           error = err;
           clearTimeout(timeout);
         }
@@ -85,7 +85,7 @@ require('happn-commons-test').describe({ timeout: 60000 }, function(test) {
     test.expect(error.code).to.be(50);
   });
 
-  after(function(done) {
+  after(function (done) {
     serviceInstance.stop(done);
   });
 });

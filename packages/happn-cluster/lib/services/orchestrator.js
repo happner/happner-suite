@@ -7,6 +7,7 @@ const ServiceEntry = require('./orchestrator/serviceEntry');
 const getAddress = require('../utils/get-address');
 const CONSTANTS = require('./orchestrator/constants');
 var property = require('../utils/property');
+<<<<<<< HEAD
 const { performance } = require('perf_hooks');
 const NodeUtil = require('util');
 
@@ -17,6 +18,46 @@ module.exports = class Orchestrator extends EventEmitter {
     this.constants = CONSTANTS.STATES;
     this.state = this.constants.WARMUP;
     this.HappnClient = Happn.client;
+=======
+var GetAddress = require('../utils/get-address');
+const commons = require('happn-commons');
+const clone = commons.fastClone;
+function Orchestrator(opts) {
+  this.peers = {}; // list of ready (fully connected) members by happn.name
+
+  property(this, 'members', {}); // list of all members (by memberId/swim)
+  property(this, 'log', opts.logger.createLogger('Orchestrator'));
+  property(this, 'stabiliseWaiting', []); // callbacks waiting on stabilise
+  property(this, 'stableExpectationMask', {
+    name: 'defined',
+    connectingTo: false,
+    connectedTo: true,
+    connectedFrom: true,
+    subscribedTo: true,
+    subscribedFrom: true,
+    error: null,
+  });
+  property(this, 'stableReportInterval', null);
+  property(this, 'stableTimeout', null);
+  property(this, 'stableAwaitingMinimumPeers', null);
+  property(this, 'HappnClient', Happn.client);
+  property(this, 'Member', Member);
+  property(this, 'getAddress', GetAddress(this.log));
+}
+
+util.inherits(Orchestrator, EventEmitter);
+
+Orchestrator.prototype.initialize = function (config, callback) {
+  property(this, 'happn', this.happn);
+  property(this, 'config', config);
+  property(this, 'secure', this.happn.config.secure);
+  property(this, 'announceHost', this.happn.config.announceHost);
+
+  if (this.announceHost === '') {
+    // ansible is loading empty string
+    this.log.error('announceHost is empty string!');
+    process.exit(1);
+>>>>>>> aa80fc115771301400606b7d4e0c861939741299
   }
 
   static create(opts) {

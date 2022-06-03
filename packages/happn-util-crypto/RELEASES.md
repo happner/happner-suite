@@ -16,6 +16,8 @@
   - TEN-102: loki snapshot  file redundancy
   - TEN-92: made all dependencies test dependencies
 
-3.0.4 2022-05-17
+3.0.4 2022-05-26
 -----------------
-  - SMC-4817: mongo-based membership strategy
+  - updates to commons libs, lint fixes, due to:
+  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
+  - TEN-54: all systems tested on node v18

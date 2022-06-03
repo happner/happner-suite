@@ -2,25 +2,25 @@ module.exports = Component;
 
 function Component() {}
 
-Component.prototype.start = function(callback) {
+Component.prototype.start = function (callback) {
   callback();
 };
 
-Component.prototype.stop = function(callback) {
+Component.prototype.stop = function (callback) {
   callback();
 };
 
-Component.prototype.callRemote = function($happn, callback) {
+Component.prototype.callRemote = function ($happn, callback) {
   $happn.asAdmin.exchange
     .$call({
       component: 'remoteComponent',
       method: 'remoteMethod',
-      arguments: []
+      arguments: [],
     })
-    .then(result => {
+    .then((result) => {
       callback(null, result);
     })
-    .catch(e => {
+    .catch((e) => {
       callback(e);
     });
 };

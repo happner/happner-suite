@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-loki",
-  "version": "1.0.5-prerelease.1",
+  "version": "1.0.6",
   "description": "Loki data provider for happn",
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
@@ -11,9 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "lokijs": "^1.5.12",
-    "happn-commons": "^1.0.3-prerelease.1"
+    "happn-commons": "^1.1.0"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.0.4-prerelease.1"
+    "happn-commons-test": "^1.0.4"
   }
 }

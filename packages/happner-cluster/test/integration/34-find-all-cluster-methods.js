@@ -72,17 +72,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     ];
     test.expect(results.reduce((reduced, result) => (reduced += result.sum), 0)).to.be(9);
     //check round robining happened ok
-    let resultsMap = results.map((result) => result.name);
-    // eslint-disable-next-line no-console
-    console.log(meshNames)
-    // eslint-disable-next-line no-console
-    // console.log(resultsMap});
-    test
-      .expect(
-        test._.isEqual(resultsMap, [meshNames[1], meshNames[2], meshNames[1]]) ||
-          test._.isEqual(resultsMap, [meshNames[2], meshNames[1], meshNames[2]])
-      )
-      .to.be(true);
+    const roundRobinedEvents = results.map((result) => result.name);
+    try {
+      test.expect(roundRobinedEvents).to.eql([meshNames[1], meshNames[2], meshNames[1]]);
+    } catch (e) {
+      test.expect(roundRobinedEvents).to.eql([meshNames[2], meshNames[1], meshNames[2]]);
+    }
+
     //ensure the method was only called 3 times
     test.expect(results.pop().callCount).to.be(3);
 

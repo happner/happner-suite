@@ -91,6 +91,6 @@ describe(
           await stopService(instance);
         }
       );
-    });
+    }).timeout(10e3);
   }
 );

@@ -13,7 +13,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
           membership: {
             config: {
               seed: true,
-              hosts: ['localhost:' + getSeq.getSwimPort(1).toString()],
+              hosts: ['127.0.0.1:' + getSeq.getSwimPort(1).toString()],
             },
           },
         },

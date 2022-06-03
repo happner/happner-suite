@@ -17,4 +17,4 @@ module.exports = class Component {
       component: 'remoteComponent2',
     });
   }
-}
+};
