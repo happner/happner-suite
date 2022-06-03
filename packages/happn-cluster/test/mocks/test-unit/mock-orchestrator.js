@@ -23,10 +23,12 @@ module.exports = {
     };
   },
   log: {
+    /* eslint-disable no-console */
     debug: console.log,
     error: console.log,
     info: console.log,
     warn: console.log,
     fatal: console.log,
+    /* eslint-enable no-console */
   },
 };

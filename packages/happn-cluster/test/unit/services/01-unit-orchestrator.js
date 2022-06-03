@@ -492,7 +492,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         await test.delay(300);
 
         test.expect(stable).to.equal(true);
-        await o.stop()
+        await o.stop();
       });
     });
 
@@ -570,7 +570,6 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
 
         MockHappnClient.instances['10-0-0-4_56001'].emitDisconnect();
         await test.delay(20);
-
 
         //  correction confirmed: DB reports last member actually gone
         delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.4:55001 '];
@@ -669,7 +668,6 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
             serviceName: 'happn-cluster-node',
           },
         });
-
 
         await new Promise((resolve) => {
           done = resolve;

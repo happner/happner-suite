@@ -4,9 +4,7 @@ const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
-
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const Helper = require('../_lib/helpers/helper');
 
 require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   const _ = test._;
@@ -83,7 +81,6 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   it('TRYs to throw a client into an error state', async () => {
     erroredMesh = servers[clusterSize - 1];
     let orchestrator = servers[clusterSize - 1]._mesh.happn.server.services.orchestrator;
-    // console.log(Object.keys(orchestrator.registry.testComponent.members))
     let otherMemberKey = Object.keys(orchestrator.registry.testComponent.members).filter(
       (memberKey) => memberKey !== orchestrator.endpoint
     )[0];
@@ -94,8 +91,13 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     try {
       await testConnections();
     } catch (e) {
-      console.log(e);
-      //Insufficient connections error
+      //Expected error => Error is thrown at client2other and Nodes will not be (fully) connected
+      test
+        .expect(e.err.toString())
+        .to.eql('Error: Test failed due to duplicate or insufficient connections');
+      e.errors.forEach((error) =>
+        test.expect(error.toString().startsWith('Error: Insufficients connections')).to.be(true)
+      );
     }
     await test.delay(15e3);
     await testConnections();
@@ -184,7 +186,6 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
           .expect(test._.isEqual(details.members.sort(), details.peerEndpoints.sort()))
           .to.be(true);
       } catch (e) {
-        console.log(e);
         errored = true;
         errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(i + 1)}`));
       }
@@ -194,4 +195,5 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       throw new Error('Test failed due to peer/member mismatch (some membersin unstable state)');
     }
   }
+  const findDuplicates = (arr) => arr.filter((item, index) => arr.indexOf(item) !== index);
 });

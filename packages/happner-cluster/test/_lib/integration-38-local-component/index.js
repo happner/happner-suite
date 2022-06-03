@@ -8,7 +8,7 @@ module.exports = class Component {
     });
   }
 
-  async stop() {
+  async stop($happn) {
     await $happn.event.testComponent.off(this.eventHandle);
     await $happn.event.testComponent.off(this.eventHandle2);
   }
@@ -40,6 +40,7 @@ module.exports = class Component {
   block($happn, delay, callback) {
     setTimeout(() => {
       const target = Date.now() + delay;
+      // eslint-disable-next-line no-empty
       while (Date.now() <= target) {}
     }, 100);
     callback(null, $happn.info.mesh.name + ':brokerComponent:block');

@@ -10,7 +10,6 @@ var clusterSize = 1;
 var happnSecure = true;
 
 require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
-
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';

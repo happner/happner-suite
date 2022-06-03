@@ -126,7 +126,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       test.expect(serviceEntry.endpoints).to.eql(['1', '2', '3']);
     });
 
-    it('tests the cleanupEndpoints method', () => {
+    it('tests the cleanupEndpoints method', (done) => {
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
 
       let stopped = false;

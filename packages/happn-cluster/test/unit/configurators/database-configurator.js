@@ -55,7 +55,6 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     test.expect(dbConfig.datastores[0]).to.eql(dsClone[0]);
     test.expect(dbConfig.datastores[1]).to.eql(dsClone[1]);
     test.expect(dbConfig.datastores[2]).to.eql(mongoDefaultConfig);
-
   });
   it('Tests that configurator wont add a datastore if there is already one with provider happn-db-provider-mongo', () => {
     let configurator = Configurator.create();

@@ -47,7 +47,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
       6000
     );
-    cluster.sort()
+    cluster.sort();
     meshNames = cluster.instances.map((instance) => instance._mesh.config.name); //Mesh instances may arrive out of order.
   }
 

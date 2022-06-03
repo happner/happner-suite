@@ -324,7 +324,7 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
           on: () => {
             throw err;
           },
-          disconnect: () => {}
+          disconnect: () => {},
         };
         await member.__subscribe('path');
         throw new Error("SHOULDN'T GET HERE");

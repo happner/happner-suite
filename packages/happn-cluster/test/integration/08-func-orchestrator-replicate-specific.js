@@ -80,7 +80,6 @@ testConfigs.forEach((testConfig) => {
     });
 
     it('replicates specified paths', async function () {
-      var _this = this;
       var unpause1, unpause2;
       var controlEvent1,
         replicatedEvents1 = [];

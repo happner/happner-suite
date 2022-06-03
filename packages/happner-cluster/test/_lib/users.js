@@ -53,7 +53,6 @@ var queue = async.queue(function (task, callback) {
   try {
     server.exchange.security[method](group, permissions, callback);
   } catch (e) {
-    console.log(e);
     callback(e);
   }
 }, 1);

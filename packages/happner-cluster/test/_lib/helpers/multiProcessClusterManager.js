@@ -22,6 +22,7 @@ module.exports = class Cluster extends Helper {
           reject(code);
         });
         childProcess.on('exit', (code) => {
+          // eslint-disable-next-line no-console
           console.log(`child process exited with code ${code}`);
           this.removeChildProcess(childProcess);
         });
@@ -72,6 +73,7 @@ module.exports = class Cluster extends Helper {
         await this.delay(100);
         if (Object.keys(this.childProcess).length === 0) return;
       }
+      // eslint-disable-next-line no-console
       console.warn(`Child process failed to respond to SIGTERM in ${timeOut}ms sending SIGKILL`);
       Object.values(this.childProcess).forEach((process) => {
         process.kill('SIGKILL');
@@ -80,6 +82,7 @@ module.exports = class Cluster extends Helper {
     this.destroy = async (timeOut = 5000) => {
       const meshStopped = await this.stopMesh(timeOut);
       if (meshStopped) return;
+      // eslint-disable-next-line no-console
       console.warn(
         `Child process failed to respond to stopMesh in ${timeOut}ms, stopping processes`
       );

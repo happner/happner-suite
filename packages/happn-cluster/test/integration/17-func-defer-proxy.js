@@ -33,12 +33,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     var _this = this;
 
     var port = this.__configs[0].services.proxy.config.port;
-<<<<<<< HEAD:packages/happn-cluster/test/integration/17-func-defer-proxy.js
-
-    var connection = net.connect(port);
-=======
     let connection = net.connect(port, '127.0.0.1');
->>>>>>> aa80fc115771301400606b7d4e0c861939741299:packages/happn-cluster/test/test-func/17-func-defer-proxy.js
 
     connection.on('connect', function () {
       connection.destroy();

@@ -13,4 +13,3 @@ Component.prototype.stop = function ($happn, callback) {
 Component.prototype.brokeredMethod1 = function ($happn, callback) {
   callback(null, $happn.info.mesh.name + ':remoteComponent:brokeredMethod1');
 };
-

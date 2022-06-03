@@ -5,5 +5,4 @@ module.exports = async function (servers, done) {
     await delay(200);
   }
   if (done) return done();
-  return;
 };

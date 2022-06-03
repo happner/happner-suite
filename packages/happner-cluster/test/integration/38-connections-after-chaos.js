@@ -4,9 +4,7 @@ const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
-
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const Helper = require('../_lib/helpers/helper');
 
 require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   const _ = test._;
@@ -122,7 +120,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       await testConnections();
       await checkPeers();
     } catch (e) {
-      console.log('EXPECTED ERROR', e.err.toString());
+      //Expected error => Nodes will not have (fully) re-connected yet
       test
         .expect(e.err.toString())
         .to.eql('Error: Test failed due to duplicate or insufficient connections');
@@ -386,6 +384,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   }
   async function restartNode(index, restartDelay = 5000) {
     testClients[index] = null;
+    // eslint-disable-next-line no-console
     console.log('RESTARTING NODE ', index);
     let stopped = await clusterHelper.stopChild(index);
     if (stopped !== true) throw new Error('FAILED TO STOP NODE');
@@ -395,8 +394,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   }
 
   async function blockNode(index, delay = 8e3) {
+    // eslint-disable-next-line no-console
     console.log('BLOCKING NODE ', index);
-
     await testClients[index].exchange.testComponent.block(delay);
   }
 
