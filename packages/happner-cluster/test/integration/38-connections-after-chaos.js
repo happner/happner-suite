@@ -272,7 +272,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
     }
-    await test.delay(20e3);
+    await test.delay(25e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions();
@@ -299,7 +299,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, restartDelay) : blockNode(index, delay);
     }
-    await test.delay(20e3);
+    await test.delay(25e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions();

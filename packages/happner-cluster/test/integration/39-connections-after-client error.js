@@ -14,7 +14,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   let nodeConfigs = [];
   let testClients = [];
   let meshNames = [];
-  let clusterSize = 8;
+  let clusterSize = 4;
   let servers;
   let erroredMesh;
   before('clear mongo collection', (done) => {
@@ -68,7 +68,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     }
   });
   after('disconnect _ADMIN client', async () => {
-    await _AdminClient.disconnect();
+    if (_AdminClient) await _AdminClient.disconnect();
     _AdminClient = null;
     for (let testClient of testClients) {
       await testClient.disconnect();
@@ -97,7 +97,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       console.log(e);
       //Insufficient connections error
     }
-    await test.delay(12e3);
+    await test.delay(15e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions();
