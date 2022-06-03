@@ -62,7 +62,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     }
   });
   after('disconnect _ADMIN client', async () => {
-    await _AdminClient.disconnect();
+   if (_AdminClient)  await _AdminClient.disconnect();
     _AdminClient = null;
     for (let testClient of testClients) {
       await testClient.disconnect();
@@ -246,7 +246,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   });
 
   it('major chaos, roughly simultaneous arrive/depart', async () => {
-    let delay = 8e3;
+    let delay = 10e3;
     let restartDelay = 4e3;
     let pick = 3;
     let indices = Array.from(Array(clusterSize).keys());
