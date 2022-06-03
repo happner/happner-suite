@@ -11,6 +11,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       key_prefix: 'PERSIST_TEST',
       dataStore,
     },
+    overwrite: true,
   };
 
   beforeEach('should initialize the service', function (callback) {
@@ -63,6 +64,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     await testTimeout(specific);
   });
 
+  it(`times data out offline, then tries to sync again`, async () => {
+    const specific = serviceInstance.create('specific', cacheConfig);
+    await specific.sync();
+    await testTimeoutSyncAgain(specific);
+  });
+
   it(`clears the specific cache, type: persist`, async () => {
     const key = testId + 'test1';
     const specific = serviceInstance.create('specific-clear', cacheConfig);
@@ -113,6 +120,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   it(`tests the all function, specific cache, type: persist`, async () => {
     const specific = serviceInstance.create('specific-all', cacheConfig);
     await specific.sync();
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(true);
     for (let time = 0; time < 5; time++) {
       const key = 'sync_key_' + time;
       await specific.set(key, { val: key });
@@ -134,10 +143,49 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     test.expect(filtered[1].val).to.be('sync_key_' + 2);
   });
 
-  function testTimeout(cacheOrService) {
+  it(`tests various error states`, async () => {
+    const errorCacheConfig = {
+      type: test.commons.constants.CACHE_TYPES.PERSIST,
+      cache: {
+        key_prefix: 'PERSIST_TEST',
+        dataStore: {
+          get: (_path, cb) => {
+            cb(new Error('test get error'));
+          },
+        },
+      },
+      overwrite: true,
+    };
+    const specific = serviceInstance.create('specific-error', errorCacheConfig);
+    let errorMessage;
+    try {
+      await specific.sync();
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('test get error');
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(false);
+    errorCacheConfig.cache.dataStore.get = (_path, cb) => {
+      cb(null, [{ data: {} }]);
+    };
+    specific.set = (_key, _data, _opts, cb) => {
+      cb(new Error('test set error'));
+    };
+    try {
+      await specific.sync();
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('test set error');
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(false);
+  });
+
+  function testTimeout(cache) {
     return new Promise((resolve, reject) => {
       var key = testId + 'test1';
-      cacheOrService
+      cache
         .set(
           key,
           {
@@ -148,9 +196,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
           }
         )
         .then(async () => {
-          const resultBeforeASecond = await cacheOrService.get(key);
+          const resultBeforeASecond = await cache.get(key);
           setTimeout(async () => {
-            const resultAfterASecond = await cacheOrService.get(key);
+            const resultAfterASecond = await cache.get(key);
             test.expect(resultAfterASecond).to.be(null);
             test.expect(resultBeforeASecond).to.not.be(null);
             resolve();
@@ -158,5 +206,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
         })
         .catch(reject);
     });
+  }
+
+  async function testTimeoutSyncAgain(cache) {
+    var key = testId + 'test1';
+    await cache.set(
+      key,
+      {
+        dkey: key,
+      },
+      {
+        ttl: 2000,
+      }
+    );
+    await cache.stop();
+    await test.delay(2100);
+    var recreated = serviceInstance.create('specific', cacheConfig);
+    await recreated.sync();
+    const resultAfterASecond = await recreated.get(key);
+    test.expect(resultAfterASecond).to.be(null);
+    await recreated.stop();
   }
 });

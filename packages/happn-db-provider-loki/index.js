@@ -98,7 +98,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         this.collection = this.db.collections[0];
       } else {
         try {
-          this.mutateDatabase(this.parsePersistedOperation(line));
+          this.mutateDatabase(this.parsePersistedOperation(line), true);
         } catch (e) {
           this.logger.error(`failed reconstructing line ${line}`);
           errorHappened = true;
@@ -162,19 +162,21 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     callback(null, result);
   }
-  mutateDatabase(operation) {
+  mutateDatabase(operation, preserveTimestamps) {
     switch (operation.operationType) {
       case constants.DATA_OPERATION_TYPES.UPSERT:
         return this.upsertInternal(
           operation.arguments[0],
           operation.arguments[1],
-          operation.arguments[2]
+          operation.arguments[2],
+          preserveTimestamps
         );
       case constants.DATA_OPERATION_TYPES.UPDATE:
         return this.updateInternal(
           operation.arguments[0],
           operation.arguments[1],
-          operation.arguments[2]
+          operation.arguments[2],
+          preserveTimestamps
         );
       case constants.DATA_OPERATION_TYPES.INCREMENT:
         return this.incrementInternal(
@@ -183,14 +185,14 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           operation.arguments[2]
         );
       case constants.DATA_OPERATION_TYPES.INSERT:
-        return this.insertInternal(operation.arguments[0]);
+        return this.insertInternal(operation.arguments[0], preserveTimestamps);
       case constants.DATA_OPERATION_TYPES.REMOVE:
         return this.removeInternal(operation.arguments[0]);
       default:
         throw new Error(`unknown data operation type: ${operation.operationType}`);
     }
   }
-  upsertInternal(path, upsertDocument, options) {
+  upsertInternal(path, upsertDocument, options, preserveTimestamps) {
     if (typeof path !== 'string') {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
@@ -205,7 +207,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       document = meta;
       document.data = upsertDocument.data;
       created = document;
-      result = this.insertInternal(document);
+      result = this.insertInternal(document, preserveTimestamps);
     } else {
       if (options.merge) {
         document.data = { ...document.data, ...upsertDocument.data };
@@ -213,18 +215,19 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         document.data = upsertDocument.data;
       }
       _.merge(document, meta);
-      result = this.updateInternal(document);
+      result = this.updateInternal(document, preserveTimestamps);
     }
     return { result, document, created };
   }
-  insertInternal(document) {
+  insertInternal(document, preserveTimestamps) {
     const now = Date.now();
-    document.created = now;
-    document.modified = now;
+    document.created = preserveTimestamps && document.created ? document.created : now;
+    document.modified = preserveTimestamps && document.modified ? document.modified : now;
     return this.collection.insert(document);
   }
-  updateInternal(document) {
-    document.modified = Date.now();
+  updateInternal(document, preserveTimestamps) {
+    const now = Date.now();
+    document.modified = preserveTimestamps && document.modified ? document.modified : now;
     return this.collection.update(document);
   }
   snapshot(callback) {

@@ -266,6 +266,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     };
     await lokiProvider.initialize();
     await lokiProvider.insert({ path: 'test/path/1', data: { test: 'test' } });
+    const found1 = (await lokiProvider.find('test/path/1'))[0];
     await lokiProvider.insert({ path: 'test/path/2', data: { test: 'test' } });
     await lokiProvider.insert({ path: 'test/path/3', data: { test: 'test' } });
     let found = await lokiProvider.find('test/path/*');
@@ -293,6 +294,9 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     test.expect(lokiProvider.operationCount).to.be(3);
     await lokiProvider.stop();
     await lokiProvider.initialize();
+    const found1Again = (await lokiProvider.find('test/path/1'))[0];
+    test.expect(found1Again.created).to.eql(found1.created);
+    test.expect(found1Again.modified).to.eql(found1.modified);
     found = await lokiProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
     test.expect(lokiProvider.operationCount).to.be(0);
