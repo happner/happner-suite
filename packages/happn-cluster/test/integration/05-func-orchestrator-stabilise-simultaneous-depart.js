@@ -47,11 +47,7 @@ testConfigs.forEach((testConfig) => {
       let config;
       if (!testConfig.clusterConfig)
         config = (
-          await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {
-            // membership: {
-            //   pingInterval: 2000,
-            // },
-          })
+          await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {})
         ).pop();
       else {
         config = (
@@ -60,11 +56,7 @@ testConfigs.forEach((testConfig) => {
             clusterSize,
             false,
             false,
-            {
-              // membership: {
-              //   pingInterval: 2000,
-              // },
-            },
+            {},
             {
               'cluster-service-1': 1,
               'cluster-service-2': 2,

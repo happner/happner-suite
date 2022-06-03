@@ -27,6 +27,6 @@
   },
   "devDependencies": {
     "happn-commons-test": "^1.0.4",
-    "happner-2": "^12.1.7-prerelease.1"
+    "happner-2": "^12.2.6-prerelease.1"
   }
 }
