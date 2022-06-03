@@ -1,4 +1,4 @@
-require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
   const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
   const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
   it('tests get-address', () => {
