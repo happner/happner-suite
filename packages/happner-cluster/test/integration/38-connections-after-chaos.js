@@ -62,7 +62,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     }
   });
   after('disconnect _ADMIN client', async () => {
-   if (_AdminClient)  await _AdminClient.disconnect();
+    if (_AdminClient) await _AdminClient.disconnect();
     _AdminClient = null;
     for (let testClient of testClients) {
       await testClient.disconnect();
