@@ -62,18 +62,11 @@ module.exports = class Member {
   }
 
   get peer() {
-    return !!(
-      this.name &&
-      this.connectedTo &&
-      //this.connectedFrom &&
-      this.subscribedTo &&
-      !this.error
-    );
+    return !!(this.name && this.connectedTo && this.subscribedTo && !this.error);
   }
 
   async connect(loginConfig) {
     if (this.connectingTo || this.connectedTo || this.client) return;
-
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -83,7 +76,6 @@ module.exports = class Member {
     try {
       client = await this.orchestrator.HappnClient.create(loginConfig);
     } catch (error) {
-      // if (client) await client.stop();
       let thisError = error.error || error;
       if (
         thisError.code === 'ECONNREFUSED' ||
@@ -159,7 +151,7 @@ module.exports = class Member {
   }
   async stopClient() {
     if (this.client) {
-      await this.client.disconnect({reconnect: false});
+      await this.client.disconnect({ reconnect: false });
       await this.client.stop();
       this.client = null;
     }

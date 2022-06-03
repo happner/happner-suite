@@ -389,7 +389,6 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
 
     context('first member in cluster', function () {
       it('immediately stabilises with only self as member', function (done) {
-        // o.registry['happn-cluster-node'].expeccted = 1; //Switch to only expect 1 peer
         o.stabilised()
           .then(function () {
             test.expect(Object.keys(o.peers)).to.eql(['local-happn-instance']);
@@ -430,7 +429,7 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         // member state is correct
         test.expect(o.members['10.0.0.1:55001'].connectingTo).to.equal(false);
         test.expect(o.members['10.0.0.1:55001'].connectedTo).to.equal(true);
-        // test.expect(o.members['10.0.0.1:55001'].connectedFrom).to.equal(false); // <---- pending login back to us
+        test.expect(o.members['10.0.0.1:55001'].connectedFrom).to.equal(false); // <---- pending login back to us
         test.expect(o.members['10.0.0.1:55001'].subscribedTo).to.equal(true);
 
         // THEN... peer logs back into us

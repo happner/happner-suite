@@ -66,10 +66,10 @@ module.exports = class Configuration extends require('./helper') {
       name: 'MESH_' + index + nameSuffix,
       domain: 'DOMAIN_NAME',
       port: PORT_CONSTANTS.HAPPN_BASE + portIndex,
-      // cluster: {
-      //   requestTimeout: 10000,
-      //   responseTimeout: 20000,
-      // },
+      cluster: {
+        requestTimeout: 10000,
+        responseTimeout: 20000,
+      },
       happn: {
         secure,
         services: {
@@ -83,16 +83,16 @@ module.exports = class Configuration extends require('./helper') {
               autoUpdateDBVersion: true,
             },
           },
-          // membership: {
-          //   config: {
-          //     host: `${this.address.self()}`,
-          //     port: PORT_CONSTANTS.SWIM_BASE + portIndex,
-          //     seed: portIndex === first,
-          //     seedWait: 1000,
-          //     hosts,
-          //     joinTimeout,
-          //   },
-          // },
+          membership: {
+            config: {
+              host: `${this.address.self()}`,
+              port: PORT_CONSTANTS.SWIM_BASE + portIndex,
+              seed: portIndex === first,
+              seedWait: 1000,
+              hosts,
+              joinTimeout,
+            },
+          },
           proxy: {
             config: {
               port: PORT_CONSTANTS.PROXY_BASE + portIndex,
@@ -106,7 +106,7 @@ module.exports = class Configuration extends require('./helper') {
                 keepAlive: 2e3,
                 memberRefresh: 2e3,
                 keepAliveThreshold: 3e3,
-                stabilisedTimeout: 13e3,
+                stabilisedTimeout: 10e3,
               },
             },
           },

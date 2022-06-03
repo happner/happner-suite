@@ -31,7 +31,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       remoteComponent.happn.services.orchestrator.config.cluster = { testComponent: clusterSize };
       remoteComponent.modules = {
         testComponent: {
-          path: libDir + 'integration-39-local-component',
+          path: libDir + 'integration-38-local-component',
         },
       };
       remoteComponent.components = {

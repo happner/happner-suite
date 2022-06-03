@@ -52,7 +52,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(values.indexOf(getSeq.getMeshName(5)))  // Member 4 should start
       .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before meber 2
     //check everything started
-    console.log("GOT VALUES ", values)
     values.sort();
     test
       .expect(values)

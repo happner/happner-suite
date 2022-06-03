@@ -97,26 +97,9 @@ module.exports = class ServiceEntry {
   async cleanupMembers() {
     for (let [endpoint, member] of Object.entries(this.members)) {
       if (!this.endpoints.includes(endpoint)) {
-        // await member.client.offAll();
         await member.stop();
         this.orchestrator.removePeer(member);
         this.removeMember(member);
-      }
-    }
-  }
-  async clearErroredMembers() {
-    for (let member of Object.values(this.members)) {
-      if (member.error) {
-        if (member.listedAsPeer) {
-          this.emit('peer/remove', member.name, member);
-          this.log.info(
-            'cluster size %d (%s left)',
-            Object.keys(this.orchestrator.peers).length,
-            member.name
-          );
-        }
-        await this.member.stop();
-        this.orchestrator.removeMember(member);
       }
     }
   }

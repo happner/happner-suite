@@ -20,7 +20,6 @@ process.on('message', async (m) => {
     process.exit(0);
   }
   if (m === 'listMembers') {
-    // console.log(Object.keys(meshInstance._mesh.happn.server.services.orchestrator.members));
     process.send(
       JSON.stringify({
         peers: Object.keys(meshInstance._mesh.happn.server.services.orchestrator.peers),
