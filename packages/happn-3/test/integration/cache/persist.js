@@ -120,6 +120,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   it(`tests the all function, specific cache, type: persist`, async () => {
     const specific = serviceInstance.create('specific-all', cacheConfig);
     await specific.sync();
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(true);
     for (let time = 0; time < 5; time++) {
       const key = 'sync_key_' + time;
       await specific.set(key, { val: key });
@@ -139,6 +141,45 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     test.expect(filtered.length).to.be(2);
     test.expect(filtered[0].val).to.be('sync_key_' + 1);
     test.expect(filtered[1].val).to.be('sync_key_' + 2);
+  });
+
+  it(`tests various error states`, async () => {
+    const errorCacheConfig = {
+      type: test.commons.constants.CACHE_TYPES.PERSIST,
+      cache: {
+        key_prefix: 'PERSIST_TEST',
+        dataStore: {
+          get: (_path, cb) => {
+            cb(new Error('test get error'));
+          },
+        },
+      },
+      overwrite: true,
+    };
+    const specific = serviceInstance.create('specific-error', errorCacheConfig);
+    let errorMessage;
+    try {
+      await specific.sync();
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('test get error');
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(false);
+    errorCacheConfig.cache.dataStore.get = (_path, cb) => {
+      cb(null, [{ data: {} }]);
+    };
+    specific.set = (_key, _data, _opts, cb) => {
+      cb(new Error('test set error'));
+    };
+    try {
+      await specific.sync();
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('test set error');
+    test.expect(specific.isSyncing).to.be(false);
+    test.expect(specific.isSynced).to.be(false);
   });
 
   function testTimeout(cache) {
