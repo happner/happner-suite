@@ -28,7 +28,7 @@
     "bluebird": "^3.5.0",
     "happn-cluster": "^13.0.0-prerelease.4",
     "happn-commons": "^1.1.0",
-    "happn-db-provider-mongo": "^1.0.9",
+    "happn-db-provider-mongo": "^1.0.10-prerelease.1",
     "happner-2": "^12.1.7-prerelease.1",
     "happner-client": "^12.2.6-prerelease.1",
     "hashring": "^3.2.0",
