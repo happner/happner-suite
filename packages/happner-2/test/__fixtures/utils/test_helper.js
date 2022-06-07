@@ -67,9 +67,6 @@ class TestHelper extends BaseTestHelper {
   };
   
   startHappnerInstance (ctx, config, callback){
-  
-    var _this = this;
-  
     if (!ctx) ctx = 'default';
   
     if (typeof config == 'function') {
