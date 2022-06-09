@@ -4,65 +4,128 @@ const baseConfig = require('../_lib/base-config');
 const getSeq = require('../_lib/helpers/getSeq');
 const HappnerCluster = require('../..');
 const libDir = require('../_lib/lib-dir');
-require('happn-commons-test').describe({ timeout: 45e3 }, (test) => {
-  let broker1Proc, broker2Proc;
-  let brokerSeq 
-  before('starts mesh', async () => {
-    let done;
-    HappnerCluster.create(remoteInstanceConfig(getSeq.getFirst(), 2));
-    brokerSeq = getSeq.getNext();
-    let broker1Proc = fork(path.resolve(__dirname, './server.js'), brokerSeq);
-    broker1Proc.on('message', async (data) => {
-      if (data === 'started') {
-        await test.delay(2000);
-        done();
-      }
-    });
-    await new Promise((res) => {
-      done = res;
-    });
+const clearMongoCollection = require('./_fixtures/drop-mongo-db');
+require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
+  let broker1Proc, broker2Proc, broker3Proc, remoteMesh;
+  let brokerSeq;
+  let delayTime = 5e3;
+  before('clear mongo collection', async () => {
+    await clearMongoCollection('happn-cluster');
   });
 
-  it('tests', async () => {
-    let listed1, listed2;
+  before('starts mesh and first broker', async () => {
     let done;
-
-    let usernames = Array.from(Array(3).keys()).map((int) => 'user' + int.toString()); 
-
-    await test.delay(3000);
-    let child = fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
-    broker1Proc.on('message', (data) => {
-      if (typeof data === 'object') {
-        test.expect(data.attached.length).to.eql(3);
-        test.expect(data.active.length).to.eql(4); //Additional intra-proc session
-        listed1 = true;
-      }
-    });
-    await test.delay(5000);
-    broker1Proc.send('listClients');
-    broker1Proc.send('kill');
-    broker2Proc = fork(path.resolve(__dirname, './server.js'), brokerSeq);
-    let sent = false;
-    broker2Proc.on('message', async (data) => {
+    let remoteMeshPromise = HappnerCluster.create(remoteInstanceConfig(getSeq.getFirst(), 2));
+    brokerSeq = getSeq.getNext();
+    broker1Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    broker1Proc.on('message', async (data) => {
       if (data === 'started') {
-        await test.delay(7000);
-        if (!sent) {
-          sent = true;
-          broker2Proc.send('listClients');
+        remoteMesh = await remoteMeshPromise;
+        let users = Array.from(Array(3).keys()).map((int) => ({
+          username: 'user' + int.toString(),
+          password: 'pass',
+        }));
+        for (let user of users) {
+          await remoteMesh.exchange.security.addUser(user);
         }
-      }
-      if (typeof data === 'object') {
-        test.expect(data.attached.length).to.eql(3);
-        test.expect(data.active.length).to.eql(4); //Additional intra-proc session
-        listed2 = true;
-        test.expect(listed1 && listed2).to.be(true);
-        broker2Proc.send('kill');
+        await test.delay(1000);
         return done();
       }
     });
     await new Promise((res) => {
       done = res;
     });
+  });
+  after('stop remote mesh', async () => {
+    await remoteMesh.stop();
+  });
+  it('tests the amount of active sessions, attached sessions, and connections on repeated restart of a broker', async () => {
+    let done;
+    let stats = [];
+    let child = fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
+    broker1Proc.on('message', async (data) => {
+      if (typeof data === 'object') {
+        stats.push({
+          connected: data.connected.length,
+          active: data.active.length,
+          attached: data.attached.length,
+        });
+        broker1Proc.send('kill');
+        await test.delay(delayTime);
+        return done();
+      }
+    });
+    await test.delay(6000);
+    broker1Proc.send('listClients');
+    await new Promise((res) => {
+      done = res;
+    });
+
+    broker2Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+
+    broker2Proc.on('message', async (data) => {
+      if (data === 'started') {
+        await test.delay(6000);
+        broker2Proc.send('listClients');
+      }
+      if (typeof data === 'object') {
+        stats.push({
+          connected: data.connected.length,
+          active: data.active.length,
+          attached: data.attached.length,
+        });
+        broker2Proc.send('kill');
+        await test.delay(delayTime);
+
+        return done();
+      }
+    });
+    await new Promise((res) => {
+      done = res;
+    });
+    broker3Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+
+    broker3Proc.on('message', async (data) => {
+      if (data === 'started') {
+        await test.delay(8000);
+        broker3Proc.send('listClients');
+      }
+      if (typeof data === 'object') {
+        stats.push({
+          connected: data.connected.length,
+          active: data.active.length,
+          attached: data.attached.length,
+        });
+        broker3Proc.send('kill');
+        await test.delay(delayTime);
+
+        return done();
+      }
+    });
+    await new Promise((res) => {
+      done = res;
+    });
+    let broker4Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    broker4Proc.on('message', async (data) => {
+      if (data === 'started') {
+        await test.delay(8000);
+        broker4Proc.send('listClients');
+      }
+      if (typeof data === 'object') {
+        stats.push({
+          connected: data.connected.length,
+          active: data.active.length,
+          attached: data.attached.length,
+        });
+        broker4Proc.send('kill');
+        return done();
+      }
+    });
+    await new Promise((res) => {
+      done = res;
+    });
+    let compareStat = stats[0]
+    test.expect(stats.every(stat => test._.isEqual(stat, compareStat)))
   });
 
   function remoteInstanceConfig(seq, sync, replicate) {
@@ -85,6 +148,11 @@ require('happn-commons-test').describe({ timeout: 45e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    config.port = 57001;
+    config.happn.services.proxy = config.happn.services.proxy || {};
+    config.happn.services.proxy.config = config.happn.services.proxy.config || {};
+    config.happn.services.proxy.config.port = 55001;
+    config.happn.services.cache = { config: { statisticsIntervals: 0 } };
     return config;
   }
 });

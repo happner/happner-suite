@@ -9,11 +9,11 @@ describe('browsertest_01_happner_client', function () {
     }));
     let clients = [];
     for (let user of users) {
-      let client = new Happner.HappnerClient();
+      let client = new Happner.HappnerClient({ port: 55000 });
       await client.connect(null, user);
       clients.push(client);
     }
-    await delay(35000);
+    await delay(65000);
   });
 
   function delay(ms) {

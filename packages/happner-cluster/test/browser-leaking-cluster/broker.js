@@ -3,16 +3,9 @@ const baseConfig = require('../_lib/base-config');
 const libDir = require('../_lib/lib-dir');
 let seq = [parseInt(process.argv[2]), parseInt(process.argv[3])];
 (async () => {
-  console.log(seq)
-  let meshConfig = brokerConfig(seq);
+  let meshConfig = brokerConfig(seq, 2);
   let mesh = await HappnerCluster.create(meshConfig);
-  let users = Array.from(Array(3).keys()).map((int) => ({
-    username: 'user' + int.toString(),
-    password: 'pass',
-  }));
-  for (let user of users) {
-    await mesh.exchange.security.addUser(user);
-  }
+
   let attached = [];
 
   mesh._mesh.happn.events.on('attach', async (data) => {
@@ -23,8 +16,9 @@ let seq = [parseInt(process.argv[2]), parseInt(process.argv[3])];
       mesh.stop({ reconnect: true, kill: true, wait: 50 });
     }
     if (msg === 'listClients') {
-      await mesh._mesh.happn.server.services.security.listActiveSessions((e, active) => {
-        process.send({ attached, active });
+      mesh._mesh.happn.server.services.security.listActiveSessions((e, active) => {
+        let connected = Object.keys(mesh._mesh.happn.server.connections);
+        process.send({ attached, active, connected });
       });
     }
   });
@@ -53,5 +47,11 @@ function brokerConfig(seq, sync, replicate) {
       stopMethod: 'stop',
     },
   };
+  // config.happn.services.orchestrator.config.minimumPeers = 2;
+  config.happn.services.cache = { config: { statisticsIntervals: 0 } };
+  config.port = 57000;
+  config.happn.services.proxy = config.happn.services.proxy || {};
+  config.happn.services.proxy.config = config.happn.services.proxy.config || {};
+  config.happn.services.proxy.config.port = 55000;
   return config;
 }

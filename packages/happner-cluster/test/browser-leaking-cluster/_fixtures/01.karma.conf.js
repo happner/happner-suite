@@ -47,7 +47,7 @@ module.exports = function (config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['ChromeHeadless'],
-    browserDisconnectTimeout: 6000,
+    browserDisconnectTimeout: 15e3,
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: false,
@@ -56,6 +56,6 @@ module.exports = function (config) {
     // how many browser should be started simultanous
     concurrency: Infinity,
 
-    browserNoActivityTimeout: 60000,
+    browserNoActivityTimeout: 100000,
   });
 };
