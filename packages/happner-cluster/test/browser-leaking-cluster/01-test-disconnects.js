@@ -124,8 +124,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     await new Promise((res) => {
       done = res;
     });
-    let compareStat = stats[0]
-    test.expect(stats.every(stat => test._.isEqual(stat, compareStat)))
+    let compareStat = stats[0];
+    test.expect(stats.every((stat) => test._.isEqual(stat, compareStat))).to.be(true);
   });
 
   function remoteInstanceConfig(seq, sync, replicate) {
