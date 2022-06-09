@@ -154,7 +154,7 @@ TransportService.prototype.__tryListen = function (options) {
   if (!options.portAvailablePingTimeout) options.portAvailablePingTimeout = 10000; //10 seconds
 
   var waitingForPortMessageInterval = setInterval(() => {
-    this.happn.log.info(
+    this.happn.log.warn(
       'port number ' + options.port + ' held by another process, retrying connection attempt...'
     );
   }, 1000);
@@ -176,9 +176,7 @@ TransportService.prototype.__tryListen = function (options) {
           const { address, port } = this.happn.__info;
 
           this.happn.__listening = true;
-
-          this.happn.log.info(`listening at ${address}:${port}`);
-          this.happn.log.info(`happn version ${version}`);
+          this.happn.log.info(`happn version ${version} listening at ${address}:${port}`);
 
           if (this.happn.__done) {
             this.happn.__done(null, this.happn); // <--- good, created a this.happn
@@ -246,9 +244,10 @@ TransportService.prototype.initialize = function (config, callback) {
     });
 
     this.happn.server.on('close', () => {
-      if (this.happn.__info)
-        this.happn.log.info('released ' + this.happn.__info.address + ':' + this.happn.__info.port);
-      else this.happn.log.debug('released, no info');
+      if (!this.happn.__info) {
+        return this.happn.log.debug('released, no info');
+      }
+      this.happn.log.debug('released ' + this.happn.__info.address + ':' + this.happn.__info.port);
     });
 
     callback();

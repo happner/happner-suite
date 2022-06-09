@@ -294,7 +294,7 @@ Orchestrator.prototype.__addPeer = function (member) {
   this.emit('peer/add', member.name, member);
 
   if (this.stableAwaitingMinimumPeers) {
-    this.log.debug(
+    this.log.info(
       'cluster size %d/%d (%s arrived)',
       Object.keys(this.peers).length,
       this.config.minimumPeers,
@@ -302,7 +302,7 @@ Orchestrator.prototype.__addPeer = function (member) {
     );
     return;
   }
-  this.log.debug('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+  this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
 };
 
 Orchestrator.prototype.removePeer = function (member) {
@@ -312,7 +312,7 @@ Orchestrator.prototype.removePeer = function (member) {
   this.emit('peer/remove', member.name, member);
 
   if (this.stableAwaitingMinimumPeers) {
-    this.log.debug(
+    this.log.info(
       'cluster size %d/%d (%s left)',
       Object.keys(this.peers).length,
       this.config.minimumPeers,
@@ -320,7 +320,7 @@ Orchestrator.prototype.removePeer = function (member) {
     );
     return;
   }
-  this.log.debug('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+  this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
 };
 
 Orchestrator.prototype.removeMember = function (member) {

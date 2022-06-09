@@ -55,7 +55,7 @@ describe(tests.testName(__filename, 3), function () {
       if (e) return callback(e);
 
       serviceInstance = happnInst;
-      serviceInstance.services.session.log.info = logger;
+      serviceInstance.services.session.log.debug = logger;
 
       happn_client.create(
         {

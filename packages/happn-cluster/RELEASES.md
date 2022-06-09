@@ -278,4 +278,8 @@ non-release 2017-12-14
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
 
+12.0.10 2022-06-09
+-----------------
+  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
+
 
