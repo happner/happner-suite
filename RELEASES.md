@@ -59,7 +59,14 @@ happner-client: 12.2.5
 1.3.2 2022-06-09
 ----------------
 happn-3: 13.1.2
+happn-cluster: 12.0.10
+happn-db-provider-elasticsearch: 1.0.10
+happn-db-provider-mongo: 1.0.10
 happner-2: 12.1.7
+happner-client: 12.2.6
+happner-cluster: 12.1.6
+redis-lru-cache: 1.0.10
+
 
 
 
