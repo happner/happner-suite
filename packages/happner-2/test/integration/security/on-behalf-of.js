@@ -4,7 +4,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
   before('it sets up the mesh', setUpMesh);
   before('it connects the admin user', connectAdminUser);
   before('it creates the test user', createTestUser);
-  it('can do an http-rpc with onBehalfOf', async () => {
+  it('can do an http-rpc with as', async () => {
     const token = adminUser.token;
     test
       .expect(
@@ -13,7 +13,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
             component: 'test',
             method: 'doOnBehalfOfAllowed',
             arguments: { param1: 1, param2: 2 },
-            onBehalfOf: 'testUser',
+            as: 'testUser',
           },
           token
         )
@@ -21,13 +21,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       .to.eql('origin:testUser:1:2');
   });
 
-  it('can do an exchange call with onBehalfOf', async () => {
+  it('can do an exchange call with as', async () => {
     test
       .expect(await adminUser.exchange.test.doOnBehalfOfAllowed.as('testUser')(1, 2))
       .to.eql('origin:testUser:1:2');
   });
 
-  it('fails to do an exchange call with onBehalfOf', async () => {
+  it('can do an exchange $call with as', async () => {
+    test
+      .expect(
+        await adminUser.exchange.$call({
+          component: 'test',
+          method: 'doOnBehalfOfAllowed',
+          arguments: [1, 2],
+          as: 'testUser',
+        })
+      )
+      .to.eql('origin:testUser:1:2');
+  });
+
+  it('fails to do an exchange call with as', async () => {
     let errorMessage;
     try {
       await adminUser.exchange.test.doOnBehalfOfNotAllowed.as('testUser')(1, 2);
@@ -37,13 +50,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.expect(errorMessage).to.be('unauthorised');
   });
 
-  it('can do an exchange call with onBehalfOf in component method', async () => {
+  it.only('can do an exchange call with as in component method', async () => {
     test
       .expect(await adminUser.exchange.test.doOnBehalfOfAllowedAs(1, 2))
       .to.eql('origin:testUser:1:2');
   });
 
-  it('fails to do an exchange call with onBehalfOf in component method', async () => {
+  it('fails to do an exchange call with as in component method', async () => {
     let errorMessage;
     try {
       await adminUser.exchange.test.doOnBehalfOfNotAllowedAs(1, 2);
@@ -53,7 +66,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.expect(errorMessage).to.be('unauthorized');
   });
 
-  it('fails to do an http-rpc with onBehalfOf', async () => {
+  it('fails to do an http-rpc with as', async () => {
     const token = adminUser.token;
     test
       .expect(
@@ -62,7 +75,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
             component: 'test',
             method: 'doOnBehalfOfNotAllowed',
             arguments: { param1: 1, param2: 2 },
-            onBehalfOf: 'testUser',
+            as: 'testUser',
           },
           token
         )
@@ -73,7 +86,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
   after('tears down mesh', stopMesh);
   async function setUpMesh() {
     mesh = await test.Mesh.create({
-      name: 'onBehalfOfMesh',
+      name: 'asMesh',
       port: 12358,
       secure: true,
       modules: {
@@ -120,9 +133,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       name: 'testGroup',
       permissions: {
         methods: {
-          '/onBehalfOfMesh/test/doOnBehalfOfAllowed': { authorized: true },
-          '/onBehalfOfMesh/test/doOnBehalfOfAllowedAs': { authorized: true },
-          '/onBehalfOfMesh/test/doOnBehalfOfNotAllowedAs': { authorized: true },
+          '/asMesh/test/doOnBehalfOfAllowed': { authorized: true },
+          '/asMesh/test/doOnBehalfOfAllowedAs': { authorized: true },
+          '/asMesh/test/doOnBehalfOfNotAllowedAs': { authorized: true },
         },
       },
     };
@@ -138,14 +151,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       requestInfo.component,
       requestInfo.method,
       requestInfo.arguments,
-      requestInfo.onBehalfOf,
+      requestInfo.as,
       token
     );
   }
-  function doRequest(componentName, methodName, operationArguments, onBehalfOf, token) {
+  function doRequest(componentName, methodName, operationArguments, as, token) {
     var operation = {
       parameters: operationArguments,
-      onBehalfOf,
+      as,
     };
     return new Promise((resolve, reject) => {
       restClient
