@@ -1,7 +1,4 @@
 const Happner = require('../..');
-const { client } = require('happn-3');
-
-const delay = require('happn-commons-test').create().delay;
 (async () => {
   let meshConfig = {
     name: 'Server',
@@ -16,9 +13,7 @@ const delay = require('happn-commons-test').create().delay;
     password: 'pass',
   }));
   for (let user of users) {
-    try {
     await mesh.exchange.security.addUser(user);
-    } catch (e) {}
   }
   let attached = [];
 

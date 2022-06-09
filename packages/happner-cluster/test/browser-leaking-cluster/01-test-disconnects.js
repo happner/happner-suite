@@ -14,115 +14,110 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   });
 
   before('starts mesh and first broker', async () => {
-    let done;
     let remoteMeshPromise = HappnerCluster.create(remoteInstanceConfig(getSeq.getFirst(), 2));
     brokerSeq = getSeq.getNext();
     broker1Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
-    broker1Proc.on('message', async (data) => {
-      if (data === 'started') {
-        remoteMesh = await remoteMeshPromise;
-        let users = Array.from(Array(3).keys()).map((int) => ({
-          username: 'user' + int.toString(),
-          password: 'pass',
-        }));
-        for (let user of users) {
-          await remoteMesh.exchange.security.addUser(user);
+    await new Promise((done) => {
+      broker1Proc.on('message', async (data) => {
+        if (data === 'started') {
+          remoteMesh = await remoteMeshPromise;
+          let users = Array.from(Array(3).keys()).map((int) => ({
+            username: 'user' + int.toString(),
+            password: 'pass',
+          }));
+          for (let user of users) {
+            await remoteMesh.exchange.security.addUser(user);
+          }
+          await test.delay(1000);
+          return done();
         }
-        await test.delay(1000);
-        return done();
-      }
-    });
-    await new Promise((res) => {
-      done = res;
+      });
     });
   });
+
   after('stop remote mesh', async () => {
     await remoteMesh.stop();
   });
+
   it('tests the amount of active sessions, attached sessions, and connections on repeated restart of a broker', async () => {
-    let done;
     let stats = [];
-    let child = fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
-    broker1Proc.on('message', async (data) => {
-      if (typeof data === 'object') {
-        stats.push({
-          connected: data.connected.length,
-          active: data.active.length,
-          attached: data.attached.length,
-        });
-        broker1Proc.send('kill');
-        await test.delay(delayTime);
-        return done();
-      }
-    });
-    await test.delay(6000);
-    broker1Proc.send('listClients');
-    await new Promise((res) => {
-      done = res;
+    fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
+    await new Promise((done) => {
+      broker1Proc.on('message', async (data) => {
+        if (typeof data === 'object') {
+          stats.push({
+            connected: data.connected.length,
+            active: data.active.length,
+            attached: data.attached.length,
+          });
+          broker1Proc.send('kill');
+          await test.delay(delayTime);
+          return done();
+        }
+      });
+      test.delay(6000).then(() => {
+        broker1Proc.send('listClients');
+      });
     });
 
     broker2Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
 
-    broker2Proc.on('message', async (data) => {
-      if (data === 'started') {
-        await test.delay(6000);
-        broker2Proc.send('listClients');
-      }
-      if (typeof data === 'object') {
-        stats.push({
-          connected: data.connected.length,
-          active: data.active.length,
-          attached: data.attached.length,
-        });
-        broker2Proc.send('kill');
-        await test.delay(delayTime);
+    await new Promise((done) => {
+      broker2Proc.on('message', async (data) => {
+        if (data === 'started') {
+          await test.delay(6000);
+          broker2Proc.send('listClients');
+        }
+        if (typeof data === 'object') {
+          stats.push({
+            connected: data.connected.length,
+            active: data.active.length,
+            attached: data.attached.length,
+          });
+          broker2Proc.send('kill');
+          await test.delay(delayTime);
 
-        return done();
-      }
-    });
-    await new Promise((res) => {
-      done = res;
+          return done();
+        }
+      });
     });
     broker3Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    await new Promise((done) => {
+      broker3Proc.on('message', async (data) => {
+        if (data === 'started') {
+          await test.delay(8000);
+          broker3Proc.send('listClients');
+        }
+        if (typeof data === 'object') {
+          stats.push({
+            connected: data.connected.length,
+            active: data.active.length,
+            attached: data.attached.length,
+          });
+          broker3Proc.send('kill');
+          await test.delay(delayTime);
 
-    broker3Proc.on('message', async (data) => {
-      if (data === 'started') {
-        await test.delay(8000);
-        broker3Proc.send('listClients');
-      }
-      if (typeof data === 'object') {
-        stats.push({
-          connected: data.connected.length,
-          active: data.active.length,
-          attached: data.attached.length,
-        });
-        broker3Proc.send('kill');
-        await test.delay(delayTime);
-
-        return done();
-      }
-    });
-    await new Promise((res) => {
-      done = res;
+          return done();
+        }
+      });
     });
     let broker4Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
-    broker4Proc.on('message', async (data) => {
-      if (data === 'started') {
-        await test.delay(8000);
-        broker4Proc.send('listClients');
-      }
-      if (typeof data === 'object') {
-        stats.push({
-          connected: data.connected.length,
-          active: data.active.length,
-          attached: data.attached.length,
-        });
-        broker4Proc.send('kill');
-        return done();
-      }
-    });
-    await new Promise((res) => {
-      done = res;
+    await new Promise((done) => {
+      broker4Proc.on('message', async (data) => {
+        if (data === 'started') {
+          await test.delay(8000);
+          broker4Proc.send('listClients');
+        }
+        if (typeof data === 'object') {
+          stats.push({
+            connected: data.connected.length,
+            active: data.active.length,
+            attached: data.attached.length,
+          });
+          broker4Proc.send('kill');
+          return done();
+        }
+      });
     });
     let compareStat = stats[0];
     test.expect(stats.every((stat) => test._.isEqual(stat, compareStat))).to.be(true);

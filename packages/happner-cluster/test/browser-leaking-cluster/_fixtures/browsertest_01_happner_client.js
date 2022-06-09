@@ -9,6 +9,7 @@ describe('browsertest_01_happner_client', function () {
     }));
     let clients = [];
     for (let user of users) {
+      //eslint-disable-next-line no-undef
       let client = new Happner.HappnerClient({ port: 55000 });
       await client.connect(null, user);
       clients.push(client);
