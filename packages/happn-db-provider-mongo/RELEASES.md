@@ -42,3 +42,7 @@
 1.0.9 2022-06-02
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
+
+1.0.10 2022-06-09
+-----------------
+  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
