@@ -56,6 +56,11 @@ happn-db-provider-mongo: 1.0.9
 happner-2: 12.1.6
 happner-client: 12.2.5
 
+1.3.2 2022-06-09
+----------------
+happn-3: 13.1.2
+happner-2: 12.1.7
+
 
 
 

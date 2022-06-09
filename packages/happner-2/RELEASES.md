@@ -961,6 +961,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.1.6 2022-06-02
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
+
+12.1.7 2022-06-09
+-----------------
+  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
  
 
 
