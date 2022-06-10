@@ -73,8 +73,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     blockingClient.exchange.testComponent.block(5e3);
     await test.delay(10e3);
     let expectedEvents = [
-      { action: 'removed', name: 'MESH_0' },
-      { action: 'added', name: 'MESH_0' },
+      { action: 'removed', name: getSeq.getMeshName(1) },
+      { action: 'added', name: getSeq.getMeshName(1) },
     ];
     for (let i = 1; i < clusterSize; i++) {
       let events = await clusterHelper.getPeerEvents(i);
