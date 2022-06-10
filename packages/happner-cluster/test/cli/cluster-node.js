@@ -56,7 +56,7 @@ var config = {
           datastores: [
             {
               name: 'mongo',
-              provider: 'happn-service-mongo-2',
+              provider: 'happn-db-provider-mongo',
               isDefault: true,
               settings: {
                 collection: mongoCollection,

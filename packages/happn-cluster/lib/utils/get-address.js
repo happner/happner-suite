@@ -1,7 +1,7 @@
-// return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
-// os and env arguments make the code testable
 const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
 const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
+// return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
+// os and env arguments make the code testable
 module.exports = function (logger, env, os) {
   logger = logger || console;
   os = os || require('os');
@@ -13,7 +13,6 @@ module.exports = function (logger, env, os) {
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
-
     let interfaceItemIndex = parseInt(env['NETWORK_INTERFACE'] || 0);
     if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);

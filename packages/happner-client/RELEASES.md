@@ -344,6 +344,9 @@
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
 
+12.2.7 2022-06-06
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
 

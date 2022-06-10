@@ -1,4 +1,3 @@
-// const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -32,9 +31,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       });
     });
   });
-
+  // test.printOpenHandlesAfter(5e3);
   // in case needed in future
-  //test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {

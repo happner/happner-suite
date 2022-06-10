@@ -354,6 +354,10 @@
 -----------------
   - TEN-60: Wildcard-brokering
   - TEN-42: Rest-discovery
+  
+13.0.0 2022-04-18
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 12.1.2 2022-05-04
 -----------------
@@ -381,6 +385,9 @@
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
 
+13.0.0 2022-05-17
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
 

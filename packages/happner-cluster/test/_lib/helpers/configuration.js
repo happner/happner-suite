@@ -102,6 +102,12 @@ module.exports = class Configuration extends require('./helper') {
             config: {
               minimumPeers: minPeers || 3,
               replicate,
+              timing: {
+                keepAlive: 2e3,
+                memberRefresh: 2e3,
+                keepAliveThreshold: 3e3,
+                stabilisedTimeout: 10e3,
+              },
             },
           },
         },

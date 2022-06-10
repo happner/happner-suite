@@ -951,7 +951,6 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.1.4 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup
-
 12.1.5 2022-05-26
 -----------------
   - updates to commons libs, lint fixes, due to:
@@ -966,6 +965,9 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
  
+12.1.8 2022-06-01
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 
 

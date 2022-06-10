@@ -32,7 +32,6 @@
 1.0.7 2022-05-09
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
-
 1.0.8 2022-05-26
 -----------------
   - updates to commons libs, lint fixes, due to:
@@ -46,3 +45,7 @@
 1.0.10 2022-06-09
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
+
+1.0.11 2022-06-03
+-----------------
+  - TEN-12: mongo-based membership strategy (dev dependencies changes)

@@ -250,7 +250,7 @@ non-release 2017-12-14
 -----------------
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
-
+  
 12.0.4 2022-04-06
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
@@ -281,5 +281,9 @@ non-release 2017-12-14
 12.0.10 2022-06-09
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
+
+13.0.0 2022-06-01
+-----------------
+  - SMC-4817: mongo-based membership strategy
 
 

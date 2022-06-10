@@ -1,4 +1,3 @@
-var Promise = require('bluebird');
 var unique = require('array-unique');
 
 var libDir = require('../_lib/lib-dir');
@@ -81,7 +80,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         return server.stop({ reconnect: false });
       })
       .then(function () {
-        return Promise.delay(200); // time for peer departure to "arrive" at localInstance
+        return test.delay(200); // time for peer departure to "arrive" at localInstance
       })
       .then(function () {
         return Promise.all([
@@ -125,7 +124,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         servers.push(server);
       })
       .then(function () {
-        return Promise.delay(3000); // time for peer arrival to "arrival" at localInstance
+        return test.delay(3000); // time for peer arrival to "arrival" at localInstance
       })
       .then(function () {
         return Promise.all([
