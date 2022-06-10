@@ -242,7 +242,7 @@ module.exports = class Orchestrator extends EventEmitter {
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
     this.emit('peer/add', member.name, member);
-    this.log.debug('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+    this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
   }
 
   removePeer(member) {
@@ -251,11 +251,10 @@ module.exports = class Orchestrator extends EventEmitter {
     this.emit('peer/remove', member.name, member);
     member.connectedTo = false;
     member.connectingTo = false;
-    this.log.debug('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+    this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
   }
 
   removeMember(member) {
-    member.listedAsPeer = false;
     member.connectedTo = false;
     member.connectingTo = false;
     if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);
