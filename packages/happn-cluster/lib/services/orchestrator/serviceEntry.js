@@ -61,7 +61,8 @@ module.exports = class ServiceEntry {
   addMembers() {
     for (let endpoint of this.endpoints) {
       this.members[endpoint] =
-        this.members[endpoint] || Member.create({ endpoint }, this.orchestrator);
+        this.members[endpoint] ||
+        Member.create({ endpoint, serviceName: this.name }, this.orchestrator);
     }
   }
 

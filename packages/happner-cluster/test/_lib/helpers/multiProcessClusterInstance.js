@@ -1,6 +1,7 @@
 const HappnerCluster = require('../../..');
 var config = JSON.parse(process.argv[2]);
 let meshInstance = null;
+let peerEvents = [];
 
 HappnerCluster.create(config)
   .then(function (instance) {
@@ -18,6 +19,17 @@ process.on('message', async (m) => {
       await meshInstance.stop();
     }
     process.exit(0);
+  }
+  if (m === 'listenOnPeers') {
+    meshInstance._mesh.happn.server.services.orchestrator.on('peer/add', (name) => {
+      peerEvents.push({ action: 'added', name });
+    });
+    meshInstance._mesh.happn.server.services.orchestrator.on('peer/remove', (name) => {
+      peerEvents.push({ action: 'removed', name });
+    });
+  }
+  if (m === 'getPeerEvents') {
+    process.send({ peerEvents });
   }
   if (m === 'listMembers') {
     process.send(
