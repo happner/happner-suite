@@ -178,7 +178,7 @@ describe(test.testName(__filename, 3), function () {
         createLogger: () => {
           return {
             $$TRACE: () => {},
-            info: (message) => {
+            debug: (message) => {
               test.expect(message).to.eql(
                 JSON.stringify({
                   event: 'session attached',
@@ -215,7 +215,7 @@ describe(test.testName(__filename, 3), function () {
         createLogger: () => {
           return {
             $$TRACE: () => {},
-            info: (message) => {
+            debug: (message) => {
               test.expect(message).to.eql(
                 JSON.stringify({
                   event: 'session detached',

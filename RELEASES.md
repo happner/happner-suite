@@ -55,13 +55,24 @@ happn-db-provider-mongo: 1.0.9
 happner-2: 12.1.6
 happner-client: 12.2.5
 
-2.0.0 2022-06-06
+1.3.2 2022-06-09
+----------------
+happn-3: 13.1.2
+happn-cluster: 12.0.10
+happn-db-provider-elasticsearch: 1.0.10
+happn-db-provider-mongo: 1.0.10
+happner-2: 12.1.7
+happner-client: 12.2.6
+happner-cluster: 12.1.6
+redis-lru-cache: 1.0.10
+
+2.0.0 2022-06-06   (pre-release)
 -----------------
-happn-3: 13.0.7
+happn-3: 13.1.3
+happner-2: 12.1.8
 happn-cluster: 13.0.0
-happn-db-provider-elasticsearch: 1.0.5
-happn-db-provider-mongo: 1.0.5
-happner-client: 12.2.0
+happn-db-provider-elasticsearch: 1.0.11
+happn-db-provider-mongo: 1.0.11
 happner-cluster: 13.0.0
 
 
