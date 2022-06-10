@@ -68,7 +68,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await clusterHelper.destroy();
   });
 
-  it('blocks', async () => {
+  it('blocks, then checks that all other cluster mebers recieved peer/remove and peer/add events', async () => {
     clusterHelper.listenForPeerEvents();
     blockingClient.exchange.testComponent.block(5e3);
     await test.delay(10e3);
