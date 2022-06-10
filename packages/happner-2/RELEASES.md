@@ -965,7 +965,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
  
-12.1.7 2022-06-01
+12.1.8 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
 
