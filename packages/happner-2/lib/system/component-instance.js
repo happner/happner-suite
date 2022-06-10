@@ -1,5 +1,6 @@
 const commons = require('happn-commons');
-module.exports = class ComponentInstance extends require('events').EventEmitter {
+const utilities = require('./utilities');
+module.exports = class ComponentInstance {
   #authorizer;
   #log;
   #name;
@@ -7,8 +8,9 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
   #info;
   #mesh;
   #module;
+  #callbackIndexes;
   constructor() {
-    super();
+    this.#callbackIndexes = {};
   }
   get Mesh() {
     // local Mesh definition avaliable on $happn
@@ -53,7 +55,7 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
     return clonedConfig;
   }
 
-  initialize = function (name, root, mesh, module, config, callback) {
+  initialize(name, root, mesh, module, config, callback) {
     this.#mesh = mesh;
     this.#name = name;
     this.#config = this.#defaults(config);
@@ -112,120 +114,118 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
     this.event = {};
     this.localEvent = {};
     this.asAdmin = this; //in case we use $happn.asAdmin but have not bound to origin
-    this.data = this.#secureData(mesh._mesh.data, this.name);
+    this.data = require('./secure-mesh-data').create(mesh._mesh.data, this.name);
     this.#attach(config, mesh._mesh, callback);
-  };
+  }
+
+  #getCallbackIndex(methodSchema) {
+    if (this.#callbackIndexes[methodSchema.name] == null) {
+      for (var i in methodSchema.parameters) {
+        if (methodSchema.parameters[i].type === 'callback') {
+          this.#callbackIndexes[methodSchema.name] = i;
+          return i;
+        }
+      }
+      this.#callbackIndexes[methodSchema.name] = -1;
+    }
+    return this.#callbackIndexes[methodSchema.name];
+  }
+
+  #getCallbackProxy(methodName, callback, origin) {
+    const _this = this;
+    let callbackCalled = false;
+    return function () {
+      if (callbackCalled)
+        return _this.log.error(
+          'Callback invoked more than once for method %s',
+          methodName,
+          callback.toString()
+        );
+
+      callbackCalled = true;
+      callback(null, Array.prototype.slice.apply(arguments));
+    }.bind({ $origin: origin });
+  }
 
   operate(methodName, parameters, callback, origin, version, originBindingOverride) {
-    this.__authorizeOriginMethod(
+    this.#authorizeOriginMethod(
       methodName,
       origin,
       (e) => {
-        if (e) return callback(e);
+        if (e) {
+          return callback(e);
+        }
+        let callbackIndex = this.#getCallbackIndex(methodSchema);
+        const methodSchema = this.description.methods[methodName];
+        const methodDefn = this.module.instance[methodName];
 
-        try {
-          var callbackIndex = -1;
-          var callbackCalled = false;
-
-          const methodSchema = this.description.methods[methodName];
-          const methodDefn = this.module.instance[methodName];
-
-          if (!methodSchema || typeof methodDefn !== 'function') {
-            return this.__callBackWithWarningAndError(
-              'Missing method',
-              `Call to unconfigured method [${this.name}.${methodName}()]`,
-              callback
-            );
-          }
-
-          if (version != null && !this.satisfies(this.#module.version, version)) {
-            return _this.__callBackWithWarningAndError(
-              'Component version mismatch',
-              `Call to unconfigured method [${
-                _this.name
-              }.${methodName}]: request version [${version}] does not match component version [${
-                this.#module.version
-              }]`,
-              callback
-            );
-          }
-
-          _this.log.$$TRACE('operate( %s', methodName);
-          _this.log.$$TRACE('parameters ', parameters);
-          _this.log.$$TRACE('methodSchema ', methodSchema);
-
-          if (callback) {
-            if (methodSchema.type === 'sync-promise') {
-              let result;
-              try {
-                result = methodDefn.apply(
-                  this.#module.instance,
-                  _this._inject(methodDefn, parameters, origin)
-                );
-              } catch (syncPromiseError) {
-                return callback(null, [syncPromiseError]);
-              }
-              return callback(null, [null, result]);
-            }
-
-            for (var i in methodSchema.parameters) {
-              if (methodSchema.parameters[i].type === 'callback') callbackIndex = i;
-            }
-
-            var callbackProxy = function () {
-              if (callbackCalled)
-                return _this.log.error(
-                  'Callback invoked more than once for method %s',
-                  methodName,
-                  callback.toString()
-                );
-
-              callbackCalled = true;
-              callback(null, Array.prototype.slice.apply(arguments));
-            };
-
-            callbackProxy.$origin = origin;
-
-            if (callbackIndex === -1) {
-              if (!methodSchema.isAsyncMethod) {
-                parameters.push(callbackProxy);
-              }
-            } else {
-              parameters.splice(callbackIndex, 1, callbackProxy);
-            }
-          }
-
-          let returnObject = methodDefn.apply(
-            this.#module.instance,
-            _this._inject(methodDefn, parameters, origin)
+        if (!methodSchema || typeof methodDefn !== 'function') {
+          return this.__callBackWithWarningAndError(
+            'Missing method',
+            `Call to unconfigured method [${this.name}.${methodName}()]`,
+            callback
           );
+        }
 
-          if (utilities.isPromise(returnObject)) {
-            if (callbackIndex > -1 && utilities.isPromise(returnObject))
-              _this.log.warn('method has been configured as a promise with a callback...');
-            else {
-              returnObject
-                .then(function (result) {
-                  if (callbackProxy) callbackProxy(null, result);
-                })
-                .catch(function (err) {
-                  if (callbackProxy) callbackProxy(err);
-                });
-            }
+        if (version != null && !this.satisfies(this.#module.version, version)) {
+          return this.__callBackWithWarningAndError(
+            'Component version mismatch',
+            `Call to unconfigured method [${
+              this.name
+            }.${methodName}]: request version [${version}] does not match component version [${
+              this.#module.version
+            }]`,
+            callback
+          );
+        }
+
+        this.log.$$TRACE('operate( %s', methodName);
+        this.log.$$TRACE('parameters ', parameters);
+        this.log.$$TRACE('methodSchema ', methodSchema);
+
+        if (methodSchema.type === 'sync-promise') {
+          let result;
+          try {
+            result = methodDefn.apply(
+              this.#module.instance,
+              this._inject(methodDefn, parameters, origin)
+            );
+          } catch (syncPromiseError) {
+            return callback(null, [syncPromiseError]);
           }
-        } catch (callFailedError) {
-          _this.log.error('Call to method %s failed', methodName, callFailedError);
-          _this.stats.component[_this.name].errors++;
+          return callback(null, [null, result]);
+        }
+        const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
 
-          if (callback) callback(callFailedError);
+        if (callbackIndex === -1) {
+          if (!methodSchema.isAsyncMethod) {
+            parameters.push(callbackProxy);
+          }
+        } else {
+          parameters.splice(callbackIndex, 1, callbackProxy);
+        }
+
+        let returnObject = methodDefn.apply(
+          this.#module.instance,
+          this._inject(methodDefn, parameters, origin)
+        );
+
+        if (utilities.isPromise(returnObject)) {
+          if (callbackIndex > -1 && utilities.isPromise(returnObject))
+            this.log.warn('method has been configured as a promise with a callback...');
+          else {
+            returnObject
+              .then(function (result) {
+                callbackProxy(null, result);
+              })
+              .catch(function (err) {
+                callbackProxy(err);
+              });
+          }
         }
       },
       originBindingOverride
     );
-  }
-
-  #loadModule(module) {
-    this.#module = module;
   }
 
   #attach(config, mesh, callback) {
@@ -297,9 +297,7 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
         return callback(e);
       }
     }
-
-    var subscribeMask = this.__getSubscribeMask();
-
+    const subscribeMask = this.#getSubscribeMask();
     this.log.$$TRACE('data.on( ' + subscribeMask);
     mesh.data.on(
       subscribeMask,
@@ -322,11 +320,8 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
             meta: meta,
           });
         }
-
-        var args = Array.isArray(message.args) ? message.args.slice(0, message.args.length) : [];
-
+        const args = Array.isArray(message.args) ? message.args.slice(0, message.args.length) : [];
         if (!message.callbackAddress) return this._discardMessage('No callback address', message);
-
         this.operate(
           method,
           args,
@@ -407,199 +402,6 @@ module.exports = class ComponentInstance extends require('events').EventEmitter 
         callback(e);
       }
     );
-  }
-
-  #secureData(meshData, componentName) {
-    var securedMeshData = {};
-    securedMeshData.__persistedPath = '/_data/' + componentName;
-
-    securedMeshData.getPath = function (path) {
-      if (!path) throw new Error('invalid path: ' + path);
-      if (path[0] !== '/') path = '/' + path;
-
-      return this.__persistedPath + path;
-    };
-
-    securedMeshData.noConnection = function () {
-      return [1, 6].indexOf(meshData.status) === -1;
-    };
-
-    securedMeshData.on = function (path, options, handler, callback) {
-      if (typeof options === 'function') {
-        callback = handler;
-        handler = options;
-        options = {};
-      }
-
-      if (!options) options = {};
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, on:' + path + ', component:' + componentName
-          )
-        );
-
-      if (path === '*') path = '**';
-
-      return meshData.on(this.getPath(path), options, handler, callback);
-    };
-
-    securedMeshData.off = function (listenerRef, callback) {
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, off ref:' +
-              listenerRef +
-              ', component:' +
-              componentName
-          )
-        );
-
-      if (typeof listenerRef === 'number') return meshData.off(listenerRef, callback);
-
-      return meshData.off(this.getPath(listenerRef), callback);
-    };
-
-    securedMeshData.offAll = function (callback) {
-      if (this.noConnection())
-        return callback(
-          new Error('client state not active or connected, offAll, component:' + componentName)
-        );
-
-      //we cannot do a true offAll, otherwise we get no message back
-      return meshData.offPath(this.getPath('*'), callback);
-    };
-
-    securedMeshData.offPath = function (path, callback) {
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, offPath:' + path + ', component:' + componentName
-          )
-        );
-
-      return meshData.offPath(this.getPath(path), callback);
-    };
-
-    securedMeshData.get = function (path, options, callback) {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      }
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, get:' + path + ', component:' + componentName
-          )
-        );
-
-      return meshData.get(this.getPath(path), options, callback);
-    };
-
-    securedMeshData.count = function (path, options, callback) {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      }
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, get:' + path + ', component:' + componentName
-          )
-        );
-
-      return meshData.count(this.getPath(path), options, callback);
-    };
-
-    securedMeshData.getPaths = function (path, callback) {
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, getPaths:' +
-              path +
-              ', component:' +
-              componentName
-          )
-        );
-
-      return meshData.getPaths(this.getPath(path), callback);
-    };
-
-    securedMeshData.set = function (path, data, options, callback) {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      }
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, set:' + path + ', component:' + componentName
-          )
-        );
-      return meshData.set(this.getPath(path), data, options, callback);
-    };
-
-    securedMeshData.increment = function (path, gauge, increment, callback) {
-      if (typeof increment === 'function') {
-        callback = increment;
-        increment = gauge;
-        gauge = 'counter';
-      }
-
-      if (typeof gauge === 'function') {
-        callback = gauge;
-        increment = 1;
-        gauge = 'counter';
-      }
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, increment:' +
-              path +
-              ', component:' +
-              componentName
-          )
-        );
-
-      return meshData.increment(this.getPath(path), gauge, increment, callback);
-    };
-
-    securedMeshData.setSibling = function (path, data, callback) {
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, setSibling:' +
-              path +
-              ', component:' +
-              componentName
-          )
-        );
-
-      return meshData.setSibling(this.getPath(path), data, callback);
-    };
-
-    securedMeshData.remove = function (path, options, callback) {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      }
-
-      if (this.noConnection())
-        return callback(
-          new Error(
-            'client state not active or connected, remove:' + path + ', component:' + componentName
-          )
-        );
-
-      return meshData.remove(this.getPath(path), options, callback);
-    };
-
-    return securedMeshData;
   }
 
   #getSubscribeMask() {

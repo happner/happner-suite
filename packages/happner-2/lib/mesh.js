@@ -2099,18 +2099,18 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
         });
 
       if (methodConfig.type === 'sync') {
-        try {
-          _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
-          component.instance.operate(options.methodName, methodParameters);
+        _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
+        component.instance.operate(options.methodName, methodParameters, (e) => {
           if (options.logAction) {
             _this.log.debug("%s component '%s'", options.logAction, componentName);
           }
-        } catch (e) {
-          done(new Error(e));
-          return;
-        }
-        done();
-        return;
+          if (e) {
+            _this.log.error(
+              `sync operation failed for component: ${componentName}, error: ${e.message}`
+            );
+          }
+        });
+        return done();
       }
 
       calls[call] = Date.now();
