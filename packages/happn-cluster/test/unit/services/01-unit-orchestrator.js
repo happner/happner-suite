@@ -598,21 +598,6 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
 
         await test.delay(300);
 
-        // not emitted on new member
-        test.expect(emitted).to.eql({});
-
-        // but is emitted once new member fully connected (per login back)
-        MockSession.instance.emit('authentic', {
-          info: {
-            name: '10-0-0-1_55001',
-            clusterName: 'happn-cluster',
-            endpoint: '10.0.0.1:55001',
-            url: 'http://10.0.0.1:55001',
-            serviceName: 'happn-cluster-node',
-          },
-        });
-        await test.delay(300);
-
         test.expect(emitted).to.eql({
           name: '10-0-0-1_55001',
           member: o.peers['10-0-0-1_55001'],
