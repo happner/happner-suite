@@ -43,6 +43,21 @@ module.exports = class Cluster extends Helper {
         this.childProcess[pid].send('listMembers');
       });
     };
+    this.listenForPeerEvents = (index) => {
+      let pids = index || index === 0 ? [this.pids[index]] : this.pids;
+      for (let pid of pids) {
+        this.childProcess[pid].send('listenOnPeers');
+      }
+    };
+    this.getPeerEvents = (index) => {
+      return new Promise((res) => {
+        let pid = this.pids[index];
+        this.childProcess[pid].once('message', (info) => {
+          return res(info);
+        });
+        this.childProcess[pid].send('getPeerEvents');
+      });
+    };
     this.stopChild = async (index, timeOut = 5000) => {
       let pid = this.pids[index];
       this.childProcess[pid].send('stopMesh');

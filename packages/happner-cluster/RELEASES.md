@@ -381,11 +381,13 @@
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
 
+12.1.7 2022-06-09
+-----------------
+  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
+
 13.0.0 2022-05-17
 -----------------
   - SMC-4817: mongo-based membership strategy
-
-
 
 
 

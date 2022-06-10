@@ -39,6 +39,7 @@ module.exports = class Orchestrator extends EventEmitter {
       {}
     );
   }
+
   get unstableMembers() {
     return Object.values(this.members).filter((member) => !member.peer).length > 0;
   }
@@ -240,18 +241,22 @@ module.exports = class Orchestrator extends EventEmitter {
   addPeer(member) {
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
-    this.emit('peer/add', member.name, member);
-    this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+    if (member.endpoint !== this.endpoint) {
+      this.emit('peer/add', member.name, member);
+      this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+    }
   }
 
   removePeer(member) {
+    if (!member.listedAsPeer) return;
     member.listedAsPeer = false;
-    this.emit('peer/remove', member.name, member);
-    member.connectedTo = false;
-    member.connectingTo = false;
-    this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+    if (member.endpoint !== this.endpoint) {
+      this.emit('peer/remove', member.name, member);
+      member.connectedTo = false;
+      member.connectingTo = false;
+      this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+    }
   }
-
   removeMember(member) {
     member.connectedTo = false;
     member.connectingTo = false;

@@ -27,6 +27,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       const remoteComponent = baseConfig(seq, 2, true, null, null, null, null, null);
       remoteComponent.happn.services.orchestrator.config.serviceName = 'testComponent';
       remoteComponent.happn.services.orchestrator.config.cluster = { testComponent: clusterSize };
+      remoteComponent.happn.services.cache.config.statisticsInterval = 0;
       remoteComponent.modules = {
         testComponent: {
           path: libDir + 'integration-38-local-component',
@@ -128,7 +129,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
         test.expect(error.toString().startsWith('Error: Insufficients connections')).to.be(true)
       );
     }
-    await test.delay(10e3);
+    await test.delay(7e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 5]);
@@ -143,10 +144,10 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('block block', async () => {
     blockNode(1);
-    await test.delay(9e3);
+    await test.delay(12e3);
     await testConnections();
     blockNode(2);
-    await test.delay(9e3);
+    await test.delay(12e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 2, 5]);
@@ -154,10 +155,10 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('kill kill', async () => {
     await restartNode(1, 5e3);
-    await test.delay(5e3);
+    await test.delay(7e3);
     await testConnections();
     await restartNode(2, 5e3);
-    await test.delay(5e3);
+    await test.delay(7e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 2, 5]);
@@ -165,10 +166,10 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('block kill', async () => {
     blockNode(1);
-    await test.delay(9e3);
+    await test.delay(10e3);
     await testConnections();
     await restartNode(2, 5e3);
-    await test.delay(5e3);
+    await test.delay(7e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 2, 5]);
@@ -176,10 +177,10 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('kill block', async () => {
     await restartNode(1, 5e3);
-    await test.delay(5e3);
+    await test.delay(7e3);
     await testConnections();
     blockNode(2);
-    await test.delay(9e3);
+    await test.delay(12e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 2, 5]);
@@ -224,7 +225,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     for (let index of nodes2change) {
       Math.random() < 0.5 ? restartNode(index, delay) : blockNode(index, delay);
     }
-    await test.delay(20e3);
+    await test.delay(25e3);
     await testConnections();
     await checkPeers();
     nodes2change = _.sampleSize(indices, 4);
@@ -247,7 +248,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   it('major chaos, roughly simultaneous arrive/depart', async () => {
     let restartPromises = [];
-    let delay = 10e3;
+    let delay = 12e3;
     let restartDelay = 4e3;
     let pick = 3;
     let indices = Array.from(Array(clusterSize).keys());

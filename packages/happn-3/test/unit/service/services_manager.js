@@ -88,6 +88,10 @@ describe(
             //eslint-disable-next-line no-console
             console.log(message);
           },
+          debug: function (message) {
+            //eslint-disable-next-line no-console
+            console.log(message);
+          },
         },
       };
 

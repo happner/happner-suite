@@ -505,7 +505,7 @@
                 }
               )
               .then(function () {
-                client.log.info('initialized!');
+                client.log.debug('initialized!');
                 instance.emit('login/allow'); // PENDING (also in .login().resolved) something useful in login result
                 if (instance._events && instance._events['destroy/components']) {
                   if (!deprecatedDestroyComponentsWarned) {
