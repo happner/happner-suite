@@ -270,16 +270,12 @@ Security.prototype.getSystemPermissions = function ($happn, params, callback) {
 };
 
 Security.prototype.__getPermissionPath = function ($happn, rawPath, prefix, wildcard) {
-  var meshName = $happn.info.mesh.domain;
-
+  const meshName = $happn.info.mesh.domain;
   //we add a wildcard to the end of the path
   // eslint-disable-next-line no-useless-escape
   if (wildcard) rawPath = rawPath.replace(/[\/*]+$/, '') + '/*';
-
   if (rawPath.substring(0, 1) !== '/') rawPath = '/' + rawPath;
-
   if (rawPath.indexOf('/' + meshName) === -1) rawPath = rawPath.replace('/', '/' + meshName + '/');
-
   return '/' + prefix + rawPath;
 };
 

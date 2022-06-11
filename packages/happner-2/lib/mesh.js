@@ -1184,7 +1184,7 @@ Mesh.prototype._destroyElement = util.promisify(function (componentName, callbac
       },
 
       function (done) {
-        _this._mesh.elements[componentName].component.instance._detatch(_this._mesh, done);
+        _this._mesh.elements[componentName].component.instance.detatch(_this._mesh, done);
       },
 
       function (done) {
@@ -1671,27 +1671,17 @@ Mesh.prototype._createComponent = function (spec, callback) {
       );
     }
   }.bind(_this);
-
-  //TODO - we need to remove routes somewhere too:
-
-  componentInstance.initialize(
-    componentName,
-    root,
-    _this,
-    spec.module,
-    componentConfig,
-    function (e) {
-      if (e) return callback(e);
-      try {
-        __addComponentDataStoreRoutes(componentConfig);
-      } catch (e) {
-        return callback(new Error(`bad component data route: ${e.message}`));
-      }
-      spec.component.instance = componentInstance;
-      _this._mesh.elements[componentName] = spec;
-      callback();
+  componentInstance.initialize(componentName, _this, spec.module, componentConfig, function (e) {
+    if (e) return callback(e);
+    try {
+      __addComponentDataStoreRoutes(componentConfig);
+    } catch (e) {
+      return callback(new Error(`bad component data route: ${e.message}`));
     }
-  );
+    spec.component.instance = componentInstance;
+    _this._mesh.elements[componentName] = spec;
+    callback();
+  });
 };
 
 Mesh.prototype._integrateComponent = function (spec, done) {

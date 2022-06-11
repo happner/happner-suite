@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const restClient = require('restler');
   let mesh, adminUser;
   before('it sets up the mesh', setUpMesh);
@@ -50,7 +50,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.expect(errorMessage).to.be('unauthorised');
   });
 
-  it.only('can do an exchange call with as in component method', async () => {
+  it('can do an exchange call with as in component method', async () => {
     test
       .expect(await adminUser.exchange.test.doOnBehalfOfAllowedAs(1, 2))
       .to.eql('origin:testUser:1:2');

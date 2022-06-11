@@ -1,5 +1,6 @@
 const commons = require('happn-commons');
 const utilities = require('./utilities');
+const EventEmitter = require('events').EventEmitter;
 module.exports = class ComponentInstance {
   #authorizer;
   #log;
@@ -9,8 +10,11 @@ module.exports = class ComponentInstance {
   #mesh;
   #module;
   #callbackIndexes;
+  #localEventEmitter;
+  #boundComponentInstanceFactory;
   constructor() {
     this.#callbackIndexes = {};
+    this.#localEventEmitter = new EventEmitter();
   }
   get Mesh() {
     // local Mesh definition avaliable on $happn
@@ -32,14 +36,17 @@ module.exports = class ComponentInstance {
   get module() {
     return this.#module;
   }
+  get log() {
+    return this.#log;
+  }
 
-  async #isAuthorized(username, permissions) {
+  async isAuthorized(username, permissions) {
     return await this.#authorizer.checkAuthorizations(username, permissions);
   }
 
   #defaults(config) {
     let clonedConfig = commons.fastClone(config);
-    let defaults = module.instance.$happner;
+    let defaults = this.#module.instance.$happner;
     if (typeof defaults === 'object') {
       Object.keys((defaults = defaults.config.component)).forEach((key) => {
         // - Defaulting applies only to the 'root' keys nested immediately
@@ -55,7 +62,8 @@ module.exports = class ComponentInstance {
     return clonedConfig;
   }
 
-  initialize(name, root, mesh, module, config, callback) {
+  initialize(name, mesh, module, config, callback) {
+    this.#module = module;
     this.#mesh = mesh;
     this.#name = name;
     this.#config = this.#defaults(config);
@@ -109,12 +117,15 @@ module.exports = class ComponentInstance {
     // this.event = mesh.event;
     //
     // they are loaded as a last step in mesh.js (See mesh._initializeComponents)
-    this.#module = module;
     this.exchange = {};
     this.event = {};
     this.localEvent = {};
     this.asAdmin = this; //in case we use $happn.asAdmin but have not bound to origin
-    this.data = require('./secure-mesh-data').create(mesh._mesh.data, this.name);
+    this.data = require('./component-instance-data').create(mesh._mesh.data, this.name);
+    this.#boundComponentInstanceFactory = require('./component-instance-bound-factory').create(
+      this,
+      mesh._mesh
+    );
     this.#attach(config, mesh._mesh, callback);
   }
 
@@ -136,7 +147,7 @@ module.exports = class ComponentInstance {
     let callbackCalled = false;
     return function () {
       if (callbackCalled)
-        return _this.log.error(
+        return _this.#log.error(
           'Callback invoked more than once for method %s',
           methodName,
           callback.toString()
@@ -155,20 +166,20 @@ module.exports = class ComponentInstance {
         if (e) {
           return callback(e);
         }
-        let callbackIndex = this.#getCallbackIndex(methodSchema);
         const methodSchema = this.description.methods[methodName];
-        const methodDefn = this.module.instance[methodName];
+        const methodDefn = this.#module.instance[methodName];
+        let callbackIndex = this.#getCallbackIndex(methodSchema);
 
         if (!methodSchema || typeof methodDefn !== 'function') {
-          return this.__callBackWithWarningAndError(
+          return this.#callBackWithWarningAndError(
             'Missing method',
             `Call to unconfigured method [${this.name}.${methodName}()]`,
             callback
           );
         }
 
-        if (version != null && !this.satisfies(this.#module.version, version)) {
-          return this.__callBackWithWarningAndError(
+        if (version != null && !this.#satisfies(this.#module.version, version)) {
+          return this.#callBackWithWarningAndError(
             'Component version mismatch',
             `Call to unconfigured method [${
               this.name
@@ -179,16 +190,16 @@ module.exports = class ComponentInstance {
           );
         }
 
-        this.log.$$TRACE('operate( %s', methodName);
-        this.log.$$TRACE('parameters ', parameters);
-        this.log.$$TRACE('methodSchema ', methodSchema);
+        this.#log.$$TRACE('operate( %s', methodName);
+        this.#log.$$TRACE('parameters ', parameters);
+        this.#log.$$TRACE('methodSchema ', methodSchema);
 
         if (methodSchema.type === 'sync-promise') {
           let result;
           try {
             result = methodDefn.apply(
               this.#module.instance,
-              this._inject(methodDefn, parameters, origin)
+              this.#inject(methodDefn, parameters, origin)
             );
           } catch (syncPromiseError) {
             return callback(null, [syncPromiseError]);
@@ -207,12 +218,12 @@ module.exports = class ComponentInstance {
 
         let returnObject = methodDefn.apply(
           this.#module.instance,
-          this._inject(methodDefn, parameters, origin)
+          this.#inject(methodDefn, parameters, origin)
         );
 
         if (utilities.isPromise(returnObject)) {
           if (callbackIndex > -1 && utilities.isPromise(returnObject))
-            this.log.warn('method has been configured as a promise with a callback...');
+            this.#log.warn('method has been configured as a promise with a callback...');
           else {
             returnObject
               .then(function (result) {
@@ -228,10 +239,42 @@ module.exports = class ComponentInstance {
     );
   }
 
+  // TODO: Still working on this
+  #attachModuleMethods() {
+    for (const methodName in this.exchange[this.name]) {
+      if (typeof this.exchange[this.name][methodName] === 'function') {
+        this.exchange[this.name][methodName].as = (username) => {
+          return function () {
+            const functionArgs = Array.from(arguments);
+            return new Promise((resolve, reject) => {
+              this.operate(
+                methodName,
+                functionArgs,
+                (e, results) => {
+                  if (e) return reject(e);
+                  resolve(results);
+                },
+                { username },
+                null,
+                true
+              );
+            });
+          }.bind(this);
+        };
+      }
+    }
+  }
+
+  #callBackWithWarningAndError(category, message, callback) {
+    const error = new Error(message);
+    this.#log.warn(`${category}:${message}`);
+    return callback(error);
+  }
+
   #attach(config, mesh, callback) {
     //attach module to the transport layer
-    this.log.$$TRACE('_attach()');
-    this.emit = function (key, data, options, callback) {
+    this.#log.$$TRACE('_attach()');
+    this.emit = (key, data, options, callback) => {
       if (typeof options === 'function') {
         callback = options;
         options = {};
@@ -248,18 +291,19 @@ module.exports = class ComponentInstance {
 
       if ([1, 3].indexOf(options.consistency) > -1) {
         options.onPublished = (e, results) => {
-          if (e) return this.__raiseOnPublishError(e);
-          this.__raiseOnPublishOK(results);
+          if (e) return this.#raiseOnPublishError(e);
+          this.#raiseOnPublishOK(results);
         };
       }
+
       mesh.data.set(eventKey + key, data, options, (e, response) => {
-        if (e) return this.__raiseOnEmitError(e);
-        this.__raiseOnEmitOK(response);
+        if (e) return this.#raiseOnEmitError(e);
+        this.#raiseOnEmitOK(response);
         if (callback) callback(e, response);
       });
-    }.bind(this);
+    };
 
-    this.emitLocal = function (key, data, callback) {
+    this.emitLocal = (key, data, callback) => {
       // differs from .emit() in that the publish does not replicate into the cluster
       var eventKey = '/_events/' + this.info.mesh.domain + '/' + this.name + '/';
 
@@ -275,7 +319,7 @@ module.exports = class ComponentInstance {
         },
         callback
       );
-    }.bind(this);
+    };
 
     if (config.web && config.web.routes) {
       try {
@@ -286,46 +330,34 @@ module.exports = class ComponentInstance {
 
           if (Array.isArray(routeTarget)) {
             routeTarget.map(function (targetMethod) {
-              this._attachRouteTarget(mesh, meshRoutePath, componentRoutePath, targetMethod, route);
+              this.#attachRouteTarget(mesh, meshRoutePath, componentRoutePath, targetMethod, route);
             });
           } else {
-            this._attachRouteTarget(mesh, meshRoutePath, componentRoutePath, routeTarget, route);
+            this.#attachRouteTarget(mesh, meshRoutePath, componentRoutePath, routeTarget, route);
           }
         });
       } catch (e) {
-        this.log.error('Failure to attach web methods', e);
+        this.#log.error('Failure to attach web methods', e);
         return callback(e);
       }
     }
     const subscribeMask = this.#getSubscribeMask();
-    this.log.$$TRACE('data.on( ' + subscribeMask);
+    this.#log.$$TRACE('data.on( ' + subscribeMask);
     mesh.data.on(
       subscribeMask,
       {
         event_type: 'set',
       },
       (publication, meta) => {
-        this.log.$$TRACE('received request at %s', subscribeMask);
-        var message = publication;
-        var method = meta.path.split('/').pop();
-
-        if (this.serializer && typeof this.serializer.__decode === 'function') {
-          message.args = this.serializer.__decode(message.args, {
-            req: true,
-            res: false,
-            at: {
-              mesh: this.info.mesh.name,
-              component: this.name,
-            },
-            meta: meta,
-          });
-        }
+        this.#log.$$TRACE('received request at %s', subscribeMask);
+        let message = publication;
+        let method = meta.path.split('/').pop();
         const args = Array.isArray(message.args) ? message.args.slice(0, message.args.length) : [];
-        if (!message.callbackAddress) return this._discardMessage('No callback address', message);
+        if (!message.callbackAddress) return this.#discardMessage('No callback address', message);
         this.operate(
           method,
           args,
-          function (e, responseArguments) {
+          (e, responseArguments) => {
             var serializedError;
 
             if (e) {
@@ -339,9 +371,9 @@ module.exports = class ComponentInstance {
                 serializedError[key] = e[key];
               });
 
-              this.log.$$TRACE('operate( reply( ERROR %s', message.callbackAddress);
+              this.#log.$$TRACE('operate( reply( ERROR %s', message.callbackAddress);
 
-              return this.__reply(
+              return this.#reply(
                 message.callbackAddress,
                 message.callbackPeer,
                 {
@@ -375,24 +407,11 @@ module.exports = class ComponentInstance {
               responseArguments[0] = serializedError;
             }
 
-            if (this.serializer && typeof this.serializer.__encode === 'function') {
-              response.args = this.serializer.__encode(response.args, {
-                req: false,
-                res: true,
-                src: {
-                  mesh: this.info.mesh.name,
-                  component: this.name,
-                },
-                meta: meta,
-                opts: this.__createSetOptions(publication.origin.id, this.info.happn.options),
-              });
-            }
-
             // Populate response to the callback address
-            this.log.$$TRACE('operate( reply( RESULT %s', message.callbackAddress);
+            this.#log.$$TRACE('operate( reply( RESULT %s', message.callbackAddress);
 
-            var options = this.__createSetOptions(publication.origin.id, this.info.happn.options);
-            this.__reply(message.callbackAddress, message.callbackPeer, response, options, mesh);
+            var options = this.#createSetOptions(publication.origin.id, this.info.happn.options);
+            this.#reply(message.callbackAddress, message.callbackPeer, response, options, mesh);
           },
           meta.eventOrigin || message.origin,
           message.version
@@ -404,44 +423,425 @@ module.exports = class ComponentInstance {
     );
   }
 
-  #getSubscribeMask() {
-    return `/_exchange/requests/${this.info.mesh.domain}/${this.info.name}/*`;
+  #createSetOptions(originId, options) {
+    if (this.config.directResponses)
+      return commons._.merge(
+        {
+          targetClients: [originId],
+        },
+        options
+      );
+    else return options;
   }
 
-  #authorizeOriginMethod() {
-    return (methodName, origin, callback, originBindingOverride) => {
-      if (!this.originBindingNecessary(this.#mesh._mesh, origin, originBindingOverride)) {
-        return callback(null, true);
-      }
-      const subscribeMask = this.#getSubscribeMask();
-      const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
-      this.#mesh.mesh._mesh.happn.server.services.security.__getOnBehalfOfSession(
-        {
-          user: {
-            username: '_ADMIN',
-          },
+  #getSubscribeMask() {
+    return `/_exchange/requests/${this.info.mesh.domain}/${this.name}/*`;
+  }
+
+  #satisfies(moduleVersion, version) {
+    return this.semver.coercedSatisfies(moduleVersion, version);
+  }
+
+  on(event, handler) {
+    try {
+      this.#log.$$TRACE('component on called', event);
+      return this.#localEventEmitter.on(event, handler);
+    } catch (e) {
+      this.#log.$$TRACE('component on error', e);
+    }
+  }
+
+  offEvent(event, handler) {
+    try {
+      this.#log.$$TRACE('component offEvent called', event);
+      return this.#localEventEmitter.offEvent(event, handler);
+    } catch (e) {
+      this.#log.$$TRACE('component offEvent error', e);
+    }
+  }
+
+  emitEvent(event, data) {
+    try {
+      this.#log.$$TRACE('component emitEvent called', event);
+      return this.#localEventEmitter.emit(event, data);
+    } catch (e) {
+      this.#log.$$TRACE('component emitEvent error', e);
+    }
+  }
+
+  #authorizeOriginMethod(methodName, origin, callback, originBindingOverride) {
+    if (
+      !this.#boundComponentInstanceFactory.originBindingNecessary(origin, originBindingOverride)
+    ) {
+      return callback(null, true);
+    }
+    const subscribeMask = this.#getSubscribeMask();
+    const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
+    this.#mesh.mesh._mesh.happn.server.services.security.__getOnBehalfOfSession(
+      {
+        user: {
+          username: '_ADMIN',
         },
-        origin.username,
-        function (e, originSession) {
-          if (e) return callback(e);
-          this.#mesh.mesh._mesh.happn.server.services.security.authorize(
-            originSession,
-            permissionPath,
-            'set',
-            function (e, authorized) {
-              if (e) return callback(e);
-              if (!authorized)
-                return callback(
-                  this.#mesh.mesh._mesh.happn.server.services.error.AccessDeniedError(
-                    'unauthorized',
-                    'request on behalf of: ' + origin.username
-                  )
-                );
-              callback();
-            }
-          );
+      },
+      origin.username,
+      function (e, originSession) {
+        if (e) return callback(e);
+        this.#mesh.mesh._mesh.happn.server.services.security.authorize(
+          originSession,
+          permissionPath,
+          'set',
+          function (e, authorized) {
+            if (e) return callback(e);
+            if (!authorized)
+              return callback(
+                this.#mesh.mesh._mesh.happn.server.services.error.AccessDeniedError(
+                  'unauthorized',
+                  'request on behalf of: ' + origin.username
+                )
+              );
+            callback();
+          }
+        );
+      }
+    );
+  }
+
+  #getMethodDefn(config, methodName) {
+    if (!config.schema) return;
+    if (!config.schema.methods) return;
+    if (!config.schema.methods[methodName]) return;
+    return config.schema.methods[methodName];
+  }
+
+  #parseWebRoutes() {
+    const webMethods = {}; // accum list of webMethods to exclude from exhange methods description
+    const routes = this.config.web.routes;
+    Object.keys(routes).forEach((routePath) => {
+      let route = routes[routePath];
+
+      if (route instanceof Array)
+        route.forEach(function (method) {
+          webMethods[method] = 1;
+          route = method; // last in route array is used to determine type: static || mware
+        });
+      else webMethods[route] = 1;
+
+      if (routePath === 'static') routePath = '/';
+      else if (this.name === 'www' && routePath === 'global') return;
+      else if (this.name === 'www' && routePath !== 'global') routePath = '/' + routePath;
+      else if (routePath === 'resources' && this.name === 'resources') routePath = '/' + routePath;
+      else routePath = '/' + this.name + '/' + routePath;
+
+      this.description.routes[routePath] = {};
+      this.description.routes[routePath].type = route === 'static' ? 'static' : 'mware';
+    });
+    return webMethods;
+  }
+
+  describe(cached) {
+    if (cached !== false && this.description) {
+      return this.description;
+    }
+    Object.defineProperty(this, 'description', {
+      value: {
+        name: this.name,
+        version: this.#module.version,
+        methods: {},
+        routes: {},
+      },
+      configurable: true,
+    });
+
+    let webMethods = {};
+    if (this.config.web && this.config.web.routes) {
+      webMethods = this.#parseWebRoutes();
+    }
+
+    // build description.events (components events)
+    if (this.config.events) this.description.events = utilities.clone(this.config.events);
+    else this.description.events = {};
+
+    if (this.config.data) this.description.data = utilities.clone(this.config.data);
+    else this.description.data = {};
+
+    //get all methods that are not inherited from Object, Stream, and EventEmitter
+    const methodNames = utilities.getAllMethodNames(this.#module.instance, {
+      ignoreInheritedNativeMethods: true,
+    });
+
+    for (var methodName of methodNames) {
+      let method = this.#module.instance[methodName];
+      let methodDefined = this.#getMethodDefn(this.config, methodName);
+      let isAsyncMethod = method.toString().substring(0, 6) === 'async ';
+      if (methodDefined) methodDefined.isAsyncMethod = isAsyncMethod;
+
+      if (method.$happner && method.$happner.ignore && !methodDefined) continue;
+      if (methodName.indexOf('_') === 0 && !methodDefined) continue;
+      if (!this.config.schema || (this.config.schema && !this.config.schema.exclusive)) {
+        // no schema or not exclusive, allow all (except those filtered above and those that are webMethods)
+        if (webMethods[methodName]) continue;
+        this.description.methods[methodName] = methodDefined = methodDefined || {
+          isAsyncMethod,
+        };
+        if (!methodDefined.parameters) {
+          this.#defaultParameters(method, methodDefined);
         }
+        continue;
+      }
+
+      if (methodDefined) {
+        // got schema and exclusive is true (per filter in previous if) and have definition
+        this.description.methods[methodName] = methodDefined;
+        if (!methodDefined.parameters) {
+          this.#defaultParameters(method, methodDefined);
+        }
+      }
+    }
+    return this.description;
+  }
+
+  #inject(methodDefn, parameters, origin) {
+    if (parameters.length < methodDefn.$argumentsLength) {
+      // pad undefined values
+      parameters = parameters.concat(
+        new Array(methodDefn.$argumentsLength - parameters.length).fill(undefined)
       );
-    };
+    }
+    if (methodDefn.$happnSeq != null && methodDefn.$originSeq != null) {
+      // these must happen in the order of the smallest sequence first
+      if (methodDefn.$happnSeq < methodDefn.$originSeq) {
+        parameters.splice(
+          methodDefn.$happnSeq,
+          0,
+          this.#boundComponentInstanceFactory.getBoundComponent(origin)
+        );
+        parameters.splice(methodDefn.$originSeq, 0, origin);
+      } else {
+        parameters.splice(methodDefn.$originSeq, 0, origin);
+        parameters.splice(
+          methodDefn.$happnSeq,
+          0,
+          this.#boundComponentInstanceFactory.getBoundComponent(origin)
+        );
+      }
+    } else {
+      if (methodDefn.$originSeq != null) {
+        parameters.splice(methodDefn.$originSeq, 0, origin);
+      }
+      if (methodDefn.$happnSeq != null) {
+        parameters.splice(
+          methodDefn.$happnSeq,
+          0,
+          this.#boundComponentInstanceFactory.getBoundComponent(origin)
+        );
+      }
+    }
+    return parameters;
+  }
+
+  #defaultParameters(method, methodSchema) {
+    if (!methodSchema.parameters) methodSchema.parameters = [];
+    utilities
+      .getFunctionParameters(method)
+      .filter(function (argName) {
+        return argName !== '$happn' && argName !== '$origin';
+      })
+      .map(function (argName) {
+        methodSchema.parameters.push({
+          name: argName,
+        });
+      });
+  }
+
+  #discardMessage(reason, message) {
+    this.#log.warn('message discarded: %s', reason, message);
+  }
+
+  #hasNext(methodDefn) {
+    var parameters = utilities.getFunctionParameters(methodDefn);
+    return parameters.indexOf('next') >= 0;
+  }
+
+  #getWebOrigin(mesh, params) {
+    var cookieName = null;
+
+    try {
+      cookieName = mesh.config.happn.services.connect.config.middleware.security.cookieName;
+    } catch (e) {
+      // do nothing
+    } //do nothing
+
+    return mesh.happn.server.services.security.sessionFromRequest(params[0], {
+      cookieName: cookieName,
+    });
+  }
+
+  #runWithInjection(args, mesh, methodDefn) {
+    const parameters = Array.prototype.slice.call(args);
+    const origin = this.#getWebOrigin(mesh, parameters);
+    methodDefn.apply(this.#module.instance, this.#inject(methodDefn, parameters, origin));
+  }
+
+  #attachRouteTarget(mesh, meshRoutePath, componentRoutePath, targetMethod) {
+    let serve;
+    let connect = mesh.happn.server.connect;
+    let methodDefn =
+      typeof targetMethod === 'function' ? targetMethod : this.#module.instance[targetMethod];
+    let componentRef = componentRoutePath.substring(1);
+    let _this = this;
+
+    if (typeof methodDefn !== 'function')
+      throw new Error(
+        `Middleware target ${_this.name}:${targetMethod} not a function or null, check your happner web routes config`
+      );
+
+    if (
+      typeof methodDefn.$happnSeq !== 'undefined' ||
+      typeof methodDefn.$originSeq !== 'undefined'
+    ) {
+      if (this.#hasNext(methodDefn)) {
+        serve = function () {
+          // preserve next in signature for connect
+          _this.#runWithInjection(arguments, mesh, methodDefn);
+        };
+      } else {
+        serve = function () {
+          _this.#runWithInjection(arguments, mesh, methodDefn);
+        };
+      }
+    } else {
+      serve = methodDefn.bind(this.#module.instance);
+    }
+
+    connect.use(meshRoutePath, serve);
+    connect.use(componentRoutePath, serve);
+
+    this.#log.$$TRACE(`attached web route for component ${this.name}: ${meshRoutePath}`);
+
+    // tag for detatch() to be able to remove middleware when removing component
+    serve.__tag = this.name;
+
+    if (!mesh.config.web) return;
+    if (!mesh.config.web.routes) return;
+
+    // attach this as root middleware if configured
+    Object.keys(mesh.config.web.routes).forEach(function (mountRoute) {
+      var mountPoint = mesh.config.web.routes[mountRoute];
+      if (componentRef !== mountPoint) return;
+      connect.use(mountRoute, function (req, res, next) {
+        req.rootWebRoute = mountRoute;
+        req.componentWebRoute = mountPoint;
+        serve(req, res, next);
+      });
+    });
+  }
+
+  #raiseOnEmitError(e) {
+    this.emitEvent('on-emit-error', e);
+  }
+
+  #raiseOnEmitOK(response) {
+    this.emitEvent('on-emit-ok', response);
+  }
+
+  #raiseOnPublishError(e) {
+    this.emitEvent('on-publish-error', e);
+  }
+
+  #raiseOnPublishOK(response) {
+    this.emitEvent('on-publish-ok', response);
+  }
+
+  #reply(callbackAddress, callbackPeer, response, options, mesh) {
+    let client = mesh.data;
+    if (callbackPeer) {
+      // for cluster the set is performed back at the originating peer
+      try {
+        client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
+      } catch (e) {
+        // no peer at callback (race conditions on servers stopping and starting) dead end...
+        this.#log.warn('Failure on callback, missing peer', e);
+        return;
+      }
+    }
+    client.publish(callbackAddress, response, options, (e) => {
+      if (e) {
+        var logMessage = 'Failure to set callback data on address ' + callbackAddress;
+        if (e.message && e.message === 'client is disconnected')
+          return this.#log.warn(logMessage + ':client is disconnected');
+        this.#log.error(logMessage, e);
+      }
+    });
+  }
+
+  detatch(mesh, callback) {
+    //
+    // mesh._mesh
+    this.#log.$$TRACE('detatch() removing component from mesh');
+
+    var _this = this;
+    var connect = mesh.happn.server.connect;
+    var name = this.name;
+
+    // Remove this component's middleware from the connect stack.
+
+    var toRemove = connect.stack
+
+      .map(function (mware, i) {
+        if (mware.handle.__tag !== name) return -1;
+        return i;
+      })
+
+      .filter(function (i) {
+        return i >= 0;
+      })
+
+      // splice starting from the back end so that array size change does not offset
+
+      .reverse();
+
+    toRemove.forEach(function (i) {
+      _this.#log.$$TRACE('removing mware at %s', connect.stack[i].route);
+      connect.stack.splice(i, 1);
+    });
+
+    // Remove this component's request listener from the happn
+
+    var listenAddress = '/_exchange/requests/' + this.info.mesh.domain + '/' + this.name + '/';
+    var subscribeMask = listenAddress + '*';
+
+    _this.#log.$$TRACE('removing request listener %s', subscribeMask);
+
+    mesh.data.offPath(subscribeMask, function (e) {
+      if (e)
+        _this.#log.warn('half detatched, failed to remove request listener %s', subscribeMask, e);
+      callback(e);
+    });
+  }
+
+  // terminal: inline help $happn.README
+  README() {
+    /*
+     </br>
+     ## This is the Component Instance
+     It is available in the terminal at **$happn**. From modules, it is optionally
+     injected (by argument name) into functions as **$happn**.
+     It has access to the **Exchange**, **Event** and **Data** APIs as well as some
+     built in utilities and informations.
+     ### Examples
+     __node> $happn.name
+     'terminal'
+     __node> $happn.constructor.name
+     'ComponentInstance'
+     __node> $happn.log.warn('blah blah')
+     **[ WARN]** - 13398ms home (terminal) blah blah
+     __node> $happn.info
+     __node> $happn.config
+     __node> $happn.data.README
+     __node> $happn.event.README
+     __node> $happn.exchange.README
+     __node> $happn._mesh.*  // only with 'mesh'||'root' accessLevel
+     __node> $happn._root.*  // only with 'root' accessLevel
+     */
   }
 };
