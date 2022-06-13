@@ -1,17 +1,339 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
-  it('test the describe method', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
+  it('describe method', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
     componentInstance.name = 'test-component-instance';
-    componentInstance.module = {
-      name: 'test-name-module',
-      version: '1.0.0',
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        componentInstance.description = {
+          test: 'description',
+        };
+        test.expect(componentInstance.describe(false)).to.eql({
+          name: 'test-component-instance',
+          version: '1.0.0',
+          methods: {
+            testMethod1: {
+              isAsyncMethod: true,
+              parameters: [
+                {
+                  name: 'arg11',
+                },
+                {
+                  name: 'arg12',
+                },
+              ],
+            },
+            testMethod2: {
+              isAsyncMethod: true,
+              parameters: [
+                {
+                  name: 'arg21',
+                },
+                {
+                  name: 'arg22',
+                },
+              ],
+            },
+          },
+          routes: {
+            '/test-component-instance/test/route/1': {
+              type: 'mware',
+            },
+            '/test-component-instance/test/route/2': {
+              type: 'mware',
+            },
+            '/': {
+              type: 'mware',
+            },
+          },
+          events: {},
+          data: {},
+        });
+        done();
+      }
+    );
+  });
+
+  it('describe method - cached', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        componentInstance.description = {
+          test: 'description',
+        };
+        test.expect(componentInstance.describe(true)).to.eql({
+          test: 'description',
+        });
+        done();
+      }
+    );
+  });
+
+  it('#reply method - publish ok', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.publish = (callbackAddress, response, options, cb) => {
+      test.expect(callbackAddress).to.be('/callback/address');
+      test.expect(response).to.eql({ status: 'ok', args: {} });
+      test.expect(options).to.be(undefined);
+      cb();
+      done();
+    };
+    componentInstance.operate = (method, args, cb) => {
+      cb(null, {});
+    };
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        mesh._mesh.data.set(
+          {
+            callbackAddress: '/callback/address',
+            origin: {
+              id: 1,
+            },
+          },
+          { path: '/test/path' }
+        );
+      }
+    );
+  });
+
+  it('#reply method - publish failed', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.publish = (_callbackAddress, _response, _options, cb) => {
+      cb(new Error('test error'));
+      setTimeout(() => {
+        test
+          .expect(componentInstance.log.error.lastCall.args[0])
+          .to.be('Failure to set callback data on address /callback/address');
+        done();
+      }, 1e3);
+    };
+    componentInstance.operate = (method, args, cb) => {
+      cb(null, {});
+    };
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        mesh._mesh.data.set(
+          {
+            callbackAddress: '/callback/address',
+            origin: {
+              id: 1,
+            },
+          },
+          { path: '/test/path' }
+        );
+      }
+    );
+  });
+
+  it('#reply method - no client', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.publish = (_callbackAddress, _response, _options, cb) => {
+      cb(new Error('client is disconnected'));
+      setTimeout(() => {
+        test
+          .expect(componentInstance.log.warn.lastCall.args[0])
+          .to.be(
+            'Failure to set callback data on address /callback/address:client is disconnected'
+          );
+        done();
+      }, 1e3);
+    };
+    componentInstance.operate = (method, args, cb) => {
+      cb(null, {});
+    };
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        mesh._mesh.data.set(
+          {
+            callbackAddress: '/callback/address',
+            origin: {
+              id: 1,
+            },
+          },
+          { path: '/test/path' }
+        );
+      }
+    );
+  });
+
+  xit('operate method', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        mesh._mesh.data.set(
+          {
+            callbackAddress: '/callback/address',
+            origin: {
+              id: 1,
+            },
+          },
+          { path: '/test/path' }
+        );
+      }
+    );
+  });
+
+  it('tests the semver component', () => {
+    let semver = require('happner-semver');
+    test.expect(semver.satisfies('1.0.1', '^1.0.0')).to.be(true);
+    test.expect(semver.satisfies('2.0.0', '^1.0.0')).to.be(false);
+    test.expect(semver.satisfies('1.0.0-prerelease-1', '^1.0.0')).to.be(false);
+    test.expect(semver.coercedSatisfies('1.0.0-prerelease-1', '^1.0.0')).to.be(true);
+    test.expect(semver.coercedSatisfies('2.0.0-prerelease-1', '^1.0.0')).to.be(false);
+    test.expect(semver.satisfies('1.0.1', '*')).to.be(true);
+    test.expect(semver.coercedSatisfies('2.0.0-prerelease-1', '*')).to.be(true);
+    test.expect(semver.satisfies('1.0.1', '*')).to.be(true);
+    test.expect(semver.coercedSatisfies('1.0.3-smc-842-1', '^1.0.0')).to.be(true);
+    test.expect(semver.coercedSatisfies('16.1.4-prerelease-9', '16.1.4-prerelease-9')).to.be(true);
+  });
+
+  function mockModuleInstance() {
+    class MockModule {
+      static create() {
+        return new MockModule();
+      }
+      async testMethod1(arg11, arg12) {
+        await test.delay(10);
+        test.log(`method 1 called, ${[arg11, arg12]}`);
+      }
+      async testMethod2(arg21, arg22) {
+        await test.delay(10);
+        test.log(`method 2 called, ${[arg21, arg22]}`);
+      }
+      async testMethod3(arg31, arg32) {
+        await test.delay(10);
+        test.log(`method 3 called, ${[arg31, arg32]}`);
+      }
+      async testMethod4(arg41, arg42) {
+        await test.delay(10);
+        test.log(`method 4 called, ${[arg41, arg42]}`);
+      }
+      async testMethod5(arg41, arg42) {
+        await test.delay(10);
+        test.log(`method 4 called, ${[arg41, arg42]}`);
+      }
+      async staticHandler(arg41, arg42) {
+        await test.delay(10);
+        test.log(`method 4 called, ${[arg41, arg42]}`);
+      }
+    }
+    return MockModule.create();
+  }
+  function mockLogger() {
+    return {
+      info: test.sinon.stub(),
+      error: test.sinon.stub(),
+      debug: test.sinon.stub(),
+      trace: test.sinon.stub(),
+      $$TRACE: test.sinon.stub(),
+      warn: test.sinon.stub(),
+    };
+  }
+  function mockMesh(name, data, peers) {
+    let onHandler;
+    const mockMesh = {
+      _mesh: {
+        config: {
+          name,
+          happn: {},
+        },
+        log: {
+          createLogger: () => {
+            return mockLogger();
+          },
+        },
+        happn: {
+          server: {
+            connect: {
+              use: test.sinon.stub(),
+            },
+            services: {
+              cache: {
+                getOrCreate: test.sinon.stub(),
+              },
+              security: {
+                on: test.sinon.stub(),
+              },
+              orchestrator: {
+                peers,
+              },
+            },
+          },
+        },
+        data: {
+          set: (publication, meta) => {
+            onHandler(publication, meta);
+          },
+          on: (_event, _options, handler, cb) => {
+            onHandler = handler;
+            cb();
+          },
+        },
+      },
+    };
+    return mockMesh;
+  }
+  function mockModule(name, version) {
+    return {
+      name,
+      version,
       instance: mockModuleInstance(),
     };
-    componentInstance.description = {
-      test: 'description',
-    };
-    componentInstance.config = {
+  }
+  function mockConfig() {
+    return {
       methods: {
         testMethod1: {
           parameters: [
@@ -34,278 +356,5 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         },
       },
     };
-    test.expect(componentInstance.describe(false)).to.eql({
-      name: 'test-component-instance',
-      version: '1.0.0',
-      methods: {
-        testMethod1: {
-          isAsyncMethod: true,
-          parameters: [
-            {
-              name: 'arg11',
-            },
-            {
-              name: 'arg12',
-            },
-          ],
-        },
-        testMethod2: {
-          isAsyncMethod: true,
-          parameters: [
-            {
-              name: 'arg21',
-            },
-            {
-              name: 'arg22',
-            },
-          ],
-        },
-      },
-      routes: {
-        '/test-component-instance/test/route/1': {
-          type: 'mware',
-        },
-        '/test-component-instance/test/route/2': {
-          type: 'mware',
-        },
-        '/': {
-          type: 'mware',
-        },
-      },
-      events: {},
-      data: {},
-    });
-  });
-
-  it('test the describe method - cached', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.description = {
-      test: 'description',
-    };
-    test.expect(componentInstance.describe(true)).to.eql({
-      test: 'description',
-    });
-  });
-
-  it('test the describe method - clear-cache', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.name = 'test-name';
-    componentInstance.module = {
-      name: 'test-name-module',
-      version: '1.0.0',
-    };
-    componentInstance.description = {
-      test: 'description',
-    };
-    componentInstance.config = {};
-    test.expect(componentInstance.describe(false)).to.eql({
-      name: 'test-name',
-      version: '1.0.0',
-      methods: {},
-      routes: {},
-      events: {},
-      data: {},
-    });
-  });
-
-  it('test the describe method - clear-cache, web routes', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.name = 'test-name';
-    componentInstance.module = {
-      name: 'test-name-module',
-      version: '1.0.0',
-    };
-    componentInstance.description = {
-      test: 'description',
-    };
-    componentInstance.config = {
-      web: {
-        routes: {
-          static: 'static',
-          '/test/route': ['testMethod'],
-          global: ['testMethod'],
-        },
-      },
-    };
-    test.expect(componentInstance.describe(false)).to.eql({
-      name: 'test-name',
-      version: '1.0.0',
-      methods: {},
-      routes: {
-        '/': { type: 'static' },
-        '/test-name//test/route': { type: 'mware' },
-        '/test-name/global': { type: 'mware' },
-      },
-      events: {},
-      data: {},
-    });
-  });
-
-  it('test the describe method - clear-cache, web routes www', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.name = 'www';
-    componentInstance.module = {
-      name: 'test-name-module',
-      version: '1.0.0',
-    };
-    componentInstance.description = {
-      test: 'description',
-    };
-    componentInstance.config = {
-      web: {
-        routes: {
-          static: 'static',
-          '/test/route': ['testMethod'],
-          global: 'global',
-        },
-      },
-    };
-    test.expect(componentInstance.describe(false)).to.eql({
-      name: 'www',
-      version: '1.0.0',
-      methods: {},
-      routes: {
-        '/': { type: 'static' },
-        '//test/route': { type: 'mware' },
-      },
-      events: {},
-      data: {},
-    });
-  });
-
-  it('test the __reply method missing peer', function (done) {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.log = {
-      warn: (msg) => {
-        test.expect(msg).to.be('Failure on callback, missing peer');
-        done();
-      },
-    };
-    componentInstance.__reply(
-      'testCallbackAddress',
-      'testCallbackPeer',
-      mockResponse(),
-      mockOptions(),
-      mockMesh(
-        {
-          publish: () => {
-            done(new Error('should not have happened'));
-          },
-        },
-        {}
-      )
-    );
-  });
-
-  it('test the __callBackWithWarningAndError method', function (done) {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    let warningMsg;
-    componentInstance.log = {
-      warn: (msg) => {
-        warningMsg = msg;
-      },
-    };
-    componentInstance.__callBackWithWarningAndError('Test Category', 'Test Error', (e) => {
-      test.expect(e.message).to.be('Test Error');
-      test.expect(warningMsg).to.be('Test Category:Test Error');
-      done();
-    });
-  });
-
-  it('tests the semver component', () => {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    let semver = componentInstance.semver;
-    test.expect(semver.satisfies('1.0.1', '^1.0.0')).to.be(true);
-    test.expect(semver.satisfies('2.0.0', '^1.0.0')).to.be(false);
-    test.expect(semver.satisfies('1.0.0-prerelease-1', '^1.0.0')).to.be(false);
-    test.expect(semver.coercedSatisfies('1.0.0-prerelease-1', '^1.0.0')).to.be(true);
-    test.expect(semver.coercedSatisfies('2.0.0-prerelease-1', '^1.0.0')).to.be(false);
-    test.expect(semver.satisfies('1.0.1', '*')).to.be(true);
-    test.expect(semver.coercedSatisfies('2.0.0-prerelease-1', '*')).to.be(true);
-    test.expect(semver.satisfies('1.0.1', '*')).to.be(true);
-    test.expect(semver.coercedSatisfies('1.0.3-smc-842-1', '^1.0.0')).to.be(true);
-    test.expect(semver.coercedSatisfies('16.1.4-prerelease-9', '16.1.4-prerelease-9')).to.be(true);
-  });
-
-  it('test the _inject method', function () {
-    var ComponentInstance = require('../../../lib/system/component-instance');
-    var componentInstance = new ComponentInstance();
-    componentInstance.bindToOrigin = (origin) => {
-      return { boundTo: origin };
-    };
-    let callback = function () {};
-    test
-      .expect(
-        componentInstance._inject(
-          {
-            $happnSeq: 0,
-            $originSeq: 1,
-            $argumentsLength: 2,
-          },
-          ['test', callback],
-          { username: 'test' }
-        )
-      )
-      .to.eql([{ boundTo: { username: 'test' } }, { username: 'test' }, 'test', callback]);
-
-    test
-      .expect(
-        componentInstance._inject(
-          {
-            $happnSeq: 0,
-            $originSeq: 1,
-            $argumentsLength: 2,
-          },
-          [callback],
-          { username: 'test' }
-        )
-      )
-      .to.eql([{ boundTo: { username: 'test' } }, { username: 'test' }, callback, undefined]);
-  });
-
-  function mockResponse() {
-    return {};
-  }
-
-  function mockOptions() {
-    return {};
-  }
-
-  function mockMesh(data, peers) {
-    return {
-      data,
-      happn: {
-        server: {
-          services: {
-            orchestrator: {
-              peers,
-            },
-          },
-        },
-      },
-    };
-  }
-  function mockModuleInstance() {
-    class MockModule {
-      static create() {
-        return new MockModule();
-      }
-      async testMethod1(arg11, arg12) {
-        await test.delay(10);
-        test.log(`method 1 called, ${[arg11, arg12]}`);
-      }
-      async testMethod2(arg21, arg22) {
-        await test.delay(10);
-        test.log(`method 1 called, ${[arg21, arg22]}`);
-      }
-    }
-    return MockModule.create();
   }
 });

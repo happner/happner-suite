@@ -1,6 +1,7 @@
 const commons = require('happn-commons');
 const utilities = require('./utilities');
 const EventEmitter = require('events').EventEmitter;
+const semver = require('happner-semver');
 module.exports = class ComponentInstance {
   #authorizer;
   #log;
@@ -329,7 +330,7 @@ module.exports = class ComponentInstance {
           var componentRoutePath = '/' + this.name + '/' + route;
 
           if (Array.isArray(routeTarget)) {
-            routeTarget.map(function (targetMethod) {
+            routeTarget.map((targetMethod) => {
               this.#attachRouteTarget(mesh, meshRoutePath, componentRoutePath, targetMethod, route);
             });
           } else {
@@ -439,7 +440,7 @@ module.exports = class ComponentInstance {
   }
 
   #satisfies(moduleVersion, version) {
-    return this.semver.coercedSatisfies(moduleVersion, version);
+    return semver.coercedSatisfies(moduleVersion, version);
   }
 
   on(event, handler) {

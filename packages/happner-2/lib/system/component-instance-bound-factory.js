@@ -70,7 +70,7 @@ module.exports = class ComponentInstanceBoundFactory {
     return true;
   }
   getBoundComponent(origin) {
-    if (!this.originBindingNecessary(this.#mesh, origin)) {
+    if (!this.originBindingNecessary(origin)) {
       return this.#componentInstance;
     }
     let bound = this.#getCachedBoundComponent(origin);

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   const Happner = require('../../..');
   const clientAdmin = new Happner.MeshClient({});
   const clientTest = new Happner.MeshClient({});
@@ -411,16 +411,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       test.expect(message).to.be('unauthorized');
     });
 
-    it('fails to call an internal function that is forbidden by an unauthorized user', async () => {
-      let message;
+    it.only('fails to call an internal function that is forbidden by an unauthorized user', async () => {
+      let message, result;
       try {
-        await clientTest.exchange.$call({
+        result = await clientTest.exchange.$call({
           component: 'component',
           method: 'exec',
         });
       } catch (e) {
         message = e.message;
       }
+      test.expect(result).to.be(undefined);
       test.expect(message).to.be('unauthorized');
     });
 
