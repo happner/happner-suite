@@ -18,6 +18,8 @@
     "coveralls": "npm run test-cover && nyc report --reporter=text-lcov | coveralls",
     "test": "mocha silence.js test/unit/* test/integration/* --recursive",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary mocha test/unit/* test/integration/*  --recursive",
+    "test-cover-unit": "nyc --reporter=lcov --reporter=text-summary mocha test/unit/* --recursive",
+    "test-cover-integration": "nyc --reporter=lcov --reporter=text-summary mocha test/integration/*  --recursive",
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },
   "dependencies": {

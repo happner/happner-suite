@@ -1,9 +1,9 @@
-name: CI happn-cluster
+name: CI happner-cluster integration 2
 
 on: [push]
 
 jobs:
-  happn-cluster:
+  happner-cluster:
     env:
         RUNNING_IN_ACTIONS: yes
     runs-on: ubuntu-latest
@@ -36,8 +36,7 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run lint --package_name=happn-cluster
-    - run: npm run-script test-cover --workspace=happn-cluster
+    - run: npm run-script test-cover-integration-2 --workspace=happner-cluster
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
@@ -46,6 +45,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happn-cluster
+        PACKAGES: happner-cluster
+
 
 
