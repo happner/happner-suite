@@ -16,9 +16,16 @@
   },
   "scripts": {
     "test": "_mocha silence.js test/integration/** test/unit/** --exit",
-    "test-unit": "_mocha --exit test/unit/**",
+    "test-unit": "_mocha --exit -- silence.js test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
+    "test-integration-1": "_mocha  --exit -- silence.js test/integration/client/** test/integration/component/** test/integration/data/** test/integration/events/**",
+    "test-integration-2": "_mocha  --exit -- silence.js test/integration/exchange/** test/integration/logger/** test/integration/mesh/** test/integration/rest/**",
+    "test-integration-3": "_mocha  --exit -- silence.js test/integration/s*/** test/integration/web/**",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
+    "test-cover-unit": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
+    "test-cover-integration-1": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-1",
+    "test-cover-integration-2": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-2",
+    "test-cover-integration-3": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-3",
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js",
     "test-backward-compatibility": "_mocha silence.js test/backward-compatibility/** --exit"
   },
