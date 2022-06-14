@@ -68,5 +68,5 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happner-2,happner-client,happner-cluster,happn-3,happn-cluster
+        PACKAGES: happn-3,happner-2,happn-cluster,happner-client,happner-cluster
 
