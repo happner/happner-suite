@@ -4,18 +4,14 @@
   "description": "Extends happner with clustering capabilities",
   "main": "index.js",
   "scripts": {
-    "test-integration-1": "mocha silence.js test/integration/0* --recursive --exit",
-    "test-integration-2": "mocha silence.js test/integration/1* --recursive --exit",
-    "test-integration-3": "mocha silence.js test/integration/2* --recursive --exit",
-    "test-integration-4": "mocha silence.js test/integration/3* test/integration/4* --recursive --exit",
+    "test-integration-1": "mocha silence.js test/integration/0*  test/integration/1* --exit",
+    "test-integration-2": "mocha silence.js test/integration/2* test/integration/3* test/integration/4*  --exit",
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
     "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-cover-unit": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
     "test-cover-integration-1": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-1",
-    "test-cover-integration-2": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-2",
-    "test-cover-integration-3": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-3",
-    "test-cover-integration-4": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-4"
+    "test-cover-integration-2": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-2"
   },
   "repository": {
     "type": "git",

@@ -19,7 +19,7 @@
     "test-unit": "_mocha --exit -- silence.js test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
     "test-integration-1": "_mocha  --exit -- silence.js test/integration/client/** test/integration/component/** test/integration/data/** test/integration/events/**",
-    "test-integration-2": "_mocha  --exit -- silence.js test/integration/exchange/** test/integration/logger/** test/integration/mesh/** test/integration/rest/**",
+    "test-integration-2": "_mocha  --exit -- silence.js test/integration/exchange/** test/integration/logger/** test/integration/mesh/** test/integration/rest/**  test/integration/s*/** test/integration/web/**"",
     "test-integration-3": "_mocha  --exit -- silence.js test/integration/s*/** test/integration/web/**",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-cover-unit": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
