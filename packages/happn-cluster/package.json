@@ -6,10 +6,14 @@
   "scripts": {
     "test": "_mocha silence.js test/test-func/* test/test-unit/* --recursive --exit",
     "test-unit": "mocha silence.js test/test-unit/* --recursive --exit",
-    "test-integration": "mocha silence.js test/test-func/* --recursive --exit",
+    "test-integration-1": "mocha silence.js test/test-func/0* --recursive --exit",
+    "test-integration-2": "mocha silence.js test/test-func/1* test/test-func/2* --recursive --exit",
+
     "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-cover-unit": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
-    "test-cover-integration": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration"
+    "test-cover-integration-1": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-1",
+    "test-cover-integration-2": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration-2"
+  
   },
   "repository": {
     "type": "git",
