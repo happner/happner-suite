@@ -15,6 +15,19 @@ module.exports = class SecureMeshData {
   noConnection() {
     return [1, 6].indexOf(this.#meshData.status) === -1;
   }
+  #connectionValid(action, path, callback) {
+    if (this.noConnection()) {
+      callback(
+        new Error(
+          `client state not active or connected, action: ${action}, path: ${path}, component: ${
+            this.#componentName
+          }`
+        )
+      );
+      return false;
+    }
+    return true;
+  }
   #getPath(path) {
     if (typeof path !== 'string' || path.length === 0) {
       return `[bad path]:${path}`;
@@ -33,12 +46,9 @@ module.exports = class SecureMeshData {
     if (!options) options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
 
-    if (this.noConnection())
-      return callback(
-        new Error(
-          'client state not active or connected, on:' + path + ', component:' + this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'on', callback)) {
+      return;
+    }
 
     let componentPath;
     if (path === '*') path = '**';
@@ -49,15 +59,9 @@ module.exports = class SecureMeshData {
   }
 
   off(listenerRef, callback) {
-    if (this.noConnection())
-      return callback(
-        new Error(
-          'client state not active or connected, off ref:' +
-            listenerRef +
-            ', component:' +
-            this.#componentName
-        )
-      );
+    if (!this.#connectionValid(listenerRef, 'off', callback)) {
+      return;
+    }
     if (typeof listenerRef === 'number') {
       return this.#meshData.off(listenerRef, callback);
     }
@@ -69,25 +73,16 @@ module.exports = class SecureMeshData {
   }
 
   offAll(callback) {
-    if (this.noConnection()) {
-      return callback(
-        new Error('client state not active or connected, offAll, component:' + this.#componentName)
-      );
+    if (!this.#connectionValid('*', 'offAll', callback)) {
+      return;
     }
     //we cannot do a true offAll, otherwise we get no message back
     this.#meshData.offPath(this.getPath('*'), callback);
   }
 
   offPath(path, callback) {
-    if (this.noConnection()) {
-      return callback(
-        new Error(
-          'client state not active or connected, offPath:' +
-            path +
-            ', component:' +
-            this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'offPath', callback)) {
+      return;
     }
     let componentPath;
     if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
@@ -101,12 +96,8 @@ module.exports = class SecureMeshData {
       callback = options;
       options = {};
     }
-    if (this.noConnection()) {
-      return callback(
-        new Error(
-          'client state not active or connected, get:' + path + ', component:' + this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'get', callback)) {
+      return;
     }
 
     if (!options) options = {};
@@ -124,12 +115,9 @@ module.exports = class SecureMeshData {
       callback = options;
       options = {};
     }
-    if (this.noConnection())
-      return callback(
-        new Error(
-          'client state not active or connected, get:' + path + ', component:' + this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'count', callback)) {
+      return;
+    }
     if (!options) options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
@@ -140,15 +128,9 @@ module.exports = class SecureMeshData {
   }
 
   getPaths(path, callback) {
-    if (this.noConnection())
-      return callback(
-        new Error(
-          'client state not active or connected, getPaths:' +
-            path +
-            ', component:' +
-            this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'getPaths', callback)) {
+      return;
+    }
     let options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
@@ -164,12 +146,8 @@ module.exports = class SecureMeshData {
       options = {};
     }
 
-    if (this.noConnection()) {
-      return callback(
-        new Error(
-          'client state not active or connected, set:' + path + ', component:' + this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'set', callback)) {
+      return;
     }
 
     if (!options) options = {};
@@ -195,15 +173,8 @@ module.exports = class SecureMeshData {
       gauge = 'counter';
     }
 
-    if (this.noConnection()) {
-      return callback(
-        new Error(
-          'client state not active or connected, increment:' +
-            path +
-            ', component:' +
-            this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'increment', callback)) {
+      return;
     }
     let options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
@@ -219,16 +190,8 @@ module.exports = class SecureMeshData {
       callback = options;
       options = {};
     }
-
-    if (this.noConnection()) {
-      return callback(
-        new Error(
-          'client state not active or connected, remove:' +
-            path +
-            ', component:' +
-            this.#componentName
-        )
-      );
+    if (!this.#connectionValid(path, 'remove', callback)) {
+      return;
     }
     if (!options) options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
