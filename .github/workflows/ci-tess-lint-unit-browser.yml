@@ -53,13 +53,21 @@ jobs:
     - run: npm run lint --package_name=happn-cluster
     - run: npm run lint --package_name=happner-cluster
     - run: npm run lint --package_name=happner-client
+
+    - run: npm run lint --package_name=happn-db-provider-nedb
+    - run: npm run lint --package_name=happn-db-provider-elasticsearch
+    - run: npm run lint --package_name=happn-db-provider-mongo
+    - run: npm run lint --package_name=happn-db-provider-loki
+    - run: npm run lint --package_name=happn-util-crypto
+
     - run: npm run-script test-cover-unit --workspace=happner-2
-    - run: npm run-script test-browser --workspace=happner-2
     - run: npm run-script test-cover-unit --workspace=happn-cluster
     - run: npm run-script test-cover-unit --workspace=happner-cluster
     - run: npm run-script test-cover-unit --workspace=happner-client
     - run: npm run-script test-unit-backward-compatibility --workspace=happn-3
+    
     - run: npm run-script test-browser --workspace=happn-3
+    - run: npm run-script test-browser --workspace=happner-2
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main

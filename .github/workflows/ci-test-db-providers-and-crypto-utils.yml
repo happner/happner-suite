@@ -1,4 +1,4 @@
-name: CI db-providers
+name: CI db-providers and crypto
 
 on: [push]
 
@@ -48,17 +48,11 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run lint --package_name=happn-db-provider-loki
     - run: npm run-script test-cover --workspace=happn-db-provider-loki
-
-    - run: npm run lint --package_name=happn-db-provider-mongo
     - run: npm run-script test-cover --workspace=happn-db-provider-mongo
-
-    - run: npm run lint --package_name=happn-db-provider-nedb
-
-    - run: npm run lint --package_name=happn-db-provider-elasticsearch
     - run: npm run-script test-cover --workspace=happn-db-provider-elasticsearch
-
+    - run: npm run-script test-cover --workspace=happn-util-crypto
+      
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
       continue-on-error: true
@@ -66,7 +60,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happn-db-provider-loki,happn-db-provider-mongo,happn-db-provider-elasticsearch
+        PACKAGES: happn-db-provider-loki,happn-db-provider-mongo,happn-db-provider-elasticsearch,happn-util-crypto
 
 
 
