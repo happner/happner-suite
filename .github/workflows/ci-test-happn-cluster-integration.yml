@@ -1,4 +1,4 @@
-name: CI happn-cluster
+name: CI happn-cluster integration
 
 on: [push]
 
