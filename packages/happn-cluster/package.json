@@ -9,7 +9,7 @@
     "test-integration": "mocha silence.js test/test-func/* --recursive",
     "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-cover-unit": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
-    "test-cover-integration": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-func"
+    "test-cover-integration": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration"
   },
   "repository": {
     "type": "git",
