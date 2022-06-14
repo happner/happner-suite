@@ -48,7 +48,7 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run-script test-cover-integration-1 --workspace=happn-3
+    - run: npm run-script test-cover-integration-2 --workspace=happn-3
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
