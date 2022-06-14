@@ -1,4 +1,4 @@
-name: CI happner-cluster
+name: CI happner-cluster integration 2
 
 on: [push]
 

@@ -1,4 +1,4 @@
-name: CI happn
+name: CI happn integration 1
 
 on: [push]
 
