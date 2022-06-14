@@ -1,4 +1,4 @@
-name: CI happner lint unit browser
+name: CI lint unit and browser tests
 
 on: [push]
 
@@ -48,9 +48,18 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
+    - run: npm run lint --package_name=happn-3 
     - run: npm run lint --package_name=happner-2
+    - run: npm run lint --package_name=happn-cluster
+    - run: npm run lint --package_name=happner-cluster
+    - run: npm run lint --package_name=happner-client
     - run: npm run-script test-cover-unit --workspace=happner-2
     - run: npm run-script test-browser --workspace=happner-2
+    - run: npm run-script test-cover-unit --workspace=happn-cluster
+    - run: npm run-script test-cover-unit --workspace=happner-cluster
+    - run: npm run-script test-cover-unit --workspace=happner-client
+    - run: npm run-script test-unit-backward-compatibility --workspace=happn-3
+    - run: npm run-script test-browser --workspace=happn-3
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
@@ -59,5 +68,5 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happner-2,happner-client
+        PACKAGES: happner-2,happner-client,happner-cluster,happn-3,happn-cluster
 
