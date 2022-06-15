@@ -15,7 +15,7 @@ module.exports = class SecureMeshData {
   noConnection() {
     return [1, 6].indexOf(this.#meshData.status) === -1;
   }
-  #connectionValid(action, path, callback) {
+  #connectionValid(path, action, callback) {
     if (this.noConnection()) {
       callback(
         new Error(
@@ -77,7 +77,7 @@ module.exports = class SecureMeshData {
       return;
     }
     //we cannot do a true offAll, otherwise we get no message back
-    this.#meshData.offPath(this.getPath('*'), callback);
+    this.#meshData.offPath(this.#getPath('*'), callback);
   }
 
   offPath(path, callback) {
