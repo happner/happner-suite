@@ -58,7 +58,7 @@ module.exports = class ComponentInstanceBoundFactory {
     if (override) return true;
     //authority delegation not set up on component, and not set up on the server
     if (
-      (!this.#config.security || this.#config.security.authorityDelegationOn == null) &&
+      this.#config?.security?.authorityDelegationOn == null &&
       !this.#mesh.config.authorityDelegationOn
     ) {
       return false;
