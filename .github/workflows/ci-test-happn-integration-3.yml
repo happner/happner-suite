@@ -1,9 +1,9 @@
-name: CI happner
+name: CI happn integration 1
 
 on: [push]
 
 jobs:
-  happner:
+  happn:
     env:
         RUNNING_IN_ACTIONS: yes
     runs-on: ubuntu-latest
@@ -48,13 +48,7 @@ jobs:
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
-    - run: npm run lint --package_name=happner-client
-    - run: npm run-script test-cover --workspace=happner-client
-    - run: npm run-script test-browser --workspace=happner-client
-
-    - run: npm run lint --package_name=happner-2
-    - run: npm run-script test-cover --workspace=happner-2
-    - run: npm run-script test-browser --workspace=happner-2
+    - run: npm run-script test-cover-integration-3 --workspace=happn-3
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
@@ -63,5 +57,9 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happner-2,happner-client
+        PACKAGES: happn-3
+
+
+
+
 

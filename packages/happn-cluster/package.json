@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "_mocha silence.js test/integration/* test/unit/* --recursive --exit",
-    "test-unit": "mocha test/unit/* --recursive",
-    "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm test"
+    "test-unit": "mocha silence.js test/unit/ --recursive --exit",
+    "test-integration": "mocha silence.js  test/integration/* --recursive --exit",
+    "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm test",
+    "test-cover-unit": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
+    "test-cover-integration": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration"
   },
   "repository": {
     "type": "git",
