@@ -169,7 +169,6 @@ module.exports = class ComponentInstance {
         }
         const methodSchema = this.description.methods[methodName];
         const methodDefn = this.#module.instance[methodName];
-        let callbackIndex = this.#getCallbackIndex(methodSchema);
 
         if (!methodSchema || typeof methodDefn !== 'function') {
           return this.#callBackWithWarningAndError(
@@ -178,6 +177,7 @@ module.exports = class ComponentInstance {
             callback
           );
         }
+        let callbackIndex = this.#getCallbackIndex(methodSchema);
 
         if (version != null && !this.#satisfies(this.#module.version, version)) {
           return this.#callBackWithWarningAndError(
