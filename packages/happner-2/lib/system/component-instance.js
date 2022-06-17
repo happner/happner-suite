@@ -217,15 +217,21 @@ module.exports = class ComponentInstance {
           parameters.splice(callbackIndex, 1, callbackProxy);
         }
 
-        let returnObject = methodDefn.apply(
-          this.#module.instance,
-          this.#inject(methodDefn, parameters, origin)
-        );
+        let returnObject;
+        try {
+          returnObject = methodDefn.apply(
+            this.#module.instance,
+            this.#inject(methodDefn, parameters, origin)
+          );
+        } catch (err) {
+          callbackProxy(err);
+          return;
+        }
 
         if (utilities.isPromise(returnObject)) {
-          if (callbackIndex > -1 && utilities.isPromise(returnObject))
+          if (callbackIndex > -1 && utilities.isPromise(returnObject)) {
             this.#log.warn('method has been configured as a promise with a callback...');
-          else {
+          } else {
             returnObject
               .then(function (result) {
                 callbackProxy(null, result);
