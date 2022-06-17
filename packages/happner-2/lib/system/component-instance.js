@@ -46,7 +46,6 @@ module.exports = class ComponentInstance {
   }
 
   #defaults(config) {
-    let clonedConfig = commons.fastClone(config);
     let defaults = this.#module.instance.$happner;
     if (typeof defaults === 'object') {
       Object.keys((defaults = defaults.config.component)).forEach((key) => {
@@ -55,12 +54,12 @@ module.exports = class ComponentInstance {
         // - Does not merge.
         // - Each key in the default is only used if the corresponding key is
         //   not present in the inbound config.
-        if (typeof clonedConfig[key] === 'undefined') {
-          clonedConfig[key] = commons.fastClone(defaults[key]);
+        if (config[key] === undefined) {
+          config[key] = commons.fastClone(defaults[key]);
         }
       });
     }
-    return clonedConfig;
+    return config;
   }
 
   initialize(name, mesh, module, config, callback) {
