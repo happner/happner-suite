@@ -46,9 +46,9 @@ module.exports = class ComponentInstance {
   }
 
   #defaults(config) {
-    let defaults = this.#module.instance.$happner;
-    if (typeof defaults === 'object') {
-      Object.keys((defaults = defaults.config.component)).forEach((key) => {
+    try {
+      const defaults = this.#module.instance?.$happner?.config?.component;
+      Object.keys(defaults).forEach((key) => {
         // - Defaulting applies only to the 'root' keys nested immediately
         //   under the 'component' config
         // - Does not merge.
@@ -58,6 +58,8 @@ module.exports = class ComponentInstance {
           config[key] = commons.fastClone(defaults[key]);
         }
       });
+    } catch (e) {
+      //do nothing, defaults is null or not object
     }
     return config;
   }
