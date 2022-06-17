@@ -256,7 +256,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(1e3);
+          return test.delay(3e3);
         })
         .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));

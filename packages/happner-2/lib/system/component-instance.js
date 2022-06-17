@@ -144,19 +144,20 @@ module.exports = class ComponentInstance {
   }
 
   #getCallbackProxy(methodName, callback, origin) {
-    const _this = this;
     let callbackCalled = false;
-    return function () {
-      if (callbackCalled)
-        return _this.#log.error(
+    const callbackProxy = function () {
+      if (callbackCalled) {
+        return this.#log.error(
           'Callback invoked more than once for method %s',
           methodName,
           callback.toString()
         );
-
+      }
       callbackCalled = true;
       callback(null, Array.prototype.slice.apply(arguments));
-    }.bind({ $origin: origin });
+    }.bind(this);
+    callbackProxy.$origin = origin;
+    return callbackProxy;
   }
 
   operate(methodName, parameters, callback, origin, version, originBindingOverride) {
@@ -194,6 +195,7 @@ module.exports = class ComponentInstance {
         this.#log.$$TRACE('operate( %s', methodName);
         this.#log.$$TRACE('parameters ', parameters);
         this.#log.$$TRACE('methodSchema ', methodSchema);
+        const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
 
         if (methodSchema.type === 'sync-promise') {
           let result;
@@ -203,11 +205,10 @@ module.exports = class ComponentInstance {
               this.#inject(methodDefn, parameters, origin)
             );
           } catch (syncPromiseError) {
-            return callback(null, [syncPromiseError]);
+            return callbackProxy(null, [syncPromiseError]);
           }
-          return callback(null, [null, result]);
+          return callbackProxy(null, [null, result]);
         }
-        const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
 
         if (callbackIndex === -1) {
           if (!methodSchema.isAsyncMethod) {

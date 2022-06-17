@@ -1600,8 +1600,12 @@ Mesh.prototype._scanArguments = function (spec, callback) {
     let $originSeq = args.indexOf(`$origin`);
     let $happnSeq = args.indexOf(`$happn`);
 
-    if ($happnSeq > -1) Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
-    if ($originSeq > -1) Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    if ($happnSeq > -1) {
+      Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
+    }
+    if ($originSeq > -1) {
+      Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    }
 
     module[fnName].$argumentsLength = args.filter(
       (argName) => ['$happn', '$origin'].indexOf(argName) === -1

@@ -5,6 +5,11 @@ module.exports = class ComponentInstanceBoundFactory {
   #componentName;
   #boundExchangeCache;
   #config;
+
+  get cache() {
+    return this.#boundExchangeCache;
+  }
+
   constructor(componentInstance, mesh) {
     this.#componentInstance = componentInstance;
     this.#mesh = mesh;
@@ -51,9 +56,13 @@ module.exports = class ComponentInstanceBoundFactory {
   }
   originBindingNecessary(origin, override) {
     //dont delegate authority to _ADMIN, no origin is an internal call:
-    if (!origin || origin.username === '_ADMIN') return false;
+    if (!origin || origin.username === '_ADMIN') {
+      return false;
+    }
     //not a secure mesh:
-    if (!this.#mesh.config.happn.secure) return false;
+    if (!this.#mesh.config.happn.secure) {
+      return false;
+    }
     //origin binding done for this request specifically
     if (override) return true;
     //authority delegation not set up on component, and not set up on the server
