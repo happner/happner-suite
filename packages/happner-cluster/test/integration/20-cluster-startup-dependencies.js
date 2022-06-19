@@ -30,7 +30,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await cluster.destroy();
   });
 
-  it.only('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
+  it('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
     const cluster = helpers.cluster.create();
 
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 2000);
