@@ -13,6 +13,7 @@ module.exports = class ComponentInstance {
   #callbackIndexes;
   #localEventEmitter;
   #boundComponentInstanceFactory;
+  #tools;
   constructor() {
     this.#callbackIndexes = {};
     this.#localEventEmitter = new EventEmitter();
@@ -39,6 +40,13 @@ module.exports = class ComponentInstance {
   }
   get log() {
     return this.#log;
+  }
+  get localEventEmitter() {
+    return this.#localEventEmitter;
+  }
+  //used by mesh & packager
+  get tools() {
+    return this.#tools;
   }
 
   async isAuthorized(username, permissions) {
@@ -69,6 +77,7 @@ module.exports = class ComponentInstance {
     this.#mesh = mesh;
     this.#name = name;
     this.#config = this.#defaults(config);
+    this.#tools = mesh.tools;
 
     this.#info = {
       mesh: {
@@ -196,7 +205,6 @@ module.exports = class ComponentInstance {
         this.#log.$$TRACE('operate( %s', methodName);
         this.#log.$$TRACE('parameters ', parameters);
         this.#log.$$TRACE('methodSchema ', methodSchema);
-        const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
 
         if (methodSchema.type === 'sync-promise') {
           let result;
@@ -206,10 +214,11 @@ module.exports = class ComponentInstance {
               this.#inject(methodDefn, parameters, origin)
             );
           } catch (syncPromiseError) {
-            return callbackProxy(null, [syncPromiseError]);
+            return callback(null, [syncPromiseError]);
           }
-          return callbackProxy(null, [null, result]);
+          return callback(null, [null, result]);
         }
+        const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
 
         if (callbackIndex === -1) {
           if (!methodSchema.isAsyncMethod) {
