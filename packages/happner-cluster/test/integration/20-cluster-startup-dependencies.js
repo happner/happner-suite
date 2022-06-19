@@ -34,6 +34,19 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     const client = await helpers.client.create(username, password, getSeq.getPort(3));
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
+    test.log(JSON.stringify(cluster.events.data, null, 2));
+    test.log(
+      JSON.stringify(
+        [
+          getSeq.getMeshName(5),
+          getSeq.getMeshName(3),
+          getSeq.getMeshName(6),
+          getSeq.getMeshName(4),
+        ],
+        null,
+        2
+      )
+    );
     //check the members started in the correct order
     let values = cluster.events.data.map((item) => item.value);
     test
