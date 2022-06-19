@@ -14,33 +14,22 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   });
 
-  it('starts up a cluster with no interdependencies, happy path, we ensure we can start and teardown the cluster', async () => {
-    const cluster = helpers.cluster.create();
-
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 3000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 5000);
-
-    const client = await helpers.client.create(username, password, getSeq.getPort(2)); //Unlike others, membership starts at 0 here
-
-    const result = await client.exchange.component1.use();
-    test.expect(result).to.be(1);
-    await helpers.client.destroy(client);
-    await cluster.destroy();
-  });
-
   it('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
     const cluster = helpers.cluster.create();
-
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 2]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 3]), 2000);
-    await test.delay(7e3);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 2000);
-    await test.delay(3e3);
+    // start member 0
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 1e3);
+    // start member 1
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 1e3);
+    // start member 2, depends on 4
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 2]), 1e3);
+    // start member 3, depends on 5
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 3]), 1e3);
+    await test.delay(6e3); // sizeable delay
+    // start member 4
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 1e3);
+    // start member 5
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 1e3);
+    await test.delay(6e3);
     //check member 2 (depending on member 4) is accessible
     const client = await helpers.client.create(username, password, getSeq.getPort(3));
     const result = await client.exchange.component2.use();
@@ -48,8 +37,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     //check the members started in the correct order
     let values = cluster.events.data.map((item) => item.value);
     test
-      .expect(values.indexOf(getSeq.getMeshName(5))) // Member 4 should start
-      .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before member 2
+      .expect(values.indexOf(getSeq.getMeshName(5))) // Member 5 should start
+      .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before member 3
+    test
+      .expect(values.indexOf(getSeq.getMeshName(6))) // Member 4 should start
+      .to.be.lessThan(values.indexOf(getSeq.getMeshName(4))); // before member 2
     //check everything started
     values.sort();
     test
@@ -62,6 +54,22 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         getSeq.getMeshName(5),
         getSeq.getMeshName(6),
       ]);
+    await helpers.client.destroy(client);
+    await cluster.destroy();
+  });
+
+  it('starts up a cluster with no interdependencies, happy path, we ensure we can start and teardown the cluster', async () => {
+    const cluster = helpers.cluster.create();
+
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 2000);
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 2000);
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 3000);
+    await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 5000);
+
+    const client = await helpers.client.create(username, password, getSeq.getPort(2)); //Unlike others, membership starts at 0 here
+
+    const result = await client.exchange.component1.use();
+    test.expect(result).to.be(1);
     await helpers.client.destroy(client);
     await cluster.destroy();
   });
