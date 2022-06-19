@@ -38,7 +38,7 @@ module.exports.create = function (instance) {
   if (process.env.UNROOT_ON_REPL) delete global.$happner;
 
   server = net.createServer(function (socket) {
-    log.info('connection on %s', address);
+    log.debug('connection on %s', address);
     var r = repl.start({
       prompt: instance._mesh.config.name + '> ',
       input: socket,
@@ -118,7 +118,7 @@ module.exports.create = function (instance) {
     });
 
     socket.on('close', function () {
-      log.info('connection departed %s', address);
+      log.debug('connection departed %s', address);
     });
 
     socket.on('error', function () {});
@@ -135,7 +135,7 @@ module.exports.create = function (instance) {
   });
 
   server.on('listening', function () {
-    log.info('listening at %s', address);
+    log.debug('listening at %s', address);
   });
 
   var clearFd = function () {

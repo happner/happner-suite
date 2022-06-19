@@ -364,7 +364,7 @@ function connect(mesh, happnServer, callback) {
           else if (ev.user) name = ev.user.username;
           else name = 'anonymous';
 
-          this.log.info("'%s' disconnected", name);
+          this.log.debug("'%s' disconnected", name);
         } catch (e) {
           //do nothing
         }
@@ -381,7 +381,7 @@ function connect(mesh, happnServer, callback) {
             else if (ev.user) name = ev.user.username;
             else name = 'anonymous';
 
-            this.log.info("'%s' connected", name);
+            this.log.debug("'%s' connected", name);
           }
         } catch (e) {
           //do nothing

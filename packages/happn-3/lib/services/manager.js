@@ -28,11 +28,8 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
         happn.log.error('Failed to instantiate service: ' + serviceName, e);
         return serviceLoaded(e);
       }
-
-      happn.log.info(serviceName + ' service loaded.');
-
+      happn.log.debug(serviceName + ' service loaded.');
       _this.__loaded.push(serviceName);
-
       serviceLoaded();
     }
 
@@ -71,7 +68,7 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
         var serviceInstance = _this.happn.services[serviceName];
 
         if (typeof serviceInstance.initialize === 'function') {
-          happn.log.info(`${serviceName} service initializing`);
+          happn.log.debug(`${serviceName} service initializing`);
           return serviceInstance.initialize(
             serviceInstance.__happnerSettings.config,
             serviceInstanceCB
