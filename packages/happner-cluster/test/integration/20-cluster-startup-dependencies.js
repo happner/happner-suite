@@ -30,17 +30,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await cluster.destroy();
   });
 
-  it('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
+  it.only('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
     const cluster = helpers.cluster.create();
 
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getFirst(), 0]), 2000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 1]), 2000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 2]), 2000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 3]), 2000);
-    await test.delay(5000);
+    await test.delay(7e3);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 4]), 2000);
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 2000);
-    await test.delay(5000);
+    await test.delay(3e3);
     //check member 2 (depending on member 4) is accessible
     const client = await helpers.client.create(username, password, getSeq.getPort(3));
     const result = await client.exchange.component2.use();
@@ -49,7 +49,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     let values = cluster.events.data.map((item) => item.value);
     test
       .expect(values.indexOf(getSeq.getMeshName(5))) // Member 4 should start
-      .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before meber 2
+      .to.be.lessThan(values.indexOf(getSeq.getMeshName(3))); // before member 2
     //check everything started
     values.sort();
     test
