@@ -38,6 +38,7 @@ SecurityUsers.prototype.removePermission = removePermission;
 SecurityUsers.prototype.upsertPermission = upsertPermission;
 SecurityUsers.prototype.validateDeleteUser = validateDeleteUser;
 SecurityUsers.prototype.upsertPermissions = util.maybePromisify(upsertPermissions);
+SecurityUsers.prototype.userBelongsToGroups = util.maybePromisify(userBelongsToGroups);
 
 /**
  * Clones the passed in user, and generates a hash of the users password to be pushed into the data store.
@@ -402,6 +403,17 @@ function __linkGroupsToUser(user, callback) {
       user.groups[userGroup.groupName] = userGroup.membership;
     });
     callback(null, user);
+  });
+}
+
+function userBelongsToGroups(username, groupNames, callback) {
+  this.getGroupMemberships(username, (e, memberships) => {
+    if (e) return callback(e);
+    const userGroupNames = memberships.map((membership) => membership.groupName);
+    const belongs = groupNames.every((element) => {
+      return userGroupNames.includes(element);
+    });
+    callback(null, belongs);
   });
 }
 

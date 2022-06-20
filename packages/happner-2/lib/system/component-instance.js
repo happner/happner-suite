@@ -556,6 +556,10 @@ module.exports = class ComponentInstance {
     return webMethods;
   }
 
+  as(username) {
+    return this.#boundComponentInstanceFactory.getBoundComponent({ username }, true);
+  }
+
   describe(cached) {
     if (cached !== false && this.description) {
       return this.description;

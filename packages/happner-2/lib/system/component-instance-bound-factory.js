@@ -55,31 +55,33 @@ module.exports = class ComponentInstanceBoundFactory {
     return exchange;
   }
   originBindingNecessary(origin, override) {
-    //dont delegate authority to _ADMIN, no origin is an internal call:
-    if (!origin || origin.username === '_ADMIN') {
-      return false;
-    }
     //not a secure mesh:
     if (!this.#mesh.config.happn.secure) {
       return false;
     }
-    //origin binding done for this request specifically
-    if (override) return true;
+    //origin binding for this request specifically
+    if (override === false || override === true) {
+      return override;
+    }
+    //dont delegate authority to _ADMIN, no origin is an internal call:
+    if (!origin || origin.username === '_ADMIN') {
+      return false;
+    }
     //authority delegation not set up on component, and not set up on the server
     if (
-      this.#config?.security?.authorityDelegationOn == null &&
+      this.#config?.security?.authorityDelegationOn !== true &&
       !this.#mesh.config.authorityDelegationOn
     ) {
       return false;
     }
     //authority delegation explicitly set not to happen for this component
-    if (this.#config.security && this.#config.security.authorityDelegationOn === false) {
+    if (this.#config?.security?.authorityDelegationOn === false) {
       return false;
     }
     return true;
   }
-  getBoundComponent(origin) {
-    if (!this.originBindingNecessary(origin)) {
+  getBoundComponent(origin, override) {
+    if (!this.originBindingNecessary(origin, override)) {
       return this.#componentInstance;
     }
     let bound = this.#getCachedBoundComponent(origin);

@@ -27,11 +27,11 @@ Security.prototype.__createSystemGroup = function (name, adminUser, permissions,
 
 Security.prototype.__createSystemGroups = function (adminUser, callback) {
   async.eachSeries(
-    ['_MESH_ADM', '_MESH_GST'],
+    ['_MESH_ADM', '_MESH_GST', '_MESH_DELEGATE'],
     (groupName, eachCallback) => {
       let permissions;
 
-      if (groupName === '_MESH_ADM')
+      if (groupName === '_MESH_ADM') {
         permissions = {
           '/mesh/*': {
             actions: ['*'],
@@ -46,7 +46,8 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             description: 'mesh system permission',
           },
         };
-      if (groupName === '_MESH_GST')
+      }
+      if (groupName === '_MESH_GST') {
         permissions = {
           '/mesh/schema/*': {
             actions: ['get', 'on'],
@@ -61,6 +62,23 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             description: 'mesh system request permission',
           },
         };
+      }
+      if (groupName === '_MESH_DELEGATE') {
+        permissions = {
+          '/mesh/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+          '/_exchange/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+          '/_events/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+        };
+      }
       this.__createSystemGroup(groupName, adminUser, permissions, eachCallback);
     },
     callback

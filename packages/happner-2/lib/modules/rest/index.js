@@ -100,7 +100,7 @@ Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
 
   //doing the replacements to the response string, allows us to stringify errors without issues.
   if (error) {
-    const stringifiedError = utilities.stringifyError(error);
+    const stringifiedError = utilities.stringifyError(error, false);
     if (!code) code = 500;
     responseString = responseString.replace('{{ERROR}}', stringifiedError);
     $happn.log.warn(`rpc request failure: ${error.message ? error.message : stringifiedError}`);
@@ -126,7 +126,7 @@ Rest.prototype.__authorizeAccessPoint = function ($happn, $origin, accessPoint, 
   });
 };
 
-Rest.prototype.__authorize = function (res, $happn, $origin, uri, successful) {
+Rest.prototype.__authorize = function (res, $happn, $origin, uri, authorizeAs, successful) {
   if (!$happn._mesh.config.happn.secure) {
     return successful();
   }
@@ -142,14 +142,50 @@ Rest.prototype.__authorize = function (res, $happn, $origin, uri, successful) {
     );
   }
 
-  this.__authorizeAccessPoint($happn, $origin, uri, (e, authorized, reason) => {
-    if (e) return this.__respond($happn, 'Authorization failed', null, e, res, 403);
-    if (!authorized) {
-      if (!reason) reason = 'Authorization failed';
-      return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
+  this.__getAuthorizedOrigin($happn, $origin, authorizeAs, (e, authorizedOrigin) => {
+    if (e) {
+      if (e.message === 'origin does not belong to the delegate group') {
+        return this.__respond($happn, 'Authorization failed', null, e, res, 403);
+      }
+      this.__respond($happn, 'Authorization failed due to system error', null, e, res, 500);
+      return $happn.log.warn(`authorization system error: ${e.message}`);
     }
-    successful();
+    this.__authorizeAccessPoint($happn, authorizedOrigin, uri, (e, authorized, reason) => {
+      if (e) return this.__respond($happn, 'Authorization failed', null, e, res, 403);
+      if (!authorized) {
+        if (!reason) reason = 'Authorization failed';
+        return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
+      }
+      successful(authorizedOrigin);
+    });
   });
+};
+
+Rest.prototype.__getAuthorizedOrigin = function ($happn, $origin, authorizeAs, callback) {
+  if (authorizeAs == null) {
+    return callback(null, $origin);
+  }
+  if ($origin.username === '_ADMIN') {
+    return callback(null, _.merge($origin, { username: authorizeAs }));
+  }
+  let callbackWasCalled = false;
+  this.__securityService.users
+    .userBelongsToGroups($origin.username, ['_MESH_DELEGATE'])
+    .then((belongs) => {
+      callbackWasCalled = true;
+      if (!belongs) {
+        return callback(new Error('origin does not belong to the delegate group'));
+      }
+      return callback(null, _.merge($origin, { username: authorizeAs }));
+    })
+    .catch((e) => {
+      if (callbackWasCalled) {
+        return $happn.log.warn(
+          `failure after getAuthorizedOrigin, and callback already called: origin ${$origin.username} authorizing as ${authorizeAs}}`
+        );
+      }
+      return callback(e);
+    });
 };
 
 Rest.prototype.__parseBody = function (req, res, $happn, callback) {
@@ -171,7 +207,7 @@ Rest.prototype.__parseBody = function (req, res, $happn, callback) {
 
 Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $origin) {
   process.nextTick(() => {
-    let mesh = $happn.exchange;
+    let mesh = $happn.as($origin.username).exchange;
     let component;
     let method;
     let meshDescription;
@@ -298,7 +334,8 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
   try {
     const methodURI = utilities.removeLeading('/', utilities.getRelativePath(req.url));
     this.__parseBody(req, res, $happn, (body) => {
-      this.__authorize(res, $happn, $origin, '/' + methodURI, () => {
+      let authorizeAs = body?.as;
+      this.__authorize(res, $happn, $origin, '/' + methodURI, authorizeAs, (authorizedOrigin) => {
         const callPath = methodURI.split('/');
         //ensure we don't have a leading /
         if (callPath.length > 4) {
@@ -310,7 +347,7 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
             res
           );
         }
-        this.__processRequest(req, res, body, callPath, $happn, $origin);
+        this.__processRequest(req, res, body, callPath, $happn, authorizedOrigin);
       });
     });
   } catch (e) {
