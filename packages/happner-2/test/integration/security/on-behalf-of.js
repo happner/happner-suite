@@ -1,6 +1,8 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const restClient = require('restler');
-  let mesh, adminUser, testUsers = [];
+  let mesh,
+    adminUser,
+    testUsers = [];
   before('it sets up the mesh', setUpMesh);
   before('it connects the admin user', connectAdminUser);
   before('it creates the test users', createTestUsers);
@@ -167,7 +169,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   }
   async function createTestUsers() {
     for (var i = 0; i < 10; i++) {
-        await createTestUser(i === 0 ? '' : i.toString(), i === 9 ? true : false);
+      await createTestUser(i === 0 ? '' : i.toString(), i === 9 ? true : false);
     }
   }
   async function createTestUser(id = '', isDelegate) {
