@@ -207,7 +207,7 @@ Rest.prototype.__parseBody = function (req, res, $happn, callback) {
 
 Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $origin) {
   process.nextTick(() => {
-    let mesh = $happn.as($origin.username).exchange;
+    let mesh = $happn.as($origin?.username).exchange;
     let component;
     let method;
     let meshDescription;
