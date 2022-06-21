@@ -141,6 +141,9 @@ describe(test.testName(__filename, 3), function () {
       const successful = test.sinon.fake();
 
       const mock = {
+        __getAuthorizedOrigin: test.sinon
+          .stub(restModule, '__getAuthorizedOrigin')
+          .callsArgWith(3, null, { username: 'testUser' }),
         __authorizeAccessPoint: test.sinon
           .stub(restModule, '__authorizeAccessPoint')
           .callsArgWith(3, 'error', true, 'reason'),

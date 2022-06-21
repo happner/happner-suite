@@ -266,12 +266,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       });
   });
 
+  // relies on preceding tests
   it('should list all groups', function (done) {
     adminClient.exchange.security.listGroups('*', function (e, groups) {
       if (e) return done(e);
-
-      test.expect(groups.length).to.be(5);
-
+      test.expect(groups.length).to.be(6);
       done();
     });
   });
