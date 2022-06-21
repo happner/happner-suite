@@ -35,11 +35,11 @@ testConfigs.forEach((testConfig) => {
 
     before('connect a client to each server', async function () {
       let clients = await Promise.all(
-        this.__configs.map(function (config) {
+        this.servers.map(function (server) {
           var loginConfig = {
             config: {
-              host: config.services.proxy.config.host,
-              port: config.services.proxy.config.port,
+              host: server.config.services.proxy.config.host,
+              port: server.config.services.proxy.config.port,
               protocol: 'http',
             },
           };

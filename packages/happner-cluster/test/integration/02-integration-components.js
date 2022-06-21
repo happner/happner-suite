@@ -1,14 +1,84 @@
-var HappnerCluster = require('../..');
-var libDir = require('../_lib/lib-dir');
-var baseConfig = require('../_lib/base-config');
-var stopCluster = require('../_lib/stop-cluster');
-var getSeq = require('../_lib/helpers/getSeq');
+const HappnerCluster = require('../..');
+const libDir = require('../_lib/lib-dir');
+const baseConfig = require('../_lib/base-config');
+const stopCluster = require('../_lib/stop-cluster');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  var servers, localInstance;
+  let servers, localInstance;
+
+  before('start cluster', async function () {
+    servers = await Promise.all([
+      HappnerCluster.create(localInstanceConfig(0)),
+      HappnerCluster.create(remoteInstance1Config(1)),
+      HappnerCluster.create(remoteInstance2Config(2)),
+    ]);
+    localInstance = servers[0];
+  });
+
+  after('stop cluster', async function () {
+    if (servers) await stopCluster(servers);
+  });
+
+  context('exchange', function () {
+    it('uses happner-client to mount all $happn components', async () => {
+      // ... and apply models from each component's
+      //     package.json happner dependency declaration
+      // ... and round robbin second call to second remote component
+
+      await test.delay(5000); //wait for discovery
+
+      let results = {};
+
+      results[
+        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
+      ] = 1;
+
+      results[
+        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
+      ] = 1;
+
+      test.expect(results).to.eql({
+        'MESH_1:component3:method1': 1,
+        'MESH_2:component3:method1': 1,
+      });
+    });
+
+    it('overwrites local components that are wrong version', async function () {
+      let result = await localInstance.exchange.localComponent1.callDependency(
+        'remoteComponent4',
+        'method1'
+      );
+      test.expect(result.split(':')[1]).to.be('component4-v2');
+    });
+
+    it('responds with not implemented', async function () {
+      try {
+        await localInstance.exchange.localComponent1.callDependency('remoteComponent0', 'method1');
+      } catch (e) {
+        test.expect(e.message).to.be('Not implemented remoteComponent0:^1.0.0:method1');
+      }
+    });
+  });
+
+  context('events', function () {
+    it('can subscribe cluster wide', async function () {
+      let result = await localInstance.exchange.localComponent2.listTestEvents();
+      test.expect(result).to.eql({
+        '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_2': 1,
+        '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_1': 1,
+      });
+    });
+
+    it('does not receive events from incompatible component versions', async function () {
+      let result = await localInstance.exchange.localComponent2.listTestCompatibleEvents();
+      test.expect(result).to.eql({
+        '/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/MESH_2': 1,
+      });
+    });
+  });
 
   function localInstanceConfig(seq) {
-    var config = baseConfig(seq);
+    let config = baseConfig(seq);
     config.modules = {
       localComponent1: {
         path: libDir + 'integration-02-local-component1',
@@ -38,7 +108,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   function remoteInstance1Config(seq) {
-    var config = baseConfig(seq);
+    let config = baseConfig(seq);
     config.modules = {
       remoteComponent3: {
         path: libDir + 'integration-02-remote-component3',
@@ -68,7 +138,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   function remoteInstance2Config(seq) {
-    var config = baseConfig(seq);
+    let config = baseConfig(seq);
     config.modules = {
       remoteComponent3: {
         path: libDir + 'integration-02-remote-component3',
@@ -96,119 +166,4 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     };
     return config;
   }
-
-  before('start cluster', function (done) {
-    this.timeout(20000);
-
-    Promise.all([
-      HappnerCluster.create(localInstanceConfig(getSeq.getFirst())),
-      HappnerCluster.create(remoteInstance1Config(getSeq.getNext())),
-      HappnerCluster.create(remoteInstance2Config(getSeq.getNext())),
-    ])
-      .then(function (_servers) {
-        servers = _servers;
-        localInstance = servers[0];
-        done();
-      })
-      .catch(done);
-  });
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
-  });
-
-  context('exchange', function () {
-    it('uses happner-client to mount all $happn components', async () => {
-      // ... and apply models from each component's
-      //     package.json happner dependency declaration
-      // ... and round robbin second call to second remote component
-
-      await test.delay(5000); //wait for discovery
-
-      var results = {};
-
-      results[
-        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
-      ] = 1;
-
-      results[
-        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
-      ] = 1;
-      let expectedResults = {};
-      expectedResults[getSeq.getMeshName(2) + ':component3:method1'] = 1;
-      expectedResults[getSeq.getMeshName(3) + ':component3:method1'] = 1;
-      test.expect(results).to.eql(expectedResults);
-    });
-
-    it('overwrites local components that are wrong version', function (done) {
-      localInstance.exchange.localComponent1.callDependency(
-        'remoteComponent4',
-        'method1',
-        function (e, result) {
-          if (e) return done(e);
-          try {
-            test.expect(result.split(':')[1]).to.be('component4-v2');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        }
-      );
-    });
-
-    it('responds with not implemented', function (done) {
-      localInstance.exchange.localComponent1.callDependency(
-        'remoteComponent0',
-        'method1',
-        function (e) {
-          try {
-            test.expect(e.message).to.be('Not implemented remoteComponent0:^1.0.0:method1');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        }
-      );
-    });
-  });
-
-  context('events', function () {
-    it('can subscribe cluster wide', function (done) {
-      this.timeout(5000);
-
-      localInstance.exchange.localComponent2.listTestEvents(function (e, result) {
-        if (e) return done(e);
-        let expectedResults = {};
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent3/testevent/${getSeq.getMeshName(3)}`
-        ] = 1;
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent3/testevent/${getSeq.getMeshName(2)}`
-        ] = 1;
-        try {
-          test.expect(result).to.eql(expectedResults);
-          done();
-        } catch (e) {
-          done(e);
-        }
-      });
-    });
-
-    it('does not receive events from incompatible component versions', function (done) {
-      localInstance.exchange.localComponent2.listTestCompatibleEvents(function (e, result) {
-        if (e) return done(e);
-        let expectedResults = {};
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/${getSeq.getMeshName(3)}`
-        ] = 1;
-        try {
-          test.expect(result).to.eql(expectedResults);
-          done();
-        } catch (e) {
-          done(e);
-        }
-      });
-    });
-  });
 });

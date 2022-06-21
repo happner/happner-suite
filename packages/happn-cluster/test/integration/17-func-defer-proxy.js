@@ -29,11 +29,13 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     },
   });
 
-  it('deferred proxy does not start the proxy until start is called', function (done) {
+  xit('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
 
-    var port = this.__configs[0].services.proxy.config.port;
-    let connection = net.connect(port, '127.0.0.1');
+    var port = this.servers[0].config.services.proxy.config.port;
+    test.expect(port).to.be(0)
+    // console.log(port)
+    // let connection = net.connect(port, '127.0.0.1');
 
     connection.on('connect', function () {
       connection.destroy();
@@ -46,6 +48,8 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
       _this.servers[0].services.proxy
         .start()
         .then(function () {
+          let port = this.servers[0].config.services.proxy.config.port;
+          expect(port).not.to.be(0)
           let connection = net.connect(port, '127.0.0.1');
 
           connection.on('connect', function () {

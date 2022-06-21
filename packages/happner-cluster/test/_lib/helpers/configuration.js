@@ -83,16 +83,6 @@ module.exports = class Configuration extends require('./helper') {
               autoUpdateDBVersion: true,
             },
           },
-          membership: {
-            config: {
-              host: `${this.address.self()}`,
-              port: PORT_CONSTANTS.SWIM_BASE + portIndex,
-              seed: portIndex === first,
-              seedWait: 1000,
-              hosts,
-              joinTimeout,
-            },
-          },
           proxy: {
             config: {
               port: PORT_CONSTANTS.PROXY_BASE + portIndex,

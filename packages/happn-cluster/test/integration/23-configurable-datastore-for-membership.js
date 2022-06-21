@@ -71,7 +71,7 @@ configs.forEach((config) => {
             .to.be(true);
         } else {
           stored.sort((resultA, resultB) => {
-            return resultA.data.endpoint < resultB.data.endpoint ? -1 : 1;
+            return resultA.path < resultB.path ? -1 : 1;
           });
           if (index < 4) {
             test

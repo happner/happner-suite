@@ -8,13 +8,145 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   const getSeq = require('../_lib/helpers/getSeq');
 
   let servers = [];
+  let proxyPorts;
   let userlist = {};
   let eventResults;
   let methodResults;
   let stop = false;
 
+  before('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+  });
+
+  before('start cluster', async function () {
+    let server = await test.HappnerCluster.create(serverConfig(0, 1));
+    let additionalServers = await Promise.all([
+      test.HappnerCluster.create(serverConfig(1, 5)),
+      test.HappnerCluster.create(serverConfig(2, 5)),
+      test.HappnerCluster.create(serverConfig(3, 5)),
+      test.HappnerCluster.create(serverConfig(4, 5)),
+    ]);
+
+    servers = [server, ...additionalServers];
+    await test.delay(5000);
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
+  });
+
+  before('create users', async function () {
+    let promises = [];
+    let username, user, component, method, event;
+    for (let i = 0; i < 15; i++) {
+      username = test.newid();
+      user = userlist[username] = {
+        allowedMethods: {},
+        allowedEvents: {},
+      };
+      for (let j = 1; j <= 5; j++) {
+        component = 'component' + j;
+        user.allowedMethods[component] = {};
+        user.allowedEvents[component] = {};
+        for (let k = 1; k <= 5; k++) {
+          method = 'method' + k;
+          event = 'event' + k;
+          user.allowedMethods[component][method] = true;
+          user.allowedEvents[component][event] = true;
+        }
+      }
+      promises.push(users.add(servers[0], username, 'password', users.generatePermissions(user)));
+    }
+    await Promise.all(promises);
+  });
+
+  before('connect clients', async function () {
+    let port;
+    let i = 0;
+    let promises = [];
+    let username;
+    console.log(typeof userlis)
+    let clients = await Promise.all(
+      Object.keys(userlist).map((username) => {
+        port = proxyPorts[++i % servers.length];
+        return client.create(username, 'password', port);
+      })
+    );
+    clients.forEach((client) => {
+      userlist[client.username].client = client;
+    });
+  });
+
+  before('subscribe to all events', function (done) {
+    let username, component, event, user;
+    let promises = [];
+
+    function createHandler(username) {
+      return function (data) {
+        let event = data.event;
+        let component = data.component;
+        eventResults[username] = eventResults[username] || {};
+        eventResults[username][component] = eventResults[username][component] || {};
+        eventResults[username][component][event] = true;
+      };
+    }
+
+    for (username in userlist) {
+      user = userlist[username];
+      for (component in user.allowedEvents) {
+        for (event in user.allowedEvents[component]) {
+          promises.push(
+            client.subscribe(0, user.client, component, event, createHandler(username))
+          );
+        }
+      }
+    }
+    Promise.all(promises)
+      .then(function (results) {
+        for (let i = 0; i < results.length; i++) {
+          if (results[i].result !== true) return done(new Error('Failed subscription'));
+        }
+        done();
+      })
+      .catch(done);
+  });
+
+  after('stop clients', function (done) {
+    let promises = [];
+    for (let username in userlist) {
+      promises.push(client.destroy(userlist[username].client));
+    }
+    Promise.all(promises)
+      .then(function () {
+        done();
+      })
+      .catch(done);
+  });
+
+  after('stop cluster', function (done) {
+    if (!servers) return done();
+    stopCluster(servers, done);
+  });
+
+  it('handles repetitive security syncronisations', function (done) {
+    this.timeout(200 * 1000);
+    let promises = [];
+
+    for (let i = 0; i < 5; i++) {
+      promises.push(call('randomAdjustPermissions'));
+      promises.push(call('useMethodsAndEvents'));
+      promises.push(call('testResponses'));
+    }
+
+    Promise.all(promises)
+      .then(function () {
+        done();
+      })
+      .catch(function (error) {
+        stop = true;
+        done(error);
+      });
+  });
+
   function serverConfig(seq, minPeers) {
-    var config = baseConfig(seq, minPeers, true);
+    let config = baseConfig(seq, minPeers, true);
     config.modules = {
       component1: {
         path: libDir + 'integration-08-component',
@@ -47,136 +179,9 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     return config;
   }
 
-  before('clear mongo collection', function (done) {
-    this.timeout(10000);
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  before('start cluster', function (done) {
-    this.timeout(20000);
-    test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1))
-      .then(function (server) {
-        servers.push(server);
-        return Promise.all([
-          test.HappnerCluster.create(serverConfig(getSeq.getNext(), 5)),
-          test.HappnerCluster.create(serverConfig(getSeq.getNext(), 5)),
-          test.HappnerCluster.create(serverConfig(getSeq.getNext(), 5)),
-          test.HappnerCluster.create(serverConfig(getSeq.getNext(), 5)),
-        ]);
-      })
-      .then(function (_servers) {
-        servers = servers.concat(_servers);
-      })
-      .then(function () {
-        //wait for stabilisation
-        setTimeout(done, 5000);
-      })
-      .catch(done);
-  });
-
-  before('create users', function (done) {
-    this.timeout(10000);
-    var promises = [];
-    var username, user, component, method, event;
-    for (var i = 0; i < 15; i++) {
-      username = test.newid();
-      user = userlist[username] = {
-        allowedMethods: {},
-        allowedEvents: {},
-      };
-      for (var j = 1; j <= 5; j++) {
-        component = 'component' + j;
-        user.allowedMethods[component] = {};
-        user.allowedEvents[component] = {};
-        for (var k = 1; k <= 5; k++) {
-          method = 'method' + k;
-          event = 'event' + k;
-          user.allowedMethods[component][method] = true;
-          user.allowedEvents[component][event] = true;
-        }
-      }
-      promises.push(users.add(servers[0], username, 'password', users.generatePermissions(user)));
-    }
-    Promise.all(promises)
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  before('connect clients', function (done) {
-    var port;
-    var i = 0;
-    var promises = [];
-    let username;
-    for (username in userlist) {
-      port = getSeq.getPort((++i % servers.length) + 1);
-      promises.push(client.create(username, 'password', port));
-    }
-    Promise.all(promises)
-      .then(function (clients) {
-        clients.forEach(function (client) {
-          userlist[client.username].client = client;
-        });
-        done();
-      })
-      .catch(done);
-  });
-
-  before('subscribe to all events', function (done) {
-    var username, component, event, user;
-    var promises = [];
-
-    function createHandler(username) {
-      return function (data) {
-        var event = data.event;
-        var component = data.component;
-        eventResults[username] = eventResults[username] || {};
-        eventResults[username][component] = eventResults[username][component] || {};
-        eventResults[username][component][event] = true;
-      };
-    }
-
-    for (username in userlist) {
-      user = userlist[username];
-      for (component in user.allowedEvents) {
-        for (event in user.allowedEvents[component]) {
-          promises.push(
-            client.subscribe(0, user.client, component, event, createHandler(username))
-          );
-        }
-      }
-    }
-    Promise.all(promises)
-      .then(function (results) {
-        for (var i = 0; i < results.length; i++) {
-          if (results[i].result !== true) return done(new Error('Failed subscription'));
-        }
-        done();
-      })
-      .catch(done);
-  });
-
-  after('stop clients', function (done) {
-    var promises = [];
-    for (var username in userlist) {
-      promises.push(client.destroy(userlist[username].client));
-    }
-    Promise.all(promises)
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
-  });
-
   function randomUser() {
-    var usernames = Object.keys(userlist);
-    var random = Math.round(Math.random() * (usernames.length - 1));
+    let usernames = Object.keys(userlist);
+    let random = Math.round(Math.random() * (usernames.length - 1));
     return usernames[random];
   }
 
@@ -197,14 +202,14 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   }
 
   function randomAdjustPermissions() {
-    var server = randomServer();
-    var promises = [];
-    for (var i = 0; i < 50; i++) {
-      // var server = randomServer();
-      var username = randomUser();
-      var component = randomComponent();
-      var method = randomMethod();
-      var event = randomEvent();
+    let server = randomServer();
+    let promises = [];
+    for (let i = 0; i < 50; i++) {
+      // let server = randomServer();
+      let username = randomUser();
+      let component = randomComponent();
+      let method = randomMethod();
+      let event = randomEvent();
 
       promises.push(users.denyMethod(server, username, component, method));
       userlist[username].allowedMethods[component][method] = false;
@@ -225,8 +230,8 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
         return test.delay(2000);
       })
       .then(function () {
-        var i, component;
-        var promises = [];
+        let i, component;
+        let promises = [];
         for (i = 1; i < 6; i++) {
           component = 'component' + i;
           promises.push(servers[0].exchange[component].emitEvents());
@@ -234,10 +239,10 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
         return Promise.all(promises);
       })
       .then(function () {
-        var i, j, user, component, method;
-        var promises = [];
+        let i, j, user, component, method;
+        let promises = [];
 
-        for (var username in userlist) {
+        for (let username in userlist) {
           user = userlist[username];
           for (i = 1; i < 6; i++) {
             component = 'component' + i;
@@ -256,7 +261,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
 
   function testResponses() {
     return new Promise(function (resolve, reject) {
-      var username, user, component, method, event, allowed, result;
+      let username, user, component, method, event, allowed, result;
       for (username in userlist) {
         user = userlist[username];
         for (component in user.allowedEvents) {
@@ -293,7 +298,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
         }
       }
 
-      for (var i = 0; i < methodResults.length; i++) {
+      for (let i = 0; i < methodResults.length; i++) {
         result = methodResults[i];
         username = result.user;
         component = result.component;
@@ -318,7 +323,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   }
 
   // one at a time
-  var queue = test.commons.async.queue(function (task, callback) {
+  let queue = test.commons.async.queue(function (task, callback) {
     if (stop) return callback();
     if (task.action === 'randomAdjustPermissions') {
       return randomAdjustPermissions()
@@ -351,24 +356,4 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
       });
     });
   }
-
-  it('handles repetitive security syncronisations', function (done) {
-    this.timeout(200 * 1000);
-    var promises = [];
-
-    for (var i = 0; i < 5; i++) {
-      promises.push(call('randomAdjustPermissions'));
-      promises.push(call('useMethodsAndEvents'));
-      promises.push(call('testResponses'));
-    }
-
-    Promise.all(promises)
-      .then(function () {
-        done();
-      })
-      .catch(function (error) {
-        stop = true;
-        done(error);
-      });
-  });
 });

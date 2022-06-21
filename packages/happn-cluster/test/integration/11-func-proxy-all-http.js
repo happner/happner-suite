@@ -43,8 +43,9 @@ testConfigs.forEach((testConfig) => {
       var self = this;
 
       async.eachSeries(
-        self.__configs,
-        function (config, configCB) {
+        self.servers,
+        function (server, configCB) {
+          let config = server.config;
           var port = config.services.proxy.config.port;
           var host = config.services.proxy.config.host;
 

@@ -36,7 +36,7 @@ module.exports = class GetSeq {
   }
 
   getMeshName(num) {
-    let meshNum = this.first + num - 1;
+    let meshNum = /*this.first +*/ num - 1;
     return 'MESH_' + meshNum.toString();
   }
   lookupFirst() {
