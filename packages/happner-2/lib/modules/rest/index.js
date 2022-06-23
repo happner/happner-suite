@@ -60,7 +60,7 @@ Rest.prototype.login = function ($happn, req, res) {
 Rest.prototype.describe = function ($happn, _req, res, $origin) {
   let description = utilities.clone(this.__exchangeDescription);
 
-  if (!$origin || $origin.username === '_ADMIN')
+  if (!$origin || $origin.username === '_ADMIN') {
     return this.__respond(
       $happn,
       $happn._mesh.description.name + ' description',
@@ -68,6 +68,7 @@ Rest.prototype.describe = function ($happn, _req, res, $origin) {
       null,
       res
     );
+  }
 
   async.eachSeries(
     Object.keys(description.callMenu),
@@ -207,7 +208,6 @@ Rest.prototype.__parseBody = function (req, res, $happn, callback) {
 
 Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $origin) {
   process.nextTick(() => {
-    let mesh = $happn.as($origin?.username).exchange;
     let component;
     let method;
     let meshDescription;
@@ -217,6 +217,11 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     let methodName = callPath.pop();
     let componentName = callPath.pop();
     let meshName = callPath.pop();
+
+    // if bound already, dont do .as
+    let mesh = $happn.bound
+      ? $happn.exchange
+      : $happn.as($origin?.username, componentName, methodName).exchange;
 
     if (componentName === 'security') {
       return this.__respond(

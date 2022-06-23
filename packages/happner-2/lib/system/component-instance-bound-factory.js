@@ -41,17 +41,27 @@ module.exports = class ComponentInstanceBoundFactory {
     if (!this.#boundExchangeCache) return;
     return this.#boundExchangeCache.clear();
   }
-  #getCachedBoundComponent(origin) {
-    if (!this.#boundExchangeCache) return null;
-    return this.#boundExchangeCache.get(origin.username, {
-      clone: false,
-    });
+  #getCachedBoundComponentKey(origin, componentName = '*', methodName = '*') {
+    return `${origin.username}:${componentName}:${methodName}`;
   }
-  #setCachedBoundComponent(origin, exchange) {
+  #getCachedBoundComponent(origin, componentName, methodName) {
+    if (!this.#boundExchangeCache) return null;
+    return this.#boundExchangeCache.get(
+      this.#getCachedBoundComponentKey(origin, componentName, methodName),
+      {
+        clone: false,
+      }
+    );
+  }
+  #setCachedBoundComponent(origin, componentName, methodName, exchange) {
     if (!this.#boundExchangeCache) return exchange;
-    this.#boundExchangeCache.set(origin.username, exchange, {
-      clone: false,
-    });
+    this.#boundExchangeCache.set(
+      this.#getCachedBoundComponentKey(origin, componentName, methodName),
+      exchange,
+      {
+        clone: false,
+      }
+    );
     return exchange;
   }
   originBindingNecessary(origin, override) {
@@ -80,11 +90,11 @@ module.exports = class ComponentInstanceBoundFactory {
     }
     return true;
   }
-  getBoundComponent(origin, override) {
+  getBoundComponent(origin, override, componentName, methodName) {
     if (!this.originBindingNecessary(origin, override)) {
       return this.#componentInstance;
     }
-    let bound = this.#getCachedBoundComponent(origin);
+    let bound = this.#getCachedBoundComponent(origin, componentName, methodName);
     if (bound) return bound;
 
     bound = Object.assign({}, this.#componentInstance);
@@ -93,7 +103,7 @@ module.exports = class ComponentInstanceBoundFactory {
       writable: false,
     });
     Object.defineProperty(bound, 'log', {
-      value: this.#componentInstance.info,
+      value: this.#componentInstance.log,
       writable: false,
     });
     Object.defineProperty(bound, 'name', {
@@ -111,79 +121,106 @@ module.exports = class ComponentInstanceBoundFactory {
         return this.#componentInstance.mesh;
       },
     });
+    Object.defineProperty(bound, 'bound', {
+      get: function () {
+        return origin;
+      },
+    });
     bound.data = require('./component-instance-data').create(
       this.#mesh.data,
       this.#componentName,
       origin
     );
-    bound.exchange = this.#secureExchangeBoundToOrigin(this.#componentInstance.exchange, origin);
-    bound.event = this.#secureEventBoundToOrigin(this.#componentInstance.event, origin);
-    return this.#setCachedBoundComponent(origin, bound);
+    bound.exchange = this.#secureExchangeBoundToOrigin(
+      this.#componentInstance.exchange,
+      origin,
+      componentName,
+      methodName
+    );
+    bound.event = this.#secureEventBoundToOrigin(
+      this.#componentInstance.event,
+      origin,
+      componentName
+    );
+    return this.#setCachedBoundComponent(origin, componentName, methodName, bound);
   }
 
-  #secureExchangeBoundToOriginMethods(component, boundComponent, origin) {
+  #secureExchangeBoundToOriginMethods(component, boundComponent, origin, methodName) {
     if (typeof component !== 'object') return;
-    Object.keys(component).forEach((methodName) => {
-      if (typeof component[methodName] === 'function') {
-        boundComponent[methodName] = component[methodName].bind({
-          $self: component[methodName],
-          $origin: origin,
-        });
-        return;
-      }
-      // for nested methods, recursive
-      if (typeof component[methodName] === 'object') {
-        boundComponent[methodName] = {};
-        return this.#secureExchangeBoundToOriginMethods(
-          component[methodName],
-          boundComponent[methodName],
-          origin
-        );
-      }
-      boundComponent[methodName] = component[methodName];
-    });
+    Object.keys(component)
+      .filter((exchangeMethodName) => {
+        return methodName != null ? exchangeMethodName === methodName : true;
+      })
+      .forEach((methodName) => {
+        if (typeof component[methodName] === 'function') {
+          boundComponent[methodName] = component[methodName].bind({
+            $self: component[methodName],
+            $origin: origin,
+          });
+          return;
+        }
+        // for nested methods, recursive
+        if (typeof component[methodName] === 'object') {
+          boundComponent[methodName] = {};
+          return this.#secureExchangeBoundToOriginMethods(
+            component[methodName],
+            boundComponent[methodName],
+            origin
+          );
+        }
+        boundComponent[methodName] = component[methodName];
+      });
   }
-  #secureExchangeBoundToOrigin(exchange, origin) {
+  #secureExchangeBoundToOrigin(exchange, origin, componentName, methodName) {
     const boundExchange = {};
-    Object.keys(exchange).forEach((componentName) => {
-      if (componentName === '$call') {
-        boundExchange.$call = Internals._createDecoupledCall(boundExchange);
-        return;
-      }
-      boundExchange[componentName] = {};
-      this.#secureExchangeBoundToOriginMethods(
-        exchange[componentName],
-        boundExchange[componentName],
-        origin
-      );
-    });
+    Object.keys(exchange)
+      .filter((exchangeComponentName) => {
+        return componentName != null ? exchangeComponentName === componentName : true;
+      })
+      .forEach((componentName) => {
+        if (componentName === '$call') {
+          boundExchange.$call = Internals._createDecoupledCall(boundExchange);
+          return;
+        }
+        boundExchange[componentName] = {};
+        this.#secureExchangeBoundToOriginMethods(
+          exchange[componentName],
+          boundExchange[componentName],
+          origin,
+          methodName
+        );
+      });
     return boundExchange;
   }
-  #secureEventBoundToOrigin(event, origin) {
+  #secureEventBoundToOrigin(event, origin, componentName) {
     const boundEvent = {};
-    Object.keys(event).forEach(function (componentName) {
-      //special $call method - not an event api
-      if (componentName === '$call') return;
-      boundEvent[componentName] = {};
-      if (event[componentName].__endpoint) {
-        boundEvent[componentName] = Internals._getSubscriber(
-          event[componentName].__endpoint,
-          event[componentName].__domain,
-          componentName,
-          origin.username
-        );
-        return;
-      }
-      Object.keys(event[componentName]).forEach(function (subComponentName) {
-        if (event[componentName][subComponentName].__endpoint)
-          boundEvent[componentName][subComponentName] = Internals._getSubscriber(
-            event[componentName][subComponentName].__endpoint,
-            event[componentName][subComponentName].__domain,
-            subComponentName,
+    Object.keys(event)
+      .filter((exchangeComponentName) => {
+        return componentName != null ? exchangeComponentName === componentName : true;
+      })
+      .forEach(function (componentName) {
+        //special $call method - not an event api
+        if (componentName === '$call') return;
+        boundEvent[componentName] = {};
+        if (event[componentName].__endpoint) {
+          boundEvent[componentName] = Internals._getSubscriber(
+            event[componentName].__endpoint,
+            event[componentName].__domain,
+            componentName,
             origin.username
           );
+          return;
+        }
+        Object.keys(event[componentName]).forEach(function (subComponentName) {
+          if (event[componentName][subComponentName].__endpoint)
+            boundEvent[componentName][subComponentName] = Internals._getSubscriber(
+              event[componentName][subComponentName].__endpoint,
+              event[componentName][subComponentName].__domain,
+              subComponentName,
+              origin.username
+            );
+        });
       });
-    });
     return boundEvent;
   }
 };

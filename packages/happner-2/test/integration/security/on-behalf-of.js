@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   const restClient = require('restler');
   let mesh,
     adminUser,
@@ -6,8 +6,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   before('it sets up the mesh', setUpMesh);
   before('it connects the admin user', connectAdminUser);
   before('it creates the test users', createTestUsers);
-  it('can do an http-rpc with as', async () => {
+  it('can do an http-rpc with as, delegated via the ADMIN user', async () => {
     const token = adminUser.token;
+    test
+      .expect(
+        await testHttpRpc(
+          {
+            component: 'test',
+            method: 'doOnBehalfOfAllowed',
+            arguments: { param1: 1, param2: 2 },
+            as: 'testUser',
+          },
+          token
+        )
+      )
+      .to.eql('origin:testUser:1:2');
+  });
+  it('can do an http-rpc with as, delegated via a user with delegate priviledges', async () => {
+    const testDelegateUser = await connectTestUser(9);
+    const token = testDelegateUser.token;
     test
       .expect(
         await testHttpRpc(
@@ -124,7 +141,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               return `unexpected:${$origin}`;
             },
             doOnBehalfOfAllowedAs: async function (param1, param2, $origin, $happn) {
-              return $happn.exchange.test.doOnBehalfOfAllowed.as($origin.username)(param1, param2);
+              //TODO: factory produces fine grained cache, by component:method:username
+              return $happn.exchange.$call({
+                componentName: 'test',
+                method: 'doOnBehalfOfAllowed',
+                arguments: [param1, param2],
+                as: $origin.username,
+              });
             },
             doOnBehalfOfNotAllowedAs: async function (param1, param2, $origin, $happn) {
               return $happn.exchange.test.doOnBehalfOfNotAllowed.as($origin.username)(

@@ -1,4 +1,3 @@
-// const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -32,7 +31,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   });
 
-  // in case needed in future
+  //in case needed in future
   //test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
@@ -77,7 +76,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
           setTimeout(done, 2000);
         })
-        .catch(done);
+        .catch((e) => {
+          done(e);
+        });
     });
 
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker, check we cannot access denied methods', function (done) {

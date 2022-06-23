@@ -556,8 +556,13 @@ module.exports = class ComponentInstance {
     return webMethods;
   }
 
-  as(username) {
-    return this.#boundComponentInstanceFactory.getBoundComponent({ username }, true);
+  as(username, componentName, methodName) {
+    return this.#boundComponentInstanceFactory.getBoundComponent(
+      { username },
+      true,
+      componentName,
+      methodName
+    );
   }
 
   describe(cached) {
