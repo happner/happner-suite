@@ -1,6 +1,5 @@
 require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
-  const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
-  const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
+
   it('tests get-address', () => {
     let logs = [];
     let mockLogger = {
@@ -195,7 +194,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       (testInterface, interfaceKey) => {
         let found = interfaces[interfaceKey];
         found.forEach((interfaceItem, interfaceItemIndex) => {
-          if (!interfaceItem.internal && interfaceItem.family === ip4Family) {
+          if (!interfaceItem.internal && interfaceItem.family === 'IPv4') {
             testInterface = {
               id: interfaceKey,
               index: interfaceItemIndex,
@@ -207,14 +206,13 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       },
       { address: 'not found' }
     );
-    if (testInterface.address !== 'not found') {
-      getAddress = testGetAddress(mockLogger, {
-        NETWORK_INTERFACE_ID: testInterface.id,
-        NETWORK_INTERFACE: testInterface.index,
-      });
 
-      test.expect(getAddress()).to.eql(testInterface.address);
-    }
+    getAddress = testGetAddress(mockLogger, {
+      NETWORK_INTERFACE_ID: testInterface.id,
+      NETWORK_INTERFACE: testInterface.index,
+    });
+
+    test.expect(getAddress()).to.eql(testInterface.address);
   });
 
   function testGetAddress(logger, env, os) {

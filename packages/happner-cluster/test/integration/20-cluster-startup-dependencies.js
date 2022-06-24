@@ -23,7 +23,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await cluster.member.start(helpers.configuration.construct(20, [getSeq.getNext(), 5]), 5000);
 
     const client = await helpers.client.create(username, password, getSeq.getPort(2)); //Unlike others, membership starts at 0 here
-
+    
     const result = await client.exchange.component1.use();
     test.expect(result).to.be(1);
     await helpers.client.destroy(client);
