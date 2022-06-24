@@ -176,7 +176,7 @@ module.exports = class Membership extends EventEmitter {
     // need actual ip address, remote hosts can't connect to 0.0.0.0 here
     if (config.host === '0.0.0.0') config.host = this.getAddress();
 
-    if (!config.port) config.port = this.happn.server.address().port;
+    if (!config.port) config.port = 56000;
 
     config.timing = config.timing || {
       keepAliveInterval: 2e3,
