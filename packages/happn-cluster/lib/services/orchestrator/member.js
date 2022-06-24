@@ -44,7 +44,7 @@ function Member(parameters) {
   this.member = false;
 
   // login in progress
-  this.connectingTo = true;
+  // this.connectingTo = true;
 
   // got happn connection to remote happn
   this.connectedTo = false;
@@ -313,8 +313,8 @@ Member.prototype.connect = function (member) {
       return;
     }
 
-    _this.connectingTo = false;
     _this.connectedTo = true;
+    // _this.connectingTo = false;
 
     getter(_this, 'client', client);
 
@@ -332,7 +332,7 @@ Member.prototype.connect = function (member) {
       client.onEvent('connection-ended', _this.__onHappnDisconnect.bind(_this))
     );
 
-    property(
+    property( 
       _this,
       '__retryConnectSubscriptionId',
       client.onEvent('reconnect-scheduled', _this.__onHappnDisconnect.bind(_this))

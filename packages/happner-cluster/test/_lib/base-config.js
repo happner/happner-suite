@@ -39,7 +39,7 @@ module.exports = function (
       services: {
         cache: {
           config: {
-            statisticsInterval: 3e3,
+            statisticsInterval: 0,
           },
         },
         security: {
@@ -69,6 +69,7 @@ module.exports = function (
         },
         orchestrator: {
           config: {
+            stabiliseTimeout: 10e3,
             minimumPeers: minPeers || 3,
             replicate,
           },

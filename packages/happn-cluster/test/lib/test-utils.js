@@ -89,6 +89,7 @@ module.exports.createMemberConfigs = require('util').promisify(function (
         membership: {
           config: {
             clusterName: 'cluster1',
+            deployment: 'deployment1',
             seed: i === 1,
             seedWait: 1000,
             joinType: 'static',
