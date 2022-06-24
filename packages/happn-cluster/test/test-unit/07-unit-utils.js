@@ -207,13 +207,14 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       },
       { address: 'not found' }
     );
+    if (testInterface.address !== 'not found') {
+      getAddress = testGetAddress(mockLogger, {
+        NETWORK_INTERFACE_ID: testInterface.id,
+        NETWORK_INTERFACE: testInterface.index,
+      });
 
-    getAddress = testGetAddress(mockLogger, {
-      NETWORK_INTERFACE_ID: testInterface.id,
-      NETWORK_INTERFACE: testInterface.index,
-    });
-
-    test.expect(getAddress()).to.eql(testInterface.address);
+      test.expect(getAddress()).to.eql(testInterface.address);
+    }
   });
 
   function testGetAddress(logger, env, os) {
