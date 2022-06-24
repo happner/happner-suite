@@ -120,7 +120,6 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
     });
     let compareStat = stats[0];
-    console.log(stats)
     test.expect(stats.every((stat) => test._.isEqual(stat, compareStat))).to.be(true);
   });
 

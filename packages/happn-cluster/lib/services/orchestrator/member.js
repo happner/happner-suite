@@ -332,7 +332,7 @@ Member.prototype.connect = function (member) {
       client.onEvent('connection-ended', _this.__onHappnDisconnect.bind(_this))
     );
 
-    property( 
+    property(
       _this,
       '__retryConnectSubscriptionId',
       client.onEvent('reconnect-scheduled', _this.__onHappnDisconnect.bind(_this))

@@ -1,8 +1,6 @@
 var EventEmitter = require('events').EventEmitter;
-var util = require('util');
 var dface = require('dface');
 
-var property = require('../utils/property');
 var GetAddress = require('../utils/get-address');
 
 module.exports = class Membership extends EventEmitter {
@@ -94,7 +92,7 @@ module.exports = class Membership extends EventEmitter {
   }
 
   async bootstrap() {
-    let config, protocol, address, happnUrl, wait, deployment;
+    let config, protocol, address, happnUrl, wait;
 
     // this.log.debug('listening at %s', this.swimAddress);
     this.log.debug("joining cluster '%s'", this.config.clusterName);

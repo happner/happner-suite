@@ -1,4 +1,3 @@
-const { map } = require('bluebird');
 const HappnerCluster = require('../../..');
 var config = JSON.parse(process.argv[2]);
 let meshInstance = null;
@@ -38,9 +37,6 @@ process.on('message', async (m) => {
         peers: Object.values(meshInstance._mesh.happn.server.services.orchestrator.peers).map(
           (peer) => peer.name
         ),
-        // peerEndpoints: Object.values(
-        //   meshInstance._mesh.happn.server.services.orchestrator.peers
-        // ).map((peer) => peer.endpoint),
         members: Object.values(meshInstance._mesh.happn.server.services.orchestrator.members).map(
           (member) => member.name
         ),

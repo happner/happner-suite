@@ -388,10 +388,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     for (let i = 0; i < clusterSize; i++) {
       try {
         let details = await clusterHelper.listMembers(i);
-        console.log(details)
         test.expect(details.members.length).to.eql(clusterSize);
         test.expect(details.peers.length).to.eql(clusterSize);
-        // test.expect(details.numpeerEndpoints).to.eql(clusterSize);
         test.expect(test._.isEqual(details.members.sort(), details.peers.sort())).to.be(true);
       } catch (e) {
         errored = true;
