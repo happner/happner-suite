@@ -28,18 +28,20 @@ module.exports.startCluster = function (clusterOpts) {
       proxySecure,
       services
     );
-    let sequence = 0;
-    self.servers = [];
-    for (let config of self.__configs) {
-      if (sequence > 0) {
-        await test.delay(2000);
+    let servers = [];
+    servers.push(HappnCluster.create(clone(self.__configs[0])));
+    await test.delay(2000);
+    // start first peer immediately and other a moment
+    // later so they don't all fight over creating the
+    // admin user in the shared database
+    for (let [sequence, config] of self.__configs.entries()) {
+      if (sequence === 0) {
+        continue;
       }
-      HappnCluster.create(clone(config)).then((server) => {
-        self.servers.push(server);
-      });
-      sequence++;
+      servers.push(HappnCluster.create(clone(config)));
     }
-    await test.delay(10000);
+    self.servers = await Promise.all(servers);
+    // await test.delay(10000);
   });
 };
 

@@ -1,14 +1,14 @@
-// var path = require('path');
-// var filename = path.basename(__filename);
+var path = require('path');
+var filename = path.basename(__filename);
 var HappnCluster = require('../../');
 
 var hooks = require('../lib/hooks');
-var testSequence = 60; // parseInt(filename.split('-')[0]);
+var testSequence = parseInt(filename.split('-')[0]);
 var clusterSize = 5;
 var happnSecure = true;
 
 // eslint-disable-next-line no-unused-vars
-require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
+require('../lib/test-helper').describe({ timeout: 0e3 }, function (test) {
   hooks.startCluster({
     testSequence: testSequence,
     size: clusterSize,
@@ -25,9 +25,6 @@ require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
       var server = _this.servers.pop();
       return server
         .stop()
-        .then(function () {
-          return test.delay(1000);
-        })
         .then(function () {
           return HappnCluster.create(config);
         })
