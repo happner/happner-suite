@@ -1,4 +1,4 @@
-var path = require('path');
+// var path = require('path');
 // var filename = path.basename(__filename);
 var HappnCluster = require('../../');
 
