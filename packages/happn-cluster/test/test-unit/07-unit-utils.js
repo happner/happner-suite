@@ -1,5 +1,4 @@
 require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
-
   it('tests get-address', () => {
     let logs = [];
     let mockLogger = {
