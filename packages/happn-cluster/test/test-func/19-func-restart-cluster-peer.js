@@ -26,6 +26,9 @@ require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
       return server
         .stop()
         .then(function () {
+          return test.delay(500);
+        })
+        .then(function () {
           return HappnCluster.create(config);
         })
         .then(function (server) {
