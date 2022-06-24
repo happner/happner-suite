@@ -29,15 +29,15 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         },
       });
 
-      test.expect(m.connectingTo).to.equal(true);
+      // test.expect(m.connectingTo).to.equal(true);
 
       // wait for login
       setTimeout(function () {
         test.expect(MockHappnClient.instances['10-0-0-2_55000']).to.not.be(undefined);
 
-        test.expect(m.connectingTo).to.equal(false);
+        // test.expect(m.connectingTo).to.equal(false);
         test.expect(m.connectedTo).to.equal(true);
-        test.expect(m.connectedFrom).to.equal(false);
+        // test.expect(m.connectedFrom).to.equal(false);
         test.expect(m.name).to.equal('10-0-0-2_55000');
 
         done();
@@ -56,14 +56,14 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         },
       });
 
-      test.expect(m.connectingTo).to.equal(true);
+      // test.expect(m.connectingTo).to.equal(true);
 
       setTimeout(function () {
         test.expect(MockHappnClient.instances['10-0-0-2_55000']).to.not.be(undefined);
 
-        test.expect(m.connectingTo).to.equal(false);
+        // test.expect(m.connectingTo).to.equal(false);
         test.expect(m.connectedTo).to.equal(true);
-        test.expect(m.connectedFrom).to.equal(false);
+        // test.expect(m.connectedFrom).to.equal(false);
         test.expect(m.name).to.equal('10-0-0-2_55000');
 
         done();

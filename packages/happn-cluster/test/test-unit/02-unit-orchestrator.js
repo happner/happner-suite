@@ -385,9 +385,9 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
             test.expect(MockHappnClient.instances['10-0-0-1_55001']).to.not.be(undefined); // remote happn.name as key
 
             // member state is correct
-            test.expect(o.members['10.0.0.1:56001'].connectingTo).to.equal(false);
+            // test.expect(o.members['10.0.0.1:56001'].connectingTo).to.equal(false);
             test.expect(o.members['10.0.0.1:56001'].connectedTo).to.equal(true);
-            test.expect(o.members['10.0.0.1:56001'].connectedFrom).to.equal(false); // <---- pending login back to us
+            // test.expect(o.members['10.0.0.1:56001'].connectedFrom).to.equal(false); // <---- pending login back to us
             test.expect(o.members['10.0.0.1:56001'].subscribedTo).to.equal(true);
             test.expect(o.members['10.0.0.1:56001'].subscribedFrom).to.equal(true);
 
