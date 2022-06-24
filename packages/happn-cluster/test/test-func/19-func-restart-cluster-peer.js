@@ -1,9 +1,9 @@
 var path = require('path');
-var filename = path.basename(__filename);
+// var filename = path.basename(__filename);
 var HappnCluster = require('../../');
 
 var hooks = require('../lib/hooks');
-var testSequence = parseInt(filename.split('-')[0]);
+var testSequence = 60; // parseInt(filename.split('-')[0]);
 var clusterSize = 5;
 var happnSecure = true;
 
