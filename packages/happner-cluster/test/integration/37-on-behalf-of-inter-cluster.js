@@ -10,8 +10,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
   let adminUser,
     testUsers = [];
 
+  before('clear mongo', clearMongo);
+  before('start cluster', startCluster);
   before('it connects the admin user', connectAdminUser);
   before('it creates the test users', createTestUsers);
+
   it('can do an http-rpc with as, delegated via the ADMIN user', async () => {
     const token = adminUser.token;
     test
@@ -84,14 +87,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
     test.expect(errorMessage).to.eql('origin does not belong to the delegate group');
   });
 
-  it('can do an exchange call with as in component method', async () => {
+  xit('can do an exchange call with as in component method', async () => {
     test
-      .expect(await adminUser.exchange.test.doOnBehalfOfAllowedAs(1, 2))
+      .expect(await adminUser.exchange.local.doOnBehalfOfAllowedAs(1, 2))
       .to.eql('origin:testUser:1:2');
   });
 
-  it('fails to do an exchange call with as in component method', async () => {
-    const result = await adminUser.exchange.test.doOnBehalfOfNotAllowedAs(1, 2);
+  xit('fails to do an exchange call with as in component method', async () => {
+    const result = await adminUser.exchange.local.doOnBehalfOfNotAllowedAs(1, 2);
     test.expect(result).to.eql(['unauthorized', 'unauthorized']);
   });
 
@@ -166,7 +169,19 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
       },
     };
     config.components = {
-      local: {},
+      local: {
+        dependencies: {
+          $broker: {
+            test: {
+              version: '*',
+              methods: {
+                doOnBehalfOfAllowed: {},
+                doOnBehalfOfNotAllowed: {},
+              },
+            },
+          },
+        },
+      },
     };
     return config;
   }
@@ -191,13 +206,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
     return config;
   }
 
-  beforeEach('clear mongo', function (done) {
+  function clearMongo(done) {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
       done(e);
     });
-  });
+  }
 
-  before('start cluster', function (done) {
+  function startCluster(done) {
     this.timeout(20000);
     test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
       localInstance = local;
@@ -219,15 +234,15 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
         })
         .catch(done);
     }, 2000);
-  });
+  }
+
+  after('it disconnects the admin user', disconnectAdminUser);
+  after('it disconnects the test users', disconnectTestUsers);
 
   after('stop cluster', function (done) {
     if (!servers) return done();
     stopCluster(servers.concat(localInstance), done);
   });
-
-  after('it disconnects the admin user', disconnectAdminUser);
-  after('it disconnects the test users', disconnectTestUsers);
 
   async function connectAdminUser() {
     adminUser = await new testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
@@ -255,9 +270,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
       name: `testGroup${id}`,
       permissions: {
         methods: {
-          '/asMesh/test/doOnBehalfOfAllowed': { authorized: true },
-          '/asMesh/test/doOnBehalfOfAllowedAs': { authorized: true },
-          '/asMesh/test/doOnBehalfOfNotAllowedAs': { authorized: true },
+          '/test/doOnBehalfOfAllowed': { authorized: true },
+          '/test/doOnBehalfOfAllowedAs': { authorized: true },
+          '/test/doOnBehalfOfNotAllowedAs': { authorized: true },
         },
       },
     };
@@ -288,7 +303,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
     return new Promise((resolve, reject) => {
       restClient
         .postJson(
-          `http://127.0.0.1:12358/rest/method/${componentName}/${methodName}?happn_token=` + token,
+          `http://127.0.0.1:${getSeq.getPort(
+            1
+          )}/rest/method/${componentName}/${methodName}?happn_token=` + token,
           operation
         )
         .on('complete', function (result) {
