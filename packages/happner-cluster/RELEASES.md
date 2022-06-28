@@ -389,6 +389,10 @@
 -----------------
   - TEN-12: mongo cluster membership
 
+13.0.0 2022-06-28
+-----------------
+  - TEN-12: mongo cluster membership
+
 
 
 
