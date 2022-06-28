@@ -50,8 +50,9 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       .then(function (_servers) {
         servers = _servers;
         localInstance = servers[0];
-        done();
+        return test.delay(3000);
       })
+      .then(done)
       .catch(done);
   });
 

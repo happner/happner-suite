@@ -50,4 +50,8 @@
 -----------------
   - TEN-123: fix to getaddress - issue with bad breaking release in node 18.4
 
+1.0.12 2022-06-28
+-----------------
+  - TEN-12: mongo cluster membership
+
 

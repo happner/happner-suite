@@ -17,9 +17,7 @@ function Orchestrator(opts) {
   property(this, 'stabiliseWaiting', []); // callbacks waiting on stabilise
   property(this, 'stableExpectationMask', {
     name: 'defined',
-    connectingTo: false,
     connectedTo: true,
-    connectedFrom: true,
     subscribedTo: true,
     subscribedFrom: true,
     error: null,
@@ -433,7 +431,7 @@ Orchestrator.prototype.__onMembershipRemoveMember = function (info) {
 
   member.removeMembership(info);
 
-  if (member.connectingTo || member.connectedTo) return; // ignore swim flap
+  // if (member.connectingTo || member.connectedTo) return; // ignore swim flap
 
   this.removePeer(member);
   this.removeMember(member);

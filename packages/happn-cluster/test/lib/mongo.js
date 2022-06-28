@@ -4,7 +4,7 @@ module.exports.clearCollection = function (url, collectionName, callback) {
   // url assumes databaseName is the same collectionName
   MongoClient.connect(url, function (err, client) {
     if (err) return callback(err);
-    const db = client.db('happn');
+    const db = client.db(collectionName);
     const collection = db.collection(collectionName);
     collection.drop(function (err) {
       client.close();
