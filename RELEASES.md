@@ -67,6 +67,11 @@ happner-client: 12.2.6
 happner-cluster: 12.1.6
 redis-lru-cache: 1.0.10
 
+1.3.3 2022-06-28
+----------------
+happner-cluster: 12.1.8
+happn-cluster: 12.0.11
+
 
 
 
