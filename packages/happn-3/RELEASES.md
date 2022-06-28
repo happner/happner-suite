@@ -991,6 +991,16 @@
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
 
+13.1.3 2022-06-28
+-----------------
+  - TEN-123: fix to getaddress - issue with bad breaking release in node 18.4
+
+13.1.4 2022-06-28
+-----------------
+  - TEN-12: mongo cluster membership
+
+
+
 
   
 

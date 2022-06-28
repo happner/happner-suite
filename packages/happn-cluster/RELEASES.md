@@ -282,4 +282,12 @@ non-release 2017-12-14
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
 
+12.0.11 2022-06-28
+-----------------
+  - TEN-123: fix to getaddress - issue with bad breaking release in node 18.4
+
+13.0.0 2022-06-28
+-----------------
+  - TEN-12: mongo cluster membership
+
 
