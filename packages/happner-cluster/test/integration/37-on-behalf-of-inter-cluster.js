@@ -1,9 +1,15 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+const baseConfig = require('../_lib/base-config');
+const stopCluster = require('../_lib/stop-cluster');
+const users = require('../_lib/users');
+const clearMongoCollection = require('../_lib/clear-mongo-collection');
+const getSeq = require('../_lib/helpers/getSeq');
+const testclient = require('../_lib/client');
+
+require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) => {
   const restClient = require('restler');
-  let mesh,
-    adminUser,
+  let adminUser,
     testUsers = [];
-  before('it sets up the mesh', setUpMesh);
+
   before('it connects the admin user', connectAdminUser);
   before('it creates the test users', createTestUsers);
   it('can do an http-rpc with as, delegated via the ADMIN user', async () => {
@@ -89,12 +95,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(result).to.eql(['unauthorized', 'unauthorized']);
   });
 
-  xit('can do an exchange call with as', async () => {
-    test
-      .expect(await adminUser.as('testUser').exchange.test.doOnBehalfOfAllowed(1, 2))
-      .to.eql('origin:testUser:1:2');
-  });
-
   it('can do an exchange $call with as', async () => {
     test
       .expect(
@@ -123,79 +123,117 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(errorMessage).to.be('unauthorized');
   });
 
-  after('it disconnects the admin user', disconnectAdminUser);
-  after('it disconnects the test users', disconnectTestUsers);
-  after('tears down mesh', stopMesh);
-  async function setUpMesh() {
-    mesh = await test.Mesh.create({
-      name: 'asMesh',
-      port: 12358,
-      secure: true,
-      modules: {
-        test: {
-          instance: {
-            doOnBehalfOfAllowed: async function (param1, param2, $origin) {
-              return `origin:${$origin.username}:${param1}:${param2}`;
-            },
-            doOnBehalfOfNotAllowed: async function (_param1, _param2, $origin) {
-              return `unexpected:${$origin.username}`;
-            },
-            doOnBehalfOfAllowedAs: async function (param1, param2, $happn) {
-              let result1 = await $happn.exchange.$call({
+  var servers, localInstance;
+
+  function localInstanceConfig(seq) {
+    var config = baseConfig(seq, undefined, true);
+    config.modules = {
+      local: {
+        instance: {
+          doOnBehalfOfAllowedAs: async function (param1, param2, $happn) {
+            let result1 = await $happn.exchange.$call({
+              component: 'test',
+              method: 'doOnBehalfOfAllowed',
+              arguments: [param1, param2],
+              as: 'testUser',
+            });
+            let result2 = await $happn
+              .as('testUser')
+              .exchange.test.doOnBehalfOfAllowed(param1, param2);
+            test.expect(result1).to.eql(result2);
+            return result1;
+          },
+          doOnBehalfOfNotAllowedAs: async function (param1, param2, $happn) {
+            const failures = [];
+            try {
+              await $happn.exchange.$call({
                 component: 'test',
-                method: 'doOnBehalfOfAllowed',
+                method: 'doOnBehalfOfNotAllowed',
                 arguments: [param1, param2],
                 as: 'testUser',
               });
-              let result2 = await $happn
-                .as('testUser')
-                .exchange.test.doOnBehalfOfAllowed(param1, param2);
-              test.expect(result1).to.eql(result2);
-              return result1;
-            },
-            doOnBehalfOfNotAllowedAs: async function (param1, param2, $happn) {
-              const failures = [];
-              try {
-                await $happn.exchange.$call({
-                  component: 'test',
-                  method: 'doOnBehalfOfNotAllowed',
-                  arguments: [param1, param2],
-                  as: 'testUser',
-                });
-              } catch (e) {
-                failures.push(e.message);
-              }
-              try {
-                await $happn.as('testUser').exchange.test.doOnBehalfOfNotAllowed(param1, param2);
-              } catch (e) {
-                failures.push(e.message);
-              }
-              return failures;
-            },
+            } catch (e) {
+              failures.push(e.message);
+            }
+            try {
+              await $happn.as('testUser').exchange.test.doOnBehalfOfNotAllowed(param1, param2);
+            } catch (e) {
+              failures.push(e.message);
+            }
+            return failures;
           },
         },
       },
-      components: {
-        test: {},
+    };
+    config.components = {
+      local: {},
+    };
+    return config;
+  }
+
+  function remoteInstanceConfig(seq) {
+    var config = baseConfig(seq, undefined, true);
+    config.modules = {
+      test: {
+        instance: {
+          doOnBehalfOfAllowed: async function (param1, param2, $origin) {
+            return `origin:${$origin.username}:${param1}:${param2}`;
+          },
+          doOnBehalfOfNotAllowed: async function (_param1, _param2, $origin) {
+            return `unexpected:${$origin.username}`;
+          },
+        },
       },
+    };
+    config.components = {
+      test: {},
+    };
+    return config;
+  }
+
+  beforeEach('clear mongo', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
+      done(e);
     });
-  }
-  async function stopMesh() {
-    if (mesh) await mesh.stop();
-  }
+  });
+
+  before('start cluster', function (done) {
+    this.timeout(20000);
+    test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
+      localInstance = local;
+    });
+
+    setTimeout(() => {
+      Promise.all([
+        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+      ])
+        .then(function (_servers) {
+          servers = _servers;
+          //localInstance = servers[0];
+          return users.add(servers[0], 'username', 'password');
+        })
+        .then(function () {
+          setTimeout(done, 5e3);
+        })
+        .catch(done);
+    }, 2000);
+  });
+
+  after('stop cluster', function (done) {
+    if (!servers) return done();
+    stopCluster(servers.concat(localInstance), done);
+  });
+
+  after('it disconnects the admin user', disconnectAdminUser);
+  after('it disconnects the test users', disconnectTestUsers);
+
   async function connectAdminUser() {
-    adminUser = new test.Mesh.MeshClient({ port: 12358, secure: true });
-    await adminUser.login({
-      username: '_ADMIN',
-      password: 'happn',
-    });
+    adminUser = await new testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
   }
   async function connectTestUser(id = '') {
-    const testUser = new test.Mesh.MeshClient({ port: 12358, secure: true });
-    await testUser.login({
-      username: `testUser${id}`,
-      password: `password`,
-    });
+    const testUser = await new testclient.create(`testUser${id}`, 'password', getSeq.getPort(1));
     testUsers.push(testUser);
     return testUser;
   }

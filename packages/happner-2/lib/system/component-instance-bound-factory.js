@@ -1,4 +1,5 @@
 const Internals = require('./shared/internals');
+const commons = require('happn-commons');
 module.exports = class ComponentInstanceBoundFactory {
   #componentInstance;
   #mesh;
@@ -70,12 +71,16 @@ module.exports = class ComponentInstanceBoundFactory {
       return false;
     }
     //origin binding for this request specifically
-    if (override === false || override === true) {
+    if (typeof override === 'boolean') {
       return override;
     }
     //dont delegate authority to _ADMIN, no origin is an internal call:
     if (!origin || origin.username === '_ADMIN') {
       return false;
+    }
+    //origin binding for this origin specifically
+    if (typeof origin.override === 'boolean') {
+      return origin.override;
     }
     //authority delegation not set up on component, and not set up on the server
     if (
@@ -121,28 +126,29 @@ module.exports = class ComponentInstanceBoundFactory {
         return this.#componentInstance.mesh;
       },
     });
+    const boundOrigin = commons._.merge(origin, { override: true });
     Object.defineProperty(bound, 'bound', {
       get: function () {
-        return origin;
+        return boundOrigin;
       },
     });
     bound.data = require('./component-instance-data').create(
       this.#mesh.data,
       this.#componentName,
-      origin
+      boundOrigin
     );
     bound.exchange = this.#secureExchangeBoundToOrigin(
       this.#componentInstance.exchange,
-      origin,
+      boundOrigin,
       componentName,
       methodName
     );
     bound.event = this.#secureEventBoundToOrigin(
       this.#componentInstance.event,
-      origin,
+      boundOrigin,
       componentName
     );
-    return this.#setCachedBoundComponent(origin, componentName, methodName, bound);
+    return this.#setCachedBoundComponent(boundOrigin, componentName, methodName, bound);
   }
 
   #secureExchangeBoundToOriginMethods(component, boundComponent, origin, methodName) {

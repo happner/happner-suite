@@ -267,7 +267,7 @@
         }
       },
       timedout: setTimeout(function () {
-        thisMessenger.failResponse('Request timed out', message.callbackAddress);
+        thisMessenger.failResponse(new Error('Request timed out'), message.callbackAddress);
       }, thisMessenger._endpoint.description.setOptions.timeout || 10000),
       handler: actualHandler, // for use by the connection-ended event
     };
