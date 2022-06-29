@@ -87,13 +87,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) =
     test.expect(errorMessage).to.eql('origin does not belong to the delegate group');
   });
 
-  xit('can do an exchange call with as in component method', async () => {
+  it('can do an exchange call with as in component method', async () => {
     test
       .expect(await adminUser.exchange.local.doOnBehalfOfAllowedAs(1, 2))
       .to.eql('origin:testUser:1:2');
   });
 
-  xit('fails to do an exchange call with as in component method', async () => {
+  it('fails to do an exchange call with as in component method', async () => {
     const result = await adminUser.exchange.local.doOnBehalfOfNotAllowedAs(1, 2);
     test.expect(result).to.eql(['unauthorized', 'unauthorized']);
   });
