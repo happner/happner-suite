@@ -42,22 +42,22 @@ module.exports = class ComponentInstanceBoundFactory {
     if (!this.#boundExchangeCache) return;
     return this.#boundExchangeCache.clear();
   }
-  #getCachedBoundComponentKey(origin, componentName = '*', methodName = '*') {
-    return `${origin.username}:${componentName}:${methodName}`;
+  #getCachedBoundComponentKey(origin, componentName = '*', methodName = '*', sessionType) {
+    return `${origin.username}:${componentName}:${methodName}:${sessionType}`;
   }
-  #getCachedBoundComponent(origin, componentName, methodName) {
+  #getCachedBoundComponent(origin, componentName, methodName, sessionType) {
     if (!this.#boundExchangeCache) return null;
     return this.#boundExchangeCache.get(
-      this.#getCachedBoundComponentKey(origin, componentName, methodName),
+      this.#getCachedBoundComponentKey(origin, componentName, methodName, sessionType),
       {
         clone: false,
       }
     );
   }
-  #setCachedBoundComponent(origin, componentName, methodName, exchange) {
+  #setCachedBoundComponent(origin, componentName, methodName, sessionType, exchange) {
     if (!this.#boundExchangeCache) return exchange;
     this.#boundExchangeCache.set(
-      this.#getCachedBoundComponentKey(origin, componentName, methodName),
+      this.#getCachedBoundComponentKey(origin, componentName, methodName, sessionType),
       exchange,
       {
         clone: false,
@@ -95,11 +95,11 @@ module.exports = class ComponentInstanceBoundFactory {
     }
     return true;
   }
-  getBoundComponent(origin, override, componentName, methodName) {
+  getBoundComponent(origin, override, componentName, methodName, sessionType = 1) {
     if (!this.originBindingNecessary(origin, override)) {
       return this.#componentInstance;
     }
-    let bound = this.#getCachedBoundComponent(origin, componentName, methodName);
+    let bound = this.#getCachedBoundComponent(origin, componentName, methodName, sessionType);
     if (bound) return bound;
 
     bound = Object.assign({}, this.#componentInstance);
@@ -126,7 +126,7 @@ module.exports = class ComponentInstanceBoundFactory {
         return this.#componentInstance.mesh;
       },
     });
-    const boundOrigin = commons._.merge(origin, { override: true });
+    const boundOrigin = commons._.merge(origin, { override: true, type: sessionType });
     Object.defineProperty(bound, 'bound', {
       get: function () {
         return boundOrigin;
@@ -148,7 +148,13 @@ module.exports = class ComponentInstanceBoundFactory {
       boundOrigin,
       componentName
     );
-    return this.#setCachedBoundComponent(boundOrigin, componentName, methodName, bound);
+    return this.#setCachedBoundComponent(
+      boundOrigin,
+      componentName,
+      methodName,
+      sessionType,
+      bound
+    );
   }
 
   #secureExchangeBoundToOriginMethods(component, boundComponent, origin, methodName) {

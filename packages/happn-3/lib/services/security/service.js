@@ -92,7 +92,7 @@ SecurityService.prototype.processAuthorize = processAuthorize;
 SecurityService.prototype.processAuthorizeUnsecure = processAuthorizeUnsecure;
 SecurityService.prototype.authorize = util.maybePromisify(authorize);
 SecurityService.prototype.authorizeOnBehalfOf = authorizeOnBehalfOf;
-SecurityService.prototype.__getOnBehalfOfSession = __getOnBehalfOfSession;
+SecurityService.prototype.getOnBehalfOfSession = getOnBehalfOfSession;
 SecurityService.prototype.getCorrectSession = getCorrectSession;
 SecurityService.prototype.getRelevantPaths = getRelevantPaths;
 //Digest Authentication methods
@@ -344,8 +344,13 @@ function processAuthorize(message, callback) {
       (e, authorized, reason, onBehalfOfSession) => {
         if (e) return callback(e);
         if (!authorized) {
-          if (!reason) reason = '';
-          reason += ' request on behalf of: ' + message.request.options.onBehalfOf;
+          let onBehalfOfMessage =
+            'request on behalf of unauthorised user: ' + message.request.options.onBehalfOf;
+          if (!reason) {
+            reason = onBehalfOfMessage;
+          } else {
+            reason += ' ' + onBehalfOfMessage;
+          }
           return callback(this.happn.services.error.AccessDeniedError('unauthorized', reason));
         }
         message.session = onBehalfOfSession;
@@ -1542,7 +1547,7 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   if (session.user.username !== '_ADMIN')
     return completeCall(null, false, 'session attempting to act on behalf of is not authorized');
 
-  this.__getOnBehalfOfSession(session, onBehalfOf, (e, behalfOfSession) => {
+  this.getOnBehalfOfSession(session, onBehalfOf, session.type, (e, behalfOfSession) => {
     if (e) return completeCall(e, false, 'failed to get on behalf of session');
     if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
     this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
@@ -1553,20 +1558,31 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   });
 }
 
-function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
-  let behalfOfSession = this.__cache_session_on_behalf_of.get(onBehalfOf, { clone: false });
-  if (behalfOfSession) return callback(null, behalfOfSession);
+function getOnBehalfOfSession(delegatedBy, onBehalfOf, sessionType = 1, callback) {
+  let behalfOfSession = this.__cache_session_on_behalf_of.get(`${onBehalfOf}:${sessionType}`, {
+    clone: false,
+  });
+  if (behalfOfSession) {
+    return callback(null, behalfOfSession);
+  }
 
   this.users.getUser(onBehalfOf, (e, onBehalfOfUser) => {
     if (e) return callback(e);
     if (!onBehalfOfUser) {
       return callback(null, null);
     }
-    behalfOfSession = this.generateSession(onBehalfOfUser, null, {
-      info: { delegatedBy: delegatedBy.user.username },
-    });
+    behalfOfSession = this.generateSession(
+      onBehalfOfUser,
+      null,
+      {
+        info: { delegatedBy: delegatedBy.user.username },
+      },
+      { session: { type: sessionType } }
+    );
     behalfOfSession.happn = delegatedBy.happn;
-    this.__cache_session_on_behalf_of.set(onBehalfOf, behalfOfSession, { clone: false });
+    this.__cache_session_on_behalf_of.set(`${onBehalfOf}:${sessionType}`, behalfOfSession, {
+      clone: false,
+    });
     callback(null, behalfOfSession);
   });
 }
@@ -1580,7 +1596,12 @@ function getCorrectSession(message, callback) {
     )
   )
     return callback(null, message.session);
-  return this.__getOnBehalfOfSession(message.session, message.request.options.onBehalfOf, callback);
+  return this.getOnBehalfOfSession(
+    message.session,
+    message.request.options.onBehalfOf,
+    message.session.type,
+    callback
+  );
 }
 
 function getRelevantPaths(message, callback) {

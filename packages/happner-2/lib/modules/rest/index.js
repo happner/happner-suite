@@ -127,7 +127,13 @@ Rest.prototype.__authorizeAccessPoint = function ($happn, $origin, accessPoint, 
   });
 };
 
-Rest.prototype.__authorize = function (res, $happn, $origin, uri, authorizeAs, successful) {
+Rest.prototype.__validateCredentialsGetOrigin = function (
+  res,
+  $happn,
+  $origin,
+  authorizeAs,
+  successful
+) {
   if (!$happn._mesh.config.happn.secure) {
     return successful();
   }
@@ -142,7 +148,6 @@ Rest.prototype.__authorize = function (res, $happn, $origin, uri, authorizeAs, s
       403
     );
   }
-
   this.__getAuthorizedOrigin($happn, $origin, authorizeAs, (e, authorizedOrigin) => {
     if (e) {
       if (e.message === 'origin does not belong to the delegate group') {
@@ -151,14 +156,7 @@ Rest.prototype.__authorize = function (res, $happn, $origin, uri, authorizeAs, s
       this.__respond($happn, 'Authorization failed due to system error', null, e, res, 500);
       return $happn.log.warn(`authorization system error: ${e.message}`);
     }
-    this.__authorizeAccessPoint($happn, authorizedOrigin, uri, (e, authorized, reason) => {
-      if (e) return this.__respond($happn, 'Authorization failed', null, e, res, 403);
-      if (!authorized) {
-        if (!reason) reason = 'Authorization failed';
-        return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
-      }
-      successful(authorizedOrigin);
-    });
+    successful(authorizedOrigin);
   });
 };
 
@@ -221,7 +219,7 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     // if bound already, dont do .as
     let mesh = $happn.bound
       ? $happn.exchange
-      : $happn.as($origin?.username, componentName, methodName).exchange;
+      : $happn.as($origin?.username, componentName, methodName, 0).exchange;
 
     if (componentName === 'security') {
       return this.__respond(
@@ -273,7 +271,6 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
         404
       );
     }
-
     method = component[methodName];
 
     meshDescription = this.__exchangeDescription;
@@ -295,7 +292,13 @@ Rest.prototype.__mapMethodArguments = function (
   $origin
 ) {
   const __callback = (e, response) => {
-    if (e) return this.__respond($happn, 'Call failed', null, e, res, 500);
+    if (e) {
+      if (e.message === 'unauthorized') {
+        return this.__respond($happn, e.reason, null, new Error('Access denied'), res, 403);
+      }
+      //TODO: handle malformed errors as well
+      return this.__respond($happn, 'Call failed', null, e, res, 500);
+    }
     this.__respond($happn, 'Call successful', response, null, res);
   };
 
@@ -340,7 +343,7 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
     const methodURI = utilities.removeLeading('/', utilities.getRelativePath(req.url));
     this.__parseBody(req, res, $happn, (body) => {
       let authorizeAs = body?.as;
-      this.__authorize(res, $happn, $origin, '/' + methodURI, authorizeAs, (authorizedOrigin) => {
+      this.__validateCredentialsGetOrigin(res, $happn, $origin, authorizeAs, (authorizedOrigin) => {
         const callPath = methodURI.split('/');
         //ensure we don't have a leading /
         if (callPath.length > 4) {

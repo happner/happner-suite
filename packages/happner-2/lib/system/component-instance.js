@@ -495,26 +495,27 @@ module.exports = class ComponentInstance {
     }
     const subscribeMask = this.#getSubscribeMask();
     const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
-    this.#mesh._mesh.happn.server.services.security.__getOnBehalfOfSession(
+    this.#mesh._mesh.happn.server.services.security.getOnBehalfOfSession(
       {
         user: {
           username: '_ADMIN',
         },
       },
       origin.username,
+      origin.type,
       (e, originSession) => {
         if (e) return callback(e);
         this.#mesh._mesh.happn.server.services.security.authorize(
           originSession,
           permissionPath,
           'set',
-          (e, authorized) => {
+          (e, authorized, reason) => {
             if (e) return callback(e);
             if (!authorized)
               return callback(
                 this.#mesh._mesh.happn.server.services.error.AccessDeniedError(
                   'unauthorized',
-                  'request on behalf of: ' + origin.username
+                  reason || 'request on behalf of unauthorised user: ' + origin.username
                 )
               );
             callback();
@@ -556,12 +557,13 @@ module.exports = class ComponentInstance {
     return webMethods;
   }
 
-  as(username, componentName, methodName) {
+  as(username, componentName, methodName, sessionType) {
     return this.#boundComponentInstanceFactory.getBoundComponent(
       { username },
       true,
       componentName,
-      methodName
+      methodName,
+      sessionType
     );
   }
 
