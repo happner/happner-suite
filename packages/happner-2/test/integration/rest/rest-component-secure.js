@@ -483,13 +483,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       };
 
       restModule.__securityService = mock$Happn._mesh.happn.server.services.security;
-      restModule.__authorize(
+      restModule.__validateCredentialsGetOrigin(
         mockResponse,
         mock$Happn,
         mock$Origin,
-        'test/method',
         'testUser',
-        () => {
+        (authorizedOrigin) => {
+          test.expect(authorizedOrigin.username).to.be('testUser');
           done();
         }
       );

@@ -110,10 +110,10 @@ describe(test.testName(__filename, 3), function () {
       );
     });
   });
-  describe('__authorize', function () {
+  describe('__validateCredentialsGetOrigin', function () {
     it('calls __respond if !$origin', function () {
       const restModule = new RestModule();
-      const __authorizeMethod = restModule.__authorize;
+      const __authorizeMethod = restModule.__validateCredentialsGetOrigin;
       const $happn = { _mesh: { config: { happn: { secure: 'secure' } } } };
       const successful = test.sinon.fake();
 
@@ -121,7 +121,7 @@ describe(test.testName(__filename, 3), function () {
         __respond: test.sinon.stub(restModule, '__respond'),
         __authorizeAccessPoint: test.sinon.stub(restModule, '__authorizeAccessPoint'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, undefined, undefined, successful);
+      __authorizeMethod.call(mock, undefined, $happn, undefined, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
@@ -135,29 +135,31 @@ describe(test.testName(__filename, 3), function () {
 
     it('calls __respond if __respond errors', function () {
       const restModule = new RestModule();
-      const __authorizeMethod = restModule.__authorize;
-      const $happn = { _mesh: { config: { happn: { secure: 'secure' } } } };
+      const __authorizeMethod = restModule.__validateCredentialsGetOrigin;
+      const $happn = {
+        _mesh: { config: { happn: { secure: 'secure' } } },
+        log: {
+          warn: test.sinon.stub(),
+        },
+      };
       const $origin = { origin: 'origin' };
       const successful = test.sinon.fake();
 
       const mock = {
         __getAuthorizedOrigin: test.sinon
           .stub(restModule, '__getAuthorizedOrigin')
-          .callsArgWith(3, null, { username: 'testUser' }),
-        __authorizeAccessPoint: test.sinon
-          .stub(restModule, '__authorizeAccessPoint')
-          .callsArgWith(3, 'error', true, 'reason'),
+          .callsArgWith(3, new Error('test')),
         __respond: test.sinon.stub(restModule, '__respond'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, $origin, undefined, successful);
+      __authorizeMethod.call(mock, undefined, $happn, $origin, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
-        'Authorization failed',
+        'Authorization failed due to system error',
         null,
         test.sinon.match.any,
         undefined,
-        403
+        500
       );
     });
   });
