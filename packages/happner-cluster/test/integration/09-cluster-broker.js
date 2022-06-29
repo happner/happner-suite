@@ -533,7 +533,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return client.exchange.remoteComponent.brokeredMethodTimeout();
         })
         .catch(function (e) {
-          test.expect(e.toString()).to.be('Request timed out');
+          test.expect(e.message).to.be('Request timed out');
           done();
         });
     });

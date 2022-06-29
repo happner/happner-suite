@@ -54,7 +54,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
       await client.exchange.breakingComponent.breakingMethod(1); // Too few arguments
       throw new Error("shouldn't happen");
     } catch (e) {
-      test.expect(e).to.be('Request timed out');
+      test.expect(e.message).to.be('Request timed out');
     }
     child = await fork(libDir + 'test-25-sub-process.js', ['3', getSeq.lookupFirst().toString()]);
     await test.delay(8000);
