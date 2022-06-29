@@ -5,7 +5,7 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const getSeq = require('../_lib/helpers/getSeq');
 const testclient = require('../_lib/client');
 
-require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   const restClient = require('restler');
   let adminUser,
     testUsers = [];
