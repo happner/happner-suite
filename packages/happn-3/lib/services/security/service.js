@@ -570,15 +570,13 @@ function __clearOnBehalfOfCache() {
 }
 
 function __initializeOnBehalfOfCache() {
-  return new Promise((resolve) => {
-    if (!this.config.secure) return resolve();
-    if (this.__cache_session_on_behalf_of) return resolve();
-    this.__cache_session_on_behalf_of = this.cacheService.create(
-      'cache_session_on_behalf_of',
-      this.options.onBehalfOfCache
-    );
-    resolve();
-  });
+  if (!this.config.secure || this.__cache_session_on_behalf_of) {
+    return;
+  }
+  this.__cache_session_on_behalf_of = this.cacheService.create(
+    'cache_session_on_behalf_of',
+    this.options.onBehalfOfCache
+  );
 }
 
 function __initializeSessionManagement(config) {
