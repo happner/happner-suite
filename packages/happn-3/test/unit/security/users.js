@@ -986,7 +986,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   }
 
-  it.only('tests userBelongsToGroups, cache clear', async () => {
+  it('tests userBelongsToGroups, cache clear', async () => {
     test
       .expect(
         await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.DELETE_GROUP, {
