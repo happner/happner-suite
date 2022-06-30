@@ -191,7 +191,7 @@ async function initialize(config) {
   await this.__initializeLookupTables(config);
   await this.__initializeProfiles(config);
   await this.__initializeSessionManagement(config);
-  await this.__initializeOnBehalfOfCache(config);
+  this.__initializeOnBehalfOfCache(config);
   await this.__ensureAdminUser(config);
   this.anonymousUser = await this.__ensureAnonymousUser(config);
   await this.__initializeReplication(config);
