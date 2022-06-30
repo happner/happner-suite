@@ -257,32 +257,6 @@ module.exports = class ComponentInstance {
     );
   }
 
-  // TODO: Still working on this
-  #attachModuleMethods() {
-    for (const methodName in this.exchange[this.name]) {
-      if (typeof this.exchange[this.name][methodName] === 'function') {
-        this.exchange[this.name][methodName].as = (username) => {
-          return function () {
-            const functionArgs = Array.from(arguments);
-            return new Promise((resolve, reject) => {
-              this.operate(
-                methodName,
-                functionArgs,
-                (e, results) => {
-                  if (e) return reject(e);
-                  resolve(results);
-                },
-                { username },
-                null,
-                true
-              );
-            });
-          }.bind(this);
-        };
-      }
-    }
-  }
-
   #callBackWithWarningAndError(category, message, callback) {
     const error = new Error(message);
     this.#log.warn(`${category}:${message}`);

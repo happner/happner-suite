@@ -150,28 +150,23 @@ function clearCaches(whatHappnd, changedData) {
   if (whatHappnd === SD_EVENTS.PERMISSION_REMOVED || whatHappnd === SD_EVENTS.PERMISSION_UPSERTED) {
     if (changedData.username) {
       this.__cache_users.remove(changedData.username);
-      if (this.permissionManager) this.permissionManager.cache.remove(changedData.username);
+      if (this.permissionManager) {
+        this.permissionManager.cache.remove(changedData.username);
+      }
     }
   }
 
-  return new Promise((resolve, reject) => {
-    try {
-      if (whatHappnd === SD_EVENTS.UPSERT_USER || whatHappnd === SD_EVENTS.DELETE_USER) {
-        const userName =
-          whatHappnd === SD_EVENTS.UPSERT_USER
-            ? changedData.username
-            : changedData.obj._meta.path.replace('/_SYSTEM/_SECURITY/_USER/', '');
-        this.__cache_users_by_groups.userChanged(userName);
-        this.__cache_passwords.remove(userName);
-        this.__cache_users.remove(userName);
-        this.__cache_groups_by_user.remove(userName);
-        if (this.permissionManager) this.permissionManager.cache.remove(userName);
-      }
-      return resolve();
-    } catch (e) {
-      reject(e);
-    }
-  });
+  if (whatHappnd === SD_EVENTS.UPSERT_USER || whatHappnd === SD_EVENTS.DELETE_USER) {
+    const userName =
+      whatHappnd === SD_EVENTS.UPSERT_USER
+        ? changedData.username
+        : changedData.obj._meta.path.replace('/_SYSTEM/_SECURITY/_USER/', '');
+    this.__cache_users_by_groups.userChanged(userName);
+    this.__cache_passwords.remove(userName);
+    this.__cache_users.remove(userName);
+    this.__cache_groups_by_user.remove(userName);
+    if (this.permissionManager) this.permissionManager.cache.remove(userName);
+  }
 }
 
 function __validate(validationType, options, obj, callback) {
@@ -422,8 +417,12 @@ function __linkGroupsToUser(user, callback) {
 }
 
 function userBelongsToGroups(username, groupNames, callback) {
+  if (!Array.isArray(groupNames)) {
+    return callback(new Error('groupNames must be an array'));
+  }
   this.getGroupMemberships(username, (e, memberships) => {
     if (e) return callback(e);
+    if (groupNames.length === 0) return callback(null, false);
     const userGroupNames = memberships.map((membership) => membership.groupName);
     const belongs = groupNames.every((element) => {
       return userGroupNames.includes(element);
