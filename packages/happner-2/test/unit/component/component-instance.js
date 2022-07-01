@@ -1,3 +1,5 @@
+const LRUCache = require('happn-3/lib/services/cache/cache-lru');
+
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   it('describe method', function (done) {
     let ComponentInstance = require('../../../lib/system/component-instance');
@@ -301,7 +303,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             },
             services: {
               cache: {
-                getOrCreate: test.sinon.stub(),
+                getOrCreate: test.sinon.stub().returns(mockCache()),
               },
               security: {
                 on: test.sinon.stub(),
@@ -356,5 +358,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         },
       },
     };
+  }
+  function mockCache() {
+    return new LRUCache('test', {
+      cache: {
+        max: 5,
+      },
+    });
   }
 });

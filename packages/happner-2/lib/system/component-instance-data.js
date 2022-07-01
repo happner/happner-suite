@@ -30,7 +30,7 @@ module.exports = class SecureMeshData {
   }
   #getPath(path) {
     if (typeof path !== 'string' || path.length === 0) {
-      return `[bad path]:${path}`;
+      return '[bad path]: either empty or not a string';
     }
     if (path[0] !== '/') path = '/' + path;
     return this.#persistedPath + path;
@@ -52,7 +52,7 @@ module.exports = class SecureMeshData {
 
     let componentPath;
     if (path === '*') path = '**';
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     this.#meshData.on(componentPath, options, handler, callback);
@@ -66,7 +66,9 @@ module.exports = class SecureMeshData {
       return this.#meshData.off(listenerRef, callback);
     }
     let componentPath;
-    if ((componentPath = this.#getPath(listenerRef)) === `bad path: ${listenerRef}`) {
+    if (
+      (componentPath = this.#getPath(listenerRef)) === `[bad path]: either empty or not a string`
+    ) {
       return callback(new Error(componentPath));
     }
     this.#meshData.off(componentPath, callback);
@@ -85,7 +87,7 @@ module.exports = class SecureMeshData {
       return;
     }
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     this.#meshData.offPath(componentPath, callback);
@@ -104,7 +106,7 @@ module.exports = class SecureMeshData {
     if (this.#origin) options.onBehalfOf = this.#origin.username;
 
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.get(componentPath, options, callback);
@@ -121,7 +123,7 @@ module.exports = class SecureMeshData {
     if (!options) options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.count(componentPath, options, callback);
@@ -134,7 +136,7 @@ module.exports = class SecureMeshData {
     let options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.getPaths(componentPath, options, callback);
@@ -154,7 +156,7 @@ module.exports = class SecureMeshData {
     if (this.#origin) options.onBehalfOf = this.#origin.username;
 
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.set(componentPath, data, options, callback);
@@ -179,7 +181,7 @@ module.exports = class SecureMeshData {
     let options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.increment(componentPath, gauge, increment, options, callback);
@@ -196,7 +198,7 @@ module.exports = class SecureMeshData {
     if (!options) options = {};
     if (this.#origin) options.onBehalfOf = this.#origin.username;
     let componentPath;
-    if ((componentPath = this.#getPath(path)) === `bad path: ${path}`) {
+    if ((componentPath = this.#getPath(path)) === `[bad path]: either empty or not a string`) {
       return callback(new Error(componentPath));
     }
     return this.#meshData.remove(componentPath, options, callback);
