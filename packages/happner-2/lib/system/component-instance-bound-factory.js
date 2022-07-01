@@ -39,14 +39,12 @@ module.exports = class ComponentInstanceBoundFactory {
     );
   }
   #clearBoundComponentCache() {
-    if (!this.#boundExchangeCache) return;
     return this.#boundExchangeCache.clear();
   }
   #getCachedBoundComponentKey(origin, componentName = '*', methodName = '*', sessionType) {
     return `${origin.username}:${componentName}:${methodName}:${sessionType}`;
   }
   #getCachedBoundComponent(origin, componentName, methodName, sessionType) {
-    if (!this.#boundExchangeCache) return null;
     return this.#boundExchangeCache.get(
       this.#getCachedBoundComponentKey(origin, componentName, methodName, sessionType),
       {
@@ -55,7 +53,6 @@ module.exports = class ComponentInstanceBoundFactory {
     );
   }
   #setCachedBoundComponent(origin, componentName, methodName, sessionType, exchange) {
-    if (!this.#boundExchangeCache) return exchange;
     this.#boundExchangeCache.set(
       this.#getCachedBoundComponentKey(origin, componentName, methodName, sessionType),
       exchange,
@@ -122,13 +119,13 @@ module.exports = class ComponentInstanceBoundFactory {
     });
     //backward compatability for deprecation
     Object.defineProperty(bound, 'mesh', {
-      get: function () {
+      get: () => {
         return this.#componentInstance.mesh;
       },
     });
     const boundOrigin = commons._.merge(origin, { override: true, type: sessionType });
     Object.defineProperty(bound, 'bound', {
-      get: function () {
+      get: () => {
         return boundOrigin;
       },
     });
@@ -158,7 +155,6 @@ module.exports = class ComponentInstanceBoundFactory {
   }
 
   #secureExchangeBoundToOriginMethods(component, boundComponent, origin, methodName) {
-    if (typeof component !== 'object') return;
     Object.keys(component)
       .filter((exchangeMethodName) => {
         return methodName != null ? exchangeMethodName === methodName : true;
