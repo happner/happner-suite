@@ -219,6 +219,36 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     test.expect(errorMessage).to.be('unauthorized');
   });
 
+  it('fails to do an exchange call with as, happner-client, unknown user', async () => {
+    let errorMessage;
+    try {
+      await adminUserHappnerClientAPI.exchange.$call({
+        component: 'test',
+        method: 'doOnBehalfOfAllowed',
+        arguments: [1, 2],
+        as: 'unknown',
+      });
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('unauthorized');
+  });
+
+  it('fails to do an exchange call with as, happner-client, anonymous user', async () => {
+    let errorMessage;
+    try {
+      await adminUserHappnerClientAPI.exchange.$call({
+        component: 'test',
+        method: 'doOnBehalfOfAllowed',
+        arguments: [1, 2],
+        as: '_ANONYMOUS',
+      });
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.be('unauthorized');
+  });
+
   it('fails to try an exchange call with as _ADMIN, happner-client', async () => {
     let errorMessage;
     [testUserHappnerClient, testUserHappnerClientAPI] = await createHappnerClientAndAPI(
@@ -252,6 +282,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   function localInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
+    config.happn.services.security.config.allowAnonymousAccess = true;
     config.modules = {
       local: {
         instance: {
