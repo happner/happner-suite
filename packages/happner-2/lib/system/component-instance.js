@@ -90,7 +90,7 @@ module.exports = class ComponentInstance {
     };
 
     this.#log = mesh._mesh.log.createLogger(this.name);
-    this.#log.$$TRACE('create instance');
+    this.#log.trace('create instance');
 
     this.#authorizer = require('./authorizer').create(
       mesh._mesh.happn.server.services.security,
@@ -202,9 +202,9 @@ module.exports = class ComponentInstance {
           );
         }
 
-        this.#log.$$TRACE('operate( %s', methodName);
-        this.#log.$$TRACE('parameters ', parameters);
-        this.#log.$$TRACE('methodSchema ', methodSchema);
+        this.#log.trace('operate( %s', methodName);
+        this.#log.trace('parameters ', parameters);
+        this.#log.trace('methodSchema ', methodSchema);
 
         if (methodSchema.type === 'sync-promise') {
           let result;
@@ -265,7 +265,7 @@ module.exports = class ComponentInstance {
 
   #attach(config, mesh, callback) {
     //attach module to the transport layer
-    this.#log.$$TRACE('_attach()');
+    this.#log.trace('_attach()');
     this.emit = (key, data, options, callback) => {
       if (typeof options === 'function') {
         callback = options;
@@ -334,14 +334,14 @@ module.exports = class ComponentInstance {
       }
     }
     const subscribeMask = this.#getSubscribeMask();
-    this.#log.$$TRACE('data.on( ' + subscribeMask);
+    this.#log.trace('data.on( ' + subscribeMask);
     mesh.data.on(
       subscribeMask,
       {
         event_type: 'set',
       },
       (publication, meta) => {
-        this.#log.$$TRACE('received request at %s', subscribeMask);
+        this.#log.trace('received request at %s', subscribeMask);
         let message = publication;
         let method = meta.path.split('/').pop();
         const args = Array.isArray(message.args) ? message.args.slice(0, message.args.length) : [];
@@ -363,7 +363,7 @@ module.exports = class ComponentInstance {
                 serializedError[key] = e[key];
               });
 
-              this.#log.$$TRACE('operate( reply( ERROR %s', message.callbackAddress);
+              this.#log.trace('operate( reply( ERROR %s', message.callbackAddress);
 
               return this.#reply(
                 message.callbackAddress,
@@ -400,7 +400,7 @@ module.exports = class ComponentInstance {
             }
 
             // Populate response to the callback address
-            this.#log.$$TRACE('operate( reply( RESULT %s', message.callbackAddress);
+            this.#log.trace('operate( reply( RESULT %s', message.callbackAddress);
 
             var options = this.#createSetOptions(publication.origin.id, this.info.happn.options);
             this.#reply(message.callbackAddress, message.callbackPeer, response, options, mesh);
@@ -436,28 +436,28 @@ module.exports = class ComponentInstance {
 
   on(event, handler) {
     try {
-      this.#log.$$TRACE('component on called', event);
+      this.#log.trace('component on called', event);
       return this.#localEventEmitter.on(event, handler);
     } catch (e) {
-      this.#log.$$TRACE('component on error', e);
+      this.#log.trace('component on error', e);
     }
   }
 
   offEvent(event, handler) {
     try {
-      this.#log.$$TRACE('component offEvent called', event);
+      this.#log.trace('component offEvent called', event);
       return this.#localEventEmitter.offEvent(event, handler);
     } catch (e) {
-      this.#log.$$TRACE('component offEvent error', e);
+      this.#log.trace('component offEvent error', e);
     }
   }
 
   emitEvent(event, data) {
     try {
-      this.#log.$$TRACE('component emitEvent called', event);
+      this.#log.trace('component emitEvent called', event);
       return this.#localEventEmitter.emit(event, data);
     } catch (e) {
-      this.#log.$$TRACE('component emitEvent error', e);
+      this.#log.trace('component emitEvent error', e);
     }
   }
 
@@ -719,7 +719,7 @@ module.exports = class ComponentInstance {
     connect.use(meshRoutePath, serve);
     connect.use(componentRoutePath, serve);
 
-    this.#log.$$TRACE(`attached web route for component ${this.name}: ${meshRoutePath}`);
+    this.#log.trace(`attached web route for component ${this.name}: ${meshRoutePath}`);
 
     // tag for detatch() to be able to remove middleware when removing component
     serve.__tag = this.name;
@@ -763,7 +763,7 @@ module.exports = class ComponentInstance {
         client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
       } catch (e) {
         // no peer at callback (race conditions on servers stopping and starting) dead end...
-        this.#log.warn('Failure on callback, missing peer', e);
+        this.#log.warn(`Failure on callback, missing peer: ${callbackPeer}`, e);
         return;
       }
     }
@@ -778,24 +778,17 @@ module.exports = class ComponentInstance {
   }
 
   detatch(mesh, callback) {
-    //
-    // mesh._mesh
-    this.#log.$$TRACE('detatch() removing component from mesh');
-
-    var _this = this;
-    var connect = mesh.happn.server.connect;
-    var name = this.name;
-
+    this.#log.trace('detatch() removing component from mesh');
+    const connect = mesh.happn.server.connect;
     // Remove this component's middleware from the connect stack.
-
     var toRemove = connect.stack
 
-      .map(function (mware, i) {
-        if (mware.handle.__tag !== name) return -1;
+      .map((mware, i) => {
+        if (mware.handle.__tag !== this.name) return -1;
         return i;
       })
 
-      .filter(function (i) {
+      .filter((i) => {
         return i >= 0;
       })
 
@@ -803,21 +796,20 @@ module.exports = class ComponentInstance {
 
       .reverse();
 
-    toRemove.forEach(function (i) {
-      _this.#log.$$TRACE('removing mware at %s', connect.stack[i].route);
+    toRemove.forEach((i) => {
+      this.#log.trace('removing mware at %s', connect.stack[i].route);
       connect.stack.splice(i, 1);
     });
-
+    const subscribeMask = this.#getSubscribeMask();
     // Remove this component's request listener from the happn
+    this.#log.trace('removing request listener %s', subscribeMask);
 
-    var listenAddress = '/_exchange/requests/' + this.info.mesh.domain + '/' + this.name + '/';
-    var subscribeMask = listenAddress + '*';
-
-    _this.#log.$$TRACE('removing request listener %s', subscribeMask);
-
-    mesh.data.offPath(subscribeMask, function (e) {
-      if (e)
-        _this.#log.warn('half detatched, failed to remove request listener %s', subscribeMask, e);
+    mesh.data.offPath(subscribeMask, (e) => {
+      if (e) {
+        this.#log.warn(
+          `half detatched, failed to remove request listener: ${subscribeMask}, error: ${e.message}`
+        );
+      }
       callback(e);
     });
   }

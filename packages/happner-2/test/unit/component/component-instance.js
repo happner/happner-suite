@@ -201,6 +201,89 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
   });
 
+  it('#reply method - missing peer', function (done) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    componentInstance.operate = (method, args, cb) => {
+      cb(null, {});
+    };
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return done(e);
+        mesh._mesh.data.set(
+          {
+            callbackAddress: '/callback/address',
+            callbackPeer: 'test-peer',
+            origin: {
+              id: 1,
+            },
+          },
+          { path: '/test/path' }
+        );
+        setTimeout(() => {
+          test
+            .expect(componentInstance.log.warn.lastCall.args[0])
+            .to.be(`Failure on callback, missing peer: test-peer`);
+          done();
+        }, 1e3);
+      }
+    );
+  });
+
+  it('can detatch', function (done) {
+    initializeComponent((e, componentInstance, mesh) => {
+      if (e) return done(e);
+      componentInstance.detatch(mesh._mesh, (e) => {
+        if (e) return done(e);
+        test
+          .expect(mesh._mesh.data.offPath.lastCall.args[0])
+          .to.be('/_exchange/requests/undefined/test-component-instance/*');
+        done();
+      });
+    });
+  });
+
+  it('fails to detatch', function (done) {
+    initializeComponent((e, componentInstance, mesh) => {
+      if (e) return done(e);
+      mesh._mesh.data.offPath = test.sinon.stub().callsArgWith(1, new Error('test-error'));
+      componentInstance.detatch(mesh._mesh, (e) => {
+        test.expect(e.message).to.be('test-error');
+        test
+          .expect(componentInstance.log.warn.lastCall.args[0])
+          .to.be(
+            'half detatched, failed to remove request listener: /_exchange/requests/undefined/test-component-instance/*, error: test-error'
+          );
+        done();
+      });
+    });
+  });
+
+  function initializeComponent(callback) {
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh('test-mesh-name');
+    let config = mockConfig();
+    componentInstance.name = 'test-component-instance';
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return callback(e);
+        callback(null, componentInstance, mesh, config);
+      }
+    );
+  }
+
   xit('operate method', function (done) {
     let ComponentInstance = require('../../../lib/system/component-instance');
     let componentInstance = new ComponentInstance();
@@ -300,6 +383,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           server: {
             connect: {
               use: test.sinon.stub(),
+              stack: [
+                {
+                  handle: {
+                    __tag: 'test-component-instance',
+                  },
+                },
+              ],
             },
             services: {
               cache: {
@@ -309,7 +399,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                 on: test.sinon.stub(),
               },
               orchestrator: {
-                peers,
+                peers: peers || {},
               },
             },
           },
@@ -318,6 +408,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           set: (publication, meta) => {
             onHandler(publication, meta);
           },
+          offPath: test.sinon.stub().callsArg(1),
           on: (_event, _options, handler, cb) => {
             onHandler = handler;
             cb();
