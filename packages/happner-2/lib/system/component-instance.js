@@ -660,11 +660,6 @@ module.exports = class ComponentInstance {
     this.#log.warn('message discarded: %s', reason, message);
   }
 
-  #hasNext(methodDefn) {
-    var parameters = utilities.getFunctionParameters(methodDefn);
-    return parameters.indexOf('next') >= 0;
-  }
-
   #getWebOrigin(mesh, params) {
     var cookieName = null;
 
@@ -693,25 +688,20 @@ module.exports = class ComponentInstance {
     let componentRef = componentRoutePath.substring(1);
     let _this = this;
 
-    if (typeof methodDefn !== 'function')
+    if (typeof methodDefn !== 'function') {
       throw new Error(
         `Middleware target ${_this.name}:${targetMethod} not a function or null, check your happner web routes config`
       );
+    }
 
     if (
       typeof methodDefn.$happnSeq !== 'undefined' ||
       typeof methodDefn.$originSeq !== 'undefined'
     ) {
-      if (this.#hasNext(methodDefn)) {
-        serve = function () {
-          // preserve next in signature for connect
-          _this.#runWithInjection(arguments, mesh, methodDefn);
-        };
-      } else {
-        serve = function () {
-          _this.#runWithInjection(arguments, mesh, methodDefn);
-        };
-      }
+      serve = function () {
+        // preserve next in signature for connect
+        _this.#runWithInjection(arguments, mesh, methodDefn);
+      };
     } else {
       serve = methodDefn.bind(this.#module.instance);
     }

@@ -43,6 +43,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                 },
               ],
             },
+            testMethodErrored: {
+              isAsyncMethod: true,
+              parameters: [
+                {
+                  name: '',
+                },
+              ],
+            },
+            testMethodUnauthorized: {
+              isAsyncMethod: true,
+              parameters: [
+                {
+                  name: '',
+                },
+              ],
+            },
           },
           routes: {
             '/test-component-instance/test/route/1': {
@@ -266,11 +282,39 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  function initializeComponent(callback) {
+  it('attach web route: bad target method', function (done) {
+    initializeComponent(
+      {
+        merge: {
+          config: {
+            web: {
+              routes: {
+                'test/routebad': 'testMethodBad',
+              },
+            },
+          },
+        },
+      },
+      (e) => {
+        test
+          .expect(e.message)
+          .to.be(
+            'Middleware target test-component-instance:testMethodBad not a function or null, check your happner web routes config'
+          );
+        done();
+      }
+    );
+  });
+
+  function initializeComponent(mocks, callback) {
+    if (typeof mocks === 'function') {
+      callback = mocks;
+      mocks = {};
+    }
     let ComponentInstance = require('../../../lib/system/component-instance');
     let componentInstance = new ComponentInstance();
-    let mesh = mockMesh('test-mesh-name');
-    let config = mockConfig();
+    let mesh = mockMesh('test-mesh-name', mocks.data, mocks.peers, mocks?.merge?.mesh || undefined);
+    let config = mockConfig(mocks?.merge?.config || undefined);
     componentInstance.name = 'test-component-instance';
     componentInstance.initialize(
       'test-component-instance',
@@ -279,35 +323,61 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       config,
       (e) => {
         if (e) return callback(e);
+        componentInstance.describe();
         callback(null, componentInstance, mesh, config);
       }
     );
   }
 
-  xit('operate method', function (done) {
-    let ComponentInstance = require('../../../lib/system/component-instance');
-    let componentInstance = new ComponentInstance();
-    let mesh = mockMesh('test-mesh-name');
-    let config = mockConfig();
-    componentInstance.name = 'test-component-instance';
-    componentInstance.initialize(
-      'test-component-instance',
-      mesh,
-      mockModule('test-name-module', '1.0.0'),
-      config,
-      (e) => {
+  it('operate method, blue sky, no auth necessary', function (done) {
+    initializeComponent((e, componentInstance) => {
+      if (e) return done(e);
+      //methodName, parameters, callback, origin, version, originBindingOverride
+      componentInstance.operate('testMethod1', [1, 2], (e, response) => {
         if (e) return done(e);
-        mesh._mesh.data.set(
-          {
-            callbackAddress: '/callback/address',
-            origin: {
-              id: 1,
-            },
-          },
-          { path: '/test/path' }
-        );
-      }
-    );
+        if (response[0]) return done(response[0]);
+        test.expect(response[1]).to.be('method 1 called: 1,2');
+        done();
+      });
+    });
+  });
+
+  it('operate method, errored, no auth necessary', function (done) {
+    initializeComponent((e, componentInstance) => {
+      if (e) return done(e);
+      //methodName, parameters, callback, origin, version, originBindingOverride
+      componentInstance.operate('testMethodErrored', [1, 2], (e, response) => {
+        if (e) return done(e);
+        test.expect(response[0].message).to.be('test error');
+        done();
+      });
+    });
+  });
+
+  xit('operate method, authorized', function (done) {
+    initializeComponent((e, componentInstance) => {
+      if (e) return done(e);
+      //methodName, parameters, callback, origin, version, originBindingOverride
+      componentInstance.operate('testMethodUnauthorized', [1, 2], (e, response) => {
+        if (e) return done(e);
+        if (response[0]) return done(response[0]);
+        test.expect(response[1]).to.be('method 1 called: 1,2');
+        done();
+      });
+    });
+  });
+
+  xit('operate method, unauthorized', function (done) {
+    initializeComponent((e, componentInstance) => {
+      if (e) return done(e);
+      //methodName, parameters, callback, origin, version, originBindingOverride
+      componentInstance.operate('testMethodUnauthorized', [1, 2], (e, response) => {
+        if (e) return done(e);
+        if (response[0]) return done(response[0]);
+        test.expect(response[1]).to.be('method 1 called: 1,2');
+        done();
+      });
+    });
   });
 
   it('tests the semver component', () => {
@@ -331,7 +401,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
       async testMethod1(arg11, arg12) {
         await test.delay(10);
-        test.log(`method 1 called, ${[arg11, arg12]}`);
+        let message = `method 1 called: ${[arg11, arg12].join(',')}`;
+        test.log(message);
+        return message;
       }
       async testMethod2(arg21, arg22) {
         await test.delay(10);
@@ -353,6 +425,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         await test.delay(10);
         test.log(`method 4 called, ${[arg41, arg42]}`);
       }
+      async testMethodUnauthorized() {
+        await test.delay(10);
+        test.log('should not have happened');
+      }
+      async testMethodErrored() {
+        await test.delay(10);
+        throw new Error('test error');
+      }
     }
     return MockModule.create();
   }
@@ -366,13 +446,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       warn: test.sinon.stub(),
     };
   }
-  function mockMesh(name, data, peers) {
+  function mockMesh(name, data, peers, mergeConfig = {}) {
     let onHandler;
-    const mockMesh = {
+    const mockedMesh = {
       _mesh: {
         config: {
           name,
           happn: {},
+          web: {
+            routes: ['test-component-instance/static'],
+          },
         },
         log: {
           createLogger: () => {
@@ -416,7 +499,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         },
       },
     };
-    return mockMesh;
+    return test.commons._.merge(mockedMesh, mergeConfig);
   }
   function mockModule(name, version) {
     return {
@@ -425,30 +508,33 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       instance: mockModuleInstance(),
     };
   }
-  function mockConfig() {
-    return {
-      methods: {
-        testMethod1: {
-          parameters: [
-            {
-              name: 'arg11',
-            },
-            {
-              name: 'arg12',
-            },
-          ],
+  function mockConfig(mergeConfig = {}) {
+    return test.commons._.merge(
+      {
+        methods: {
+          testMethod1: {
+            parameters: [
+              {
+                name: 'arg11',
+              },
+              {
+                name: 'arg12',
+              },
+            ],
+          },
+          testMethod2: {},
         },
-        testMethod2: {},
-      },
-      events: {},
-      web: {
-        routes: {
-          'test/route/1': ['testMethod3', 'testMethod4'],
-          'test/route/2': 'testMethod5',
-          static: 'staticHandler',
+        events: {},
+        web: {
+          routes: {
+            'test/route/1': ['testMethod3', 'testMethod4'],
+            'test/route/2': 'testMethod5',
+            static: 'staticHandler',
+          },
         },
       },
-    };
+      mergeConfig
+    );
   }
   function mockCache() {
     return new LRUCache('test', {
