@@ -19,7 +19,7 @@ class TestHelper extends BaseTestHelper {
     this.path = require('path');
     this.happnPackage = JSON.parse(this.fs.readFileSync(this.path.resolve(__dirname, '../../../../../node_modules/happn-3/package.json')));
     this._ = commons._;
-    this.log = console.log;
+    this.log = this.sinon.spy(console.log);
     this.users = require('./users');
 
     this.startUp = this.util.promisify(this.startUp);

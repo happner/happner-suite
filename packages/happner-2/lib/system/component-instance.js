@@ -661,16 +661,14 @@ module.exports = class ComponentInstance {
   }
 
   #getWebOrigin(mesh, params) {
-    var cookieName = null;
-
+    let cookieName = null;
     try {
       cookieName = mesh.config.happn.services.connect.config.middleware.security.cookieName;
     } catch (e) {
       // do nothing
-    } //do nothing
-
+    }
     return mesh.happn.server.services.security.sessionFromRequest(params[0], {
-      cookieName: cookieName,
+      cookieName,
     });
   }
 
@@ -700,7 +698,7 @@ module.exports = class ComponentInstance {
     ) {
       serve = function () {
         // preserve next in signature for connect
-        _this.#runWithInjection(arguments, mesh, methodDefn);
+        return _this.#runWithInjection(arguments, mesh, methodDefn);
       };
     } else {
       serve = methodDefn.bind(this.#module.instance);

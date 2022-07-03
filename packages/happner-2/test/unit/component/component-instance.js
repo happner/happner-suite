@@ -306,29 +306,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
   });
 
-  function initializeComponent(mocks, callback) {
-    if (typeof mocks === 'function') {
-      callback = mocks;
-      mocks = {};
-    }
-    let ComponentInstance = require('../../../lib/system/component-instance');
-    let componentInstance = new ComponentInstance();
-    let mesh = mockMesh('test-mesh-name', mocks.data, mocks.peers, mocks?.merge?.mesh || undefined);
-    let config = mockConfig(mocks?.merge?.config || undefined);
-    componentInstance.name = 'test-component-instance';
-    componentInstance.initialize(
-      'test-component-instance',
-      mesh,
-      mockModule('test-name-module', '1.0.0'),
-      config,
-      (e) => {
-        if (e) return callback(e);
-        componentInstance.describe();
-        callback(null, componentInstance, mesh, config);
-      }
-    );
-  }
-
   it('operate method, blue sky, no auth necessary', function (done) {
     initializeComponent((e, componentInstance) => {
       if (e) return done(e);
@@ -345,7 +322,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   it('operate method, errored, no auth necessary', function (done) {
     initializeComponent((e, componentInstance) => {
       if (e) return done(e);
-      //methodName, parameters, callback, origin, version, originBindingOverride
       componentInstance.operate('testMethodErrored', [1, 2], (e, response) => {
         if (e) return done(e);
         test.expect(response[0].message).to.be('test error');
@@ -354,30 +330,78 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  xit('operate method, authorized', function (done) {
-    initializeComponent((e, componentInstance) => {
-      if (e) return done(e);
-      //methodName, parameters, callback, origin, version, originBindingOverride
-      componentInstance.operate('testMethodUnauthorized', [1, 2], (e, response) => {
+  it('operate method, unauthorized', function (done) {
+    const onBehalfOf = { username: 'unknown', override: true };
+    initializeComponent(
+      {
+        onBehalfOf,
+        authorize: (_session, _path, _action, callback) => {
+          callback(null, false);
+        },
+      },
+      (e, componentInstance) => {
         if (e) return done(e);
-        if (response[0]) return done(response[0]);
-        test.expect(response[1]).to.be('method 1 called: 1,2');
-        done();
-      });
-    });
+        //methodName, parameters, callback, origin, version, originBindingOverride
+        componentInstance.operate(
+          'testMethodUnauthorized',
+          [1, 2],
+          (e) => {
+            test.expect(e.message).to.be('unauthorized');
+            done();
+          },
+          onBehalfOf
+        );
+      }
+    );
   });
 
-  xit('operate method, unauthorized', function (done) {
-    initializeComponent((e, componentInstance) => {
-      if (e) return done(e);
-      //methodName, parameters, callback, origin, version, originBindingOverride
-      componentInstance.operate('testMethodUnauthorized', [1, 2], (e, response) => {
+  it('operate method, authorized', function (done) {
+    const onBehalfOf = { username: 'found', override: true };
+    initializeComponent(
+      {
+        onBehalfOf,
+        authorize: (_session, _path, _action, callback) => {
+          callback(null, true);
+        },
+      },
+      (e, componentInstance) => {
         if (e) return done(e);
-        if (response[0]) return done(response[0]);
-        test.expect(response[1]).to.be('method 1 called: 1,2');
-        done();
-      });
-    });
+        //methodName, parameters, callback, origin, version, originBindingOverride
+        componentInstance.operate(
+          'testMethod1',
+          [1, 2],
+          (e, response) => {
+            if (e) return done(e);
+            if (response[0]) return done(response[0]);
+            test.expect(response[1]).to.be('method 1 called: 1,2');
+            done();
+          },
+          onBehalfOf
+        );
+      }
+    );
+  });
+
+  it('serving method via connect, authorized', function (done) {
+    const onBehalfOf = { username: 'found', override: true };
+    initializeComponent(
+      {
+        onBehalfOf,
+        authorize: (_session, _path, _action, callback) => {
+          callback(null, true);
+        },
+        sessionFromRequest: { username: 'found', override: true },
+      },
+      (e, _componentInstance, mesh) => {
+        if (e) return done(e);
+        mesh.__middlewares['/test-component-instance/static']('connect1', 'connect2')
+          .then(() => {
+            test.expect(test.log.lastCall.args[0]).to.be('static method called: connect1,connect2');
+            done();
+          })
+          .catch(done);
+      }
+    );
   });
 
   it('tests the semver component', () => {
@@ -394,6 +418,37 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(semver.coercedSatisfies('16.1.4-prerelease-9', '16.1.4-prerelease-9')).to.be(true);
   });
 
+  function initializeComponent(mocks, callback) {
+    if (typeof mocks === 'function') {
+      callback = mocks;
+      mocks = {};
+    }
+    let ComponentInstance = require('../../../lib/system/component-instance');
+    let componentInstance = new ComponentInstance();
+    let mesh = mockMesh(
+      'test-mesh-name',
+      mocks.data,
+      mocks.peers,
+      mocks?.merge?.mesh || undefined,
+      mocks.onBehalfOf,
+      mocks.authorize,
+      mocks.sessionFromRequest
+    );
+    let config = mockConfig(mocks?.merge?.config || undefined);
+    componentInstance.name = 'test-component-instance';
+    componentInstance.initialize(
+      'test-component-instance',
+      mesh,
+      mockModule('test-name-module', '1.0.0'),
+      config,
+      (e) => {
+        if (e) return callback(e);
+        componentInstance.describe();
+        callback(null, componentInstance, mesh, config);
+      }
+    );
+  }
+
   function mockModuleInstance() {
     class MockModule {
       static create() {
@@ -401,7 +456,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
       async testMethod1(arg11, arg12) {
         await test.delay(10);
-        let message = `method 1 called: ${[arg11, arg12].join(',')}`;
+        let message = `method 1 called: ${[arg11, arg12]}`;
         test.log(message);
         return message;
       }
@@ -415,15 +470,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
       async testMethod4(arg41, arg42) {
         await test.delay(10);
-        test.log(`method 4 called, ${[arg41, arg42]}`);
+        let message = `method 4 called: ${[arg41, arg42]}`;
+        test.log(message);
+        return message;
       }
       async testMethod5(arg41, arg42) {
         await test.delay(10);
-        test.log(`method 4 called, ${[arg41, arg42]}`);
+        test.log(`method 5 called: ${[arg41, arg42]}`);
       }
-      async staticHandler(arg41, arg42) {
+      async staticHandler(arg1, arg2) {
         await test.delay(10);
-        test.log(`method 4 called, ${[arg41, arg42]}`);
+        test.log(`static method called: ${[arg1, arg2]}`);
       }
       async testMethodUnauthorized() {
         await test.delay(10);
@@ -446,13 +503,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       warn: test.sinon.stub(),
     };
   }
-  function mockMesh(name, data, peers, mergeConfig = {}) {
+  function mockMesh(
+    name,
+    data,
+    peers,
+    mergeConfig = {},
+    onBehalfOf,
+    authorize,
+    sessionFromRequest
+  ) {
     let onHandler;
+    let middlewares = {};
     const mockedMesh = {
+      __middlewares: middlewares,
       _mesh: {
         config: {
           name,
-          happn: {},
+          happn: {
+            secure: true,
+          },
           web: {
             routes: ['test-component-instance/static'],
           },
@@ -465,7 +534,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         happn: {
           server: {
             connect: {
-              use: test.sinon.stub(),
+              use: (path, serve) => {
+                middlewares[path] = serve;
+              },
               stack: [
                 {
                   handle: {
@@ -479,10 +550,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                 getOrCreate: test.sinon.stub().returns(mockCache()),
               },
               security: {
+                sessionFromRequest: test.sinon.stub().returns(sessionFromRequest),
                 on: test.sinon.stub(),
+                authorize,
+                getOnBehalfOfSession:
+                  onBehalfOf?.message != null
+                    ? test.sinon.stub().callsArgWith(3, onBehalfOf)
+                    : onBehalfOf != null
+                    ? test.sinon.stub().callsArgWith(3, null, onBehalfOf)
+                    : test.sinon.stub().callsArgWith(3, null, null),
               },
               orchestrator: {
                 peers: peers || {},
+              },
+              error: {
+                AccessDeniedError: (message) => {
+                  return new Error(message);
+                },
               },
             },
           },
