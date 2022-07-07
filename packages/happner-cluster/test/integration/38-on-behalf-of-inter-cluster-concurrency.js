@@ -30,12 +30,15 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('runs $call tests on mesh-client', async () => {
     await callTests(adminUser.exchange);
   });
+
   it('runs $call tests on happner-client', async () => {
     await callTests(adminUserHappnerClientAPI.exchange);
   });
+
   it('runs $call tests on light client', async () => {
     await callTests(adminUserLightClient.exchange);
   });
+
   it('runs $call tests on rest client', async () => {
     await callTests(RpcExchange.create(adminUser.token));
   });
@@ -54,6 +57,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   it('runs inter-mesh $call tests on rest client', async () => {
     await callTestsInterMesh(RpcExchange.create(adminUser.token));
+  });
+
+  after('it disconnects the admin user', disconnectAdminUsers);
+  after('it disconnects the test users', disconnectTestUsers);
+  after('stop cluster', function (done) {
+    if (!servers) return done();
+    stopCluster(servers.concat(localInstance), done);
   });
 
   async function callTestsInterMesh(exchange) {
@@ -272,14 +282,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .catch(done);
     }, 2000);
   }
-
-  after('it disconnects the admin user', disconnectAdminUsers);
-  after('it disconnects the test users', disconnectTestUsers);
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers.concat(localInstance), done);
-  });
 
   async function createHappnerClientAndAPI(opts, port) {
     const createdClient = new HappnerClient(opts);
