@@ -18,7 +18,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     testUsers = [],
     testUserNames = [],
     script = [],
-    CONCURRENT_REQUESTS_COUNT = 100,
+    CONCURRENT_REQUESTS_COUNT = 20,
     CONCURRENT_BATCHES_COUNT = 1;
 
   before('clear mongo', clearMongo);
@@ -36,8 +36,77 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('runs $call tests on light client', async () => {
     await callTests(adminUserLightClient.exchange);
   });
+  it('runs $call tests on rest client', async () => {
+    await callTests(RpcExchange.create(adminUser.token));
+  });
 
-  xit('runs inter-mesh tests on rest client', restClientInterMeshTests);
+  it('runs inter-mesh $call tests on mesh-client', async () => {
+    await callTestsInterMesh(adminUser.exchange);
+  });
+
+  it('runs inter-mesh $call tests on happner-client', async () => {
+    await callTestsInterMesh(adminUserHappnerClientAPI.exchange);
+  });
+
+  it('runs inter-mesh $call tests on light client', async () => {
+    await callTestsInterMesh(adminUserLightClient.exchange);
+  });
+
+  it('runs inter-mesh $call tests on rest client', async () => {
+    await callTestsInterMesh(RpcExchange.create(adminUser.token));
+  });
+
+  async function callTestsInterMesh(exchange) {
+    const stats = {
+      unauthorized: 0,
+      adminSucceeded: 0,
+      testUserSucceeded: 0,
+    };
+    for (let batchId in script.batches) {
+      await Promise.all(
+        script.batches[batchId].map((scriptItem) => {
+          return (
+            test
+              // delay to interleave _ADMIN users
+              .delay(scriptItem.username === '_ADMIN' ? 1e3 : 0)
+              .then(() => {
+                return exchange.$call({
+                  component: 'local',
+                  method: 'doOnBehalfOfAllowedAs',
+                  arguments: [1, 2, scriptItem.username],
+                });
+              })
+              .then((result) => {
+                test.expect(result).to.be(`origin:${scriptItem.username}:1:2`);
+                if (scriptItem.username === '_ADMIN') {
+                  stats.adminSucceeded++;
+                } else {
+                  stats.testUserSucceeded++;
+                }
+                return exchange.$call({
+                  component: 'local',
+                  method: 'doOnBehalfOfNotAllowedAs',
+                  arguments: [1, 2, scriptItem.username],
+                });
+              })
+              .then(() => {
+                test.expect(scriptItem.expectation.allowedSucceeded).to.be(true);
+              })
+              .catch((e) => {
+                test.expect(scriptItem.expectation.notAllowedSucceeded).to.be(false);
+                test.expect(e.message).to.be('unauthorized');
+                stats.unauthorized++;
+              })
+          );
+        })
+      );
+    }
+    test.expect(stats).to.eql({
+      unauthorized: CONCURRENT_BATCHES_COUNT * (CONCURRENT_REQUESTS_COUNT - 1), // -1 is for the delegate user
+      adminSucceeded: CONCURRENT_BATCHES_COUNT * CONCURRENT_REQUESTS_COUNT,
+      testUserSucceeded: CONCURRENT_BATCHES_COUNT * CONCURRENT_REQUESTS_COUNT,
+    });
+  }
 
   async function callTests(exchange) {
     const stats = {
@@ -78,12 +147,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
                 test.expect(scriptItem.expectation.allowedSucceeded).to.be(true);
               })
               .catch((e) => {
-                test
-                  .expect(
-                    scriptItem.expectation.notAllowedSucceeded === false &&
-                      e.message === 'unauthorized'
-                  )
-                  .to.be(true);
+                test.expect(scriptItem.expectation.notAllowedSucceeded).to.be(false);
+                test.expect(e.message).to.be('unauthorized');
                 stats.unauthorized++;
               })
           );
@@ -97,8 +162,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   }
 
-  async function restClientInterMeshTests() {}
-
   var servers, localInstance;
 
   function localInstanceConfig(seq) {
@@ -108,37 +171,35 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.modules = {
       local: {
         instance: {
-          doOnBehalfOfAllowedAs: async function (param1, param2, $happn) {
+          doOnBehalfOfAllowedAs: async function (param1, param2, as, $happn) {
             let result1 = await $happn.exchange.$call({
               component: 'test',
               method: 'doOnBehalfOfAllowed',
               arguments: [param1, param2],
-              as: 'testUser',
+              as,
             });
-            let result2 = await $happn
-              .as('testUser')
-              .exchange.test.doOnBehalfOfAllowed(param1, param2);
+            let result2 = await $happn.as(as).exchange.test.doOnBehalfOfAllowed(param1, param2);
             test.expect(result1).to.eql(result2);
             return result1;
           },
-          doOnBehalfOfNotAllowedAs: async function (param1, param2, $happn) {
+          doOnBehalfOfNotAllowedAs: async function (param1, param2, as, $happn) {
             const failures = [];
             try {
               await $happn.exchange.$call({
                 component: 'test',
                 method: 'doOnBehalfOfNotAllowed',
                 arguments: [param1, param2],
-                as: 'testUser',
+                as,
               });
             } catch (e) {
-              failures.push(e.message);
+              failures.push(e);
             }
             try {
-              await $happn.as('testUser').exchange.test.doOnBehalfOfNotAllowed(param1, param2);
+              await $happn.as(as).exchange.test.doOnBehalfOfNotAllowed(param1, param2);
             } catch (e) {
-              failures.push(e.message);
+              failures.push(e);
             }
-            return failures;
+            throw failures[0];
           },
         },
       },
@@ -310,16 +371,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     testUserNames.push(`testUser${id}`);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  async function testHttpRpc(requestInfo, token) {
-    return doRequest(
-      requestInfo.component,
-      requestInfo.method,
-      requestInfo.arguments,
-      requestInfo.as,
-      token
-    );
-  }
   function generateScript() {
     script = { batches: {} };
     for (let batchId = 0; batchId < CONCURRENT_BATCHES_COUNT; batchId++) {
@@ -346,9 +397,37 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       }
     }
   }
+
+  class RpcExchange {
+    #token;
+    constructor(token) {
+      this.#token = token;
+      this.exchange;
+    }
+    static create(token) {
+      return new RpcExchange(token);
+    }
+    async $call(operation) {
+      return await doRequest(
+        operation.component,
+        operation.method,
+        operation.arguments,
+        operation.as,
+        this.#token
+      );
+    }
+  }
+
   function doRequest(componentName, methodName, operationArguments, as, token) {
     var operation = {
-      parameters: operationArguments,
+      parameters: operationArguments.reduce((reducer, argValue, argIndex) => {
+        if (argIndex === operationArguments.length - 1 && operationArguments.length === 3) {
+          reducer['as'] = argValue;
+        } else {
+          reducer[`param${argIndex + 1}`] = argValue;
+        }
+        return reducer;
+      }, {}),
       as,
     };
     return new Promise((resolve, reject) => {
@@ -361,11 +440,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         )
         .on('complete', function (result) {
           if (result.error) {
+            if (result.error.message === 'Access denied') {
+              return reject(new Error('unauthorized'));
+            }
             return reject(new Error(result.error.message));
           }
           resolve(result.data);
         })
-        .on('error', reject);
+        .on('error', (error) => {
+          return reject(error);
+        });
     });
   }
 });
