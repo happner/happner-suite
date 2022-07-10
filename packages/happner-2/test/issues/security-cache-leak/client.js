@@ -2,9 +2,8 @@ const CLIENT_COUNT = 10;
 const test = require('../../__fixtures/utils/test_helper').create();
 async function start() {
   let clients = await connectClients();
-  let running = true;
   var i = 0;
-  while (running) {
+  for (let ii = 0; ii < 10; ii++) {
     for (let client of clients) {
       try {
         //await client.exchange.component.method1();
@@ -12,7 +11,7 @@ async function start() {
       } catch (e) {
         test.log(`error  on request: `, e.message);
       }
-      if (i % 20 === 0) {
+      if (i % 10 === 0) {
         test.log(`called method ${i} times...`);
       }
       await test.delay(100);
@@ -20,6 +19,10 @@ async function start() {
     }
     await clients[0].exchange.component.doHeapDump();
   }
+  test.log('waiting 30 secs');
+  await test.delay(30e3);
+  await clients[0].exchange.component.doHeapDump();
+  test.log('did final dump');
 }
 async function doRestCall(client) {
   const restClient = require('restler');
