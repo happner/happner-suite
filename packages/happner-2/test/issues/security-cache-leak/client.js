@@ -17,12 +17,19 @@ async function start() {
       await test.delay(100);
       i++;
     }
-    await clients[0].exchange.component.doHeapDump();
+    await doHeapDump(clients[0]);
   }
   test.log('waiting 30 secs');
   await test.delay(30e3);
-  await clients[0].exchange.component.doHeapDump();
+  await doHeapDump(clients[0]);
   test.log('did final dump');
+}
+async function doHeapDump(client) {
+  try {
+    await client.exchange.component.doHeapDump();
+  } catch (e) {
+    test.log('heap dump may have failed: ', e.message);
+  }
 }
 async function doRestCall(client) {
   const restClient = require('restler');
