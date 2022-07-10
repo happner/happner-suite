@@ -3,7 +3,7 @@ const test = require('../../__fixtures/utils/test_helper').create();
 async function start() {
   let clients = await connectClients();
   var i = 0;
-  for (let ii = 0; ii < 10; ii++) {
+  for (let ii = 0; ii < 5; ii++) {
     for (let client of clients) {
       try {
         //await client.exchange.component.method1();
