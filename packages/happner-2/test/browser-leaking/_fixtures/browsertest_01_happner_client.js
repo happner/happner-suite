@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+
 describe('browsertest_01_happner_client', function () {
   this.timeout(100e3);
 
@@ -9,6 +10,7 @@ describe('browsertest_01_happner_client', function () {
     }));
     let clients = [];
     for (let user of users) {
+      /* eslint-disable-next-line no-undef */
       let client = new Happner.HappnerClient();
       await client.connect(null, user);
       clients.push(client);

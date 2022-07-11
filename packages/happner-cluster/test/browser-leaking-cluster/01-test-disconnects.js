@@ -42,7 +42,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   it('tests the amount of active sessions, attached sessions, and connections on repeated restart of a broker', async () => {
     let done;
     let stats = [];
-    let child = fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
+    fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
     broker1Proc.on('message', async (data) => {
       if (typeof data === 'object') {
         stats.push({

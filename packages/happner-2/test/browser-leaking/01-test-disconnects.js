@@ -18,12 +18,8 @@ require('happn-commons-test').describe({ timeout: 45e3 }, (test) => {
     });
   });
 
-  it('tests', async () => {
-    let listed1, listed2;
+  it('tests that after restarting a happner-2 server with connected browser, we dont have extra sessions or connections', async () => {
     let done;
-
-    let usernames = Array.from(Array(3).keys()).map((int) => 'user' + int.toString()); // test.expect(isEqual(data.attached, usernames)).to.be(true);
-
     await test.delay(3000);
     fork(path.resolve(__dirname, './_fixtures/karma-start.js'));
     server1.on('message', (data) => {
@@ -59,7 +55,7 @@ require('happn-commons-test').describe({ timeout: 45e3 }, (test) => {
     await new Promise((res) => {
       done = res;
     });
-    server3 = fork(path.resolve(__dirname, './server.js'));
+    let server3 = fork(path.resolve(__dirname, './server.js'));
 
     server3.on('message', async (data) => {
       if (data === 'started') {
@@ -82,6 +78,6 @@ require('happn-commons-test').describe({ timeout: 45e3 }, (test) => {
       done = res;
     });
     // console.log(stats)
-    test.expect(stats[1]).to.eql(stats[2]) //There is an additional socker in stats[0]
+    test.expect(stats[1]).to.eql(stats[2]); //There is an additional socker in stats[0]
   });
 });
