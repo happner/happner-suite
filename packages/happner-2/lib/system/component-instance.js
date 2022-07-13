@@ -446,7 +446,7 @@ module.exports = class ComponentInstance {
   offEvent(event, handler) {
     try {
       this.#log.trace('component offEvent called', event);
-      return this.#localEventEmitter.offEvent(event, handler);
+      return this.#localEventEmitter.off(event, handler);
     } catch (e) {
       this.#log.trace('component offEvent error', e);
     }
