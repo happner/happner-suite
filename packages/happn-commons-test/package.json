@@ -39,9 +39,7 @@
     "sinon": "^12.0.1",
     "sinon-chai": "^3.7.0",
     "when": "^3.7.8",
-    "why-is-node-running": "^2.2.0"
-  },
-  "dependencies": {
+    "why-is-node-running": "^2.2.0",
     "expose-gc": "^1.0.0",
     "heapdump": "^0.3.15"
   }
