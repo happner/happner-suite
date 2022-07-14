@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-elasticsearch",
-  "version": "1.0.12-prerelease-2",
+  "version": "1.0.12-prerelease-3",
   "private": false,
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
@@ -13,14 +13,14 @@
     "bluebird": "2.10.2",
     "elasticsearch": "^13.2.0",
     "extract-values": "^0.1.2",
-    "happn-logger": "^2.1.1-prerelease-1",
+    "happn-logger": "^2.1.1-prerelease-2",
     "micromustache": "^5.2.0",
-    "redis-lru-cache": "^1.0.12-prerelease-2",
+    "redis-lru-cache": "^1.0.12-prerelease-3",
     "traverse": "0.6.6"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.1.0-prerelease-1",
-    "happn-3": "^13.1.4-prerelease-1",
+    "happn-commons-test": "^1.1.0-prerelease-2",
+    "happn-3": "^13.1.4-prerelease-2",
     "json-from-schema": "1.10.0"
   }
 }

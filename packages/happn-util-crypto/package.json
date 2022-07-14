@@ -1,6 +1,6 @@
 {
   "name": "happn-util-crypto",
-  "version": "3.0.5-prerelease-1",
+  "version": "3.0.5-prerelease-2",
   "description": "Happn cryptograpy utilities",
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.1.0-prerelease-1",
+    "happn-commons-test": "^1.1.0-prerelease-2",
     "browserify": "^16.2.3",
     "connect": "^3.6.6",
     "gulp": "^4.0.0",

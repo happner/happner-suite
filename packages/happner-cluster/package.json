@@ -1,6 +1,6 @@
 {
   "name": "happner-cluster",
-  "version": "12.1.9-prerelease-1",
+  "version": "12.1.9-prerelease-2",
   "description": "Extends happner with clustering capabilities",
   "main": "index.js",
   "scripts": {
@@ -20,16 +20,16 @@
   "homepage": "https://github.com/happner/happner-cluster#readme",
   "devDependencies": {
     "array-unique": "^0.3.2",
-    "happn-commons-test": "^1.1.0-prerelease-1",
+    "happn-commons-test": "^1.1.0-prerelease-2",
     "intercept-stdout": "^0.1.2",
     "restler": "^3.4.0"
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "happn-cluster": "^12.0.12-prerelease-1",
+    "happn-cluster": "^12.0.12-prerelease-2",
     "happn-commons": "^1.1.0",
-    "happner-2": "^12.1.9-prerelease-2",
-    "happner-client": "^12.2.8-prerelease-2",
+    "happner-2": "^12.1.9-prerelease-3",
+    "happner-client": "^12.2.8-prerelease-3",
     "hashring": "^3.2.0",
     "http-proxy": "1.18.1",
     "semver": "^5.3.0"
