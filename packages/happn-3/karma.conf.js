@@ -10,7 +10,7 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha', 'chai'],
 
-    files: ['lib/client.js', 'test/c2_websockets_embedded_sanity_encryptedpayloads.js'],
+    files: ['lib/client.js'],
 
     // list of files / patterns to load in the browser
     // files: [

@@ -1,7 +1,7 @@
 {
   "name": "tame-search",
   "description": "strict wildcard indexing and searching",
-  "version": "3.0.4",
+  "version": "3.0.5-prerelease-1",
   "scripts": {
     "test": "mocha test/integration test/unit",
     "test-perf": "mocha test/performance",
@@ -21,7 +21,7 @@
     "happn-commons": "^1.1.0"
   },
   "devDependencies": {
-    "happn-commons-test": "^1.0.4"
+    "happn-commons-test": "^1.1.0-prerelease-1"
   },
   "readmeFilename": "README.md"
 }
