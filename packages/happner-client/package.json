@@ -1,6 +1,6 @@
 {
   "name": "happner-client",
-  "version": "12.2.8-prerelease-1",
+  "version": "12.2.8-prerelease-2",
   "description": "The client for happner-2 and happner cluster services",
   "homepage": "https://github.com/happner/happner-client#readme",
   "bugs": {
@@ -27,6 +27,6 @@
   },
   "devDependencies": {
     "happn-commons-test": "^1.1.0-prerelease-1",
-    "happner-2": "^12.1.9-prerelease-1"
+    "happner-2": "^12.1.9-prerelease-2"
   }
 }
