@@ -1,1 +1,0 @@
-const test = require('../../__fixtures/utils/test_helper').create();

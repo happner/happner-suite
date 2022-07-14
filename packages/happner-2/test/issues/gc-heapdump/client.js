@@ -6,7 +6,7 @@ async function start() {
   for (let ii = 0; ii < 5; ii++) {
     for (let client of clients) {
       try {
-        //await client.exchange.component.method1();
+        await client.exchange.component.method1();
         await doRestCall(client);
       } catch (e) {
         test.log(`error  on request: `, e.message);
