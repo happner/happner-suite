@@ -993,14 +993,50 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     onStub.restore();
   });
 
-  xit('tests #attach method', function () {
+  xit('tests #attach method - discards message if there is no callback addresss', function () {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = mockModule('test-module', 'mockVersion');
     const config = mockConfig();
     const mockCallback = test.sinon.stub();
+    const mockOnPublished = test.sinon.stub();
+    const mockOptions = { consistency: 1, onPublished: mockOnPublished };
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emit(1, 'mockData', mockOptions, mockCallback);
+    test.sinon.spy(componentInstance.prototype, 'emitEvent');
+
+    test.chai
+      .expect(componentInstance.emitEvent)
+      .to.have.been.calledWithExactly('on-emit-error', 'mockError');
+  });
+
+  it('tests #attach method - discards message if there is no callback addresss', function () {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+    const mockOptions = test.sinon.stub();
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emit(1, 'mockData', mockOptions, mockCallback);
+    componentInstance.emitLocal(1, 'mockData', test.sinon.stub());
+
+    test.chai
+      .expect(mockLogObj.warn)
+      .to.have.been.calledWithExactly('message discarded: %s', 'No callback address', {
+        origin: { id: 'mockId' },
+      });
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly(
+        'received request at %s',
+        '/_exchange/requests/mockDomain/mockName/*'
+      );
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('data.on( /_exchange/requests/mockDomain/mockName/*');
   });
 
   it('serving method via connect, authorized', function (done) {
@@ -1126,12 +1162,18 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     sessionFromRequest
   ) {
     let onHandler;
+    let mockOn = test.sinon.stub();
     let middlewares = {};
+    let subscribeMask = `/_exchange/requests/${'mockDomain'}/${'mockName'}/*`;
+    let eventType = {
+      event_type: 'set',
+    };
     const mockedMesh = {
       tools: 'mockTools',
       __middlewares: middlewares,
       _mesh: {
         config: {
+          domain: 'mockDomain',
           name,
           happn: {
             secure: true,
@@ -1202,14 +1244,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
           session: {
             id: 1,
           },
-          set: (publication, meta) => {
-            onHandler(publication, meta);
+          //   set: (publication, meta) => {
+          //     // onHandler = test.sinon.stub();
+          //     onHandler(publication, meta);
+          //   },
+          set: (eventKey, data, options, cb) => {
+            // onHandler = test.sinon.stub();
+            // onHandler(publication, meta);
+            options.onPublished('mockError', 'mockResult');
+            cb('mockError', 'mockResponse');
           },
           offPath: test.sinon.stub().callsArg(1),
-          on: (_event, _options, handler, cb) => {
-            onHandler = handler;
+          //   on: (_event, _options, handler, cb) => {
+          //     onHandler = handler;
+          //     cb();
+          //   },
+          on: mockOn.callsFake(function (subscribeMask, eventType, testFunc, cb) {
+            testFunc(
+              {
+                origin: {
+                  id: 'mockId',
+                },
+              },
+              {
+                path: 'mockPath',
+              }
+            );
             cb();
-          },
+          }),
         },
       },
     };
