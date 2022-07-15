@@ -122,10 +122,8 @@ Component.prototype.causeEmitError = function ($happn, eventKey, data, options, 
 
   $happn.emit = function(eventKey, data, options, callback){
 
-    $happn.__raiseOnPublishError(new Error('TEST ERROR'));
-
-    $happn.__raiseOnEmitError(new Error('TEST ERROR'));
-
+    $happn.emitEvent('on-publish-error', new Error('TEST ERROR'));
+    $happn.emitEvent('on-emit-error', new Error('TEST ERROR'));
     return callback(new Error('TEST ERROR'));
 
   }.bind($happn);

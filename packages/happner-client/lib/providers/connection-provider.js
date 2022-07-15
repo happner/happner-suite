@@ -50,7 +50,7 @@
 
     if (typeof options === 'function') {
       callback = options;
-      options = null;
+      options = connections || null;
     }
 
     return Happn.client.create(connections, options, function (e, client) {

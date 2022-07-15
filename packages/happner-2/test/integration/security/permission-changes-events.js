@@ -40,22 +40,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   after(function (done) {
     this.timeout(20000);
-    if (this.adminClient)
-      return this.adminClient.disconnect(() => {
-        this.adminClient.event.security.offPath('upsert-user');
-        this.adminClient.event.security.offPath('upsert-group');
-        this.adminClient.event.security.offPath('link-group');
-        this.adminClient.event.security.offPath('unlink-group');
-        this.adminClient.event.security.offPath('delete-group');
-        this.adminClient.event.security.offPath('delete-user');
-        mesh.stop({ reconnect: false }, function () {
-          setTimeout(() => {
-            //log();
-            done();
-          }, 11000);
-        });
-      });
-    return done();
+    if (!adminClient) return done();
+    adminClient.disconnect(() => {
+      adminClient.event.security.offPath('upsert-user');
+      adminClient.event.security.offPath('upsert-group');
+      adminClient.event.security.offPath('link-group');
+      adminClient.event.security.offPath('unlink-group');
+      adminClient.event.security.offPath('delete-group');
+      adminClient.event.security.offPath('delete-user');
+      mesh.stop({ reconnect: false }, done);
+    });
   });
 
   it('tests that all security events are being bubbled back from happn to happner security - and are consumable from an admin client', function (done) {

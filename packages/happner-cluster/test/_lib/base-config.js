@@ -39,7 +39,7 @@ module.exports = function (
       services: {
         cache: {
           config: {
-            statisticsInterval: 3e3,
+            //statisticsInterval: 3e3,
           },
         },
         security: {

@@ -15,7 +15,10 @@ module.exports = class Cluster extends Helper {
             // eslint-disable-next-line no-console
             console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
           }
+          // eslint-disable-next-line no-console
+          console.log(`started test instance: ${instance._mesh.config.name}`);
           this.events.data.push({
+            timestamp: Date.now(),
             key: 'member-started',
             value: instance._mesh.config.name,
           });
@@ -43,12 +46,18 @@ module.exports = class Cluster extends Helper {
   static create() {
     return new Cluster();
   }
+  clear() {
+    // eslint-disable-next-line no-console
+    console.log(`cleared test cluster events`);
+    this.events.data = [];
+  }
   async destroy(index) {
     if (index >= 0) {
       await this.instances[index].stop();
       this.instances.splice(index, 1);
       return;
     }
+    this.clear();
     this.instances.sort((a, b) => {
       if (a._mesh.config.name < b._mesh.config.name) return -1;
       return 1;

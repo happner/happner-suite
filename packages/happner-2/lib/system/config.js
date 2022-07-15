@@ -8,8 +8,6 @@ function Config() {}
 // the deep copy ensures that configs passed in do not come out with new properties
 
 Config.prototype.process = function (mesh, config, callback) {
-  var serializer;
-
   this.log = mesh.log.createLogger('Config');
   this.log.$$TRACE('process()');
 
@@ -37,26 +35,5 @@ Config.prototype.process = function (mesh, config, callback) {
   });
 
   clonedConfig.endpoints = clonedConfig.endpoints || {};
-
-  if (clonedConfig.exchange && (serializer = clonedConfig.exchange.serializer)) {
-    if (typeof serializer === 'string') {
-      try {
-        mesh._mesh.serializer = this.validateSerializer(require(serializer));
-      } catch (e) {
-        this.log.warn('serializer load failed', e);
-      }
-    } else {
-      mesh._mesh.serializer = this.validateSerializer(serializer);
-    }
-  }
-
   callback(null, clonedConfig);
-};
-
-Config.prototype.validateSerializer = function (it) {
-  if (typeof it.__encode !== 'function' || typeof it.__decode !== 'function') {
-    this.log.warn('invalid serializer ignored');
-    return;
-  }
-  return it;
 };

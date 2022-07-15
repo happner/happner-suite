@@ -76,7 +76,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(admGroup).to.not.be(null);
     test.expect(gstGroup).to.not.be(null);
 
-    test.expect(upsertedGroups.length).to.be(2);
+    test.expect(upsertedGroups.length).to.be(3);
 
     test.delay(2000);
   });
@@ -88,7 +88,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(admGroup).to.not.be(null);
     test.expect(gstGroup).to.not.be(null);
 
-    test.expect(upsertedGroups.length).to.be(4);
+    test.expect(upsertedGroups.length).to.be(6);
     //ensure we are able to add a user after this, and it is part of the _MESH_GST group
     await adminClient.exchange.security.addUser({
       username: 'test',

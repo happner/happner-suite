@@ -148,10 +148,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   it('creates a test user', function (done) {
     adminClient.exchange.security.addUser(testUser, function (e, result) {
       if (e) return done(e);
-
       test.expect(result.username).to.be(testUser.username);
       testUserSaved = result;
-
       done();
     });
   });
@@ -268,12 +266,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       });
   });
 
+  // relies on preceding tests
   it('should list all groups', function (done) {
     adminClient.exchange.security.listGroups('*', function (e, groups) {
       if (e) return done(e);
-
-      test.expect(groups.length).to.be(5);
-
+      test.expect(groups.length).to.be(6);
       done();
     });
   });

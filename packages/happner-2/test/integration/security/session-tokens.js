@@ -250,8 +250,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('tests the rest component with a managed profile, only able to access a trusted path', function (done) {
-    this.timeout(8000);
-
     testAdminClient = new test.Mesh.MeshClient({ secure: true, port: 10000 });
 
     var testGroupSaved;
@@ -268,6 +266,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         methods: {
           '/remotetest.Mesh/remoteComponent/remoteFunction': { authorized: true },
           '/testComponent/method2': { authorized: true },
+          '/testComponent/method3': { authorized: true },
         },
         web: {
           '/rest/describe': { actions: ['get'], description: 'rest describe permission' },

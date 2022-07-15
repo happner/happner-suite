@@ -35,8 +35,6 @@
     Object.defineProperty(this, '_exchange', { value: exchange });
     Object.defineProperty(this, '__responseHandlerCache', { value: {} });
 
-    if (mesh.serializer != null) this.serializer = mesh.serializer;
-
     this.requestors = {};
     this.initialized = {};
     this.responseHandlers = {};
@@ -151,28 +149,7 @@
             arguments[0],
             function (e, message) {
               if (e) return _this.__discardMessage(message, e);
-
-              if (_this.serializer && typeof _this.serializer.__encode === 'function') {
-                message.args = _this.serializer.__encode(message.args, {
-                  req: true,
-                  res: false,
-                  src: {
-                    mesh: _this.meshName,
-                    browser: isBrowser,
-                    //////// component: 'possible?'
-                  },
-                  dst: {
-                    endpoint: endpoint.name,
-                    component: componentName,
-                    method: methodName,
-                  },
-                  addr: message.callbackAddress,
-                  opts: setOptions,
-                });
-              }
-
               _this.log.$$TRACE('data.publish( %s', requestPath);
-
               endpoint.data.publish(
                 requestPath,
                 message,
@@ -290,7 +267,7 @@
         }
       },
       timedout: setTimeout(function () {
-        thisMessenger.failResponse('Request timed out', message.callbackAddress);
+        thisMessenger.failResponse(new Error('Request timed out'), message.callbackAddress);
       }, thisMessenger._endpoint.description.setOptions.timeout || 10000),
       handler: actualHandler, // for use by the connection-ended event
     };
@@ -402,15 +379,6 @@
     if (response.status === 'error' && !meta) return this._systemEvents('nohandler', response);
 
     this.log.$$TRACE('responseHandler( %s', meta.path);
-
-    if (this.serializer && typeof this.serializer.__decode === 'function') {
-      response.args = this.serializer.__decode(response.args, {
-        req: false,
-        res: true,
-        meta: meta,
-      });
-    }
-
     var responseHandler = this.responseHandlers[meta.path];
 
     if (responseHandler) {

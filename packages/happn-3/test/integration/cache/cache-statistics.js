@@ -166,6 +166,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
         hitsPerSec: 0,
         missesPerSec: 0,
       },
+      cache_groups_by_user: {
+        hits: 0,
+        hitsPerSec: 0,
+        misses: 0,
+        missesPerSec: 0,
+        size: 1,
+        type: 'lru',
+      },
     });
 
     test.expect(test.commons._.omit(logs[1], 'timestamp', 'name')).to.eql({
@@ -288,6 +296,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
         type: 'static',
         hitsPerSec: 0,
         missesPerSec: 0,
+      },
+      cache_groups_by_user: {
+        hits: 0,
+        hitsPerSec: 0,
+        misses: 0,
+        missesPerSec: 0,
+        size: 1,
+        type: 'lru',
       },
     });
   });

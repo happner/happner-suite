@@ -256,6 +256,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
+          return test.delay(3e3);
+        })
+        .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -277,8 +280,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return users.denyMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
         .then(function () {
+          return test.delay(3e3);
+        })
+        .then(function () {
           gotToFinalAttempt = true;
           return thisClient.exchange.remoteComponent.brokeredMethod1();
+        })
+        .then(function () {
+          done(new Error('unexpected success'));
         })
         .catch(function (e) {
           test.expect(gotToFinalAttempt).to.be(true);
@@ -524,7 +533,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return client.exchange.remoteComponent.brokeredMethodTimeout();
         })
         .catch(function (e) {
-          test.expect(e.toString()).to.be('Request timed out');
+          test.expect(e.message).to.be('Request timed out');
           done();
         });
     });

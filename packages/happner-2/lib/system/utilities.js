@@ -144,11 +144,14 @@ module.exports.findInModules = function (filename, modulePaths, callback) {
   });
 };
 
-module.exports.stringifyError = function (err) {
+module.exports.stringifyError = function (err, includeStack = true) {
   var plainError = {};
   Object.getOwnPropertyNames(err).forEach(function (key) {
     plainError[key] = err[key];
   });
+  if (!includeStack) {
+    delete plainError.stack;
+  }
   return JSON.stringify(plainError);
 };
 

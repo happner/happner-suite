@@ -1171,7 +1171,7 @@ Mesh.prototype._destroyElement = util.promisify(function (componentName, callbac
       },
 
       function (done) {
-        _this._mesh.elements[componentName].component.instance._detatch(_this._mesh, done);
+        _this._mesh.elements[componentName].component.instance.detatch(_this._mesh, done);
       },
 
       function (done) {
@@ -1587,8 +1587,12 @@ Mesh.prototype._scanArguments = function (spec, callback) {
     let $originSeq = args.indexOf(`$origin`);
     let $happnSeq = args.indexOf(`$happn`);
 
-    if ($happnSeq > -1) Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
-    if ($originSeq > -1) Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    if ($happnSeq > -1) {
+      Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
+    }
+    if ($originSeq > -1) {
+      Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    }
 
     module[fnName].$argumentsLength = args.filter(
       (argName) => ['$happn', '$origin'].indexOf(argName) === -1
@@ -1658,27 +1662,17 @@ Mesh.prototype._createComponent = function (spec, callback) {
       );
     }
   }.bind(_this);
-
-  //TODO - we need to remove routes somewhere too:
-
-  componentInstance.initialize(
-    componentName,
-    root,
-    _this,
-    spec.module,
-    componentConfig,
-    function (e) {
-      if (e) return callback(e);
-      try {
-        __addComponentDataStoreRoutes(componentConfig);
-      } catch (e) {
-        return callback(new Error(`bad component data route: ${e.message}`));
-      }
-      spec.component.instance = componentInstance;
-      _this._mesh.elements[componentName] = spec;
-      callback();
+  componentInstance.initialize(componentName, _this, spec.module, componentConfig, function (e) {
+    if (e) return callback(e);
+    try {
+      __addComponentDataStoreRoutes(componentConfig);
+    } catch (e) {
+      return callback(new Error(`bad component data route: ${e.message}`));
     }
-  );
+    spec.component.instance = componentInstance;
+    _this._mesh.elements[componentName] = spec;
+    callback();
+  });
 };
 
 Mesh.prototype._integrateComponent = function (spec, done) {
@@ -2086,18 +2080,18 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
         });
 
       if (methodConfig.type === 'sync') {
-        try {
-          _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
-          component.instance.operate(options.methodName, methodParameters);
+        _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
+        component.instance.operate(options.methodName, methodParameters, (e) => {
           if (options.logAction) {
             _this.log.debug("%s component '%s'", options.logAction, componentName);
           }
-        } catch (e) {
-          done(new Error(e));
-          return;
-        }
-        done();
-        return;
+          if (e) {
+            _this.log.error(
+              `sync operation failed for component: ${componentName}, error: ${e.message}`
+            );
+          }
+        });
+        return done();
       }
 
       calls[call] = Date.now();
