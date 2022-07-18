@@ -1,20 +1,20 @@
 const CLIENT_COUNT = 10;
+const CYCLES = 80;
 const test = require('../../__fixtures/utils/test_helper').create();
 async function start() {
   let clients = await connectClients();
-  var i = 0;
-  for (let ii = 0; ii < 5; ii++) {
+  for (let ii = 0; ii < CYCLES; ii++) {
+    test.log(`running cycle ${ii} / ${CYCLES}`);
+    var i = 1;
     for (let client of clients) {
       try {
         await client.exchange.component.method1();
-        await doRestCall(client);
+        //await doRestCall(client);
       } catch (e) {
         test.log(`error  on request: `, e.message);
       }
-      if (i % 10 === 0) {
-        test.log(`called method ${i} times...`);
-      }
-      await test.delay(100);
+      test.log(`called method ${i} times...`);
+      await test.delay(10);
       i++;
     }
     await doHeapDump(clients[0]);
