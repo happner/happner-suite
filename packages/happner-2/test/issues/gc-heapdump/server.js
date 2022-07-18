@@ -60,10 +60,6 @@ async function start() {
             const timestamp = Date.now();
             await $happn.data.set(`stress/test/${timestamp}`, { timestamp });
           },
-          method2: function ($happn, callback) {
-            $happn.emit('event2');
-            callback(null, 'reply2');
-          },
           webmethod1: function (req, res) {
             res.end('ok1');
           },

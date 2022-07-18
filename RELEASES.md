@@ -74,8 +74,10 @@ happn-cluster: 12.0.11
 
 1.4.0 2022-07-14
 ----------------
+- TEN-125: memory leak, body-parser
 happn-3: 13.1.4
 happn-commons-test: 1.1.0
+happn-db-provider-loki: 1.0.7
 happn-db-provider-elasticsearch: 1.0.12
 happn-db-provider-mongo: 1.0.12
 happn-db-provider-nedb: 1.0.6
@@ -84,6 +86,6 @@ happn-util-crypto: 3.0.5
 happn-nedb: 2.0.5
 happner-2: 12.1.9
 happner-client: 12.2.8
-redis-lru-cache: 1.0.10
+redis-lru-cache: 1.0.12
 happner-cluster: 12.1.9
 happn-cluster: 12.0.12

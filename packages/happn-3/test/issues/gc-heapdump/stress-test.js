@@ -103,15 +103,12 @@ describe(test.testName(__filename, 3), function () {
       }
       await test.delay(1e3);
     }
-
-    console.log('DONE:::');
   });
 
   after('disconnect clients and stop server', async () => {
     for (let client of testClients) {
       await client.disconnect();
     }
-    //await adminClient.disconnect();
     await serviceInstance.stop();
     test.heapDump.stop();
   });
