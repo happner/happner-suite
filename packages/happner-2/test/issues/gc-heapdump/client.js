@@ -9,7 +9,7 @@ async function start() {
     for (let client of clients) {
       try {
         await client.exchange.component.method1();
-        //await doRestCall(client);
+        await doRestCall(client);
       } catch (e) {
         test.log(`error  on request: `, e.message);
       }
