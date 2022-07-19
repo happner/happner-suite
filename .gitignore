@@ -48,3 +48,7 @@ packages/happn-3/test/browser/browser-client-02.js
 !packages/happn-db-provider-mongo/test/__fixtures/data/*.nedb
 
 packages/happner-cluster/test/stress/logs/*.log
+
+temp/*
+
+node_modules-no-leak

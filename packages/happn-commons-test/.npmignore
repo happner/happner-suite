@@ -27,4 +27,5 @@ report.*
 tmp
 test/*
 silence.js
+heapdump*
 

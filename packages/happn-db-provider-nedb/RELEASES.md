@@ -25,3 +25,7 @@
   - updates to commons libs, lint fixes, due to:
   - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
   - TEN-54: all systems tested on node v18
+
+1.0.6 2022-07-14
+-----------------
+  - TEN-125: body-parser v1.20.0 causes memory leak
