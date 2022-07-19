@@ -4,7 +4,7 @@ const eventEmitter = require('events').EventEmitter;
 const ComponentInstanceBoundFactory = require('../../../lib/system/component-instance-bound-factory');
 const utilities = require('../../../lib/system/utilities');
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const mockLogObj = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
@@ -39,7 +39,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         options: undefined,
       },
       mesh: {
-        domain: undefined,
+        domain: 'mockDomain',
         name: 'test-mesh-name',
       },
     });
@@ -107,7 +107,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         options: undefined,
       },
       mesh: {
-        domain: undefined,
+        domain: 'mockDomain',
         name: 'test-mesh-name',
       },
     });
@@ -333,6 +333,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
     componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.on.callsFake((subscribeMask, eventType, testFunc, cb) => {
+      testFunc(
+        {
+          callbackAddress: '/callback/address',
+          origin: {
+            id: 'mockId',
+          },
+        },
+        {
+          path: 'mockPath',
+        }
+      );
+      cb();
+    });
     mesh._mesh.data.publish = (callbackAddress, response, options, cb) => {
       test.expect(callbackAddress).to.be('/callback/address');
       test.expect(response).to.eql({ status: 'ok', args: {} });
@@ -368,6 +382,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
     componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.on.callsFake((subscribeMask, eventType, testFunc, cb) => {
+      testFunc(
+        {
+          callbackAddress: '/callback/address',
+          origin: {
+            id: 'mockId',
+          },
+        },
+        {
+          path: 'mockPath',
+        }
+      );
+      cb();
+    });
     mesh._mesh.data.publish = (_callbackAddress, _response, _options, cb) => {
       cb(new Error('test error'));
       setTimeout(() => {
@@ -394,7 +422,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
               id: 1,
             },
           },
-          { path: '/test/path' }
+          { path: '/test/path' },
+          null,
+          test.sinon.stub()
         );
       }
     );
@@ -405,6 +435,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
     componentInstance.name = 'test-component-instance';
+    mesh._mesh.data.on.callsFake((subscribeMask, eventType, testFunc, cb) => {
+      testFunc(
+        {
+          callbackAddress: '/callback/address',
+          origin: {
+            id: 'mockId',
+          },
+        },
+        {
+          path: 'mockPath',
+        }
+      );
+      cb();
+    });
     mesh._mesh.data.publish = (_callbackAddress, _response, _options, cb) => {
       cb(new Error('client is disconnected'));
       setTimeout(() => {
@@ -433,7 +477,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
               id: 1,
             },
           },
-          { path: '/test/path' }
+          { path: '/test/path' },
+          null,
+          test.sinon.stub()
         );
       }
     );
@@ -447,6 +493,21 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate = (method, args, cb) => {
       cb(null, {});
     };
+    mesh._mesh.data.on.callsFake((subscribeMask, eventType, testFunc, cb) => {
+      testFunc(
+        {
+          callbackAddress: '/callback/address',
+          callbackPeer: 'test-peer',
+          origin: {
+            id: 'mockId',
+          },
+        },
+        {
+          path: 'mockPath',
+        }
+      );
+      cb();
+    });
     componentInstance.initialize(
       'test-component-instance',
       mesh,
@@ -462,7 +523,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
               id: 1,
             },
           },
-          { path: '/test/path' }
+          { path: '/test/path' },
+          null,
+          test.sinon.stub()
         );
         setTimeout(() => {
           test
@@ -481,7 +544,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         if (e) return done(e);
         test
           .expect(mesh._mesh.data.offPath.lastCall.args[0])
-          .to.be('/_exchange/requests/undefined/test-component-instance/*');
+          .to.be('/_exchange/requests/mockDomain/test-component-instance/*');
         done();
       });
     });
@@ -496,7 +559,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         test
           .expect(componentInstance.log.warn.lastCall.args[0])
           .to.be(
-            'half detatched, failed to remove request listener: /_exchange/requests/undefined/test-component-instance/*, error: test-error'
+            'half detatched, failed to remove request listener: /_exchange/requests/mockDomain/test-component-instance/*, error: test-error'
           );
         done();
       });
@@ -723,10 +786,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const mockParameters = [1, 2];
     const mockCallback = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
     componentInstance.description = {
       methods: {},
     };
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
 
     test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
@@ -980,7 +1044,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const mockCallback = test.sinon.stub();
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
-
     componentInstance.emitEvent('mockEvent', 'mockData');
 
     test.chai
@@ -993,7 +1056,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     onStub.restore();
   });
 
-  xit('tests #attach method - discards message if there is no callback addresss', function () {
+  it('tests #attach method - calling emit function and raises errors', function () {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = mockModule('test-module', 'mockVersion');
@@ -1004,11 +1067,114 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
     componentInstance.emit(1, 'mockData', mockOptions, mockCallback);
-    test.sinon.spy(componentInstance.prototype, 'emitEvent');
 
     test.chai
-      .expect(componentInstance.emitEvent)
-      .to.have.been.calledWithExactly('on-emit-error', 'mockError');
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('component emitEvent called', 'on-emit-error');
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('component emitEvent called', 'on-publish-error');
+  });
+
+  it('tests #attach method - calling emit function and raises ok', function () {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+    const mockOnPublished = test.sinon.stub();
+    const mockOptions = { consistency: 1, onPublished: mockOnPublished };
+
+    mesh._mesh.data.set.callsFake((key, data, options, callback) => {
+      options.onPublished(null, 'mockResult');
+      callback(null, 'mockResponse');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emit(1, 'mockData', mockOptions, mockCallback);
+
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('component emitEvent called', 'on-emit-ok');
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('component emitEvent called', 'on-publish-ok');
+  });
+
+  it('tests #attach method - calls emit when options is null', function () {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+    const mockOptions = null;
+
+    mesh._mesh.data.set.callsFake((key, data, options, callback) => {
+      callback(null, 'mockResponse');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emit(1, 'mockData', mockOptions);
+
+    test.chai
+      .expect(mesh._mesh.data.set)
+      .to.have.been.calledWithExactly(
+        '/_events/mockDomain/mockName/1',
+        'mockData',
+        { noStore: true, meta: { componentVersion: 'mockVersion' } },
+        test.sinon.match.func
+      );
+  });
+
+  it('tests #attach method - calls emit when options.noStore is false', function () {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+    const mockOptions = { noStore: false };
+
+    mesh._mesh.data.set.callsFake((key, data, options, callback) => {
+      callback(null, 'mockResponse');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emit(1, 'mockData', mockOptions);
+
+    test.chai
+      .expect(mesh._mesh.data.set)
+      .to.have.been.calledWithExactly(
+        '/_events/mockDomain/mockName/1',
+        'mockData',
+        { noStore: false, meta: { componentVersion: 'mockVersion' } },
+        test.sinon.match.func
+      );
+  });
+
+  it('tests #attach method -  calls emitLocal ', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+
+    mesh._mesh.data.set.callsFake((key, data, options, callback) => {
+      callback(null, 'mockResponse');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.emitLocal(1, 'mockData', mockCallback);
+
+    test.chai.expect(mesh._mesh.data.set).to.have.been.calledWithExactly(
+      '/_events/mockDomain/mockName/1',
+      'mockData',
+      {
+        noStore: true,
+        noCluster: true,
+        meta: { componentVersion: 'mockVersion' },
+      },
+      mockCallback
+    );
   });
 
   it('tests #attach method - discards message if there is no callback addresss', function () {
@@ -1020,8 +1186,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const mockOptions = test.sinon.stub();
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
-    componentInstance.emit(1, 'mockData', mockOptions, mockCallback);
-    componentInstance.emitLocal(1, 'mockData', test.sinon.stub());
+    componentInstance.emit(1, 'mockData', mockOptions);
 
     test.chai
       .expect(mockLogObj.warn)
@@ -1162,7 +1327,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     sessionFromRequest
   ) {
     let onHandler;
-    let mockOn = test.sinon.stub();
     let middlewares = {};
     let subscribeMask = `/_exchange/requests/${'mockDomain'}/${'mockName'}/*`;
     let eventType = {
@@ -1248,18 +1412,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
           //     // onHandler = test.sinon.stub();
           //     onHandler(publication, meta);
           //   },
-          set: (eventKey, data, options, cb) => {
+          set: test.sinon.stub().callsFake((eventKey, data, options, cb) => {
             // onHandler = test.sinon.stub();
             // onHandler(publication, meta);
-            options.onPublished('mockError', 'mockResult');
+            if (options && options.onPublished) options.onPublished('mockError', 'mockResult');
+
             cb('mockError', 'mockResponse');
-          },
+          }),
           offPath: test.sinon.stub().callsArg(1),
           //   on: (_event, _options, handler, cb) => {
           //     onHandler = handler;
           //     cb();
           //   },
-          on: mockOn.callsFake(function (subscribeMask, eventType, testFunc, cb) {
+          on: test.sinon.stub().callsFake((subscribeMask, eventType, testFunc, cb) => {
             testFunc(
               {
                 origin: {
