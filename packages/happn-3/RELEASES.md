@@ -995,10 +995,13 @@
 -----------------
   - TEN-123: fix to getaddress - issue with bad breaking release in node 18.4
 
+<<<<<<< HEAD
 13.1.4 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
 
+=======
+>>>>>>> fae9d3ed7389a07796e8e0439722e9a785d8c73b
 
 
 
