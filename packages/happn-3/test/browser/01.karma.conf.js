@@ -14,6 +14,14 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha', 'chai'],
 
+    plugins: [
+      'karma-chai',
+      'karma-mocha',
+      'karma-mocha-reporter',
+      'karma-chrome-launcher',
+      'karma-coverage',
+    ],
+
     files: [
       'test/browser/browser-client-02.js',
       'test/browser/01_security_hsts_cookie.js',

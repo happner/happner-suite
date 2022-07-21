@@ -31,6 +31,7 @@ class TestHelper {
     this.bluebird = require('bluebird');
     this.request = this.nodeUtils.promisify(require('request'), { multiArgs: true });
     this.mockfs = require('mock-fs');
+    this.heapDump = require('./heap-dumper').create();
     require('chai').should();
   }
   static create() {
