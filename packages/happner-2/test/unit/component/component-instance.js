@@ -43,16 +43,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     getBoundComponentStub.restore();
   });
 
-  xit('tests #default method', function () {
+  it('tests #default method', function () {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = mockModule('test-module', 'mockVersion');
+    module.instance.$happner.config.component.events = 'mockEvent';
     const config = mockConfig();
+    config.events = 'mockEvent';
     const mockCallback = test.sinon.stub();
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
 
-    test.chai.expect(config).to.have.ownProperty();
+    test.chai.expect(config).to.have.ownProperty('keyOne').that.equals('keyOne');
+    test.chai.expect(config).to.have.ownProperty('keyTwo').that.equals('keyTwo');
   });
 
   it('tests isAuthorized method', async function () {
@@ -130,6 +133,214 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     test.chai.expect(componentInstance.localEventEmitter).to.be.instanceOf(eventEmitter);
     test.chai.expect(componentInstance.tools).to.equal('mockTools');
+  });
+
+  it('tests inject method - parameters.length is less then methodDefn.$argumentsLength', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const mockModule = {
+      instance: {
+        mockMethodName: test.sinon.stub().returns('mockResult'),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+    const mockCallback = test.sinon.stub();
+
+    const origin = 'mockOrigin';
+    const verion = null;
+    const originBindingOverride = 'mockBinding';
+
+    componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
+
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+
+    const mockFunction = () => ({ man: 'name' });
+    const name = mockFunction().man;
+    console.log('name', name);
+    mockModule.instance.mockMethodName.$argumentsLength = 3;
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      origin,
+      verion,
+      originBindingOverride
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai
+      .expect(mockModule.instance.mockMethodName)
+      .to.have.been.calledWithExactly(1, 2, undefined);
+  });
+
+  it('tests inject method - methodDefn.$happnSeq is less then methodDefn.$originSeq', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const mockModule = {
+      instance: {
+        mockMethodName: test.sinon.stub().returns('mockResult'),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+    const mockCallback = test.sinon.stub();
+
+    const origin = 'mockOrigin';
+    const verion = null;
+    const originBindingOverride = 'mockBinding';
+
+    componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
+
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+
+    mockModule.instance.mockMethodName.$happnSeq = 3;
+    mockModule.instance.mockMethodName.$originSeq = 4;
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      origin,
+      verion,
+      originBindingOverride
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai
+      .expect(mockModule.instance.mockMethodName)
+      .to.have.been.calledWithExactly(
+        1,
+        2,
+        test.sinon.match.instanceOf(ComponentInstance),
+        'mockOrigin'
+      );
+  });
+
+  it('tests inject method - methodDefn.$happnSeq is greater then methodDefn.$originSeq', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const mockModule = {
+      instance: {
+        mockMethodName: test.sinon.stub().returns('mockResult'),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+    const mockCallback = test.sinon.stub();
+
+    const origin = 'mockOrigin';
+    const verion = null;
+    const originBindingOverride = 'mockBinding';
+
+    componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
+
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+
+    mockModule.instance.mockMethodName.$happnSeq = 5;
+    mockModule.instance.mockMethodName.$originSeq = 4;
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      origin,
+      verion,
+      originBindingOverride
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai
+      .expect(mockModule.instance.mockMethodName)
+      .to.have.been.calledWithExactly(
+        1,
+        2,
+        'mockOrigin',
+        test.sinon.match.instanceOf(ComponentInstance)
+      );
+  });
+
+  it('tests inject method - methodDefn.$originSeq is not equal to null', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const mockModule = {
+      instance: {
+        mockMethodName: test.sinon.stub().returns('mockResult'),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+    const mockCallback = test.sinon.stub();
+
+    const origin = 'mockOrigin';
+    const verion = null;
+    const originBindingOverride = 'mockBinding';
+
+    componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+
+    mockModule.instance.mockMethodName.$originSeq = 4;
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      origin,
+      verion,
+      originBindingOverride
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai
+      .expect(mockModule.instance.mockMethodName)
+      .to.have.been.calledWithExactly(1, 2, 'mockOrigin');
+  });
+
+  it('tests inject method - methodDefn.$happnSeq is not equal to null', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const mockModule = {
+      instance: {
+        mockMethodName: test.sinon.stub().returns('mockResult'),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+    const mockCallback = test.sinon.stub();
+
+    const origin = 'mockOrigin';
+    const verion = null;
+    const originBindingOverride = 'mockBinding';
+
+    componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+
+    mockModule.instance.mockMethodName.$happnSeq = 3;
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      origin,
+      verion,
+      originBindingOverride
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai
+      .expect(mockModule.instance.mockMethodName)
+      .to.have.been.calledWithExactly(1, 2, test.sinon.match.instanceOf(ComponentInstance));
   });
 
   it('describe method', function (done) {
@@ -334,11 +545,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
   });
 
-  it('tests  createSetOptions', () => {
+  it('tests createSetOptions', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = { instance: { $happner: { config: { component: 'mock' } } } };
     const config = mockConfig();
+    config.directResponses = 'directResponses';
     const mockCallback = test.sinon.stub();
 
     config.web.routes = {
@@ -409,7 +621,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     mesh._mesh.data.publish = (callbackAddress, response, options, cb) => {
       test.expect(callbackAddress).to.be('/callback/address');
       test.expect(response).to.eql({ status: 'ok', args: {} });
-      test.chai.expect(options).to.eql({ targetClients: ['mockId'] });
+      test.chai.expect(options).to.eql(undefined);
       cb();
       done();
     };
@@ -1540,7 +1752,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   function mockConfig(mergeConfig = {}) {
     return test.commons._.merge(
       {
-        directResponses: 'directResponses',
         methods: {
           testMethod1: {
             parameters: [
