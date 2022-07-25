@@ -235,6 +235,7 @@ module.exports = class ComponentInstance {
             this.#inject(methodDefn, parameters, origin)
           );
         } catch (err) {
+          console.log('error', err);
           callbackProxy(err);
           return;
         }
