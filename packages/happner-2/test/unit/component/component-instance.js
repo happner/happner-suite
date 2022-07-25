@@ -18,6 +18,32 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.sinon.restore();
   });
 
+  xit('tests initialize method, config.accessLevel equal to root', function () {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    config.accessLevel = 'root';
+    const mockCallback = test.sinon.stub();
+
+    const getBoundComponentStub = test.sinon
+      .stub(ComponentInstanceBoundFactory, 'create')
+      .returns({ getBoundComponent: test.sinon.stub().returns('mockComponent') });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+
+    const result = componentInstance.as(
+      'mockUserName',
+      'mockComponentName',
+      'mockMethodName',
+      'mockSessionType'
+    );
+
+    test.chai.expect(result).to.equal('mockComponent');
+
+    getBoundComponentStub.restore();
+  });
+
   it('tests as method', function () {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
@@ -418,6 +444,86 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         done();
       }
     );
+  });
+
+  it('tests describe method - loops over methods and returns this.describe method', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {
+        method1: { $happner: { ignore: 'mockIgnore' } },
+        _method2: {
+          $happner: {},
+        },
+        testMethod1: {},
+        testMethod2: {},
+        testMethod3: {},
+      },
+    };
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+
+    test.sinon
+      .stub(utilities, 'getAllMethodNames')
+      .returns(['method1', '_method2', 'testMethod1', 'testMethod2', 'testMethod3']);
+    test.sinon.stub(utilities, 'getFunctionParameters').returns([{ argName: 'mock' }]);
+
+    config.schema = {
+      methods: {
+        testMethod1: { isAsyncMethod: 'mockIsAsyncMethod' },
+        testMethod2: { isAsyncMethod: 'mockIsAsyncMethod', parameters: 'mockParameters' },
+      },
+      exclusive: 'mockExclusive',
+    };
+
+    componentInstance.describe(false);
+
+    test.chai.expect(componentInstance.description).to.eql({
+      name: 'mockName',
+      version: undefined,
+      methods: {
+        testMethod1: { isAsyncMethod: false, parameters: [{ name: { argName: 'mock' } }] },
+        testMethod2: { isAsyncMethod: false, parameters: 'mockParameters' },
+      },
+      routes: {
+        '/mockName/test/route/1': { type: 'mware' },
+        '/mockName/test/route/2': { type: 'mware' },
+        '/': { type: 'mware' },
+      },
+      events: {},
+      data: 'mockData',
+    });
+  });
+
+  it("tests describe method - methods doesn't exist inside config and returns description", () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {},
+    };
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+
+    config.schema = {};
+
+    componentInstance.describe(false);
+
+    test.chai.expect(componentInstance.description).to.eql({
+      name: 'mockName',
+      version: undefined,
+      methods: {},
+      routes: {
+        '/mockName/test/route/1': { type: 'mware' },
+        '/mockName/test/route/2': { type: 'mware' },
+        '/': { type: 'mware' },
+      },
+      events: {},
+      data: 'mockData',
+    });
   });
 
   it('describe method, without config', function (done) {
