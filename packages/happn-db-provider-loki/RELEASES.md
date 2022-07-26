@@ -29,3 +29,7 @@
 1.0.6 2022-06-02
 -----------------
   - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
+
+1.0.7 2022-07-14
+-----------------
+  - TEN-125: body-parser v1.20.0 causes memory leak

@@ -1,35 +1,20 @@
 // Karma configuration
 // Generated on Tue Dec 01 2015 11:18:30 GMT+0200 (SAST)
-const commons = require('happn-commons');
-const fs = commons.fs;
+
 module.exports = function (config) {
-  const browserDirPath = commons.path.resolve(__dirname, './tmp');
-  commons.rimraf.sync(browserDirPath);
-  fs.ensureDirSync(commons.path.resolve(__dirname, 'tmp'));
   config.set({
+    crossOriginAttribute: false,
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '../../',
+    basePath: '',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha', 'chai'],
 
-    plugins: [
-      'karma-chai',
-      'karma-mocha',
-      'karma-mocha-reporter',
-      'karma-chrome-launcher',
-      'karma-coverage',
-    ],
-
     files: [
-      'test/browser/browser-client-02.js',
-      'test/browser/01_security_hsts_cookie.js',
-      'test/browser/02_websockets_embedded_sanity.js',
-      'test/browser/03_heartbeats.js',
-      'test/browser/04_https_cookie.js',
-      'test/browser/05_https_cookieLogin.js',
-      'test/browser/06_login_promise.js',
+      { pattern: 'http://localhost:55000/api/client', type: 'js' },
+      'browsertest_01_happner_client.js',
     ],
 
     // list of files / patterns to load in the browser
@@ -44,11 +29,7 @@ module.exports = function (config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['mocha', 'coverage'],
-
-    preprocessors: {
-      'test/browser/browser-client-02.js': ['coverage'],
-    },
+    reporters: ['mocha'],
 
     // web server port
     port: 9876,
@@ -62,22 +43,11 @@ module.exports = function (config) {
 
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,
-
+    detatched: true,
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome_without_security'],
-    customLaunchers: {
-      Chrome_without_security: {
-        base: 'ChromeHeadless',
-        // base: 'Chrome', // to see output
-        flags: [
-          '--disable-web-security',
-          '--ignore-certificate-errors',
-          `--user-data-dir=${browserDirPath}`,
-        ],
-      },
-    },
-
+    browsers: ['ChromeHeadless'],
+    browserDisconnectTimeout: 6000,
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: false,
@@ -85,15 +55,7 @@ module.exports = function (config) {
     // Concurrency level
     // how many browser should be started simultanous
     concurrency: Infinity,
+
     browserNoActivityTimeout: 60000,
-    protocol: 'https',
-    httpsServerOptions: {
-      key: fs.readFileSync(`${__dirname}/__fixtures/key.rsa`, 'utf8'),
-      cert: fs.readFileSync(`${__dirname}/__fixtures/cert.pem`, 'utf8'),
-    },
-    coverageReporter: {
-      dir: './',
-      reporters: [{ type: 'lcov', subdir: 'coverage-web' }, { type: 'text-summary' }],
-    },
   });
 };
