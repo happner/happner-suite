@@ -19,7 +19,7 @@
     "test-unit": "_mocha --exit test/unit/**",
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
-    "test-browser": "gulp --gulpfile test/browser/gulp-01.js",
+    "test-browser": "mocha test/browser-leaking/01-test-disconnects.js && gulp --gulpfile test/browser/gulp-01.js",
     "test-backward-compatibility": "_mocha silence.js test/backward-compatibility/** --exit"
   },
   "repository": {
