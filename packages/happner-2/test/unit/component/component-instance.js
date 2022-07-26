@@ -1,5 +1,4 @@
 const LRUCache = require('happn-3/lib/services/cache/cache-lru');
-const { emitter } = require('happn-logger/lib/logger');
 const ComponentInstance = require('../../../lib/system/component-instance');
 const eventEmitter = require('events').EventEmitter;
 const ComponentInstanceBoundFactory = require('../../../lib/system/component-instance-bound-factory');
@@ -648,7 +647,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     const module = mockModule('test-module', 'mockVersion');
     const config = mockConfig();
     const mockCallback = test.sinon.stub();
-    const mockOptions = test.sinon.stub();
 
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
@@ -1404,8 +1402,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
-
-    const testing = test.sinon.stub(utilities, 'isPromise').resolves(true);
 
     componentInstance.operate(
       mockMethodName,
