@@ -685,7 +685,6 @@ module.exports = class ComponentInstance {
       typeof targetMethod === 'function' ? targetMethod : this.#module.instance[targetMethod];
     let componentRef = componentRoutePath.substring(1);
     let _this = this;
-
     if (typeof methodDefn !== 'function') {
       throw new Error(
         `Middleware target ${_this.name}:${targetMethod} not a function or null, check your happner web routes config`
@@ -718,6 +717,7 @@ module.exports = class ComponentInstance {
     // attach this as root middleware if configured
     Object.keys(mesh.config.web.routes).forEach(function (mountRoute) {
       var mountPoint = mesh.config.web.routes[mountRoute];
+
       if (componentRef !== mountPoint) return;
       connect.use(mountRoute, function (req, res, next) {
         req.rootWebRoute = mountRoute;
