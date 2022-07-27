@@ -3,6 +3,8 @@
 
 module.exports = function (config) {
   config.set({
+    crossOriginAttribute: false,
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
@@ -10,7 +12,10 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha', 'chai'],
 
-    files: ['lib/client.js'],
+    files: [
+      { pattern: 'http://localhost:55001/api/client', type: 'js' },
+      'browsertest_01_happner_client.js',
+    ],
 
     // list of files / patterns to load in the browser
     // files: [
@@ -38,19 +43,19 @@ module.exports = function (config) {
 
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,
-
+    detatched: true,
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
-
+    browsers: ['ChromeHeadless'],
+    browserDisconnectTimeout: 15e3,
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: true,
+    singleRun: false,
 
     // Concurrency level
     // how many browser should be started simultanous
     concurrency: Infinity,
 
-    browserNoActivityTimeout: 60000,
+    browserNoActivityTimeout: 100000,
   });
 };

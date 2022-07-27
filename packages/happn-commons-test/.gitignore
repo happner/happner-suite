@@ -25,4 +25,5 @@ coverage-web
 report.*
 .vscode
 tmp
+heapdump*
 
