@@ -256,14 +256,14 @@
     if (browser) {
       return this.getResources((e) => {
         if (e) return callback(e);
-        this.authenticate((e) => {
+        this.connect((e) => {
           if (e) return callback(e);
           this.status = STATUS.ACTIVE;
           callback(null, this);
         });
       });
     }
-    this.authenticate((e) => {
+    this.connect((e) => {
       if (e) return callback(e);
       this.status = STATUS.ACTIVE;
       callback(null, this);
@@ -787,16 +787,7 @@
       });
   });
 
-  HappnClient.prototype.authenticate = utils.maybePromisify(function (callback) {
-    if (this.socket) {
-      // handle_reconnection also call through here to 're-authenticate'.
-      // this is that happening. Don't make new socket.
-      // if the login fails, a setTimeout 3000 and re-authenticate, retry happens
-      // see this.__retryReconnect
-      this.login(callback);
-      return;
-    }
-
+  HappnClient.prototype.connect = utils.maybePromisify(function (callback) {
     this.__getConnection((e, socket) => {
       if (e) return callback(e);
       this.socket = socket;
@@ -874,22 +865,27 @@
     }, 0);
   };
 
-  HappnClient.prototype.__performDataRequest = function (path, action, data, options, callback) {
+  HappnClient.prototype.__checkRequestStatus = function (action, path, callback) {
     if (this.status !== STATUS.ACTIVE) {
-      var errorMessage = 'client not active';
-
-      if (this.status === STATUS.CONNECT_ERROR) errorMessage = 'client in an error state';
+      let errorMessage = 'client not active';
+      if ([STATUS.CONNECT_ERROR, STATUS.ERROR].includes(this.status)) {
+        errorMessage = 'client in an error state';
+      }
       if (this.status === STATUS.UNINITIALIZED) errorMessage = 'client not initialized yet';
       if (this.status === STATUS.DISCONNECTED) errorMessage = 'client is disconnected';
-
-      var errorDetail = 'action: ' + action + ', path: ' + path;
-
-      var error = new Error(errorMessage);
+      let errorDetail = 'action: ' + action + ', path: ' + path;
+      let error = new Error(errorMessage);
       error.detail = errorDetail;
-
-      return this.__asyncErrorCallback(error, callback);
+      this.__asyncErrorCallback(error, callback);
+      return false;
     }
+    return true;
+  };
 
+  HappnClient.prototype.__performDataRequest = function (path, action, data, options, callback) {
+    if (!this.__checkRequestStatus(path, action, callback)) {
+      return;
+    }
     var message = {
       action: action,
       eventId: this.getEventId(),
@@ -1267,19 +1263,19 @@
       return;
     }
     this.__retryReconnectTimeout = setTimeout(() => {
-      this.reconnect.call(this, options);
+      this.reconnect(this, options);
     }, 3000);
   };
 
   HappnClient.prototype.reconnect = function (options) {
     this.status = STATUS.RECONNECT_ACTIVE;
     this.emit('reconnect', options);
-    this.authenticate((e) => {
+    this.connect((e) => {
       if (e) {
         this.handle_error(e);
         return this.__retryReconnect(options, 'authentication-failed', e);
       }
-      //we are authenticated and ready for data requests
+      //we are connected and ready for data requests
       this.status = STATUS.ACTIVE;
       this.__reattachListeners((e) => {
         if (e) {
@@ -1296,11 +1292,17 @@
       timestamp: Date.now(),
       error: err,
     };
-
     if (this.state.errors.length === 100) this.state.errors.shift();
     this.state.errors.push(errLog);
     this.emit('error', err);
-    this.log.error('unhandled error', err);
+    this.log.error('socket error', err);
+    if (!this.socket) return;
+    this.status = STATUS.ERROR; // so we dont write any more messages until we have reconnected again
+    //wait a second, this is so we don't flood the stack when there are reconnection failures
+    setTimeout(() => {
+      this.log.info('attempting reconnection after failure...');
+      this.reconnect();
+    }, 1e3);
   };
 
   HappnClient.prototype.__attachPublishedAck = function (options, message) {
