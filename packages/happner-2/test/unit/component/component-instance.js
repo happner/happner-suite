@@ -4,7 +4,7 @@ const eventEmitter = require('events').EventEmitter;
 const ComponentInstanceBoundFactory = require('../../../lib/system/component-instance-bound-factory');
 const utilities = require('../../../lib/system/utilities');
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const mockLogObj = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
