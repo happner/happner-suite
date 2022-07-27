@@ -1,11 +1,10 @@
 const LRUCache = require('happn-3/lib/services/cache/cache-lru');
-const { emitter } = require('happn-logger/lib/logger');
 const ComponentInstance = require('../../../lib/system/component-instance');
 const eventEmitter = require('events').EventEmitter;
 const ComponentInstanceBoundFactory = require('../../../lib/system/component-instance-bound-factory');
 const utilities = require('../../../lib/system/utilities');
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   const mockLogObj = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
@@ -456,10 +455,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
 
-    test.sinon
+    const getAllMethodNameslStub = test.sinon
       .stub(utilities, 'getAllMethodNames')
       .returns(['method1', '_method2', 'testMethod1', 'testMethod2', 'testMethod3']);
-    test.sinon.stub(utilities, 'getFunctionParameters').returns([{ argName: 'mock' }]);
+    const getFunctionParametersStub = test.sinon
+      .stub(utilities, 'getFunctionParameters')
+      .returns([{ argName: 'mock' }]);
 
     config.schema = {
       methods: {
@@ -486,6 +487,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       events: {},
       data: 'mockData',
     });
+
+    getAllMethodNameslStub.restore();
+    getFunctionParametersStub.restore();
   });
 
   it("tests describe method - methods doesn't exist inside config and returns description", () => {
@@ -642,21 +646,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
   });
 
-  it.skip('tests authorizeOriginMethod - return callback when there is an error', () => {
+  it('tests authorizeOriginMethod - return callback when there is an error when authorize is called', () => {
+    const mockAuthorize = test.sinon.stub();
     const componentInstance = new ComponentInstance();
-    const mesh = mockMesh('test-mesh-name');
+    const mesh = mockMesh('test-mesh-name', null, null, null, null, mockAuthorize, null);
     const module = mockModule('test-module', 'mockVersion');
     const config = mockConfig();
-    const mockCallback = test.sinon.stub();
-    const mockOptions = test.sinon.stub();
-
+    const mockCallback = test.sinon.stub().returns('test error');
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
 
+    test.sinon
+      .stub(ComponentInstanceBoundFactory.prototype, 'originBindingNecessary')
+      .returns(true);
+
+    mesh._mesh.happn.server.services.security.authorize.callsFake((_, __, ___, callback) => {
+      callback('mockError', null);
+    });
+
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
-
     componentInstance.description = { methods: { mockMethodName: 'mockMethodName' } };
-
     componentInstance.operate(
       mockMethodName,
       mockParameters,
@@ -665,6 +674,42 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       null,
       'originBindingOverride'
     );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+  });
+
+  it('tests authorizeOriginMethod -  return callback when there is an error when getOnBehalfOfSession is called', () => {
+    const mockAuthorize = test.sinon.stub();
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name', null, null, null, null, mockAuthorize, null);
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub().returns('test error');
+    const mockMethodName = 'mockMethodName';
+    const mockParameters = [1, 2];
+
+    test.sinon
+      .stub(ComponentInstanceBoundFactory.prototype, 'originBindingNecessary')
+      .returns(true);
+
+    mesh._mesh.happn.server.services.security.getOnBehalfOfSession.callsFake(
+      (_, __, ___, callback) => {
+        callback('mockError', null);
+      }
+    );
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.description = { methods: { mockMethodName: 'mockMethodName' } };
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback,
+      'mockOrigin',
+      null,
+      'originBindingOverride'
+    );
+
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
   });
 
   it('tests parseWebRoutes - returns when name equals www and routePath equals global', () => {
@@ -1030,7 +1075,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       methods: {},
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1040,6 +1085,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .expect(mockLogObj.trace)
       .to.have.been.calledWithExactly('removing mware at %s', 'mockRoute');
     test.chai.expect(mesh._mesh.happn.server.connect.stack.length).to.equal(1);
+
+    createStub.restore();
   });
 
   it('attach web route: bad target method', function (done) {
@@ -1087,7 +1134,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1110,6 +1157,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.chai
       .expect(mockCallback)
       .to.have.been.calledWithExactly(null, [test.sinon.match.instanceOf(Error)]);
+
+    createStub.restore();
   });
 
   it('tests operate method - method has been configured as a promise with a callback ', () => {
@@ -1133,11 +1182,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
-    test.sinon.stub(utilities, 'isPromise').returns('mockResult');
+    const isPromiseStub = test.sinon.stub(utilities, 'isPromise').returns('mockResult');
 
     componentInstance.operate(
       mockMethodName,
@@ -1151,6 +1200,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.chai
       .expect(mockLogObj.warn)
       .to.have.been.calledWithExactly('method has been configured as a promise with a callback...');
+
+    isPromiseStub.restore();
+    createStub.restore();
   });
 
   it('tests operate method, blue sky, no auth necessary', function (done) {
@@ -1244,7 +1296,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1265,6 +1317,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.chai
       .expect(mockCallback)
       .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
+
+    createStub.restore();
   });
 
   it('tests operate method, returns if component version does not match module version', () => {
@@ -1281,7 +1335,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       methods: { testMethod1: test.sinon.stub() },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1302,6 +1356,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.chai
       .expect(mockCallback)
       .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
+
+    createStub.restore();
   });
 
   it('tests operate method, returns callback with result', async () => {
@@ -1325,7 +1381,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1339,6 +1395,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
 
     test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    createStub.restore();
   });
 
   it('tests operate method, returns callback with error', async () => {
@@ -1362,7 +1419,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
@@ -1378,43 +1435,229 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.chai
       .expect(mockCallback)
       .to.have.been.calledWithExactly(null, [test.sinon.match.instanceOf(Error)]);
+
+    createStub.restore();
   });
 
-  xit('tests operate method, returns callback with error', async () => {
+  it('tests operate method , isPromise returns false', async () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
       instance: {
-        mockMethod: test.sinon.stub().resolves('mockResult'),
+        testMethod3: test.sinon.stub().resolves('mockResult'),
+        testMethod4: test.sinon.stub().resolves('mockResult'),
+        testMethod5: test.sinon.stub().resolves('mockResult'),
+        staticHandler: test.sinon.stub().resolves('mockResult'),
         version: 'mockVersion',
       },
     };
     const config = mockConfig();
-    const mockMethodName = 'mockMethod';
+    const mockMethodName = 'testMethod3';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: {
-        mockMethod: {},
+        testMethod3: {},
+        testMethod4: {},
+        testMethod5: {},
+        staticHandler: {},
       },
     };
 
-    test.sinon
+    const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
       .returns({ originBindingNecessary: test.sinon.stub() });
 
-    const testing = test.sinon.stub(utilities, 'isPromise').resolves(true);
+    const isPromisedStub = test.sinon.stub(utilities, 'isPromise').returns(false);
 
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
+
+    test.chai.expect(mockCallback2).to.not.have.been.called;
+
+    isPromisedStub.restore();
+    createStub.restore();
+  });
+
+  it('tests', async () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {
+        testMethod3: test.sinon.stub(),
+        testMethod4: test.sinon.stub(),
+        testMethod5: test.sinon.stub(),
+        staticHandler: test.sinon.stub(),
+      },
+    };
+
+    module.instance.testMethod3.$happnSeq = 3;
+    mesh._mesh.config.web.routes[0] = 'mockName/test/route/1';
+
+    const config = mockConfig();
+    const mockMethodName = 'testMethod3';
+    const mockParameters = [1, 2];
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
+
+    mesh._mesh.happn.server.connect.use = test.sinon.stub();
+    mesh._mesh.happn.server.connect.use.callsFake((_, cb) => {
+      cb({ rootWebRoute: 'mockRootWebRoute' }, 'mockRes', 'mockNext');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
+    componentInstance.description = {
+      methods: {
+        testMethod3: {},
+        testMethod4: {},
+        testMethod5: {},
+        staticHandler: {},
+      },
+    };
+
+    const createStub = test.sinon
+      .stub(ComponentInstanceBoundFactory, 'create')
+      .returns({ originBindingNecessary: test.sinon.stub() });
+
+    const isPromisedStub = test.sinon.stub(utilities, 'isPromise').returns(false);
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback2,
+      'mockOrigin',
+      null,
+      'originBindingOverride'
+    );
+
+    test.chai
+      .expect(mesh._mesh.happn.server.services.security.sessionFromRequest)
+      .to.have.been.calledWithExactly(
+        { rootWebRoute: '0', componentWebRoute: 'mockName/test/route/1' },
+        { cookieName: null }
+      );
+
+    isPromisedStub.restore();
+    createStub.restore();
+  });
+
+  xit('tests #attachRouteTarget - checks if mesh.config.web does not exist', async () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {
+        testMethod3: test.sinon.stub(),
+        testMethod4: test.sinon.stub(),
+        testMethod5: test.sinon.stub(),
+        staticHandler: test.sinon.stub(),
+      },
+    };
+
+    module.instance.testMethod3.$happnSeq = 3;
+    delete mesh._mesh.config.web;
+
+    const config = mockConfig();
+    const mockMethodName = 'testMethod3';
+    const mockParameters = [1, 2];
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
+
+    mesh._mesh.happn.server.connect.use = test.sinon.stub();
+    mesh._mesh.happn.server.connect.use.callsFake((_, cb) => {
+      cb({ rootWebRoute: 'mockRootWebRoute' }, 'mockRes', 'mockNext');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
+    componentInstance.description = {
+      methods: {
+        testMethod3: {},
+        testMethod4: {},
+        testMethod5: {},
+        staticHandler: {},
+      },
+    };
+
+    const createStub = test.sinon
+      .stub(ComponentInstanceBoundFactory, 'create')
+      .returns({ originBindingNecessary: test.sinon.stub() });
+
+    const isPromisedStub = test.sinon.stub(utilities, 'isPromise').returns(false);
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback2,
+      'mockOrigin',
+      null,
+      'originBindingOverride'
+    );
+
+    isPromisedStub.restore();
+    createStub.restore();
+  });
+
+  xit('tests #attachRouteTarget - checks if mesh.config.web.route does not exist', async () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {
+        testMethod3: test.sinon.stub(),
+        testMethod4: test.sinon.stub(),
+        testMethod5: test.sinon.stub(),
+        staticHandler: test.sinon.stub(),
+      },
+    };
+
+    module.instance.testMethod3.$happnSeq = 3;
+    delete mesh._mesh.config.web.routes;
+
+    const config = mockConfig();
+    const mockMethodName = 'testMethod3';
+    const mockParameters = [1, 2];
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
+
+    mesh._mesh.happn.server.connect.use = test.sinon.stub();
+    mesh._mesh.happn.server.connect.use.callsFake((_, cb) => {
+      cb({ rootWebRoute: 'mockRootWebRoute' }, 'mockRes', 'mockNext');
+    });
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
+    componentInstance.description = {
+      methods: {
+        testMethod3: {},
+        testMethod4: {},
+        testMethod5: {},
+        staticHandler: {},
+      },
+    };
+
+    const createStub = test.sinon
+      .stub(ComponentInstanceBoundFactory, 'create')
+      .returns({ originBindingNecessary: test.sinon.stub() });
+
+    const isPromisedStub = test.sinon.stub(utilities, 'isPromise').returns(false);
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback2,
+      'mockOrigin',
+      null,
+      'originBindingOverride'
+    );
+
+    isPromisedStub.restore();
+    createStub.restore();
   });
 
   it('tests on method, returns event', () => {
