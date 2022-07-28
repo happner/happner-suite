@@ -358,9 +358,10 @@ Provided a user belongs to the special system group "_MESH_DELEGATE", the user i
 #### inside a component method via $happn:
 *code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as.js):*
 ``` javascript
+const assert = require('assert');
 const Mesh = require('happner-2');
 const MeshClient = Mesh.MeshClient;
-const assert = require('assert');
+
 
 async function start() {
   class MyComponent {
@@ -433,12 +434,32 @@ async function start() {
 start();
 ```
 #### from outside via the mesh client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
 
 #### from outside via the happner-client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-happner-client.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
 
 #### from outside via the light-client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-light-client.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
 
 #### from outside via a http RPC request:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-http-rpc.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
 
 ## lookup tables and permissions:
 
