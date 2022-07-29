@@ -868,7 +868,7 @@
     }, 0);
   };
 
-  HappnClient.prototype.__checkRequestStatus = function (action, path, callback) {
+  HappnClient.prototype.__checkRequestStatus = function (path, action, callback) {
     if (this.status !== STATUS.ACTIVE) {
       let errorMessage = 'client not active';
       if ([STATUS.CONNECT_ERROR, STATUS.ERROR].includes(this.status)) {
@@ -1305,7 +1305,7 @@
     });
   };
 
-  HappnClient.prototype.handle_error = function (err) {
+  HappnClient.prototype.handle_error = function (err, reconnect = true) {
     var errLog = {
       timestamp: Date.now(),
       error: err,
@@ -1314,7 +1314,7 @@
     this.state.errors.push(errLog);
     this.emit('error', err);
     this.log.error('socket error', err);
-    if (!this.socket) return;
+    if (!this.socket || !reconnect) return;
     this.status = STATUS.ERROR; // so we dont write any more messages until we have reconnected again
     //wait a second, this is so we don't flood the stack when there are consistent socket failures
     setTimeout(() => {
