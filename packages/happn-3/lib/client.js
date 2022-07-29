@@ -348,15 +348,17 @@
 
     if (options.config) {
       //we are going to standardise here, so no more config.config
-      preparedOptions = options.config;
-
+      preparedOptions = Object.assign({}, options.config);
       for (var optionProperty in options) {
         if (optionProperty !== 'config' && !preparedOptions[optionProperty])
           preparedOptions[optionProperty] = options[optionProperty];
       }
-    } else preparedOptions = options;
+    } else preparedOptions = Object.assign({}, options);
 
     if (!preparedOptions.callTimeout) preparedOptions.callTimeout = 60000; //1 minute
+    if (!preparedOptions.retryOnSocketErrorMaxInterval) {
+      preparedOptions.retryOnSocketErrorMaxInterval = 120e3;
+    }
 
     //this is for local client connections
     if (preparedOptions.context)
@@ -455,6 +457,7 @@
             );
           callback(e.error || e);
         });
+        return;
       }
       this.handle_error(e.error || e);
     };
@@ -1254,6 +1257,17 @@
   };
 
   HappnClient.prototype.__retryReconnect = function (options, reason, e) {
+    if (this.__retryReconnectInterval == null) {
+      this.__retryReconnectInterval = 1e3;
+    } else {
+      if (this.__retryReconnectInterval * 2 > this.options.retryOnSocketErrorMaxInterval) {
+        // set the interval to max
+        this.__retryReconnectInterval = this.options.retryOnSocketErrorMaxInterval;
+      } else {
+        // double the interval
+        this.__retryReconnectInterval = this.__retryReconnectInterval * 2;
+      }
+    }
     this.emit('reconnect-error', {
       reason: reason,
       error: e,
@@ -1263,23 +1277,27 @@
       return;
     }
     this.__retryReconnectTimeout = setTimeout(() => {
-      this.reconnect(this, options);
-    }, 3000);
+      this.log.warn(`retrying reconnection after ${this.__retryReconnectInterval}ms`);
+      this.reconnect(options);
+    }, this.__retryReconnectInterval);
   };
 
-  HappnClient.prototype.reconnect = function (options) {
+  HappnClient.prototype.reconnect = function (options = {}) {
     this.status = STATUS.RECONNECT_ACTIVE;
     this.emit('reconnect', options);
     this.connect((e) => {
       if (e) {
-        this.handle_error(e);
         return this.__retryReconnect(options, 'authentication-failed', e);
       }
+      //clear all reconnect cycle parameters
+      clearTimeout(this.__retryReconnectTimeout);
+      this.__retryReconnectInterval = null;
       //we are connected and ready for data requests
       this.status = STATUS.ACTIVE;
+      //ensure our subscriptions are re-established
       this.__reattachListeners((e) => {
         if (e) {
-          this.handle_error(e);
+          //back into a reconnect cycle
           return this.__retryReconnect(options, 'reattach-listeners-failed', e);
         }
         this.emit('reconnect-successful', options);
@@ -1298,9 +1316,9 @@
     this.log.error('socket error', err);
     if (!this.socket) return;
     this.status = STATUS.ERROR; // so we dont write any more messages until we have reconnected again
-    //wait a second, this is so we don't flood the stack when there are reconnection failures
+    //wait a second, this is so we don't flood the stack when there are consistent socket failures
     setTimeout(() => {
-      this.log.info('attempting reconnection after failure...');
+      this.log.warn('attempting reconnection after socket error...');
       this.reconnect();
     }, 1e3);
   };
@@ -1806,8 +1824,6 @@
       return;
     }
     if (socket.readyState !== 1) {
-      //socket is already disconnecting or disconnected, close event wont be fired
-      socket.end();
       return this.__destroySocket(socket, callback);
     }
     //socket is currently open, close event will be fired

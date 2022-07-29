@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test) => {
   const Happn = require('../../../');
   const shortid = require('shortid');
   let remote,
@@ -38,16 +38,31 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
     }
   });
 
-  function errorAndTest() {
+  it('is able to cause an error to occur on the socket, the server is also down, we ensure we eventually reconnect', async () => {
+    await errorAndTest(8);
+    test
+      .expect(webSocketsClient.log.warn.lastCall.args[0])
+      .to.be('retrying reconnection after 2000ms');
+  });
+
+  function errorAndTest(killServerForSeconds) {
     return new Promise((resolve, reject) => {
       let timeout = setTimeout(() => {
         reject('reconnect timed out');
-      }, 5e3);
+      }, 300e3);
       webSocketsClient.onEvent('reconnect-successful', function () {
         clearTimeout(timeout);
         testEvent(resolve);
       });
       webSocketsClient.socket.emit('error', new Error('test error'));
+      if (killServerForSeconds > 0) {
+        killServer();
+        setTimeout(() => {
+          startServer(() => {
+            test.log(`server restarted after ${killServerForSeconds} seconds`);
+          });
+        }, killServerForSeconds * 1e3);
+      }
       webSocketsClient.set('test/data', { test: 'data' }, (e) => {
         if (e) {
           if (e.message === 'client in an error state') {
@@ -125,12 +140,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
   async function connectClient(password, callback) {
     if (webSocketsClient) await webSocketsClient.disconnect();
     webSocketsClient = await Happn.client.create({
-      config: {
-        username: '_ADMIN',
-        password,
-        port: 55005,
-      },
+      username: '_ADMIN',
+      password,
+      port: 55005,
+      retryOnSocketErrorMaxInterval: 2e3,
     });
+    webSocketsClient.log.warn = test.sinon.spy(webSocketsClient.log.warn);
     webSocketsClient.on('test/event/*', clientEventHandler, function (e) {
       if (e) return callback(e);
       testEvent(function (e) {
