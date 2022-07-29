@@ -142,7 +142,7 @@
           reject(e);
         });
     });
-  }
+  };
 
   MeshClient.clearCookieEventObjects = function () {
     MeshHappnClient.clearCookieEventObjects();

@@ -367,7 +367,7 @@ async function start() {
   class MyComponent {
     async myMethod(param, $happn, $origin) {
       const result = await $happn
-        .as('some_other_username')
+        .as('some_other_username') // NB: this is where the magic happns
         .exchange.myComponent.myOtherMethod(param, $origin.username);
       return result;
     }

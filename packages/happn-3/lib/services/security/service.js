@@ -122,6 +122,8 @@ SecurityService.prototype.generateEmptySession = generateEmptySession;
 SecurityService.prototype.generateSession = generateSession;
 SecurityService.prototype.matchPassword = matchPassword;
 
+SecurityService.prototype.userIsDelegate = userIsDelegate;
+
 //takes a login request - and matches the request to a session, the session is then encoded with its associated policies into a JWT token. There are 2 policies, 1 a stateful one and 0 a stateless one, they can only be matched back during session requests.
 SecurityService.prototype.__profileSession = __profileSession;
 SecurityService.prototype.__cache_Profiles = null;
@@ -1533,6 +1535,16 @@ function authorize(session, path, action, callback) {
   });
 }
 
+function userIsDelegate(username, callback) {
+  if (username === '_ADMIN') {
+    return callback(null, true);
+  }
+  this.users.userBelongsToGroups(username, ['_MESH_DELEGATE'], (e, belongs) => {
+    if (e) return callback(e);
+    callback(null, belongs);
+  });
+}
+
 function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   let completeCall = (err, authorized, reason, onBehalfOfSession) => {
     callback(err, authorized, reason, onBehalfOfSession);
@@ -1542,16 +1554,19 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
       });
   };
 
-  if (session.user.username !== '_ADMIN')
-    return completeCall(null, false, 'session attempting to act on behalf of is not authorized');
-
-  this.getOnBehalfOfSession(session, onBehalfOf, session.type, (e, behalfOfSession) => {
-    if (e) return completeCall(e, false, 'failed to get on behalf of session');
-    if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
-    this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
-      if (err) return completeCall(err, false, reason);
-      if (!authorized) return completeCall(err, false, reason);
-      return completeCall(err, authorized, reason, behalfOfSession);
+  this.userIsDelegate(session.user.username, (e, isDelegate) => {
+    if (e) return callback(e);
+    if (!isDelegate) {
+      return completeCall(null, false, 'session attempting to act on behalf of is not authorized');
+    }
+    this.getOnBehalfOfSession(session, onBehalfOf, session.type, (e, behalfOfSession) => {
+      if (e) return completeCall(e, false, 'failed to get on behalf of session');
+      if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
+      this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
+        if (err) return completeCall(err, false, reason);
+        if (!authorized) return completeCall(err, false, reason);
+        return completeCall(err, authorized, reason, behalfOfSession);
+      });
     });
   });
 }
