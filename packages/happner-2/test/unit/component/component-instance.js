@@ -4,7 +4,7 @@ const eventEmitter = require('events').EventEmitter;
 const ComponentInstanceBoundFactory = require('../../../lib/system/component-instance-bound-factory');
 const utilities = require('../../../lib/system/utilities');
 
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const mockLogObj = {
     info: test.sinon.stub(),
     error: test.sinon.stub(),
@@ -154,7 +154,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.chai.expect(componentInstance.tools).to.equal('mockTools');
   });
 
-  it('tests inject method - parameters.length is less then methodDefn.$argumentsLength', () => {
+  it('tests #inject method - parameters.length is less then methodDefn.$argumentsLength', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = {
@@ -166,7 +166,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
     const origin = 'mockOrigin';
     const verion = null;
@@ -174,26 +175,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
 
     componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
 
-    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback1);
 
     mockModule.instance.mockMethodName.$argumentsLength = 3;
 
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       origin,
       verion,
       originBindingOverride
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
     test.chai
       .expect(mockModule.instance.mockMethodName)
       .to.have.been.calledWithExactly(1, 2, undefined);
   });
 
-  it('tests inject method - methodDefn.$happnSeq is less then methodDefn.$originSeq', () => {
+  it('tests #inject method - methodDefn.$happnSeq is less then methodDefn.$originSeq', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = {
@@ -205,7 +206,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
     const origin = 'mockOrigin';
     const verion = null;
@@ -213,7 +215,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
 
     componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
 
-    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback1);
 
     mockModule.instance.mockMethodName.$happnSeq = 3;
     mockModule.instance.mockMethodName.$originSeq = 4;
@@ -221,13 +223,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       origin,
       verion,
       originBindingOverride
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
     test.chai
       .expect(mockModule.instance.mockMethodName)
       .to.have.been.calledWithExactly(
@@ -238,7 +240,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       );
   });
 
-  it('tests inject method - methodDefn.$happnSeq is greater then methodDefn.$originSeq', () => {
+  it('tests #inject method - methodDefn.$happnSeq is greater then methodDefn.$originSeq', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = {
@@ -250,7 +252,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
     const origin = 'mockOrigin';
     const verion = null;
@@ -258,7 +261,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
 
     componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
 
-    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback1);
 
     mockModule.instance.mockMethodName.$happnSeq = 5;
     mockModule.instance.mockMethodName.$originSeq = 4;
@@ -266,13 +269,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       origin,
       verion,
       originBindingOverride
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
     test.chai
       .expect(mockModule.instance.mockMethodName)
       .to.have.been.calledWithExactly(
@@ -283,7 +286,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       );
   });
 
-  it('tests inject method - methodDefn.$originSeq is not equal to null', () => {
+  it('tests #inject method - methodDefn.$originSeq is not equal to null', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = {
@@ -321,7 +324,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       .to.have.been.calledWithExactly(1, 2, 'mockOrigin');
   });
 
-  it('tests inject method - methodDefn.$happnSeq is not equal to null', () => {
+  it('tests #inject method - methodDefn.$happnSeq is not equal to null', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = {
@@ -333,33 +336,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
     const origin = 'mockOrigin';
     const verion = null;
     const originBindingOverride = 'mockBinding';
 
     componentInstance.description = { methods: { mockMethodName: { type: 'sync-promise' } } };
-    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback1);
 
     mockModule.instance.mockMethodName.$happnSeq = 3;
 
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       origin,
       verion,
       originBindingOverride
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
     test.chai
       .expect(mockModule.instance.mockMethodName)
       .to.have.been.calledWithExactly(1, 2, test.sinon.match.instanceOf(ComponentInstance));
   });
 
-  it('describe method', function (done) {
+  it('tests describe method', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -521,7 +525,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     });
   });
 
-  it('describe method, without config', function (done) {
+  it('tests describe method, without config', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     // let config = mockConfig();
@@ -579,7 +583,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('describe method, with config', function (done) {
+  it('tests describe method, with config', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -623,7 +627,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('describe method - cached', function (done) {
+  it('tests describe method - cached', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -646,13 +650,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('tests authorizeOriginMethod - return callback when there is an error when authorize is called', () => {
+  it('tests #authorizeOriginMethod - return callback when there is an error when authorize is called', () => {
     const mockAuthorize = test.sinon.stub();
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name', null, null, null, null, mockAuthorize, null);
     const module = mockModule('test-module', 'mockVersion');
     const config = mockConfig();
-    const mockCallback = test.sinon.stub().returns('test error');
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub().returns('test error');
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
 
@@ -664,27 +669,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       callback('mockError', null);
     });
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = { methods: { mockMethodName: 'mockMethodName' } };
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly('mockError');
   });
 
-  it('tests authorizeOriginMethod -  return callback when there is an error when getOnBehalfOfSession is called', () => {
+  it('tests #authorizeOriginMethod -  return callback when there is an error when getOnBehalfOfSession is called', () => {
     const mockAuthorize = test.sinon.stub();
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name', null, null, null, null, mockAuthorize, null);
     const module = mockModule('test-module', 'mockVersion');
     const config = mockConfig();
-    const mockCallback = test.sinon.stub().returns('test error');
+    const mockCallback1 = test.sinon.stub();
+    // const mockCallback2 = test.sinon.stub().returns('test error');
     const mockMethodName = 'mockMethodName';
     const mockParameters = [1, 2];
 
@@ -692,27 +698,27 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       .stub(ComponentInstanceBoundFactory.prototype, 'originBindingNecessary')
       .returns(true);
 
-    mesh._mesh.happn.server.services.security.getOnBehalfOfSession.callsFake(
-      (_, __, ___, callback) => {
+    mesh._mesh.happn.server.services.security.getOnBehalfOfSession = test.sinon
+      .stub()
+      .callsFake((_, __, ___, callback) => {
         callback('mockError', null);
-      }
-    );
+      });
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = { methods: { mockMethodName: 'mockMethodName' } };
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback1,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+    test.chai.expect(mockCallback1).to.have.been.calledWithExactly('mockError');
   });
 
-  it('tests parseWebRoutes - returns when name equals www and routePath equals global', () => {
+  it('tests #parseWebRoutes - returns when name equals www and routePath equals global', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
@@ -742,7 +748,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     });
   });
 
-  it('tests parseWebRoutes - name equals resources and routePath equals resources', () => {
+  it('tests #parseWebRoutes - name equals resources and routePath equals resources', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
@@ -771,13 +777,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     });
   });
 
-  it('tests createSetOptions', () => {
+  it('tests #createSetOptions method', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const mockModule = { instance: { $happner: { config: { component: 'mock' } } } };
     const config = mockConfig();
     config.directResponses = 'directResponses';
     const mockCallback = test.sinon.stub();
+
+    const e = new Error('mock Error');
+    e.mockProperty = 'mockProperty';
+    const mockArray = [e];
 
     config.web.routes = {
       'test/route/1': test.sinon.stub(),
@@ -805,7 +815,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       });
 
     componentInstance.operate = (method, args, cb) => {
-      cb(null, [Error('mock Error')]);
+      cb(null, mockArray);
     };
     componentInstance.initialize('mockName', mesh, mockModule, config, mockCallback);
 
@@ -817,6 +827,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
           {
             message: 'mock Error',
             name: 'Error',
+            mockProperty: 'mockProperty',
           },
         ],
       },
@@ -825,7 +836,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('#reply method - publish ok', function (done) {
+  it('tests #reply method - publish ok', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -874,7 +885,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('#reply method - publish failed', function (done) {
+  it('tests #reply method - publish failed', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -927,7 +938,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('#reply method - no client', function (done) {
+  it('tests #reply method - no client', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -982,7 +993,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('#reply method - missing peer', function (done) {
+  it('tests #reply method - missing peer', function (done) {
     let componentInstance = new ComponentInstance();
     let mesh = mockMesh('test-mesh-name');
     let config = mockConfig();
@@ -1125,9 +1136,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethod';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: {
         mockMethod: { name: 'mockName' },
@@ -1141,7 +1153,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
@@ -1149,13 +1161,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
     test.chai
-      .expect(mockCallback)
+      .expect(mockCallback2)
       .to.have.been.calledWithExactly(null, [test.sinon.match.instanceOf(Error)]);
 
     createStub.restore();
@@ -1173,9 +1185,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethod';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: {
         mockMethod: { parameters: [{ type: 'callback' }] },
@@ -1191,7 +1204,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
@@ -1200,6 +1213,58 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.chai
       .expect(mockLogObj.warn)
       .to.have.been.calledWithExactly('method has been configured as a promise with a callback...');
+
+    isPromiseStub.restore();
+    createStub.restore();
+  });
+
+  it('tests operate method - callbackProxy', async () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = {
+      instance: {
+        mockMethod: test.sinon.stub().resolves(),
+        version: 'mockVersion',
+      },
+    };
+    const config = mockConfig();
+    const mockMethodName = 'mockMethod';
+    const mockParameters = [1, 2];
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
+    mockCallback2.onCall(0).throws(new Error());
+
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
+    componentInstance.description = {
+      methods: {
+        mockMethod: { name: 'mockName' },
+      },
+    };
+
+    const createStub = test.sinon
+      .stub(ComponentInstanceBoundFactory, 'create')
+      .returns({ originBindingNecessary: test.sinon.stub() });
+
+    const isPromiseStub = test.sinon.stub(utilities, 'isPromise').returns('mockResult');
+
+    componentInstance.operate(
+      mockMethodName,
+      mockParameters,
+      mockCallback2,
+      'mockOrigin',
+      null,
+      'originBindingOverride'
+    );
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(mockLogObj.error)
+      .to.have.been.calledWithExactly(
+        'Callback invoked more than once for method %s',
+        'mockMethod',
+        'stub'
+      );
 
     isPromiseStub.restore();
     createStub.restore();
@@ -1288,13 +1353,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = null;
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
     componentInstance.description = {
       methods: {},
     };
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
 
     const createStub = test.sinon
       .stub(ComponentInstanceBoundFactory, 'create')
@@ -1303,7 +1369,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       'mockVersion',
       'originBindingOverride'
@@ -1315,7 +1381,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         'Missing method:Call to unconfigured method [mockName.null()]'
       );
     test.chai
-      .expect(mockCallback)
+      .expect(mockCallback2)
       .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
 
     createStub.restore();
@@ -1328,9 +1394,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'testMethod1';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: { testMethod1: test.sinon.stub() },
     };
@@ -1342,7 +1409,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       'version',
       'originBindingOverride'
@@ -1354,7 +1421,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         `Component version mismatch:Call to unconfigured method [${'mockName.testMethod1'}]: request version [${'version'}] does not match component version [${'mockVersion'}]`
       );
     test.chai
-      .expect(mockCallback)
+      .expect(mockCallback2)
       .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
 
     createStub.restore();
@@ -1372,9 +1439,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethod';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: {
         mockMethod: { type: 'sync-promise' },
@@ -1388,13 +1456,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
 
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, [null, 'mockResult']);
+    test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
     createStub.restore();
   });
 
@@ -1410,9 +1478,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     const config = mockConfig();
     const mockMethodName = 'mockMethod';
     const mockParameters = [1, 2];
-    const mockCallback = test.sinon.stub();
+    const mockCallback1 = test.sinon.stub();
+    const mockCallback2 = test.sinon.stub();
 
-    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback1);
     componentInstance.description = {
       methods: {
         mockMethod: { type: 'sync-promise' },
@@ -1426,14 +1495,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     componentInstance.operate(
       mockMethodName,
       mockParameters,
-      mockCallback,
+      mockCallback2,
       'mockOrigin',
       null,
       'originBindingOverride'
     );
 
     test.chai
-      .expect(mockCallback)
+      .expect(mockCallback2)
       .to.have.been.calledWithExactly(null, [test.sinon.match.instanceOf(Error)]);
 
     createStub.restore();
@@ -1488,26 +1557,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     createStub.restore();
   });
 
-  it('tests', async () => {
+  it('tests #getWebOrigin - returns sessionFromRequest ', async () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
       instance: {
         testMethod3: test.sinon.stub(),
         testMethod4: test.sinon.stub(),
-        testMethod5: test.sinon.stub(),
-        staticHandler: test.sinon.stub(),
       },
     };
-
-    module.instance.testMethod3.$happnSeq = 3;
-    mesh._mesh.config.web.routes[0] = 'mockName/test/route/1';
 
     const config = mockConfig();
     const mockMethodName = 'testMethod3';
     const mockParameters = [1, 2];
     const mockCallback1 = test.sinon.stub();
     const mockCallback2 = test.sinon.stub();
+
+    module.instance.testMethod3.$happnSeq = 3;
+    mesh._mesh.config.web.routes[0] = 'mockName/test/route/1';
 
     mesh._mesh.happn.server.connect.use = test.sinon.stub();
     mesh._mesh.happn.server.connect.use.callsFake((_, cb) => {
@@ -1519,8 +1586,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       methods: {
         testMethod3: {},
         testMethod4: {},
-        testMethod5: {},
-        staticHandler: {},
       },
     };
 
@@ -1546,11 +1611,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
         { cookieName: null }
       );
 
+    test.chai
+      .expect(module.instance.testMethod3)
+      .to.have.been.calledWithExactly(
+        { rootWebRoute: '0', componentWebRoute: 'mockName/test/route/1' },
+        'mockRes',
+        'mockNext',
+        test.sinon.match.instanceOf(ComponentInstance)
+      );
+
     isPromisedStub.restore();
     createStub.restore();
   });
 
-  xit('tests #attachRouteTarget - checks if mesh.config.web does not exist', async () => {
+  it('tests #attachRouteTarget - checks if mesh.config.web does not exist', async () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
@@ -1601,11 +1675,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       'originBindingOverride'
     );
 
+    test.chai.expect(mesh._mesh.config).to.not.have.ownProperty('web');
+
     isPromisedStub.restore();
     createStub.restore();
   });
 
-  xit('tests #attachRouteTarget - checks if mesh.config.web.route does not exist', async () => {
+  it('tests #attachRouteTarget - checks if mesh.config.web.routes does not exist', async () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = {
@@ -1655,6 +1731,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
       null,
       'originBindingOverride'
     );
+
+    test.chai.expect(mesh._mesh.config.web).to.not.have.ownProperty('routes');
 
     isPromisedStub.restore();
     createStub.restore();
@@ -1909,7 +1987,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     );
   });
 
-  it('tests attach method - calls operate and calls the callback with error.', () => {
+  it('tests #attach method - calls operate and calls the callback with error.', () => {
     const componentInstance = new ComponentInstance();
     const mesh = mockMesh('test-mesh-name');
     const module = mockModule('test-module', 'mockVersion');
@@ -1939,6 +2017,43 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     };
     componentInstance.initialize('mockName', mesh, module, config, mockCallback);
 
+    test.chai
+      .expect(mockLogObj.trace)
+      .to.have.been.calledWithExactly('operate( reply( ERROR %s', '/callback/address');
+  });
+
+  it('tests #attach method, message.args as array', () => {
+    const componentInstance = new ComponentInstance();
+    const mesh = mockMesh('test-mesh-name');
+    const module = mockModule('test-module', 'mockVersion');
+    const config = mockConfig();
+    const mockCallback = test.sinon.stub();
+
+    mesh._mesh.data.on.callsFake((subscribeMask, eventType, testFunc, cb) => {
+      testFunc(
+        {
+          args: ['test'],
+          callbackAddress: '/callback/address',
+          origin: {
+            id: 'mockId',
+          },
+        },
+        {
+          path: "'mockPath'",
+        }
+      );
+      cb(null, {});
+    });
+    mesh._mesh.data.publish = (callbackAddress, response, options, cb) => {
+      cb();
+    };
+
+    componentInstance.operate = test.sinon.stub().callsFake((method, args, cb) => {
+      cb('mockError', {});
+    });
+    componentInstance.initialize('mockName', mesh, module, config, mockCallback);
+
+    test.chai.expect(componentInstance.operate.args[0][1]).to.eql(['test']);
     test.chai
       .expect(mockLogObj.trace)
       .to.have.been.calledWithExactly('operate( reply( ERROR %s', '/callback/address');
@@ -2005,6 +2120,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: t
     test.expect(semver.satisfies('1.0.1', '*')).to.be(true);
     test.expect(semver.coercedSatisfies('1.0.3-smc-842-1', '^1.0.0')).to.be(true);
     test.expect(semver.coercedSatisfies('16.1.4-prerelease-9', '16.1.4-prerelease-9')).to.be(true);
+  });
+
+  it('tests README', () => {
+    const componentInstance = new ComponentInstance();
+    const readMeSpy = test.sinon.spy(componentInstance, 'README');
+    componentInstance.README();
+
+    test.chai.expect(readMeSpy).to.have.been.called;
   });
 
   function initializeComponent(mocks, callback) {

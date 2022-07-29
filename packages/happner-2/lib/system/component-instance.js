@@ -643,7 +643,8 @@ module.exports = class ComponentInstance {
   }
 
   #defaultParameters(method, methodSchema) {
-    if (!methodSchema.parameters) methodSchema.parameters = [];
+    //double validation was removed
+    methodSchema.parameters = [];
     utilities
       .getFunctionParameters(method)
       .filter(function (argName) {
