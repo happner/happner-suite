@@ -2,11 +2,7 @@
 
 ## users groups and permissions
 
-_happner meshes can run in secure mode, a scheme comprising of users, groups and permissions allows for this, we have yet to complete the documentation for this, but to get a comprehensive picture of how this works, please look at [the test for now](https://github.com/happner/happner-2/blob/master/test/integration/security/advanced-security.js)_
-
-## payload encryption
-
-_happners messaging payload can be encrypted, the mesh must be running in secure mode, to see how this works client to mesh, please look at [the test](https://github.com/happner/happner-2/blob/master/test/integration/security/payload-encryption-client-to-mesh.js) - there is also a test demonstrating how this works [mesh to mesh](https://github.com/happner/happner-2/blob/master/test/integration/security/payload-encryption-mesh-to-mesh.js)_
+_happner meshes can run in secure mode, a scheme comprising of users, groups and permissions allows for this, we have yet to complete the documentation for this, but to get a comprehensive picture of how this works, please look at [the test for now](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/advanced-security.js)_
 
 ## security directory events
 
@@ -29,7 +25,7 @@ adminClient.exchange.security.attachToSecurityChanges(function(e){
 
 ```
 
-please look at [the test](https://github.com/happner/happner-2/blob/master/test/integration/security/permission-changes-events.js)
+please look at [the test](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/permission-changes-events.js)
 
 ## security session events
 
@@ -47,7 +43,7 @@ _the security module emits an event for every time a client connects or disconne
 	    });
 ```
 
-please look at [the test](https://github.com/happner/happner-2/blob/master/test/integration/security/session-changes-events.js)
+please look at [the test](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/session-changes-events.js)
 
 ## security service functions
 
@@ -282,17 +278,17 @@ adminClient.exchange.security
 
 ## authority delegation:
 
+### system-wide delegation:
+
 By default inter mesh calls are done via the endpoint's user, and component to component calls are done using the \_ADMIN user, this means security is enforced only between the external mesh/client and the edge node of the mesh. To ensure that the originator of a call is checked against the security directory regardless of how deep the exchange call stack execution goes, the authorityDelegationOn config option should be set to true on a secure mesh:
 
 ```javascript
-var meshConfig = {secure:true, authorityDelegationOn:true}
-
-var myMesh = new Mesh.create(meshConfig, function(e, created){
-  ...
-});
+const Mesh = require('happner-2');
+let meshConfig = { secure: true, authorityDelegationOn: true };
+const myMesh1 = await Mesh.create(meshConfig);
 
 //this can be configured per component as well, here is an example that excludes a specific component
-var meshConfig = {
+meshConfig = {
 	secure:true,
 	authorityDelegationOn:true,
 	modules:{
@@ -320,13 +316,10 @@ var meshConfig = {
 		}
 	}
 }
-
-var myMesh = new Mesh.create(meshConfig, function(e, created){
-  ...
-});
+const myMesh2 = await Mesh.create(meshConfig);
 
 //here is an example that includes a specific component
-var meshConfig = {
+meshConfig = {
 	secure:true,
 	//authorityDelegationOn:true, - by default for all components authority delegation is off
 	modules:{
@@ -355,9 +348,117 @@ var meshConfig = {
 	}
 }
 
-var myMesh = new Mesh.create(meshConfig, function(e, created){
-  ...
-});
+const myMesh3 = await Mesh.create(meshConfig);
+```
+
+### per request delegation:
+
+Provided a user belongs to the special system group "_MESH_DELEGATE", the user is able to invoke a method on the mesh "as" a different user, this is possible using the following mechanisms:
+
+#### inside a component method via $happn:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+const MeshClient = Mesh.MeshClient;
+
+
+async function start() {
+  class MyComponent {
+    async myMethod(param, $happn, $origin) {
+      const result = await $happn
+        .as('some_other_username')
+        .exchange.myComponent.myOtherMethod(param, $origin.username);
+      return result;
+    }
+    // we are calling this other method in the same component for the purposes of brevity, but this could be a call to a remote component and method as well
+    async myOtherMethod(param, originUsername, $origin) {
+      return `${originUsername} called myOtherMethod as ${$origin.username} with param ${param}`;
+    }
+  }
+
+  // set up the happner config
+  const happnerConfig = {
+    name: 'meshname',
+    secure: true,
+    modules: {
+      myComponent: {
+        instance: new MyComponent(),
+      },
+    },
+    components: {
+      myComponent: {},
+    },
+  };
+
+  //start the mesh
+  const mesh = await Mesh.create(happnerConfig);
+
+  // access the security layer directly (not over websockets)
+  const security = mesh.exchange.security;
+
+  //create our delegate user
+  await security.addUser({
+    username: 'delegate_username',
+    password: 'password',
+  });
+
+  //link to the mesh delegate
+  await security.linkGroup('_MESH_DELEGATE', 'delegate_username');
+
+  //create our delegated user, allowed to call myOtherMethod only
+  await security.addUser({
+    username: 'some_other_username',
+    password: 'password',
+    permissions: {
+      methods: {
+        '/meshname/myComponent/myOtherMethod': { authorized: true },
+      },
+    },
+  });
+
+  // we call the above component from an external client using the user with the name 'delegate_username' as follows:
+  const mySession = await MeshClient.create({
+    username: 'delegate_username',
+    password: 'password',
+  });
+  const result = await mySession.exchange.myComponent.myMethod(1);
+  // eslint-disable-next-line no-undef
+  assert(result === 'delegate_username called myOtherMethod as some_other_username with param 1');
+  // eslint-disable-next-line no-console
+  console.log(result);
+  await mesh.stop();
+  process.exit();
+}
+
+start();
+```
+#### from outside via the mesh client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
+
+#### from outside via the happner-client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-happner-client.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
+
+#### from outside via the light-client:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-light-client.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
+```
+
+#### from outside via a http RPC request:
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-http-rpc.js):*
+``` javascript
+const assert = require('assert');
+const Mesh = require('happner-2');
 ```
 
 ## lookup tables and permissions:
@@ -434,7 +535,7 @@ adminClient.exchange.security.removeLookupPath(tableName, path);
 hardening responses:
 --------------------
 
-Currently happn clients are prevented from accessing the /_exchange/responses/[mesh name]/[component name]/[method name]/\* path using a regular expression check - injected into the underlying happn service by way of a [custom layer](https://github.com/happner/happner-2/blob/master/test/integration/mesh/happn-layer-middleware.js), [over here](https://github.com/happner/happner-2/blob/master/lib/system/happn.js#L222), a better solution to this, is to use the [targetClients functionality](https://github.com/happner/happn-3/blob/master/test/integration/api/targetclients.js) of happn-3, to push _response messages only to the origin of the _request. This is made possible by passing the directResponses:true option in the mesh config, as follows:
+Currently happn clients are prevented from accessing the /_exchange/responses/[mesh name]/[component name]/[method name]/\* path using a regular expression check - injected into the underlying happn service by way of a [custom layer](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/mesh/happn-layer-middleware.js), [over here](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/lib/system/happn.js#L222), a better solution to this, is to use the [targetClients functionality](https://github.com/happner/happn-3/blob/master/test/integration/api/targetclients.js) of happn-3, to push _response messages only to the origin of the _request. This is made possible by passing the directResponses:true option in the mesh config, as follows:
 
 ```javascript
 

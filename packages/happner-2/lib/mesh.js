@@ -79,7 +79,7 @@ Logger.emitter.on(
 
 // Quick start.
 module.exports.create = util.promisify(function MeshFactory(config, callback) {
-  // node -e 'require("happner").create()'
+  // node -e 'require("happner-2").create()'
   if (typeof config === 'function') {
     callback = config;
     config = {};

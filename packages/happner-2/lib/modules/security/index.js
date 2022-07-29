@@ -877,27 +877,57 @@ Security.prototype.unlinkAnonymousGroup = function ($happn, groupName, callback)
   });
 };
 
+Security.prototype.__getGroupIfString = function (group, callback) {
+  if (typeof group !== 'string') return callback(null, group);
+  this.__securityService.groups.getGroup(group, (e, foundGroup) => {
+    if (e) return callback(e);
+    if (!foundGroup) return callback(new Error('group with name ' + group + ' does not exist'));
+    return callback(null, foundGroup);
+  });
+};
+
+Security.prototype.__getUserIfString = function (user, callback) {
+  if (typeof user !== 'string') return callback(null, user);
+  this.__securityService.users.getUser(user, (e, foundUser) => {
+    if (e) return callback(e);
+    if (!foundUser) return callback(new Error('group with name ' + user + ' does not exist'));
+    return callback(null, foundUser);
+  });
+};
+
 Security.prototype.linkGroup = function ($happn, group, user, callback) {
   this.__validateRequest('linkGroup', arguments, (e) => {
     if (e) return callback(e);
-    this.__securityService.users.linkGroup(
-      this.__transformMeshGroup($happn, group),
-      user,
-      {},
-      callback
-    );
+    this.__getGroupIfString(group, (e, foundGroup) => {
+      if (e) return callback(e);
+      this.__getUserIfString(user, (e, foundUser) => {
+        if (e) return callback(e);
+        this.__securityService.users.linkGroup(
+          this.__transformMeshGroup($happn, foundGroup),
+          foundUser,
+          {},
+          callback
+        );
+      });
+    });
   });
 };
 
 Security.prototype.unlinkGroup = function ($happn, group, user, callback) {
   this.__validateRequest('unlinkGroup', arguments, (e) => {
     if (e) return callback(e);
-    this.__securityService.users.unlinkGroup(
-      this.__transformMeshGroup($happn, group),
-      user,
-      {},
-      callback
-    );
+    this.__getGroupIfString(group, (e, foundGroup) => {
+      if (e) return callback(e);
+      this.__getUserIfString(user, (e, foundUser) => {
+        if (e) return callback(e);
+        this.__securityService.users.unlinkGroup(
+          this.__transformMeshGroup($happn, foundGroup),
+          foundUser,
+          {},
+          callback
+        );
+      });
+    });
   });
 };
 

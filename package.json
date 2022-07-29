@@ -10,6 +10,7 @@
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "workspaces": [
+    "packages/demos",
     "packages/happn-3",
     "packages/happn-db-provider-elasticsearch",
     "packages/happn-db-provider-loki",
