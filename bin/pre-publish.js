@@ -26,6 +26,7 @@ Promise.all(
     console.log('fetched data from npm');
     packagesMetaData = metaData.map((metaDataItem) => {
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
+      if (!localPackage) return null;
       const newVersion = localPackage.version;
       const lastVersion = metaDataItem.data['dist-tags'].latest;
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
@@ -48,7 +49,7 @@ Promise.all(
         releasesUpToDate: checkReleasesUpToDate(localPackage),
         possibleOnlyInTests: checkOnlyInTests(localPackage),
       };
-    });
+    }).filter((item) => item !== null);
     console.log('fetching master package...');
     return require('axios').default.get(
       `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`

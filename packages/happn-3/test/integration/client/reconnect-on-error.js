@@ -45,6 +45,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
       .to.be('retrying reconnection after 2000ms');
   });
 
+  it('reconnects properly with a flapping server', async () => {
+    await killAndRestartServerAfter(1);
+    await killAndRestartServerAfter(1);
+    await killAndRestartServerAfter(1);
+    await killAndRestartServerAfter(1);
+    await killAndRestartServerAfter(1);
+    await errorAndTest();
+  });
+
   function errorAndTest(killServerForSeconds) {
     return new Promise((resolve, reject) => {
       let timeout = setTimeout(() => {
@@ -56,12 +65,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
       });
       webSocketsClient.socket.emit('error', new Error('test error'));
       if (killServerForSeconds > 0) {
-        killServer();
-        setTimeout(() => {
-          startServer(() => {
-            test.log(`server restarted after ${killServerForSeconds} seconds`);
-          });
-        }, killServerForSeconds * 1e3);
+        killAndRestartServerAfter(killServerForSeconds);
       }
       webSocketsClient.set('test/data', { test: 'data' }, (e) => {
         if (e) {
@@ -70,6 +74,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
           } else throw e;
         }
       });
+    });
+  }
+
+  function killAndRestartServerAfter(seconds) {
+    return new Promise((resolve, reject) => {
+      killServer();
+      setTimeout(() => {
+        startServer((e) => {
+          if (e) return reject(e);
+          test.log(`server restarted after ${seconds} seconds`);
+          resolve();
+        });
+      }, seconds * 1e3);
     });
   }
 
