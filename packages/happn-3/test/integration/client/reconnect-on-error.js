@@ -54,6 +54,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
     await errorAndTest();
   });
 
+  it('fails to connect initially flapping server', async () => {
+    killAndRestartServerAfter(3);
+    try {
+      await test.delay(5e2);
+      await connectClientPromise();
+    } catch (e) {
+      test.expect(e.message.substring(0, 20)).to.be('connect ECONNREFUSED');
+      await test.delay(5e3);
+    }
+    await connectClientPromise();
+    await errorAndTest();
+  });
+
+  async function connectClientPromise() {
+    return new Promise((resolve, reject) => {
+      connectClient('happn', (e) => {
+        if (e) return reject(e);
+        resolve();
+      });
+    });
+  }
+
   function errorAndTest(killServerForSeconds) {
     return new Promise((resolve, reject) => {
       let timeout = setTimeout(() => {
@@ -156,13 +178,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
 
   async function connectClient(password, callback) {
     if (webSocketsClient) await webSocketsClient.disconnect();
-    webSocketsClient = await Happn.client.create({
-      username: '_ADMIN',
-      password,
-      port: 55005,
-      retryOnSocketErrorMaxInterval: 2e3,
-    });
-    webSocketsClient.log.warn = test.sinon.spy(webSocketsClient.log.warn);
+    try {
+      webSocketsClient = await Happn.client.create({
+        username: '_ADMIN',
+        password,
+        port: 55005,
+        retryOnSocketErrorMaxInterval: 2e3,
+      });
+      webSocketsClient.log.warn = test.sinon.spy(webSocketsClient.log.warn);
+    } catch (e) {
+      return callback(e);
+    }
     webSocketsClient.on('test/event/*', clientEventHandler, function (e) {
       if (e) return callback(e);
       testEvent(function (e) {
