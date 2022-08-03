@@ -163,10 +163,11 @@ Security.prototype.getComponentId = function () {
 };
 
 Security.prototype.__validateRequest = function (methodName, callArguments, callback) {
-  if (!this.__initialized)
+  if (!this.__initialized) {
     return callback(
       new Error('security module not initialized, is your happn configured to be secure?')
     );
+  }
 
   if (methodName === 'updateOwnUser') {
     var sessionInfo = callArguments[1];
@@ -890,7 +891,7 @@ Security.prototype.__getUserIfString = function (user, callback) {
   if (typeof user !== 'string') return callback(null, user);
   this.__securityService.users.getUser(user, (e, foundUser) => {
     if (e) return callback(e);
-    if (!foundUser) return callback(new Error('group with name ' + user + ' does not exist'));
+    if (!foundUser) return callback(new Error('user with name ' + user + ' does not exist'));
     return callback(null, foundUser);
   });
 };
@@ -902,12 +903,11 @@ Security.prototype.linkGroup = function ($happn, group, user, callback) {
       if (e) return callback(e);
       this.__getUserIfString(user, (e, foundUser) => {
         if (e) return callback(e);
-        this.__securityService.users.linkGroup(
-          this.__transformMeshGroup($happn, foundGroup),
-          foundUser,
-          {},
-          callback
-        );
+        const transformedGroup = this.__transformMeshGroup($happn, foundGroup);
+        this.__securityService.users.linkGroup(transformedGroup, foundUser, {}, (e, result) => {
+          if (e) return callback(e);
+          callback(null, result);
+        });
       });
     });
   });
