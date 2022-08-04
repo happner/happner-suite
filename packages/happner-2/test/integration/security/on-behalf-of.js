@@ -1,5 +1,7 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const restClient = require('restler');
+  const HappnerClient = require('happner-client');
+  const LightClient = HappnerClient.Light;
   let mesh,
     adminUser,
     testUsers = [];
@@ -21,6 +23,51 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         )
       )
       .to.eql('origin:testUser:1:2');
+  });
+  it('can do an http-rpc with as, delegated via a delegate user', async () => {
+    const testDelegateUser = await connectTestUser(9);
+    const token = testDelegateUser.token;
+    test
+      .expect(
+        await testHttpRpc(
+          {
+            component: 'test',
+            method: 'doOnBehalfOfAllowed',
+            arguments: { param1: 1, param2: 2 },
+            as: 'testUser',
+          },
+          token
+        )
+      )
+      .to.eql('origin:testUser:1:2');
+  });
+  it('can do an as, delegated via a delegate user, light client', async () => {
+    const testDelegateUser = await connectTestUserLightClient(9);
+    test
+      .expect(
+        await testDelegateUser.exchange.$call({
+          component: 'test',
+          method: 'doOnBehalfOfAllowed',
+          arguments: [1, 2],
+          as: 'testUser',
+        })
+      )
+      .to.eql('origin:testUser:1:2');
+    await testDelegateUser.disconnect();
+  });
+  it('can do an as, delegated via a delegate user, happner client', async () => {
+    const testDelegateUser = await connectTestUserHappnerClient(9);
+    test
+      .expect(
+        await testDelegateUser.api.exchange.$call({
+          component: 'test',
+          method: 'doOnBehalfOfAllowed',
+          arguments: [1, 2],
+          as: 'testUser',
+        })
+      )
+      .to.eql('origin:testUser:1:2');
+    await testDelegateUser.session.disconnect();
   });
   it('can do an http-rpc with as, delegated via a user with delegate priviledges', async () => {
     const testDelegateUser = await connectTestUser(9);
@@ -87,12 +134,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   it('fails to do an exchange call with as in component method', async () => {
     const result = await adminUser.exchange.test.doOnBehalfOfNotAllowedAs(1, 2);
     test.expect(result).to.eql(['unauthorized', 'unauthorized']);
-  });
-
-  xit('can do an exchange call with as', async () => {
-    test
-      .expect(await adminUser.as('testUser').exchange.test.doOnBehalfOfAllowed(1, 2))
-      .to.eql('origin:testUser:1:2');
   });
 
   it('can do an exchange $call with as', async () => {
@@ -198,6 +239,34 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
     testUsers.push(testUser);
     return testUser;
+  }
+  async function connectTestUserLightClient(id = '') {
+    const mySession = new LightClient({ secure: true, domain: 'asMesh' });
+    await mySession.connect({
+      port: 12358,
+      username: `testUser${id}`,
+      password: `password`,
+    });
+    return mySession;
+  }
+  async function connectTestUserHappnerClient(id = '') {
+    const createdClient = new HappnerClient({ secure: true });
+    await createdClient.connect({
+      port: 12358,
+      username: `testUser${id}`,
+      password: 'password',
+    });
+    return {
+      session: createdClient,
+      api: createdClient.construct({
+        test: {
+          version: '*',
+          methods: {
+            doOnBehalfOfAllowed: {},
+          },
+        },
+      }),
+    };
   }
   async function disconnectAdminUser() {
     if (adminUser) await adminUser.disconnect();
