@@ -154,20 +154,26 @@ module.exports = class ComponentInstance {
   }
 
   #getCallbackProxy(methodName, callback, origin) {
-    let callbackCalled = false;
-    const callbackProxy = function () {
-      if (callbackCalled) {
-        return this.#log.error(
+    const callbackProxyContext = Object.assign(
+      { wasCalled: false, $origin: origin, log: this.#log },
+      this
+    );
+    return function () {
+      if (this.wasCalled) {
+        return this.log.error(
           'Callback invoked more than once for method %s',
           methodName,
           callback.toString()
         );
       }
-      callbackCalled = true;
+      this.wasCalled = true;
       callback(null, Array.prototype.slice.apply(arguments));
-    }.bind(this);
-    callbackProxy.$origin = origin;
-    return callbackProxy;
+    }.bind(callbackProxyContext);
+  }
+
+  #callbackOrThrowError(e, callback) {
+    if (!callback) throw e;
+    callback(e);
   }
 
   operate(methodName, parameters, callback, origin, version, originBindingOverride) {
@@ -176,7 +182,7 @@ module.exports = class ComponentInstance {
       origin,
       (e) => {
         if (e) {
-          return callback(e);
+          return this.#callbackOrThrowError(e, callback);
         }
         const methodSchema = this.description.methods[methodName];
         const methodDefn = this.#module.instance[methodName];
@@ -205,30 +211,50 @@ module.exports = class ComponentInstance {
         this.#log.trace('operate( %s', methodName);
         this.#log.trace('parameters ', parameters);
         this.#log.trace('methodSchema ', methodSchema);
+        let result,
+          syncError = null;
 
-        if (methodSchema.type === 'sync-promise') {
-          let result;
-          try {
-            result = methodDefn.apply(
-              this.#module.instance,
-              this.#inject(methodDefn, parameters, origin)
-            );
-          } catch (syncPromiseError) {
-            return callback(null, [syncPromiseError]);
-          }
-          return callback(null, [null, result]);
-        }
         const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
+        let returnObject;
 
         if (callbackIndex === -1) {
-          if (!methodSchema.isAsyncMethod) {
+          if (!methodSchema.isAsyncMethod && methodSchema.type !== 'sync-promise') {
+            //unless we are dealing with an async method, pop the proxy in regardless - it may not actually be called
             parameters.push(callbackProxy);
           }
         } else {
           parameters.splice(callbackIndex, 1, callbackProxy);
         }
 
-        let returnObject;
+        if (methodSchema.type === 'sync') {
+          try {
+            result = methodDefn.apply(
+              this.#module.instance,
+              this.#inject(methodDefn, parameters, origin)
+            );
+          } catch (syncErr) {
+            syncError = syncErr;
+          }
+          // the method was classified as sync but still called the callback
+          if (!callbackProxy.wasCalled) {
+            callbackProxy(syncError, result);
+          }
+          return;
+        }
+
+        if (methodSchema.type === 'sync-promise') {
+          try {
+            result = methodDefn.apply(
+              this.#module.instance,
+              this.#inject(methodDefn, parameters, origin)
+            );
+          } catch (syncPromiseError) {
+            syncError = syncPromiseError;
+          }
+          if (syncError) return callbackProxy(syncError);
+          return callbackProxy(syncError, result);
+        }
+
         try {
           returnObject = methodDefn.apply(
             this.#module.instance,
@@ -260,7 +286,7 @@ module.exports = class ComponentInstance {
   #callBackWithWarningAndError(category, message, callback) {
     const error = new Error(message);
     this.#log.warn(`${category}:${message}`);
-    return callback(error);
+    this.#callbackOrThrowError(error, callback);
   }
 
   #attach(config, mesh, callback) {

@@ -940,32 +940,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   });
 
-  it('tests userBelongsToGroups, cache', function (done) {
-    mockServices(function (e, happn) {
-      if (e) return done(e);
-      createUsersAndGroups(happn, function (e) {
-        if (e) return done(e);
-        test.commons.async.times(
-          10,
-          (time, timeCb) => {
-            happn.services.security.users.userBelongsToGroups(
-              `test_${time}`,
-              [`test_${time}`],
-              timeCb
-            );
-          },
-          (e) => {
-            if (e) return done(e);
-            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(5);
-            happn.services.security.users.clearCaches();
-            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(0);
-            done();
-          }
-        );
-      });
-    });
-  });
-
   function testCorrectCacheEmptyBasedOnWhatHappened(whatHappened, changedData, expectedSize = 0) {
     return new Promise((resolve, reject) => {
       mockServices(function (e, happn) {
@@ -986,7 +960,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     });
   }
 
-  it('tests userBelongsToGroups, cache clear', async () => {
+  it('tests userBelongsToGroups, cache clear on security directory event', async () => {
     test
       .expect(
         await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.DELETE_GROUP, {
@@ -1052,33 +1026,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .to.be(true);
   });
 
-  it('tests userBelongsToGroups, cache', function (done) {
-    mockServices(function (e, happn) {
-      if (e) return done(e);
-      createUsersAndGroups(happn, function (e) {
-        if (e) return done(e);
-        test.commons.async.times(
-          10,
-          (time, timeCb) => {
-            happn.services.security.users.userBelongsToGroups(
-              `test_${time}`,
-              [`test_${time}`],
-              timeCb
-            );
-          },
-          (e) => {
-            if (e) return done(e);
-            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(5);
-            happn.services.security.users.clearCaches();
-            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(0);
-            done();
-          }
-        );
-      });
-    });
-  });
-
-  it('tests userBelongsToGroups, cache', function (done) {
+  it('tests userBelongsToGroups, cache clear all', function (done) {
     mockServices(function (e, happn) {
       if (e) return done(e);
       createUsersAndGroups(happn, function (e) {

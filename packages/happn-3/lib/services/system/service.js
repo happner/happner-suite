@@ -132,15 +132,14 @@ SystemService.prototype.logError = function (e, area, severity) {
 };
 
 SystemService.prototype.getDescription = function (message) {
-  var description = {
+  const description = {
     name: this.name,
     secure: this.happn.config.secure ? true : false,
   };
 
-  if (message && message.session.cookieName) description.cookieName = message.session.cookieName;
-
-  if (this.happn.services.security._keyPair)
-    description.publicKey = this.happn.services.security._keyPair.publicKey;
+  if (message?.session?.cookieName) {
+    return Object.assign({ cookieName: message.session.cookieName }, description);
+  }
   return description;
 };
 

@@ -420,6 +420,7 @@ function userBelongsToGroups(username, groupNames, callback) {
   if (!Array.isArray(groupNames)) {
     return callback(new Error('groupNames must be an array'));
   }
+  // TODO: possible optimisation for caching at this level
   this.getGroupMemberships(username, (e, memberships) => {
     if (e) return callback(e);
     if (groupNames.length === 0) return callback(null, false);

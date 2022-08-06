@@ -189,9 +189,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
 
     test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
-    test.chai
-      .expect(mockModule.instance.mockMethodName)
-      .to.have.been.calledWithExactly(1, 2, undefined);
+    test.chai.expect(mockModule.instance.mockMethodName).to.have.been.calledWith(1, 2);
   });
 
   it('tests #inject method - methodDefn.$happnSeq is less then methodDefn.$originSeq', () => {

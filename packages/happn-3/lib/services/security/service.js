@@ -1563,8 +1563,9 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
       if (e) return completeCall(e, false, 'failed to get on behalf of session');
       if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
       this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
-        if (err) return completeCall(err, false, reason);
-        if (!authorized) return completeCall(err, false, reason);
+        if (err || !authorized) {
+          return completeCall(err, false, reason);
+        }
         return completeCall(err, authorized, reason, behalfOfSession);
       });
     });
@@ -1592,7 +1593,7 @@ function getOnBehalfOfSession(delegatedBy, onBehalfOf, sessionType = 1, callback
       },
       { session: { type: sessionType } }
     );
-    behalfOfSession.happn = delegatedBy.happn;
+    behalfOfSession.happn = this.happn.services.system.getDescription();
     this.__cache_session_on_behalf_of.set(`${onBehalfOf}:${sessionType}`, behalfOfSession, {
       clone: false,
     });
