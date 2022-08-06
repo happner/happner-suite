@@ -154,11 +154,8 @@ module.exports = class ComponentInstance {
   }
 
   #getCallbackProxy(methodName, callback, origin) {
-    const callbackProxyContext = Object.assign(
-      { wasCalled: false, $origin: origin, log: this.#log },
-      this
-    );
-    return function () {
+    const callbackProxyContext = Object.assign({ wasCalled: false, log: this.#log }, this);
+    const callbackProxy = function () {
       if (this.wasCalled) {
         return this.log.error(
           'Callback invoked more than once for method %s',
@@ -169,6 +166,8 @@ module.exports = class ComponentInstance {
       this.wasCalled = true;
       callback(null, Array.prototype.slice.apply(arguments));
     }.bind(callbackProxyContext);
+    callbackProxy.$origin = origin; //must be accessible from the outside, so not a bound property
+    return callbackProxy;
   }
 
   #callbackOrThrowError(e, callback) {
