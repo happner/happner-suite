@@ -27,8 +27,10 @@ Promise.all(
     packagesMetaData = metaData.map((metaDataItem) => {
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
       if (!localPackage) return null;
+      console.log('scanning package: ', metaDataItem.data.name);
       const newVersion = localPackage.version;
-      const lastVersion = metaDataItem.data['dist-tags'].latest;
+      const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
+      console.log('highest current version:', lastVersion);
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
         publishOrder: getPackagePublishOrder(localPackage.name),
@@ -62,6 +64,49 @@ Promise.all(
   .catch((e) => {
     throw e;
   });
+
+function getVersionObject(versionString) {
+  const split = versionString.split('.');
+  const versionObject= {
+    versionString,
+    major: parseInt(split[0]),
+    minor: parseInt(split[1]),
+    patch: isNaN(split[2]) ? split[2] : parseInt(split[2]),
+  };
+  versionObject.isPrerelease = isNaN(versionObject.patch);
+  return versionObject;
+}
+
+function getLatestNonPrereleaseVersion(versions) {
+  const nonPrereleaseVersions = Object.keys(versions)
+    .map(versionString => getVersionObject(versionString))
+    .filter(versionObject => {
+      return versionObject.isPrerelease === false;
+    });
+
+  nonPrereleaseVersions.sort((versionObjectA, versionObjectB) => {
+    if (versionObjectA.major > versionObjectB.major) {
+      return 1;
+    }
+    if (versionObjectB.major > versionObjectA.major) {
+      return -1;
+    }
+    if (versionObjectA.minor > versionObjectB.minor) {
+      return 1;
+    }
+    if (versionObjectB.minor > versionObjectA.minor) {
+      return -1;
+    }
+    if (versionObjectA.patch > versionObjectB.patch) {
+      return 1;
+    }
+    if (versionObjectB.patch > versionObjectA.patch) {
+      return -1;
+    }
+    return 0;
+  });
+  return nonPrereleaseVersions.pop().versionString;
+}
 
 function verifyPublish(packagesMetaData, masterPackage) {
   let issues = [],
