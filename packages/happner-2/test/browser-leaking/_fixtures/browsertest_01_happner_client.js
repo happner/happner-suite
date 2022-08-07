@@ -3,7 +3,7 @@
 describe('browsertest_01_happner_client', function () {
   this.timeout(100e3);
 
-  it('connects and disonnects clients', async () => {
+  it('connects and disconnects clients', async () => {
     let users = Array.from(Array(3).keys()).map((int) => ({
       username: 'user' + int.toString(),
       password: 'pass',

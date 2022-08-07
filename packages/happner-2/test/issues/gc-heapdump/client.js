@@ -59,24 +59,28 @@ async function connectClients() {
   return clients;
 }
 async function createAndConnectClient(index, adminClient) {
-  const testGroupAdded = await adminClient.exchange.security.upsertGroup({
+  await adminClient.exchange.security.upsertGroup({
     name: 'TEST GROUP' + index,
     permissions: {
       methods: {
         //in a /Mesh name/component name/method name - with possible wildcards
         '/meshname/component/*': { authorized: true },
+        '/meshname/data/*': { authorized: true },
       },
       events: {
         //in a /Mesh name/component name/event key - with possible wildcards
         '/meshname/component/*': { authorized: true },
       },
+      data: {
+        '/_data/component/stress/test/*': { actions: ['set', 'on'] },
+      },
     },
   });
-  const testUserAdded = await adminClient.exchange.security.upsertUser({
+  await adminClient.exchange.security.upsertUser({
     username: 'user' + index,
     password: 'password',
   });
-  await adminClient.exchange.security.linkGroup(testGroupAdded, testUserAdded);
+  await adminClient.exchange.security.linkGroup('TEST GROUP' + index, 'user' + index);
   let testClient = new test.Mesh.MeshClient({ secure: true });
   await testClient.login({ username: 'user' + index, password: 'password' });
   return testClient;
