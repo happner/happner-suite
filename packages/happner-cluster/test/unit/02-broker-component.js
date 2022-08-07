@@ -204,6 +204,10 @@ describe('02 - unit - brokerage component', function () {
 
     var mockLogger = {
       info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {},
+      trace: () => {},
     };
 
     var brokerage = require('../../lib/brokerage').create(
@@ -255,6 +259,9 @@ describe('02 - unit - brokerage component', function () {
     };
     let count = 0;
     var mockLogger = {
+      info: () => {},
+      warn: () => {},
+      trace: () => {},
       debug: function (msg) {
         count++;
         if (count === 2) {
