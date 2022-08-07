@@ -877,7 +877,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               id: 1,
             },
           },
-          { path: '/test/path' }
+          { path: '/test/path' },
+          () => {}
         );
       }
     );
