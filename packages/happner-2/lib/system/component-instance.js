@@ -487,10 +487,13 @@ module.exports = class ComponentInstance {
   }
 
   #authorizeOriginMethod(methodName, origin, callback, originBindingOverride) {
+    if (origin?.edgeAuthorized === true) {
+      return callback();
+    }
     if (
       !this.#boundComponentInstanceFactory.originBindingNecessary(origin, originBindingOverride)
     ) {
-      return callback(null, true);
+      return callback(null);
     }
     const subscribeMask = this.#getSubscribeMask();
     const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
@@ -556,9 +559,9 @@ module.exports = class ComponentInstance {
     return webMethods;
   }
 
-  as(username, componentName, methodName, sessionType) {
+  as(username, componentName, methodName, sessionType, edgeAuthorized) {
     return this.#boundComponentInstanceFactory.getBoundComponent(
-      { username },
+      { username, edgeAuthorized },
       true,
       componentName,
       methodName,

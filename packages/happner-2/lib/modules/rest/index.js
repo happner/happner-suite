@@ -188,7 +188,7 @@ Rest.prototype.__getAuthorizedOrigin = function (
         if (!reason) reason = 'Authorization failed';
         return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
       }
-      callback(null, _.merge($origin, { username: '_ADMIN' }));
+      callback(null, _.merge($origin, { edgeAuthorized: true }));
     });
   }
   if ($origin.username === '_ADMIN') {
@@ -246,7 +246,8 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     // if bound already, dont do .as
     let mesh = $happn.bound
       ? $happn.exchange
-      : $happn.as($origin?.username, componentName, methodName, 0).exchange;
+      : $happn.as($origin?.username, componentName, methodName, 0, $origin?.edgeAuthorized)
+          .exchange;
 
     if (componentName === 'security') {
       return this.__respond(
@@ -305,7 +306,6 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     methodDescription = componentDescription.methods[methodName];
 
     const args = this.__mapMethodArguments(req, res, methodDescription, body, $happn, $origin);
-
     method.apply(method, args);
   });
 };

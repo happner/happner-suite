@@ -126,7 +126,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           token
         )
       )
-      .to.eql('origin:_ADMIN:1:2');
+      .to.eql('origin:testUser8:1:2');
   });
   it('can do an http-rpc with as, using asAdmin in the edge method', async () => {
     const edgeUser = await connectTestUser(8);

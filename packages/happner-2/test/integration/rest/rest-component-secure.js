@@ -431,12 +431,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var RestModule = require('../../../lib/modules/rest/index.js');
     var restModule = new RestModule();
 
-    //$happn._mesh.happn.services.security
-
     mockLogin(restModule, function (e) {
       if (e) return done(e);
-
-      //req, res, $happn, $origin, uri, successful
 
       mock$Happn._mesh.happn.server.services.security = {
         users: {
@@ -484,9 +480,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
       restModule.__securityService = mock$Happn._mesh.happn.server.services.security;
       restModule.__validateCredentialsGetOrigin(
-        mockResponse,
         mock$Happn,
         mock$Origin,
+        mockResponse,
+        'testComponent/methodName1',
         'testUser',
         (authorizedOrigin) => {
           test.expect(authorizedOrigin.username).to.be('testUser');
@@ -539,7 +536,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       if (e) return done(e);
 
       mock$Happn._mesh.happn.server.services.security = {
-        authorize: function (origin, accessPoint, action, callback) {
+        authorize: function (_origin, _accessPoint, _action, callback) {
           callback(null, true);
         },
       };
