@@ -121,7 +121,7 @@ describe(test.testName(__filename, 3), function () {
         __respond: test.sinon.stub(restModule, '__respond'),
         __authorizeAccessPoint: test.sinon.stub(restModule, '__authorizeAccessPoint'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, undefined, successful);
+      __authorizeMethod.call(mock, $happn, undefined, undefined, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
@@ -148,10 +148,10 @@ describe(test.testName(__filename, 3), function () {
       const mock = {
         __getAuthorizedOrigin: test.sinon
           .stub(restModule, '__getAuthorizedOrigin')
-          .callsArgWith(3, new Error('test')),
+          .callsArgWith(5, new Error('test')),
         __respond: test.sinon.stub(restModule, '__respond'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, $origin, successful);
+      __authorizeMethod.call(mock, $happn, $origin, undefined, undefined, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
