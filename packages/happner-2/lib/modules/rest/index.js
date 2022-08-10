@@ -72,10 +72,10 @@ Rest.prototype.describe = function ($happn, _req, res, $origin) {
 
   async.eachSeries(
     Object.keys(description.callMenu),
-    (accessPoint, accessPointCB) => {
-      this.__authorizeAccessPoint($happn, $origin, accessPoint, (e, authorized) => {
+    (methodURI, accessPointCB) => {
+      this.__authorizeAccessPoint($happn, $origin, methodURI, (e, authorized) => {
         if (e) return accessPointCB(e);
-        if (!authorized) delete description.callMenu[accessPoint];
+        if (!authorized) delete description.callMenu[methodURI];
         accessPointCB();
       });
     },
@@ -116,21 +116,21 @@ Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
   res.end(responseString);
 };
 
-Rest.prototype.__authorizeAccessPoint = function ($happn, $origin, accessPoint, callback) {
-  const name = $happn._mesh.config.domain || $happn._mesh.config.name;
+Rest.prototype.__authorizeAccessPoint = function ($happn, $origin, methodURI, callback) {
+  const requestPath = `/_exchange/requests/${
+    $happn._mesh.config.domain || $happn._mesh.config.name
+  }/${utilities.removeLeading('/', methodURI)}`;
 
-  accessPoint = utilities.removeLeading('/', accessPoint);
-  accessPoint = '/_exchange/requests/' + name + '/' + accessPoint;
-
-  this.__securityService.authorize($origin, accessPoint, 'set', function (e, authorized, reason) {
+  this.__securityService.authorize($origin, requestPath, 'set', function (e, authorized, reason) {
     callback(e, authorized, reason);
   });
 };
 
 Rest.prototype.__validateCredentialsGetOrigin = function (
-  res,
   $happn,
   $origin,
+  res,
+  methodURI,
   authorizeAs,
   successful
 ) {
@@ -148,21 +148,48 @@ Rest.prototype.__validateCredentialsGetOrigin = function (
       403
     );
   }
-  this.__getAuthorizedOrigin($happn, $origin, authorizeAs, (e, authorizedOrigin) => {
-    if (e) {
-      if (e.message === 'origin does not belong to the delegate group') {
-        return this.__respond($happn, 'Authorization failed', null, e, res, 403);
+  this.__getAuthorizedOrigin(
+    $happn,
+    $origin,
+    res,
+    methodURI,
+    authorizeAs,
+    (e, authorizedOrigin) => {
+      // this will not get hit on a 403
+      if (e) {
+        if (e.message === 'origin does not belong to the delegate group') {
+          return this.__respond($happn, 'Authorization failed', null, e, res, 403);
+        }
+        this.__respond($happn, 'Authorization failed due to system error', null, e, res, 500);
+        return $happn.log.warn(`authorization system error: ${e.message}`);
       }
-      this.__respond($happn, 'Authorization failed due to system error', null, e, res, 500);
-      return $happn.log.warn(`authorization system error: ${e.message}`);
+      successful(authorizedOrigin);
     }
-    successful(authorizedOrigin);
-  });
+  );
 };
 
-Rest.prototype.__getAuthorizedOrigin = function ($happn, $origin, authorizeAs, callback) {
+Rest.prototype.__getAuthorizedOrigin = function (
+  $happn,
+  $origin,
+  res,
+  methodURI,
+  authorizeAs,
+  callback
+) {
   if (authorizeAs == null) {
-    return callback(null, $origin);
+    // backward compatible, if the incoming request is not being delegated, we authorize on the edge
+    // then return the _ADMIN session so that method request further down the stack automatically work
+    return this.__authorizeAccessPoint($happn, $origin, methodURI, (e, authorized, reason) => {
+      if (e) {
+        return callback(e);
+      }
+      if (authorized === false) {
+        // return 403 error
+        if (!reason) reason = 'Authorization failed';
+        return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
+      }
+      callback(null, _.merge($origin, { username: '_ADMIN' }));
+    });
   }
   if ($origin.username === '_ADMIN') {
     return callback(null, _.merge($origin, { username: authorizeAs }));
@@ -343,20 +370,28 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
     const methodURI = utilities.removeLeading('/', utilities.getRelativePath(req.url));
     this.__parseBody(req, res, $happn, (body) => {
       let authorizeAs = body?.as;
-      this.__validateCredentialsGetOrigin(res, $happn, $origin, authorizeAs, (authorizedOrigin) => {
-        const callPath = methodURI.split('/');
-        //ensure we don't have a leading /
-        if (callPath.length > 4) {
-          return this.__respond(
-            $happn,
-            'Failure parsing request body',
-            null,
-            new Error('call path cannot have more than 4 segments'),
-            res
-          );
+      this.__validateCredentialsGetOrigin(
+        $happn,
+        $origin,
+        res,
+        methodURI,
+        authorizeAs,
+        (authorizedOrigin) => {
+          // will not be hit on 403
+          const callPath = methodURI.split('/');
+          //ensure we don't have a leading /
+          if (callPath.length > 4) {
+            return this.__respond(
+              $happn,
+              'Failure parsing request body',
+              null,
+              new Error('call path cannot have more than 4 segments'),
+              res
+            );
+          }
+          this.__processRequest(req, res, body, callPath, $happn, authorizedOrigin);
         }
-        this.__processRequest(req, res, body, callPath, $happn, authorizedOrigin);
-      });
+      );
     });
   } catch (e) {
     return this.__respond($happn, 'Call failed', null, e, res, 500);

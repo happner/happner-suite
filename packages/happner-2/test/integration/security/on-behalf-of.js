@@ -55,6 +55,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.disconnect();
   });
+  it('can do without as, light client', async () => {
+    const testEdgeUser = await connectTestUserLightClient(8);
+    test
+      .expect(
+        await testEdgeUser.exchange.$call({
+          component: 'test',
+          method: 'doOnBehalfOfAllowedNoAs',
+          arguments: [1, 2],
+        })
+      )
+      .to.eql('origin:testUser8:1:2');
+    await testEdgeUser.disconnect();
+  });
   it('can do an as, delegated via a delegate user, happner client', async () => {
     const testDelegateUser = await connectTestUserHappnerClient(9);
     test
@@ -68,6 +81,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       )
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.session.disconnect();
+  });
+  it('can do without as, happner client', async () => {
+    const testEdgeUser = await connectTestUserHappnerClient(8);
+    test
+      .expect(
+        await testEdgeUser.api.exchange.$call({
+          component: 'test',
+          method: 'doOnBehalfOfAllowedNoAs',
+          arguments: [1, 2],
+        })
+      )
+      .to.eql('origin:testUser8:1:2');
+    await testEdgeUser.session.disconnect();
   });
   it('can do an http-rpc with as, delegated via a user with delegate priviledges', async () => {
     const testDelegateUser = await connectTestUser(9);
@@ -85,6 +111,40 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         )
       )
       .to.eql('origin:testUser:1:2');
+  });
+  it('can do an http-rpc without as, _ADMIN user is used after initial permissions check', async () => {
+    const edgeUser = await connectTestUser(8);
+    const token = edgeUser.token;
+    test
+      .expect(
+        await testHttpRpc(
+          {
+            component: 'test',
+            method: 'doOnBehalfOfAllowedNoAs',
+            arguments: { param1: 1, param2: 2 },
+          },
+          token
+        )
+      )
+      .to.eql('origin:_ADMIN:1:2');
+  });
+  it('can do an http-rpc with as, using asAdmin in the edge method', async () => {
+    const edgeUser = await connectTestUser(8);
+    const testDelegateUser = await connectTestUser(9);
+    const token = testDelegateUser.token;
+    test
+      .expect(
+        await testHttpRpc(
+          {
+            component: 'test',
+            method: 'doOnBehalfOfAllowedAsAdmin',
+            arguments: { param1: 1, param2: 2 },
+            as: edgeUser.data.session.user.username,
+          },
+          token
+        )
+      )
+      .to.eql('origin:testUser8:1:2');
   });
   it('fails to do an http-rpc with as', async () => {
     const token = adminUser.token;
@@ -131,6 +191,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
   });
 
+  it('can do an exchange call without as, using _ADMIN user further down the stack', async () => {
+    const edgeUser = await connectTestUser(8);
+    test
+      .expect(await edgeUser.exchange.test.doOnBehalfOfAllowedNoAs(1, 2))
+      .to.eql('origin:testUser8:1:2');
+  });
+
   it('fails to do an exchange call with as in component method', async () => {
     const result = await adminUser.exchange.test.doOnBehalfOfNotAllowedAs(1, 2);
     test.expect(result).to.eql(['unauthorized', 'unauthorized']);
@@ -175,6 +242,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       modules: {
         test: {
           instance: {
+            doOnBehalfOfAllowedAsAdmin: async function (param1, param2, $origin, $happn) {
+              //this should work if we come in through the edge, without an as (backwards compatible with the existing system)
+              await $happn.asAdmin.exchange.test.doOnBehalfOfNotAllowed();
+              return `origin:${$origin.username}:${param1}:${param2}`;
+            },
+            doOnBehalfOfAllowedNoAs: async function (param1, param2, $origin, $happn) {
+              //this should work if we come in through the edge, without an as (backwards compatible with the existing system)
+              await $happn.exchange.test.doOnBehalfOfNotAllowed();
+              return `origin:${$origin.username}:${param1}:${param2}`;
+            },
             doOnBehalfOfAllowed: async function (param1, param2, $origin) {
               return `origin:${$origin.username}:${param1}:${param2}`;
             },
@@ -262,6 +339,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         test: {
           version: '*',
           methods: {
+            doOnBehalfOfAllowedNoAs: {},
             doOnBehalfOfAllowed: {},
           },
         },
@@ -286,6 +364,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       name: `testGroup${id}`,
       permissions: {
         methods: {
+          '/asMesh/test/doOnBehalfOfAllowedNoAs': { authorized: true },
+          '/asMesh/test/doOnBehalfOfAllowedAsAdmin': { authorized: true },
           '/asMesh/test/doOnBehalfOfAllowed': { authorized: true },
           '/asMesh/test/doOnBehalfOfAllowedAs': { authorized: true },
           '/asMesh/test/doOnBehalfOfNotAllowedAs': { authorized: true },
