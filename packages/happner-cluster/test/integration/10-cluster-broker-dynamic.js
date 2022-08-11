@@ -39,13 +39,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       var thisClient;
 
       startClusterInternalFirst(false)
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -53,10 +53,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod1'
           );
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -87,13 +87,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       var gotToFinalAttempt = false;
 
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -101,10 +101,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod1'
           );
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -132,13 +132,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
           );
         })
-        .then(function () {
+        .then(() => {
           return users.denyMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           gotToFinalAttempt = true;
           return thisClient.exchange.remoteComponent.brokeredMethod1();
         })
@@ -151,16 +151,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('starts up the edge cluster node first, we than start the internal node (with brokered component), pause and then assert we are able to run the brokered method', function (done) {
       startClusterEdgeFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -181,16 +181,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument', function (done) {
       startClusterEdgeFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -353,13 +353,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -367,10 +367,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod3'
           );
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -389,13 +389,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       let testClient;
 
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -403,10 +403,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod3'
           );
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -424,10 +424,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             });
           });
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .catch(function (e) {
@@ -441,13 +441,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         results = [];
 
       startClusterEdgeFirstHighAvailable()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -455,10 +455,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod3'
           );
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -477,7 +477,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           results.push(result);
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
-        .then(function () {
+        .then(() => {
           return new Promise((resolve, reject) => {
             localInstance.stop((e) => {
               if (e) return reject(e);
@@ -485,10 +485,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             });
           });
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .then(function (result) {
@@ -528,7 +528,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(() => {
           return test.delay(5000);
         })
-        .then(function () {
+        .then(() => {
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(4);
           test
             .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName != null)
@@ -544,10 +544,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             .to.be(true);
           return stopServer(servers[1]);
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           //we check injected components is 1
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
           test
@@ -558,10 +558,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             .to.be(true);
           return stopServer(servers[2]);
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
           test
@@ -572,10 +572,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             .to.be(true);
           return startInternal(getSeq.getNext(), 2);
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
           test
@@ -586,10 +586,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             .to.be(true);
           return startInternal(getSeq.getNext(), 3);
         })
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           //we check injected components is 2
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(4);
@@ -608,10 +608,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   context('events', function () {
     it('connects a client to the local instance, and is able to access the remote component events via the broker', function (done) {
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -619,10 +619,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredEventEmitMethod'
           );
         })
-        .then(function () {
+        .then(() => {
           return users.allowEvent(localInstance, 'username', 'remoteComponent', '/brokered/event');
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -657,10 +657,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   context('happner-client', function () {
     it('does a comprehensive test using the happner-client', function (done) {
       startClusterEdgeFirst()
-        .then(function () {
+        .then(() => {
           return test.delay(3e3);
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -668,13 +668,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod1'
           );
         })
-        .then(function () {
+        .then(() => {
           return users.allowWebMethod(localInstance, 'username', '/remoteComponent1/testJSON');
         })
-        .then(function () {
+        .then(() => {
           return users.allowEvent(localInstance, 'username', 'remoteComponent1', 'test/*');
         })
-        .then(function () {
+        .then(() => {
           return connectHappnerClient('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -689,7 +689,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   context('errors', function () {
     it('ensures an error is raised if we are injecting internal components with duplicate names', function (done) {
       test.HappnerCluster.create(errorInstanceConfigDuplicateBrokered(getSeq.getFirst(), 1))
-        .then(function () {
+        .then(() => {
           done(new Error('unexpected success'));
         })
         .catch(function (e) {
@@ -704,7 +704,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a callback', function (done) {
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -712,7 +712,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethodFail'
           );
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -727,7 +727,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a promise', function (done) {
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -735,7 +735,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethodFail'
           );
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -752,7 +752,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       this.timeout(20000);
 
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -760,7 +760,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethodTimeout'
           );
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -775,13 +775,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', function (done) {
       startClusterEdgeFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
         })
-        .then(function () {
+        .then(() => {
           return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
@@ -800,7 +800,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     it('does a rest call', function (done) {
       var thisClient;
       startClusterInternalFirst()
-        .then(function () {
+        .then(() => {
           return users.allowMethod(
             localInstance,
             'username',
@@ -808,7 +808,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'brokeredMethod1'
           );
         })
-        .then(function () {
+        .then(() => {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -925,7 +925,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   function stopServer(server) {
-    return server.stop({ reconnect: false }).then(function () {
+    return server.stop({ reconnect: false }).then(() => {
       // stopping all at once causes replicator client happn logouts to timeout
       // because happn logout attempts unsubscribe on server, and all servers
       // are gone
@@ -1033,14 +1033,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   function startClusterEdgeFirstHighAvailable(dynamic) {
     return new Promise(function (resolve, reject) {
       startEdge(getSeq.getFirst(), 1, dynamic)
-        .then(function () {
+        .then(() => {
           return startInternal(getSeq.getNext(), 2);
         })
         .then(function (server) {
           localInstance = server;
           return startInternal(getSeq.getNext(), 3);
         })
-        .then(function () {
+        .then(() => {
           return users.add(localInstance, 'username', 'password');
         })
         .then(resolve)
@@ -1055,10 +1055,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           localInstance = server;
           return startEdge(getSeq.getNext(), 2, dynamic);
         })
-        .then(function () {
+        .then(() => {
           return users.add(localInstance, 'username', 'password');
         })
-        .then(function () {
+        .then(() => {
           setTimeout(resolve, 2000);
         })
         .catch(reject);
@@ -1068,7 +1068,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   function startClusterEdgeFirst(dynamic) {
     return new Promise(function (resolve, reject) {
       startEdge(getSeq.getFirst(), 1, dynamic)
-        .then(function () {
+        .then(() => {
           return startInternal(getSeq.getNext(), 2);
         })
         .then(function (server) {

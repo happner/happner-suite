@@ -72,11 +72,11 @@ Rest.prototype.describe = function ($happn, _req, res, $origin) {
 
   async.eachSeries(
     Object.keys(description.callMenu),
-    (methodURI, accessPointCB) => {
-      this.__authorizeAccessPoint($happn, $origin, methodURI, (e, authorized) => {
-        if (e) return accessPointCB(e);
+    (methodURI, methodURICB) => {
+      this.__authorizeMethod($happn, $origin, methodURI, (e, authorized) => {
+        if (e) return methodURICB(e);
         if (!authorized) delete description.callMenu[methodURI];
-        accessPointCB();
+        methodURICB();
       });
     },
     (e) => {
@@ -116,7 +116,7 @@ Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
   res.end(responseString);
 };
 
-Rest.prototype.__authorizeAccessPoint = function ($happn, $origin, methodURI, callback) {
+Rest.prototype.__authorizeMethod = function ($happn, $origin, methodURI, callback) {
   const requestPath = `/_exchange/requests/${
     $happn._mesh.config.domain || $happn._mesh.config.name
   }/${utilities.removeLeading('/', methodURI)}`;
@@ -179,7 +179,7 @@ Rest.prototype.__getAuthorizedOrigin = function (
   if (authorizeAs == null) {
     // backward compatible, if the incoming request is not being delegated, we authorize on the edge
     // then return the _ADMIN session so that method request further down the stack automatically work
-    return this.__authorizeAccessPoint($happn, $origin, methodURI, (e, authorized, reason) => {
+    return this.__authorizeMethod($happn, $origin, methodURI, (e, authorized, reason) => {
       if (e) {
         return callback(e);
       }

@@ -7,7 +7,7 @@
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
     "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
-    "test-browser": "mocha test/browser-leaking-cluster/01-test-disconnects.js"
+    "test-browser": "mocha test/browser/*test*.js"
   },
   "repository": {
     "type": "git",

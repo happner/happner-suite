@@ -82,15 +82,13 @@ describe(test.testName(__filename, 3), function () {
   });
 
   describe('describe', function () {
-    it('calls accessPointCB if error in __authorizeAccessPoint', function () {
+    it('calls accessPointCB if error in __authorizeMethod', function () {
       const restModule = new RestModule();
       const describeMethod = restModule.describe;
       const error = new Error('error');
       const mock = {
         __exchangeDescription: { callMenu: 'callMenu' },
-        __authorizeAccessPoint: test.sinon
-          .stub(restModule, '__authorizeAccessPoint')
-          .callsArgWith(3, error),
+        __authorizeMethod: test.sinon.stub(restModule, '__authorizeMethod').callsArgWith(3, error),
         __respond: test.sinon.stub(restModule, '__respond'),
       };
       describeMethod.call(
@@ -119,7 +117,7 @@ describe(test.testName(__filename, 3), function () {
 
       const mock = {
         __respond: test.sinon.stub(restModule, '__respond'),
-        __authorizeAccessPoint: test.sinon.stub(restModule, '__authorizeAccessPoint'),
+        __authorizeMethod: test.sinon.stub(restModule, '__authorizeMethod'),
       };
       __authorizeMethod.call(mock, $happn, undefined, undefined, successful);
       test.sinon.assert.calledWith(

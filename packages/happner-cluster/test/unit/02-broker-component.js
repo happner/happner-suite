@@ -1,7 +1,4 @@
-var Promise = require('bluebird');
-var expect = require('expect.js');
-
-describe('02 - unit - brokerage component', function () {
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('injects the brokerage component', function (done) {
     //package, mesh, client
     var mockModels = {};
@@ -20,9 +17,9 @@ describe('02 - unit - brokerage component', function () {
 
     brokerage.inject(function (e) {
       if (e) return done(e);
-      expect(brokerage.__models).to.be(mockModels);
-      expect(brokerage.__mesh).to.be(mockMesh);
-      expect(brokerage.__client).to.be(mockClient);
+      test.expect(brokerage.__models).to.be(mockModels);
+      test.expect(brokerage.__mesh).to.be(mockMesh);
+      test.expect(brokerage.__client).to.be(mockClient);
       done();
     });
   });
@@ -60,7 +57,7 @@ describe('02 - unit - brokerage component', function () {
     var brokerage = require('../../lib/brokerage').create(mockModels, mockMesh, mockClient);
 
     brokerage.inject(function (e) {
-      expect(e.toString()).to.be(
+      test.expect(e.toString()).to.be(
         'Error: Duplicate attempts to broker the remoteComponent3 component by brokerComponent & brokerComponent1'
       );
       done();
@@ -95,7 +92,7 @@ describe('02 - unit - brokerage component', function () {
     };
 
     var brokerage = require('../../lib/brokerage').create(mockModels, mockMesh, mockClient);
-    expect(require('../../lib/brokerage').instance('mock')).to.eql(brokerage);
+    test.expect(require('../../lib/brokerage').instance('mock')).to.eql(brokerage);
   });
 
   it('tests the deferProxyStart method', function (done) {
@@ -130,7 +127,7 @@ describe('02 - unit - brokerage component', function () {
         test: 'proxy',
       })
       .then(function () {
-        expect(brokerage.__proxy).to.eql({
+        test.expect(brokerage.__proxy).to.eql({
           test: 'proxy',
         });
         done();
@@ -167,11 +164,11 @@ describe('02 - unit - brokerage component', function () {
     var brokerage = require('../../lib/brokerage').create(mockModels, mockMesh, mockClient);
     brokerage.__satisfiedElementNames = ['test1', 'test2'];
     brokerage.__injectedElementNames = ['test2', 'test1'];
-    expect(brokerage.dependenciesSatisfied()).to.be(true);
+    test.expect(brokerage.dependenciesSatisfied()).to.be(true);
 
     brokerage.__satisfiedElementNames = ['test1', 'test2'];
     brokerage.__injectedElementNames = ['test2'];
-    expect(brokerage.dependenciesSatisfied()).to.be(false);
+    test.expect(brokerage.dependenciesSatisfied()).to.be(false);
   });
 
   it('tests the __checkDependenciesSatisfied method', function (done) {
@@ -202,13 +199,7 @@ describe('02 - unit - brokerage component', function () {
       on: function () {},
     };
 
-    var mockLogger = {
-      info: () => {},
-      debug: () => {},
-      warn: () => {},
-      error: () => {},
-      trace: () => {},
-    };
+    var mockLogger = getMockLogger();
 
     var brokerage = require('../../lib/brokerage').create(
       mockModels,
@@ -258,21 +249,18 @@ describe('02 - unit - brokerage component', function () {
       on: function () {},
     };
     let count = 0;
-    var mockLogger = {
-      info: () => {},
-      warn: () => {},
-      trace: () => {},
+    let mockLogger = getMockLogger({
       debug: function (msg) {
         count++;
         if (count === 2) {
-          expect('remote dependency satisfied: remote-mesh.test').to.be(msg);
+          test.expect('remote dependency satisfied: remote-mesh.test').to.be(msg);
           done();
         }
       },
       error: function () {
         done(arguments[0]);
       },
-    };
+    });
 
     var brokerage = require('../../lib/brokerage').create(
       mockModels,
@@ -318,4 +306,14 @@ describe('02 - unit - brokerage component', function () {
       description: {},
     });
   });
+  function getMockLogger(replacements = {}) {
+    const mockLogger = {
+      info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {},
+      trace: () => {},
+    };
+    return test.commons._.merge(mockLogger, replacements);
+  }
 });

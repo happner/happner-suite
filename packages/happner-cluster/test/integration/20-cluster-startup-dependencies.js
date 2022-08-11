@@ -34,7 +34,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     const client = await helpers.client.create(username, password, getSeq.getPort(3));
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
-    test.log(JSON.stringify(cluster.events.data, null, 2));
+    test.log('events data: ', cluster.events.data);
     test.log(
       JSON.stringify(
         [
