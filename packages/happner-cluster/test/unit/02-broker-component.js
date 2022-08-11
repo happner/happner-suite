@@ -57,9 +57,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     var brokerage = require('../../lib/brokerage').create(mockModels, mockMesh, mockClient);
 
     brokerage.inject(function (e) {
-      test.expect(e.toString()).to.be(
-        'Error: Duplicate attempts to broker the remoteComponent3 component by brokerComponent & brokerComponent1'
-      );
+      test
+        .expect(e.toString())
+        .to.be(
+          'Error: Duplicate attempts to broker the remoteComponent3 component by brokerComponent & brokerComponent1'
+        );
       done();
     });
   });
