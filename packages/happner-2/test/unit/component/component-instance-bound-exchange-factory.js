@@ -84,7 +84,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       mockMesh(undefined, undefined, false)
     );
     checkOriginBindingNecessary(boundExchangeFactoryUnsecure, { username: 'test' }, true, false);
-    checkOriginBindingNecessary(boundExchangeFactory, { username: '_ADMIN' }, true, true);
+    checkOriginBindingNecessary(boundExchangeFactory, { username: '_ADMIN' }, true, false);
     checkOriginBindingNecessary(boundExchangeFactory, { username: '_ADMIN' }, null, false);
     checkOriginBindingNecessary(boundExchangeFactory, { username: 'test' }, null, true);
     checkOriginBindingNecessary(
@@ -122,6 +122,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       data: {},
     };
     return {
+      as: test.sinon.stub(),
       mesh,
       _mesh,
       config: {

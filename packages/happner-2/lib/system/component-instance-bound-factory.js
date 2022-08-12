@@ -99,6 +99,11 @@ module.exports = class ComponentInstanceBoundFactory {
       return origin.override;
     }
 
+    //mesh-wide auth delegation is on, but this component specifcally is off
+    if (authDelegationOn && this.#config?.security?.authorityDelegationOn === false) {
+      return false;
+    }
+
     return authDelegationOn;
   }
   getBoundComponent(origin, override, componentName, methodName, sessionType = 1) {
