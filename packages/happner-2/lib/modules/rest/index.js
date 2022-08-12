@@ -388,7 +388,8 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
               'Failure parsing request body',
               null,
               new Error('call path cannot have more than 4 segments'),
-              res
+              res,
+              400
             );
           }
           this.__processRequest(req, res, body, callPath, $happn, authorizedOrigin);
