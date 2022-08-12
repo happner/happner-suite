@@ -85,6 +85,7 @@ module.exports = class ComponentInstanceBoundFactory {
       this.#config?.security?.authorityDelegationOn === true ||
       this.#mesh?.config?.authorityDelegationOn === true;
 
+    // auth delegation is off, and we have already authorized at the edge
     if (edgeAuthorized && !authDelegationOn) {
       return false;
     }
@@ -99,7 +100,7 @@ module.exports = class ComponentInstanceBoundFactory {
       return origin.override;
     }
 
-    //mesh-wide auth delegation is on, but this component specifcally is off
+    //mesh-wide auth delegation is on, but this component specifically is off
     if (authDelegationOn && this.#config?.security?.authorityDelegationOn === false) {
       return false;
     }
