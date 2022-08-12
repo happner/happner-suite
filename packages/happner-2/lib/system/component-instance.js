@@ -308,14 +308,18 @@ module.exports = class ComponentInstance {
 
       if ([1, 3].indexOf(options.consistency) > -1) {
         options.onPublished = (e, results) => {
-          if (e) return this.#raiseOnPublishError(e);
-          this.#raiseOnPublishOK(results);
+          if (e) {
+            return this.emitEvent('on-publish-error', e);
+          }
+          this.emitEvent('on-publish-ok', results);
         };
       }
 
       mesh.data.set(eventKey + key, data, options, (e, response) => {
-        if (e) return this.#raiseOnEmitError(e);
-        this.#raiseOnEmitOK(response);
+        if (e) {
+          return this.emitEvent('on-emit-error', e);
+        }
+        this.emitEvent('on-emit-ok', response);
         if (callback) callback(e, response);
       });
     };
@@ -529,9 +533,7 @@ module.exports = class ComponentInstance {
   }
 
   #getMethodDefn(config, methodName) {
-    if (!config.schema) return;
-    if (!config.schema.methods) return;
-    if (!config.schema.methods[methodName]) return;
+    if (!config?.schema?.methods) return;
     return config.schema.methods[methodName];
   }
 
@@ -755,22 +757,6 @@ module.exports = class ComponentInstance {
         serve(req, res, next);
       });
     });
-  }
-
-  #raiseOnEmitError(e) {
-    this.emitEvent('on-emit-error', e);
-  }
-
-  #raiseOnEmitOK(response) {
-    this.emitEvent('on-emit-ok', response);
-  }
-
-  #raiseOnPublishError(e) {
-    this.emitEvent('on-publish-error', e);
-  }
-
-  #raiseOnPublishOK(response) {
-    this.emitEvent('on-publish-ok', response);
   }
 
   #reply(callbackAddress, callbackPeer, response, options, mesh) {
