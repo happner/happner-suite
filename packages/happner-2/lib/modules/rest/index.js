@@ -188,11 +188,11 @@ Rest.prototype.__getAuthorizedOrigin = function (
         if (!reason) reason = 'Authorization failed';
         return this.__respond($happn, reason, null, new Error('Access denied'), res, 403);
       }
-      callback(null, _.merge($origin, { edgeAuthorized: true }));
+      callback(null, Object.assign({}, $origin, { edgeAuthorized: true }));
     });
   }
   if ($origin.username === '_ADMIN') {
-    return callback(null, _.merge($origin, { username: authorizeAs }));
+    return callback(null, Object.assign({}, $origin, { username: authorizeAs }));
   }
   let callbackWasCalled = false;
   this.__securityService.users
@@ -202,7 +202,7 @@ Rest.prototype.__getAuthorizedOrigin = function (
       if (!belongs) {
         return callback(new Error('origin does not belong to the delegate group'));
       }
-      return callback(null, _.merge($origin, { username: authorizeAs }));
+      return callback(null, Object.assign({}, $origin, { username: authorizeAs }));
     })
     .catch((e) => {
       if (callbackWasCalled) {
@@ -243,11 +243,13 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     let componentName = callPath.pop();
     let meshName = callPath.pop();
 
-    // if bound already, dont do .as
-    let mesh = $happn.bound
-      ? $happn.exchange
-      : $happn.as($origin?.username, componentName, methodName, 0, $origin?.edgeAuthorized)
-          .exchange;
+    let mesh = $happn.as(
+      $origin?.username,
+      componentName,
+      methodName,
+      0,
+      $origin?.edgeAuthorized
+    ).exchange;
 
     if (componentName === 'security') {
       return this.__respond(
@@ -306,7 +308,7 @@ Rest.prototype.__processRequest = function (req, res, body, callPath, $happn, $o
     methodDescription = componentDescription.methods[methodName];
 
     const args = this.__mapMethodArguments(req, res, methodDescription, body, $happn, $origin);
-    method.apply(method, args);
+    method.apply(Object.assign({}, method, { $origin }), args);
   });
 };
 

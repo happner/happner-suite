@@ -361,6 +361,7 @@
       let boundEndpoint = endpoint;
       if (parameters.as) {
         boundEndpoint = Object.assign(
+          {},
           { $origin: { username: parameters.as, override: true } },
           endpoint
         );

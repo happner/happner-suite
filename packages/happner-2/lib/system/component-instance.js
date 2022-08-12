@@ -442,7 +442,7 @@ module.exports = class ComponentInstance {
 
   #createSetOptions(originId, options) {
     if (this.config.directResponses)
-      return commons._.merge(
+      return Object.assign(
         {
           targetClients: [originId],
         },
@@ -487,11 +487,12 @@ module.exports = class ComponentInstance {
   }
 
   #authorizeOriginMethod(methodName, origin, callback, originBindingOverride) {
-    if (origin?.edgeAuthorized === true) {
-      return callback();
-    }
     if (
-      !this.#boundComponentInstanceFactory.originBindingNecessary(origin, originBindingOverride)
+      !this.#boundComponentInstanceFactory.originBindingNecessary(
+        origin,
+        originBindingOverride,
+        true // we want to check whether the edge was authorized
+      )
     ) {
       return callback(null);
     }

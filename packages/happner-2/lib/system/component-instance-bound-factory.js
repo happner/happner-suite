@@ -1,5 +1,4 @@
 const Internals = require('./shared/internals');
-const commons = require('happn-commons');
 module.exports = class ComponentInstanceBoundFactory {
   #componentInstance;
   #mesh;
@@ -62,35 +61,45 @@ module.exports = class ComponentInstanceBoundFactory {
     );
     return exchange;
   }
-  originBindingNecessary(origin, override) {
+  // sometimes we want to stay bound regardless of whether the edge is authorized, this is when we are getting a bound component
+  // as opposed to doing the authorization in the component-instance
+  originBindingNecessary(origin, override, checkEdgeAuthorized = false) {
     //not a secure mesh:
     if (!this.#mesh.config.happn.secure) {
       return false;
     }
-    //origin binding for this request specifically
+    //null origin is an internal function:
+    if (origin == null) {
+      return false;
+    }
+    //don't delegate authority to _ADMIN, no origin is also an internal call:
+    if (origin?.username === '_ADMIN') {
+      return false;
+    }
+    // backward compatible edge authorization that allows _ADMIN passthrough on subsequent inter exchange requests
+    // when no "as" is specified
+    const edgeAuthorized = checkEdgeAuthorized && origin?.edgeAuthorized === true;
+
+    // auth delegation is switched on specifically for this component or mesh-wide
+    const authDelegationOn =
+      this.#config?.security?.authorityDelegationOn === true ||
+      this.#mesh?.config?.authorityDelegationOn === true;
+
+    if (edgeAuthorized && !authDelegationOn) {
+      return false;
+    }
+
+    //origin binding for this request specifically, regardless of security settings
     if (typeof override === 'boolean') {
       return override;
     }
-    //dont delegate authority to _ADMIN, no origin is an internal call:
-    if (!origin || origin.username === '_ADMIN') {
-      return false;
-    }
-    //origin binding for this origin specifically
-    if (typeof origin.override === 'boolean') {
+
+    //origin binding for this origin specifically, regardless of security settings
+    if (typeof origin?.override === 'boolean') {
       return origin.override;
     }
-    //authority delegation not set up on component, and not set up on the server
-    if (
-      this.#config?.security?.authorityDelegationOn !== true &&
-      !this.#mesh.config.authorityDelegationOn
-    ) {
-      return false;
-    }
-    //authority delegation explicitly set not to happen for this component
-    if (this.#config?.security?.authorityDelegationOn === false) {
-      return false;
-    }
-    return true;
+
+    return authDelegationOn;
   }
   getBoundComponent(origin, override, componentName, methodName, sessionType = 1) {
     if (!this.originBindingNecessary(origin, override)) {
@@ -100,6 +109,8 @@ module.exports = class ComponentInstanceBoundFactory {
     if (bound) return bound;
 
     bound = Object.assign({}, this.#componentInstance);
+    bound.as = this.#componentInstance.as.bind(this.#componentInstance);
+
     Object.defineProperty(bound, 'info', {
       value: this.#componentInstance.info,
       writable: false,
@@ -123,12 +134,9 @@ module.exports = class ComponentInstanceBoundFactory {
         return this.#componentInstance.mesh;
       },
     });
-    const boundOrigin = commons._.merge(origin, { override: true, type: sessionType });
-    Object.defineProperty(bound, 'bound', {
-      get: () => {
-        return boundOrigin;
-      },
-    });
+    const boundOrigin = Object.assign({}, origin, { override: true, type: sessionType });
+    bound.bound = boundOrigin;
+
     bound.data = require('./component-instance-data').create(
       this.#mesh.data,
       this.#componentName,
