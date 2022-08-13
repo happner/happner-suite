@@ -287,6 +287,29 @@ describe(test.testName(__filename, 3), function () {
       );
     });
 
+    it('calls __respond 400 error bad methodURI', function () {
+      const restModule = new RestModule();
+      const handleRequestMethod = restModule.handleRequest;
+      const req = { method: 'PUT', url: '1/2/3/4/5/6' };
+      const res = 'res';
+      const $happn = '$happn';
+      const $origin = '$origin';
+
+      const mock = {
+        __respond: test.sinon.stub(),
+      };
+      handleRequestMethod.call(mock, req, res, $happn, $origin);
+      test.sinon.assert.calledWith(
+        mock.__respond,
+        $happn,
+        'Failure parsing request body',
+        null,
+        test.sinon.match.any,
+        res,
+        400
+      );
+    });
+
     describe('__buildCallMenu', function () {
       it('callmenu should be menu', function () {
         const restModule = new RestModule();

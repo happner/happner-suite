@@ -370,6 +370,18 @@ Rest.prototype.__mapMethodArguments = function (
 Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
   try {
     const methodURI = utilities.removeLeading('/', utilities.getRelativePath(req.url));
+    const callPath = methodURI.split('/');
+    //ensure we don't have a leading /
+    if (callPath.length > 4) {
+      return this.__respond(
+        $happn,
+        'Failure parsing request body',
+        null,
+        new Error('call path cannot have more than 4 segments'),
+        res,
+        400
+      );
+    }
     this.__parseBody(req, res, $happn, (body) => {
       let authorizeAs = body?.as;
       this.__validateCredentialsGetOrigin(
@@ -380,18 +392,6 @@ Rest.prototype.handleRequest = function (req, res, $happn, $origin) {
         authorizeAs,
         (authorizedOrigin) => {
           // will not be hit on 403
-          const callPath = methodURI.split('/');
-          //ensure we don't have a leading /
-          if (callPath.length > 4) {
-            return this.__respond(
-              $happn,
-              'Failure parsing request body',
-              null,
-              new Error('call path cannot have more than 4 segments'),
-              res,
-              400
-            );
-          }
           this.__processRequest(req, res, body, callPath, $happn, authorizedOrigin);
         }
       );
