@@ -273,8 +273,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('supports calling a promise from a method on the exchange', function (done) {
-    this.timeout(1500);
-
     this.mesh.exchange.component
       .promiseCaller({ number: 1 })
 

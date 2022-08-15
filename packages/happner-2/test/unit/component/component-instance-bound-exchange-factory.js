@@ -43,18 +43,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .expect(boundExchangeFactory.cache.keys())
       .to.eql(['test:*:*:1', 'test:testComponent:testMethod:0']);
 
+    const testBoundComponent = boundExchangeFactory.getBoundComponent(
+      { username: 'test' },
+      undefined,
+      'testComponent',
+      'testMethod',
+      0
+    );
+
     //check we are able to get a cached bound component
-    test
-      .expect(
-        boundExchangeFactory.getBoundComponent(
-          { username: 'test' },
-          undefined,
-          'testComponent',
-          'testMethod',
-          0
-        )
-      )
-      .to.be(boundComponent1);
+    test.expect(testBoundComponent).to.be(boundComponent1);
     test.expect(boundExchangeFactory.cache.size()).to.be(2);
 
     //cache  must be cleared when the security changes

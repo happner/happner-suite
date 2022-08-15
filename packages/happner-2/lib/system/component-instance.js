@@ -501,6 +501,7 @@ module.exports = class ComponentInstance {
       return callback(null);
     }
     const subscribeMask = this.#getSubscribeMask();
+    // purpose of substring is to pop the * off the end of the mask
     const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
     this.#mesh._mesh.happn.server.services.security.getOnBehalfOfSession(
       {

@@ -134,7 +134,7 @@ SystemService.prototype.logError = function (e, area, severity) {
 SystemService.prototype.getDescription = function (message) {
   const description = {
     name: this.name,
-    secure: this.happn.config.secure ? true : false,
+    secure: this.happn.config.secure === true,
   };
 
   if (message?.session?.cookieName) {

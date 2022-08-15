@@ -55,7 +55,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.disconnect();
   });
-  it('can do without as, light client', async () => {
+  it('cannot do without as, light client', async () => {
     const testEdgeUser = await connectTestUserLightClient(8);
     let errorMessage;
     try {
@@ -84,7 +84,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.session.disconnect();
   });
-  it('can do without as, happner client', async () => {
+  it('cannot do without as, happner client', async () => {
     const testEdgeUser = await connectTestUserHappnerClient(8);
     let errorMessage;
     try {
@@ -116,7 +116,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       )
       .to.eql('origin:testUser:1:2');
   });
-  it('can do an http-rpc without as, _ADMIN user is used after initial permissions check', async () => {
+  it('cannnot do an http-rpc without as, _ADMIN user is used after initial permissions check', async () => {
     const edgeUser = await connectTestUser(8);
     const token = edgeUser.token;
     let errorMessage;
@@ -197,7 +197,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
   });
 
-  it('can do an exchange call without as, using _ADMIN user further down the stack', async () => {
+  it('cannot do an exchange call without as, using _ADMIN user further down the stack', async () => {
     const edgeUser = await connectTestUser(8);
     let errorMessage;
     try {
