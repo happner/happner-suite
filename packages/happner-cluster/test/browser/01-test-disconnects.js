@@ -4,7 +4,7 @@ const baseConfig = require('../_lib/base-config');
 const getSeq = require('../_lib/helpers/getSeq');
 const HappnerCluster = require('../..');
 const libDir = require('../_lib/lib-dir');
-const clearMongoCollection = require('./_fixtures/drop-mongo-db');
+const clearMongoCollection = require('../_lib/drop-mongo-db');
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   let broker1Proc, broker2Proc, broker3Proc, remoteMesh;
   let brokerSeq;

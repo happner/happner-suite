@@ -55,17 +55,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.disconnect();
   });
-  it('can do without as, light client', async () => {
+  it('cannot do without as, light client', async () => {
     const testEdgeUser = await connectTestUserLightClient(8);
-    test
-      .expect(
-        await testEdgeUser.exchange.$call({
-          component: 'test',
-          method: 'doOnBehalfOfAllowedNoAs',
-          arguments: [1, 2],
-        })
-      )
-      .to.eql('origin:testUser8:1:2');
+    let errorMessage;
+    try {
+      await testEdgeUser.exchange.$call({
+        component: 'test',
+        method: 'doOnBehalfOfAllowedNoAs',
+        arguments: [1, 2],
+      });
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.equal('unauthorized');
     await testEdgeUser.disconnect();
   });
   it('can do an as, delegated via a delegate user, happner client', async () => {
@@ -82,17 +84,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
     await testDelegateUser.session.disconnect();
   });
-  it('can do without as, happner client', async () => {
+  it('cannot do without as, happner client', async () => {
     const testEdgeUser = await connectTestUserHappnerClient(8);
-    test
-      .expect(
-        await testEdgeUser.api.exchange.$call({
-          component: 'test',
-          method: 'doOnBehalfOfAllowedNoAs',
-          arguments: [1, 2],
-        })
-      )
-      .to.eql('origin:testUser8:1:2');
+    let errorMessage;
+    try {
+      await testEdgeUser.api.exchange.$call({
+        component: 'test',
+        method: 'doOnBehalfOfAllowedNoAs',
+        arguments: [1, 2],
+      });
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.equal('unauthorized');
     await testEdgeUser.session.disconnect();
   });
   it('can do an http-rpc with as, delegated via a user with delegate priviledges', async () => {
@@ -112,24 +116,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       )
       .to.eql('origin:testUser:1:2');
   });
-  it('can do an http-rpc without as, _ADMIN user is used after initial permissions check', async () => {
+  it('cannnot do an http-rpc without as, _ADMIN user is used after initial permissions check', async () => {
     const edgeUser = await connectTestUser(8);
     const token = edgeUser.token;
-    test
-      .expect(
-        await testHttpRpc(
-          {
-            component: 'test',
-            method: 'doOnBehalfOfAllowedNoAs',
-            arguments: { param1: 1, param2: 2 },
-          },
-          token
-        )
-      )
-      .to.eql('origin:testUser8:1:2');
+    let errorMessage;
+    try {
+      await testHttpRpc(
+        {
+          component: 'test',
+          method: 'doOnBehalfOfAllowedNoAs',
+          arguments: { param1: 1, param2: 2 },
+        },
+        token
+      );
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.equal('Access denied');
   });
   it('can do an http-rpc with as, using asAdmin in the edge method', async () => {
-    const edgeUser = await connectTestUser(8);
+    const edgeUser = await connectTestUser(7);
     const testDelegateUser = await connectTestUser(9);
     const token = testDelegateUser.token;
     test
@@ -144,7 +150,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           token
         )
       )
-      .to.eql('origin:testUser8:1:2');
+      .to.eql('origin:testUser7:1:2');
   });
   it('fails to do an http-rpc with as', async () => {
     const token = adminUser.token;
@@ -191,11 +197,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .to.eql('origin:testUser:1:2');
   });
 
-  it('can do an exchange call without as, using _ADMIN user further down the stack', async () => {
+  it('cannot do an exchange call without as, using _ADMIN user further down the stack', async () => {
     const edgeUser = await connectTestUser(8);
-    test
-      .expect(await edgeUser.exchange.test.doOnBehalfOfAllowedNoAs(1, 2))
-      .to.eql('origin:testUser8:1:2');
+    let errorMessage;
+    try {
+      await edgeUser.exchange.test.doOnBehalfOfAllowedNoAs(1, 2);
+    } catch (e) {
+      errorMessage = e.message;
+    }
+    test.expect(errorMessage).to.equal('unauthorized');
   });
 
   it('fails to do an exchange call with as in component method', async () => {
@@ -236,6 +246,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   after('tears down mesh', stopMesh);
   async function setUpMesh() {
     mesh = await test.Mesh.create({
+      authorityDelegationOn: true,
       name: 'asMesh',
       port: 12358,
       secure: true,

@@ -23,6 +23,40 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   before('it connects the admin user', connectAdminUsers);
   before('it creates the test users', createTestUsers);
 
+  it('can do without as, happner client', async () => {
+    const [testUserHappnerClient, testUserHappnerClientAPI] = await createHappnerClientAndAPI(
+      { username: 'testUser', password: 'password' },
+      getSeq.getPort(1)
+    );
+    test
+      .expect(
+        await testUserHappnerClientAPI.exchange.$call({
+          component: 'local',
+          method: 'doOnBehalfOfAllowedNoAs',
+          arguments: [1, 2],
+        })
+      )
+      .to.eql('origin:testUser:1:2');
+    await testUserHappnerClient.disconnect();
+  });
+
+  it('can do without as, light client', async () => {
+    const testEdgeUser = await createLightClient(
+      { username: 'testUser', password: 'password', domain: 'DOMAIN_NAME' },
+      getSeq.getPort(1)
+    );
+    test
+      .expect(
+        await testEdgeUser.exchange.$call({
+          component: 'local',
+          method: 'doOnBehalfOfAllowedNoAs',
+          arguments: [1, 2],
+        })
+      )
+      .to.eql('origin:testUser:1:2');
+    await testEdgeUser.disconnect();
+  });
+
   it('can do an http-rpc with as, delegated via the ADMIN user', async () => {
     const token = adminUser.token;
     test
@@ -286,6 +320,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.modules = {
       local: {
         instance: {
+          doOnBehalfOfAllowedAsAdmin: async function (param1, param2, $origin, $happn) {
+            //this should work if we come in through the edge, without an as (backwards compatible with the existing system)
+            await $happn.asAdmin.exchange.test.doOnBehalfOfNotAllowed();
+            return `origin:${$origin.username}:${param1}:${param2}`;
+          },
+          doOnBehalfOfAllowedNoAs: async function (param1, param2, $origin, $happn) {
+            //this should work if we come in through the edge, without an as (backwards compatible with the existing system)
+            await $happn.exchange.test.doOnBehalfOfNotAllowed();
+            return `origin:${$origin.username}:${param1}:${param2}`;
+          },
           doOnBehalfOfAllowedAs: async function (param1, param2, $happn) {
             let result1 = await $happn.exchange.$call({
               component: 'test',
@@ -415,6 +459,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       local: {
         version: '*',
         methods: {
+          doOnBehalfOfAllowedNoAs: {},
           doOnBehalfOfAllowedAs: {},
           doOnBehalfOfNotAllowedAs: {},
         },
@@ -471,6 +516,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       name: `testGroup${id}`,
       permissions: {
         methods: {
+          '/local/doOnBehalfOfAllowedNoAs': { authorized: true },
+          '/local/doOnBehalfOfAllowedAsAdmin': { authorized: true },
           '/test/doOnBehalfOfAllowed': { authorized: true },
           '/test/doOnBehalfOfAllowedAs': { authorized: true },
           '/test/doOnBehalfOfNotAllowedAs': { authorized: true },

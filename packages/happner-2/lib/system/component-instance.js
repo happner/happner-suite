@@ -154,20 +154,25 @@ module.exports = class ComponentInstance {
   }
 
   #getCallbackProxy(methodName, callback, origin) {
-    let callbackCalled = false;
+    const callbackProxyContext = Object.assign({ wasCalled: false, log: this.#log }, this);
     const callbackProxy = function () {
-      if (callbackCalled) {
-        return this.#log.error(
+      if (this.wasCalled) {
+        return this.log.error(
           'Callback invoked more than once for method %s',
           methodName,
           callback.toString()
         );
       }
-      callbackCalled = true;
+      this.wasCalled = true;
       callback(null, Array.prototype.slice.apply(arguments));
-    }.bind(this);
-    callbackProxy.$origin = origin;
+    }.bind(callbackProxyContext);
+    callbackProxy.$origin = origin; //must be accessible from the outside, so not a bound property
     return callbackProxy;
+  }
+
+  #callbackOrThrowError(e, callback) {
+    if (!callback) throw e;
+    callback(e);
   }
 
   operate(methodName, parameters, callback, origin, version, originBindingOverride) {
@@ -176,7 +181,7 @@ module.exports = class ComponentInstance {
       origin,
       (e) => {
         if (e) {
-          return callback(e);
+          return this.#callbackOrThrowError(e, callback);
         }
         const methodSchema = this.description.methods[methodName];
         const methodDefn = this.#module.instance[methodName];
@@ -205,30 +210,50 @@ module.exports = class ComponentInstance {
         this.#log.trace('operate( %s', methodName);
         this.#log.trace('parameters ', parameters);
         this.#log.trace('methodSchema ', methodSchema);
+        let result,
+          syncError = null;
 
-        if (methodSchema.type === 'sync-promise') {
-          let result;
-          try {
-            result = methodDefn.apply(
-              this.#module.instance,
-              this.#inject(methodDefn, parameters, origin)
-            );
-          } catch (syncPromiseError) {
-            return callback(null, [syncPromiseError]);
-          }
-          return callback(null, [null, result]);
-        }
         const callbackProxy = this.#getCallbackProxy(methodName, callback, origin);
+        let returnObject;
 
         if (callbackIndex === -1) {
-          if (!methodSchema.isAsyncMethod) {
+          if (!methodSchema.isAsyncMethod && methodSchema.type !== 'sync-promise') {
+            //unless we are dealing with an async method, pop the proxy in regardless - it may not actually be called
             parameters.push(callbackProxy);
           }
         } else {
           parameters.splice(callbackIndex, 1, callbackProxy);
         }
 
-        let returnObject;
+        if (methodSchema.type === 'sync') {
+          try {
+            result = methodDefn.apply(
+              this.#module.instance,
+              this.#inject(methodDefn, parameters, origin)
+            );
+          } catch (syncErr) {
+            syncError = syncErr;
+          }
+          // the method was classified as sync but still called the callback
+          if (!callbackProxy.wasCalled) {
+            callbackProxy(syncError, result);
+          }
+          return;
+        }
+
+        if (methodSchema.type === 'sync-promise') {
+          try {
+            result = methodDefn.apply(
+              this.#module.instance,
+              this.#inject(methodDefn, parameters, origin)
+            );
+          } catch (syncPromiseError) {
+            syncError = syncPromiseError;
+          }
+          if (syncError) return callbackProxy(syncError);
+          return callbackProxy(syncError, result);
+        }
+
         try {
           returnObject = methodDefn.apply(
             this.#module.instance,
@@ -260,7 +285,7 @@ module.exports = class ComponentInstance {
   #callBackWithWarningAndError(category, message, callback) {
     const error = new Error(message);
     this.#log.warn(`${category}:${message}`);
-    return callback(error);
+    this.#callbackOrThrowError(error, callback);
   }
 
   #attach(config, mesh, callback) {
@@ -283,14 +308,18 @@ module.exports = class ComponentInstance {
 
       if ([1, 3].indexOf(options.consistency) > -1) {
         options.onPublished = (e, results) => {
-          if (e) return this.#raiseOnPublishError(e);
-          this.#raiseOnPublishOK(results);
+          if (e) {
+            return this.emitEvent('on-publish-error', e);
+          }
+          this.emitEvent('on-publish-ok', results);
         };
       }
 
       mesh.data.set(eventKey + key, data, options, (e, response) => {
-        if (e) return this.#raiseOnEmitError(e);
-        this.#raiseOnEmitOK(response);
+        if (e) {
+          return this.emitEvent('on-emit-error', e);
+        }
+        this.emitEvent('on-emit-ok', response);
         if (callback) callback(e, response);
       });
     };
@@ -417,7 +446,7 @@ module.exports = class ComponentInstance {
 
   #createSetOptions(originId, options) {
     if (this.config.directResponses)
-      return commons._.merge(
+      return Object.assign(
         {
           targetClients: [originId],
         },
@@ -463,11 +492,16 @@ module.exports = class ComponentInstance {
 
   #authorizeOriginMethod(methodName, origin, callback, originBindingOverride) {
     if (
-      !this.#boundComponentInstanceFactory.originBindingNecessary(origin, originBindingOverride)
+      !this.#boundComponentInstanceFactory.originBindingNecessary(
+        origin,
+        originBindingOverride,
+        true // we want to check whether the edge was authorized
+      )
     ) {
-      return callback(null, true);
+      return callback(null);
     }
     const subscribeMask = this.#getSubscribeMask();
+    // purpose of substring is to pop the * off the end of the mask
     const permissionPath = subscribeMask.substring(0, subscribeMask.length - 1) + methodName;
     this.#mesh._mesh.happn.server.services.security.getOnBehalfOfSession(
       {
@@ -500,9 +534,7 @@ module.exports = class ComponentInstance {
   }
 
   #getMethodDefn(config, methodName) {
-    if (!config.schema) return;
-    if (!config.schema.methods) return;
-    if (!config.schema.methods[methodName]) return;
+    if (!config?.schema?.methods) return;
     return config.schema.methods[methodName];
   }
 
@@ -531,9 +563,9 @@ module.exports = class ComponentInstance {
     return webMethods;
   }
 
-  as(username, componentName, methodName, sessionType) {
+  as(username, componentName, methodName, sessionType, edgeAuthorized) {
     return this.#boundComponentInstanceFactory.getBoundComponent(
-      { username },
+      { username, edgeAuthorized },
       true,
       componentName,
       methodName,
@@ -726,22 +758,6 @@ module.exports = class ComponentInstance {
         serve(req, res, next);
       });
     });
-  }
-
-  #raiseOnEmitError(e) {
-    this.emitEvent('on-emit-error', e);
-  }
-
-  #raiseOnEmitOK(response) {
-    this.emitEvent('on-emit-ok', response);
-  }
-
-  #raiseOnPublishError(e) {
-    this.emitEvent('on-publish-error', e);
-  }
-
-  #raiseOnPublishOK(response) {
-    this.emitEvent('on-publish-ok', response);
   }
 
   #reply(callbackAddress, callbackPeer, response, options, mesh) {

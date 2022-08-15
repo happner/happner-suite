@@ -189,9 +189,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
 
     test.chai.expect(mockCallback2).to.have.been.calledWithExactly(null, [null, 'mockResult']);
-    test.chai
-      .expect(mockModule.instance.mockMethodName)
-      .to.have.been.calledWithExactly(1, 2, undefined);
+    test.chai.expect(mockModule.instance.mockMethodName).to.have.been.calledWith(1, 2);
   });
 
   it('tests #inject method - methodDefn.$happnSeq is less then methodDefn.$originSeq', () => {
@@ -879,7 +877,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               id: 1,
             },
           },
-          { path: '/test/path' }
+          { path: '/test/path' },
+          () => {}
         );
       }
     );
@@ -2303,8 +2302,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             id: 1,
           },
           set: test.sinon.stub().callsFake((eventKey, data, options, cb) => {
+            if (typeof options === 'function') {
+              cb = options;
+              options = null;
+            }
             if (options && options.onPublished) options.onPublished('mockError', 'mockResult');
-
             cb('mockError', 'mockResponse');
           }),
           offPath: test.sinon.stub().callsArg(1),

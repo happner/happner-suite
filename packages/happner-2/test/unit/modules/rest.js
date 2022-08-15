@@ -82,15 +82,13 @@ describe(test.testName(__filename, 3), function () {
   });
 
   describe('describe', function () {
-    it('calls accessPointCB if error in __authorizeAccessPoint', function () {
+    it('calls accessPointCB if error in __authorizeMethod', function () {
       const restModule = new RestModule();
       const describeMethod = restModule.describe;
       const error = new Error('error');
       const mock = {
         __exchangeDescription: { callMenu: 'callMenu' },
-        __authorizeAccessPoint: test.sinon
-          .stub(restModule, '__authorizeAccessPoint')
-          .callsArgWith(3, error),
+        __authorizeMethod: test.sinon.stub(restModule, '__authorizeMethod').callsArgWith(3, error),
         __respond: test.sinon.stub(restModule, '__respond'),
       };
       describeMethod.call(
@@ -119,9 +117,9 @@ describe(test.testName(__filename, 3), function () {
 
       const mock = {
         __respond: test.sinon.stub(restModule, '__respond'),
-        __authorizeAccessPoint: test.sinon.stub(restModule, '__authorizeAccessPoint'),
+        __authorizeMethod: test.sinon.stub(restModule, '__authorizeMethod'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, undefined, successful);
+      __authorizeMethod.call(mock, $happn, undefined, undefined, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
@@ -148,10 +146,10 @@ describe(test.testName(__filename, 3), function () {
       const mock = {
         __getAuthorizedOrigin: test.sinon
           .stub(restModule, '__getAuthorizedOrigin')
-          .callsArgWith(3, new Error('test')),
+          .callsArgWith(5, new Error('test')),
         __respond: test.sinon.stub(restModule, '__respond'),
       };
-      __authorizeMethod.call(mock, undefined, $happn, $origin, successful);
+      __authorizeMethod.call(mock, $happn, $origin, undefined, undefined, successful);
       test.sinon.assert.calledWith(
         mock.__respond,
         $happn,
@@ -286,6 +284,29 @@ describe(test.testName(__filename, 3), function () {
         test.sinon.match.any,
         res,
         500
+      );
+    });
+
+    it('calls __respond 400 error bad methodURI', function () {
+      const restModule = new RestModule();
+      const handleRequestMethod = restModule.handleRequest;
+      const req = { method: 'PUT', url: '1/2/3/4/5/6' };
+      const res = 'res';
+      const $happn = '$happn';
+      const $origin = '$origin';
+
+      const mock = {
+        __respond: test.sinon.stub(),
+      };
+      handleRequestMethod.call(mock, req, res, $happn, $origin);
+      test.sinon.assert.calledWith(
+        mock.__respond,
+        $happn,
+        'Failure parsing request body',
+        null,
+        test.sinon.match.any,
+        res,
+        400
       );
     });
 

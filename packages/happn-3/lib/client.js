@@ -359,6 +359,10 @@
     if (!preparedOptions.retryOnSocketErrorMaxInterval) {
       preparedOptions.retryOnSocketErrorMaxInterval = 120e3;
     }
+    if (!preparedOptions.reconnectWait) {
+      //wait a second
+      preparedOptions.reconnectWait = 1e3;
+    }
 
     //this is for local client connections
     if (preparedOptions.context)
@@ -1317,10 +1321,10 @@
     if (!this.socket || !reconnect) return;
     this.status = STATUS.ERROR; // so we dont write any more messages until we have reconnected again
     //wait a second, this is so we don't flood the stack when there are consistent socket failures
-    setTimeout(() => {
+    this.__reconnectTimeout = setTimeout(() => {
       this.log.warn('attempting reconnection after socket error...');
       this.reconnect();
-    }, 1e3);
+    }, this.options.reconnectWait);
   };
 
   HappnClient.prototype.__attachPublishedAck = function (options, message) {
@@ -1787,7 +1791,14 @@
   });
 
   HappnClient.prototype.clearTimeouts = function () {
-    clearTimeout(this.__retryReconnectTimeout);
+    if (this.__reconnectTimeout) {
+      clearTimeout(this.__reconnectTimeout);
+      this.__reconnectTimeout = null;
+    }
+    if (this.__retryReconnectTimeout) {
+      clearTimeout(this.__retryReconnectTimeout);
+      this.__retryReconnectTimeout = null;
+    }
     Object.keys(this.state.ackHandlers).forEach((handlerKey) => {
       clearTimeout(this.state.ackHandlers[handlerKey].timedout);
     });

@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   const Happn = require('../../../');
   const shortid = require('shortid');
   let remote,
@@ -21,9 +21,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
 
   var events = [];
   before('start server and connect client', buildUp);
-  afterEach('check we only have a single subscription', () => {
-    test.expect(webSocketsClient.state.events['/ALL@test/event/*'].length).to.be(1);
-  });
   after('disconnect client and stop server', tearDown);
 
   it('is able to reconnect the client forcefully, and re-establish subscriptions', async () => {
@@ -33,9 +30,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
   });
 
   it('is able to cause an error to occur on the socket, we reconnect and re-establish subscriptions', async () => {
-    for (let reconnectTimes = 0; reconnectTimes < 10; reconnectTimes++) {
+    for (let reconnectTimes = 0; reconnectTimes < 5; reconnectTimes++) {
       await errorAndTest();
     }
+    test.expect(webSocketsClient.state.events['/ALL@test/event/*'].length).to.be(1);
+    test.expect(errorStateCount).to.be.greaterThan(0);
+    test.expect(lastOpenSockets).to.be(1);
   });
 
   it('is able to cause an error to occur on the socket, the server is also down, we ensure we eventually reconnect', async () => {
@@ -65,11 +65,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
     }
     await connectClientPromise();
     await errorAndTest();
+    test.expect(webSocketsClient.state.events['/ALL@test/event/*'].length).to.be(1);
+    test.expect(errorStateCount).to.be.greaterThan(0);
+    test.expect(lastOpenSockets).to.be(1);
   });
 
-  async function connectClientPromise() {
+  it('disconnects properly after a socket error', async () => {
+    await killAndRestartServerAfter(0);
+    await connectClientPromise({
+      reconnectWait: 5e3, // we will now wait 5 seconds before trying to re-establish a connection
+    });
+    webSocketsClient.socket.emit('error', new Error('test error'));
+    await test.delay(1e3); // ensure the client is entering a reconnection loop
+    test.expect(webSocketsClient.__reconnectTimeout).to.not.eql(null);
+    await webSocketsClient.disconnect(); // disconnect while the server is down
+    test.expect(webSocketsClient.__reconnectTimeout).to.be(null); //this should have been cleared and negated
+  });
+
+  it('connects and disconnects', async () => {
+    await connectClientPromise();
+    await webSocketsClient.disconnect();
+    await connectClientPromise();
+    await killAndRestartServerAfter(3);
+    await connectClientPromise();
+    await webSocketsClient.disconnect();
+  });
+
+  async function connectClientPromise(options) {
     return new Promise((resolve, reject) => {
-      connectClient('happn', (e) => {
+      connectClient('happn', options, (e) => {
         if (e) return reject(e);
         resolve();
       });
@@ -93,7 +117,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
         if (e) {
           if (e.message === 'client in an error state') {
             errorStateCount++;
-          } else throw e;
+          } else {
+            throw e;
+          }
         }
       });
     });
@@ -104,8 +130,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
       killServer();
       setTimeout(() => {
         startServer((e) => {
-          if (e) return reject(e);
-          test.log(`server restarted after ${seconds} seconds`);
+          if (e) {
+            return reject(e);
+          }
+          // eslint-disable-next-line no-console
+          console.log(`server restarted after ${seconds} seconds`);
           resolve();
         });
       }, seconds * 1e3);
@@ -176,19 +205,26 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
     });
   }
 
-  async function connectClient(password, callback) {
+  async function connectClient(password, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (options == null) options = {};
     if (webSocketsClient) await webSocketsClient.disconnect();
+    const clientOptions = Object.assign(options, {
+      username: '_ADMIN',
+      password,
+      port: 55005,
+      retryOnSocketErrorMaxInterval: 2e3,
+    });
     try {
-      webSocketsClient = await Happn.client.create({
-        username: '_ADMIN',
-        password,
-        port: 55005,
-        retryOnSocketErrorMaxInterval: 2e3,
-      });
-      webSocketsClient.log.warn = test.sinon.spy(webSocketsClient.log.warn);
+      webSocketsClient = await Happn.client.create(clientOptions);
     } catch (e) {
       return callback(e);
     }
+
+    webSocketsClient.log.warn = test.sinon.spy(webSocketsClient.log.warn);
     webSocketsClient.on('test/event/*', clientEventHandler, function (e) {
       if (e) return callback(e);
       testEvent(function (e) {
@@ -206,14 +242,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 300e3 }, (test
     //wait 2 seconds so that the server is able to emit lastOpenSockets
     setTimeout(() => {
       try {
-        test.expect(errorStateCount).to.be.greaterThan(0);
-        test.expect(lastOpenSockets).to.be(1);
-        if (webSocketsClient)
+        if (webSocketsClient) {
           webSocketsClient.disconnect(function () {
             killServer();
             callback();
           });
-        else {
+        } else {
           killServer();
           callback();
         }

@@ -1992,14 +1992,18 @@ Mesh.prototype.componentAsyncMethod = function (
   call,
   done
 ) {
-  return component.instance.operate(options.methodName, [], (e, responseArgs) => {
-    delete calls[call];
-    if (e) return done(e);
-    if (options.logAction) {
-      this.log.debug("%s component '%s'", options.logAction, componentName);
+  return component.instance.operate(
+    options.methodName,
+    options.methodArguments || [],
+    (e, responseArgs) => {
+      delete calls[call];
+      if (e) return done(e);
+      if (options.logAction) {
+        this.log.debug("%s component '%s'", options.logAction, componentName);
+      }
+      done.apply(this, responseArgs);
     }
-    done.apply(this, responseArgs);
-  });
+  );
 };
 
 Mesh.prototype.deferStartMethod = function (componentName, component, options, calls, call, done) {
@@ -2009,6 +2013,49 @@ Mesh.prototype.deferStartMethod = function (componentName, component, options, c
     });
 };
 
+Mesh.prototype.possiblyDeferStartup = function (
+  componentName,
+  config,
+  component,
+  options,
+  calls,
+  call,
+  eachComponentCallback
+) {
+  if (
+    this._mesh.clusterClient &&
+    this._mesh.clusterClient.__implementors.addAndCheckDependencies(
+      componentName,
+      config.dependencies
+    )
+  ) {
+    // all dependencies have started so we can start
+    return this.componentAsyncMethod(
+      componentName,
+      component,
+      options,
+      calls,
+      call,
+      eachComponentCallback
+    );
+  }
+  // wait for cluster dependencies to be satisfied
+  return this.deferStartMethod(
+    componentName,
+    component,
+    options,
+    calls,
+    call,
+    eachComponentCallback
+  );
+};
+
+Mesh.prototype.getMethodArguments = function (methodConfig, removeUndefined) {
+  const methodArguments = (methodConfig?.parameters || []).map((p) => p.value);
+  if (removeUndefined) return _.without(methodArguments, undefined);
+  return methodArguments;
+};
+
 Mesh.prototype._eachComponentDo = function (options, callback) {
   if (!options.methodCategory && !options.methodName)
     return callback(new MeshError('methodName or methodCategory not included in options'));
@@ -2016,8 +2063,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
   if (!options.flow) options.flow = 'series';
   if (!options.targets) options.targets = Object.keys(this._mesh.elements);
 
-  var calls,
-    _this = this;
+  let calls;
 
   this._mesh.calls = this._mesh.calls || {};
   this._mesh.calls.starting = calls = {};
@@ -2025,88 +2071,59 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
   this._eachComponent(
     options.targets,
     options.flow,
-    function (componentName, component, done) {
-      var call,
+    (componentName, component, eachComponentCallback) => {
+      let call,
         config = component.config || {};
 
-      if (options.methodCategory) options.methodName = config[options.methodCategory];
+      if (options.methodCategory) {
+        options.methodName = config[options.methodCategory];
+      }
+
+      const methodConfig = commons._.get(config, `schema.methods.${options.methodName}`);
 
       if (!options.methodName) {
-        return done(); // error?
+        return eachComponentCallback();
       }
 
       call = componentName + '.' + options.methodName + '()';
-
-      // default assume async with no args and callback as (error){} only
-      if (!config.schema || !config.schema.methods || !config.schema.methods[options.methodName]) {
-        calls[call] = Date.now();
-        _this.log.$$TRACE("calling %s '%s' as default async", options.methodCategory, call);
-        let emptyDependencies = JSON.stringify(config.dependencies) === JSON.stringify({});
-
-        if (options.methodCategory === 'startMethod' && !_this._mesh.ignoreDependenciesOnStartup) {
-          if (config.dependencies && !emptyDependencies) {
-            if (
-              _this._mesh.clusterClient &&
-              _this._mesh.clusterClient.__implementors.addAndCheckDependencies(
-                componentName,
-                config.dependencies
-              )
-            ) {
-              return _this.componentAsyncMethod(
-                componentName,
-                component,
-                options,
-                calls,
-                call,
-                done
-              );
-            }
-            return _this.deferStartMethod(componentName, component, options, calls, call, done);
-          }
-        }
-        return _this.componentAsyncMethod(componentName, component, options, calls, call, done);
-      }
-
-      var methodConfig = config.schema.methods[options.methodName];
-      var methodParameters = (methodConfig.parameters ? methodConfig.parameters : [])
-        .map(function (p) {
-          return p.value;
-        })
-        .filter(function (p) {
-          // Assumes startMthod and stopMethod schema either defines values
-          // or are optional. Filter out undefines.
-          // IMPORTANT because otherwise method receives (undefined, undefined, undefined, callback)
-          return typeof p !== 'undefined';
-        });
-
-      if (methodConfig.type === 'sync') {
-        _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
-        component.instance.operate(options.methodName, methodParameters, (e) => {
-          if (options.logAction) {
-            _this.log.debug("%s component '%s'", options.logAction, componentName);
-          }
-          if (e) {
-            _this.log.error(
-              `sync operation failed for component: ${componentName}, error: ${e.message}`
-            );
-          }
-        });
-        return done();
-      }
-
       calls[call] = Date.now();
-      _this.log.$$TRACE("calling %s '%s' as configured async", options.methodCategory, call);
-      component.instance.operate(options.methodName, methodParameters, function (e, responseArgs) {
-        delete calls[call];
-        if (e) return done(e);
-        if (options.logAction) {
-          _this.log.debug("%s component '%s'", options.logAction, componentName);
-        }
-        done.apply(_this, responseArgs);
-      });
+
+      const methodArguments = this.getMethodArguments(methodConfig, options, true);
+      const methodOptions = Object.assign({ methodArguments }, options);
+
+      this.log.$$TRACE(
+        `calling %s '%s' as type: ${methodConfig?.type || 'unconfigured'}`,
+        options.methodCategory,
+        call
+      );
+
+      if (
+        options.methodCategory === 'startMethod' &&
+        !this._mesh.ignoreDependenciesOnStartup &&
+        !commons._.isEmpty(config.dependencies)
+      ) {
+        // we need to wait for dependencies to have started
+        return this.possiblyDeferStartup(
+          componentName,
+          config,
+          component,
+          methodOptions,
+          calls,
+          call,
+          eachComponentCallback
+        );
+      }
+      this.componentAsyncMethod(
+        componentName,
+        component,
+        methodOptions,
+        calls,
+        call,
+        eachComponentCallback
+      );
     },
-    function (e) {
-      callback(e, _this);
+    (e) => {
+      callback(e, this);
     }
   );
 };
