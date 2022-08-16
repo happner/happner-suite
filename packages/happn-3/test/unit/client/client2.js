@@ -121,6 +121,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     happnClient.__prepareInstanceOptions({});
     test.expect(happnClient.options).to.eql({
       retryOnSocketErrorMaxInterval: 120e3,
+      reconnectWait: 1000,
       callTimeout: 60000,
       defaultVariableDepth: 5,
       host: '127.0.0.1',
@@ -156,6 +157,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     });
     test.expect(happnClient.options).to.eql({
       retryOnSocketErrorMaxInterval: 120e3,
+      reconnectWait: 1000,
       keyPair: {
         publicKey: 123,
         privateKey: 456,
