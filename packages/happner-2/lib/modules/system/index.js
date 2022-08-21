@@ -1,6 +1,7 @@
-var os = require('os');
-var procStats = require('proc-stats');
-var Logger = require('happn-logger');
+const os = require('os');
+const procStats = require('proc-stats');
+const Logger = require('happn-logger');
+const heapdump = require('heapdump');
 
 module.exports = function () {
   return new SystemComponent();
@@ -25,6 +26,16 @@ class SystemComponent {
   compactDBFile($happn, callback) {
     return $happn._mesh.happn.server.services.data.compact(callback);
   }
+
+  async gcHeapDump(path = '/') {
+    require('expose-gc');
+    global.gc();
+    if (path[-1] !== '/') path += '/';
+    const filePath = path + Date.now() + '.heapsnapshot';
+    heapdump.writeSnapshot(filePath);
+    return filePath;
+  }
+
   getStats($happn, callback) {
     try {
       var now = Date.now();

@@ -305,6 +305,7 @@ Mesh.prototype.__initialize = function (config, callback) {
   }
 
   _this.startupProgress = function (log, progress) {
+    _this.log.debug(`startup progress: ${log}`);
     __emit('startup-progress', { log: log, progress: progress });
   };
 
@@ -620,8 +621,16 @@ Mesh.prototype.start = util.promisify(function (callback) {
   _this.waiting = setInterval(function () {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
       _this.log.warn("awaiting startMethod '%s'", name);
+      // if (_this._mesh.clusterClient && _this.deferredStartCalls) {
+      //   const componentName = name.split('.')[0];
+      //   const config = _this.deferredStartCalls[componentName];
+      //   _this._mesh.clusterClient.__implementors.addAndCheckDependencies(
+      //     componentName,
+      //     config.dependencies
+      //   );
+      // }
     });
-  }, _this._mesh.config.waitingInterval || 30e3);
+  }, _this._mesh.config.waitingInterval || 5e3);
 
   _this.impatient = setTimeout(function () {
     Object.keys(_this._mesh.calls.starting).forEach(function (name) {
@@ -1030,6 +1039,7 @@ Mesh.prototype._initializeGlobalMiddleware = function (callback) {
 Mesh.prototype._initializeElements = function (config, callback) {
   var _this = this;
 
+  // happens in parallel in case there are dependencies
   return async.parallel(
     Object.keys(config.components).map(function (componentName) {
       return function (callback) {
@@ -1268,8 +1278,10 @@ Mesh.prototype._createElement = util.promisify(function (spec, writeSchema, call
           // It is still necessary to refresh the description to that the
           // api can be built for the new component.
           //
+          _this.log.debug(`registering schema without writing it`);
           return _this._registerSchema(config, false, done);
         }
+        _this.log.debug(`registering schema writeSchema: ${writeSchema}`);
         _this._registerSchema(config, writeSchema, done);
       },
       function (done) {
@@ -1317,9 +1329,13 @@ Mesh.prototype._createElement = util.promisify(function (spec, writeSchema, call
         return done();
       },
       function (done) {
-        if (!spec.component.config || !spec.component.config.startMethod) return done();
+        if (!spec.component.config || !spec.component.config.startMethod) {
+          return done();
+        }
 
-        if (!_this._mesh.started) return done(); //start will be called when mesh
+        if (!_this._mesh.started) {
+          return done(); //start will be called when mesh starts
+        }
 
         _this._eachComponentDo(
           {
@@ -1910,10 +1926,12 @@ Mesh.prototype._registerSchema = function (config, writeSchema, callback) {
     _this.log.$$TRACE(
       '_registerSchema( description with name: %s',
       description.name,
-      writeSchema ? description : null
+      writeSchema ? JSON.stringify(description) : null
     );
 
     if (!writeSchema) return callback();
+
+    _this.log.debug(`writing registered schema`);
 
     var filteredConfig = _this._filterConfig(config);
 
@@ -2006,11 +2024,23 @@ Mesh.prototype.componentAsyncMethod = function (
   );
 };
 
-Mesh.prototype.deferStartMethod = function (componentName, component, options, calls, call, done) {
-  if (this._mesh.clusterClient)
+Mesh.prototype.deferStartMethod = function (
+  componentName,
+  config,
+  component,
+  options,
+  calls,
+  call,
+  done
+) {
+  if (this._mesh.clusterClient) {
+    this.deferredStartCalls = this.deferredStartCalls || {};
+    this.deferredStartCalls[componentName] = config;
     this._mesh.clusterClient.on(`${componentName}/startup/dependencies/satisfied`, () => {
       this.componentAsyncMethod(componentName, component, options, calls, call, done);
+      delete this.deferredStartCalls[componentName];
     });
+  }
 };
 
 Mesh.prototype.possiblyDeferStartup = function (
@@ -2029,6 +2059,9 @@ Mesh.prototype.possiblyDeferStartup = function (
       config.dependencies
     )
   ) {
+    this.log.$$TRACE(
+      `deferred start method for component ${componentName} called as dependencies met on startup`
+    );
     // all dependencies have started so we can start
     return this.componentAsyncMethod(
       componentName,
@@ -2040,8 +2073,15 @@ Mesh.prototype.possiblyDeferStartup = function (
     );
   }
   // wait for cluster dependencies to be satisfied
+  this.log.$$TRACE(
+    `start method for component ${componentName} deferred, waiting for dependencies to start`
+  );
+  this.log.$$TRACE(
+    `dependencies for deferred start of component: ${JSON.stringify(config.dependencies)}`
+  );
   return this.deferStartMethod(
     componentName,
+    config,
     component,
     options,
     calls,

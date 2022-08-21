@@ -1,10 +1,11 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
-  var server;
+  var server, adminUser;
 
   before('start server', function (done) {
     this.timeout(5000);
 
     test.Mesh.create({
+      secure: true,
       name: 'MESH_NAME',
       happn: {},
       modules: {},
@@ -31,4 +32,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       .then(done)
       .catch(done);
   });
+  it('can get do a heapdump from a remote admin session', async () => {
+    await connectAdminUser();
+    await adminUser.exchange.system.gcHeapDump();
+  });
+
+  async function connectAdminUser() {
+    adminUser = new test.Mesh.MeshClient({ secure: true });
+    await adminUser.login({
+      username: '_ADMIN',
+      password: 'happn',
+    });
+  }
 });

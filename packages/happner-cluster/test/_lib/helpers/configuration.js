@@ -49,7 +49,9 @@ module.exports = class Configuration extends require('./helper') {
       replicate,
       nameSuffix
     );
-    return _.defaultsDeep(base, this.get(test, index));
+    const constructed = _.defaultsDeep(base, this.get(test, index));
+    console.log(JSON.stringify(constructed));
+    return constructed;
   }
 
   base(index, seqIndex, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix = '') {
