@@ -18,6 +18,7 @@
     this.log = happnerClient.log;
     this.connection = connection;
     this.dependencies = {};
+    this.localDescriptions = [];
     this.descriptions = [];
     this.maps = {};
 
@@ -49,6 +50,7 @@
   }
 
   ImplementorsProvider.prototype.clear = function () {
+    this.localDescriptions = [];
     this.maps = {};
     this.descriptions = [];
     this.callersAwaitingDescriptions = [];
@@ -86,6 +88,7 @@
 
         if (cluster) {
           this.name = client.session.happn.name;
+          this.addLocalDescription(description);
         } else {
           this.addDescription(description);
         }
@@ -93,10 +96,8 @@
         if (cluster && description.brokered) {
           if (!client.session.info) client.session.info = {};
           client.session.info.clusterName = description.meshName;
-          // ignores mesh 1
           return onIgnore(`ignoring brokered description for peer: ${client.session.happn.name}`);
         }
-        // adds mesh 2, this is mesh 1
         this.addDescription(description);
       }
       onSuccess(description);
@@ -126,13 +127,14 @@
     var peer = this.connection.clients.peers[name];
     var onSuccess = function (description) {
       var clonedDescription = Object.assign({}, description);
+      _this.log.debug('logging dependencies met on addPeer');
       _this.logDependenciesMet(clonedDescription);
     };
     var onFailure = function (e) {
-      _this.happnerClient.log.error('failed to get description for %s', name, e);
+      _this.log.error('failed to get description for %s', name, e);
     };
     var onIgnore = function (reason) {
-      _this.happnerClient.log.debug(reason);
+      _this.log.debug(reason);
     };
 
     this.getSingleDescription(peer.client, peer.self, true, onSuccess, onFailure, onIgnore);
@@ -169,6 +171,7 @@
         }
         _this.gotDescriptions = true;
         _this.callersAwaitingDescriptions = false;
+        _this.log.debug('logging dependencies met on fetched descriptions');
         _this.logDependenciesMet(description);
       };
 
@@ -219,6 +222,10 @@
         );
       }
     });
+  };
+
+  ImplementorsProvider.prototype.addLocalDescription = function (description) {
+    this.localDescriptions.push(description);
   };
 
   ImplementorsProvider.prototype.addDescription = function (description) {
@@ -334,6 +341,7 @@
     version
   ) {
     if (!dependorName) return; // no $happn.name, not in cluster
+    this.log.debug(`registering dependency: ${dependorName}.${componentName}@${version}`);
     this.dependencies[dependorName] = this.dependencies[dependorName] || {};
     this.dependencies[dependorName][componentName] = version;
   };
@@ -343,12 +351,19 @@
     Object.keys(dependencies).forEach((component) => {
       this.registerDependency(dependor, component, dependencies[component].version);
     });
+    this.log.debug('logging dependencies met on add and check dependencies');
     return this.logDependenciesMet(this.descriptions);
   };
 
   ImplementorsProvider.prototype.logDependenciesMet = function (descriptions) {
-    if (!this.gotDescriptions) return false;
-    if (!this.dependencies || Object.keys(this.dependencies).length === 0) return true;
+    if (!this.gotDescriptions) {
+      this.log.debug('logging dependencies met false, gotDescriptions false');
+      return false;
+    }
+    if (!this.dependencies || Object.keys(this.dependencies).length === 0) {
+      this.log.debug('logging dependencies met true, no dependencies');
+      return true;
+    }
 
     let allSatisfied = true;
     Object.keys(this.dependencies).forEach((dependorName) => {
@@ -357,6 +372,11 @@
         tree: this.dependencies[dependorName],
         keys: Object.keys(this.dependencies[dependorName]),
       };
+      if (dependencies.keys.length > 0) {
+        this.log.debug(
+          `logging dependencies ${dependencies.keys.join(',')} met for dependor ${dependorName}`
+        );
+      }
       dependencies.keys.forEach((componentName) => {
         let version = dependencies.tree[componentName];
         let countMatches = this.countDependencyMatches(componentName, version);
@@ -370,7 +390,7 @@
         this.__getUpdatedDependencyDescriptions(descriptions, componentName, version).forEach(
           (foundComponentDescription) => {
             if (!foundComponentDescription.self) {
-              this.happnerClient.emit('peer/arrived/description', {
+              let arrivedData = {
                 dependorName: dependorName,
                 countMatches: countMatches,
                 componentName: componentName,
@@ -378,7 +398,9 @@
                 description: foundComponentDescription.components[componentName],
                 url: foundComponentDescription.url,
                 meshName: foundComponentDescription.meshName,
-              });
+              };
+              this.log.debug(`emitting peer/arrived/description: ${JSON.stringify(arrivedData)}`);
+              this.happnerClient.emit('peer/arrived/description', arrivedData);
             }
           }
         );
@@ -412,11 +434,22 @@
   };
 
   ImplementorsProvider.prototype.countDependencyMatches = function (componentName, version) {
+    this.log.debug(`counting dependency matches for ${componentName}@${version}`);
     var count = 0;
-    this.descriptions.forEach(function (description) {
-      if (!description.components[componentName]) return;
-      var gotVersion = description.components[componentName].version;
-      if (!semver.coercedSatisfies(gotVersion, version)) return;
+    this.descriptions.concat(this.localDescriptions).forEach((description) => {
+      this.log.debug(`looking in description ${description.name}`);
+      if (!description.components[componentName]) {
+        this.log.debug(`component ${componentName} not found in description`);
+        return;
+      }
+      const gotVersion = description.components[componentName].version;
+      this.log.debug(`component ${componentName}@${gotVersion} found in description`);
+      if (!semver.coercedSatisfies(gotVersion, version)) {
+        this.log.debug(
+          `component ${componentName}@${gotVersion} not satisfied against required version: ${version}`
+        );
+        return;
+      }
       count++;
     });
     return count;

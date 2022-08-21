@@ -8,7 +8,8 @@ module.exports = class Cluster extends Helper {
       data: [],
     };
     this.member = {
-      start: async (configuration, wait) => {
+      start: async (configuration, waitAfter, wait = 0) => {
+        await this.delay(wait);
         // before you think you can tidy this up, we need to use the callback, otherwise the we cannot move on to start other test peers
         HappnerCluster.create(configuration, (e, instance) => {
           if (e) {
@@ -24,7 +25,7 @@ module.exports = class Cluster extends Helper {
           });
           this.instances.push(instance);
         });
-        await this.delay(wait);
+        await this.delay(waitAfter);
       },
     };
     this.component = {
