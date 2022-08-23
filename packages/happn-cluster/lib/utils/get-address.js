@@ -1,4 +1,5 @@
-// return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
+// return specific address on specific NIC, or first external ipv4 address on specific NIC or eth0 (default)
+// if eth0 is not found, set the default interface to ens33 (consistent network device naming)
 // os and env arguments make the code testable
 module.exports = function (logger, env, os) {
   logger = logger || console;
@@ -8,8 +9,12 @@ module.exports = function (logger, env, os) {
     let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
 
-    if (!interfaces[networkInterfaceId]) {
-      return getFirstAvailableAddress(networkInterfaceId, logger, os);
+    if (!(networkInterfaceId in interfaces)) {
+      if ('ens33' in interfaces) {
+        networkInterfaceId = 'ens33';
+      } else {
+        return getFirstAvailableAddress(networkInterfaceId, logger, os);
+      }
     }
 
     let interfaceItemIndex = parseInt(env['NETWORK_INTERFACE'] || 0);
@@ -23,28 +28,28 @@ module.exports = function (logger, env, os) {
 function getFirstAvailableAddress(interfaceId, logger, os) {
   const interfaces = os.networkInterfaces();
   const candidates = Object.keys(interfaces)
-    .sort()
-    .reduce((candidates, interfaceKey) => {
-      let found = interfaces[interfaceKey];
-      found.forEach((interfaceItem, interfaceItemIndex) => {
-        if (
-          !interfaceItem.internal &&
-          [4, 'IPv4'].includes(interfaceItem.family) &&
-          interfaceItem.address.indexOf('169.254') !== 0
-        ) {
-          candidates.push({
-            nic: interfaceKey,
-            index: interfaceItemIndex,
-            address: interfaceItem.address,
-          });
-        }
-      });
-      return candidates;
-    }, []);
+      .sort()
+      .reduce((candidates, interfaceKey) => {
+        let found = interfaces[interfaceKey];
+        found.forEach((interfaceItem, interfaceItemIndex) => {
+          if (
+              !interfaceItem.internal &&
+              [4, 'IPv4'].includes(interfaceItem.family) &&
+              interfaceItem.address.indexOf('169.254') !== 0
+          ) {
+            candidates.push({
+              nic: interfaceKey,
+              index: interfaceItemIndex,
+              address: interfaceItem.address,
+            });
+          }
+        });
+        return candidates;
+      }, []);
 
   if (candidates.length > 0) {
     logger.warn(
-      `get address for SWIM or cluster: interface with id [${interfaceId}] not found or address index out of bounds - dynamically resolved to address [${candidates[0].address}] on NIC [${candidates[0].nic}]`
+        `get address for SWIM or cluster: interface with id [${interfaceId}] not found or address index out of bounds - dynamically resolved to address [${candidates[0].address}] on NIC [${candidates[0].nic}]`
     );
     return candidates[0].address;
   }
