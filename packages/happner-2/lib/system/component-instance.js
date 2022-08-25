@@ -140,17 +140,17 @@ module.exports = class ComponentInstance {
     this.#attach(config, mesh._mesh, callback);
   }
 
-  #getCallbackIndex(methodSchema) {
-    if (this.#callbackIndexes[methodSchema.name] == null) {
+  #getCallbackIndex(methodName, methodSchema) {
+    if (this.#callbackIndexes[methodName] == null) {
       for (var i in methodSchema.parameters) {
         if (methodSchema.parameters[i].type === 'callback') {
-          this.#callbackIndexes[methodSchema.name] = i;
+          this.#callbackIndexes[methodName] = i;
           return i;
         }
       }
-      this.#callbackIndexes[methodSchema.name] = -1;
+      this.#callbackIndexes[methodName] = -1;
     }
-    return this.#callbackIndexes[methodSchema.name];
+    return this.#callbackIndexes[methodName];
   }
 
   #getCallbackProxy(methodName, callback, origin) {
@@ -193,7 +193,7 @@ module.exports = class ComponentInstance {
             callback
           );
         }
-        let callbackIndex = this.#getCallbackIndex(methodSchema);
+        let callbackIndex = this.#getCallbackIndex(methodName, methodSchema);
 
         if (version != null && !this.#satisfies(this.#module.version, version)) {
           return this.#callBackWithWarningAndError(
