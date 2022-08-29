@@ -182,6 +182,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   var happnUtils = require('../../../lib/system/utilities');
 
   var mock$Happn = {
+    as: () => {
+      return mock$Happn;
+    },
     log: {
       error: test.sinon.stub(),
       warn: test.sinon.stub(),
@@ -428,14 +431,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     var RestModule = require('../../../lib/modules/rest/index.js');
     var restModule = new RestModule();
 
-    //$happn._mesh.happn.services.security
-
     mockLogin(restModule, function (e) {
       if (e) return done(e);
 
-      //req, res, $happn, $origin, uri, successful
-
       mock$Happn._mesh.happn.server.services.security = {
+        users: {
+          userBelongsToGroups: () => {
+            return new Promise((resolve) => {
+              resolve(true);
+            });
+          },
+        },
         authorize: function (origin, accessPoint, action, callback) {
           try {
             test.expect(origin.test).to.be('data');
@@ -473,7 +479,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       };
 
       restModule.__securityService = mock$Happn._mesh.happn.server.services.security;
-      restModule.__authorize(mockResponse, mock$Happn, mock$Origin, 'test/method', done);
+      restModule.__validateCredentialsGetOrigin(
+        mock$Happn,
+        mock$Origin,
+        mockResponse,
+        'testComponent/methodName1',
+        'testUser',
+        (authorizedOrigin) => {
+          test.expect(authorizedOrigin.username).to.be('testUser');
+          done();
+        }
+      );
     });
   });
 
@@ -520,7 +536,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       if (e) return done(e);
 
       mock$Happn._mesh.happn.server.services.security = {
-        authorize: function (origin, accessPoint, action, callback) {
+        authorize: function (_origin, _accessPoint, _action, callback) {
           callback(null, true);
         },
       };
@@ -1046,7 +1062,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
                     )
                     .on('complete', function (result) {
                       test.expect(result.data.userValue).to.eql(testUser.username);
-                      test.expect(result.data.$origin.username).to.be('_ADMIN');
+                      test.expect(result.data.$origin.username).to.be(testUser.username);
                       test.expect(result.data.$userSession.username).to.be(testUser.username);
 
                       done();

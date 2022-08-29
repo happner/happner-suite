@@ -89,3 +89,14 @@ happner-client: 12.2.8
 redis-lru-cache: 1.0.12
 happner-cluster: 12.1.9
 happn-cluster: 12.0.12
+
+1.5.0 2022-08-07
+----------------
+- TEN-31: on behalf of
+happn-3: 13.2.0
+happner-2: 12.2.0
+happner-client: 12.3.0
+happner-cluster: 12.2.0
+happn-cluster: 12.0.13
+happn-db-provider-elasticsearch: 1.0.13
+happn-db-provider-mongo: 1.0.13

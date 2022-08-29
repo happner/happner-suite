@@ -412,15 +412,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
 
     it('fails to call an internal function that is forbidden by an unauthorized user', async () => {
-      let message;
+      let message, result;
       try {
-        await clientTest.exchange.$call({
+        result = await clientTest.exchange.$call({
           component: 'component',
           method: 'exec',
         });
       } catch (e) {
         message = e.message;
       }
+      test.expect(result).to.be(undefined);
       test.expect(message).to.be('unauthorized');
     });
 

@@ -27,11 +27,11 @@ Security.prototype.__createSystemGroup = function (name, adminUser, permissions,
 
 Security.prototype.__createSystemGroups = function (adminUser, callback) {
   async.eachSeries(
-    ['_MESH_ADM', '_MESH_GST'],
+    ['_MESH_ADM', '_MESH_GST', '_MESH_DELEGATE'],
     (groupName, eachCallback) => {
       let permissions;
 
-      if (groupName === '_MESH_ADM')
+      if (groupName === '_MESH_ADM') {
         permissions = {
           '/mesh/*': {
             actions: ['*'],
@@ -46,7 +46,8 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             description: 'mesh system permission',
           },
         };
-      if (groupName === '_MESH_GST')
+      }
+      if (groupName === '_MESH_GST') {
         permissions = {
           '/mesh/schema/*': {
             actions: ['get', 'on'],
@@ -61,6 +62,23 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             description: 'mesh system request permission',
           },
         };
+      }
+      if (groupName === '_MESH_DELEGATE') {
+        permissions = {
+          '/mesh/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+          '/_exchange/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+          '/_events/*': {
+            actions: ['*'],
+            description: 'mesh system permission',
+          },
+        };
+      }
       this.__createSystemGroup(groupName, adminUser, permissions, eachCallback);
     },
     callback
@@ -145,10 +163,11 @@ Security.prototype.getComponentId = function () {
 };
 
 Security.prototype.__validateRequest = function (methodName, callArguments, callback) {
-  if (!this.__initialized)
+  if (!this.__initialized) {
     return callback(
       new Error('security module not initialized, is your happn configured to be secure?')
     );
+  }
 
   if (methodName === 'updateOwnUser') {
     var sessionInfo = callArguments[1];
@@ -270,16 +289,12 @@ Security.prototype.getSystemPermissions = function ($happn, params, callback) {
 };
 
 Security.prototype.__getPermissionPath = function ($happn, rawPath, prefix, wildcard) {
-  var meshName = $happn.info.mesh.domain;
-
+  const meshName = $happn.info.mesh.domain;
   //we add a wildcard to the end of the path
   // eslint-disable-next-line no-useless-escape
   if (wildcard) rawPath = rawPath.replace(/[\/*]+$/, '') + '/*';
-
   if (rawPath.substring(0, 1) !== '/') rawPath = '/' + rawPath;
-
   if (rawPath.indexOf('/' + meshName) === -1) rawPath = rawPath.replace('/', '/' + meshName + '/');
-
   return '/' + prefix + rawPath;
 };
 
@@ -863,27 +878,56 @@ Security.prototype.unlinkAnonymousGroup = function ($happn, groupName, callback)
   });
 };
 
+Security.prototype.__getGroupIfString = function (group, callback) {
+  if (typeof group !== 'string') return callback(null, group);
+  this.__securityService.groups.getGroup(group, (e, foundGroup) => {
+    if (e) return callback(e);
+    if (!foundGroup) return callback(new Error('group with name ' + group + ' does not exist'));
+    return callback(null, foundGroup);
+  });
+};
+
+Security.prototype.__getUserIfString = function (user, callback) {
+  if (typeof user !== 'string') return callback(null, user);
+  this.__securityService.users.getUser(user, (e, foundUser) => {
+    if (e) return callback(e);
+    if (!foundUser) return callback(new Error('user with name ' + user + ' does not exist'));
+    return callback(null, foundUser);
+  });
+};
+
 Security.prototype.linkGroup = function ($happn, group, user, callback) {
   this.__validateRequest('linkGroup', arguments, (e) => {
     if (e) return callback(e);
-    this.__securityService.users.linkGroup(
-      this.__transformMeshGroup($happn, group),
-      user,
-      {},
-      callback
-    );
+    this.__getGroupIfString(group, (e, foundGroup) => {
+      if (e) return callback(e);
+      this.__getUserIfString(user, (e, foundUser) => {
+        if (e) return callback(e);
+        const transformedGroup = this.__transformMeshGroup($happn, foundGroup);
+        this.__securityService.users.linkGroup(transformedGroup, foundUser, {}, (e, result) => {
+          if (e) return callback(e);
+          callback(null, result);
+        });
+      });
+    });
   });
 };
 
 Security.prototype.unlinkGroup = function ($happn, group, user, callback) {
   this.__validateRequest('unlinkGroup', arguments, (e) => {
     if (e) return callback(e);
-    this.__securityService.users.unlinkGroup(
-      this.__transformMeshGroup($happn, group),
-      user,
-      {},
-      callback
-    );
+    this.__getGroupIfString(group, (e, foundGroup) => {
+      if (e) return callback(e);
+      this.__getUserIfString(user, (e, foundUser) => {
+        if (e) return callback(e);
+        this.__securityService.users.unlinkGroup(
+          this.__transformMeshGroup($happn, foundGroup),
+          foundUser,
+          {},
+          callback
+        );
+      });
+    });
   });
 };
 

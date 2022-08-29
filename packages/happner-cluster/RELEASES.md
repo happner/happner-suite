@@ -389,6 +389,11 @@
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
 
+12.2.0 2022-08-07
+-----------------
+  - TEN-31: onbehalf of / as
+
+
 
 
 

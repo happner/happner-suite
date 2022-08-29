@@ -31,19 +31,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     );
   });
 
-  after(function (done) {
-    this.timeout(20000);
+  // test.printOpenHandlesAfter(5e3);
 
-    adminClient.disconnect();
-
-    setTimeout(function () {
-      mesh.stop({ reconnect: false }, () => {
-        setTimeout(() => {
-          //log();
-          done();
-        }, 11000);
-      });
-    }, 2000);
+  after(async () => {
+    await testClient.disconnect();
+    await adminClient.disconnect();
+    await mesh.stop({ reconnect: false });
   });
 
   var eventsToFire = {

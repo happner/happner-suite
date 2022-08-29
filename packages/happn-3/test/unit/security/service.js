@@ -170,7 +170,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         cache: {},
         data: {},
         crypto: {},
-        security: {},
+        security: {
+          secure: true,
+        },
       },
     };
 
@@ -181,6 +183,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     testServices.data = require('../../../lib/services/data/service');
     testServices.security = require('../../../lib/services/security/service');
     testServices.session = require('../../../lib/services/session/service');
+    testServices.system = require('../../../lib/services/system/service');
     testServices.utils = require('../../../lib/services/utils/service');
     testServices.error = require('../../../lib/services/error/service');
     testServices.log = require('../../../lib/services/log/service');
@@ -207,7 +210,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     if (servicesConfig) testConfig = servicesConfig;
 
     test.async.eachSeries(
-      ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
+      ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'system', 'security'],
       function (serviceName, eachServiceCB) {
         testServices[serviceName] = new testServices[serviceName]({
           logger: Logger,
@@ -2427,9 +2430,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession = function (
-        username,
-        onBehalfOf,
+      happnMock.services.security.getOnBehalfOfSession = function (
+        _username,
+        _onBehalfOf,
+        _sessionType,
         getOnBehalfOfCallback
       ) {
         getOnBehalfOfCallback(null, {
@@ -2493,9 +2497,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession = function (
-        username,
-        onBehalfOf,
+      happnMock.services.security.getOnBehalfOfSession = function (
+        _username,
+        _onBehalfOf,
+        _sessionType,
         getOnBehalfOfCallback
       ) {
         getOnBehalfOfCallback(null, {
@@ -2559,9 +2564,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession = function (
-        username,
-        onBehalfOf,
+      happnMock.services.security.getOnBehalfOfSession = function (
+        _username,
+        _onBehalfOf,
+        _sessionType,
         getOnBehalfOfCallback
       ) {
         getOnBehalfOfCallback(null, {
@@ -2625,9 +2631,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession = function (
-        username,
-        onBehalfOf,
+      happnMock.services.security.getOnBehalfOfSession = function (
+        _username,
+        _onBehalfOf,
+        _sessionType,
         getOnBehalfOfCallback
       ) {
         getOnBehalfOfCallback(null, null);
@@ -2682,9 +2689,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession = function (
-        username,
-        onBehalfOf,
+      happnMock.services.security.getOnBehalfOfSession = function (
+        _username,
+        _onBehalfOf,
+        _sessionType,
         getOnBehalfOfCallback
       ) {
         getOnBehalfOfCallback(null, {
@@ -2728,7 +2736,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests the __getOnBehalfOfSession method - uncached', function (done) {
+  it('tests the getOnBehalfOfSession method - uncached', function (done) {
     mockServices(function (e, happnMock) {
       if (e) return done(e);
 
@@ -2762,16 +2770,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession(session, onBehalfOf, (e, onBehalfOf) => {
+      happnMock.services.security.getOnBehalfOfSession(session, onBehalfOf, 0, (e, onBehalfOf) => {
         if (e) return done(e);
         test.expect(fetchedUserFromDb).to.be(true);
         test.expect(onBehalfOf.user).to.eql({
           username: 'test-user',
           groups: {},
         });
-        test.expect(onBehalfOf.happn).to.eql({
-          happn: 'info',
-        });
+        test.expect(onBehalfOf.happn.secure).to.eql(false);
+        test.expect(typeof onBehalfOf.happn.name).to.be('string');
+        test.expect(onBehalfOf.type).to.eql(0);
         test.expect(wasCached.user).to.eql({
           username: 'test-user',
           groups: {},
@@ -2781,7 +2789,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   }).timeout(5000);
 
-  it('tests the __getOnBehalfOfSession method - cached', function (done) {
+  it('tests the getOnBehalfOfSession method - cached', function (done) {
     mockServices(function (e, happnMock) {
       if (e) return done(e);
 
@@ -2816,7 +2824,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         });
       };
 
-      happnMock.services.security.__getOnBehalfOfSession(session, onBehalfOf, (e, onBehalfOf) => {
+      happnMock.services.security.getOnBehalfOfSession(session, onBehalfOf, 1, (e, onBehalfOf) => {
         if (e) return done(e);
         test.expect(fetchedUserFromDb).to.be(false);
         test.expect(onBehalfOf.user).to.eql({
