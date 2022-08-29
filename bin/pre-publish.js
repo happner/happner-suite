@@ -30,7 +30,7 @@ Promise.all(
       console.log('scanning package: ', metaDataItem.data.name);
       const newVersion = localPackage.version;
       const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
-      console.log('highest current version:', lastVersion);
+      console.log(`highest current version:${lastVersion}, local version: ${newVersion}`);
       const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
         publishOrder: getPackagePublishOrder(localPackage.name),

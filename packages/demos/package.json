@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "happner-cluster": "^12.1.9",
+    "happner-cluster": "^12.2.0",
     "happn-commons-test": "^1.1.0"
   }
 }
