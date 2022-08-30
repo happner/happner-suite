@@ -6,6 +6,12 @@ describe(test.name(__filename, 2), function () {
 
   beforeEach(function () {
     mockClient = {
+      log: {
+        debug: () => {},
+        info: () => {},
+        error: () => {},
+        trace: () => {},
+      },
       on: () => {},
       emit: () => {},
     };
@@ -536,6 +542,12 @@ describe(test.name(__filename, 2), function () {
       var i;
 
       mockClient = {
+        log: {
+          debug: () => {},
+          info: () => {},
+          error: () => {},
+          trace: () => {},
+        },
         on: function (event, handler) {
           test.expect(event).to.be('reconnected');
           setTimeout(function () {
@@ -555,6 +567,12 @@ describe(test.name(__filename, 2), function () {
       var i;
 
       mockClient = {
+        log: {
+          debug: () => {},
+          info: () => {},
+          error: () => {},
+          trace: () => {},
+        },
         on: function (event, handler) {
           test.expect(event).to.be('reconnected');
           setTimeout(function () {
@@ -576,6 +594,12 @@ describe(test.name(__filename, 2), function () {
 
     beforeEach(function () {
       mockClient = {
+        log: {
+          debug: () => {},
+          info: () => {},
+          error: () => {},
+          trace: () => {},
+        },
         on: function () {},
         emit: function () {},
       };
@@ -640,6 +664,12 @@ describe(test.name(__filename, 2), function () {
 
     beforeEach(function () {
       mockClient = {
+        log: {
+          debug: () => {},
+          info: () => {},
+          error: () => {},
+          trace: () => {},
+        },
         on: function () {},
         emit: function () {},
       };

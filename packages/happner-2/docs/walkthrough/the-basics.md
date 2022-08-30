@@ -117,28 +117,26 @@ module.exports = {
 
   // Datalayer and network layer are the same thing.
   happn: {
-    // host: '0.0.0.0',
-    port: 50505,    // Listening port
-    persist: false, // Persist data across restarts? (later)
-    secure: false,  // Secure? (later)
-  },
+      // host: '0.0.0.0',
+      port: 50505,    // Listening port
+      persist: false, // Persist data across restarts? (later)
+      secure: false,  // Secure? (later)
+    },
 
 
-  // // modules only necessary upon deviation from default
-  // // https://github.com/happner/happner/blob/master/docs/configuration.md#module-config
-  // modules: {
-  //   'master': {
-  //     path: 'to/alternative/location'
-  //   }
-  // },
+    // // modules only necessary upon deviation from default
+    // // https://github.com/happner/happner/blob/master/docs/configuration.md#module-config
+    // modules: {
+    //   'master': {
+    //     path: 'to/alternative/location'
+    //   }
+    // },
 
-  // Include master as component
-  // It assumes that 'master' is an installed node_module which exports 1 class
-  components: {
-    'master': {
+    // Include master as component
+    // It assumes that 'master' is an installed node_module which exports 1 class
+    components: {
+      'master': {}
     }
-  }
-
 }
 ```
 
@@ -290,7 +288,7 @@ module.exports = {
       config: {
         host: process.env.MASTER_IP,
         port: process.env.MASTER_PORT,
-        // // Secure? (later)
+        // // secure? (later)
         // username: '',
         // password: '',
       }

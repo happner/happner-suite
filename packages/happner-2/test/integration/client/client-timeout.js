@@ -10,12 +10,8 @@ TestMesh.prototype.method1 = function ($happn, callback) {
 
 if (global.TESTING_D9 || global.TESTING_D9_1) return; // When 'requiring' the module above,
 // don't run the tests below
-//.............
 
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
-  //require('benchmarket').start();
-  //after(//require('benchmarket').store());
-
   var defaultConfigMesh;
   var Mesh = require('../../..');
   var timeoutConfigMesh = new Mesh();
@@ -147,7 +143,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   it('runs a method on the default configured mesh', function (done) {
     defaultConfigClient.exchange.TestMesh.method1(function (e) {
-      test.expect(e).to.be('Request timed out');
+      test.expect(e.message).to.be('Request timed out');
       done();
     });
   });

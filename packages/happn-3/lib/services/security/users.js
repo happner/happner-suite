@@ -38,6 +38,7 @@ SecurityUsers.prototype.removePermission = removePermission;
 SecurityUsers.prototype.upsertPermission = upsertPermission;
 SecurityUsers.prototype.validateDeleteUser = validateDeleteUser;
 SecurityUsers.prototype.upsertPermissions = util.maybePromisify(upsertPermissions);
+SecurityUsers.prototype.userBelongsToGroups = util.maybePromisify(userBelongsToGroups);
 
 /**
  * Clones the passed in user, and generates a hash of the users password to be pushed into the data store.
@@ -71,15 +72,27 @@ function initialize(config, securityService, callback) {
       cache: config.__cache_users,
     });
 
-    if (!config.__cache_users_by_groups)
+    if (!config.__cache_users_by_groups) {
       config.__cache_users_by_groups = {
         max: 10e3,
         maxAge: 0,
       };
+    }
     this.__cache_users_by_groups = UsersByGroupCache.create(
       this.cacheService,
       config.__cache_users_by_groups
     );
+
+    if (!config.__cache_groups_by_user) {
+      config.__cache_groups_by_user = {
+        max: 10e3,
+        maxAge: 0,
+      };
+    }
+    this.__cache_groups_by_user = this.cacheService.create('cache_groups_by_user', {
+      type: 'LRU',
+      cache: config.__cache_groups_by_user,
+    });
     //backward compatibility after taking groups methods out
     this.unlinkGroup = this.groups.unlinkGroup.bind(this.groups);
     this.linkGroup = this.groups.linkGroup.bind(this.groups);
@@ -115,6 +128,7 @@ function clearCaches(whatHappnd, changedData) {
   if (whatHappnd == null) {
     this.__cache_passwords.clear();
     this.__cache_users.clear();
+    this.__cache_groups_by_user.clear();
     this.__cache_users_by_groups.clear();
     this.permissionManager.cache.clear();
     return;
@@ -124,6 +138,7 @@ function clearCaches(whatHappnd, changedData) {
     whatHappnd === SD_EVENTS.UNLINK_GROUP ||
     whatHappnd === SD_EVENTS.LINK_GROUP
   ) {
+    this.__cache_groups_by_user.clear();
     let groupName;
     if (whatHappnd === SD_EVENTS.DELETE_GROUP) groupName = changedData.obj.name;
     if (whatHappnd === SD_EVENTS.LINK_GROUP) groupName = changedData._meta.path.split('/').pop();
@@ -135,27 +150,23 @@ function clearCaches(whatHappnd, changedData) {
   if (whatHappnd === SD_EVENTS.PERMISSION_REMOVED || whatHappnd === SD_EVENTS.PERMISSION_UPSERTED) {
     if (changedData.username) {
       this.__cache_users.remove(changedData.username);
-      if (this.permissionManager) this.permissionManager.cache.remove(changedData.username);
+      if (this.permissionManager) {
+        this.permissionManager.cache.remove(changedData.username);
+      }
     }
   }
 
-  return new Promise((resolve, reject) => {
-    try {
-      if (whatHappnd === SD_EVENTS.UPSERT_USER || whatHappnd === SD_EVENTS.DELETE_USER) {
-        const userName =
-          whatHappnd === SD_EVENTS.UPSERT_USER
-            ? changedData.username
-            : changedData.obj._meta.path.replace('/_SYSTEM/_SECURITY/_USER/', '');
-        this.__cache_users_by_groups.userChanged(userName);
-        this.__cache_passwords.remove(userName);
-        this.__cache_users.remove(userName);
-        if (this.permissionManager) this.permissionManager.cache.remove(userName);
-      }
-      return resolve();
-    } catch (e) {
-      reject(e);
-    }
-  });
+  if (whatHappnd === SD_EVENTS.UPSERT_USER || whatHappnd === SD_EVENTS.DELETE_USER) {
+    const userName =
+      whatHappnd === SD_EVENTS.UPSERT_USER
+        ? changedData.username
+        : changedData.obj._meta.path.replace('/_SYSTEM/_SECURITY/_USER/', '');
+    this.__cache_users_by_groups.userChanged(userName);
+    this.__cache_passwords.remove(userName);
+    this.__cache_users.remove(userName);
+    this.__cache_groups_by_user.remove(userName);
+    if (this.permissionManager) this.permissionManager.cache.remove(userName);
+  }
 }
 
 function __validate(validationType, options, obj, callback) {
@@ -405,7 +416,26 @@ function __linkGroupsToUser(user, callback) {
   });
 }
 
+function userBelongsToGroups(username, groupNames, callback) {
+  if (!Array.isArray(groupNames)) {
+    return callback(new Error('groupNames must be an array'));
+  }
+  // TODO: possible optimisation for caching at this level
+  this.getGroupMemberships(username, (e, memberships) => {
+    if (e) return callback(e);
+    if (groupNames.length === 0) return callback(null, false);
+    const userGroupNames = memberships.map((membership) => membership.groupName);
+    const belongs = groupNames.every((element) => {
+      return userGroupNames.includes(element);
+    });
+    callback(null, belongs);
+  });
+}
+
 function getGroupMemberships(username, callback) {
+  if (this.__cache_groups_by_user.has(username)) {
+    return callback(null, this.__cache_groups_by_user.get(username));
+  }
   const userPath = `/_SYSTEM/_SECURITY/_USER/${username}`;
   this.dataService.get(
     `${userPath}/_USER_GROUP/*`,
@@ -416,19 +446,18 @@ function getGroupMemberships(username, callback) {
     },
     (e, userGroups) => {
       if (e) return callback(e);
-      callback(
-        null,
-        userGroups
-          .filter((userGroup) => {
-            return userGroup._meta.path.indexOf(`${userPath}/`) === 0;
-          })
-          .map((membership) => {
-            return {
-              groupName: membership._meta.path.replace(`${userPath}/_USER_GROUP/`, ''),
-              membership: commons._.omit(membership, '_meta'),
-            };
-          })
-      );
+      const filtered = userGroups
+        .filter((userGroup) => {
+          return userGroup._meta.path.indexOf(`${userPath}/`) === 0;
+        })
+        .map((membership) => {
+          return {
+            groupName: membership._meta.path.replace(`${userPath}/_USER_GROUP/`, ''),
+            membership: commons._.omit(membership, '_meta'),
+          };
+        });
+      this.__cache_groups_by_user.set(username, filtered);
+      callback(null, filtered);
     }
   );
 }

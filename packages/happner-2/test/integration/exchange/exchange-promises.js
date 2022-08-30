@@ -23,8 +23,9 @@ SeeAbove.prototype.callCallbackTwice = function (opts, callback) {
   }, 100);
 };
 
-SeeAbove.prototype.fireAndForget = function () {
-  //do nothing
+SeeAbove.prototype.fireAndForget = function (arg) {
+  //just echo the argument
+  return arg;
 };
 
 SeeAbove.prototype.promiseMethod = util.promisify(function (opts, callback) {
@@ -272,8 +273,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('supports calling a promise from a method on the exchange', function (done) {
-    this.timeout(1500);
-
     this.mesh.exchange.component
       .promiseCaller({ number: 1 })
 
@@ -329,20 +328,19 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       });
   });
 
-  it('does not time out a sync function', function (done) {
+  it('sync function without callback gets exposed over the exchange', function (done) {
     this.timeout(2500);
 
     this.mesh.exchange.component
       .fireAndForget({ number: 1 })
-      .then(function () {
-        // should never get here
-        done(new Error('Should not get a result'));
+      .then(function (result) {
+        // gets here even if we have not specified a callback
+        test.expect(result).to.eql({ number: 1 });
+        done();
       })
       .catch(function (err) {
         done(err);
       });
-
-    setTimeout(done, 2000);
   });
 
   it('does not fire a callback twice', function (done) {

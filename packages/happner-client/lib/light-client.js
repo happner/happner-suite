@@ -110,6 +110,7 @@
   };
 
   LightHappnerClient.prototype.__exchangeCall = function (parameters, callback) {
+    let origin = parameters.as ? { username: parameters.as, override: true } : parameters.origin;
     if (!callback)
       return new Promise((resolve, reject) => {
         this.__operations.request(
@@ -123,7 +124,7 @@
             if (args.length === 2) return resolve(args[1]);
             resolve(args.slice(1));
           },
-          parameters.origin
+          origin
         );
       });
     this.__operations.request(
@@ -137,7 +138,7 @@
         if (args.length === 2) return callback(null, args[1]);
         callback(...args);
       },
-      parameters.origin
+      origin
     );
   };
 
