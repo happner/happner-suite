@@ -121,6 +121,10 @@ module.exports = class ComponentInstanceBoundFactory {
       value: this.#componentInstance.info,
       writable: false,
     });
+    Object.defineProperty(bound, 'config', {
+      value: this.#componentInstance.config,
+      writable: false,
+    });
     Object.defineProperty(bound, 'log', {
       value: this.#componentInstance.log,
       writable: false,
@@ -141,7 +145,10 @@ module.exports = class ComponentInstanceBoundFactory {
       },
     });
     const boundOrigin = Object.assign({}, origin, { override: true, type: sessionType });
-    bound.bound = boundOrigin;
+    Object.defineProperty(bound, 'bound', {
+      value: boundOrigin,
+      writable: false,
+    });
 
     bound.data = require('./component-instance-data').create(
       this.#mesh.data,

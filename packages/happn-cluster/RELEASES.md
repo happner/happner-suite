@@ -294,5 +294,3 @@ non-release 2017-12-14
 -----------------
   - TEN-31: updated unit tests
 
-
-

@@ -24,36 +24,34 @@ Promise.all(
 )
   .then((metaData) => {
     console.log('fetched data from npm');
-    packagesMetaData = metaData
-      .map((metaDataItem) => {
-        let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
-        if (!localPackage) return null;
-        console.log('scanning package: ', metaDataItem.data.name);
-        const newVersion = localPackage.version;
-        const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
-        console.log('highest current version:', lastVersion);
-        const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
-        return {
-          publishOrder: getPackagePublishOrder(localPackage.name),
-          isPrerelease,
-          versionJumped: newVersion !== lastVersion,
-          versionJumpMadeSense: versionJumpMadeSense(
-            newVersion,
-            lastVersion,
-            localPackage.name,
-            isPrerelease
-          ),
+    packagesMetaData = metaData.map((metaDataItem) => {
+      let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
+      if (!localPackage) return null;
+      console.log('scanning package: ', metaDataItem.data.name);
+      const newVersion = localPackage.version;
+      const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
+      console.log(`highest current version:${lastVersion}, local version: ${newVersion}`);
+      const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
+      return {
+        publishOrder: getPackagePublishOrder(localPackage.name),
+        isPrerelease,
+        versionJumped: newVersion !== lastVersion,
+        versionJumpMadeSense: versionJumpMadeSense(
           newVersion,
           lastVersion,
-          name: metaDataItem.data.name,
-          workspaceDependencies: getWorkspaceDependencies(localPackage).concat(
-            getWorkspaceDependencies(localPackage, true)
-          ),
-          releasesUpToDate: checkReleasesUpToDate(localPackage),
-          possibleOnlyInTests: checkOnlyInTests(localPackage),
-        };
-      })
-      .filter((item) => item !== null);
+          localPackage.name,
+          isPrerelease
+        ),
+        newVersion,
+        lastVersion,
+        name: metaDataItem.data.name,
+        workspaceDependencies: getWorkspaceDependencies(localPackage).concat(
+          getWorkspaceDependencies(localPackage, true)
+        ),
+        releasesUpToDate: checkReleasesUpToDate(localPackage),
+        possibleOnlyInTests: checkOnlyInTests(localPackage),
+      };
+    }).filter((item) => item !== null);
     console.log('fetching master package...');
     return require('axios').default.get(
       `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
@@ -69,7 +67,7 @@ Promise.all(
 
 function getVersionObject(versionString) {
   const split = versionString.split('.');
-  const versionObject = {
+  const versionObject= {
     versionString,
     major: parseInt(split[0]),
     minor: parseInt(split[1]),
@@ -81,8 +79,8 @@ function getVersionObject(versionString) {
 
 function getLatestNonPrereleaseVersion(versions) {
   const nonPrereleaseVersions = Object.keys(versions)
-    .map((versionString) => getVersionObject(versionString))
-    .filter((versionObject) => {
+    .map(versionString => getVersionObject(versionString))
+    .filter(versionObject => {
       return versionObject.isPrerelease === false;
     });
 
@@ -230,9 +228,8 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
   }
 }
 
-function getWorkspaceDependencies(workspacePackage, dev) {
-  let dependencyGraph =
-    dev === true ? workspacePackage.devDependencies : workspacePackage.dependencies;
+function getWorkspaceDependencies(package, dev) {
+  let dependencyGraph = dev === true ? package.devDependencies : package.dependencies;
   if (dependencyGraph == null) return [];
   return Object.keys(dependencyGraph)
     .filter((depdendencyName) => workspacePackageNames.indexOf(depdendencyName) > -1)
