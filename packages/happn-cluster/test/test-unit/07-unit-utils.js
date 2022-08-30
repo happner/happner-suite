@@ -304,6 +304,61 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     testAddressCorrect('en0', 'eth0');
   });
 
+  it('tests log warning', () => {
+    let mockLogger = {
+      warn: test.sinon.stub(),
+    };
+    let getAddress = testGetAddress(mockLogger, {
+      NETWORK_INTERFACE_ID: 'eth1',
+      NETWORK_INTERFACE: 1,
+    });
+    getAddress({
+      eth2: [
+        {
+          address: '190.254.0.3',
+          family: 'IPv4',
+        },
+        {
+          address: '190.254.0.4',
+          family: 'IPv4',
+        },
+      ],
+    });
+    test
+      .expect(mockLogger.warn.lastCall.args[0])
+      .to.be(
+        'get address for SWIM or cluster: interface with id [eth1] not found or address index out of bounds - dynamically resolved to address [190.254.0.3] on NIC [eth2]'
+      );
+    getAddress = testGetAddress(mockLogger, {
+      NETWORK_INTERFACE_ID: 'eth2',
+      NETWORK_INTERFACE: 3,
+    });
+    getAddress({
+      eth2: [
+        {
+          address: '190.254.0.3',
+          family: 'IPv4',
+        },
+        {
+          address: '190.254.0.4',
+          family: 'IPv4',
+        },
+      ],
+    });
+    test
+      .expect(mockLogger.warn.lastCall.args[0])
+      .to.be(
+        'get address for SWIM or cluster: interface with id [eth2] not found or address index out of bounds - dynamically resolved to address [190.254.0.3] on NIC [eth2]'
+      );
+  });
+
+  it('covers just running as standard', () => {
+    let address = require('../../lib/utils/get-address')()();
+    const regexExp =
+      /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/gi;
+    test.expect(regexExp.test(address)).to.be(true);
+  });
+
   function testAddressCorrect(specifiedInterfaceId, badInterfaceId) {
     let logs = [];
     let mockLogger = {
