@@ -2,9 +2,9 @@
   return specific address on specified* NIC
   - if not found or is not suitable* will look for first address on specific NIC
   - if not found or is not suitable* will look through some default nics ('eth0', 'ens33', 'en0', 'en1')
-  - if not found or is not suitable* will find the first nic with an suitable address
+  - if not found or is not suitable* will find the first nic with a suitable address
   * suitable addresses must be IPv4, and must not be a system address (ie: internal or private)
-  * if not specified will find the first nic with an suitable* address
+  * if not specified will find the first nic with a suitable* address
 */
 module.exports = function (logger, env, os) {
   // env and os are only passed in for testing purposes
