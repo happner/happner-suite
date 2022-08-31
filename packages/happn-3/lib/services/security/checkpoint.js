@@ -235,7 +235,6 @@ CheckPoint.prototype.__checkUsageLimit = function (session, policy) {
 
 CheckPoint.prototype.__checkSessionPermissions = function (policy, path, action, session) {
   let permissionSet = this.__createPermissionSet(policy.permissions, session);
-  console.log('permissionSet', permissionSet);
 
   return this.__authorized(permissionSet, path, action);
 };
