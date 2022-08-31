@@ -8,7 +8,8 @@ module.exports = function (
   hosts,
   joinTimeout,
   replicate,
-  logFile
+  logFile,
+  cacheStatisticsInterval
 ) {
   let [first, seq] = extendedSeq;
   var clusterRequestTimeout = requestTimeout ? requestTimeout : 10 * 1000;
@@ -39,7 +40,7 @@ module.exports = function (
       services: {
         cache: {
           config: {
-            statisticsInterval: 3e3,
+            statisticsInterval: cacheStatisticsInterval,
           },
         },
         security: {

@@ -1,6 +1,7 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
   var happnerInstance1 = null;
   var happnerInstance2 = null;
+  let client;
 
   var serviceConfig1 = {
     happn: {
@@ -208,6 +209,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
     }
   });
 
+  afterEach(async () => {
+    if (client) {
+      await client.disconnect();
+    }
+  });
+
   after(function (done) {
     if (happnerInstance1)
       happnerInstance1
@@ -228,7 +235,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
   });
 
   var getClient = function (options, credentials, callback) {
-    var client = new test.Mesh.MeshClient(options);
+    client = new test.Mesh.MeshClient(options);
 
     client
       .login(credentials)
