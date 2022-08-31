@@ -1,5 +1,5 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-describe.only(test.testName(__filename), function () {
+describe(test.testName(__filename), function () {
   this.timeout(5000);
   const sinon = require('sinon');
   var expect = require('expect.js');
@@ -8,6 +8,7 @@ describe.only(test.testName(__filename), function () {
   var Logger = require('happn-logger');
   var EventEmitter = require('events').EventEmitter;
   var Checkpoint = require('../../../lib/services/security/checkpoint');
+  var PermissionsTree = require('../../../lib/services/security/permissions-tree');
 
   const generatePermissionSetKey = (user) => {
     const permissionSetKey = require('crypto')
@@ -1248,7 +1249,7 @@ describe.only(test.testName(__filename), function () {
     pushSpy.restore();
   });
 
-  it.skip('tests _authorizeSession function, limited token permissions', async function () {
+  it('tests _authorizeSession function, limited token permissions', async function () {
     const mockConfig = {};
     const mockSecurityService = {
       users: {
@@ -1297,8 +1298,6 @@ describe.only(test.testName(__filename), function () {
       type: 'mockPolicy',
     };
 
-    const pushSpy = test.sinon.spy(Array.prototype, 'push');
-
     Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
 
     const result = Checkpoint.prototype._authorizeSession(
@@ -1310,13 +1309,11 @@ describe.only(test.testName(__filename), function () {
 
     test.chai.expect(result).to.equal(3);
     test.chai
-      .expect(pushSpy)
+      .expect(callback2)
       .to.have.been.calledWithExactly(null, false, 'token permissions limited');
-
-    pushSpy.restore();
   });
 
-  it.only('tests _authorizeSession function, limited token permissions', async function () {
+  it('tests _authorizeSession function, returns callbackArgs, __authorized returns true ', async function () {
     const mockConfig = {};
     const mockSecurityService = {
       users: {
@@ -1348,6 +1345,9 @@ describe.only(test.testName(__filename), function () {
       },
     };
 
+    const searchStub = test.sinon.stub(PermissionsTree.prototype, 'search');
+    searchStub.returns(['mockPath']);
+
     const mockSession = {
       id: 1,
       happn: 'happn',
@@ -1358,9 +1358,15 @@ describe.only(test.testName(__filename), function () {
       policy: {
         mockPolicy: {
           permissions: {
-            mockPerm1: 'perm1',
-            mockPerm2: 'perm2',
-            mockPerm3: 'perm3',
+            mockPerm1: {
+              perm1: 'testing',
+            },
+            mockPerm2: {
+              perm2: 'testing',
+            },
+            mockPerm3: {
+              perm3: 'testing',
+            },
           },
           inactivity_threshold: null,
           usage_limit: null,
@@ -1369,21 +1375,418 @@ describe.only(test.testName(__filename), function () {
       type: 'mockPolicy',
     };
 
-    const pushSpy = test.sinon.spy(Array.prototype, 'push');
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    const result = Checkpoint.prototype._authorizeSession(
+      mockSession,
+      'mockPath',
+      'mockPath',
+      callback2
+    );
+
+    test.chai.expect(result).to.equal(4);
+    test.chai.expect(callback2).to.have.been.calledWithExactly(null, true, null, true);
+
+    searchStub.restore();
+  });
+
+  it('tests _authorizeSession function, action as login', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub();
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(23134324) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const searchStub = test.sinon.stub(PermissionsTree.prototype, 'search');
+    searchStub.returns(['mockPath']);
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: false,
+      policy: {
+        mockPolicy: {
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
 
     Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
 
     const result = Checkpoint.prototype._authorizeSession(
       mockSession,
-      'mockPerm1',
-      'mockAction',
+      'mockPath',
+      'login',
       callback2
     );
 
     test.chai.expect(result).to.equal(4);
-    test.chai.expect(pushSpy).to.have.been.calledWithExactly(null, true, null, true);
+    test.chai.expect(callback2).to.have.been.calledWithExactly(null, true, null, true);
 
-    pushSpy.restore();
+    searchStub.restore();
+  });
+
+  it('tests _authorizeSession function, throws error', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub();
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(23134324) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const searchStub = test.sinon.stub(PermissionsTree.prototype, 'search');
+    searchStub.throws(new Error('test error'));
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: false,
+      policy: {
+        mockPolicy: {
+          permissions: {},
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
+
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    const result = Checkpoint.prototype._authorizeSession(
+      mockSession,
+      'mockPath',
+      'mockAction',
+      callback2
+    );
+
+    test.chai.expect(result).to.equal(1);
+    test.chai
+      .expect(callback2)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+
+    searchStub.restore();
+  });
+
+  it('tests _authorizeUser function, returns callback with authorized if it is not null', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub().returns('mockResult');
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(23134324) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: false,
+      policy: {
+        mockPolicy: {
+          permissions: {},
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
+
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    const result = Checkpoint.prototype._authorizeUser(
+      mockSession,
+      'mockPath',
+      'mockAction',
+      callback2
+    );
+
+    test.chai.expect(result).to.equal('mockResult');
+    test.chai.expect(callback2).to.have.been.calledWithExactly(null, 23134324);
+  });
+
+  it('tests _authorizeUser function, returns callback with authorized if it is not null', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub().returns('mockResult');
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(23134324) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: false,
+      policy: {
+        mockPolicy: {
+          permissions: {},
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
+
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    const result = Checkpoint.prototype._authorizeUser(
+      mockSession,
+      'mockPath',
+      'mockAction',
+      callback2
+    );
+
+    test.chai.expect(result).to.equal('mockResult');
+    test.chai.expect(callback2).to.have.been.calledWithExactly(null, 23134324);
+  });
+
+  it('tests _authorizeUser function, callback gets called with error', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+        getUser: test.sinon.stub().callsFake((_, cb) => {
+          cb(new Error('test error'), _);
+        }),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub().returns('mockResult');
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(null) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: true,
+      policy: {
+        mockPolicy: {
+          permissions: {},
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
+
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    Checkpoint.prototype._authorizeUser(mockSession, 'mockPath', 'mockAction', callback2);
+
+    test.chai
+      .expect(callback2)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+  });
+
+  it.skip('tests', async function () {
+    const mockConfig = {};
+    const mockSecurityService = {
+      groups: {
+        getGroup: test.sinon.stub().callsFake((_, __, cb) => {
+          cb(null, {
+            permissions: {
+              //   test: 'test',
+            },
+          });
+        }),
+      },
+      generatePermissionSetKey: test.sinon.stub(),
+      users: {
+        attachPermissions: test.sinon.stub().resolves('preparedUser'),
+        getUser: test.sinon.stub().callsFake((_, cb) => {
+          cb(null, 'user');
+        }),
+      },
+      lookupTables: {
+        authorizeCallback: test.sinon.stub().callsFake((_, __, ___, cb) => {
+          cb(null, 'mockAuthorized');
+        }),
+      },
+    };
+    const callback1 = test.sinon.stub();
+    const callback2 = test.sinon.stub().returns('mockResult');
+
+    Checkpoint.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon
+            .stub()
+            .returns({ set: test.sinon.stub(), get: test.sinon.stub().returns(null) }),
+        },
+        error: '',
+        session: {
+          on: test.sinon.stub(),
+        },
+        utils: {
+          clone: test.sinon.stub(),
+        },
+      },
+    };
+
+    const searchStub = test.sinon.stub(PermissionsTree.prototype, 'search').returns(['mockPath']);
+
+    const mockSession = {
+      id: 1,
+      happn: 'happn',
+      user: {
+        groups: 'hello',
+      },
+      isToken: false,
+      policy: {
+        mockPolicy: {
+          permissions: {
+            mockPerm1: {
+              perm1: 'testing',
+            },
+          },
+          inactivity_threshold: null,
+          usage_limit: null,
+        },
+      },
+      type: 'mockPolicy',
+    };
+
+    Checkpoint.prototype.initialize(mockConfig, mockSecurityService, callback1);
+
+    Checkpoint.prototype._authorizeUser(mockSession, 'mockPath', 'mockAction', callback2);
+
+    searchStub.restore();
   });
 
   function mockLookup(checkpoint, error, response) {

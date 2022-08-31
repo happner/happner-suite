@@ -119,6 +119,7 @@ CheckPoint.prototype.__createPermissionSet = function (permissions, identity) {
         // if your permissions or context are structured strangely - the permissions are simply not updated
         this.log.warn(`failed creating permission set: ${e.message}`);
       }
+
       return permissionSet;
     }, {}),
     this.utilsService
@@ -235,7 +236,6 @@ CheckPoint.prototype.__checkUsageLimit = function (session, policy) {
 
 CheckPoint.prototype.__checkSessionPermissions = function (policy, path, action, session) {
   let permissionSet = this.__createPermissionSet(policy.permissions, session);
-  console.log('permissionSet', permissionSet);
 
   return this.__authorized(permissionSet, path, action);
 };
