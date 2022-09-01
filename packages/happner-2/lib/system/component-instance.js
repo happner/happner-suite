@@ -234,6 +234,12 @@ module.exports = class ComponentInstance {
           } catch (syncErr) {
             syncError = syncErr;
           }
+          if (callbackIndex > -1) {
+            this.#log.warn(
+              `method ${this.name}.${methodName} has been configured as a sync with a callback...`
+            );
+            return;
+          }
           // the method was classified as sync but still called the callback
           if (!callbackProxy.wasCalled) {
             callbackProxy(syncError, result);
@@ -266,7 +272,9 @@ module.exports = class ComponentInstance {
 
         if (utilities.isPromise(returnObject)) {
           if (callbackIndex > -1 && utilities.isPromise(returnObject)) {
-            this.#log.warn('method has been configured as a promise with a callback...');
+            this.#log.warn(
+              'method ${this.name}.${methodName} has been configured as a promise with a callback...'
+            );
           } else {
             returnObject
               .then(function (result) {
