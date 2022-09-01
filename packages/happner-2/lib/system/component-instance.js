@@ -273,7 +273,7 @@ module.exports = class ComponentInstance {
         if (utilities.isPromise(returnObject)) {
           if (callbackIndex > -1 && utilities.isPromise(returnObject)) {
             this.#log.warn(
-              'method ${this.name}.${methodName} has been configured as a promise with a callback...'
+              `method [${this.name}.${methodName}] has been configured as a promise with a callback`
             );
           } else {
             returnObject
