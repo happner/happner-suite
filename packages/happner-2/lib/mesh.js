@@ -2024,13 +2024,13 @@ Mesh.prototype.possiblyDeferStartup = function (
 ) {
   if (
     this._mesh.clusterClient &&
-    this._mesh.clusterClient.__implementors.addAndCheckDependencies(
+    !this._mesh.clusterClient.__implementors.addAndCheckDependencies(
       componentName,
       config.dependencies
     )
   ) {
-    // all dependencies have started so we can start
-    return this.componentAsyncMethod(
+    // wait for cluster dependencies to be satisfied
+    return this.deferStartMethod(
       componentName,
       component,
       options,
@@ -2039,8 +2039,8 @@ Mesh.prototype.possiblyDeferStartup = function (
       eachComponentCallback
     );
   }
-  // wait for cluster dependencies to be satisfied
-  return this.deferStartMethod(
+  // all dependencies have started so we can start
+  return this.componentAsyncMethod(
     componentName,
     component,
     options,
