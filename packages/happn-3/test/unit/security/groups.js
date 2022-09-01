@@ -1,5 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 const SecurityGroups = require('../../../lib/services/security/groups');
+const PermissionManager = require('../../../lib/services/security/permissions');
 
 describe(test.testName(__filename, 3), function () {
   this.timeout(10000);
@@ -812,6 +813,55 @@ describe(test.testName(__filename, 3), function () {
     test.chai.expect(options).to.have.been.calledWithExactly(null, 'mockResult');
   });
 
+  it.only('tests unlinkGroup function', () => {
+    const group = {
+      name: 'mockName',
+      permissions: 'mockPermissions',
+    };
+    const user = { username: 'mockUsername' };
+    const groupLinkPath =
+      '/_SYSTEM/_SECURITY/_USER/' + user.username + '/_USER_GROUP/' + group.name;
+    const options = test.sinon.stub();
+    const callback = null;
+
+    SecurityGroups.prototype.__cache_groups = {
+      get: test.sinon.stub().returns(null),
+      set: test.sinon.stub(),
+      remove: test.sinon.stub(),
+    };
+
+    SecurityGroups.prototype.dataService = {
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb();
+      }),
+      upsert: test.sinon.stub(),
+      remove: test.sinon.stub().callsFake((groupLinkPath, _, cb) => {
+        test.chai
+          .expect(groupLinkPath)
+          .to.equal('/_SYSTEM/_SECURITY/_USER/' + user.username + '/_USER_GROUP/' + group.name);
+        cb(null, 'mockResult');
+      }),
+      extractData: test.sinon.stub(),
+    };
+
+    SecurityGroups.prototype.securityService = {
+      users: {
+        getUser: test.sinon.stub().callsFake((username, cb) => {
+          cb(null, 'mockUser');
+        }),
+      },
+      dataChanged: test.sinon.stub().callsFake((_, __, ___, cb) => {
+        test.chai.expect(_).to.equal(CONSTANTS.SECURITY_DIRECTORY_EVENTS.UNLINK_GROUP);
+        test.chai.expect(__).to.eql({ path: groupLinkPath, permissions: group.permissions });
+        test.chai.expect(___).to.eql({ username: 'mockUsername' });
+
+        cb(null, 'mockUser');
+      }),
+    };
+
+    SecurityGroups.prototype.unlinkGroup(group, user, options, callback);
+  });
+
   it('tests initialize function, callback gets callsed with error', () => {
     const mockConfig = {
       persistPermissions: false,
@@ -951,5 +1001,43 @@ describe(test.testName(__filename, 3), function () {
       ]);
     test.chai.expect(callback).to.have.been.calledWithExactly();
     test.chai.expect(callback).to.have.callCount(1);
+  });
+
+  it('tests listPermissions function', () => {
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const callback = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub(),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const permManagerStub = test.sinon.stub(PermissionManager, 'create').returns({
+      listPermissions: test.sinon.stub().returns('mockList'),
+    });
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+    const result = SecurityGroups.prototype.listPermissions('mockGroupName');
+
+    test.chai.expect(result).to.equal('mockList');
+
+    permManagerStub.restore();
   });
 });
