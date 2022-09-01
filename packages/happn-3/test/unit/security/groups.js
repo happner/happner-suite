@@ -856,4 +856,52 @@ describe(test.testName(__filename, 3), function () {
         test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
       );
   });
+
+  it('tests initialize function, calls _this.dataService.addDataProviderPatterns', () => {
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const callback = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub(),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub().callsFake((_, __, cb) => {
+            test.chai.expect(_).to.equal(0);
+            test.chai.expect(__).to.eql({
+              name: 'volatile_permissions',
+              provider: 'memory',
+              settings: {},
+              patterns: ['/_SYSTEM/_SECURITY/_PERMISSIONS/*'],
+            });
+
+            cb();
+          }),
+          addDataProviderPatterns: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    test.chai
+      .expect(SecurityGroups.prototype.happn.services.data.addDataProviderPatterns)
+      .to.have.been.calledWithExactly('/_SYSTEM/_SECURITY/_GROUP', [
+        '/_SYSTEM/_SECURITY/_PERMISSIONS/_*',
+      ]);
+    test.chai.expect(callback).to.have.been.calledWithExactly();
+    test.chai.expect(callback).to.have.callCount(1);
+  });
 });
