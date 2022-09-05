@@ -8206,4 +8206,111 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
     test.chai.expect(mockCallback).to.have.callCount(1);
   });
+
+  it('tests __ensureAnonymousUser - returns anonymousUser', async () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    const mockConfig = {
+      allowAnonymousAccess: {},
+    };
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__initializeSessionTokenSecret',
+      '__initializeAuthProviders',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
+
+    serviceInst.users = {
+      getUser: test.sinon.stub().returns('test'),
+    };
+    serviceInst.config = {
+      allowAnonymousAccess: true,
+    };
+    serviceInst.groups = {
+      linkGroup: test.sinon.stub(),
+    };
+    serviceInst.happn = {
+      config: { disableDefaultAdminNetworkConnections: false },
+      services: {
+        cache: 'mockCache',
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
+
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.users.getUser).to.have.been.calledWithExactly('_ANONYMOUS');
+  });
+
+  it('tests __ensureAnonymousUser - returns users.__upsertUser', async () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    const mockConfig = {
+      allowAnonymousAccess: {},
+    };
+
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__initializeSessionTokenSecret',
+      '__initializeAuthProviders',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
+
+    serviceInst.users = {
+      getUser: test.sinon.stub().returns(null),
+      __upsertUser: test.sinon.stub(),
+    };
+    serviceInst.config = {
+      allowAnonymousAccess: true,
+    };
+    serviceInst.groups = {
+      linkGroup: test.sinon.stub(),
+    };
+    serviceInst.happn = {
+      config: { disableDefaultAdminNetworkConnections: false },
+      services: {
+        cache: 'mockCache',
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
+
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.users.getUser).to.have.been.calledWithExactly('_ANONYMOUS');
+    test.chai.expect(mockConfig.allowAnonymousAccess).to.not.be.null;
+    test.chai.expect(serviceInst.users.__upsertUser).to.have.been.calledWithExactly({
+      username: '_ANONYMOUS',
+      password: 'anonymous',
+    });
+  });
 });
