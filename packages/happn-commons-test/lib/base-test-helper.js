@@ -94,6 +94,21 @@ class TestHelper {
     });
   }
 
+  async tryDeleteTestFilesAfter(fileNames) {
+    after(() => {
+      fileNames.forEach((fileName) => {
+        try {
+          this.commons.fs.unlinkSync(fileName);
+          this.commons.fs.unlinkSync(
+            `${this.path.dirname(fileName)}${this.path.sep}temp_${this.path.basename(fileName)}`
+          ); // loki db's have matching temp files
+        } catch (e) {
+          // do nothing
+        }
+      });
+    });
+  }
+
   constructMock(props = [], obj) {
     return props.reduce((mock, prop) => {
       this._.set(mock, prop.path, prop.value);
@@ -116,6 +131,11 @@ class TestHelper {
     } catch (e) {
       return e.message;
     }
+  }
+
+  newTempFilename(ext, name) {
+    const fileName = `${this.testName(1)}-${this.newid()}`;
+    return this.path.resolve(`${this.tempDirectory()}${this.path.sep}${name || fileName}.${ext}`);
   }
 
   tempDirectory() {

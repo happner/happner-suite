@@ -1,8 +1,8 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test) => {
   const path = require('path');
   let server;
-  const test_id = Date.now() + '_' + require('shortid').generate();
-  const dbFileName = './temp/' + test_id + '.nedb';
+  const dbFileName = test.newTempFilename('loki');
+  test.tryDeleteTestFilesAfter([dbFileName]);
   let testUser = {
     username: 'happnTestuser@somewhere.com',
     password: 'password',

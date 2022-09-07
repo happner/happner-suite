@@ -183,10 +183,6 @@ class TestHelper extends BaseTestHelper {
       throw new Error('getRecordFromSmallFile failed: ' + e.toString(), e);
     }
   };
-
-  newTempFilename(ext) {
-    return this.path.resolve(`test/tmp/${this.newid()}.${ext}`);
-  }
   
   newTestFile (options) {
     if (!options) options = {};
