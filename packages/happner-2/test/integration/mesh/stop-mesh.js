@@ -69,11 +69,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             ['stopped components', 'stopped happn', 'unsubscribed from process events'].indexOf(
               item.message
             ) >= 0
-          )
+          ) {
             stopScore++;
+          }
         });
-
-        if (stopScore < 3) return done('stop events did not happen or were not logged properly');
+        if (stopScore < 3) {
+          test.log('bad stop logs: ', log.map((item) => item.message).join(','));
+          return done(new Error('stop events did not happen or were not logged properly'));
+        }
         done();
       });
     });
