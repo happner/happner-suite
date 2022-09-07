@@ -113,10 +113,33 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
     config.happn.host = parts[0];
     if (parts[1]) config.happn.port = parseInt(parts[1]);
   }
+  const tryStopMesh = function (mesh) {
+    delete root.nodes[mesh._mesh.config.name];
+    return new Promise((resolve) => {
+      mesh
+        .stop()
+        .then(resolve)
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.warn(`tried stoppping mesh on failed initialization: ${e.message}`);
+          resolve();
+        });
+    });
+  };
   new Mesh().initialize(config, function (err, mesh) {
-    if (err) return callback(err, mesh);
+    if (err) {
+      tryStopMesh(mesh).then(() => {
+        callback(err, mesh);
+      });
+      return;
+    }
     return mesh.start(function (err, mesh) {
-      if (err) return callback(err, mesh);
+      if (err) {
+        tryStopMesh(mesh).then(() => {
+          callback(err, mesh);
+        });
+        return;
+      }
       callback(null, mesh);
     });
   });

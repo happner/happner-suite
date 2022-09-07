@@ -47,7 +47,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   var mesh;
 
-  after(function (done) {
+  afterEach(function (done) {
     if (mesh) mesh.stop({ reconnect: false }, done);
   });
 
