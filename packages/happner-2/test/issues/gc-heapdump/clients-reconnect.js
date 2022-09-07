@@ -16,7 +16,7 @@ async function start() {
       try {
         for (let iii = 0; iii < CALLS; iii++) {
           await client.exchange.component.method1();
-          //await doRestCall(client);
+          await doRestCall(client);
           await delay(10);
           i++;
         }
