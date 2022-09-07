@@ -3189,7 +3189,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests doAuditData - auditData != null, callback have error', () => {
+  it('tests doAuditData - auditData != null, callback have error.', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -3224,7 +3224,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(mockCallback).to.have.been.calledWithExactly('tests error');
   });
 
-  it('tests doAuditData - auditData == null', () => {
+  it('tests doAuditData - auditData == null.', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -3249,7 +3249,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests getAuditData - message.response is an Array', () => {
+  it('tests getAuditData - message.response is an Array.', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -3277,7 +3277,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests getAuditData - message.response is not an Array', () => {
+  it('tests getAuditData - message.response is not an Array.', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -3305,7 +3305,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests getAuditData -should replace path with empty string', () => {
+  it('tests getAuditData - should replace path with empty string.', () => {
     const paths = ['/ALL@', '/SET@', '/REMOVE@'];
 
     paths.forEach((path) => {
@@ -3666,30 +3666,53 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const serviceInst = new SecurityService({
       logger: Logger,
     });
+    const mockCallback = test.sinon.stub();
     const mockConfig = {
       adminUser: { password: 'mockPassword' },
       adminGroup: {},
     };
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
+    serviceInst.happn = {
+      config: { disableDefaultAdminNetworkConnections: false },
+      services: {
+        cache: 'mockCache',
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
     serviceInst.groups = {
       __upsertGroup: test.sinon.stub(),
       linkGroup: test.sinon.stub(),
     };
     serviceInst.users = { getUser: test.sinon.stub(), __upsertUser: test.sinon.stub() };
 
-    await serviceInst.__ensureAdminUser(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
     test.chai.expect(mockConfig).to.eql({
-      adminGroup: {
-        name: '_ADMIN',
-        permissions: {
-          '*': { actions: ['*'] },
-        },
-      },
+      adminGroup: {},
       adminUser: {
         password: 'mockPassword',
-        username: '_ADMIN',
       },
+      cookieName: 'happn_token',
+      defaultNonceTTL: 60000,
+      lockTokenToLoginType: true,
+      logSessionActivity: false,
+      pbkdf2Iterations: 10000,
+      sessionActivityTTL: 86400000,
+      updateSubscriptionsOnSecurityDirectoryChanged: true,
     });
   });
 
@@ -3700,14 +3723,45 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockConfig = {
       allowAnonymousAccess: {},
     };
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__initializeSessionTokenSecret',
+      '__initializeAuthProviders',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
     serviceInst.users = {
       getUser: test.sinon.stub().returns('test'),
     };
+    serviceInst.config = {
+      allowAnonymousAccess: true,
+    };
+    serviceInst.groups = {
+      linkGroup: test.sinon.stub(),
+    };
+    serviceInst.happn = {
+      config: { disableDefaultAdminNetworkConnections: false },
+      services: {
+        cache: 'mockCache',
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
 
-    const result = serviceInst.__ensureAnonymousUser(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.equal('test');
+    test.chai.expect(serviceInst.users.getUser).to.not.be.null;
   });
 
   it('tests __ensureAnonymousUser - returns users.__upsertUser', async () => {
@@ -3718,14 +3772,54 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       allowAnonymousAccess: {},
     };
 
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__initializeSessionTokenSecret',
+      '__initializeAuthProviders',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
+
     serviceInst.users = {
       getUser: test.sinon.stub().returns(null),
-      __upsertUser: test.sinon.stub().returns('test'),
+      __upsertUser: test.sinon.stub(),
+    };
+    serviceInst.config = {
+      allowAnonymousAccess: true,
+    };
+    serviceInst.groups = {
+      linkGroup: test.sinon.stub(),
+    };
+    serviceInst.happn = {
+      config: { disableDefaultAdminNetworkConnections: false },
+      services: {
+        cache: 'mockCache',
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
     };
 
-    const result = serviceInst.__ensureAnonymousUser(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.equal('test');
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.users.getUser).to.have.been.calledWithExactly('_ANONYMOUS');
+    test.chai.expect(serviceInst.users.__upsertUser).to.have.been.calledOnceWithExactly({
+      username: '_ANONYMOUS',
+      password: 'anonymous',
+    });
+
+    test.chai.expect(mockConfig.allowAnonymousAccess).to.not.be.null;
   });
 
   it('test linkAnonymousGroup - throws new error when allow config.allowAnonymousAccess is falsy', async () => {
@@ -3736,11 +3830,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
     serviceInst.config = { allowAnonymousAccess: false };
 
-    try {
-      await serviceInst.linkAnonymousGroup(mockGroup);
-    } catch (error) {
-      test.chai.expect(error.message).to.equal('Anonymous access is not configured');
-    }
+    await test.chai
+      .expect(serviceInst.linkAnonymousGroup(mockGroup))
+      .to.eventually.be.rejectedWith('Anonymous access is not configured');
   });
 
   it('test linkAnonymousGroup - returns groups.linkGroup when config.allowAnonymousAccess is true', async () => {
@@ -3785,78 +3877,202 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     await test.chai.expect(result).to.eventually.equal('test');
   });
 
-  it('tests __initializeReplication - happn.services.replicator is false , replicator.on callback returns', () => {
+  it('tests __initializeReplication - happn.services.replicator is false , replicator.on callback returned', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
+    const mockConfig = {};
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__dataChangedQueue',
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+    ];
+
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
     serviceInst.happn = {
-      services: { replicator: { on: test.sinon.stub() } },
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        replicator: {
+          on: test.sinon.stub().callsFake((_, callback) => {
+            callback({}, true);
+          }),
+        },
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
     };
-    serviceInst.happn.services.replicator.on.callsFake((_, self) => {
-      self(null, 'mockSelf');
-    });
-    serviceInst.__initializeReplication();
 
-    test.chai.expect(serviceInst.happn.services.replicator).is.not.null;
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(serviceInst.happn.services.replicator.on)
+      .to.have.been.calledWithExactly('/security/dataChanged', test.sinon.match.func);
   });
 
-  it('tests __initializeReplication - happn.services.replicator is false , changedData.replicated is set to true', () => {
+  it('tests __initializeReplication - happn.services.replicator is false , changedData.replicated is set to true', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockPayload = {
-      whatHappnd: 'mockWhatHappnd',
-      changedData: {},
-      additionalInfo: 'mockAdditionalInfo',
-    };
+    const mockConfig = {};
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
+    serviceInst.replicated = test.sinon.stub();
     serviceInst.happn = {
-      services: { replicator: { on: test.sinon.stub() } },
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        replicator: {
+          on: test.sinon.stub().callsFake((_, callback) => {
+            const mockPayload = {
+              whatHappnd: {},
+              changedData: {},
+              additionalInfo: {},
+            };
+            callback(mockPayload, null);
+          }),
+        },
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
     };
-    serviceInst.happn.services.replicator.on.callsFake((_, self) => {
-      self(mockPayload, null);
-    });
 
-    serviceInst.__initializeReplication();
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    test.chai.expect(mockPayload).is.eql({
-      whatHappnd: 'mockWhatHappnd',
-      changedData: { replicated: true },
-      additionalInfo: 'mockAdditionalInfo',
-    });
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(serviceInst.happn.services.replicator.on)
+      .to.have.been.calledWithExactly('/security/dataChanged', test.sinon.match.func);
   });
 
   it('tests __initializeCheckPoint - promise is rejected ', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
+    const mockConfig = {};
+    const mockCallback = test.sinon.stub();
 
-    serviceInst.checkpoint = { initialize: test.sinon.stub() };
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
 
-    test.sinon.stub(CheckPoint.prototype, 'initialize').callsFake((_, __, callback) => {
-      callback('mockError');
-    });
+    serviceInst.__initializeGroups = test.sinon.stub();
 
-    const result = serviceInst.__initializeCheckPoint('mockConfig');
+    const stubInitialize = test.sinon
+      .stub(CheckPoint.prototype, 'initialize')
+      .callsFake((_, __, callback) => {
+        callback('mockError');
+      });
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(100);
+
+    test.chai.expect(stubInitialize).to.have.been.calledWithExactly(
+      {
+        updateSubscriptionsOnSecurityDirectoryChanged: true,
+        defaultNonceTTL: 60000,
+        logSessionActivity: false,
+        sessionActivityTTL: 86400000,
+        pbkdf2Iterations: 10000,
+        lockTokenToLoginType: true,
+        cookieName: 'happn_token',
+      },
+      test.sinon.match.instanceOf(Object),
+      test.sinon.match.func
+    );
+
+    stubInitialize.restore();
   });
 
   it('tests __initializeUsers - promise is rejected', async () => {
     const SecurityUsers = require('../../../lib/services/security/users');
-
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-
-    test.sinon.stub(SecurityUsers.prototype, 'initialize').callsFake((_, __, callback) => {
-      callback('mockError');
+    const mockConfig = {};
+    const mockCallback = test.sinon.stub();
+    const initializers = ['__initializeGroups', '__initializeCheckPoint'];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
     });
 
-    const result = serviceInst.__initializeUsers('mockConfig');
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    const stubInitialize = test.sinon
+      .stub(SecurityUsers.prototype, 'initialize')
+      .callsFake((_, __, callback) => {
+        callback('mockError');
+      });
+
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(stubInitialize).to.have.been.calledWithExactly(
+      {
+        updateSubscriptionsOnSecurityDirectoryChanged: true,
+        defaultNonceTTL: 60000,
+        logSessionActivity: false,
+        sessionActivityTTL: 86400000,
+        pbkdf2Iterations: 10000,
+        lockTokenToLoginType: true,
+        cookieName: 'happn_token',
+      },
+      test.sinon.match.instanceOf(Object),
+      test.sinon.match.func
+    );
+    stubInitialize.restore();
   });
 
   it('tests __initializeSessionTokenSecret - promise is rejected', async () => {
@@ -3864,19 +4080,47 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: Logger,
     });
     const mockConfig = { sessionTokenSecret: 'mockSessionTokenSecret' };
-
-    serviceInst.dataService = {
-      upsert: test.sinon.stub(),
-    };
-    serviceInst.dataService.upsert.callsFake((_, __, callback) => {
-      callback('mockError');
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
     });
 
-    serviceInst.__initializeSessionTokenSecret(mockConfig);
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+          upsert: test.sinon.stub().callsFake((_, __, callback) => {
+            callback('mockError');
+          }),
+        },
+      },
+    };
 
-    const result = serviceInst.__initializeSessionTokenSecret(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.happn.services.data.upsert).to.have.been.calledWithExactly(
+      '/_SYSTEM/_SECURITY/SESSION_TOKEN_SECRET',
+      {
+        secret: 'mockSessionTokenSecret',
+      },
+      test.sinon.match.func
+    );
   });
 
   it('tests __initializeSessionTokenSecret - promise is fulfilled', async () => {
@@ -3884,19 +4128,49 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: Logger,
     });
     const mockConfig = { sessionTokenSecret: 'mockSessionTokenSecret' };
-
-    serviceInst.dataService = {
-      upsert: test.sinon.stub(),
-    };
-    serviceInst.dataService.upsert.callsFake((_, __, callback) => {
-      callback(null);
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__ensureAnonymousUser',
+      '__initializeReplication',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
     });
 
-    serviceInst.__initializeSessionTokenSecret(mockConfig);
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+          upsert: test.sinon.stub().callsFake((_, __, callback) => {
+            callback(null);
+          }),
+        },
+      },
+    };
 
-    const result = serviceInst.__initializeSessionTokenSecret(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.fulfilled;
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.happn.services.data.upsert).to.have.been.calledWithExactly(
+      '/_SYSTEM/_SECURITY/SESSION_TOKEN_SECRET',
+      {
+        secret: 'mockSessionTokenSecret',
+      },
+      test.sinon.match.func
+    );
   });
 
   it('tests __initializeGroups - promise is rejected', async () => {
@@ -3904,77 +4178,206 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       logger: Logger,
     });
     const SecurityGroups = require('../../../lib/services/security/groups');
+    const mockConfig = { sessionTokenSecret: 'mockSessionTokenSecret' };
+    const mockCallback = test.sinon.stub();
 
-    test.sinon.stub(SecurityGroups.prototype, 'initialize').callsFake((_, __, callback) => {
-      callback('mockError');
-    });
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
+    const stubInitialize = test.sinon
+      .stub(SecurityGroups.prototype, 'initialize')
+      .callsFake((_, __, callback) => {
+        callback('mockError');
+      });
 
-    const result = serviceInst.__initializeGroups('mockConfig');
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    test.chai.expect(stubInitialize).to.have.been.calledWithExactly(
+      {
+        sessionTokenSecret: 'mockSessionTokenSecret',
+        updateSubscriptionsOnSecurityDirectoryChanged: true,
+        defaultNonceTTL: 60000,
+        logSessionActivity: false,
+        sessionActivityTTL: 86400000,
+        pbkdf2Iterations: 10000,
+        lockTokenToLoginType: true,
+        cookieName: 'happn_token',
+      },
+      test.sinon.match.instanceOf(Object),
+      test.sinon.match.func
+    );
+
+    stubInitialize.restore();
   });
 
   it('tests __initializeOnBehalfOfCache - promise is resolved', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
+    const mockConfig = { sessionTokenSecret: 'mockSessionTokenSecret', secure: 'mockSecure' };
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
-    serviceInst.config = { secure: 'mockSecure' };
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
     serviceInst.__cache_session_on_behalf_of = {};
 
-    const result = serviceInst.__initializeOnBehalfOfCache();
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.fulfilled;
+    test.chai.expect(mockConfig.secure).to.not.be.null;
   });
 
   it('tests __initializeSessionManagement - return this.__loadRevokedTokens and callback is rejected', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockConfig = {};
+    const mockConfig = { secure: {} };
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
-    serviceInst.config = { secure: {} };
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
     serviceInst.__loadRevokedTokens = test.sinon.stub().callsFake((callback) => {
       callback('mockError');
     });
-    const result = serviceInst.__initializeSessionManagement(mockConfig);
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(serviceInst.__loadRevokedTokens)
+      .to.have.been.calledWithExactly(test.sinon.match.func);
   });
 
   it('tests __initializeSessionManagement - calls this.activateSessionManagement and callback called is rejected', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockConfig = { activateSessionManagement: {} };
+    const mockCallback = test.sinon.stub();
+    const mockConfig = { activateSessionManagement: {}, secure: {} };
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
-    serviceInst.config = { secure: {} };
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
     serviceInst.activateSessionManagement = test.sinon.stub().callsFake((_, callback) => {
       callback('mockError');
     });
 
-    const result = serviceInst.__initializeSessionManagement(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.rejectedWith('mockError');
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(serviceInst.activateSessionManagement)
+      .to.have.been.calledWithExactly(false, test.sinon.match.func);
   });
 
   it('tests __initializeSessionManagement - calls this.activateSessionManagement and callback called is resolved', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockConfig = { activateSessionManagement: {} };
+    const mockCallback = test.sinon.stub();
+    const mockConfig = { activateSessionManagement: {}, secure: {} };
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
-    serviceInst.config = { secure: {} };
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
     serviceInst.activateSessionManagement = test.sinon.stub().callsFake((_, callback) => {
       callback(null);
     });
 
-    const result = serviceInst.__initializeSessionManagement(mockConfig);
+    serviceInst.initialize(mockConfig, mockCallback);
 
-    await test.chai.expect(result).to.eventually.be.fulfilled;
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(serviceInst.activateSessionManagement)
+      .to.have.been.calledWithExactly(false, test.sinon.match.func);
   });
 
-  it('tests __initializeAuthProviders - creates BaseAuthProviders', () => {
+  it('tests __initializeAuthProviders - creates BaseAuthProviders', async () => {
     const BaseAuthProvider = require('../../../lib/services/security/authentication/provider-base');
     const serviceInst = new SecurityService({
       logger: Logger,
@@ -3983,28 +4386,77 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       authProviders: { happn: false, mockAuthProvider: 'mockAuthProvider' },
       defaultAuthProvider: null,
     };
+    const mockCallback = test.sinon.stub();
+    const initializers = [
+      '__initializeGroups',
+      '__initializeCheckPoint',
+      '__initializeUsers',
+      '__initializeLookupTables',
+      '__initializeProfiles',
+      '__initializeSessionManagement',
+      '__initializeOnBehalfOfCache',
+      '__ensureAdminUser',
+      '__ensureAnonymousUser',
+      '__initializeReplication',
+      '__initializeSessionTokenSecret',
+    ];
+    initializers.forEach((initialize) => {
+      serviceInst[initialize] = test.sinon.stub();
+    });
 
-    test.sinon.stub(BaseAuthProvider, 'create').returns('mockAuthProvider');
-    serviceInst.authProviders = {};
+    const stubCreate = test.sinon.stub(BaseAuthProvider, 'create').returns('mockAuthProvider');
 
-    serviceInst.__initializeAuthProviders(mockConfig);
+    serviceInst.happn = {
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      services: {
+        cache: {},
+        data: {
+          pathField: 'mockPathField',
+        },
+      },
+    };
 
-    test.chai
-      .expect(serviceInst.authProviders)
-      .to.eql({ mockAuthProvider: 'mockAuthProvider', default: undefined });
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(stubCreate).to.have.been.calledWithExactly(
+      {
+        config: { disableDefaultAdminNetworkConnections: false },
+        services: { cache: {}, data: { pathField: 'mockPathField' } },
+      },
+      {
+        authProviders: { mockAuthProvider: 'mockAuthProvider' },
+        defaultAuthProvider: null,
+        updateSubscriptionsOnSecurityDirectoryChanged: true,
+        defaultNonceTTL: 60000,
+        logSessionActivity: false,
+        sessionActivityTTL: 86400000,
+        pbkdf2Iterations: 10000,
+        lockTokenToLoginType: true,
+        cookieName: 'happn_token',
+      },
+      'mockAuthProvider'
+    );
   });
 
   it('tests activateSessionActivity returns this.__loadSessionActivity', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockCallback = test.sinon.stub();
+    const mockCallback = test.sinon.stub().returns('tests');
 
-    serviceInst.__loadSessionActivity = test.sinon.stub().returns('mock test');
+    serviceInst.config = {
+      logSessionActivity: null,
+    };
+    serviceInst.__cache_session_activity = {};
 
     const result = serviceInst.activateSessionActivity(mockCallback);
 
-    test.chai.expect(result).to.equal('mock test');
+    test.chai.expect(result).to.equal('tests');
+    test.chai.expect(mockCallback).to.have.callCount(1);
   });
 
   it('tests activateSessionManagement - returns callback with new Error ', () => {
@@ -4022,7 +4474,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai
       .expect(mockLogSessionActivity)
       .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
-    test.chai.expect();
   });
 
   it('tests activateSessionManagement - returns callback with error if this.config.secure is false ', () => {
@@ -4049,62 +4500,85 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockCallback = test.sinon.stub();
     const mockLogSessionActivity = {};
 
+    serviceInst.__cache_revoked_tokens = null;
+    serviceInst.dataService = {};
     serviceInst.config = { secure: true };
-    serviceInst.__loadRevokedTokens = test.sinon.stub().callsFake((callback) => {
-      callback('mockError');
-    });
+    serviceInst.cacheService = {
+      create: test.sinon.stub().returns({
+        sync: test.sinon.stub().callsFake((callback) => {
+          callback('mockError');
+        }),
+      }),
+    };
 
     serviceInst.activateSessionManagement(mockLogSessionActivity, mockCallback);
 
+    test.chai
+      .expect(serviceInst.cacheService.create)
+      .to.have.been.calledWithExactly('cache_revoked_tokens', {
+        type: 'persist',
+        cache: { dataStore: {} },
+        overwrite: true,
+      });
     test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
   });
 
-  it('tests activateSessionManagement - calls this.__loadRevokedTokens and returns callback if logSessionActivity is false', () => {
+  it('tests activateSessionManagement - calls this.__loadRevokedTokens and returns callback if logSessionActivity is falsy', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockCallback = test.sinon.stub().returns('mockTest');
-    const mockLogSessionActivity = false;
+    const mockCallback = test.sinon.stub();
+    const mockLogSessionActivity = null;
 
+    serviceInst.__cache_revoked_tokens = true;
+    serviceInst.dataService = {};
     serviceInst.config = { secure: true };
-    serviceInst.__loadRevokedTokens = test.sinon.stub().callsFake((callback) => {
-      callback();
-    });
+    serviceInst.cacheService = {
+      create: test.sinon.stub().returns({
+        sync: test.sinon.stub().callsFake((callback) => {
+          callback(null);
+        }),
+      }),
+    };
 
     serviceInst.activateSessionManagement(mockLogSessionActivity, mockCallback);
 
     test.chai.expect(mockCallback).to.have.callCount(1);
   });
 
-  it('tests activateSessionManagement - calls this.__loadRevokedTokens and calls this.__loadSessionActivity if logSessionActivity is true', () => {
+  it('tests activateSessionManagement - calls this.__loadRevokedTokens and calls this.__loadSessionActivity', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
     const mockCallback = test.sinon.stub().returns('mockTest');
     const mockLogSessionActivity = true;
 
-    serviceInst.config = { secure: true };
+    serviceInst.dataService = {};
+    serviceInst.config = { secure: true, logSessionActivity: true, sessionActivityTTL: true };
     serviceInst.__loadRevokedTokens = test.sinon.stub().callsFake((callback) => {
       callback();
     });
-    serviceInst.__loadSessionActivity = test.sinon.stub();
+
+    serviceInst.cacheService = {
+      create: test.sinon.stub().returns({
+        sync: test.sinon.stub().callsFake((cb) => {
+          cb();
+        }),
+      }),
+    };
 
     serviceInst.activateSessionManagement(mockLogSessionActivity, mockCallback);
 
-    test.chai.expect(serviceInst.__loadSessionActivity).to.have.callCount(1);
-  });
-
-  it('tests __loadRevokedTokens - return callback', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mockTest');
-
-    serviceInst.__cache_revoked_tokens = true;
-
-    const result = serviceInst.__loadRevokedTokens(mockCallback);
-
-    test.chai.expect(result).to.equal('mockTest');
+    test.chai.expect(mockCallback).to.have.callCount(1);
+    test.chai
+      .expect(serviceInst.cacheService.create)
+      .to.have.been.calledWithExactly('cache_session_activity', {
+        type: 'persist',
+        cache: {
+          dataStore: {},
+          defaultTTL: true,
+        },
+      });
   });
 
   it('tests deactivateSessionManagement - this.config.secure is false and returns callback with new Error', () => {
@@ -4185,118 +4659,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai
       .expect(serviceInst.__cache_session_activity.clear)
       .to.have.been.calledWithExactly(test.sinon.match.func);
-  });
-
-  it('tests __loadSessionActivity - return callback', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mock');
-
-    serviceInst.config = { _cache_session_activity: true };
-    serviceInst.__cache_session_activity = {};
-
-    const result = serviceInst.__loadSessionActivity(mockCallback);
-
-    test.chai.expect(result).to.equal('mock');
-    test.chai.expect(mockCallback).to.have.callCount(1);
-  });
-
-  it('tests __loadSessionActivity - _cache_session_activity is false', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mock');
-    serviceInst.__cache_session_activity = false;
-
-    serviceInst.config = {
-      _cache_session_activity: false,
-      sessionActivityTTL: true,
-      logSessionActivity: true,
-    };
-    serviceInst.cacheService = { create: test.sinon.stub().returns({ sync: test.sinon.stub() }) };
-    serviceInst.dataService = {};
-
-    serviceInst.__loadSessionActivity(mockCallback);
-
-    test.chai
-      .expect(serviceInst.cacheService.create)
-      .to.have.been.calledWithExactly('cache_session_activity', {
-        type: 'persist',
-        cache: {
-          dataStore: {},
-          defaultTTL: true,
-        },
-      });
-
-    test.chai
-      .expect(serviceInst.__cache_session_activity.sync)
-      .to.have.been.calledWithExactly(test.sinon.match.func);
-  });
-
-  it('tests __checkRevocations - return callback', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mock');
-    const mockToken = 'mockToken';
-    serviceInst.__cache_revoked_tokens = {
-      get: test.sinon.stub(),
-    };
-    serviceInst.__cache_revoked_tokens.get.callsFake((_, callback) => {
-      callback('mockError');
-    });
-
-    serviceInst.__checkRevocations(mockToken, mockCallback);
-
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
-    test.chai
-      .expect(serviceInst.__cache_revoked_tokens.get)
-      .to.have.been.calledWithExactly('mockToken', test.sinon.match.func);
-  });
-
-  it('tests __checkRevocations - return callback if item equals null', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mock');
-    const mockToken = 'mockToken';
-    serviceInst.__cache_revoked_tokens = {
-      get: test.sinon.stub(),
-    };
-    serviceInst.__cache_revoked_tokens.get.callsFake((_, callback) => {
-      callback(null, null);
-    });
-
-    serviceInst.__checkRevocations(mockToken, mockCallback);
-
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, true);
-    test.chai
-      .expect(serviceInst.__cache_revoked_tokens.get)
-      .to.have.been.calledWithExactly('mockToken', test.sinon.match.func);
-  });
-
-  it('tests __checkRevocations - return callback if item equals null', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub().returns('mock');
-    const mockToken = 'mockToken';
-    serviceInst.__cache_revoked_tokens = {
-      get: test.sinon.stub(),
-    };
-    serviceInst.__cache_revoked_tokens.get.callsFake((_, callback) => {
-      callback(null, 'mockItem');
-    });
-
-    serviceInst.__checkRevocations(mockToken, mockCallback);
-
-    test.chai
-      .expect(mockCallback)
-      .to.have.been.calledWithExactly(null, false, 'token has been revoked');
-    test.chai
-      .expect(serviceInst.__cache_revoked_tokens.get)
-      .to.have.been.calledWithExactly('mockToken', test.sinon.match.func);
   });
 
   it('tests revokeToken - checks if token is null and returns callback with new Error', () => {
@@ -4533,7 +4895,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     unpack.restore();
   });
 
-  it('tests revokeToken - checks if decoded.policy[0].ttl and decoded.policy[1].ttl is truthy and not equal to Infinity and checks if decoded.policy[0] is greater and equal to decoded.policy[1] ', () => {
+  it('tests revokeToken - checks if decoded.policy[0].ttl decoded.policy[1].ttl is truthy. Checks if decoded.policy[0] is greater and equal to decoded.policy[1] ', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -5017,74 +5379,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(mockCallback).to.have.been.calledWithExactly(null);
   });
 
-  it('tests __logSessionActivity - calls __cache_session_activity.set, error is truthy', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub();
-
-    serviceInst.__cache_session_activity = {
-      set: test.sinon.stub(),
-    };
-
-    serviceInst.__logSessionActivity(
-      1,
-      'mockPath',
-      'mockAction',
-      'mockErr',
-      'mockAuthorized',
-      'mockReason',
-      mockCallback
-    );
-
-    test.chai.expect(serviceInst.__cache_session_activity.set).to.have.been.calledWithExactly(
-      1,
-      {
-        path: 'mockPath',
-        action: 'mockAction',
-        id: 1,
-        error: 'mockErr',
-        authorized: 'mockAuthorized',
-        reason: 'mockReason',
-      },
-      test.sinon.match.func
-    );
-  });
-
-  it('tests __logSessionActivity - calls __cache_session_activity.set, error is falsy', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockCallback = test.sinon.stub();
-
-    serviceInst.__cache_session_activity = {
-      set: test.sinon.stub(),
-    };
-
-    serviceInst.__logSessionActivity(
-      1,
-      'mockPath',
-      'mockAction',
-      null,
-      'mockAuthorized',
-      'mockReason',
-      mockCallback
-    );
-
-    test.chai.expect(serviceInst.__cache_session_activity.set).to.have.been.calledWithExactly(
-      1,
-      {
-        path: 'mockPath',
-        action: 'mockAction',
-        id: 1,
-        error: '',
-        authorized: 'mockAuthorized',
-        reason: 'mockReason',
-      },
-      test.sinon.match.func
-    );
-  });
-
   it('tests listSessionActivity - pushed new error onto callbackArgs and calls callbackArgs', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
@@ -5136,21 +5430,27 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       );
   });
 
-  it('tests __listCache', () => {
+  it('tests __listCache - returns  this[cacheName].all(filter)', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
 
-    const mockCacheName = '__cache_session_activity';
-    const mockFilter = test.sinon.stub();
+    const mockCallback = test.sinon.stub();
+    const mockFilter = 'mockFilter';
 
     serviceInst.__cache_session_activity = {
       all: test.sinon.stub().returns('test'),
     };
+    serviceInst.config = {
+      logSessionActivity: {},
+    };
 
-    const result = serviceInst.__listCache(mockCacheName, mockFilter);
+    serviceInst.listSessionActivity(mockFilter, mockCallback);
 
-    test.chai.expect(result).to.equal('test');
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, 'test');
+    test.chai
+      .expect(serviceInst.__cache_session_activity.all)
+      .to.have.been.calledWithExactly('mockFilter');
   });
 
   it('tests listActiveSessions - checks if filter is type of function and if this.__sessionManagementActive equals true', () => {
@@ -5197,33 +5497,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .expect(serviceInst.happn.services.session.__activeSessions.all)
       .to.have.been.calledWithExactly('mockFilter');
     test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, 'all');
-  });
-
-  it('tests listActiveSessions - checks if this.__sessionManagementActive equals true and __activeSessions.all throws error ', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockFilter = {};
-    const mockCallback = test.sinon.stub();
-
-    serviceInst.__sessionManagementActive = true;
-    serviceInst.happn = {
-      services: {
-        session: {
-          __activeSessions: {
-            all: test.sinon.stub().throws(new Error('mockError')),
-          },
-        },
-      },
-    };
-
-    serviceInst.listActiveSessions(mockFilter, mockCallback);
-
-    test.chai
-      .expect(mockCallback)
-      .to.have.been.calledWithExactly(
-        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'mockError'))
-      );
   });
 
   it('tests listActiveSessions - checks if this.__sessionManagementActive equals true and __activeSessions.all throws error ', () => {
@@ -6531,26 +6804,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly(test.sinon.match.func);
   });
 
-  it('tests emitChanges - calls __dataHooks.every throws error. Promised is resolved ', async () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockWhatHappnd = null;
-    const mockChangedData = null;
-    const mockEffectedSessions = null;
-
-    serviceInst.__dataHooks = {
-      every: test.sinon.stub().throws(new Error('mockError')),
-    };
-
-    const result = serviceInst.emitChanges(mockWhatHappnd, mockChangedData, mockEffectedSessions);
-
-    await test.chai.expect(result).to.have.eventually.been.rejectedWith('mockError');
-    test.chai
-      .expect(serviceInst.__dataHooks.every)
-      .to.have.been.calledWithExactly(test.sinon.match.func);
-  });
-
   it('tests dataChanged - additionalInfo is a function and calls __dataChangedQueue.push', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
@@ -6584,7 +6837,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockConfig = {};
     const mockCallback = test.sinon.stub();
     const stubQue = test.sinon.stub(async, 'queue');
-
     stubQue.callsFake((callback) => {
       const task = {
         whatHappnd: null,
@@ -6618,6 +6870,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     };
 
     serviceInst.initialize(mockConfig, mockCallback);
+
+    test.chai.expect(stubQue).to.have.been.calledWithExactly(test.sinon.match.func, 1);
+
     stubResetSessionPermissions.restore();
     stubQue.restore();
   });
@@ -6667,7 +6922,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     serviceInst.initialize(mockConfig, callback);
 
     test.chai.expect(mockCallback).to.be.null;
-    await test.chai
+    test.chai
       .expect(stubResetSessionPermissions)
       .to.have.been.calledWithExactly('link-group', null, null);
 
@@ -6728,26 +6983,29 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
     serviceInst.initialize(mockConfig, callback);
 
+    test.chai
+      .expect(stubResetSessionPermissions)
+      .to.have.been.calledWithExactly('link-group', { replicated: false }, null);
+
     stubResetSessionPermissions.restore();
     stubQue.restore();
   });
+
   it('tests __replicateDataChanged - changedData.replicated is true .', async () => {
     const async = require('happn-commons').async;
     const serviceInst = new SecurityService({
       logger: Logger,
     });
     const mockConfig = {};
-    const callback = test.sinon.stub();
     const stubQue = test.sinon.stub(async, 'queue');
-    const mockCallback = null;
-
+    const mockCallback = test.sinon.stub();
+    const mockTask = {
+      whatHappnd: 'link-group',
+      changedData: { replicated: true },
+      additionalInfo: null,
+    };
     stubQue.callsFake((callback) => {
-      const task = {
-        whatHappnd: 'link-group',
-        changedData: { replicated: true },
-        additionalInfo: null,
-      };
-      callback(task, mockCallback);
+      callback(mockTask, null);
     });
     const stubResetSessionPermissions = test.sinon
       .stub(serviceInst, 'resetSessionPermissions')
@@ -6782,13 +7040,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       callback({ message: 'Replicator not ready' });
     });
 
-    serviceInst.initialize(mockConfig, callback);
+    serviceInst.initialize(mockConfig, mockCallback);
+
+    test.chai
+      .expect(stubResetSessionPermissions)
+      .to.have.been.calledWithExactly('link-group', { replicated: true }, null);
 
     stubResetSessionPermissions.restore();
     stubQue.restore();
   });
 
-  it('tests __replicateDataChanged - calls replicator.send and callback called with e.message equal to Replicator not ready. Promise is resolved.', async () => {
+  it('tests __replicateDataChanged - calls replicator.send and callback function called with error. Promise is resolved.', async () => {
     const async = require('happn-commons').async;
     const serviceInst = new SecurityService({
       logger: Logger,
@@ -6841,6 +7103,93 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
     serviceInst.initialize(mockConfig, callback);
 
+    serviceInst.initialize(mockConfig, callback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.happn.services.replicator.send).to.have.been.calledWithExactly(
+      '/security/dataChanged',
+      {
+        whatHappnd: 'link-group',
+        changedData: {
+          replicated: false,
+        },
+        additionalInfo: null,
+      },
+      test.sinon.match.func
+    );
+
+    stubResetSessionPermissions.restore();
+    stubQue.restore();
+  });
+
+  it('tests __replicateDataChanged - calls replicator.send and resolves promise', async () => {
+    const async = require('happn-commons').async;
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    const mockConfig = {};
+    const callback = test.sinon.stub();
+    const stubQue = test.sinon.stub(async, 'queue');
+    const mockCallback = null;
+
+    stubQue.callsFake((callback) => {
+      const task = {
+        whatHappnd: 'link-group',
+        changedData: { replicated: false },
+        additionalInfo: null,
+      };
+      callback(task, mockCallback);
+    });
+    const stubResetSessionPermissions = test.sinon
+      .stub(serviceInst, 'resetSessionPermissions')
+      .resolves('mock test');
+
+    serviceInst.checkpoint = {
+      clearCaches: test.sinon.stub(),
+    };
+    serviceInst.users = {
+      clearCaches: test.sinon.stub(),
+    };
+    serviceInst.groups = {
+      clearCaches: test.sinon.stub(),
+    };
+    serviceInst.happn = {
+      services: {
+        cache: 'mockCache',
+        data: 'mockData',
+        session: null,
+        replicator: {
+          send: test.sinon.stub(),
+        },
+      },
+      config: {
+        disableDefaultAdminNetworkConnections: false,
+      },
+      error: {
+        handleFatal: test.sinon.stub(),
+      },
+    };
+    serviceInst.happn.services.replicator.send.callsFake((_, __, callback) => {
+      callback(null);
+    });
+
+    serviceInst.initialize(mockConfig, callback);
+
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai.expect(serviceInst.happn.services.replicator.send).to.have.been.calledWithExactly(
+      '/security/dataChanged',
+      {
+        whatHappnd: 'link-group',
+        changedData: {
+          replicated: false,
+        },
+        additionalInfo: null,
+      },
+      test.sinon.match.func
+    );
+
     stubResetSessionPermissions.restore();
     stubQue.restore();
   });
@@ -6860,7 +7209,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(result).to.be.null;
   });
 
-  it('tests checkTokenUserI-  callback function called with error and it returns callback with error ', () => {
+  it('tests checkTokenUserId - callback function called with error and it returns callback with error ', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7002,11 +7351,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       },
     ];
 
-    try {
+    const result = () => {
       serviceInst.generateSession(mockUser, sessionId, credentials, tokenLogin, additionalInfo);
-    } catch (error) {
-      test.chai.expect(error.message).to.equal('unable to match session with a profile');
-    }
+    };
+
+    test.chai.expect(result).to.throw('unable to match session with a profile');
   });
 
   it('tests generateSession - encrypted is true and  x-forwarded-proto is equal to wss', () => {
@@ -7243,7 +7592,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       );
   });
 
-  it('tests __loginOK - removes user.password and calls callback', () => {
+  it('tests __loginOK - removes user.password and calls callback. Calls __locks.remove', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7729,7 +8078,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly('mockNonce', 'mockDigest', 'mockKey');
   });
 
-  it('tests authorize - return and calls completeCall .Calls callback function with error', () => {
+  it('tests authorize - calls completeCall function . ', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7766,7 +8115,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly(1, test.sinon.match.func);
   });
 
-  it('tests authorize - return and calls completeCall .Calls callback function with no error', () => {
+  it('tests authorize - Calls __checkRevocations - authorized is false', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7778,29 +8127,40 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     serviceInst.config = {
       logSessionActivity: {},
     };
-    serviceInst.__logSessionActivity = test.sinon
-      .stub()
-      .callsFake((_, __, ___, ____, _____, ______, callback) => {
-        callback(null);
-      });
-    serviceInst.__checkRevocations = test.sinon.stub().callsFake((_, authorize) => {
-      authorize(null, null, null);
-    });
     serviceInst.log = {
       warn: test.sinon.stub(),
+    };
+    serviceInst.__cache_revoked_tokens = {
+      get: test.sinon.stub().callsFake((_, callback) => {
+        callback(null, 'mockItem');
+      }),
+    };
+    serviceInst.__cache_session_activity = {
+      set: test.sinon.stub().callsFake((_, __, callback) => {
+        callback();
+      }),
     };
 
     serviceInst.authorize(mockSession, mockPath, mockAction, mockCallback);
 
     test.chai
-      .expect(serviceInst.__logSessionActivity)
-      .to.have.been.calledWithExactly(1, 'mockPath', {}, null, false, null, test.sinon.match.func);
-    test.chai
-      .expect(serviceInst.__checkRevocations)
+      .expect(serviceInst.__cache_revoked_tokens.get)
       .to.have.been.calledWithExactly(1, test.sinon.match.func);
+    test.chai.expect(serviceInst.__cache_session_activity.set).to.have.been.calledWithExactly(
+      1,
+      {
+        path: 'mockPath',
+        action: {},
+        id: 1,
+        error: '',
+        authorized: false,
+        reason: 'token has been revoked',
+      },
+      test.sinon.match.func
+    );
   });
 
-  it('tests authorize - return and calls completeCall .Calls callback function with no error', () => {
+  it('tests authorize - return and calls completeCall .Calls callback function with error', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7809,16 +8169,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockAction = {};
     const mockCallback = test.sinon.stub();
 
-    serviceInst.__checkRevocations = test.sinon.stub().callsFake((_, authorize) => {
-      authorize('mockError', null, null);
-    });
+    serviceInst.__cache_revoked_tokens = {
+      get: test.sinon.stub().callsFake((_, callback) => {
+        callback('mockError', null);
+      }),
+    };
 
     serviceInst.authorize(mockSession, mockPath, mockAction, mockCallback);
 
     test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
-    test.chai
-      .expect(serviceInst.__checkRevocations)
-      .to.have.been.calledWithExactly(1, test.sinon.match.func);
   });
 
   it('tests authorize - return and calls completeCall .Calls callback function with no error', () => {
@@ -7850,7 +8209,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly({ id: 1, token: 1 }, 'mockPath', {}, test.sinon.match.func);
   });
 
-  it('tests authorizauthorizeOnBehalfOf - calls this.__logSessionActivity and calls callback function with error', () => {
+  it('tests authorizeOnBehalfOf - calls this.__logSessionActivity and calls callback function with error', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -7869,13 +8228,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     serviceInst.config = {
       logSessionActivity: true,
     };
-    serviceInst.__logSessionActivity = test.sinon
-      .stub()
-      .callsFake((_, __, ___, ____, _____, ______, callback) => {
-        callback('mockError');
-      });
     serviceInst.log = {
       warn: test.sinon.stub(),
+    };
+
+    serviceInst.__cache_session_activity = {
+      set: test.sinon.stub().callsFake((_, __, cb) => {
+        cb('mockError');
+      }),
     };
 
     serviceInst.authorizeOnBehalfOf(
@@ -7894,17 +8254,18 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         'session attempting to act on behalf of is not authorized',
         undefined
       );
-    test.chai
-      .expect(serviceInst.__logSessionActivity)
-      .to.have.been.calledWithExactly(
-        1,
-        'mockPath',
-        'mockAction',
-        null,
-        false,
-        'session attempting to act on behalf of is not authorized',
-        test.sinon.match.func
-      );
+    test.chai.expect(serviceInst.__cache_session_activity.set).to.have.been.calledWithExactly(
+      1,
+      {
+        path: 'mockPath',
+        action: 'mockAction',
+        id: 1,
+        error: '',
+        authorized: false,
+        reason: 'session attempting to act on behalf of is not authorized',
+      },
+      test.sinon.match.func
+    );
     test.chai
       .expect(serviceInst.log.warn)
       .to.have.been.calledWithExactly('unable to log session activity: mockError');
@@ -7926,17 +8287,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockOnBehalfOf = {};
     const mockCallback = test.sinon.stub();
 
-    serviceInst.__getOnBehalfOfSession = test.sinon.stub().callsFake((_, __, callback) => {
-      callback('mockError', null);
-    });
     serviceInst.config = {
       logSessionActivity: true,
     };
-    serviceInst.__logSessionActivity = test.sinon
-      .stub()
-      .callsFake((_, __, ___, ____, _____, ______, callback) => {
-        callback(null);
-      });
+    serviceInst.__cache_session_on_behalf_of = {
+      get: test.sinon.stub().returns(null),
+    };
+    serviceInst.users = {
+      getUser: test.sinon.stub().callsFake((_, callback) => {
+        callback('mockError');
+      }),
+    };
+    serviceInst.__cache_session_activity = {
+      set: test.sinon.stub().callsFake((_, __, callback) => {
+        callback();
+      }),
+    };
 
     serviceInst.authorizeOnBehalfOf(
       mockSession,
@@ -7955,19 +8321,23 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         undefined
       );
     test.chai
-      .expect(serviceInst.__logSessionActivity)
-      .to.have.been.calledWithExactly(
-        1,
-        'mockPath',
-        'mockAction',
-        'mockError',
-        false,
-        'failed to get on behalf of session',
-        test.sinon.match.func
-      );
+      .expect(serviceInst.users.getUser)
+      .to.have.been.calledWithExactly({}, test.sinon.match.func);
+    test.chai.expect(serviceInst.__cache_session_activity.set).to.have.been.calledWithExactly(
+      1,
+      {
+        path: 'mockPath',
+        action: 'mockAction',
+        id: 1,
+        error: 'mockError',
+        authorized: false,
+        reason: 'failed to get on behalf of session',
+      },
+      test.sinon.match.func
+    );
   });
 
-  it('tests authorizauthorizeOnBehalfOf - calls __getOnBehalfOfSession and calls callback function with error', () => {
+  it('tests authorizauthorizeOnBehalfOf - calls authorize and calls callback function with error', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -8065,7 +8435,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly('mockOnBehalfOf', test.sinon.match.func);
   });
 
-  it('tests __getOnBehalfOfSession - calls this.users.getUser . Calls callback function and returns callback with no error', () => {
+  it('tests getCorrectSession - returns __getOnBehalfOfSession', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -8097,7 +8467,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly('mockOnBehalfOf', test.sinon.match.func);
   });
 
-  it('tests __getOnBehalfOfSession - calls this.users.getUser . Calls callback function and returns callback with error', () => {
+  it('tests getCorrectSession - returns callback', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -8183,6 +8553,48 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(mockCallback).to.have.callCount(1);
   });
 
+  it('tests validateName - throws error when name is falsy', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+
+    const mockName = null;
+    const mockValidationType = null;
+
+    serviceInst.errorService = {
+      ValidationError: Error,
+    };
+    serviceInst.utilsService = {
+      stringContainsAny: test.sinon.stub().returns(true),
+    };
+
+    test.chai
+      .expect(() => serviceInst.validateName(mockName, mockValidationType))
+      .to.throw('names cannot be empty');
+  });
+
+  it('tests validateName - throws error when this.utilsService.stringContainsAny returns truthy value', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+
+    const mockName = 'mockName';
+    const mockValidationType = null;
+
+    serviceInst.errorService = {
+      ValidationError: Error,
+    };
+    serviceInst.utilsService = {
+      stringContainsAny: test.sinon.stub().returns(true),
+    };
+
+    test.chai
+      .expect(() => serviceInst.validateName(mockName, mockValidationType))
+      .to.throw(
+        'validation error: null names cannot contain the special _SYSTEM, _GROUP, _PERMISSION, _USER_GROUP, _ADMIN, _ANONYMOUS segment or a forward slash /'
+      );
+  });
+
   it('tests checkOverwrite - options.overwrite is true and calls callback', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
@@ -8207,110 +8619,179 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(mockCallback).to.have.callCount(1);
   });
 
-  it('tests __ensureAnonymousUser - returns anonymousUser', async () => {
+  it('tests checkOverwrite - options.overwrite is false and calls this.dataService.get. Callback function called with error.', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockConfig = {
-      allowAnonymousAccess: {},
-    };
+
+    const mockValidationType = {};
+    const mockObj = { name: 'mockName' };
+    const mockPath = 'mockPath';
+    const mockName = null;
+    const mockOptions = { overwrite: false };
     const mockCallback = test.sinon.stub();
-    const initializers = [
-      '__initializeGroups',
-      '__initializeCheckPoint',
-      '__initializeUsers',
-      '__initializeLookupTables',
-      '__initializeProfiles',
-      '__initializeSessionManagement',
-      '__initializeOnBehalfOfCache',
-      '__ensureAdminUser',
-      '__initializeSessionTokenSecret',
-      '__initializeAuthProviders',
-    ];
-    initializers.forEach((initialize) => {
-      serviceInst[initialize] = test.sinon.stub();
-    });
 
-    serviceInst.users = {
-      getUser: test.sinon.stub().returns('test'),
-    };
-    serviceInst.config = {
-      allowAnonymousAccess: true,
-    };
-    serviceInst.groups = {
-      linkGroup: test.sinon.stub(),
-    };
-    serviceInst.happn = {
-      config: { disableDefaultAdminNetworkConnections: false },
-      services: {
-        cache: 'mockCache',
-        data: {
-          pathField: 'mockPathField',
-        },
-      },
+    serviceInst.dataService = {
+      get: test.sinon.stub().callsFake((_, __, callback) => {
+        callback('mockError', null);
+      }),
     };
 
-    serviceInst.initialize(mockConfig, mockCallback);
+    serviceInst.checkOverwrite(
+      mockValidationType,
+      mockObj,
+      mockPath,
+      mockName,
+      mockOptions,
+      mockCallback
+    );
 
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai.expect(serviceInst.users.getUser).to.have.been.calledWithExactly('_ANONYMOUS');
+    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+    test.chai
+      .expect(serviceInst.dataService.get)
+      .to.have.been.calledWithExactly('mockPath', {}, test.sinon.match.func);
   });
 
-  it('tests __ensureAnonymousUser - returns users.__upsertUser', async () => {
+  it('tests checkOverwrite - options.overwrite is false and calls this.dataService.get. Callback function called with result and error is null', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
-    const mockConfig = {
-      allowAnonymousAccess: {},
+
+    const mockValidationType = 'Error';
+    const mockObj = { name: 'mockName' };
+    const mockPath = 'mockPath';
+    const mockName = null;
+    const mockOptions = { overwrite: false };
+    const mockCallback = test.sinon.stub();
+
+    serviceInst.dataService = {
+      get: test.sinon.stub().callsFake((_, __, callback) => {
+        callback(null, 'mockResult');
+      }),
     };
 
-    const mockCallback = test.sinon.stub();
-    const initializers = [
-      '__initializeGroups',
-      '__initializeCheckPoint',
-      '__initializeUsers',
-      '__initializeLookupTables',
-      '__initializeProfiles',
-      '__initializeSessionManagement',
-      '__initializeOnBehalfOfCache',
-      '__ensureAdminUser',
-      '__initializeSessionTokenSecret',
-      '__initializeAuthProviders',
-    ];
-    initializers.forEach((initialize) => {
-      serviceInst[initialize] = test.sinon.stub();
+    serviceInst.checkOverwrite(
+      mockValidationType,
+      mockObj,
+      mockPath,
+      mockName,
+      mockOptions,
+      mockCallback
+    );
+
+    test.chai
+      .expect(mockCallback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match
+          .instanceOf(Error)
+          .and(
+            test.sinon.match.has(
+              'message',
+              'validation failure: Error by the name mockName already exists'
+            )
+          )
+      );
+    test.chai
+      .expect(serviceInst.dataService.get)
+      .to.have.been.calledWithExactly('mockPath', {}, test.sinon.match.func);
+  });
+
+  it('tests checkOverwrite - options.overwrite is false and calls this.dataService.get. Callback function called ', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
     });
 
-    serviceInst.users = {
-      getUser: test.sinon.stub().returns(null),
-      __upsertUser: test.sinon.stub(),
+    const mockValidationType = {};
+    const mockObj = { name: 'mockName' };
+    const mockPath = 'mockPath';
+    const mockName = null;
+    const mockOptions = { overwrite: false };
+    const mockCallback = test.sinon.stub();
+
+    serviceInst.dataService = {
+      get: test.sinon.stub().callsFake((_, __, callback) => {
+        callback(null, null);
+      }),
     };
-    serviceInst.config = {
-      allowAnonymousAccess: true,
-    };
-    serviceInst.groups = {
-      linkGroup: test.sinon.stub(),
-    };
-    serviceInst.happn = {
-      config: { disableDefaultAdminNetworkConnections: false },
-      services: {
-        cache: 'mockCache',
-        data: {
-          pathField: 'mockPathField',
-        },
+
+    serviceInst.checkOverwrite(
+      mockValidationType,
+      mockObj,
+      mockPath,
+      mockName,
+      mockOptions,
+      mockCallback
+    );
+
+    test.chai.expect(mockCallback).to.have.callCount(1);
+    test.chai
+      .expect(serviceInst.dataService.get)
+      .to.have.been.calledWithExactly('mockPath', {}, test.sinon.match.func);
+  });
+
+  it('tests serializeAll -checks if objArray is falsy and returns empty array', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+
+    const mockObjectType = {};
+    const mockObjArray = null;
+    const mockOptions = {};
+
+    const result = serviceInst.serializeAll(mockObjectType, mockObjArray, mockOptions);
+
+    test.chai.expect(result).to.eql([]);
+  });
+
+  it('tests serializeAll - maps over objArray and calls serialize', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+
+    const mockObjectType = {};
+    const mockObjArray = [{}];
+    const mockOptions = {};
+
+    serviceInst.serialize = test.sinon.stub();
+
+    serviceInst.serializeAll(mockObjectType, mockObjArray, mockOptions);
+
+    test.chai.expect(serviceInst.serialize).to.have.calledWithExactly({}, {}, {});
+  });
+
+  it('tests serialize = options.clone is false', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+    });
+    const mockObjectType = {};
+    const mockObj = {
+      _meta: 'meta',
+      data: {
+        _meta: 'mockMeta',
       },
     };
+    const mockOptions = { clone: false };
 
-    serviceInst.initialize(mockConfig, mockCallback);
+    serviceInst.serialize(mockObjectType, mockObj, mockOptions);
+  });
 
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai.expect(serviceInst.users.getUser).to.have.been.calledWithExactly('_ANONYMOUS');
-    test.chai.expect(mockConfig.allowAnonymousAccess).to.not.be.null;
-    test.chai.expect(serviceInst.users.__upsertUser).to.have.been.calledWithExactly({
-      username: '_ANONYMOUS',
-      password: 'anonymous',
+  it('tests SecurityService - opts.onBehalfOfCache is truthy', () => {
+    const serviceInst = new SecurityService({
+      logger: Logger,
+      onBehalfOfCache: {},
     });
+
+    serviceInst.config = {
+      secure: {},
+    };
+    serviceInst.__cache_session_on_behalf_of = null;
+    serviceInst.cacheService = {
+      create: test.sinon.stub(),
+    };
+    serviceInst.__initializeOnBehalfOfCache();
+
+    test.chai
+      .expect(serviceInst.cacheService.create)
+      .to.have.been.calledWithExactly('cache_session_on_behalf_of', {});
   });
 });
