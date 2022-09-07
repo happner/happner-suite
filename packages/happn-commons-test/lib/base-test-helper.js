@@ -117,8 +117,10 @@ class TestHelper {
   }
 
   log(msg, ...args) {
+    // eslint-disable-next-line no-console
     console.log(msg);
     if (args.length > 0) {
+      // eslint-disable-next-line no-console
       console.log(JSON.stringify(args, null, 2));
     }
   }
