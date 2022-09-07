@@ -650,7 +650,11 @@ Mesh.prototype.start = util.promisify(function (callback) {
       function done(e) {
         _this._mesh.starting = false;
         _this._mesh.started = true;
-        _this.log.debug('started!');
+        _this.log.info(
+          `mesh with name ${_this._mesh.config.name} started, with happner version: ${
+            require('../package.json').version
+          }`
+        );
         _this.startupProgress('mesh started', 100);
         callback(e, _this);
       }
