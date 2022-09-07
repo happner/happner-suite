@@ -2,7 +2,7 @@ const test = require('../../__fixtures/utils/test_helper').create();
 const SecurityGroups = require('../../../lib/services/security/groups');
 const PermissionManager = require('../../../lib/services/security/permissions');
 
-describe.skip(test.testName(__filename, 3), function () {
+describe(test.testName(__filename, 3), function () {
   this.timeout(10000);
   var async = require('async');
   var Logger = require('happn-logger');
@@ -1384,18 +1384,6 @@ describe.skip(test.testName(__filename, 3), function () {
       }),
     };
 
-    removeStub.onCall(0).callsFake((_, __, cb) => {
-      test.chai.expect(_).to.equal('/_SYSTEM/_SECURITY/_PERMISSIONS/' + group.name + '/*');
-      test.chai.expect(__).to.eql({});
-      cb(null, 'userGroupDeleteResults');
-    });
-    removeStub.onCall(1).callsFake((_, __, cb) => {
-      cb(null, 'permissionsDeleteResults');
-    });
-    removeStub.onCall(2).callsFake((_, __, cb) => {
-      cb(new Error('test error'), null);
-    });
-
     SecurityGroups.prototype.dataService = {
       remove: removeStub,
       get: test.sinon.stub().callsFake((_, __, cb) => {
@@ -1409,12 +1397,126 @@ describe.skip(test.testName(__filename, 3), function () {
 
     SecurityGroups.prototype.deleteGroup(group, options, callback);
 
-    test.chai.expect(SecurityGroups.prototype.dataService.remove).to.have.callCount(3);
+    test.chai.expect(SecurityGroups.prototype.dataService.remove).to.have.callCount(0);
 
     test.chai
       .expect(callback)
       .to.have.been.calledWithExactly(
         test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
       );
+  });
+
+  it('tests listGroup function, fails to list group, throws error when validating', () => {
+    const group = {
+      name: 'mockName',
+    };
+    const user = 'mockUser';
+    const options = null;
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const callback = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub(),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const removeStub = test.sinon.stub();
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.__cache_groups = {
+      get: test.sinon.stub().returns(null),
+    };
+
+    SecurityGroups.prototype.dataService = {
+      remove: removeStub,
+      upsert: test.sinon.stub(),
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb(new Error('test error'));
+      }),
+    };
+
+    SecurityGroups.prototype.linkGroup(group, options, user, callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+    test.chai.expect(SecurityGroups.prototype.dataService.remove).to.not.have.been.called;
+  });
+
+  it.skip('tests listGroup function', () => {
+    const group = {
+      name: 'mockName',
+    };
+    const user = 'mockUser';
+    const options = null;
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const callback = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub(),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const removeStub = test.sinon.stub();
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.__cache_groups = {
+      get: test.sinon.stub().returns(null),
+    };
+
+    SecurityGroups.prototype.dataService = {
+      remove: removeStub,
+      upsert: test.sinon.stub(),
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb(new Error('test error'));
+      }),
+    };
+
+    SecurityGroups.prototype.linkGroup(group, options, user, callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+    test.chai.expect(SecurityGroups.prototype.dataService.remove).to.not.have.been.called;
   });
 });
