@@ -1,6 +1,6 @@
 {
   "name": "happn-logger",
-  "version": "2.1.1",
+  "version": "2.2.0-prerelease-2",
   "description": "Logger using log4js",
   "main": "index.js",
   "scripts": {
