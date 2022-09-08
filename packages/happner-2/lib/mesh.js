@@ -114,8 +114,9 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
     if (parts[1]) config.happn.port = parseInt(parts[1]);
   }
   const tryStopMesh = function (mesh) {
-    delete root.nodes[mesh._mesh.config.name];
+    delete root.nodes[mesh?._mesh?.config?.name];
     return new Promise((resolve) => {
+      if (!mesh) return resolve();
       mesh
         .stop()
         .then(resolve)
