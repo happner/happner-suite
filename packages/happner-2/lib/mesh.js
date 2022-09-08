@@ -122,7 +122,7 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
         .then(resolve)
         .catch((e) => {
           // eslint-disable-next-line no-console
-          console.warn(`tried stoppping mesh on failed initialization: ${e.message}`);
+          console.warn(`tried stopping mesh on failed initialization: ${e.message}`);
           resolve();
         });
     });
