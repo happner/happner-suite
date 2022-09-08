@@ -675,10 +675,7 @@ Mesh.prototype.start = util.promisify(function (callback) {
       function done(e) {
         _this._mesh.starting = false;
         _this._mesh.started = true;
-        //TODO: BAD CONSOLE.LOG
-        // _this.log.info(
-        // eslint-disable-next-line no-console
-        console.log(
+        _this.log.info(
           `mesh with name ${_this._mesh.config.name} started, with happner version: ${
             require('../package.json').version
           }`
