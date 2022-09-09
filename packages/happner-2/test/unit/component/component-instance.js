@@ -1211,7 +1211,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
     test.chai
       .expect(mockLogObj.warn)
-      .to.have.been.calledWithExactly('method has been configured as a promise with a callback...');
+      .to.have.been.calledWithExactly(
+        'method [mockName.mockMethod] has been configured as a promise with a callback'
+      );
 
     isPromiseStub.restore();
     createStub.restore();

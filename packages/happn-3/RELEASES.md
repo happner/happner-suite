@@ -1002,3 +1002,7 @@
 13.2.0 2022-07-07
 -----------------
   - TEN-31: added userBelongsToGroups to security.users
+
+13.2.1 2022-09-08
+-----------------
+  - TEN-130: updated logger dependency

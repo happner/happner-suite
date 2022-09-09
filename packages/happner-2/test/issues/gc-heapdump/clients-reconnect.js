@@ -1,12 +1,16 @@
 const CLIENT_COUNT = 10;
-const CYCLES = 1600;
+const CYCLES = 30;
 const CALLS = 10;
 const test = require('../../__fixtures/utils/test_helper').create();
 const delay = require('await-delay');
+let clients = [];
+let adminClient;
 async function start() {
-  let clients = await connectClients();
   var i = 1;
+  adminClient = new test.Mesh.MeshClient({ secure: true });
+  await adminClient.login({ username: '_ADMIN', password: 'happn' });
   for (let ii = 0; ii < CYCLES; ii++) {
+    let clients = await connectClients(adminClient);
     test.log(`running cycle ${ii} / ${CYCLES}`);
     for (let client of clients) {
       try {
@@ -22,11 +26,12 @@ async function start() {
       }
       test.log(`did heapdump cycle #${ii} with callcount: ${i}`);
     }
-    await doHeapDump(clients[0]);
+    await doHeapDump(adminClient);
+    await disconnectClients();
   }
   test.log('waiting 30 secs');
   await test.delay(30e3);
-  await doHeapDump(clients[0]);
+  await doHeapDump(adminClient);
   test.log('did final dump');
 }
 async function doHeapDump(client) {
@@ -54,14 +59,17 @@ async function doRestCall(client) {
       });
   });
 }
-async function connectClients() {
-  let clients = [];
-  let adminClient = new test.Mesh.MeshClient({ secure: true });
-  await adminClient.login({ username: '_ADMIN', password: 'happn' });
+async function connectClients(adminClient) {
   for (let i = 0; i < CLIENT_COUNT; i++) {
     clients.push(await createAndConnectClient(i, adminClient));
   }
   return clients;
+}
+async function disconnectClients() {
+  for (let client of clients) {
+    await client.disconnect();
+  }
+  clients = [];
 }
 async function createAndConnectClient(index, adminClient) {
   await adminClient.exchange.security.upsertGroup({

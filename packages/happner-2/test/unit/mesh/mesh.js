@@ -407,6 +407,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
         },
       },
     };
+    mesh._mesh.clusterClient = {
+      __implementors: {
+        addAndCheckDependencies: () => false,
+      },
+    };
     mesh.componentAsyncMethod = () => done(new Error("defer shouldn't be called"));
     mesh.deferStartMethod = () => done();
     let options = { targets: ['componentName'], methodCategory: 'startMethod' };

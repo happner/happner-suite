@@ -209,7 +209,7 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
     const dependencyInfo = packagesMetaData.find(
       (packageMetaData) => packageMetaData.name === dependency.name
     );
-    if (dependencyInfo.newVersion !== dependency.version.slice(1)) {
+    if (dependencyInfo.newVersion !== dependency.version && dependencyInfo.newVersion !== dependency.version.slice(1)) {
       issues.push(
         `${packageMetaData.name}: update dependency version dependency ${dependencyInfo.name} from ${dependency.version} to ${dependencyInfo.newVersion}`
       );
