@@ -6,7 +6,6 @@ describe(test.testName(__filename, 3), function () {
   let adminClient;
   const expect = require('expect.js');
   const test_id = Date.now() + '_' + require('shortid').generate();
-  const filename = test.path.resolve(__dirname, `../../test-temp/anonymous-access-${test_id}.db`);
   let anonymousClient;
   let anonymousClientWS;
   let addedAnonymousGroup;
@@ -14,7 +13,6 @@ describe(test.testName(__filename, 3), function () {
   this.timeout(60000);
 
   before('it starts secure service, with anonymous access switched on', async () => {
-    test.log(`test file name: ${filename}`);
     serviceInstanceAnonymous = await getService({
       secure: true,
       services: {

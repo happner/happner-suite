@@ -392,3 +392,8 @@
 12.2.0 2022-08-07
 -----------------
   - TEN-31: onbehalf of / as
+
+12.2.1 2022-09-01
+-----------------
+  - TEN-130: issues with sync init functions and defer startup
+
