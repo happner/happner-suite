@@ -2,7 +2,7 @@ const test = require('../../__fixtures/utils/test_helper').create();
 const SecurityGroups = require('../../../lib/services/security/groups');
 const PermissionManager = require('../../../lib/services/security/permissions');
 
-describe.only(test.testName(__filename, 3), function () {
+describe(test.testName(__filename, 3), function () {
   this.timeout(10000);
   var async = require('async');
   var Logger = require('happn-logger');
@@ -1877,7 +1877,7 @@ describe.only(test.testName(__filename, 3), function () {
   });
 
   it('tests listGroups function, dataService.get calls callback with error', () => {
-    const groupName = test.sinon.stub();
+    const groupName = 'mockGroupName';
     const options = null;
     const callback = test.sinon.stub();
     const mockConfig = {
@@ -1915,9 +1915,9 @@ describe.only(test.testName(__filename, 3), function () {
 
     SecurityGroups.prototype.listGroups(groupName, options, callback);
 
-    test.chai.expect(groupName).to.have.callCount(1);
+    test.chai.expect(callback).to.have.callCount(1);
     test.chai
-      .expect(groupName)
+      .expect(callback)
       .to.have.been.calledWithExactly(
         test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
       );
@@ -1974,6 +1974,8 @@ describe.only(test.testName(__filename, 3), function () {
     const groupName = 'mockGroupName';
     const options = {
       skipPermissions: true,
+      criteria: 1,
+      sort: 1,
     };
     const callback = test.sinon.stub();
     const mockConfig = {
@@ -2015,5 +2017,196 @@ describe.only(test.testName(__filename, 3), function () {
         test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
       );
     test.chai.expect(SecurityGroups.prototype.dataService.get).to.have.callCount(1);
+  });
+
+  it('tests clearCaches function, this.permissionManager is null', () => {
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const permManagerStub = test.sinon.stub(PermissionManager, 'create').returns(null);
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    const result = SecurityGroups.prototype.clearCaches();
+
+    test.chai.expect(result).to.have.returned;
+    test.chai.expect(mockClear).to.have.callCount(1);
+
+    permManagerStub.restore();
+  });
+
+  it('tests clearCaches function, removes group UPSERT_GROUP or DELETE_GROUP', async () => {
+    const changedData = {
+      name: 'mockName',
+      groupName: 'mockGroupName',
+      obj: {
+        name: 'objName',
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const permManagerStub = test.sinon.stub(PermissionManager, 'create').returns(null);
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    const result = SecurityGroups.prototype.clearCaches(SD_EVENTS.UPSERT_GROUP, changedData);
+
+    await test.chai.expect(result).to.eventually.equal(undefined);
+    test.chai
+      .expect(SecurityGroups.prototype.__cache_groups.remove)
+      .to.have.been.calledWithExactly(changedData.name);
+
+    permManagerStub.restore();
+  });
+
+  it('tests clearCaches function, removes group PERMISSION_UPSERTED or PERMISSION_REMOVED', async () => {
+    const changedData = {
+      name: 'mockName',
+      groupName: 'mockGroupName',
+      obj: {
+        name: 'objName',
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const permManagerStub = test.sinon.stub(PermissionManager, 'create').returns(null);
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    const result = SecurityGroups.prototype.clearCaches(SD_EVENTS.PERMISSION_UPSERTED, changedData);
+
+    await test.chai.expect(result).to.eventually.equal(undefined);
+    test.chai
+      .expect(SecurityGroups.prototype.__cache_groups.remove)
+      .to.have.been.calledWithExactly(changedData.groupName);
+
+    permManagerStub.restore();
+  });
+
+  it('tests clearCaches function, catches error and rejects', async () => {
+    const changedData = {
+      name: 'mockName',
+      groupName: 'mockGroupName',
+      obj: {
+        name: 'objName',
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {};
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub().throws(new Error('test error')),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    const permManagerStub = test.sinon.stub(PermissionManager, 'create').returns(null);
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    const result = SecurityGroups.prototype.clearCaches(SD_EVENTS.UPSERT_GROUP, changedData);
+
+    await test.chai.expect(result).to.eventually.be.rejectedWith(Error, 'test error');
+
+    permManagerStub.restore();
   });
 });
