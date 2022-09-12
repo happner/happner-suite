@@ -351,9 +351,9 @@ Mesh.prototype.__initialize = function (config, callback) {
     enumerable: true,
   });
 
-  // First mesh in process configures logger
+  // First mesh in process configures logger (unless overridden)
   if (config?.util?.overrideLoggerConfiguration || !Logger.configured) {
-    Logger.configure(config.util);
+    Logger.configure(config?.util);
   }
 
   _this.log = Logger.createLogger('Mesh');

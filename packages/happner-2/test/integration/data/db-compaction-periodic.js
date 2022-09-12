@@ -68,8 +68,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test)
     return stats.size;
   }
 
-  // test.printOpenHandlesAfter(5e3);
-
   before(function (done) {
     test_helper.startHappnerInstance('1-compact-dbfile', config_call, function (e, mesh, client) {
       if (e) return done(e);
