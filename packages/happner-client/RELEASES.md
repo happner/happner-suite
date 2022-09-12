@@ -359,4 +359,3 @@
 12.3.1 2022-09-01
 -----------------
   - TEN-130: issues with sync init functions and defer startup
-
