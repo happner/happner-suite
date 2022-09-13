@@ -2,7 +2,7 @@ const test = require('../../__fixtures/utils/test_helper').create();
 const SecurityGroups = require('../../../lib/services/security/groups');
 const PermissionManager = require('../../../lib/services/security/permissions');
 
-describe(test.testName(__filename, 3), function () {
+describe.only(test.testName(__filename, 3), function () {
   this.timeout(10000);
   var async = require('async');
   var Logger = require('happn-logger');
@@ -2208,5 +2208,244 @@ describe(test.testName(__filename, 3), function () {
     await test.chai.expect(result).to.eventually.be.rejectedWith(Error, 'test error');
 
     permManagerStub.restore();
+  });
+
+  it('tests upsertGroup function, fails to validate, group path not included in request ', async () => {
+    const group = {
+      name: 'mockName',
+    };
+    const options = {
+      parent: {
+        _meta: {
+          path: null,
+        },
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {
+      validateName: test.sinon.stub(),
+    };
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.upsertGroup(group, options, callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match
+          .instanceOf(Error)
+          .and(
+            test.sinon.match.has(
+              'message',
+              'validation error: parent group path is not in your request, have you included the _meta?'
+            )
+          )
+      );
+  });
+
+  it('tests upsertGroup function, dataService.get calls callback with error', async () => {
+    const group = {
+      name: 'mockName',
+    };
+    const options = {
+      parent: {
+        _meta: {
+          path: 'mockPath',
+        },
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {
+      validateName: test.sinon.stub(),
+    };
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.dataService = {
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb(new Error('test error'));
+      }),
+    };
+
+    SecurityGroups.prototype.upsertGroup(group, options, callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+  });
+
+  it('tests upsertGroup function, fails to validate, parent group does not exist', async () => {
+    const group = {
+      name: 'mockName',
+    };
+    const options = {
+      parent: {
+        _meta: {
+          path: 'mockPath',
+        },
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {
+      validateName: test.sinon.stub(),
+    };
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.dataService = {
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb(null, null);
+      }),
+    };
+
+    SecurityGroups.prototype.upsertGroup(group, options, callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match
+          .instanceOf(Error)
+          .and(
+            test.sinon.match.has(
+              'message',
+              'validation error: parent group does not exist: ' + options.parent._meta.path
+            )
+          )
+      );
+  });
+
+  it.skip('tests upsertGroup function', async () => {
+    const group = {
+      name: 'mockName',
+    };
+    const options = {
+      parent: {
+        _meta: {
+          path: 'mockPath',
+        },
+      },
+    };
+    const callback = test.sinon.stub();
+    const mockConfig = {
+      persistPermissions: false,
+      __cache_groups: {
+        max: 5e3,
+        maxAge: 0,
+      },
+    };
+    const mockSecurityService = {
+      validateName: test.sinon.stub(),
+      checkOverwrite: test.sinon.stub(),
+    };
+    const mockClear = test.sinon.stub();
+
+    SecurityGroups.prototype.happn = {
+      services: {
+        cache: {
+          create: test.sinon.stub().returns({
+            clear: mockClear,
+            remove: test.sinon.stub(),
+          }),
+        },
+        data: {
+          _insertDataProvider: test.sinon.stub(),
+        },
+        utils: '',
+        error: '',
+        crypto: '',
+        session: '',
+      },
+    };
+
+    SecurityGroups.prototype.initialize(mockConfig, mockSecurityService, callback);
+
+    SecurityGroups.prototype.dataService = {
+      get: test.sinon.stub().callsFake((_, __, cb) => {
+        cb(null, 'mockResult');
+      }),
+    };
+
+    SecurityGroups.prototype.upsertGroup(group, options, callback);
   });
 });
