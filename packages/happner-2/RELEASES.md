@@ -977,3 +977,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.2.0 2022-08-07
 -----------------
   - TEN-31: onbehalf of / as
+
+12.2.1 2022-09-08
+-----------------
+  - TEN-130: fixes to component instance and mesh defer
