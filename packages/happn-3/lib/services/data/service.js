@@ -706,9 +706,13 @@ function __getPullOptions(parameters) {
     options: {},
   };
 
-  if (!parameters) return returnParams;
+  if (!parameters || typeof parameters !== 'object') {
+    return returnParams;
+  }
 
-  if (!parameters.options) parameters.options = {};
+  if (!parameters.options || typeof parameters.options !== 'object') {
+    parameters.options = {};
+  }
   returnParams.options = parameters.options;
 
   if (parameters.path_only || parameters.options.path_only) {
