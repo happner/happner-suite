@@ -2,7 +2,7 @@
 
 ## users groups and permissions
 
-_happner meshes can run in secure mode, a scheme comprising of users, groups and permissions allows for this, we have yet to complete the documentation for this, but to get a comprehensive picture of how this works, please look at [the test for now](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/advanced-security.js)_
+_happner meshes can run in secure mode, a scheme comprising of users, groups and permissions allows for this, we have yet to complete the documentation for this, but to get a comprehensive picture of how this works, please look at [the test for now](https://github.com/happner/happner-suite/blob/master/packages/happner-2/test/integration/security/advanced-security.js)_
 
 ## security directory events
 
@@ -25,7 +25,7 @@ adminClient.exchange.security.attachToSecurityChanges(function(e){
 
 ```
 
-please look at [the test](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/permission-changes-events.js)
+please look at [the test](https://github.com/happner/happner-suite/blob/master/packages/happner-2/test/integration/security/permission-changes-events.js)
 
 ## security session events
 
@@ -43,7 +43,7 @@ _the security module emits an event for every time a client connects or disconne
 	    });
 ```
 
-please look at [the test](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/security/session-changes-events.js)
+please look at [the test](https://github.com/happner/happner-suite/blob/master/packages/happner-2/test/integration/security/session-changes-events.js)
 
 ## security service functions
 
@@ -356,7 +356,7 @@ const myMesh3 = await Mesh.create(meshConfig);
 Provided a user belongs to the special system group "_MESH_DELEGATE", the user is able to invoke a method on the mesh "as" a different user, this is possible using the following mechanisms:
 
 #### inside a component method via $happn:
-*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as.js):*
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/master/packages/demos/happner-2/security-exchange-as.js):*
 ``` javascript
 const assert = require('assert');
 const Mesh = require('happner-2');
@@ -434,7 +434,7 @@ async function start() {
 start();
 ```
 #### from outside via the mesh client:
-*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-mesh-client.js):*
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/master/packages/demos/happner-2/security-exchange-as-mesh-client.js):*
 ``` javascript
 const Mesh = require('happner-2');
 const MeshClient = Mesh.MeshClient;
@@ -512,7 +512,7 @@ start();
 ```
 
 #### from outside via the happner-client:
-*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-happner-client.js):*
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/master/packages/demos/happner-2/security-exchange-as-happner-client.js):*
 ``` javascript
 const Mesh = require('happner-2');
 const HappnerClient = require('happner-client');
@@ -599,7 +599,7 @@ start();
 ```
 
 #### from outside via the light-client:
-*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-light-client.js):*
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/master/packages/demos/happner-2/security-exchange-as-light-client.js):*
 ``` javascript
 const Mesh = require('happner-2');
 const LightClient = require('happner-client').Light;
@@ -677,7 +677,7 @@ start();
 ```
 
 #### from outside via a http RPC request:
-*code taken from this [demo](https://github.com/happner/happner-suite/blob/develop/packages/demos/happner-2/security-exchange-as-http-rpc.js):*
+*code taken from this [demo](https://github.com/happner/happner-suite/blob/master/packages/demos/happner-2/security-exchange-as-http-rpc.js):*
 ``` javascript
 const Mesh = require('happner-2');
 const assert = require('assert');
@@ -837,7 +837,7 @@ adminClient.exchange.security.removeLookupPath(tableName, path);
 hardening responses:
 --------------------
 
-Currently happn clients are prevented from accessing the /_exchange/responses/[mesh name]/[component name]/[method name]/\* path using a regular expression check - injected into the underlying happn service by way of a [custom layer](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/test/integration/mesh/happn-layer-middleware.js), [over here](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/lib/system/happn.js#L222), a better solution to this, is to use the [targetClients functionality](https://github.com/happner/happn-3/blob/master/test/integration/api/targetclients.js) of happn-3, to push _response messages only to the origin of the _request. This is made possible by passing the directResponses:true option in the mesh config, as follows:
+Currently happn clients are prevented from accessing the /_exchange/responses/[mesh name]/[component name]/[method name]/\* path using a regular expression check - injected into the underlying happn service by way of a [custom layer](https://github.com/happner/happner-suite/blob/master/packages/happner-2/test/integration/mesh/happn-layer-middleware.js), [over here](https://github.com/happner/happner-suite/blob/master/packages/happner-2/lib/system/happn.js#L222), a better solution to this, is to use the [targetClients functionality](https://github.com/happner/happn-3/blob/master/test/integration/api/targetclients.js) of happn-3, to push _response messages only to the origin of the _request. This is made possible by passing the directResponses:true option in the mesh config, as follows:
 
 ```javascript
 

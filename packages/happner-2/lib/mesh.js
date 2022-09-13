@@ -113,10 +113,34 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
     config.happn.host = parts[0];
     if (parts[1]) config.happn.port = parseInt(parts[1]);
   }
+  const tryStopMesh = function (mesh) {
+    delete root.nodes[mesh?._mesh?.config?.name];
+    return new Promise((resolve) => {
+      if (!mesh) return resolve();
+      mesh
+        .stop()
+        .then(resolve)
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.warn(`tried stopping mesh on failed initialization: ${e.message}`);
+          resolve();
+        });
+    });
+  };
   new Mesh().initialize(config, function (err, mesh) {
-    if (err) return callback(err, mesh);
+    if (err) {
+      tryStopMesh(mesh).then(() => {
+        callback(err, mesh);
+      });
+      return;
+    }
     return mesh.start(function (err, mesh) {
-      if (err) return callback(err, mesh);
+      if (err) {
+        tryStopMesh(mesh).then(() => {
+          callback(err, mesh);
+        });
+        return;
+      }
       callback(null, mesh);
     });
   });
@@ -327,8 +351,10 @@ Mesh.prototype.__initialize = function (config, callback) {
     enumerable: true,
   });
 
-  // First mesh in process configures logger
-  if (!Logger.configured) Logger.configure(config.util);
+  // First mesh in process configures logger (unless overridden)
+  if (config?.util?.overrideLoggerConfiguration || !Logger.configured) {
+    Logger.configure(config?.util);
+  }
 
   _this.log = Logger.createLogger('Mesh');
   _this.log.context = config.name;
@@ -650,7 +676,11 @@ Mesh.prototype.start = util.promisify(function (callback) {
       function done(e) {
         _this._mesh.starting = false;
         _this._mesh.started = true;
-        _this.log.debug('started!');
+        _this.log.info(
+          `mesh with name ${_this._mesh.config.name} started, with happner version: ${
+            require('../package.json').version
+          }`
+        );
         _this.startupProgress('mesh started', 100);
         callback(e, _this);
       }
@@ -2024,13 +2054,13 @@ Mesh.prototype.possiblyDeferStartup = function (
 ) {
   if (
     this._mesh.clusterClient &&
-    this._mesh.clusterClient.__implementors.addAndCheckDependencies(
+    !this._mesh.clusterClient.__implementors.addAndCheckDependencies(
       componentName,
       config.dependencies
     )
   ) {
-    // all dependencies have started so we can start
-    return this.componentAsyncMethod(
+    // wait for cluster dependencies to be satisfied
+    return this.deferStartMethod(
       componentName,
       component,
       options,
@@ -2039,8 +2069,8 @@ Mesh.prototype.possiblyDeferStartup = function (
       eachComponentCallback
     );
   }
-  // wait for cluster dependencies to be satisfied
-  return this.deferStartMethod(
+  // all dependencies have started so we can start
+  return this.componentAsyncMethod(
     componentName,
     component,
     options,

@@ -1,12 +1,8 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
-  var test_file_call =
-    test.commons.path.resolve(__dirname, '../') +
-    test.commons.path.sep +
-    'temp/1-compact-dbfile-call.nedb';
-  var test_file_interval =
-    test.commons.path.resolve(__dirname, '../') +
-    test.commons.path.sep +
-    'temp/1-compact-dbfile-interval.nedb';
+  const test_file_call = test.newTempFilename('nedb');
+  const test_file_interval = test.newTempFilename('nedb');
+  test.tryDeleteTestFilesAfter([test_file_call, test_file_interval]);
+
   var Helper = require('../../__fixtures/utils/test_helper');
   var test_helper = new Helper();
 

@@ -1,5 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
-
+let i = 0;
+let ii = 0;
 async function start() {
   //test.heapDump.start(60e3);
   const config = {
@@ -30,22 +31,19 @@ async function start() {
         },
         cache: {
           config: {
-            statisticsInterval: 5e3,
+            // statisticsInterval: 5e3,
           },
         },
         data: {
           config: {
             datastores: [
               {
-                name: 'mongo',
-                provider: 'happn-db-provider-mongo',
+                name: 'nedb',
                 isDefault: true,
-                collection: 'stress-tests',
-              },
-              {
-                name: 'loki',
-                provider: require.resolve('happn-db-provider-loki'),
-                patterns: ['/LOCAL/*'],
+                provider: 'happn-db-provider-nedb',
+                settings: {
+                  // no settings - so memory store
+                },
               },
             ],
           },
@@ -56,9 +54,11 @@ async function start() {
       module: {
         instance: {
           method1: async function ($happn) {
-            $happn.emit('event1');
             const timestamp = Date.now();
-            await $happn.data.set(`stress/test/${timestamp}`, { timestamp });
+            const eventData = { timestamp };
+            $happn.emit(`stress/test/${timestamp}`, eventData);
+            await $happn.exchange.data.set(`stress/test/currentTimestamp`, eventData);
+            return $happn.exchange.component1.method2();
           },
           webmethod1: function (req, res) {
             res.end('ok1');
@@ -71,8 +71,32 @@ async function start() {
           },
         },
       },
+      module1: {
+        instance: {
+          start: async function ($happn) {
+            // eslint-disable-next-line no-console
+            console.log('starting module1...');
+            await $happn.event.component.on('stress/test/*', async (data) => {
+              if (ii % 100 === 0) {
+                // eslint-disable-next-line no-console
+                console.log(`received ${ii} events, last timestamp: ${data.timestamp}`);
+                const lastStoredTimestamp = await $happn.exchange.data.get(
+                  'stress/test/currentTimestamp'
+                );
+                // eslint-disable-next-line no-console
+                console.log(`last stored timestamp: `, lastStoredTimestamp.timestamp);
+              }
+              ii++;
+            });
+          },
+          method2: async function () {
+            return i++;
+          },
+        },
+      },
     },
     components: {
+      data: {},
       component: {
         module: 'module',
         web: {
@@ -81,6 +105,10 @@ async function start() {
             webmethod2: 'webmethod2',
           },
         },
+      },
+      component1: {
+        module: 'module1',
+        startMethod: 'start',
       },
     },
   };
