@@ -92,7 +92,7 @@ SecurityService.prototype.processAuthorize = processAuthorize;
 SecurityService.prototype.processAuthorizeUnsecure = processAuthorizeUnsecure;
 SecurityService.prototype.authorize = util.maybePromisify(authorize);
 SecurityService.prototype.authorizeOnBehalfOf = authorizeOnBehalfOf;
-SecurityService.prototype.__getOnBehalfOfSession = __getOnBehalfOfSession;
+SecurityService.prototype.getOnBehalfOfSession = getOnBehalfOfSession;
 SecurityService.prototype.getCorrectSession = getCorrectSession;
 SecurityService.prototype.getRelevantPaths = getRelevantPaths;
 //Digest Authentication methods
@@ -121,6 +121,8 @@ SecurityService.prototype.generatePermissionSetKey = generatePermissionSetKey;
 SecurityService.prototype.generateEmptySession = generateEmptySession;
 SecurityService.prototype.generateSession = generateSession;
 SecurityService.prototype.matchPassword = matchPassword;
+
+SecurityService.prototype.userIsDelegate = userIsDelegate;
 
 //takes a login request - and matches the request to a session, the session is then encoded with its associated policies into a JWT token. There are 2 policies, 1 a stateful one and 0 a stateless one, they can only be matched back during session requests.
 SecurityService.prototype.__profileSession = __profileSession;
@@ -191,7 +193,7 @@ async function initialize(config) {
   await this.__initializeLookupTables(config);
   await this.__initializeProfiles(config);
   await this.__initializeSessionManagement(config);
-  await this.__initializeOnBehalfOfCache(config);
+  this.__initializeOnBehalfOfCache(config);
   await this.__ensureAdminUser(config);
   this.anonymousUser = await this.__ensureAnonymousUser(config);
   await this.__initializeReplication(config);
@@ -344,8 +346,13 @@ function processAuthorize(message, callback) {
       (e, authorized, reason, onBehalfOfSession) => {
         if (e) return callback(e);
         if (!authorized) {
-          if (!reason) reason = '';
-          reason += ' request on behalf of: ' + message.request.options.onBehalfOf;
+          let onBehalfOfMessage =
+            'request on behalf of unauthorised user: ' + message.request.options.onBehalfOf;
+          if (!reason) {
+            reason = onBehalfOfMessage;
+          } else {
+            reason += ' ' + onBehalfOfMessage;
+          }
           return callback(this.happn.services.error.AccessDeniedError('unauthorized', reason));
         }
         message.session = onBehalfOfSession;
@@ -565,15 +572,13 @@ function __clearOnBehalfOfCache() {
 }
 
 function __initializeOnBehalfOfCache() {
-  return new Promise((resolve) => {
-    if (!this.config.secure) return resolve();
-    if (this.__cache_session_on_behalf_of) return resolve();
-    this.__cache_session_on_behalf_of = this.cacheService.create(
-      'cache_session_on_behalf_of',
-      this.options.onBehalfOfCache
-    );
-    resolve();
-  });
+  if (!this.config.secure || this.__cache_session_on_behalf_of) {
+    return;
+  }
+  this.__cache_session_on_behalf_of = this.cacheService.create(
+    'cache_session_on_behalf_of',
+    this.options.onBehalfOfCache
+  );
 }
 
 function __initializeSessionManagement(config) {
@@ -1530,6 +1535,16 @@ function authorize(session, path, action, callback) {
   });
 }
 
+function userIsDelegate(username, callback) {
+  if (username === '_ADMIN') {
+    return callback(null, true);
+  }
+  this.users.userBelongsToGroups(username, ['_MESH_DELEGATE'], (e, belongs) => {
+    if (e) return callback(e);
+    callback(null, belongs);
+  });
+}
+
 function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
   let completeCall = (err, authorized, reason, onBehalfOfSession) => {
     callback(err, authorized, reason, onBehalfOfSession);
@@ -1539,34 +1554,49 @@ function authorizeOnBehalfOf(session, path, action, onBehalfOf, callback) {
       });
   };
 
-  if (session.user.username !== '_ADMIN')
-    return completeCall(null, false, 'session attempting to act on behalf of is not authorized');
-
-  this.__getOnBehalfOfSession(session, onBehalfOf, (e, behalfOfSession) => {
-    if (e) return completeCall(e, false, 'failed to get on behalf of session');
-    if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
-    this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
-      if (err) return completeCall(err, false, reason);
-      if (!authorized) return completeCall(err, false, reason);
-      return completeCall(err, authorized, reason, behalfOfSession);
+  this.userIsDelegate(session.user.username, (e, isDelegate) => {
+    if (e) return callback(e);
+    if (!isDelegate) {
+      return completeCall(null, false, 'session attempting to act on behalf of is not authorized');
+    }
+    this.getOnBehalfOfSession(session, onBehalfOf, session.type, (e, behalfOfSession) => {
+      if (e) return completeCall(e, false, 'failed to get on behalf of session');
+      if (!behalfOfSession) return completeCall(null, false, 'on behalf of user does not exist');
+      this.authorize(behalfOfSession, path, action, function (err, authorized, reason) {
+        if (err || !authorized) {
+          return completeCall(err, false, reason);
+        }
+        return completeCall(err, authorized, reason, behalfOfSession);
+      });
     });
   });
 }
 
-function __getOnBehalfOfSession(delegatedBy, onBehalfOf, callback) {
-  let behalfOfSession = this.__cache_session_on_behalf_of.get(onBehalfOf, { clone: false });
-  if (behalfOfSession) return callback(null, behalfOfSession);
+function getOnBehalfOfSession(delegatedBy, onBehalfOf, sessionType = 1, callback) {
+  let behalfOfSession = this.__cache_session_on_behalf_of.get(`${onBehalfOf}:${sessionType}`, {
+    clone: false,
+  });
+  if (behalfOfSession) {
+    return callback(null, behalfOfSession);
+  }
 
   this.users.getUser(onBehalfOf, (e, onBehalfOfUser) => {
     if (e) return callback(e);
     if (!onBehalfOfUser) {
       return callback(null, null);
     }
-    behalfOfSession = this.generateSession(onBehalfOfUser, null, {
-      info: { delegatedBy: delegatedBy.user.username },
+    behalfOfSession = this.generateSession(
+      onBehalfOfUser,
+      null,
+      {
+        info: { delegatedBy: delegatedBy.user.username },
+      },
+      { session: { type: sessionType } }
+    );
+    behalfOfSession.happn = this.happn.services.system.getDescription();
+    this.__cache_session_on_behalf_of.set(`${onBehalfOf}:${sessionType}`, behalfOfSession, {
+      clone: false,
     });
-    behalfOfSession.happn = delegatedBy.happn;
-    this.__cache_session_on_behalf_of.set(onBehalfOf, behalfOfSession, { clone: false });
     callback(null, behalfOfSession);
   });
 }
@@ -1580,7 +1610,12 @@ function getCorrectSession(message, callback) {
     )
   )
     return callback(null, message.session);
-  return this.__getOnBehalfOfSession(message.session, message.request.options.onBehalfOf, callback);
+  return this.getOnBehalfOfSession(
+    message.session,
+    message.request.options.onBehalfOf,
+    message.session.type,
+    callback
+  );
 }
 
 function getRelevantPaths(message, callback) {

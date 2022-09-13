@@ -19,7 +19,7 @@ class TestHelper extends BaseTestHelper {
     this.path = require('path');
     this.happnPackage = JSON.parse(this.fs.readFileSync(this.path.resolve(__dirname, '../../../../../node_modules/happn-3/package.json')));
     this._ = commons._;
-    this.log = console.log;
+    this.log = this.sinon.spy(console.log);
     this.users = require('./users');
 
     this.startUp = this.util.promisify(this.startUp);
@@ -67,9 +67,6 @@ class TestHelper extends BaseTestHelper {
   };
   
   startHappnerInstance (ctx, config, callback){
-  
-    var _this = this;
-  
     if (!ctx) ctx = 'default';
   
     if (typeof config == 'function') {
@@ -186,10 +183,6 @@ class TestHelper extends BaseTestHelper {
       throw new Error('getRecordFromSmallFile failed: ' + e.toString(), e);
     }
   };
-
-  newTempFilename(ext) {
-    return this.path.resolve(`test/tmp/${this.newid()}.${ext}`);
-  }
   
   newTestFile (options) {
     if (!options) options = {};

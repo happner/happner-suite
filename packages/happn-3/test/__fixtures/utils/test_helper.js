@@ -16,6 +16,18 @@ class TestHelper extends BaseTestHelper {
     //backward compatability
     this.shortid = this.newid;
     this.homedir = require('homedir');
+    this.mockLogger = {
+      createLogger: () => {
+        return {
+          $$TRACE: this.log,
+          $$DEBUG: this.log,
+          info: this.log,
+          debug: this.log,
+          warn: this.log,
+          error: this.log,
+        };
+      }
+    };
   }
 
   static create() {

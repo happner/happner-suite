@@ -79,7 +79,7 @@ Logger.emitter.on(
 
 // Quick start.
 module.exports.create = util.promisify(function MeshFactory(config, callback) {
-  // node -e 'require("happner").create()'
+  // node -e 'require("happner-2").create()'
   if (typeof config === 'function') {
     callback = config;
     config = {};
@@ -113,10 +113,34 @@ module.exports.create = util.promisify(function MeshFactory(config, callback) {
     config.happn.host = parts[0];
     if (parts[1]) config.happn.port = parseInt(parts[1]);
   }
+  const tryStopMesh = function (mesh) {
+    delete root.nodes[mesh?._mesh?.config?.name];
+    return new Promise((resolve) => {
+      if (!mesh) return resolve();
+      mesh
+        .stop()
+        .then(resolve)
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.warn(`tried stopping mesh on failed initialization: ${e.message}`);
+          resolve();
+        });
+    });
+  };
   new Mesh().initialize(config, function (err, mesh) {
-    if (err) return callback(err, mesh);
+    if (err) {
+      tryStopMesh(mesh).then(() => {
+        callback(err, mesh);
+      });
+      return;
+    }
     return mesh.start(function (err, mesh) {
-      if (err) return callback(err, mesh);
+      if (err) {
+        tryStopMesh(mesh).then(() => {
+          callback(err, mesh);
+        });
+        return;
+      }
       callback(null, mesh);
     });
   });
@@ -327,8 +351,10 @@ Mesh.prototype.__initialize = function (config, callback) {
     enumerable: true,
   });
 
-  // First mesh in process configures logger
-  if (!Logger.configured) Logger.configure(config.util);
+  // First mesh in process configures logger (unless overridden)
+  if (config?.util?.overrideLoggerConfiguration || !Logger.configured) {
+    Logger.configure(config?.util);
+  }
 
   _this.log = Logger.createLogger('Mesh');
   _this.log.context = config.name;
@@ -650,7 +676,11 @@ Mesh.prototype.start = util.promisify(function (callback) {
       function done(e) {
         _this._mesh.starting = false;
         _this._mesh.started = true;
-        _this.log.debug('started!');
+        _this.log.info(
+          `mesh with name ${_this._mesh.config.name} started, with happner version: ${
+            require('../package.json').version
+          }`
+        );
         _this.startupProgress('mesh started', 100);
         callback(e, _this);
       }
@@ -1171,7 +1201,7 @@ Mesh.prototype._destroyElement = util.promisify(function (componentName, callbac
       },
 
       function (done) {
-        _this._mesh.elements[componentName].component.instance._detatch(_this._mesh, done);
+        _this._mesh.elements[componentName].component.instance.detatch(_this._mesh, done);
       },
 
       function (done) {
@@ -1587,8 +1617,12 @@ Mesh.prototype._scanArguments = function (spec, callback) {
     let $originSeq = args.indexOf(`$origin`);
     let $happnSeq = args.indexOf(`$happn`);
 
-    if ($happnSeq > -1) Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
-    if ($originSeq > -1) Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    if ($happnSeq > -1) {
+      Object.defineProperty(module[fnName], `$happnSeq`, { value: $happnSeq });
+    }
+    if ($originSeq > -1) {
+      Object.defineProperty(module[fnName], `$originSeq`, { value: $originSeq });
+    }
 
     module[fnName].$argumentsLength = args.filter(
       (argName) => ['$happn', '$origin'].indexOf(argName) === -1
@@ -1658,27 +1692,17 @@ Mesh.prototype._createComponent = function (spec, callback) {
       );
     }
   }.bind(_this);
-
-  //TODO - we need to remove routes somewhere too:
-
-  componentInstance.initialize(
-    componentName,
-    root,
-    _this,
-    spec.module,
-    componentConfig,
-    function (e) {
-      if (e) return callback(e);
-      try {
-        __addComponentDataStoreRoutes(componentConfig);
-      } catch (e) {
-        return callback(new Error(`bad component data route: ${e.message}`));
-      }
-      spec.component.instance = componentInstance;
-      _this._mesh.elements[componentName] = spec;
-      callback();
+  componentInstance.initialize(componentName, _this, spec.module, componentConfig, function (e) {
+    if (e) return callback(e);
+    try {
+      __addComponentDataStoreRoutes(componentConfig);
+    } catch (e) {
+      return callback(new Error(`bad component data route: ${e.message}`));
     }
-  );
+    spec.component.instance = componentInstance;
+    _this._mesh.elements[componentName] = spec;
+    callback();
+  });
 };
 
 Mesh.prototype._integrateComponent = function (spec, done) {
@@ -1998,14 +2022,18 @@ Mesh.prototype.componentAsyncMethod = function (
   call,
   done
 ) {
-  return component.instance.operate(options.methodName, [], (e, responseArgs) => {
-    delete calls[call];
-    if (e) return done(e);
-    if (options.logAction) {
-      this.log.debug("%s component '%s'", options.logAction, componentName);
+  return component.instance.operate(
+    options.methodName,
+    options.methodArguments || [],
+    (e, responseArgs) => {
+      delete calls[call];
+      if (e) return done(e);
+      if (options.logAction) {
+        this.log.debug("%s component '%s'", options.logAction, componentName);
+      }
+      done.apply(this, responseArgs);
     }
-    done.apply(this, responseArgs);
-  });
+  );
 };
 
 Mesh.prototype.deferStartMethod = function (componentName, component, options, calls, call, done) {
@@ -2015,6 +2043,49 @@ Mesh.prototype.deferStartMethod = function (componentName, component, options, c
     });
 };
 
+Mesh.prototype.possiblyDeferStartup = function (
+  componentName,
+  config,
+  component,
+  options,
+  calls,
+  call,
+  eachComponentCallback
+) {
+  if (
+    this._mesh.clusterClient &&
+    !this._mesh.clusterClient.__implementors.addAndCheckDependencies(
+      componentName,
+      config.dependencies
+    )
+  ) {
+    // wait for cluster dependencies to be satisfied
+    return this.deferStartMethod(
+      componentName,
+      component,
+      options,
+      calls,
+      call,
+      eachComponentCallback
+    );
+  }
+  // all dependencies have started so we can start
+  return this.componentAsyncMethod(
+    componentName,
+    component,
+    options,
+    calls,
+    call,
+    eachComponentCallback
+  );
+};
+
+Mesh.prototype.getMethodArguments = function (methodConfig, removeUndefined) {
+  const methodArguments = (methodConfig?.parameters || []).map((p) => p.value);
+  if (removeUndefined) return _.without(methodArguments, undefined);
+  return methodArguments;
+};
+
 Mesh.prototype._eachComponentDo = function (options, callback) {
   if (!options.methodCategory && !options.methodName)
     return callback(new MeshError('methodName or methodCategory not included in options'));
@@ -2022,8 +2093,7 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
   if (!options.flow) options.flow = 'series';
   if (!options.targets) options.targets = Object.keys(this._mesh.elements);
 
-  var calls,
-    _this = this;
+  let calls;
 
   this._mesh.calls = this._mesh.calls || {};
   this._mesh.calls.starting = calls = {};
@@ -2031,88 +2101,59 @@ Mesh.prototype._eachComponentDo = function (options, callback) {
   this._eachComponent(
     options.targets,
     options.flow,
-    function (componentName, component, done) {
-      var call,
+    (componentName, component, eachComponentCallback) => {
+      let call,
         config = component.config || {};
 
-      if (options.methodCategory) options.methodName = config[options.methodCategory];
+      if (options.methodCategory) {
+        options.methodName = config[options.methodCategory];
+      }
+
+      const methodConfig = commons._.get(config, `schema.methods.${options.methodName}`);
 
       if (!options.methodName) {
-        return done(); // error?
+        return eachComponentCallback();
       }
 
       call = componentName + '.' + options.methodName + '()';
-
-      // default assume async with no args and callback as (error){} only
-      if (!config.schema || !config.schema.methods || !config.schema.methods[options.methodName]) {
-        calls[call] = Date.now();
-        _this.log.$$TRACE("calling %s '%s' as default async", options.methodCategory, call);
-        let emptyDependencies = JSON.stringify(config.dependencies) === JSON.stringify({});
-
-        if (options.methodCategory === 'startMethod' && !_this._mesh.ignoreDependenciesOnStartup) {
-          if (config.dependencies && !emptyDependencies) {
-            if (
-              _this._mesh.clusterClient &&
-              _this._mesh.clusterClient.__implementors.addAndCheckDependencies(
-                componentName,
-                config.dependencies
-              )
-            ) {
-              return _this.componentAsyncMethod(
-                componentName,
-                component,
-                options,
-                calls,
-                call,
-                done
-              );
-            }
-            return _this.deferStartMethod(componentName, component, options, calls, call, done);
-          }
-        }
-        return _this.componentAsyncMethod(componentName, component, options, calls, call, done);
-      }
-
-      var methodConfig = config.schema.methods[options.methodName];
-      var methodParameters = (methodConfig.parameters ? methodConfig.parameters : [])
-        .map(function (p) {
-          return p.value;
-        })
-        .filter(function (p) {
-          // Assumes startMthod and stopMethod schema either defines values
-          // or are optional. Filter out undefines.
-          // IMPORTANT because otherwise method receives (undefined, undefined, undefined, callback)
-          return typeof p !== 'undefined';
-        });
-
-      if (methodConfig.type === 'sync') {
-        try {
-          _this.log.$$TRACE("calling %s '%s' as configured sync", options.methodCategory, call);
-          component.instance.operate(options.methodName, methodParameters);
-          if (options.logAction) {
-            _this.log.debug("%s component '%s'", options.logAction, componentName);
-          }
-        } catch (e) {
-          done(new Error(e));
-          return;
-        }
-        done();
-        return;
-      }
-
       calls[call] = Date.now();
-      _this.log.$$TRACE("calling %s '%s' as configured async", options.methodCategory, call);
-      component.instance.operate(options.methodName, methodParameters, function (e, responseArgs) {
-        delete calls[call];
-        if (e) return done(e);
-        if (options.logAction) {
-          _this.log.debug("%s component '%s'", options.logAction, componentName);
-        }
-        done.apply(_this, responseArgs);
-      });
+
+      const methodArguments = this.getMethodArguments(methodConfig, options, true);
+      const methodOptions = Object.assign({ methodArguments }, options);
+
+      this.log.$$TRACE(
+        `calling %s '%s' as type: ${methodConfig?.type || 'unconfigured'}`,
+        options.methodCategory,
+        call
+      );
+
+      if (
+        options.methodCategory === 'startMethod' &&
+        !this._mesh.ignoreDependenciesOnStartup &&
+        !commons._.isEmpty(config.dependencies)
+      ) {
+        // we need to wait for dependencies to have started
+        return this.possiblyDeferStartup(
+          componentName,
+          config,
+          component,
+          methodOptions,
+          calls,
+          call,
+          eachComponentCallback
+        );
+      }
+      this.componentAsyncMethod(
+        componentName,
+        component,
+        methodOptions,
+        calls,
+        call,
+        eachComponentCallback
+      );
     },
-    function (e) {
-      callback(e, _this);
+    (e) => {
+      callback(e, this);
     }
   );
 };

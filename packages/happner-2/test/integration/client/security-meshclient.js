@@ -2,15 +2,10 @@ if (process.platform === 'win32') return;
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var Happner = require('../../..');
   var server;
-  var test_id = Date.now() + '_' + require('shortid').generate();
-  var dbFileName = './temp/' + test_id + '.nedb';
+  var dbFileName = test.newTempFilename('nedb');
+  test.tryDeleteTestFilesAfter([dbFileName]);
 
   before('start server', function (done) {
-    try {
-      test.commons.fs.unlinkSync(dbFileName);
-    } catch (e) {
-      // do nothing
-    }
     Happner.create({
       name: 'Server',
       happn: {

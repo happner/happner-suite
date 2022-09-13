@@ -1,4 +1,7 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, function (test) {
+  const commons = require('happn-commons');
+  const CONSTANTS = commons.constants;
+  const SD_EVENTS = CONSTANTS.SECURITY_DIRECTORY_EVENTS;
   var Logger = require('happn-logger');
   const util = require('util');
   var Services = {};
@@ -61,7 +64,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .then(mockService(happn, 'Data'))
       .then(mockService(happn, 'Cache'))
       .then(mockService(happn, 'System'))
-      .then(mockService(happn, 'Security'))
+      .then(
+        mockService(happn, 'Security', {
+          __cache_groups_by_user: { max: 5 },
+          __cache_users_by_groups: { max: 5 },
+        })
+      )
       .then(mockService(happn, 'Subscription'))
       .then(function () {
         happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
@@ -878,6 +886,168 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
             done(e);
           }
         });
+      });
+    });
+  });
+
+  it('tests userBelongsToGroups, no groups', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+      createUsersAndGroups(happn, function (e) {
+        if (e) return done(e);
+        happn.services.security.users.userBelongsToGroups('test_user', [], (e, belongs) => {
+          if (e) return done(e);
+          test.expect(belongs).to.be(false);
+          done();
+        });
+      });
+    });
+  });
+
+  it('tests userBelongsToGroups', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+      createUsersAndGroups(happn, function (e) {
+        if (e) return done(e);
+        happn.services.security.users.userBelongsToGroups(
+          'test_1',
+          ['test_1', 'test_2'],
+          (e, belongs) => {
+            if (e) return done(e);
+            test.expect(belongs).to.be(true);
+            done();
+          }
+        );
+      });
+    });
+  });
+
+  it('tests userBelongsToGroups, false', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+      createUsersAndGroups(happn, function (e) {
+        if (e) return done(e);
+        happn.services.security.users.userBelongsToGroups(
+          'test_1',
+          ['test_1', 'test_2', 'bad_group'],
+          (e, belongs) => {
+            if (e) return done(e);
+            test.expect(belongs).to.be(false);
+            done();
+          }
+        );
+      });
+    });
+  });
+
+  function testCorrectCacheEmptyBasedOnWhatHappened(whatHappened, changedData, expectedSize = 0) {
+    return new Promise((resolve, reject) => {
+      mockServices(function (e, happn) {
+        if (e) return reject(e);
+        createUsersAndGroups(happn, function (e) {
+          if (e) return reject(e);
+          let users = happn.services.security.users;
+          users.clearCaches();
+          users.userBelongsToGroups(`test_1`, [`test_1`], (e) => {
+            if (e) return reject(e);
+            test.expect(users.__cache_groups_by_user.size()).to.be(1);
+            users.clearCaches(whatHappened, changedData);
+            test.expect(users.__cache_groups_by_user.size()).to.be(expectedSize);
+            resolve(true);
+          });
+        });
+      });
+    });
+  }
+
+  it('tests userBelongsToGroups, cache clear on security directory event', async () => {
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.DELETE_GROUP, {
+          obj: { name: 'test_1' },
+        })
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.LINK_GROUP, {
+          _meta: { path: '/_SYSTEM/_SECURITY/_USER/test_1' },
+        })
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.UNLINK_GROUP, {
+          path: '/_SYSTEM/_SECURITY/_USER/test_1',
+        })
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(
+          SD_EVENTS.PERMISSION_UPSERTED,
+          {
+            path: '/_SYSTEM/_SECURITY/_USER/test_1',
+          },
+          1
+        )
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(
+          SD_EVENTS.PERMISSION_REMOVED,
+          {
+            path: '/_SYSTEM/_SECURITY/_USER/test_1',
+          },
+          1
+        )
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.UPSERT_USER, {
+          username: 'test_1',
+        })
+      )
+      .to.be(true);
+
+    test
+      .expect(
+        await testCorrectCacheEmptyBasedOnWhatHappened(SD_EVENTS.DELETE_USER, {
+          obj: { _meta: { path: '/_SYSTEM/_SECURITY/_USER/test_1' } },
+        })
+      )
+      .to.be(true);
+  });
+
+  it('tests userBelongsToGroups, cache clear all', function (done) {
+    mockServices(function (e, happn) {
+      if (e) return done(e);
+      createUsersAndGroups(happn, function (e) {
+        if (e) return done(e);
+        test.commons.async.times(
+          10,
+          (time, timeCb) => {
+            happn.services.security.users.userBelongsToGroups(
+              `test_${time}`,
+              [`test_${time}`],
+              timeCb
+            );
+          },
+          (e) => {
+            if (e) return done(e);
+            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(5);
+            happn.services.security.users.clearCaches();
+            test.expect(happn.services.security.users.__cache_groups_by_user.size()).to.be(0);
+            done();
+          }
+        );
       });
     });
   });

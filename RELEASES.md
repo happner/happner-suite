@@ -89,3 +89,28 @@ happner-client: 12.2.8
 redis-lru-cache: 1.0.12
 happner-cluster: 12.1.9
 happn-cluster: 12.0.12
+
+1.5.0 2022-08-07
+----------------
+- TEN-31: on behalf of
+happn-3: 13.2.0
+happner-2: 12.2.0
+happner-client: 12.3.0
+happner-cluster: 12.2.0
+happn-cluster: 12.0.13
+happn-db-provider-elasticsearch: 1.0.13
+happn-db-provider-mongo: 1.0.13
+
+1.6.0 2022-09-01
+-----------------
+  - TEN-130: issues with sync init functions and defer startup
+happner-2: 12.2.1
+happner-cluster: 12.2.1
+happn-3: 13.2.1
+happn-cluster: 12.0.14
+happn-db-provider-elasticsearch: 1.0.14
+happn-db-provider-mongo: 1.0.14
+happn-logger: 2.2.0
+happner-client: 12.3.1
+
+

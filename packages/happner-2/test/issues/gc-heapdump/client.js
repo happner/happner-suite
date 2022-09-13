@@ -1,21 +1,26 @@
 const CLIENT_COUNT = 10;
-const CYCLES = 80;
+const CYCLES = 1600;
+const CALLS = 10;
 const test = require('../../__fixtures/utils/test_helper').create();
+const delay = require('await-delay');
 async function start() {
   let clients = await connectClients();
+  var i = 1;
   for (let ii = 0; ii < CYCLES; ii++) {
     test.log(`running cycle ${ii} / ${CYCLES}`);
-    var i = 1;
     for (let client of clients) {
       try {
-        await client.exchange.component.method1();
-        await doRestCall(client);
+        for (let iii = 0; iii < CALLS; iii++) {
+          await client.exchange.component.method1();
+          await doRestCall(client);
+          await delay(10);
+          i++;
+        }
       } catch (e) {
         test.log(`error  on request: `, e.message);
+        process.exit();
       }
-      test.log(`called method ${i} times...`);
-      await test.delay(10);
-      i++;
+      test.log(`did heapdump cycle #${ii} with callcount: ${i}`);
     }
     await doHeapDump(clients[0]);
   }
@@ -59,24 +64,28 @@ async function connectClients() {
   return clients;
 }
 async function createAndConnectClient(index, adminClient) {
-  const testGroupAdded = await adminClient.exchange.security.upsertGroup({
+  await adminClient.exchange.security.upsertGroup({
     name: 'TEST GROUP' + index,
     permissions: {
       methods: {
         //in a /Mesh name/component name/method name - with possible wildcards
         '/meshname/component/*': { authorized: true },
+        '/meshname/data/*': { authorized: true },
       },
       events: {
         //in a /Mesh name/component name/event key - with possible wildcards
         '/meshname/component/*': { authorized: true },
       },
+      data: {
+        '/_data/component/stress/test/*': { actions: ['set', 'on'] },
+      },
     },
   });
-  const testUserAdded = await adminClient.exchange.security.upsertUser({
+  await adminClient.exchange.security.upsertUser({
     username: 'user' + index,
     password: 'password',
   });
-  await adminClient.exchange.security.linkGroup(testGroupAdded, testUserAdded);
+  await adminClient.exchange.security.linkGroup('TEST GROUP' + index, 'user' + index);
   let testClient = new test.Mesh.MeshClient({ secure: true });
   await testClient.login({ username: 'user' + index, password: 'password' });
   return testClient;

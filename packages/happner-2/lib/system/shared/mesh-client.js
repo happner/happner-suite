@@ -124,6 +124,26 @@
 
   extend(MeshClient, EventEmitter);
 
+  MeshClient.create = function (opts) {
+    return new Promise((resolve, reject) => {
+      let client = new MeshClient({
+        host: opts.host,
+        port: opts.port,
+      });
+      client
+        .login({
+          username: opts.username,
+          password: opts.password,
+        })
+        .then(function () {
+          resolve(client);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  };
+
   MeshClient.clearCookieEventObjects = function () {
     MeshHappnClient.clearCookieEventObjects();
   };

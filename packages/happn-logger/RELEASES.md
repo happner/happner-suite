@@ -25,3 +25,7 @@
 2.1.1 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+2.2.0 2022-09-08
+-----------------
+  - TEN-130: able to override logger configuration

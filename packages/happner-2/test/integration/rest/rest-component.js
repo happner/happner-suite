@@ -162,6 +162,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   var happnUtils = require('../../../lib/system/utilities');
 
   var mock$Happn = {
+    as: () => {
+      return mock$Happn;
+    },
     log: {
       error: test.sinon.stub(),
       info: test.sinon.stub(),

@@ -39,7 +39,7 @@ happner-2 ![coverage](https://github.com/happner/happner-suite/blob/platform-cov
 This is the rpc layer, it uses happn-3 for communication, and provides the ability to discover and call server-side components as if they were local.
 
 - [quickstart]()
-- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happner-2/README.md)
+- [documentation](https://github.com/happner/happner-suite/blob/master/packages/happner-2/readme.md)
 
 happn-cluster ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-cluster.badge.svg?raw=true)
 -------------

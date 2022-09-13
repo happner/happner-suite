@@ -4,7 +4,7 @@
 
 ### What is the happn layer?
 
-The HAPPN layer is the underlying messaging and storage infrastructure in the mesh. It uses [happn](https://github.com/happner/happn-3)'s evented storage and pubsub websocket stack.
+The HAPPN layer is the underlying messaging and storage infrastructure in the mesh. It uses [happn](https://github.com/happner/happner-suite/blob/develop/packages/happn-3)'s evented storage and pubsub websocket stack.
 
 Configured in the happn layer is the host and port upon which __this__ MeshNode listens for connections from other MeshNodes or clients.
 
@@ -151,14 +151,14 @@ Happner.create(config, function(err, mesh) {
 
 1. the _exchange bucket - where exchange method calls are stored and searched for
 2. the _events bucket - where events subscriptions happen
-3. the _optimised bucket - deeply nested subscriptions that you know the segment size for happen here, as long as the data is stored in the format /_optimised/[rest of key] - for more info please check out the [happn documentation](https://github.com/happner/happn-3#buckets-and-optimisation)
+3. the _optimised bucket - deeply nested subscriptions that you know the segment size for happen here, as long as the data is stored in the format /_optimised/[rest of key] - for more info please check out the [happn documentation](https://github.com/happner/happner-suite/blob/develop/packages/happn-3#buckets-and-optimisation)
 4. all sets
 5. all removes
 6. default anything else that isn't fielded above
 
 The first matching bucket found is used to store a matching subscription, all the buckets are checked against sets and removes that happen.
 
-The subscription service is [configured in the lib/system/happn.js module as follows](https://github.com/happner/happner-2/blob/master/lib/system/happn.js#L265):
+The subscription service is [configured in the lib/system/happn.js module as follows](https://github.com/happner/happner-suite/blob/develop/packages/happner-2/blob/master/lib/system/happn.js#L265):
 ```javascript
  //happn subscription service
   if (!config.happn.services.subscription) {

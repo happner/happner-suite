@@ -358,7 +358,15 @@
       }
       const args = Array.isArray(parameters.arguments) ? parameters.arguments : [];
       if (typeof callback === 'function') args.push(callback);
-      return endpoint[parameters.method].apply(endpoint, args);
+      let boundEndpoint = endpoint;
+      if (parameters.as) {
+        boundEndpoint = Object.assign(
+          {},
+          { $origin: { username: parameters.as, override: true } },
+          endpoint
+        );
+      }
+      return endpoint[parameters.method].apply(boundEndpoint, args);
     };
   };
 

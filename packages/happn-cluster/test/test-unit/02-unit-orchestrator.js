@@ -1,10 +1,10 @@
-var Orchestrator = require('../../lib/services/orchestrator');
-var MockHappn = require('../mocks/mock-happn');
-var MockHappnClient = require('../mocks/mock-happn-client');
-var MockSession = require('../mocks/mock-session');
-var MockMembership = require('../mocks/mock-membership');
-var mockOpts = require('../mocks/mock-opts');
-var address = require('../../lib/utils/get-address')()();
+const Orchestrator = require('../../lib/services/orchestrator');
+const MockHappn = require('../mocks/mock-happn');
+const MockHappnClient = require('../mocks/mock-happn-client');
+const MockSession = require('../mocks/mock-session');
+const MockMembership = require('../mocks/mock-membership');
+const mockOpts = require('../mocks/mock-opts');
+const address = require('../../lib/utils/get-address')()();
 
 require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   before(function () {

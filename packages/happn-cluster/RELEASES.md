@@ -290,4 +290,11 @@ non-release 2017-12-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
 
+12.0.13 2022-08-07
+-----------------
+  - TEN-31: updated unit tests
+
+12.0.14 2022-09-08
+-----------------
+  - TEN-130: happn-logger update
 

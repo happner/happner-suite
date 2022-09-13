@@ -26,4 +26,5 @@ report.*
 .vscode
 tmp
 heapdump*
+temp
 
