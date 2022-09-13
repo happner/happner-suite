@@ -1,22 +1,17 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
-  var path = require('path');
-  var test_id = test.newid();
-  var logFileName = path.resolve(__dirname, '../../tmp') + '/' + test_id + '.log';
-  var dbFileName = path.resolve(__dirname, '../../tmp') + '/' + test_id + '.loki';
+  let logFile = test.newTempFilename('log');
+  let dbFileName = test.newTempFilename('loki');
   let server;
+
+  test.tryDeleteTestFilesAfter([logFile, dbFileName]);
 
   before('start server', function (done) {
     if (process.env.RUNNING_IN_ACTIONS || process.env.SILENCE) return done();
-
-    try {
-      test.commons.fs.unlinkSync(logFileName);
-    } catch (e) {
-      // do nothing
-    }
     test.Mesh.create({
       name: 'Server',
       util: {
-        logFile: logFileName,
+        logFile,
+        overrideLoggerConfiguration: true,
       },
       happn: {
         secure: true,
@@ -25,8 +20,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         ComponentName: {
           instance: {
             logMethod: function ($happn, callback) {
-              // "max-nasty" injection
-              $happn.log.error('test error');
+              $happn.log.error('test error'); // be aware, the test must change if this line number changes
               callback();
             },
           },
@@ -81,23 +75,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .then(function () {
         client.exchange.ComponentName.logMethod().then(function () {
           server.stop({ reconnect: false }).then(function () {
-            var logged = test.commons.fs.readFileSync(logFileName).toString();
-            logged.should.match(/\/test\/integration\/logger\/logs-line-number-error.js:29:26/);
+            var logged = test.commons.fs.readFileSync(logFile).toString();
+            logged.should.match(/\/test\/integration\/logger\/logs-line-number-error.js:23:26/);
             done();
           });
         });
       })
       .catch(done);
-  });
-
-  after('delete file', function (done) {
-    if (process.env.RUNNING_IN_ACTIONS || process.env.SILENCE) return done();
-
-    try {
-      test.commons.fs.unlinkSync(dbFileName);
-    } catch (e) {
-      // do nothing
-    }
-    done();
   });
 });

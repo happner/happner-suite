@@ -97,7 +97,7 @@ module.exports.configure = function (config) {
   if (config.listener) Config.listener = config.listener;
 
   // only build the log4js config if not defined
-  if (!Config.logger) {
+  if (config.overrideLoggerConfiguration || !Config.logger) {
     defaulting = true;
 
     // create the necessary layout if date format is specified
