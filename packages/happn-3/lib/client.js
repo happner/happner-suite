@@ -898,8 +898,11 @@
       sessionId: this.session.id,
     };
 
-    if (!options) options = {};
-    else message.options = options; //else skip sending up the options
+    if (!options || typeof options !== 'object') {
+      options = {};
+    } else {
+      message.options = options; //else skip sending up the options
+    }
 
     if (['set', 'remove'].indexOf(action) >= 0) {
       if (

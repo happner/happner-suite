@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
   let happn = require('../../../lib/index');
   let service = happn.service;
   let happn_client = happn.client;
@@ -308,7 +308,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     );
   });
 
-  it.only('the publisher should get null for unfound data, bad options', function (callback) {
+  it('the publisher should get null for unfound data, bad options', function (callback) {
     var test_path_end = test.newid();
     publisherclient.get(
       '2_websockets_embedded_sanity/' + testId + '/unfound/exact/' + test_path_end,
@@ -869,6 +869,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
     );
   });
+
   //	We set the listener client to listen for a PUT event according to a path, then we set a value with the publisher client.
   it('the listener should pick up a single published event', function (callback) {
     try {
@@ -937,7 +938,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               null,
               function (e, results) {
                 test.expect(results.property1 === 'property1').to.be(true);
-                test.expect(results.payload[0].created === results.payload[0].modified).to.be(true);
+                test.expect(results._meta.created === results._meta.modified).to.be(true);
                 callback(e);
               }
             );
@@ -1646,8 +1647,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('increments a value on a path', function (done) {
-    var async = require('async');
-
     var test_string = test.newid();
     var test_base_url = '/increment/' + testId + '/' + test_string;
 
