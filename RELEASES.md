@@ -113,4 +113,7 @@ happn-db-provider-mongo: 1.0.14
 happn-logger: 2.2.0
 happner-client: 12.3.1
 
+1.7.0 2022-09-14
+----------------
+  - TEN-119: ease of configuration
 
