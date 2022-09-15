@@ -25,7 +25,7 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   #transform(key) {
-    if (!this.#opts.keyTransformers) {
+    if (!this.#opts?.keyTransformers) {
       return key;
     }
     const transformerFound = this.#opts.keyTransformers.find((transformer) => {
