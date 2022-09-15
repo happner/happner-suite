@@ -24,12 +24,26 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     return this.#opts;
   }
 
+  #transform(key) {
+    if (!this.#opts.keyTransformers) {
+      return key;
+    }
+    const transformerFound = this.#opts.keyTransformers.find((transformer) => {
+      return key.match(transformer.regex) !== null;
+    });
+    if (!transformerFound) {
+      return key;
+    }
+    return transformerFound.transform(key);
+  }
+
   get(key, opts = {}) {
-    let cached = this.getInternal(key, opts);
+    let transformedKey = this.#transform(key);
+    let cached = this.getInternal(transformedKey, opts);
     if (cached == null) {
       this.#stats.misses++;
       if (opts.default) {
-        this.set(key, opts.default.value, opts.default.opts);
+        this.set(transformedKey, opts.default.value, opts.default.opts);
         cached = { data: opts.default.value, noclone: opts.default?.opts?.noclone };
       } else {
         return null;
@@ -46,13 +60,14 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   set(key, data, opts = {}) {
+    let transformedKey = this.#transform(key);
     const cacheItem = {
       data: opts.clone === false ? data : this.utils.clone(data),
-      key: key,
+      key: transformedKey,
       ttl: opts.ttl,
       noclone: opts.clone === false,
     };
-    this.setInternal(key, cacheItem, opts);
+    this.setInternal(transformedKey, cacheItem, opts);
     return cacheItem;
   }
 
@@ -67,9 +82,10 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   remove(key, opts) {
-    const existing = this.get(key, opts);
+    let transformedKey = this.#transform(key);
+    const existing = this.get(transformedKey, opts);
     if (existing) {
-      this.removeInternal(key);
+      this.removeInternal(transformedKey);
     }
     return existing;
   }

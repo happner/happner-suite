@@ -1,9 +1,21 @@
+const transform = (path) => {
+  let transformed = path.split('/').slice(0, -1).join('/');
+  return transformed;
+};
 [
   {
     service: {},
     specific: {
       type: 'lru',
       overwrite: true,
+      cache: {
+        keyTransformers: [
+          {
+            regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+            transform,
+          },
+        ],
+      },
     },
   },
   {
@@ -11,6 +23,14 @@
     specific: {
       type: 'static',
       overwrite: true,
+      cache: {
+        keyTransformers: [
+          {
+            regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+            transform,
+          },
+        ],
+      },
     },
   },
 ].forEach((config) => {
@@ -41,6 +61,22 @@
       var specific = serviceInstance.create('specific', config.specific);
       const result = specific.set(key, { dkey: key });
       test.expect(result.key).to.be(key);
+      test.expect(result.data.dkey).to.be(key);
+      const result2 = specific.get(key);
+      test.expect(result2.dkey).to.be(key);
+      const result3 = specific.get(key + 'bad');
+      test.expect(result3).to.be(null);
+      specific.remove(key);
+      const result4 = specific.get(key);
+      test.expect(result4).to.be(null);
+    });
+
+    it(`sets, gets and removes data, with a keyTransformer regex, type: ${config.specific.type}`, function () {
+      var key = '/exchange/component2/method3/12345';
+      var transformedKey = '/exchange/component2/method3';
+      var specific = serviceInstance.create('specific', config.specific);
+      const result = specific.set(key, { dkey: key });
+      test.expect(result.key).to.be(transformedKey);
       test.expect(result.data.dkey).to.be(key);
       const result2 = specific.get(key);
       test.expect(result2.dkey).to.be(key);
