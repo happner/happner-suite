@@ -27,6 +27,48 @@ describe(test.testName(__filename, 3), function () {
     test.expect(usersByGroupCache1.__mappings).to.eql({});
   });
 
+  it('removeMappings', async () => {
+    const isEmptyObject = test.sinon.stub();
+    const mockCacheService = {
+      create: test.sinon.stub().returns({
+        happn: {
+          services: {
+            utils: {
+              isEmptyObject,
+            },
+          },
+        },
+      }),
+    };
+
+    const usersByGroupCache1 = UsersByGroupCache.create(mockCacheService, {
+      max: 5,
+    });
+
+    usersByGroupCache1.removeMappings({ data: ['mockUsername'] });
+
+    test.chai.expect(usersByGroupCache1.__mappings).to.eql({});
+    test.chai.expect(isEmptyObject).to.have.callCount(0);
+  });
+
+  it('clear', async () => {
+    const clear = test.sinon.stub();
+    const mockCacheService = {
+      create: test.sinon.stub().returns({
+        clear,
+      }),
+    };
+
+    const usersByGroupCache1 = UsersByGroupCache.create(mockCacheService, {
+      max: 5,
+    });
+
+    usersByGroupCache1.clear({ data: ['mockUsername'] });
+
+    test.chai.expect(clear).to.have.callCount(1);
+    test.chai.expect(usersByGroupCache1.__mappings).to.eql({});
+  });
+
   it('userChanged dispose', async () => {
     const usersByGroupCache1 = UsersByGroupCache.create(await newCacheService(), {
       max: 5,
@@ -46,6 +88,17 @@ describe(test.testName(__filename, 3), function () {
 
     usersByGroupCache1.userChanged('username-1');
     test.expect(usersByGroupCache1.__mappings).to.eql({});
+  });
+
+  it('userChanged dispose, returns if username does not exist in this.__mappings', async () => {
+    const usersByGroupCache1 = UsersByGroupCache.create(await newCacheService(), {
+      max: 5,
+    });
+
+    const result = usersByGroupCache1.userChanged('username-1');
+
+    test.chai.expect(result).to.have.returned;
+    test.chai.expect(result).to.equal();
   });
 
   it('groupChanged dispose', async () => {
