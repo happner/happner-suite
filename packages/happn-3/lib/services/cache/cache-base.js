@@ -43,7 +43,7 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     if (cached == null) {
       this.#stats.misses++;
       if (opts.default) {
-        this.set(transformedKey, opts.default.value, opts.default.opts);
+        this.set(transformedKey, opts.default.value, opts.default.opts, true);
         cached = { data: opts.default.value, noclone: opts.default?.opts?.noclone };
       } else {
         return null;
@@ -59,8 +59,8 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     return this.utils.clone(cached.data);
   }
 
-  set(key, data, opts = {}) {
-    let transformedKey = this.#transform(key);
+  set(key, data, opts = {}, transformedAlready) {
+    let transformedKey = transformedAlready ? key : this.#transform(key);
     const cacheItem = {
       data: opts.clone === false ? data : this.utils.clone(data),
       key: transformedKey,
@@ -72,12 +72,13 @@ module.exports = class CacheBase extends require('events').EventEmitter {
   }
 
   increment(key, by = 1, opts = {}) {
-    let currentValue = this.getInternal(key)?.data;
+    let transformedKey = this.#transform(key);
+    let currentValue = this.getInternal(transformedKey)?.data;
     if (typeof currentValue !== 'number') {
       currentValue = opts.initial || 0;
     }
     currentValue += by;
-    this.set(key, currentValue, opts);
+    this.set(transformedKey, currentValue, opts, true);
     return currentValue;
   }
 

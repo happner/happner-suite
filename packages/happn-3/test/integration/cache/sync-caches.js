@@ -14,6 +14,10 @@ const transform = (path) => {
             regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
             transform,
           },
+          {
+            regex: /^(\/increment\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+            transform,
+          },
         ],
       },
     },
@@ -27,6 +31,10 @@ const transform = (path) => {
         keyTransformers: [
           {
             regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+            transform,
+          },
+          {
+            regex: /^(\/increment\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
             transform,
           },
         ],
@@ -58,6 +66,7 @@ const transform = (path) => {
 
     it(`sets, gets and removes data, specific cache, type: ${config.specific.type}`, function () {
       var key = testId + 'test1';
+      var incrementKey = key + 'increment';
       var specific = serviceInstance.create('specific', config.specific);
       const result = specific.set(key, { dkey: key });
       test.expect(result.key).to.be(key);
@@ -69,13 +78,20 @@ const transform = (path) => {
       specific.remove(key);
       const result4 = specific.get(key);
       test.expect(result4).to.be(null);
+
+      specific.set(incrementKey, 100);
+      specific.increment(incrementKey, 10);
+      const result5 = specific.get(incrementKey);
+      test.expect(result5).to.equal(110);
     });
 
     it(`sets, gets and removes data, with a keyTransformer regex, type: ${config.specific.type}`, function () {
       var key = '/exchange/component2/method3/12345';
       var transformedKey = '/exchange/component2/method3';
+      var incrementKey = '/increment/component2/method3/12345';
       var specific = serviceInstance.create('specific', config.specific);
       const result = specific.set(key, { dkey: key });
+      test.expect(specific.keys()).to.eql(['/exchange/component2/method3']);
       test.expect(result.key).to.be(transformedKey);
       test.expect(result.data.dkey).to.be(key);
       const result2 = specific.get(key);
@@ -83,8 +99,14 @@ const transform = (path) => {
       const result3 = specific.get(key + 'bad');
       test.expect(result3).to.be(null);
       specific.remove(key);
+      test.expect(specific.keys()).to.eql([]);
       const result4 = specific.get(key);
       test.expect(result4).to.be(null);
+      specific.set(incrementKey, 100);
+      specific.increment(incrementKey, 10);
+      const result5 = specific.get(incrementKey);
+      test.expect(result5).to.equal(110);
+      test.expect(specific.keys()).to.eql(['/increment/component2/method3']);
     });
 
     it(`times data out, specific cache, type: ${config.specific.type}`, (done) => {
