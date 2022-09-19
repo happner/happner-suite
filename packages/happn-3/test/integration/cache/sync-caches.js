@@ -2,6 +2,19 @@ const transform = (path) => {
   let transformed = path.split('/').slice(0, -1).join('/');
   return transformed;
 };
+const keyTransformers = [
+  {
+    regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+    transform,
+  },
+  {
+    regex: /^(\/increment\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
+    transform,
+  },
+  {
+    regex: /^(?<keyMask>\/_partial\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+)\/[a-zA-Z0-9]+/,
+  },
+];
 [
   {
     service: {},
@@ -9,16 +22,7 @@ const transform = (path) => {
       type: 'lru',
       overwrite: true,
       cache: {
-        keyTransformers: [
-          {
-            regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
-            transform,
-          },
-          {
-            regex: /^(\/increment\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
-            transform,
-          },
-        ],
+        keyTransformers,
       },
     },
   },
@@ -28,16 +32,7 @@ const transform = (path) => {
       type: 'static',
       overwrite: true,
       cache: {
-        keyTransformers: [
-          {
-            regex: /^(\/exchange\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
-            transform,
-          },
-          {
-            regex: /^(\/increment\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[0-9]+)$/g,
-            transform,
-          },
-        ],
+        keyTransformers,
       },
     },
   },
@@ -107,6 +102,24 @@ const transform = (path) => {
       const result5 = specific.get(incrementKey);
       test.expect(result5).to.equal(110);
       test.expect(specific.keys()).to.eql(['/increment/component2/method3']);
+    });
+
+    it(`sets, gets and removes data, with a keyTransformer regex partial without transform method and keyMask group, type: ${config.specific.type}`, function () {
+      var key = '/_partial/component2/method3/12345';
+      var transformedKey = '/_partial/component2/method3';
+      var specific = serviceInstance.create('specific', config.specific);
+      const result = specific.set(key, { dkey: key });
+      test.expect(specific.keys()).to.eql(['/_partial/component2/method3']);
+      test.expect(result.key).to.be(transformedKey);
+      test.expect(result.data.dkey).to.be(key);
+      const result2 = specific.get(key);
+      test.expect(result2.dkey).to.be(key);
+      const result3 = specific.get('/_partial/component2');
+      test.expect(result3).to.be(null);
+      specific.remove(key);
+      test.expect(specific.keys()).to.eql([]);
+      const result4 = specific.get(key);
+      test.expect(result4).to.be(null);
     });
 
     it(`times data out, specific cache, type: ${config.specific.type}`, (done) => {

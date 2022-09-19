@@ -28,13 +28,18 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     if (!this.#opts?.keyTransformers) {
       return key;
     }
+    let match;
     const transformerFound = this.#opts.keyTransformers.find((transformer) => {
-      return key.match(transformer.regex) !== null;
+      match = key.match(transformer.regex);
+      return match !== null;
     });
     if (!transformerFound) {
       return key;
     }
-    return transformerFound.transform(key);
+    const transformedKey = transformerFound.transform
+      ? transformerFound.transform(key)
+      : match.groups.keyMask;
+    return transformedKey;
   }
 
   get(key, opts = {}) {

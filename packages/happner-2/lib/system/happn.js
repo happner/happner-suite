@@ -13,6 +13,7 @@ HappnLayer.prototype.__initializeStore = __initializeStore;
 HappnLayer.prototype.__initializeBaseConfig = __initializeBaseConfig;
 HappnLayer.prototype.__initializeDbConfig = __initializeDbConfig;
 HappnLayer.prototype.__initializeLayersConfig = __initializeLayersConfig;
+HappnLayer.prototype.__initializeSecurityConfig = __initializeSecurityConfig;
 HappnLayer.prototype.__inboundLayer = __inboundLayer;
 HappnLayer.prototype.__outboundLayer = __outboundLayer;
 HappnLayer.prototype.connect = connect;
@@ -38,6 +39,7 @@ function initialize(config, logger) {
   this.__initializeBaseConfig(config);
   this.__initializeDbConfig(config);
   this.__initializeLayersConfig(config);
+  this.__initializeSecurityConfig(config);
 
   this.config = config;
 }
@@ -304,6 +306,27 @@ function __outboundLayer(message, callback) {
     return callback(new Error('subscription filter failed: ' + e.toString(), e));
   }
   callback(null, message);
+}
+
+function __initializeSecurityConfig(config) {
+  if (!config.happn.secure) {
+    return;
+  }
+  if (!config.happn.services.security) {
+    config.happn.services.security = {};
+  }
+  if (!config.happn.services.security.config) {
+    config.happn.services.security.config = {};
+  }
+  // this makes exchange response requests hittable by removing the response origin id ie: [0-9]+:set$/
+  config.happn.services.security.config.cache_checkpoint_authorization = {
+    keyTransformers: [
+      {
+        regex:
+          /^(?<keyMask>[a-zA-Z0-9-]+:\/_exchange\/responses\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+)\/[0-9]+:set$/,
+      },
+    ],
+  };
 }
 
 function __initializeLayersConfig(config) {
