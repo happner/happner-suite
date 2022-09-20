@@ -50,11 +50,17 @@ module.exports = class CachePersist extends require('./cache-static') {
     });
   }
 
-  set(key, data, opts = {}, callback) {
+  set(key, data, opts = {}, transformedAlready, callback) {
     if (typeof opts === 'function') {
       callback = opts;
       opts = {};
     }
+    if (typeof transformedAlready === 'function') {
+      callback = transformedAlready;
+      transformedAlready = false;
+    }
+    opts = opts || {};
+
     if (!this.#syncing && !this.#checkSynced(callback)) {
       return;
     }
@@ -62,13 +68,13 @@ module.exports = class CachePersist extends require('./cache-static') {
     if (!opts) opts = {};
     if (!opts.ttl) opts.ttl = this.opts.defaultTTL;
     if (opts.noPersist) {
-      const result = super.set(key, data, opts);
+      const result = super.set(key, data, opts, transformedAlready);
       return callback(null, result);
     }
 
     this.#persistData(key, this.createCacheItem(key, data, opts), (e) => {
       if (e) return callback(e);
-      const result = super.set(key, data, opts);
+      const result = super.set(key, data, opts, transformedAlready);
       callback(null, result);
     });
   }

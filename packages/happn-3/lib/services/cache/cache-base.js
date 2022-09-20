@@ -36,10 +36,10 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     if (!transformerFound) {
       return key;
     }
-    const transformedKey = transformerFound.transform
-      ? transformerFound.transform(key)
-      : match.groups.keyMask;
-    return transformedKey;
+    if (transformerFound.transform) {
+      return transformerFound.transform(key);
+    }
+    return match.groups.keyMask.toString();
   }
 
   get(key, opts = {}) {
