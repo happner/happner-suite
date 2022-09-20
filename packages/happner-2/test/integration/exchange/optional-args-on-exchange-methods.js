@@ -1,10 +1,26 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var mesh;
+  function nestedFunc(cb) {
+    process.nextTick(cb);
+  }
   before('start mesh', function (done) {
     test.Mesh.create({
       modules: {
         testComponent: {
           instance: {
+            unvalidatedMethod: function ($happn, _notInArgs, _notInArgs1, callback) {
+              try {
+                return nestedFunc(() => {
+                  throw new Error('test');
+                });
+              } catch (e) {
+                console.log('error is: ', e);
+                callback(e);
+              }
+              // $happn.asAdmin.exchange.data.set('test', {}, () => {
+              //   return callback();
+              // });
+            },
             unconfiguredMethod: function (optional, callback) {
               if (typeof optional === 'function') {
                 callback = optional;
@@ -27,6 +43,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         },
       },
       components: {
+        data: {},
         testComponent: {
           schema: {
             methods: {
@@ -117,12 +134,31 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         }
       );
     });
+
+    it.only('supports call to method with a bad callback argument', function (done) {
+      this.timeout(300);
+      mesh.exchange.testComponent.unvalidatedMethod((err) => {
+        test.expect(err.message).to.be('callback is not a function');
+        done();
+      });
+    });
   });
 
   context('using promise', function () {
     //
     // failing test! remove "x"
     //
+
+    it.only('supports call to method with a bad callback argument, promise', async () => {
+      this.timeout(300);
+      let errorMessage;
+      try {
+        await mesh.exchange.testComponent.unvalidatedMethod();
+      } catch (error) {
+        errorMessage = error.message;
+      }
+      test.expect(errorMessage).to.be('callback is not a function');
+    });
 
     xit('supports call to configuredMethod WITHOUT optional argument', function (done) {
       this.timeout(300);
