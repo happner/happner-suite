@@ -1,0 +1,14 @@
+{
+  "name": "configuration",
+  "version": "0.0.1",
+  "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "leebow",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  }
+}
