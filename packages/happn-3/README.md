@@ -83,15 +83,14 @@ example options are :
       pingTimeout: 45e3 // 45 seconds by default, if set to false the client
                         // will not detect connection failures and emit the
                         // 'reconnect scheduled event'
-    }
+    },
+    // on socket error:
+    reconnectWait: 1e3, // wait 1 seconds before reconnecting on socket error
+    retryOnSocketErrorMaxInterval: 120e3, // maximum interval between reconnects when there is a socket error
 }
 **/
 
-happn.client.create([options], function(e, instance) {
-
-	//instance is now connected to the server listening on port 55000
-	my_client_instance = instance;
-});
+const myClientInstance = await HappnClient.create(options);
 
 ```
 
@@ -101,14 +100,7 @@ To use the browser client, make sure the server is running, and reference the cl
 <script type="text/javascript" src="http://localhost:55000/browser_client"></script>
 <script>
 
-var my_client_instance;
-
-HappnClient.create([options], function(e, instance) {
-
-	//instance is now connected to the server listening on port 55000
-	my_client_instance = instance;
-
-});
+const myClientInstance = await HappnClient.create(options);
 
 </script>
 ```
