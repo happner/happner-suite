@@ -397,3 +397,8 @@
 -----------------
   - TEN-130: issues with sync init functions and defer startup
 
+12.2.2 2022-10-22
+-----------------
+  - TEN-65, TEN-126: happn-3, happner-2 updates
+  - TEN-123: getAddress changes
+
