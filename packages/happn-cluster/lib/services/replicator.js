@@ -174,7 +174,8 @@ Replicator.prototype.emitSecurityDataChanged = function (payload, isLocal, origi
 };
 
 Replicator.prototype.__defaults = function (callback) {
-  if (!this.config.securityChangesetReplicateInterval)
-    this.config.securityChangesetReplicateInterval = 3000;
+  if (!this.config.securityChangesetReplicateInterval) {
+    this.config.securityChangesetReplicateInterval = 3e3;
+  }
   callback();
 };
