@@ -85,7 +85,7 @@ example options are :
                         // 'reconnect scheduled event'
     },
     // on socket error:
-    reconnectWait: 1e3, // wait 5 seconds before reconnecting on socket error
+    reconnectWait: 1e3, // wait 1 seconds before reconnecting on socket error
     retryOnSocketErrorMaxInterval: 120e3, // maximum interval between reconnects when there is a socket error
 }
 **/
