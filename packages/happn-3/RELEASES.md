@@ -1006,3 +1006,8 @@
 13.2.1 2022-09-08
 -----------------
   - TEN-130: updated logger dependency
+
+13.3.0 2022-10-22
+-----------------
+  - TEN-65: bad options on data get
+  - TEN-126: reconnect on error

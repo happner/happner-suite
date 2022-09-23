@@ -981,3 +981,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.2.1 2022-09-08
 -----------------
   - TEN-130: fixes to component instance and mesh defer
+
+12.2.2 2022-10-22
+-----------------
+  - TEN-65, TEN-126: happn-3 updates
