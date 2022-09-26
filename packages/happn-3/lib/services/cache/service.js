@@ -46,7 +46,7 @@ module.exports = class CacheService extends require('events').EventEmitter {
   }
 
   create(name, opts = {}) {
-    opts.cache = opts.cache || {};
+    opts.cache = this.#config?.overrides[name] || opts.cache || {};
     opts.type = opts.type || commons.constants.CACHE_TYPES.STATIC;
     if (this.#caches[name] && !opts.overwrite) {
       throw new Error('a cache by this name already exists');
