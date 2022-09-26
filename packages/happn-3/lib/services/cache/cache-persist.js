@@ -55,11 +55,11 @@ module.exports = class CachePersist extends require('./cache-static') {
       callback = opts;
       opts = {};
     }
+
     if (typeof transformedAlready === 'function') {
       callback = transformedAlready;
       transformedAlready = false;
     }
-    opts = opts || {};
 
     if (!this.#syncing && !this.#checkSynced(callback)) {
       return;

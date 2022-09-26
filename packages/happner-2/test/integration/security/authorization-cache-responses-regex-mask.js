@@ -54,8 +54,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   function createTestMesh(port, regexCacheMaskOn) {
     return async () => {
       const happn = test._.set(
-        {},
-        'services.security.config.cache_checkpoint_authorization',
+        {
+          services: {
+            cache: {
+              config: {
+                overrides: {
+                  checkpoint_cache_authorization: {
+                    max: 10,
+                  },
+                },
+              },
+            },
+          },
+        },
+        'services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers',
         regexCacheMaskOn ? undefined : false
       );
 
@@ -103,6 +115,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           }).length
         )
         .to.be(checkCacheSizeReduced ? 2 : 4); // note: we have an extra cache item for both, as one of them is an "on" made by the client
+      // ensure the intentional override is not overridden
+      test.expect(cache.instance.opts.max).to.be(10);
     };
   }
 
