@@ -16,4 +16,9 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
     this.push(`${ROOT}.datastores`, dataStore, BaseBuilder.Types.OBJECT);
     return this;
   }
+
+  withDataStoreBuilder(builder) {
+    this.push(`${ROOT}.datastores`, builder, BaseBuilder.Types.OBJECT);
+    return this;
+  }
 };
