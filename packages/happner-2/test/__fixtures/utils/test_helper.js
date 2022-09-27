@@ -3,6 +3,8 @@ const BaseTestHelper = require('happn-commons-test');
 const Mesh = require('../../../lib/mesh');
 const path = require('path');
 class TestHelper extends BaseTestHelper {
+  #sessions;
+  #servers;
   constructor() {
     super();
     this.__activeServices = {};
@@ -21,12 +23,15 @@ class TestHelper extends BaseTestHelper {
     this._ = commons._;
     this.log = this.sinon.spy(console.log);
     this.users = require('./users');
+    this.restler = require('restler');
 
     this.startUp = this.util.promisify(this.startUp);
     this.disconnectClient = this.util.promisify(this.disconnectClient);
     this.stopService = this.util.promisify(this.stopService);
     this.testService = this.util.promisify(this.testService);
     this.Mesh = Mesh;
+    this.#sessions = [];
+    this.#servers = [];
   }
 
   static create() {
@@ -35,6 +40,14 @@ class TestHelper extends BaseTestHelper {
 
   static describe(options, handler) {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
+  }
+
+  get sessions () {
+    return this.#sessions;
+  }
+
+  get servers () {
+    return this.#servers;
   }
 
   startUp(configs, callback) {
@@ -710,6 +723,69 @@ class TestHelper extends BaseTestHelper {
       callback(e);
     });
   };
+
+  createHappnerSessionBefore(username, password, port = 55e3)  {
+    before (`it creates test session for ${username} before`, async () => {
+      this.#sessions.push(await this.Mesh.MeshClient.create({
+        username,
+        password,
+        port
+      }));
+    });
+  }
+
+  createHappnerUserBefore(username, password, permissions, port = 55e3, adminUsername = '_ADMIN', adminPassword = 'happn') {
+    before (`it creates test user ${username} before`, async () => {
+      const adminSession = await this.Mesh.MeshClient.create({
+        username: adminUsername,
+        password: adminPassword,
+        port
+      });
+      await adminSession.exchange.security.addUser({ username, password, permissions });
+      await adminSession.disconnect();
+    });
+  }
+
+  createServersBefore(configs) {
+   before ('it creates servers before', async () => {
+        let currentConfigs =  Array.isArray(configs) ? configs : [configs];
+        for (const config of currentConfigs) {
+          this.#servers.push(await this.Mesh.create(config));
+        }
+      }
+    );
+  }
+
+  destroyServersAfter() {
+    after ('it destroys servers after', async () => {
+      for (const server of this.#servers) {
+        await server.stop();
+        this.#servers.splice(this.#servers.indexOf(server), 1);
+      }
+    });
+  }
+
+  destroySessionsAfter() {
+    after ('it destroys sessions after', async () => {
+      for (const session of this.#sessions) {
+        await session.disconnect();
+        this.#sessions.splice(this.#sessions.indexOf(session), 1);
+      }
+    });
+  }
+
+  async httpGet(url, opts) {
+    return new Promise((resolve, reject) => {
+      this.restler
+        .get(url, opts)
+        .on('complete', function (result) {
+          if (result.error) {
+            return reject(result.error);
+          }
+          resolve(result);
+        });
+    });
+  }
 }
 
 module.exports = TestHelper;
