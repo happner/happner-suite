@@ -144,10 +144,12 @@ CheckPoint.prototype.__loadPermissionSet = function (identity, callback) {
         this.securityService.groups.getGroup(groupName, {}, (e, group) => {
           if (e) return eachCB(e);
           if (group == null) return eachCB();
-          for (let permissionPath in group.permissions)
+          for (let permissionPath in group.permissions) {
             permissions[permissionPath] = this.utilsService.clone(
               group.permissions[permissionPath]
             );
+          }
+
           eachCB();
         });
       },
@@ -205,7 +207,6 @@ CheckPoint.prototype.__checkInactivity = function (session, policy) {
   let now = Date.now();
   const lastActivity = this.__checkpoint_inactivity_threshold.get(session.id);
   const lastActivityFrom = lastActivity ? now - lastActivity : now - session.timestamp;
-
   if (lastActivityFrom > policy.inactivity_threshold) {
     return false;
   }

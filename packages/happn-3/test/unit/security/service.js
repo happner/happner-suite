@@ -3566,7 +3566,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(mockCallback).to.have.been.calledWithExactly('test');
     test.chai
       .expect(serviceInst.happn.services.error.AccessDeniedError)
-      .to.have.been.calledWithExactly('unauthorized', 'mockReason request on behalf of: mock');
+      .to.have.been.calledWithExactly(
+        'unauthorized',
+        'mockReason request on behalf of unauthorised user: mock'
+      );
   });
 
   it('tests processAuthorize - return this.authorize, calls calback with error', () => {
