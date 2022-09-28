@@ -5,6 +5,7 @@ module.exports = class BaseBuilder {
     this.__data = {};
     this.__typeKeys = Object.keys(BaseBuilder.Types);
   }
+
   static get Types() {
     return {
       STRING: 0,
@@ -14,16 +15,20 @@ module.exports = class BaseBuilder {
       INTEGER: 4,
       ARRAY: 5,
       BOOLEAN: 6,
+      FUNCTION: 7,
     };
   }
+
   buildValue(prop) {
     if (prop == null) return prop;
     if (Array.isArray(prop))
       return prop.map((value) => {
         return this.buildValue(value);
       });
+    if (typeof prop === 'function') return prop;
     return typeof prop.build === 'function' ? prop.build() : prop;
   }
+
   build() {
     const fieldNames = Object.keys(this.__data);
     if (this.__required) this.checkRequired();
@@ -31,6 +36,7 @@ module.exports = class BaseBuilder {
       return _.set(json, key, this.buildValue(this.__data[key]));
     }, {});
   }
+
   push(fieldName, value, type, max) {
     if (type != null) this.checkType(value, type, fieldName);
     if (!Array.isArray(this.__data[fieldName])) this.__data[fieldName] = [];
@@ -39,22 +45,26 @@ module.exports = class BaseBuilder {
     this.__data[fieldName].push(value);
     return this;
   }
+
   set(fieldName, value, type) {
     if (type != null) this.checkType(value, type, fieldName);
     this.__data[fieldName] = value;
     return this;
   }
+
   required(arrPropertyNames) {
     if (!Array.isArray(arrPropertyNames))
       throw new Error(`argument [arrPropertyNames] at position 0 must be a string array`);
     this.__required = arrPropertyNames;
   }
+
   checkRequired() {
     for (let fieldName of this.__required) {
       if (_.get(this.__data, fieldName) == null)
         throw new Error(`required field [${fieldName}] cannot be null`);
     }
   }
+
   checkType(value, type, fieldName) {
     const typeName = this.__typeKeys.find((typeKey) => {
       return BaseBuilder.Types[typeKey] === type;
@@ -83,10 +93,14 @@ module.exports = class BaseBuilder {
       case BaseBuilder.Types.BOOLEAN:
         if (value !== true && value !== false) throw new Error(errMsg);
         break;
+      case BaseBuilder.Types.FUNCTION:
+        if (typeof value !== 'function') throw new Error(errMsg);
+        break;
       default:
         break;
     }
   }
+
   tryParseFloat(value) {
     try {
       return parseFloat(value);
@@ -94,6 +108,7 @@ module.exports = class BaseBuilder {
       return value;
     }
   }
+
   tryParseDate(value) {
     try {
       return new Date(value);

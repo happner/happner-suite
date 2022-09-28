@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const DataStoreConfigBuilder = require('../../lib/builders/datastore-config-builder');
+const DataStoreConfigBuilder = require('../../lib/builders/data/datastore-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a data config object', () => {
