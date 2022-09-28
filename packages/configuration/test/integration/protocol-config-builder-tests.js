@@ -1,39 +1,43 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const ProtocolConfigBuilder = require('../../lib/builders/protocol/protocol-config-builder');
-const HappnProtocolConfigBuilder = require('../../lib/builders/protocol/happn-protocol-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a protocol config object', () => {
     const protocolConfigBuilder = new ProtocolConfigBuilder();
-    const happn1ProtocolConfigBuilder = new HappnProtocolConfigBuilder();
-    const happn2ProtocolConfigBuilder = new HappnProtocolConfigBuilder();
-    const happn3ProtocolConfigBuilder = new HappnProtocolConfigBuilder();
 
-    happn1ProtocolConfigBuilder.withProtocolVersion(1).withSuccessFunc(() => {
+    let successFunc1 = () => {
       return 'success on version 1';
-    });
-    happn2ProtocolConfigBuilder.withProtocolVersion(2).withSuccessFunc(() => {
-      return 'success on version 2';
-    });
-    happn3ProtocolConfigBuilder.withProtocolVersion(3).withSuccessFunc(() => {
-      return 'success on version 3';
-    });
+    };
 
-    const result = protocolConfigBuilder
-      .withAllowNestedPermissions(true)
-      .withProtocolBuilder(happn1ProtocolConfigBuilder)
-      .withProtocolBuilder(happn2ProtocolConfigBuilder)
-      .withProtocolBuilder(happn3ProtocolConfigBuilder)
-      .build();
+    let transformOutFunc1 = () => {
+      return 'transformOut on version 1';
+    };
 
+    let transformSystemFunc1 = () => {
+      return 'transformSystem on version 1';
+    };
+
+    let emitFunc1 = () => {
+      return 'emit on version 1';
+    };
+
+    protocolConfigBuilder.withHappnProtocol(
+      1,
+      successFunc1,
+      transformOutFunc1,
+      transformSystemFunc1,
+      emitFunc1
+    );
+
+    const result = protocolConfigBuilder.build();
     const { protocols } = result.protocol.config;
 
     helper.expect(protocols.happn_1).to.not.equal(null);
     helper.expect(protocols.happn_1.success()).to.equal('success on version 1');
-    helper.expect(protocols.happn_2).to.not.equal(null);
-    helper.expect(protocols.happn_2.success()).to.equal('success on version 2');
-    helper.expect(protocols.happn_3).to.not.equal(null);
-    helper.expect(protocols.happn_3.success()).to.equal('success on version 3');
+    helper.expect(protocols.happn_1).to.not.equal(null);
+    helper.expect(protocols.happn_1.transformOut()).to.equal('transformOut on version 1');
+    helper.expect(protocols.happn_1).to.not.equal(null);
+    helper.expect(protocols.happn_1.transformSystem()).to.equal('transformSystem on version 1');
   });
 });

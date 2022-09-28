@@ -36,14 +36,35 @@ module.exports = class ProtocolConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withProtocolBuilder(protocolBuilder) {
-    if (!protocolBuilder.version) throw new Error('no protocol version has been set');
+  withHappnProtocol(version, successFunc, transformOutFunc, transformSystemFunc, emitFunc) {
+    if (successFunc) {
+      this.set(
+        `${ROOT}.protocols.happn_${version}.success`,
+        successFunc,
+        BaseBuilder.Types.FUNCTION
+      );
+    }
 
-    this.set(
-      `${ROOT}.protocols.happn_${protocolBuilder.version}`,
-      protocolBuilder,
-      BaseBuilder.Types.OBJECT
-    );
+    if (transformOutFunc) {
+      this.set(
+        `${ROOT}.protocols.happn_${version}.transformOut`,
+        transformOutFunc,
+        BaseBuilder.Types.FUNCTION
+      );
+    }
+
+    if (transformSystemFunc) {
+      this.set(
+        `${ROOT}.protocols.happn_${version}.transformSystem`,
+        transformSystemFunc,
+        BaseBuilder.Types.FUNCTION
+      );
+    }
+
+    if (emitFunc) {
+      this.set(`${ROOT}.protocols.happn_${version}.emit`, emitFunc, BaseBuilder.Types.FUNCTION);
+    }
+
     return this;
   }
 

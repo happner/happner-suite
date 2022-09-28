@@ -221,9 +221,8 @@ module.exports = class SecurityConfigBuilder extends BaseBuilder {
       default:
     }
     builder.set(`session.${sessionKey}.$eq`, sessionMatchOn, matchType);
-    let obj = builder.build();
 
-    this.push(`${ROOT}.profiles`, obj, BaseBuilder.Types.OBJECT);
+    this.push(`${ROOT}.profiles`, builder, BaseBuilder.Types.OBJECT);
     return this;
   }
 };
