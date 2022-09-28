@@ -4,33 +4,33 @@ const ConnectConfigBuilder = require('../../lib/builders/connect/connect-config-
 
 describe(helper.testName(), function () {
   it('builds a connect config object', () => {
-    const testCookieName = 'testCookie';
-    const testCookieDomain = 'test.domain';
-    const testExclusion = '/exclusion/path/*';
-    const testForbiddenResponsePath = '/forbidden';
-    const testUnauthorizedResponsePath = '/unauthorized';
+    const mockCookieName = 'testCookie';
+    const mockCookieDomain = 'test.domain';
+    const mockExclusion = '/exclusion/path/*';
+    const mockForbiddenResponsePath = '/forbidden';
+    const mockUnauthorizedResponsePath = '/unauthorized';
 
     const builder = new ConnectConfigBuilder();
     const result = builder
-      .withCookieName(testCookieName)
-      .withCookieDomain(testCookieDomain)
-      .withExclusion(testExclusion)
-      .withForbiddenResponsePath(testForbiddenResponsePath)
-      .withUnauthorizedResponsePath(testUnauthorizedResponsePath)
+      .withCookieName(mockCookieName)
+      .withCookieDomain(mockCookieDomain)
+      .withExclusion(mockExclusion)
+      .withForbiddenResponsePath(mockForbiddenResponsePath)
+      .withUnauthorizedResponsePath(mockUnauthorizedResponsePath)
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.connect.config.middleware.security.cookieName).to.equal(testCookieName);
+    helper.expect(result.connect.config.middleware.security.cookieName).to.equal(mockCookieName);
     helper
       .expect(result.connect.config.middleware.security.cookieDomain)
-      .to.equal(testCookieDomain);
-    helper.expect(result.connect.config.middleware.security.exclusions[0]).to.equal(testExclusion);
+      .to.equal(mockCookieDomain);
+    helper.expect(result.connect.config.middleware.security.exclusions[0]).to.equal(mockExclusion);
     helper
       .expect(result.connect.config.middleware.security.forbiddenResponsePath)
-      .to.equal(testForbiddenResponsePath);
+      .to.equal(mockForbiddenResponsePath);
     helper
       .expect(result.connect.config.middleware.security.unauthorizedResponsePath)
-      .to.equal(testUnauthorizedResponsePath);
+      .to.equal(mockUnauthorizedResponsePath);
   });
 });

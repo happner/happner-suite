@@ -5,37 +5,37 @@ const DataStoreConfigBuilder = require('../../lib/builders/data/datastore-config
 
 describe(helper.testName(), function () {
   it('builds a data config object with nested datastore', () => {
-    const testSecure = true;
-    const testName = 'testName';
-    const testProvider = 'testProvider';
-    const testIsDefault = true;
-    const testIsFsync = true;
-    const testDbFile = '/testDbFile';
-    const testFileName = 'testDataFile';
+    const mockSecure = true;
+    const mockName = 'testName';
+    const mockProvider = 'testProvider';
+    const mockIsDefault = true;
+    const mockIsFsync = true;
+    const mockDbFile = '/testDbFile';
+    const mockFileName = 'testDataFile';
 
     const dataConfigBuilder = new DataConfigBuilder();
     const dataStoreConfigBuilder = new DataStoreConfigBuilder();
 
     const result = dataConfigBuilder
-      .withSecure(testSecure)
+      .withSecure(mockSecure)
       .withDataStoreBuilder(
         dataStoreConfigBuilder
-          .withName(testName)
-          .withProvider(testProvider)
-          .withIsDefault(testIsDefault)
-          .withIsFsync(testIsFsync)
-          .withDbFile(testDbFile)
-          .withFileName(testFileName)
+          .withName(mockName)
+          .withProvider(mockProvider)
+          .withIsDefault(mockIsDefault)
+          .withIsFsync(mockIsFsync)
+          .withDbFile(mockDbFile)
+          .withFileName(mockFileName)
       )
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.data.config.secure).to.equal(testSecure);
-    helper.expect(result.data.config.datastores[0].name).to.equal(testName);
-    helper.expect(result.data.config.datastores[0].provider).to.equal(testProvider);
-    helper.expect(result.data.config.datastores[0].isDefault).to.equal(testIsDefault);
-    helper.expect(result.data.config.datastores[0].settings.fsync).to.equal(testIsFsync);
-    helper.expect(result.data.config.datastores[0].dbfile).to.equal(testDbFile);
+    helper.expect(result.data.config.secure).to.equal(mockSecure);
+    helper.expect(result.data.config.datastores[0].name).to.equal(mockName);
+    helper.expect(result.data.config.datastores[0].provider).to.equal(mockProvider);
+    helper.expect(result.data.config.datastores[0].isDefault).to.equal(mockIsDefault);
+    helper.expect(result.data.config.datastores[0].settings.fsync).to.equal(mockIsFsync);
+    helper.expect(result.data.config.datastores[0].dbfile).to.equal(mockDbFile);
   });
 });

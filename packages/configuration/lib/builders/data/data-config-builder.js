@@ -11,12 +11,6 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  // TODO: get base builder to validate new custom DataStore type
-  withDataStore(dataStore) {
-    this.push(`${ROOT}.datastores`, dataStore, BaseBuilder.Types.OBJECT);
-    return this;
-  }
-
   withDataStoreBuilder(builder) {
     this.push(`${ROOT}.datastores`, builder, BaseBuilder.Types.OBJECT);
     return this;

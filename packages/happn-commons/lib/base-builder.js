@@ -84,7 +84,7 @@ module.exports = class BaseBuilder {
       case BaseBuilder.Types.NUMERIC:
         if (typeof this.tryParseFloat(value) !== 'number') throw new Error(errMsg);
         break;
-      case BaseBuilder.Types.NUMBER:
+      case BaseBuilder.Types.INTEGER:
         if (!Number.isInteger(this.tryParseFloat(value))) throw new Error(errMsg);
         break;
       case BaseBuilder.Types.DATE:

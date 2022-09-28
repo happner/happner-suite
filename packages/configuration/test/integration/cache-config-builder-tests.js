@@ -4,13 +4,13 @@ const CacheConfigBuilder = require('../../lib/builders/cache/cache-config-builde
 
 describe(helper.testName(), function () {
   it('builds a cache config object', () => {
-    const testStatisticsInterval = 5000;
+    const mockStatisticsInterval = 5000;
 
     const builder = new CacheConfigBuilder();
-    const result = builder.withStatisticsInterval(testStatisticsInterval).build();
+    const result = builder.withStatisticsInterval(mockStatisticsInterval).build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.cache.config.statisticsInterval).to.equal(testStatisticsInterval);
+    helper.expect(result.cache.config.statisticsInterval).to.equal(mockStatisticsInterval);
   });
 });
