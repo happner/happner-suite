@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const DataConfigBuilder = require('../../lib/builders/data/data-config-builder');
-const DataStoreConfigBuilder = require('../../lib/builders/data/datastore-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a data config object with nested datastore', () => {
@@ -14,19 +13,10 @@ describe(helper.testName(), function () {
     const mockFileName = 'testDataFile';
 
     const dataConfigBuilder = new DataConfigBuilder();
-    const dataStoreConfigBuilder = new DataStoreConfigBuilder();
 
     const result = dataConfigBuilder
       .withSecure(mockSecure)
-      .withDataStoreBuilder(
-        dataStoreConfigBuilder
-          .withName(mockName)
-          .withProvider(mockProvider)
-          .withIsDefault(mockIsDefault)
-          .withIsFsync(mockIsFsync)
-          .withDbFile(mockDbFile)
-          .withFileName(mockFileName)
-      )
+      .withDataStore(mockName, mockProvider, mockIsDefault, mockIsFsync, mockDbFile, mockFileName)
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
