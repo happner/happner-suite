@@ -114,18 +114,20 @@ module.exports = class CachePersist extends require('./cache-static') {
     if (!this.#checkSynced(callback)) {
       return;
     }
-    const existing = this.get(key);
-    if (!existing) {
-      return callback(null, null);
-    }
-    if (opts.noPersist) {
-      super.removeInternal(key);
-      return callback(null, existing);
-    }
-    this.#removeData(key, (e) => {
+    this.get(key, (e, existing) => {
       if (e) return callback(e);
-      super.removeInternal(key);
-      callback(null, existing);
+      if (!existing) {
+        return callback(null, null);
+      }
+      if (opts.noPersist) {
+        super.remove(key);
+        return callback(null, existing);
+      }
+      this.#removeData(key, (e) => {
+        if (e) return callback(e);
+        super.remove(key);
+        callback(null, existing);
+      });
     });
   }
 
@@ -142,6 +144,8 @@ module.exports = class CachePersist extends require('./cache-static') {
 
   sync(callback) {
     this.#syncing = true;
+    //make sure all our keys and items are cleared, so we are not duplicating entries on resyncing
+    super.clearInternal();
     this.#dataStore.get(`${this.#basePath}/*`, (e, items) => {
       if (e) {
         this.#syncing = false;

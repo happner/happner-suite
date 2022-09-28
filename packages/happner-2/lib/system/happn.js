@@ -309,40 +309,29 @@ function __outboundLayer(message, callback) {
 }
 
 function __initializeSecurityConfig(config) {
-  if (!config.happn.secure) {
-    return;
-  }
-  // no keyTransformer - by design (only really used for testing)
   if (
+    !config.happn.secure ||
     config?.happn?.services?.cache?.config?.overrides?.checkpoint_cache_authorization
-      ?.keyTransformers === false
+      ?.keyTransformers === false // no keyTransformer - by design (only really used for testing)
   ) {
     return;
   }
-  if (!config.happn.services.cache) {
-    config.happn.services.cache = {};
-  }
-  if (!config.happn.services.cache.config) {
-    config.happn.services.cache.config = {};
-  }
-  if (!config.happn.services.cache.config.overrides) {
-    config.happn.services.cache.config.overrides = {};
-  }
-  if (!config.happn.services.cache.config.overrides) {
-    config.happn.services.cache.config.overrides = {};
-  }
-  if (!config.happn.services.cache.config.overrides.checkpoint_cache_authorization) {
-    config.happn.services.cache.config.overrides.checkpoint_cache_authorization = {
+
+  config.happn.services.cache = _.merge(
+    _.set({}, 'config.happn.services.cache.config.overrides.checkpoint_cache_authorization', {
       max: 10e3,
       maxAge: 0,
-    };
-  }
+    }),
+    config.happn.services.cache || {}
+  );
+
   if (
     !config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers
   ) {
     config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers =
       [];
   }
+
   config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers.push({
     regex:
       /^(?<keyMask>[a-zA-Z0-9-]+:\/_exchange\/responses\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+)\/[0-9]+:set$/,
