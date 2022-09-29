@@ -318,7 +318,7 @@ function __initializeSecurityConfig(config) {
   }
 
   config.happn.services.cache = _.merge(
-    _.set({}, 'config.happn.services.cache.config.overrides.checkpoint_cache_authorization', {
+    _.set({}, 'config.overrides.checkpoint_cache_authorization', {
       max: 10e3,
       maxAge: 0,
     }),

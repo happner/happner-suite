@@ -123,10 +123,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
   });
 
   it(`sets, gets and removes data, with a keyTransformer regex partial without transform method and keyMask group, type: persist`, async () => {
-    var key = '/_partial/component2/method3/12345';
-    var transformedKey = '/_partial/component2/method3';
-    var testCache = serviceInstance.create('testCache', cacheConfig);
+    let key = '/_partial/component2/method3/12345';
+    let transformedKey = '/_partial/component2/method3';
+    let testCache = serviceInstance.create('testCache', cacheConfig);
     await testCache.sync();
+
     const result = await testCache.set(key, { dkey: key });
     test.expect(testCache.keys()).to.eql(['/_partial/component2/method3']);
     test.expect(result.key).to.be(transformedKey);
