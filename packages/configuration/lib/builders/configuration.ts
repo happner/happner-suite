@@ -1,4 +1,4 @@
-import CacheConfigBuilder from './security/security-config-builder';
+import CacheConfigBuilder from './cache/cache-config-builder';
 import ConnectConfigBuilder from './connect/connect-config-builder';
 import DataConfigBuilder from './data/data-config-builder';
 import ProtocolConfigBuilder from './protocol/protocol-config-builder';
@@ -30,10 +30,66 @@ class Configuration {
   }
 
   /*
+  CACHE - TODO: COMPLETE THIS AND BUILDERS BASED ON NEW FIELDS
+   */
+
+  setCacheStatisticsInterval(interval: number): void {
+    this.#cacheConfigBuilder.withStatisticsInterval(interval);
+  }
+
+  /*
+  CONNECT
+   */
+  setConnectSecurityCookie(name: string, domain: string): void {
+    this.#connectConfigBuilder.withSecurityCookieName(domain);
+    this.#connectConfigBuilder.withSecurityCookieName(name);
+  }
+
+  setConnectSecurityExclusion(exclusion: string): void {
+    this.#connectConfigBuilder.withSecurityExclusion(exclusion);
+  }
+
+  setConnectSecurityForbiddenResponsePath(path: string): void {
+    this.#connectConfigBuilder.withSecurityForbiddenResponsePath(path);
+  }
+
+  setConnectSecurityUnauthorizedResponsePath(path: string): void {
+    this.#connectConfigBuilder.withSecurityUnauthorizedResponsePath(path);
+  }
+
+  /*
+  DATA
+   */
+
+  /***
+   * Adds a new datastore - can be invoked multiple times, if more than one datastore is to be configured.
+   * @param name
+   * @param provider
+   * @param isDefault
+   * @param isFsync
+   * @param dbFile
+   * @param fileName
+   */
+  setDataStore(
+    name: string,
+    provider: string,
+    isDefault: boolean,
+    isFsync: boolean,
+    dbFile: string,
+    fileName: string
+  ): void {
+    this.#dataConfigBuilder.withDataStore(name, provider, isDefault, isFsync, dbFile, fileName);
+  }
+
+  setDataIsSecure(isSecure: boolean): void {
+    this.#dataConfigBuilder.withSecure(isSecure);
+  }
+
+  /*
   PROTOCOLS
    */
 
-  setProtocolAllowNestedPermissions(isAllowed: boolean) {
+  setProtocolAllowNestedPermissions(isAllowed: boolean): void {
     this.#protocolConfigBuilder.withAllowNestedPermissions(isAllowed);
   }
 
@@ -43,7 +99,7 @@ class Configuration {
     transformOutFunc?: Function,
     transformSystemFunc?: Function,
     emitFunc?: Function
-  ) {
+  ): void {
     this.#protocolConfigBuilder.withHappnProtocol(
       version,
       successFunc,
@@ -53,51 +109,63 @@ class Configuration {
     );
   }
 
-  setProtocolInboundLayer(layer: string) {
+  setProtocolInboundLayer(layer: string): void {
     this.#protocolConfigBuilder.withInboundLayer(layer);
   }
 
-  setProtocolIsSecure(isSecure: boolean) {
+  setProtocolIsSecure(isSecure: boolean): void {
     this.#protocolConfigBuilder.withSecure(isSecure);
   }
 
-  setProtocolOutboundLayer(layer: string) {
+  setProtocolOutboundLayer(layer: string): void {
     this.#protocolConfigBuilder.withOutboundLayer(layer);
+  }
+
+  /*
+  PUBLISHER
+   */
+
+  setPublisherAcknowledgeTimeout(acknowledge: boolean): void {
+    this.#publisherConfigBuilder.withAcknowledgeTimeout(acknowledge);
+  }
+
+  setPublisherTimeout(timeout: number): void {
+    this.#publisherConfigBuilder.withTimeout(timeout);
   }
 
   /*
   SECURITY
    */
 
-  setSecurityActivateSessionManagement(activate: boolean) {
+  setSecurityActivateSessionManagement(activate: boolean): void {
     this.#securityConfigBuilder.withActivateSessionManagement(activate);
   }
 
-  setSecurityAccountLockoutEnabled(enabled: boolean) {
+  setSecurityAccountLockoutEnabled(enabled: boolean): void {
     this.#securityConfigBuilder.withAccountLockoutEnabled(enabled);
   }
 
-  setSecurityAccountLockoutAttempts(attempts: number) {
+  setSecurityAccountLockoutAttempts(attempts: number): void {
     this.#securityConfigBuilder.withAccountLockoutAttempts(attempts);
   }
 
-  setSecurityAccountLockoutRetryInterval(retryInterval: number) {
+  setSecurityAccountLockoutRetryInterval(retryInterval: number): void {
     this.#securityConfigBuilder.withAccountLockoutRetryInterval(retryInterval);
   }
 
-  setSecurityAdminUsername(username: string) {
+  setSecurityAdminUsername(username: string): void {
     this.#securityConfigBuilder.withAdminUsername(username);
   }
 
-  setSecurityAdminPassword(password: string) {
+  setSecurityAdminPassword(password: string): void {
     this.#securityConfigBuilder.withAdminPassword(password);
   }
 
-  setSecurityAdminPublicKey(publicKey: string) {
+  setSecurityAdminPublicKey(publicKey: string): void {
     this.#securityConfigBuilder.withAdminPublicKey(publicKey);
   }
 
-  setSecurityAdminGroupName(groupName: string) {
+  setSecurityAdminGroupName(groupName: string): void {
     this.#securityConfigBuilder.withAdminGroupName(groupName);
   }
 
@@ -106,7 +174,7 @@ class Configuration {
     this.#securityConfigBuilder.withAdminGroupPermission(permissionKey, actionPath);
   }
 
-  setSecurityAllowAnonymousAccess(allowAnonymous: boolean) {
+  setSecurityAllowAnonymousAccess(allowAnonymous: boolean): void {
     this.#securityConfigBuilder.withAllowAnonymousAccess(allowAnonymous);
   }
 
@@ -118,25 +186,25 @@ class Configuration {
     this.#securityConfigBuilder.withAuthProvider(name, instance);
   }
 
-  setSecurityCookie(name: string, domain: string, cookie: string) {
+  setSecurityCookie(name: string, domain: string, cookie: string): void {
     this.#securityConfigBuilder.withHttpsCookie(name, domain, cookie);
   }
 
-  setSecurityLogSessionActivity(shouldLog: boolean) {
+  setSecurityLogSessionActivity(shouldLog: boolean): void {
     this.#securityConfigBuilder.withLogSessionActivity(shouldLog);
   }
 
-  setSecurityLockTokenToLoginType(shouldLock: boolean) {
+  setSecurityLockTokenToLoginType(shouldLock: boolean): void {
     this.#securityConfigBuilder.withLockTokenToLoginType(shouldLock);
   }
 
-  setSecurityLockTokenToUserId(shouldLock: boolean) {
+  setSecurityLockTokenToUserId(shouldLock: boolean): void {
     this.#securityConfigBuilder.withLockTokenToUserId(shouldLock);
   }
 
   //TODO: lookups
 
-  setSecurityPbkdf2Iterations(iterations: number) {
+  setSecurityPbkdf2Iterations(iterations: number): void {
     this.#securityConfigBuilder.withPbkdf2Iterations(iterations);
   }
 
@@ -146,7 +214,7 @@ class Configuration {
     sessionMatchOn: any,
     policyTTL: number,
     policyInactiveThreshold: number
-  ) {
+  ): void {
     this.#securityConfigBuilder.withProfile(
       name,
       sessionKey,
@@ -156,15 +224,15 @@ class Configuration {
     );
   }
 
-  setSecurityIsSecure(isSecure: boolean) {
+  setSecurityIsSecure(isSecure: boolean): void {
     this.#securityConfigBuilder.withSecure(isSecure);
   }
 
-  setSessionActivityTTL(ttl: number) {
+  setSessionActivityTTL(ttl: number): void {
     this.#securityConfigBuilder.withSessionActivityTTL(ttl);
   }
 
-  setSessionTokenSecret(secret: string) {
+  setSessionTokenSecret(secret: string): void {
     this.#securityConfigBuilder.withSessionTokenSecret(secret);
   }
 }

@@ -6,11 +6,6 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
     super();
   }
 
-  withSecure(secure) {
-    this.set(`${ROOT}.secure`, secure, BaseBuilder.Types.BOOLEAN);
-    return this;
-  }
-
   withDataStore(name, provider, isDefault, isFsync, dbFile, fileName) {
     const builder = new BaseBuilder();
 
@@ -23,6 +18,11 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
 
     this.push(`${ROOT}.datastores`, builder, BaseBuilder.Types.OBJECT);
 
+    return this;
+  }
+
+  withSecure(secure) {
+    this.set(`${ROOT}.secure`, secure, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 };

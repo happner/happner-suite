@@ -12,11 +12,11 @@ describe(helper.testName(), function () {
 
     const builder = new ConnectConfigBuilder();
     const result = builder
-      .withCookieName(mockCookieName)
-      .withCookieDomain(mockCookieDomain)
-      .withExclusion(mockExclusion)
-      .withForbiddenResponsePath(mockForbiddenResponsePath)
-      .withUnauthorizedResponsePath(mockUnauthorizedResponsePath)
+      .withSecurityCookieName(mockCookieName)
+      .withSecurityCookieDomain(mockCookieDomain)
+      .withSecurityExclusion(mockExclusion)
+      .withSecurityForbiddenResponsePath(mockForbiddenResponsePath)
+      .withSecurityUnauthorizedResponsePath(mockUnauthorizedResponsePath)
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
