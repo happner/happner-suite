@@ -185,8 +185,8 @@ module.exports = class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withAdminGroupPermission(permission, path, action) {
-    this.push(`${ROOT}.adminGroup.permissions.${path}`, action, BaseBuilder.Types.STRING);
+  withAdminGroupPermission(permissionKey, action) {
+    this.push(`${ROOT}.adminGroup.permissions.${permissionKey}`, action, BaseBuilder.Types.STRING);
     return this;
   }
 

@@ -9,9 +9,9 @@ describe(helper.testName(), function () {
     const mockAccountLockoutEnabled = true;
     const mockAccountLockoutRetryInterval = 2000;
     const mockAdminGroupName = 'adminGroup1';
-    const mockAdminGroupPermission1 = 'testPermission1';
     const mockAdminGroupPermissionPath1 = '/test';
-    const mockAdminGroupPermissionPath1Action = 'testAction';
+    const mockAdminGroupPermissionPath1Action1 = 'testAction1';
+    const mockAdminGroupPermissionPath1Action2 = 'testAction2';
     const mockAdminPassword = 'password123';
     const mockAdminPublicKey = 'publicKey3445';
     const mockAdminUserName = 'testUser';
@@ -54,11 +54,8 @@ describe(helper.testName(), function () {
       .withAccountLockoutEnabled(mockAccountLockoutEnabled)
       .withAccountLockoutRetryInterval(mockAccountLockoutRetryInterval)
       .withAdminGroupName(mockAdminGroupName)
-      .withAdminGroupPermission(
-        mockAdminGroupPermission1,
-        mockAdminGroupPermissionPath1,
-        mockAdminGroupPermissionPath1Action
-      )
+      .withAdminGroupPermission(mockAdminGroupPermissionPath1, mockAdminGroupPermissionPath1Action1)
+      .withAdminGroupPermission(mockAdminGroupPermissionPath1, mockAdminGroupPermissionPath1Action2)
       .withAdminUsername(mockAdminUserName)
       .withAdminPassword(mockAdminPassword)
       .withAdminPublicKey(mockAdminPublicKey)
@@ -105,7 +102,10 @@ describe(helper.testName(), function () {
     helper.expect(result.security.config.adminGroup.name).to.equal(mockAdminGroupName);
     helper
       .expect(result.security.config.adminGroup.permissions[mockAdminGroupPermissionPath1][0])
-      .to.equal(mockAdminGroupPermissionPath1Action);
+      .to.equal(mockAdminGroupPermissionPath1Action1);
+    helper
+      .expect(result.security.config.adminGroup.permissions[mockAdminGroupPermissionPath1][1])
+      .to.equal(mockAdminGroupPermissionPath1Action2);
     helper.expect(result.security.config.adminUser.username).to.equal(mockAdminUserName);
     helper.expect(result.security.config.adminUser.password).to.equal(mockAdminPassword);
     helper.expect(result.security.config.adminUser.publicKey).to.equal(mockAdminPublicKey);
