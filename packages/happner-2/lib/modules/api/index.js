@@ -79,7 +79,7 @@ Api.prototype.test = function (message, done) {
 Api.prototype.client = function ($happn, req, res) {
   /* serves: /api/client (script) */
 
-  var script = $happn.tools.packages.api;
+  var script = $happn.asAdmin.tools.packages.api;
 
   if (req.headers['if-none-match'] === script.md5) {
     $happn.log.$$TRACE('client already has latest version ' + req.url);

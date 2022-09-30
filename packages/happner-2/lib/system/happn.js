@@ -13,6 +13,7 @@ HappnLayer.prototype.__initializeStore = __initializeStore;
 HappnLayer.prototype.__initializeBaseConfig = __initializeBaseConfig;
 HappnLayer.prototype.__initializeDbConfig = __initializeDbConfig;
 HappnLayer.prototype.__initializeLayersConfig = __initializeLayersConfig;
+HappnLayer.prototype.__initializeSecurityConfig = __initializeSecurityConfig;
 HappnLayer.prototype.__inboundLayer = __inboundLayer;
 HappnLayer.prototype.__outboundLayer = __outboundLayer;
 HappnLayer.prototype.connect = connect;
@@ -38,6 +39,7 @@ function initialize(config, logger) {
   this.__initializeBaseConfig(config);
   this.__initializeDbConfig(config);
   this.__initializeLayersConfig(config);
+  this.__initializeSecurityConfig(config);
 
   this.config = config;
 }
@@ -304,6 +306,36 @@ function __outboundLayer(message, callback) {
     return callback(new Error('subscription filter failed: ' + e.toString(), e));
   }
   callback(null, message);
+}
+
+function __initializeSecurityConfig(config) {
+  if (
+    !config.happn.secure ||
+    config?.happn?.services?.cache?.config?.overrides?.checkpoint_cache_authorization
+      ?.keyTransformers === false // no keyTransformer - by design (only really used for testing)
+  ) {
+    return;
+  }
+
+  config.happn.services.cache = _.merge(
+    _.set({}, 'config.overrides.checkpoint_cache_authorization', {
+      max: 10e3,
+      maxAge: 0,
+    }),
+    config.happn.services.cache || {}
+  );
+
+  if (
+    !config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers
+  ) {
+    config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers =
+      [];
+  }
+
+  config.happn.services.cache.config.overrides.checkpoint_cache_authorization.keyTransformers.push({
+    regex:
+      /^(?<keyMask>[a-zA-Z0-9-]+:\/_exchange\/responses\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+)\/[0-9]+:set$/,
+  });
 }
 
 function __initializeLayersConfig(config) {
