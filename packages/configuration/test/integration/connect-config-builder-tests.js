@@ -21,16 +21,16 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.connect.config.middleware.security.cookieName).to.equal(mockCookieName);
+    helper.expect(result.middleware.security.cookieName).to.equal(mockCookieName);
     helper
-      .expect(result.connect.config.middleware.security.cookieDomain)
+      .expect(result.middleware.security.cookieDomain)
       .to.equal(mockCookieDomain);
-    helper.expect(result.connect.config.middleware.security.exclusions[0]).to.equal(mockExclusion);
+    helper.expect(result.middleware.security.exclusions[0]).to.equal(mockExclusion);
     helper
-      .expect(result.connect.config.middleware.security.forbiddenResponsePath)
+      .expect(result.middleware.security.forbiddenResponsePath)
       .to.equal(mockForbiddenResponsePath);
     helper
-      .expect(result.connect.config.middleware.security.unauthorizedResponsePath)
+      .expect(result.middleware.security.unauthorizedResponsePath)
       .to.equal(mockUnauthorizedResponsePath);
   });
 });

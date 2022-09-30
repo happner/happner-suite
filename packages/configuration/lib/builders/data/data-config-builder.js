@@ -1,5 +1,4 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-const ROOT = 'data.config';
 
 module.exports = class DataConfigBuilder extends BaseBuilder {
   constructor() {
@@ -16,13 +15,13 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
     builder.set('dbfile', dbFile, BaseBuilder.Types.STRING);
     builder.set('filename', fileName, BaseBuilder.Types.STRING);
 
-    this.push(`${ROOT}.datastores`, builder, BaseBuilder.Types.OBJECT);
+    this.push('datastores', builder, BaseBuilder.Types.OBJECT);
 
     return this;
   }
 
   withSecure(secure) {
-    this.set(`${ROOT}.secure`, secure, BaseBuilder.Types.BOOLEAN);
+    this.set('secure', secure, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 };

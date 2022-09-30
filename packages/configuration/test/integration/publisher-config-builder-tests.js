@@ -12,9 +12,7 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.publisher.config.timeout).to.equal(mockTimeout);
-    helper
-      .expect(result.publisher.config.publicationOptions.acknowledgeTimeout)
-      .to.equal(mockAcknowledge);
+    helper.expect(result.timeout).to.equal(mockTimeout);
+    helper.expect(result.publicationOptions.acknowledgeTimeout).to.equal(mockAcknowledge);
   });
 });

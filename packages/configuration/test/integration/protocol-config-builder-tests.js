@@ -31,7 +31,7 @@ describe(helper.testName(), function () {
     );
 
     const result = protocolConfigBuilder.build();
-    const { protocols } = result.protocol.config;
+    const { protocols } = result;
 
     helper.expect(protocols.happn_1).to.not.equal(null);
     helper.expect(protocols.happn_1.success()).to.equal('success on version 1');

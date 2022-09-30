@@ -21,11 +21,11 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.data.config.secure).to.equal(mockSecure);
-    helper.expect(result.data.config.datastores[0].name).to.equal(mockName);
-    helper.expect(result.data.config.datastores[0].provider).to.equal(mockProvider);
-    helper.expect(result.data.config.datastores[0].isDefault).to.equal(mockIsDefault);
-    helper.expect(result.data.config.datastores[0].settings.fsync).to.equal(mockIsFsync);
-    helper.expect(result.data.config.datastores[0].dbfile).to.equal(mockDbFile);
+    helper.expect(result.secure).to.equal(mockSecure);
+    helper.expect(result.datastores[0].name).to.equal(mockName);
+    helper.expect(result.datastores[0].provider).to.equal(mockProvider);
+    helper.expect(result.datastores[0].isDefault).to.equal(mockIsDefault);
+    helper.expect(result.datastores[0].settings.fsync).to.equal(mockIsFsync);
+    helper.expect(result.datastores[0].dbfile).to.equal(mockDbFile);
   });
 });

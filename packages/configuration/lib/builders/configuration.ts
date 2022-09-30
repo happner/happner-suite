@@ -1,3 +1,4 @@
+import HappnConfigBuilder from './happn-config-builder';
 import CacheConfigBuilder from './cache/cache-config-builder';
 import ConnectConfigBuilder from './connect/connect-config-builder';
 import DataConfigBuilder from './data/data-config-builder';
@@ -5,7 +6,8 @@ import ProtocolConfigBuilder from './protocol/protocol-config-builder';
 import PublisherConfigBuilder from './publisher/publisher-config-builder';
 import SecurityConfigBuilder from './security/security-config-builder';
 
-class Configuration {
+export class Configuration {
+  #happnConfigBuilder: HappnConfigBuilder;
   #securityConfigBuilder: SecurityConfigBuilder;
   #cacheConfigBuilder: CacheConfigBuilder;
   #connectConfigBuilder: ConnectConfigBuilder;
@@ -14,6 +16,7 @@ class Configuration {
   #publisherConfigBuilder: PublisherConfigBuilder;
 
   constructor(
+    happnConfigBuilder: HappnConfigBuilder,
     cacheConfigBuilder: CacheConfigBuilder,
     connectConfigBuilder: ConnectConfigBuilder,
     dataConfigBuilder: DataConfigBuilder,
@@ -21,6 +24,7 @@ class Configuration {
     publisherConfigBuilder: PublisherConfigBuilder,
     securityConfigBuilder: SecurityConfigBuilder
   ) {
+    this.#happnConfigBuilder = happnConfigBuilder;
     this.#cacheConfigBuilder = cacheConfigBuilder;
     this.#connectConfigBuilder = connectConfigBuilder;
     this.#dataConfigBuilder = dataConfigBuilder;
@@ -41,10 +45,13 @@ class Configuration {
   CONNECT
    */
   setConnectSecurityCookie(name: string, domain: string): void {
-    this.#connectConfigBuilder.withSecurityCookieName(domain);
-    this.#connectConfigBuilder.withSecurityCookieName(name);
+    this.#connectConfigBuilder.withSecurityCookieName(domain).withSecurityCookieName(name);
   }
 
+  /***
+   * Can be invoked multiple times to add more than 1 exclusion
+   * @param exclusion
+   */
   setConnectSecurityExclusion(exclusion: string): void {
     this.#connectConfigBuilder.withSecurityExclusion(exclusion);
   }
@@ -234,5 +241,20 @@ class Configuration {
 
   setSessionTokenSecret(secret: string): void {
     this.#securityConfigBuilder.withSessionTokenSecret(secret);
+  }
+
+  /*
+  HAPPN
+   */
+
+  buildHappnConfig() {
+    return this.#happnConfigBuilder
+      .withCacheBuilder(this.#cacheConfigBuilder)
+      .withConnectBuilder(this.#connectConfigBuilder)
+      .withDataBuilder(this.#dataConfigBuilder)
+      .withProtocolBuilder(this.#protocolConfigBuilder)
+      .withPublisherBuilder(this.#publisherConfigBuilder)
+      .withSecurityBuilder(this.#securityConfigBuilder)
+      .build();
   }
 }

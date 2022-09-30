@@ -1,5 +1,4 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-const ROOT = 'security.config';
 
 module.exports = class SecurityConfigBuilder extends BaseBuilder {
   constructor() {
@@ -66,7 +65,7 @@ module.exports = class SecurityConfigBuilder extends BaseBuilder {
 
   withUpdateSubscriptionsOnSecurityDirectoryChanged(shouldUpdate) {
     this.set(
-      `${ROOT}.updateSubscriptionsOnSecurityDirectoryChanged`,
+      'updateSubscriptionsOnSecurityDirectoryChanged',
       shouldUpdate,
       BaseBuilder.Types.BOOLEAN
     );
@@ -74,129 +73,125 @@ module.exports = class SecurityConfigBuilder extends BaseBuilder {
   }
 
   withDisableDefaultAdminNetworkConnections(shouldDisable) {
-    this.set(
-      `${ROOT}.disableDefaultAdminNetworkConnections`,
-      shouldDisable,
-      BaseBuilder.Types.BOOLEAN
-    );
+    this.set('disableDefaultAdminNetworkConnections', shouldDisable, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withDefaultNonceTTL(ttl) {
-    this.set(`${ROOT}.defaultNonceTTL`, ttl, BaseBuilder.Types.INTEGER);
+    this.set('defaultNonceTTL', ttl, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withLogSessionActivity(shouldLog) {
-    this.set(`${ROOT}.logSessionActivity`, shouldLog, BaseBuilder.Types.BOOLEAN);
+    this.set('logSessionActivity', shouldLog, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withSessionActivityTTL(ttl) {
-    this.set(`${ROOT}.sessionActivityTTL`, ttl, BaseBuilder.Types.INTEGER);
+    this.set('sessionActivityTTL', ttl, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withPbkdf2Iterations(iterations) {
-    this.set(`${ROOT}.pbkdf2Iterations`, iterations, BaseBuilder.Types.INTEGER);
+    this.set('pbkdf2Iterations', iterations, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withLockTokenToLoginType(shouldLock) {
-    this.set(`${ROOT}.lockTokenToLoginType`, shouldLock, BaseBuilder.Types.BOOLEAN);
+    this.set('lockTokenToLoginType', shouldLock, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withLockTokenToUserId(shouldLock) {
-    this.set(`${ROOT}.lockTokenToUserId`, shouldLock, BaseBuilder.Types.BOOLEAN);
+    this.set('lockTokenToUserId', shouldLock, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withHttpsCookie(name, domain, cookie) {
-    this.set(`${ROOT}.cookieName`, name, BaseBuilder.Types.STRING);
-    this.set(`${ROOT}.cookieDomain`, domain, BaseBuilder.Types.STRING);
-    this.set(`${ROOT}.httpsCookie`, cookie, BaseBuilder.Types.STRING);
+    this.set('cookieName', name, BaseBuilder.Types.STRING);
+    this.set('cookieDomain', domain, BaseBuilder.Types.STRING);
+    this.set('httpsCookie', cookie, BaseBuilder.Types.STRING);
     return this;
   }
 
   withSecure(isSecure) {
-    this.set(`${ROOT}.secure`, isSecure, BaseBuilder.Types.BOOLEAN);
+    this.set('secure', isSecure, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withAllowAnonymousAccess(allow) {
-    this.set(`${ROOT}.allowAnonymousAccess`, allow, BaseBuilder.Types.BOOLEAN);
+    this.set('allowAnonymousAccess', allow, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   // TODO: do we need a builder here?
   withLookup(lookup) {
-    this.set(`${ROOT}.lookup`, lookup, BaseBuilder.Types.OBJECT);
+    this.set('lookup', lookup, BaseBuilder.Types.OBJECT);
     return this;
   }
 
   withSessionTokenSecret(secret) {
-    this.set(`${ROOT}.sessionTokenSecret`, secret, BaseBuilder.Types.STRING);
+    this.set('sessionTokenSecret', secret, BaseBuilder.Types.STRING);
     return this;
   }
 
   withActivateSessionManagement(activate) {
-    this.set(`${ROOT}.activateSessionManagement`, activate, BaseBuilder.Types.BOOLEAN);
+    this.set('activateSessionManagement', activate, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withAccountLockoutEnabled(enabled) {
-    this.set(`${ROOT}.accountLockout.enabled`, enabled, BaseBuilder.Types.BOOLEAN);
+    this.set('accountLockout.enabled', enabled, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withAccountLockoutAttempts(attempts) {
-    this.set(`${ROOT}.accountLockout.attempts`, attempts, BaseBuilder.Types.INTEGER);
+    this.set('accountLockout.attempts', attempts, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withAccountLockoutRetryInterval(interval) {
-    this.set(`${ROOT}.accountLockout.retryInterval`, interval, BaseBuilder.Types.INTEGER);
+    this.set('accountLockout.retryInterval', interval, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withAuditPath(path) {
-    this.push(`${ROOT}.auditPaths`, path, BaseBuilder.Types.STRING);
+    this.push('auditPaths', path, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAdminUsername(username) {
-    this.set(`${ROOT}.adminUser.username`, username, BaseBuilder.Types.STRING);
+    this.set('adminUser.username', username, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAdminPassword(password) {
-    this.set(`${ROOT}.adminUser.password`, password, BaseBuilder.Types.STRING);
+    this.set('adminUser.password', password, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAdminPublicKey(publicKey) {
-    this.set(`${ROOT}.adminUser.publicKey`, publicKey, BaseBuilder.Types.STRING);
+    this.set('adminUser.publicKey', publicKey, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAdminGroupName(name) {
-    this.set(`${ROOT}.adminGroup.name`, name, BaseBuilder.Types.STRING);
+    this.set('adminGroup.name', name, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAdminGroupPermission(permissionKey, action) {
-    this.push(`${ROOT}.adminGroup.permissions.${permissionKey}`, action, BaseBuilder.Types.STRING);
+    this.push(`adminGroup.permissions.${permissionKey}`, action, BaseBuilder.Types.STRING);
     return this;
   }
 
   withAuthProvider(providerName, providerInstance) {
-    this.set(`${ROOT}.authProviders.${providerName}`, providerInstance, BaseBuilder.Types.OBJECT);
+    this.set(`authProviders.${providerName}`, providerInstance, BaseBuilder.Types.OBJECT);
     return this;
   }
 
   withDefaultAuthProvider(providerName) {
-    this.set(`${ROOT}.defaultAuthProvider`, providerName, BaseBuilder.Types.String);
+    this.set('defaultAuthProvider', providerName, BaseBuilder.Types.String);
     return this;
   }
 
@@ -222,7 +217,7 @@ module.exports = class SecurityConfigBuilder extends BaseBuilder {
     }
     builder.set(`session.${sessionKey}.$eq`, sessionMatchOn, matchType);
 
-    this.push(`${ROOT}.profiles`, builder, BaseBuilder.Types.OBJECT);
+    this.push(`profiles`, builder, BaseBuilder.Types.OBJECT);
     return this;
   }
 };

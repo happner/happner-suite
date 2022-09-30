@@ -87,61 +87,51 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
+    helper.expect(result.activateSessionManagement).to.equal(mockActivateSessionManagement);
+    helper.expect(result.accountLockout.attempts).to.equal(mockAccountLockoutAttempts);
+    helper.expect(result.accountLockout.enabled).to.equal(mockAccountLockoutEnabled);
+    helper.expect(result.accountLockout.retryInterval).to.equal(mockAccountLockoutRetryInterval);
+    helper.expect(result.adminGroup.name).to.equal(mockAdminGroupName);
     helper
-      .expect(result.security.config.activateSessionManagement)
-      .to.equal(mockActivateSessionManagement);
-    helper
-      .expect(result.security.config.accountLockout.attempts)
-      .to.equal(mockAccountLockoutAttempts);
-    helper
-      .expect(result.security.config.accountLockout.enabled)
-      .to.equal(mockAccountLockoutEnabled);
-    helper
-      .expect(result.security.config.accountLockout.retryInterval)
-      .to.equal(mockAccountLockoutRetryInterval);
-    helper.expect(result.security.config.adminGroup.name).to.equal(mockAdminGroupName);
-    helper
-      .expect(result.security.config.adminGroup.permissions[mockAdminGroupPermissionPath1][0])
+      .expect(result.adminGroup.permissions[mockAdminGroupPermissionPath1][0])
       .to.equal(mockAdminGroupPermissionPath1Action1);
     helper
-      .expect(result.security.config.adminGroup.permissions[mockAdminGroupPermissionPath1][1])
+      .expect(result.adminGroup.permissions[mockAdminGroupPermissionPath1][1])
       .to.equal(mockAdminGroupPermissionPath1Action2);
-    helper.expect(result.security.config.adminUser.username).to.equal(mockAdminUserName);
-    helper.expect(result.security.config.adminUser.password).to.equal(mockAdminPassword);
-    helper.expect(result.security.config.adminUser.publicKey).to.equal(mockAdminPublicKey);
-    helper.expect(result.security.config.allowAnonymousAccess).to.equal(mockAllowAnonymousAccess);
-    helper.expect(result.security.config.auditPaths[0]).to.equal(mockAuditPath);
+    helper.expect(result.adminUser.username).to.equal(mockAdminUserName);
+    helper.expect(result.adminUser.password).to.equal(mockAdminPassword);
+    helper.expect(result.adminUser.publicKey).to.equal(mockAdminPublicKey);
+    helper.expect(result.allowAnonymousAccess).to.equal(mockAllowAnonymousAccess);
+    helper.expect(result.auditPaths[0]).to.equal(mockAuditPath);
+    helper.expect(result.authProviders[mockAuthProvider1Name]).to.equal(mockAuthProvider1Instance);
     helper
-      .expect(result.security.config.authProviders[mockAuthProvider1Name])
-      .to.equal(mockAuthProvider1Instance);
-    helper
-      .expect(result.security.config.authProviders[mockAuthProvider1Name].testFunc())
+      .expect(result.authProviders[mockAuthProvider1Name].testFunc())
       .to.equal('test func called');
-    helper.expect(result.security.config.cookieName).to.equal(mockCookieName);
-    helper.expect(result.security.config.cookieDomain).to.equal(mockCookieDomain);
-    helper.expect(result.security.config.httpsCookie).to.equal(mockCookie);
-    helper.expect(result.security.config.defaultAuthProvider).to.equal(mockDefaultAuthProvider);
-    helper.expect(result.security.config.defaultNonceTTL).to.equal(mockDefaultNonceTTL);
+    helper.expect(result.cookieName).to.equal(mockCookieName);
+    helper.expect(result.cookieDomain).to.equal(mockCookieDomain);
+    helper.expect(result.httpsCookie).to.equal(mockCookie);
+    helper.expect(result.defaultAuthProvider).to.equal(mockDefaultAuthProvider);
+    helper.expect(result.defaultNonceTTL).to.equal(mockDefaultNonceTTL);
     helper
-      .expect(result.security.config.disableDefaultAdminNetworkConnections)
+      .expect(result.disableDefaultAdminNetworkConnections)
       .to.equal(mockDisableDefaultAdminNetworkConnections);
-    helper.expect(result.security.config.logSessionActivity).to.equal(mockLogSessionActivity);
-    helper.expect(result.security.config.lockTokenToLoginType).to.equal(mockLockTokenToLoginType);
-    helper.expect(result.security.config.lockTokenToUserId).to.equal(mockLockTokenToUserId);
-    helper.expect(result.security.config.pbkdf2Iterations).to.equal(mockPbkdf2Iterations);
-    helper.expect(result.security.config.profiles[0].name).to.equal(mockProfileName);
-    helper.expect(result.security.config.profiles[0].policy.ttl).to.equal(mockProfilePolicyTTL);
+    helper.expect(result.logSessionActivity).to.equal(mockLogSessionActivity);
+    helper.expect(result.lockTokenToLoginType).to.equal(mockLockTokenToLoginType);
+    helper.expect(result.lockTokenToUserId).to.equal(mockLockTokenToUserId);
+    helper.expect(result.pbkdf2Iterations).to.equal(mockPbkdf2Iterations);
+    helper.expect(result.profiles[0].name).to.equal(mockProfileName);
+    helper.expect(result.profiles[0].policy.ttl).to.equal(mockProfilePolicyTTL);
     helper
-      .expect(result.security.config.profiles[0].policy.inactivity_threshold)
+      .expect(result.profiles[0].policy.inactivity_threshold)
       .to.equal(mockProfilePolicyInactivityThreshold);
     helper
-      .expect(result.security.config.profiles[0].session[mockProfileSessionKey].$eq)
+      .expect(result.profiles[0].session[mockProfileSessionKey].$eq)
       .to.equal(mockProfileSessionMatchOn);
-    helper.expect(result.security.config.secure).to.equal(mockSecure);
-    helper.expect(result.security.config.sessionActivityTTL).to.equal(mockSessionActivityTTL);
-    helper.expect(result.security.config.sessionTokenSecret).to.equal(mockSessionTokenSecret);
+    helper.expect(result.secure).to.equal(mockSecure);
+    helper.expect(result.sessionActivityTTL).to.equal(mockSessionActivityTTL);
+    helper.expect(result.sessionTokenSecret).to.equal(mockSessionTokenSecret);
     helper
-      .expect(result.security.config.updateSubscriptionsOnSecurityDirectoryChanged)
+      .expect(result.updateSubscriptionsOnSecurityDirectoryChanged)
       .to.equal(mockUpdateSubscriptionsOnSecurityDirectoryChanged);
   });
 

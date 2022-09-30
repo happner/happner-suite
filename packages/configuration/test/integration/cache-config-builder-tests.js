@@ -11,6 +11,6 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.cache.config.statisticsInterval).to.equal(mockStatisticsInterval);
+    helper.expect(result.statisticsInterval).to.equal(mockStatisticsInterval);
   });
 });
