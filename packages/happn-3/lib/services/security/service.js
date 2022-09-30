@@ -1539,6 +1539,7 @@ function userIsDelegate(username, callback) {
   if (username === '_ADMIN') {
     return callback(null, true);
   }
+
   this.users.userBelongsToGroups(username, ['_MESH_DELEGATE'], (e, belongs) => {
     if (e) return callback(e);
     callback(null, belongs);
