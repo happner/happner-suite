@@ -1,7 +1,7 @@
 {
   "name": "redis-lru-cache",
   "description": "cluster friendly cache, that relies on redis pub/sub to share data",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "scripts": {
     "test": "mocha test/functional",
     "test-cover": "nyc npm test"
@@ -25,13 +25,13 @@
     "@node-redis/search": "^1.0.2",
     "@node-redis/time-series": "^1.0.1",
     "clone": "^2.1.2",
-    "happn-commons": "^1.1.0",
+    "happn-commons": "1.1.0",
     "node-redis-pubsub": "^1.0.3",
     "redis": "^4.0.3"
   },
   "devDependencies": {
     "happn-commons-test": "^1.1.0",
-    "happn-db-provider-mongo": "1.0.15"
+    "happn-db-provider-mongo": "1.0.16"
   },
   "readmeFilename": "README.md"
 }

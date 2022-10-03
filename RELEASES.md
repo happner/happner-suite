@@ -1,3 +1,8 @@
+1.8.0 2022-10-03
+-----------------
+- TEN-132: authorization cache key regex mask
+- TEN-138: api/client call fails when auth delegation switched on
+
 1.7.0 2022-09-22
 -----------------
 - TEN-65: bad options on data get

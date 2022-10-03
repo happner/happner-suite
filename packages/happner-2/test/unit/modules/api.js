@@ -132,7 +132,7 @@ describe(test.testName(__filename, 4), function () {
 
   context('client', function () {
     it('calls $happn.log.$$TRACE with args and res.end', function () {
-      const $happen = {
+      const $happn = {
         tools: {
           packages: {
             api: { md5: 'testMatch' },
@@ -140,6 +140,7 @@ describe(test.testName(__filename, 4), function () {
         },
         log: { $$TRACE: test.sinon.fake() },
       };
+      $happn.asAdmin = $happn;
       const req = {
         headers: {
           'if-none-match': 'testMatch',
@@ -154,19 +155,16 @@ describe(test.testName(__filename, 4), function () {
         writeHead: test.sinon.fake(),
       };
       const apiModule = new ApiModule();
-      apiModule.client($happen, req, res);
+      apiModule.client($happn, req, res);
 
-      test.sinon.assert.calledWith(
-        $happen.log.$$TRACE,
-        'client already has latest version testUrl'
-      );
+      test.sinon.assert.calledWith($happn.log.$$TRACE, 'client already has latest version testUrl');
       test.sinon.assert.called(res.end);
     });
   });
 });
 
 function mockhappn() {
-  return {
+  let mockHappn = {
     log: {
       warn: test.sinon.stub(),
     },
@@ -190,4 +188,6 @@ function mockhappn() {
       },
     },
   };
+  mockHappn.asAdmin = mockHappn;
+  return mockHappn;
 }
