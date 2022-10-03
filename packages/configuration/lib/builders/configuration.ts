@@ -5,15 +5,21 @@ import DataConfigBuilder from './data/data-config-builder';
 import ProtocolConfigBuilder from './protocol/protocol-config-builder';
 import PublisherConfigBuilder from './publisher/publisher-config-builder';
 import SecurityConfigBuilder from './security/security-config-builder';
+import SubscriptionConfigBuilder from './subscription/subscription-config-builder';
+import SystemConfigBuilder from './system/system-config-builder';
+import TransportConfigBuilder from './transport/transport-config-builder';
 
 export class Configuration {
   #happnConfigBuilder: HappnConfigBuilder;
-  #securityConfigBuilder: SecurityConfigBuilder;
   #cacheConfigBuilder: CacheConfigBuilder;
   #connectConfigBuilder: ConnectConfigBuilder;
   #dataConfigBuilder: DataConfigBuilder;
   #protocolConfigBuilder: ProtocolConfigBuilder;
   #publisherConfigBuilder: PublisherConfigBuilder;
+  #securityConfigBuilder: SecurityConfigBuilder;
+  #subscriptionConfigBuilder: SubscriptionConfigBuilder;
+  #systemConfigBuilder: SystemConfigBuilder;
+  #transportConfigBuilder: TransportConfigBuilder;
 
   constructor(
     happnConfigBuilder: HappnConfigBuilder,
@@ -22,7 +28,10 @@ export class Configuration {
     dataConfigBuilder: DataConfigBuilder,
     protocolConfigBuilder: ProtocolConfigBuilder,
     publisherConfigBuilder: PublisherConfigBuilder,
-    securityConfigBuilder: SecurityConfigBuilder
+    securityConfigBuilder: SecurityConfigBuilder,
+    subscriptionConfigBuilder: SubscriptionConfigBuilder,
+    systemConfigBuilder: SystemConfigBuilder,
+    transportConfigBuilder: TransportConfigBuilder
   ) {
     this.#happnConfigBuilder = happnConfigBuilder;
     this.#cacheConfigBuilder = cacheConfigBuilder;
@@ -31,6 +40,9 @@ export class Configuration {
     this.#protocolConfigBuilder = protocolConfigBuilder;
     this.#publisherConfigBuilder = publisherConfigBuilder;
     this.#securityConfigBuilder = securityConfigBuilder;
+    this.#subscriptionConfigBuilder = subscriptionConfigBuilder;
+    this.#systemConfigBuilder = systemConfigBuilder;
+    this.#transportConfigBuilder = transportConfigBuilder;
   }
 
   /*
@@ -244,17 +256,79 @@ export class Configuration {
   }
 
   /*
+  SUBSCRIPTION
+   */
+  setSubscriptionAllowNestedPermissions(shouldAllow: boolean): void {
+    this.#subscriptionConfigBuilder.withAllowNestedPermissions(shouldAllow);
+  }
+
+  setSubscriptionTreeSearchCacheSize(size: number): void {
+    this.#subscriptionConfigBuilder.withSubscriptionTreeSearchCacheSize(size);
+  }
+
+  setSubscriptionTreePermutationCacheSize(size: number): void {
+    this.#subscriptionConfigBuilder.withSubscriptionTreePermutationCacheSize(size);
+  }
+
+  setSubscriptionTreeTimeout(timeout: number): void {
+    this.#subscriptionConfigBuilder.withSubscriptionTreeTimeout(timeout);
+  }
+
+  setSubscriptionTreeFilterFunction(func: Function): void {
+    this.#subscriptionConfigBuilder.withSubscriptionTreeFilterFunc(func);
+  }
+
+  /*
+  SYSTEM
+   */
+
+  setSystemName(name: string): void {
+    this.#systemConfigBuilder.withName(name);
+  }
+
+  /*
+  TRANSPORT
+   */
+
+  setTransportCert(cert: string): void {
+    this.#transportConfigBuilder.withCert(cert);
+  }
+
+  setTransportCertPath(certPath: string): void {
+    this.#transportConfigBuilder.withCertPath(certPath);
+  }
+
+  setTransportKeepAliveTimout(timeout: number): void {
+    this.#transportConfigBuilder.withKeepAliveTimeout(timeout);
+  }
+
+  setTransportKey(key: string): void {
+    this.#transportConfigBuilder.withKey(key);
+  }
+
+  setTransportKeyPath(keyPath: string): void {
+    this.#transportConfigBuilder.withKeyPath(keyPath);
+  }
+
+  setTransportMode(mode: string): void {
+    this.#transportConfigBuilder.withKeyPath(mode);
+  }
+
+  /*
   HAPPN
    */
 
   buildHappnConfig() {
     return this.#happnConfigBuilder
-      .withCacheBuilder(this.#cacheConfigBuilder)
-      .withConnectBuilder(this.#connectConfigBuilder)
-      .withDataBuilder(this.#dataConfigBuilder)
-      .withProtocolBuilder(this.#protocolConfigBuilder)
-      .withPublisherBuilder(this.#publisherConfigBuilder)
-      .withSecurityBuilder(this.#securityConfigBuilder)
+      .withCacheConfigBuilder(this.#cacheConfigBuilder)
+      .withConnectConfigBuilder(this.#connectConfigBuilder)
+      .withDataConfigBuilder(this.#dataConfigBuilder)
+      .withProtocolConfigBuilder(this.#protocolConfigBuilder)
+      .withPublisherConfigBuilder(this.#publisherConfigBuilder)
+      .withSecurityConfigBuilder(this.#securityConfigBuilder)
+      .withSubscriptionConfigBuilder(this.#subscriptionConfigBuilder)
+      .withSystemConfigBuilder(this.#systemConfigBuilder)
+      .withTransportConfigBuilder(this.#transportConfigBuilder)
       .build();
   }
 }

@@ -5,33 +5,48 @@ module.exports = class HappnConfigBuilder extends BaseBuilder {
     super();
   }
 
-  withCacheBuilder(cacheBuilder) {
+  withCacheConfigBuilder(cacheBuilder) {
     this.set(`happn.services.cache.config`, cacheBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 
-  withConnectBuilder(connectBuilder) {
+  withConnectConfigBuilder(connectBuilder) {
     this.set(`happn.services.connect.config`, connectBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 
-  withDataBuilder(dataBuilder) {
+  withDataConfigBuilder(dataBuilder) {
     this.set(`happn.services.data.config`, dataBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 
-  withProtocolBuilder(protocolBuilder) {
+  withProtocolConfigBuilder(protocolBuilder) {
     this.set(`happn.services.protocol.config`, protocolBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 
-  withPublisherBuilder(publisherBuilder) {
+  withPublisherConfigBuilder(publisherBuilder) {
     this.set(`happn.services.publisher.config`, publisherBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 
-  withSecurityBuilder(securityBuilder) {
+  withSecurityConfigBuilder(securityBuilder) {
     this.set(`happn.services.security.config`, securityBuilder, BaseBuilder.Types.OBJECT);
+    return this;
+  }
+
+  withSubscriptionConfigBuilder(subscriptionBuilder) {
+    this.set(`happn.services.subscription.config`, subscriptionBuilder, BaseBuilder.Types.OBJECT);
+    return this;
+  }
+
+  withSystemConfigBuilder(systemBuilder) {
+    this.set(`happn.services.system.config`, systemBuilder, BaseBuilder.Types.OBJECT);
+    return this;
+  }
+
+  withTransportConfigBuilder(transportBuilder) {
+    this.set(`happn.services.transport.config`, transportBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 

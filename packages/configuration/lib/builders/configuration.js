@@ -10,18 +10,21 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Configuration_happnConfigBuilder, _Configuration_securityConfigBuilder, _Configuration_cacheConfigBuilder, _Configuration_connectConfigBuilder, _Configuration_dataConfigBuilder, _Configuration_protocolConfigBuilder, _Configuration_publisherConfigBuilder;
+var _Configuration_happnConfigBuilder, _Configuration_cacheConfigBuilder, _Configuration_connectConfigBuilder, _Configuration_dataConfigBuilder, _Configuration_protocolConfigBuilder, _Configuration_publisherConfigBuilder, _Configuration_securityConfigBuilder, _Configuration_subscriptionConfigBuilder, _Configuration_systemConfigBuilder, _Configuration_transportConfigBuilder;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Configuration = void 0;
 class Configuration {
-    constructor(happnConfigBuilder, cacheConfigBuilder, connectConfigBuilder, dataConfigBuilder, protocolConfigBuilder, publisherConfigBuilder, securityConfigBuilder) {
+    constructor(happnConfigBuilder, cacheConfigBuilder, connectConfigBuilder, dataConfigBuilder, protocolConfigBuilder, publisherConfigBuilder, securityConfigBuilder, subscriptionConfigBuilder, systemConfigBuilder, transportConfigBuilder) {
         _Configuration_happnConfigBuilder.set(this, void 0);
-        _Configuration_securityConfigBuilder.set(this, void 0);
         _Configuration_cacheConfigBuilder.set(this, void 0);
         _Configuration_connectConfigBuilder.set(this, void 0);
         _Configuration_dataConfigBuilder.set(this, void 0);
         _Configuration_protocolConfigBuilder.set(this, void 0);
         _Configuration_publisherConfigBuilder.set(this, void 0);
+        _Configuration_securityConfigBuilder.set(this, void 0);
+        _Configuration_subscriptionConfigBuilder.set(this, void 0);
+        _Configuration_systemConfigBuilder.set(this, void 0);
+        _Configuration_transportConfigBuilder.set(this, void 0);
         __classPrivateFieldSet(this, _Configuration_happnConfigBuilder, happnConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_cacheConfigBuilder, cacheConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_connectConfigBuilder, connectConfigBuilder, "f");
@@ -29,6 +32,9 @@ class Configuration {
         __classPrivateFieldSet(this, _Configuration_protocolConfigBuilder, protocolConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_publisherConfigBuilder, publisherConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_securityConfigBuilder, securityConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_subscriptionConfigBuilder, subscriptionConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_systemConfigBuilder, systemConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_transportConfigBuilder, transportConfigBuilder, "f");
     }
     /*
     CACHE - TODO: COMPLETE THIS AND BUILDERS BASED ON NEW FIELDS
@@ -169,19 +175,67 @@ class Configuration {
         __classPrivateFieldGet(this, _Configuration_securityConfigBuilder, "f").withSessionTokenSecret(secret);
     }
     /*
+    SUBSCRIPTION
+     */
+    setSubscriptionAllowNestedPermissions(shouldAllow) {
+        __classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f").withAllowNestedPermissions(shouldAllow);
+    }
+    setSubscriptionTreeSearchCacheSize(size) {
+        __classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f").withSubscriptionTreeSearchCacheSize(size);
+    }
+    setSubscriptionTreePermutationCacheSize(size) {
+        __classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f").withSubscriptionTreePermutationCacheSize(size);
+    }
+    setSubscriptionTreeTimeout(timeout) {
+        __classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f").withSubscriptionTreeTimeout(timeout);
+    }
+    setSubscriptionTreeFilterFunction(func) {
+        __classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f").withSubscriptionTreeFilterFunc(func);
+    }
+    /*
+    SYSTEM
+     */
+    setSystemName(name) {
+        __classPrivateFieldGet(this, _Configuration_systemConfigBuilder, "f").withName(name);
+    }
+    /*
+    TRANSPORT
+     */
+    setTransportCert(cert) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withCert(cert);
+    }
+    setTransportCertPath(certPath) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withCertPath(certPath);
+    }
+    setTransportKeepAliveTimout(timeout) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKeepAliveTimeout(timeout);
+    }
+    setTransportKey(key) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKey(key);
+    }
+    setTransportKeyPath(keyPath) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKeyPath(keyPath);
+    }
+    setTransportMode(mode) {
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKeyPath(mode);
+    }
+    /*
     HAPPN
      */
     buildHappnConfig() {
         return __classPrivateFieldGet(this, _Configuration_happnConfigBuilder, "f")
-            .withCacheBuilder(__classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f"))
-            .withConnectBuilder(__classPrivateFieldGet(this, _Configuration_connectConfigBuilder, "f"))
-            .withDataBuilder(__classPrivateFieldGet(this, _Configuration_dataConfigBuilder, "f"))
-            .withProtocolBuilder(__classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f"))
-            .withPublisherBuilder(__classPrivateFieldGet(this, _Configuration_publisherConfigBuilder, "f"))
-            .withSecurityBuilder(__classPrivateFieldGet(this, _Configuration_securityConfigBuilder, "f"))
+            .withCacheConfigBuilder(__classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f"))
+            .withConnectConfigBuilder(__classPrivateFieldGet(this, _Configuration_connectConfigBuilder, "f"))
+            .withDataConfigBuilder(__classPrivateFieldGet(this, _Configuration_dataConfigBuilder, "f"))
+            .withProtocolConfigBuilder(__classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f"))
+            .withPublisherConfigBuilder(__classPrivateFieldGet(this, _Configuration_publisherConfigBuilder, "f"))
+            .withSecurityConfigBuilder(__classPrivateFieldGet(this, _Configuration_securityConfigBuilder, "f"))
+            .withSubscriptionConfigBuilder(__classPrivateFieldGet(this, _Configuration_subscriptionConfigBuilder, "f"))
+            .withSystemConfigBuilder(__classPrivateFieldGet(this, _Configuration_systemConfigBuilder, "f"))
+            .withTransportConfigBuilder(__classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f"))
             .build();
     }
 }
 exports.Configuration = Configuration;
-_Configuration_happnConfigBuilder = new WeakMap(), _Configuration_securityConfigBuilder = new WeakMap(), _Configuration_cacheConfigBuilder = new WeakMap(), _Configuration_connectConfigBuilder = new WeakMap(), _Configuration_dataConfigBuilder = new WeakMap(), _Configuration_protocolConfigBuilder = new WeakMap(), _Configuration_publisherConfigBuilder = new WeakMap();
+_Configuration_happnConfigBuilder = new WeakMap(), _Configuration_cacheConfigBuilder = new WeakMap(), _Configuration_connectConfigBuilder = new WeakMap(), _Configuration_dataConfigBuilder = new WeakMap(), _Configuration_protocolConfigBuilder = new WeakMap(), _Configuration_publisherConfigBuilder = new WeakMap(), _Configuration_securityConfigBuilder = new WeakMap(), _Configuration_subscriptionConfigBuilder = new WeakMap(), _Configuration_systemConfigBuilder = new WeakMap(), _Configuration_transportConfigBuilder = new WeakMap();
 //# sourceMappingURL=configuration.js.map

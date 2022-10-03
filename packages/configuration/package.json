@@ -4,7 +4,8 @@
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-integration": "_mocha  --exit -- silence.js test/integration/**",
+    "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration"
   },
   "author": "leebow",
   "license": "ISC",
