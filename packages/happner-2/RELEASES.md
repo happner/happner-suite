@@ -985,3 +985,9 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.2.2 2022-10-22
 -----------------
   - TEN-65, TEN-126: happn-3 updates
+
+12.3.0 2022-10-03
+-----------------
+  - TEN-132: cache key regex masking
+  - TEN-138: api/client call fails when auth delegation switched on
+
