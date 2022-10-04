@@ -1,7 +1,7 @@
 const Permissions = require('../../../lib/services/security/permissions');
 const test = require('../../__fixtures/utils/test_helper').create();
 const sinon = test.sinon;
-describe.only(test.testName(__filename, 3), function () {
+describe(test.testName(__filename, 3), function () {
   this.timeout(10000);
   var Logger = require('happn-logger');
   const util = require('util');

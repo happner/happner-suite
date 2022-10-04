@@ -7,7 +7,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
   const UsersByGroupCache = require('../../../lib/services/security/users-by-group-cache');
 
   function stubBindInEachGroup(users) {
-    const groups = [
+    const groupsList = [
       'unlinkGroup',
       'linkGroup',
       'getGroup',
@@ -15,7 +15,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       'deleteGroup',
       'upsertGroup',
     ];
-    groups.forEach((bind) => {
+
+    users.groups = {};
+
+    groupsList.forEach((bind) => {
       users.groups[bind] = test.sinon.stub();
     });
   }
@@ -969,7 +972,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     mockConfig.__cache_users = null;
     users.happn = mockHappn;
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -996,7 +998,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubCreatePermissions = test.sinon.stub(PermissionsManager, 'create');
 
     users.happn = mockHappn;
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1023,7 +1024,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.throws(new Error('mockError'));
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1053,7 +1053,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1095,7 +1094,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1135,7 +1133,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1175,7 +1172,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1216,7 +1212,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1252,7 +1247,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1292,7 +1286,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1331,7 +1324,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1373,7 +1365,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ADMIN'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallback);
@@ -1408,7 +1399,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       const mockError = new Error('mockError');
       callback(mockError);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1454,7 +1444,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, null);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1510,7 +1499,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
-    users.groups = {};
     stubBindInEachGroup(users);
     users.getUserNoGroups = test.sinon.stub().callsFake((_, callback) => {
       callback(new Error('mockError'), null);
@@ -1564,7 +1552,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove, clear });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1601,7 +1588,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1647,7 +1633,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     mockConfig.usernamesCaseInsensitiveExclude = ['_ANONYMOUS'];
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1689,7 +1674,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ get: get });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1724,7 +1708,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       const mockError = new Error('mockError');
       callback(mockError, null);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1768,7 +1751,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, callback) => {
       callback(null, null);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1812,7 +1794,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, callback) => {
       callback(null, { data: { username: 'mockUsername', password: 'mockPassword' } });
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1873,7 +1854,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       permissions: {},
       password: null,
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -1969,7 +1949,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       }
     );
 
-    users.groups = {};
     stubBindInEachGroup(users);
     mockConfig.pbkdf2Iterations = null;
 
@@ -2053,8 +2032,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
-    const stubUpsertData = users.happn.services.data.upsert.returns('mockResult');
-    const stubClone = users.happn.services.utils.clone.returns({
+    users.happn.services.data.upsert.returns('mockResult');
+    users.happn.services.utils.clone.returns({
       username: 'mockUsername',
       name: 'mockName',
       permissions: {},
@@ -2065,7 +2044,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
         callback('mockUser', null);
       }
     );
-    users.groups = {};
     stubBindInEachGroup(users);
     mockConfig.pbkdf2Iterations = null;
 
@@ -2106,7 +2084,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns();
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2157,7 +2134,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns();
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2204,7 +2180,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove });
     const stubRemoveData = users.happn.services.data.remove.returns({});
-    users.groups = {};
     stubBindInEachGroup(users);
     users.log = {
       error: test.sinon.stub(),
@@ -2256,7 +2231,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ has: has, get: get });
-    users.groups = {};
     stubBindInEachGroup(users);
     users.log = {
       error: test.sinon.stub(),
@@ -2276,56 +2250,225 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     stubCreatePermissions.restore();
   });
 
-  it.skip('tests getUser - calls this.getUserNoGroups and returns callback if options.includeGroups true.', async () => {
+  it('tests getUser - calls this.getUserNoGroups and returns callback if options.includeGroups true.', async () => {
     const users = new SecurityUsers({
       logger: Logger,
     });
-    const mockUsername = 'mockUsername';
-    const mockCallbackOne = test.sinon.stub();
-    const mockCallBackTwo = test.sinon.stub();
-    const mockSecurityService = {};
-    const stubAttachPermissions = test.sinon.stub();
+    const callback = test.sinon.stub();
+    const has = test.sinon.stub();
+    const get = test.sinon.stub();
+    const set = test.sinon.stub();
+    const stubAttachPermissions = test.sinon.stub().returns('mockAttach');
+
     const stubCreatePermissions = test.sinon
       .stub(PermissionsManager, 'create')
       .returns({ attachPermissions: stubAttachPermissions });
-    const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create');
-    const has = test.sinon.stub().returns(true);
-    const get = test.sinon.stub().returns({ username: 'mockUsername' });
-    const mockOptions = { includeGroups: true };
 
     users.happn = mockHappn;
-    users.happn.services.cache.create.returns({ has: has, get: get });
-    const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
-      const mockError = new Error('mockError');
-      callback(mockError, null);
+    users.happn.services.data.get.onCall(0).returns({ data: { password: 'mockPassword' } });
+    users.happn.services.data.get.onCall(1).callsFake((_, __, cb) => {
+      cb(new Error('test error'));
     });
-    users.groups = {};
+    users.happn.services.cache.create
+      .withArgs('cache_security_users', test.sinon.match.instanceOf(Object))
+      .returns({ has, get, set });
+    users.happn.services.cache.create
+      .withArgs('cache_security_passwords', test.sinon.match.instanceOf(Object))
+      .returns({ set });
+    users.happn.services.cache.create
+      .withArgs('cache_groups_by_user', test.sinon.match.instanceOf(Object))
+      .returns({ has });
     stubBindInEachGroup(users);
 
-    users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
-    users.getUser(mockUsername, mockOptions, mockCallBackTwo);
+    users.initialize(
+      {
+        usernamesCaseInsensitive: true,
+        usernamesCaseInsensitiveExclude: ['mockUsername'],
+        __cache_groups_by_user: true,
+      },
+      { serialize: test.sinon.stub().returns(null) },
+      test.sinon.stub()
+    );
 
+    users.getUser('mockUsername', { includeGroups: true }, callback);
     await require('node:timers/promises').setTimeout(50);
 
     test.chai
-      .expect(mockCallBackTwo)
+      .expect(callback)
       .to.have.been.calledWithExactly(
-        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'mockError'))
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
       );
-    test.chai.expect(get).to.have.been.calledWithExactly('mockusername');
-    test.chai.expect(stubGetData).to.have.been.calledWithExactly(
-      `/_SYSTEM/_SECURITY/_USER/mockUsername/_USER_GROUP/*`,
-      {
-        sort: {
-          path: 1,
-        },
-      },
-      test.sinon.match.func
-    );
-    test.chai.expect(has).to.have.been.calledWithExactly('mockusername');
+    test.chai.expect(users.happn.services.cache.create).to.have.callCount(4);
 
-    stubCreateGroup.restore();
     stubCreatePermissions.restore();
+  });
+
+  it('tests getUser, this.getUserNoGroups and returns callback and callback is called with error', async () => {
+    const users = new SecurityUsers({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub();
+    const has = test.sinon.stub();
+    const stubAttachPermissions = test.sinon.stub().returns('mockAttach');
+
+    const stubCreatePermissions = test.sinon
+      .stub(PermissionsManager, 'create')
+      .returns({ attachPermissions: stubAttachPermissions });
+
+    users.happn = mockHappn;
+    users.happn.services.data.get.throws(new Error('test error'));
+    users.happn.services.cache.create.returns({ has });
+
+    stubBindInEachGroup(users);
+
+    users.initialize(
+      {
+        usernamesCaseInsensitive: true,
+        usernamesCaseInsensitiveExclude: ['mockUsername'],
+        __cache_groups_by_user: true,
+      },
+      { serialize: test.sinon.stub().returns(null) },
+      test.sinon.stub()
+    );
+
+    users.getUser('mockUsername', { includeGroups: true }, callback);
+    await require('node:timers/promises').setTimeout(50);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+    test.chai.expect(users.happn.services.cache.create).to.have.callCount(4);
+
+    stubCreatePermissions.restore();
+  });
+
+  it('tests userBelongsToGroups, returns and calls callback with error', async () => {
+    const users = new SecurityUsers({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub().returns('mockResult');
+
+    stubBindInEachGroup(users);
+
+    users.initialize(
+      { usernamesCaseInsensitive: true, usernamesCaseInsensitiveExclude: ['mockUsername'] },
+      { serialize: test.sinon.stub().returns(null) },
+      test.sinon.stub()
+    );
+
+    const result = users.userBelongsToGroups('mockUsername', null, callback);
+
+    test.chai.expect(result).to.equal('mockResult');
+    test.chai
+      .expect(callback)
+      .to.have.been.calledOnceWithExactly(
+        test.sinon.match
+          .instanceOf(Error)
+          .and(test.sinon.match.has('message', 'groupNames must be an array'))
+      );
+    //   await require('node:timers/promises').setTimeout(50);
+  });
+
+  it('tests userBelongsToGroups, calls callback if groupNames.length is equal to 0', async () => {
+    const users = new SecurityUsers({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub().returns('mockResult');
+    const has = test.sinon.stub().returns(true);
+    const get = test.sinon.stub().returns('mockUser');
+
+    stubBindInEachGroup(users);
+
+    users.happn = mockHappn;
+    users.happn.services.cache.create
+      .withArgs('cache_groups_by_user', test.sinon.match.instanceOf(Object))
+      .returns({
+        has,
+        get,
+      });
+
+    users.initialize({}, { serialize: test.sinon.stub().returns(null) }, test.sinon.stub());
+
+    users.userBelongsToGroups('mockUsername', [], callback);
+
+    test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, false);
+    test.chai.expect(has).to.have.been.calledOnceWithExactly('mockUsername');
+    test.chai.expect(get).to.have.been.calledOnceWithExactly('mockUsername');
+  });
+
+  it('tests userBelongsToGroups, calls callback with belongs', async () => {
+    const users = new SecurityUsers({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub().returns('mockResult');
+    const has = test.sinon.stub().returns(false);
+    const set = test.sinon.stub();
+
+    stubBindInEachGroup(users);
+
+    users.happn = mockHappn;
+    users.happn.services.cache.create
+      .withArgs('cache_groups_by_user', test.sinon.match.instanceOf(Object))
+      .returns({
+        has,
+        set,
+      });
+
+    users.happn.services.data.get.callsFake((_, __, cb) => {
+      cb(null, [
+        {
+          _meta: {
+            path: '/_SYSTEM/_SECURITY/_USER/mockUsername/',
+          },
+        },
+      ]);
+    });
+
+    users.initialize({}, { serialize: test.sinon.stub().returns(null) }, test.sinon.stub());
+
+    users.userBelongsToGroups('mockUsername', ['test'], callback);
+
+    test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, false);
+    test.chai.expect(has).to.have.been.calledOnceWithExactly('mockUsername');
+    test.chai.expect(set).to.have.been.calledOnceWithExactly('mockUsername', [
+      {
+        groupName: '/_SYSTEM/_SECURITY/_USER/mockUsername/',
+        membership: {},
+      },
+    ]);
+  });
+
+  it('tests userBelongsToGroups, dataService.get throws error and calls callback with error', async () => {
+    const users = new SecurityUsers({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub().returns('mockResult');
+    const has = test.sinon.stub().returns(false);
+
+    stubBindInEachGroup(users);
+
+    users.happn = mockHappn;
+    users.happn.services.cache.create
+      .withArgs('cache_groups_by_user', test.sinon.match.instanceOf(Object))
+      .returns({
+        has,
+      });
+    users.happn.services.data.get.callsFake((_, __, cb) => {
+      cb(new Error('test error'));
+    });
+
+    users.initialize({}, { serialize: test.sinon.stub().returns(null) }, test.sinon.stub());
+
+    users.userBelongsToGroups('mockUsername', [], callback);
+
+    test.chai
+      .expect(callback)
+      .to.have.been.calledOnceWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error'))
+      );
+    test.chai.expect(has).to.have.been.calledOnceWithExactly('mockUsername');
   });
 
   it('tests listUser - add * to preparedUserName and adds more properties to searchParameters. Then calls this.dataService.count and calls callback with error.', async () => {
@@ -2347,7 +2490,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubCountData = users.happn.services.data.count.callsFake((_, __, callback) => {
       callback(new Error('mockError'), null);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2392,7 +2534,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubCountData = users.happn.services.data.count.callsFake((_, __, callback) => {
       callback(null, { data: 'mockData' });
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2433,7 +2574,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(new Error('mockError'), null);
     });
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2473,7 +2613,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     const stubGetData = users.happn.services.data.get.resolves(null);
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2520,7 +2659,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       callback(new Error('mockError'));
     });
 
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2555,7 +2693,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .returns({ listPermissions: stubListPermissions });
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create');
 
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2580,7 +2717,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .returns({ attachPermissions: stubAttachPermissions });
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create');
 
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2607,7 +2743,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .returns({ removePermission: stubRemovePermission });
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create');
 
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
@@ -2637,7 +2772,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .returns({ upsertPermission: stubUpsertPermission });
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create');
 
-    users.groups = {};
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
