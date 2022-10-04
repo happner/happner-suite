@@ -4,7 +4,7 @@ const tests = require('../../__fixtures/utils/test_helper').create();
 
 const expect = require('chai').expect;
 
-describe.only(tests.testName(__filename, 3), function () {
+describe(tests.testName(__filename, 3), function () {
   it('tests create and search', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario1());
     expect(permissionsTree.tree).to.deep.equal(expectedTreeScenario1());
