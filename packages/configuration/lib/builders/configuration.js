@@ -37,16 +37,37 @@ class Configuration {
         __classPrivateFieldSet(this, _Configuration_transportConfigBuilder, transportConfigBuilder, "f");
     }
     /*
-    CACHE - TODO: COMPLETE THIS AND BUILDERS BASED ON NEW FIELDS
+    CACHE
      */
+    setCacheStatisticsCheckPointAuthOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCheckoutPointCacheAuthOverride(max, maxAge);
+    }
+    setCacheStatisticsCheckPointAuthTokenOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCheckoutPointCacheAuthTokenOverride(max, maxAge);
+    }
     setCacheStatisticsInterval(interval) {
         __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsInterval(interval);
+    }
+    setCacheStatisticsSecurityGroupPermissionsOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCacheSecurityGroupPermissionsOverride(max, maxAge);
+    }
+    setCacheStatisticsSecurityGroupsOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCacheSecurityGroupsOverride(max, maxAge);
+    }
+    setCacheStatisticsSecurityPasswordsOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCacheSecurityPasswordsOverride(max, maxAge);
+    }
+    setCacheStatisticsSecurityUserPermissionsOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCacheSecurityUserPermissionsOverride(max, maxAge);
+    }
+    setCacheStatisticsSecurityUsersOverride(max, maxAge) {
+        __classPrivateFieldGet(this, _Configuration_cacheConfigBuilder, "f").withStatisticsCacheSecurityUsersOverride(max, maxAge);
     }
     /*
     CONNECT
      */
     setConnectSecurityCookie(name, domain) {
-        __classPrivateFieldGet(this, _Configuration_connectConfigBuilder, "f").withSecurityCookieName(domain).withSecurityCookieName(name);
+        __classPrivateFieldGet(this, _Configuration_connectConfigBuilder, "f").withSecurityCookieDomain(domain).withSecurityCookieName(name);
     }
     /***
      * Can be invoked multiple times to add more than 1 exclusion

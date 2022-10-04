@@ -46,18 +46,46 @@ export class Configuration {
   }
 
   /*
-  CACHE - TODO: COMPLETE THIS AND BUILDERS BASED ON NEW FIELDS
+  CACHE
    */
+
+  setCacheStatisticsCheckPointAuthOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCheckoutPointCacheAuthOverride(max, maxAge);
+  }
+
+  setCacheStatisticsCheckPointAuthTokenOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCheckoutPointCacheAuthTokenOverride(max, maxAge);
+  }
 
   setCacheStatisticsInterval(interval: number): void {
     this.#cacheConfigBuilder.withStatisticsInterval(interval);
+  }
+
+  setCacheStatisticsSecurityGroupPermissionsOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCacheSecurityGroupPermissionsOverride(max, maxAge);
+  }
+
+  setCacheStatisticsSecurityGroupsOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCacheSecurityGroupsOverride(max, maxAge);
+  }
+
+  setCacheStatisticsSecurityPasswordsOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCacheSecurityPasswordsOverride(max, maxAge);
+  }
+
+  setCacheStatisticsSecurityUserPermissionsOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCacheSecurityUserPermissionsOverride(max, maxAge);
+  }
+
+  setCacheStatisticsSecurityUsersOverride(max: number, maxAge: number): void {
+    this.#cacheConfigBuilder.withStatisticsCacheSecurityUsersOverride(max, maxAge);
   }
 
   /*
   CONNECT
    */
   setConnectSecurityCookie(name: string, domain: string): void {
-    this.#connectConfigBuilder.withSecurityCookieName(domain).withSecurityCookieName(name);
+    this.#connectConfigBuilder.withSecurityCookieDomain(domain).withSecurityCookieName(name);
   }
 
   /***

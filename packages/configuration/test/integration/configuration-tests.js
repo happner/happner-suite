@@ -39,7 +39,14 @@ describe(helper.testName(), function () {
     );
 
     // cache
+    configuration.setCacheStatisticsCheckPointAuthOverride(5, 1000);
+    configuration.setCacheStatisticsCheckPointAuthTokenOverride(5, 1000);
     configuration.setCacheStatisticsInterval(1);
+    configuration.setCacheStatisticsSecurityGroupPermissionsOverride(10, 2000);
+    configuration.setCacheStatisticsSecurityGroupsOverride(10, 2000);
+    configuration.setCacheStatisticsSecurityPasswordsOverride(15, 20000);
+    configuration.setCacheStatisticsSecurityUserPermissionsOverride(15, 20000);
+    configuration.setCacheStatisticsSecurityUsersOverride(15, 20000);
 
     // connect
     configuration.setConnectSecurityCookie('testCookie', 'test.domain');
