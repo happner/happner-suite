@@ -140,23 +140,7 @@ export class Configuration {
     this.#protocolConfigBuilder.withAllowNestedPermissions(isAllowed);
   }
 
-  setProtocolHappnProtocol(
-    version: number,
-    successFunc?: Function,
-    transformOutFunc?: Function,
-    transformSystemFunc?: Function,
-    emitFunc?: Function
-  ): void {
-    this.#protocolConfigBuilder.withHappnProtocol(
-      version,
-      successFunc,
-      transformOutFunc,
-      transformSystemFunc,
-      emitFunc
-    );
-  }
-
-  setProtocolInboundLayer(layer: string): void {
+  setProtocolInboundLayer(layer: Function): void {
     this.#protocolConfigBuilder.withInboundLayer(layer);
   }
 
@@ -164,7 +148,7 @@ export class Configuration {
     this.#protocolConfigBuilder.withSecure(isSecure);
   }
 
-  setProtocolOutboundLayer(layer: string): void {
+  setProtocolOutboundLayer(layer: Function): void {
     this.#protocolConfigBuilder.withOutboundLayer(layer);
   }
 

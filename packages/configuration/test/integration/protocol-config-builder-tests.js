@@ -8,66 +8,15 @@ describe(helper.testName(), function () {
 
     let mockAllowNestedPermissions = true;
     let mockSecure = true;
-    let mockInboundLayer = 'test-inbound-layer';
-    let mockOutboundLayer = 'test-outbound-layer';
-
-    let mockSuccessFunc1 = () => {
-      return 'success on version 1';
+    let mockInboundLayer = (msg, cb) => {
+      cb(null, 'test-inbound-layer');
     };
-
-    let mockTransformOutFunc1 = () => {
-      return 'transformOut on version 1';
-    };
-
-    let mockTransformSystemFunc1 = () => {
-      return 'transformSystem on version 1';
-    };
-
-    let mockEmitFunc1 = () => {
-      return 'emit on version 1';
+    let mockOutboundLayer = (msg, cb) => {
+      cb(null, 'test-outbound-layer');
     };
 
     protocolConfigBuilder
       .withAllowNestedPermissions(mockAllowNestedPermissions)
-      .withHappnProtocol(
-        1,
-        mockSuccessFunc1,
-        mockTransformOutFunc1,
-        mockTransformSystemFunc1,
-        mockEmitFunc1
-      )
-      .withInboundLayer(mockInboundLayer)
-      .withOutboundLayer(mockOutboundLayer)
-      .withSecure(mockSecure);
-
-    const result = protocolConfigBuilder.build();
-
-    helper.expect(result.secure).to.equal(mockSecure);
-    helper.expect(result.protocols.happn_1).to.not.equal(null);
-    helper.expect(result.protocols.happn_1.success).to.not.equal(null);
-    helper.expect(result.protocols.happn_1.success()).to.equal('success on version 1');
-    helper.expect(result.protocols.happn_1.transformOut).to.not.equal(null);
-    helper.expect(result.protocols.happn_1.transformOut()).to.equal('transformOut on version 1');
-    helper.expect(result.protocols.happn_1.transformSystem).to.not.equal(undefined);
-    helper
-      .expect(result.protocols.happn_1.transformSystem())
-      .to.equal('transformSystem on version 1');
-    helper.expect(result.allowNestedPermissions).to.equal(mockAllowNestedPermissions);
-    helper.expect(result.inboundLayers[0]).to.equal(mockInboundLayer);
-    helper.expect(result.outboundLayers[0]).to.equal(mockOutboundLayer);
-  });
-
-  it('builds a protocol config object without specific protocol defined', () => {
-    const protocolConfigBuilder = new ProtocolConfigBuilder();
-
-    let mockAllowNestedPermissions = true;
-    let mockSecure = true;
-    let mockInboundLayer = 'test-inbound-layer';
-    let mockOutboundLayer = 'test-outbound-layer';
-
-    protocolConfigBuilder
-      .withAllowNestedPermissions(mockAllowNestedPermissions)
-      .withHappnProtocol(1)
       .withInboundLayer(mockInboundLayer)
       .withOutboundLayer(mockOutboundLayer)
       .withSecure(mockSecure);
@@ -76,7 +25,17 @@ describe(helper.testName(), function () {
 
     helper.expect(result.secure).to.equal(mockSecure);
     helper.expect(result.allowNestedPermissions).to.equal(mockAllowNestedPermissions);
+
     helper.expect(result.inboundLayers[0]).to.equal(mockInboundLayer);
+    let testCb1 = (err, result) => {
+      helper.expect(result).to.equal('test-inbound-layer');
+    };
+    result.inboundLayers[0]('test', testCb1);
+
+    let testCb2 = (err, result) => {
+      helper.expect(result).to.equal('test-outbound-layer');
+    };
     helper.expect(result.outboundLayers[0]).to.equal(mockOutboundLayer);
+    result.outboundLayers[0]('test', testCb2);
   });
 });

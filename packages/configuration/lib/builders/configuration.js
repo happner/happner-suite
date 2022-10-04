@@ -106,9 +106,6 @@ class Configuration {
     setProtocolAllowNestedPermissions(isAllowed) {
         __classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f").withAllowNestedPermissions(isAllowed);
     }
-    setProtocolHappnProtocol(version, successFunc, transformOutFunc, transformSystemFunc, emitFunc) {
-        __classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f").withHappnProtocol(version, successFunc, transformOutFunc, transformSystemFunc, emitFunc);
-    }
     setProtocolInboundLayer(layer) {
         __classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f").withInboundLayer(layer);
     }

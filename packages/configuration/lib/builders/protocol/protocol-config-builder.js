@@ -10,35 +10,6 @@ module.exports = class ProtocolConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  // TODO: remove this - not needed
-  withHappnProtocol(version, successFunc, transformOutFunc, transformSystemFunc, emitFunc) {
-    if (successFunc) {
-      this.set(`protocols.happn_${version}.success`, successFunc, BaseBuilder.Types.FUNCTION);
-    }
-
-    if (transformOutFunc) {
-      this.set(
-        `protocols.happn_${version}.transformOut`,
-        transformOutFunc,
-        BaseBuilder.Types.FUNCTION
-      );
-    }
-
-    if (transformSystemFunc) {
-      this.set(
-        `protocols.happn_${version}.transformSystem`,
-        transformSystemFunc,
-        BaseBuilder.Types.FUNCTION
-      );
-    }
-
-    if (emitFunc) {
-      this.set(`protocols.happn_${version}.emit`, emitFunc, BaseBuilder.Types.FUNCTION);
-    }
-
-    return this;
-  }
-
   withAllowNestedPermissions(isAllowed) {
     this.set('allowNestedPermissions', isAllowed, BaseBuilder.Types.BOOLEAN);
     return this;
@@ -75,21 +46,20 @@ module.exports = class ProtocolConfigBuilder extends BaseBuilder {
     //     const fnText = fn.toString().replace(STRIP_COMMENTS, '');
     //     cons
 
-
     /*
      function (message, cb) {
           layerLog1.push(message);
           return cb(null, message);
         },
      */
-    this.push('inboundLayers', layer, BaseBuilder.Types.STRING);
+    this.push('inboundLayers', layer, BaseBuilder.Types.FUNCTION);
     return this;
   }
-  
+
   //grep -r inboundLayers ./packages/*/test
   // TODO: layer is a function, not a string
   withOutboundLayer(layer) {
-    this.push('outboundLayers', layer, BaseBuilder.Types.STRING);
+    this.push('outboundLayers', layer, BaseBuilder.Types.FUNCTION);
     return this;
   }
 };

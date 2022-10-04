@@ -67,16 +67,13 @@ describe(helper.testName(), function () {
 
     // protocol
     configuration.setProtocolAllowNestedPermissions(true);
-    configuration.setProtocolHappnProtocol(
-      1,
-      () => {},
-      () => {},
-      () => {},
-      () => {}
-    );
-    configuration.setProtocolInboundLayer('testInboundLayer');
+    configuration.setProtocolInboundLayer((msg, cb) => {
+      cb(null, 'inbound-result');
+    });
     configuration.setProtocolIsSecure(true);
-    configuration.setProtocolOutboundLayer('testOutboundLayer');
+    configuration.setProtocolOutboundLayer((msg, cb) => {
+      cb(null, 'outbound-result');
+    });
     configuration.setPublisherAcknowledgeTimeout(true);
     configuration.setPublisherTimeout(5000);
 
@@ -129,6 +126,10 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    // helper.expect(result.cache.config.statisticsInterval).to.equal(mockStatisticsInterval);
+    // TODO - complete assertions
+    let testCb1 = (err, result) => {
+      helper.expect(result).to.equal('inbound-result');
+    };
+    result.happn.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 });
