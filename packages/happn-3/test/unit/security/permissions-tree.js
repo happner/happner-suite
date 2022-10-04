@@ -4,7 +4,7 @@ const tests = require('../../__fixtures/utils/test_helper').create();
 
 const expect = require('chai').expect;
 
-describe(tests.testName(__filename, 3), function () {
+describe.only(tests.testName(__filename, 3), function () {
   it('tests create and search', function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario1());
     expect(permissionsTree.tree).to.deep.equal(expectedTreeScenario1());
@@ -122,6 +122,23 @@ describe(tests.testName(__filename, 3), function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
     const permissions = permissionsTree.wildcardPathSearch('/TEST/*', 'on');
     expect(permissions).to.deep.equal({ allowed: ['/TEST/*'], prohibited: ['/TEST/1/2/3'] });
+  });
+
+  it('tests spliceActions, branch[branchSegment].action is true', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const actions = ['segment1', 'segment2'];
+
+    permissionsTree.spliceActions(
+      {
+        mockSegment: {
+          action: ['mockAction'],
+        },
+      },
+      'mockSegment',
+      actions
+    );
+
+    expect(actions).to.eql(['segment1', 'mockAction', 'segment2']);
   });
 
   function flattenedObjectScenario9() {

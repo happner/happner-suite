@@ -1626,7 +1626,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const userChanged = test.sinon.stub();
     const stubCreatePermissions = test.sinon.stub(PermissionsManager, 'create').returns(null);
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create').returns({ userChanged });
-    const stubGet = test.sinon.stub().callsFake((_, __, callback) => {
+
+    test.sinon.stub().callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
 
@@ -1834,7 +1835,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     const get = test.sinon.stub();
     const has = test.sinon.stub().returns(true);
     const userChanged = test.sinon.stub();
-    const stubUpsert = test.sinon.stub().returns('mockResult');
     const stubUpsertMultiplePermissions = test.sinon.stub();
     const stubCreatePermissions = test.sinon
       .stub(PermissionsManager, 'create')
@@ -1844,9 +1844,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove, get: get, has: has });
-    const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
+    users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
+
     const stubUpsertData = users.happn.services.data.upsert.returns('mockResult');
     const stubClone = users.happn.services.utils.clone.returns({
       username: 'mockUsername',
@@ -1927,13 +1928,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .stub(PermissionsManager, 'create')
       .returns({ upsertMultiplePermissions: stubUpsertMultiplePermissions });
     const stubCreateGroup = test.sinon.stub(UsersByGroupCache, 'create').returns({ userChanged });
-    const stubGet = test.sinon.stub().callsFake((_, __, callback) => {
-      callback(null, 'mockResult');
-    });
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove, get: get, has: has });
-    const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
+    users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
     const stubUpsertData = users.happn.services.data.upsert.returns('mockResult');
@@ -2029,7 +2027,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
 
     users.happn = mockHappn;
     users.happn.services.cache.create.returns({ remove: remove, get: get, has: has });
-    const stubGetData = users.happn.services.data.get.callsFake((_, __, callback) => {
+    users.happn.services.data.get.callsFake((_, __, callback) => {
       callback(null, 'mockResult');
     });
     users.happn.services.data.upsert.returns('mockResult');

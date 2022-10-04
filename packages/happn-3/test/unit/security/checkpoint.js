@@ -1619,7 +1619,11 @@ describe(test.testName(__filename), function () {
       set: test.sinon.stub().returns(null),
     });
 
-    initializer({ mockConfig: {}, mockSecurityService, callback });
+    initializer({
+      mockConfig: { cache_checkpoint_authorization: { max: null } },
+      mockSecurityService,
+      callback,
+    });
 
     Checkpoint.prototype.log = {
       warn: test.sinon.stub(),
