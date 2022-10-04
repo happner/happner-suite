@@ -1007,7 +1007,11 @@
 -----------------
   - TEN-130: updated logger dependency
 
-13.3.0 2022-10-22
+13.3.0 2022-09-22
 -----------------
   - TEN-65: bad options on data get
   - TEN-126: reconnect on error
+
+13.4.0 2022-10-03
+-----------------
+  - TEN-132: cache key regex masking

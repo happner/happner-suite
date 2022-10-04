@@ -1,6 +1,6 @@
 {
   "name": "happner-suite",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
