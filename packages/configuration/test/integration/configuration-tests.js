@@ -11,8 +11,9 @@ const SubscriptionConfigBuilder = require('../../lib/builders/subscription/subsc
 const SystemConfigBuilder = require('../../lib/builders/system/system-config-builder');
 const TransportConfigBuilder = require('../../lib/builders/transport/transport-config-builder');
 const HappnConfigBuilder = require('../../lib/builders/happn-config-builder');
+const HappnConfigValidator = require('../../lib/validators/happn-config-validator');
 
-describe(helper.testName(), function () {
+describe(helper.testName(), function() {
   it('builds a happn configuration object', () => {
     const happnConfigBuilder = new HappnConfigBuilder();
     const cacheConfigBuilder = new CacheConfigBuilder();
@@ -24,6 +25,7 @@ describe(helper.testName(), function () {
     const subscriptionConfigBuilder = new SubscriptionConfigBuilder();
     const systemConfigBuilder = new SystemConfigBuilder();
     const transportConfigBuilder = new TransportConfigBuilder();
+    const happnConfigValidator = new HappnConfigValidator();
 
     const configuration = new Configuration(
       happnConfigBuilder,
@@ -93,7 +95,8 @@ describe(helper.testName(), function () {
     configuration.setSecurityAdminUsername('adminUserName');
     configuration.setSecurityAllowAnonymousAccess(false);
     configuration.setSecurityAuditPath('test/audit/path');
-    configuration.setSecurityAuthProvider('testProvider', new (class TestClass {})());
+    configuration.setSecurityAuthProvider('testProvider', new (class TestClass {
+    })());
     configuration.setSecurityCookie('testCookie123', 'test.domain', 'asdhgvausdgasuygdfash');
     configuration.setSecurityIsSecure(true);
     configuration.setSecurityLockTokenToLoginType(true);
@@ -123,6 +126,10 @@ describe(helper.testName(), function () {
     configuration.setTransportMode('testMode');
 
     const result = configuration.buildHappnConfig();
+
+    // validate
+    const isValid = happnConfigValidator.validateHappnConfig(result);
+    helper.expect(isValid).to.equal(true);
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
