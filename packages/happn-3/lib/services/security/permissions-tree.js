@@ -118,12 +118,14 @@ module.exports = class PermissionsTree {
 
       let prohibitions = this.buildProhibitions(tree, action);
       for (let prohibition of prohibitions) {
-        if (prohibition.endsWith['*'] && originalPath.startsWith(prohibition.replace(/\*$/, ''))) {
+        if (prohibition.endsWith('*') && originalPath.startsWith(prohibition.replace(/\*$/, ''))) {
           permissions = { allowed: [], prohibited: [] };
           break;
         }
-        if (prohibition.startsWith(originalPath.replace(/\*+$/, '')))
+
+        if (prohibition.startsWith(originalPath.replace(/\*+$/, ''))) {
           permissions.prohibited.push(prohibition);
+        }
       }
       return permissions;
     }

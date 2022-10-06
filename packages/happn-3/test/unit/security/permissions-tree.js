@@ -44,6 +44,15 @@ describe(tests.testName(__filename, 3), function () {
     });
   });
 
+  it('tests building a list from a tree, path does not have /', function () {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario4());
+    let permissions = permissionsTree.wildcardPathSearch('test', 'get');
+    expect(permissions).to.eql({
+      allowed: [],
+      prohibited: [],
+    });
+  });
+
   it("tests if there's a recursive wildcard in the middle of a request", function () {
     const permissionsTree = PermissionsTree.create(flattenedObjectScenario4());
     const permissions = permissionsTree.wildcardPathSearch('/test/permission/1/**/3', 'get');
@@ -139,6 +148,221 @@ describe(tests.testName(__filename, 3), function () {
     );
 
     expect(actions).to.eql(['segment1', 'mockAction', 'segment2']);
+  });
+
+  it('tests buildPermissionList, returns object if tree has no keys', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const result = permissionsTree.buildPermissionList(null, null, {}, '/path');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns object with leaf if pathArray is empty and leaf exists', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'leaf',
+      prohibit: [],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList([], 'mockAction', tree, '/path');
+
+    expect(result).to.eql({ allowed: ['leaf'], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns object if pathArray is empty and leaf does not exist', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'leaf',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList([], 'mockAction', tree, '/path');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns permissions if prohibition ends with *', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      '*': {
+        $leaf: 'path*',
+        prohibit: ['mockAction'],
+        actions: ['mockAction'],
+      },
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['test'], 'mockAction', tree, 'path/');
+    // await
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns permissions if prohibition start with originalPath', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      '*': {
+        $leaf: 'path/',
+        prohibit: ['mockAction'],
+        actions: ['mockAction'],
+      },
+      $leaf: 'path',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['test'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: ['path/'], prohibited: ['path/'] });
+  });
+
+  it('tests buildPermissionList, returns permissions if leaf && final && final2', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      '*': {
+        $leaf: '/path*',
+        prohibit: [],
+        actions: ['mockAction'],
+      },
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['test'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: ['path/'], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns permissions if pathArray[0] is equal to **', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['**'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: [], prohibited: ['path*'] });
+  });
+
+  it('tests buildPermissionList, returns permissions if pathArray[0] is equal to *', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['*'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['test'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns permissions if pathArray[0] is not a key in tree', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['prohibit'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildPermissionList, returns', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildPermissionList(['prohibit'], 'mockAction', tree, 'path/');
+
+    expect(result).to.eql({ allowed: [], prohibited: [] });
+  });
+
+  it('tests buildProhibitions, returns an empty array if tree has no keys', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const result = permissionsTree.buildProhibitions([], 'action');
+
+    expect(result).to.eql([]);
+  });
+
+  it('tests buildProhibitions, returns prohibitions, tree.$leaf truthy', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      '*': {
+        $leaf: 'path*',
+      },
+      $leaf: 'path*',
+      prohibit: ['mockAction'],
+      actions: ['mockAction'],
+    };
+    const result = permissionsTree.buildProhibitions(tree, 'mockAction');
+
+    expect(result).to.eql(['path*']);
+  });
+
+  it('tests buildProhibitions, returns prohibitions', () => {
+    const permissionsTree = PermissionsTree.create(flattenedObjectScenario9());
+    const tree = {
+      prohibit: [],
+      actions: ['mockAction'],
+      test: { $leaf: 'path*', prohibit: ['mockAction'], actions: ['mockAction'] },
+    };
+    const result = permissionsTree.buildProhibitions(tree, 'action');
+
+    expect(result).to.eql([]);
+  });
+
+  it('tests buildOutWild, returns an object', () => {
+    const permissionsTree = PermissionsTree.create({ test: 'test' });
+    const result = permissionsTree.buildOutWild({}, 'action');
+
+    expect(result).to.eql({
+      allowed: [],
+      prohibited: [],
+    });
+  });
+
+  it('tests buildOutWild, returns an object, checkAllowedLeaf is falsy', () => {
+    const permissionsTree = PermissionsTree.create();
+    const tree = {
+      $leaf: 'path*',
+      prohibit: [],
+      actions: ['mockAction'],
+    };
+
+    const result = permissionsTree.buildOutWild(tree, 'action');
+
+    expect(result).to.eql({
+      allowed: [],
+      prohibited: [],
+    });
+  });
+
+  it('tests search, path does not have /', () => {
+    const permissionsTree = PermissionsTree.create();
+    const tree = {
+      $leaf: 'path*',
+      prohibit: [],
+      actions: ['mockAction'],
+    };
+
+    const result = permissionsTree.search('path', tree);
+
+    expect(result).to.eql([]);
   });
 
   function flattenedObjectScenario9() {
