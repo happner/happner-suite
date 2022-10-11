@@ -186,6 +186,7 @@ module.exports = class AuthProvider {
   __loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
     delete user.password;
     if (this.__locks) this.__locks.remove(user.username); //remove previous locks
+
     callback(null, this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo));
   }
 

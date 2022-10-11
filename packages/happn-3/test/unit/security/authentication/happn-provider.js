@@ -1,253 +1,193 @@
-describe(
-  require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
-  function () {
-    const async = require('async');
-    const expect = require('expect.js');
-    const Logger = require('happn-logger');
-    const HappnProvider = require('../../../../lib/services/security/authentication/happn-provider');
-    let mockHappn;
-    before('It Creates a mock happn', async () => {
-      mockHappn = await mockServices();
-    });
-    after('stops services', async () => {
-      await stopServices(mockHappn);
-    });
+const test = require('../../../__fixtures/utils/test_helper').create();
+const HappnerAuthProvider = require('../../../../lib/services/security/authentication/happn-provider');
 
-    it('creates a happnProvider', (done) => {
-      let happnProvider = HappnProvider.create(mockHappn, {});
-      expect(happnProvider).to.be.ok();
-      done();
-    });
+describe(test.testName(), () => {
+  let mockHappn = null;
+  let mockConfig = null;
+  beforeEach(() => {
+    mockHappn = {
+      services: {
+        crypto: test.sinon.stub(),
+        cache: {
+          getOrCreate: test.sinon.stub(),
+        },
+        session: test.sinon.stub(),
+        system: {
+          name: 'test',
+        },
+        error: {
+          AccessDeniedError: test.sinon.stub(),
+          InvalidCredentialsError: test.sinon.stub(),
+        },
+        security: {
+          users: {
+            getUser: test.sinon.stub(),
+          },
+          authorize: test.sinon.stub(),
+          generatePermissionSetKey: test.sinon.stub(),
+          generateToken: test.sinon.stub(),
+          generateSession: test.sinon.stub(),
+          decodeToken: test.sinon.stub(),
+          checkTokenUserId: test.sinon.stub(),
+          __checkRevocations: test.sinon.stub(),
+          checkIPAddressWhitelistPolicy: test.sinon.stub(),
+          verifyAuthenticationDigest: test.sinon.stub(),
+          matchPassword: test.sinon.stub(),
+        },
+      },
+    };
 
-    it('Tests __providerTokenLogin when checkTokenToUserId fails ', (done) => {
-      mockHappn.services.security.checkTokenUserId = async function () {
-        return false;
+    mockConfig = {
+      accountLockout: {
+        enabled: null,
+        attempts: null,
+        retryInterval: null,
+      },
+      allowAnonymousAccess: null,
+      lockTokenToLoginType: null,
+      disableDefaultAdminNetworkConnections: null,
+    };
+  });
+
+  afterEach(() => {
+    mockHappn = null;
+    mockConfig = null;
+  });
+
+  context('create', () => {
+    it('creates an instance', () => {
+      const happnerAuthProvider = HappnerAuthProvider.create(mockHappn, mockConfig);
+
+      test.chai.expect(happnerAuthProvider.constructor.name).to.equal('HappnAuthProvider');
+      test.chai.expect(happnerAuthProvider).to.be.instanceOf(HappnerAuthProvider);
+    });
+  });
+  context('__providerTokenLogin', () => {
+    it('returns accessDenied if ok is falsy', async () => {
+      const happnerAuthProvider = new HappnerAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub().returns('mockResult');
+      const credentials = {
+        token: 'token',
       };
-      let happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerTokenLogin(null, { username: 'previous' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be(
-          'AccessDenied: token userid does not match userid for username: previous'
+      const previousSession = {
+        username: 'username',
+      };
+
+      mockHappn.services.error.AccessDeniedError.callsFake((message) => {
+        return message;
+      });
+
+      const result = happnerAuthProvider.__providerTokenLogin(
+        credentials,
+        previousSession,
+        1,
+        callback
+      );
+
+      await test.chai.expect(result).to.eventually.equal('mockResult');
+      test.chai
+        .expect(callback)
+        .to.have.been.calledWithExactly(
+          `token userid does not match userid for username: ${previousSession.username}`
         );
-        done();
-      });
     });
 
-    it('Tests __providerTokenLogin when return user is null  ', (done) => {
-      mockHappn.services.security.checkTokenUserId = async function () {
-        return true;
+    it('returns invalidCredentials if authorized is falsy', async () => {
+      const happnerAuthProvider = new HappnerAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub().returns('mockResult');
+      const credentials = {
+        token: 'token',
       };
-      mockHappn.services.security.authorize = async function () {
-        return true;
-      };
-      mockHappn.services.security.users.getUser = async function () {
-        return null;
+      const previousSession = {
+        username: 'username',
       };
 
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerTokenLogin(null, { username: 'previous' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-        done();
+      mockHappn.services.security.checkTokenUserId.returns(true);
+      mockHappn.services.security.authorize.returns([null, 'mockReason']);
+      mockHappn.services.error.InvalidCredentialsError.callsFake((message) => {
+        test.chai.expect(message).to.equal('mockReason');
+        return message;
       });
+
+      const result = happnerAuthProvider.__providerTokenLogin(
+        credentials,
+        previousSession,
+        1,
+        callback
+      );
+
+      await test.chai.expect(result).to.eventually.equal('mockResult');
+      test.chai.expect(callback).to.have.been.calledWithExactly('mockReason');
     });
 
-    it('Tests __providerTokenLogin when something throws an error  ', (done) => {
-      mockHappn.services.security.checkTokenUserId = async function () {
-        throw new Error('bad');
+    it('returns invalidCredentials if user is falsy, invalid credentials', async () => {
+      const happnerAuthProvider = new HappnerAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub().returns('mockResult');
+      const credentials = {
+        token: 'token',
       };
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerTokenLogin(null, { username: 'previous' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-        done();
+      const previousSession = {
+        username: 'username',
+      };
+
+      mockHappn.services.security.checkTokenUserId.returns(true);
+      mockHappn.services.security.authorize.returns(['item1', 'mockReason']);
+      mockHappn.services.security.users.getUser.returns(null);
+      mockHappn.services.error.InvalidCredentialsError.callsFake((message) => {
+        test.chai.expect(message).to.equal('Invalid credentials');
+        return message;
       });
+
+      const result = happnerAuthProvider.__providerTokenLogin(
+        credentials,
+        previousSession,
+        1,
+        callback
+      );
+
+      await test.chai.expect(result).to.eventually.equal('mockResult');
+      test.chai.expect(callback).to.have.been.calledWithExactly('Invalid credentials');
     });
 
-    it('Tests __digestLogin when verifyAuthenticationDigest returns an error', (done) => {
-      mockHappn.services.security.verifyAuthenticationDigest = function (creds, callback) {
-        callback(new Error('bad'));
+    it('successfully logs user in', async () => {
+      const happnerAuthProvider = new HappnerAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub().returns('mockResult');
+      const credentials = {
+        token: 'token',
       };
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__digestLogin({ publicKey: 123 }, { publicKey: 123 }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('Error: bad');
-        done();
-      });
-    });
+      const user = {
+        username: 'mockUsername',
+        password: 'mockPassword',
+      };
+      const previousSession = {
+        username: 'username',
+      };
 
-    it('Tests __digestLogin when verifyAuthenticationDigest returns not valid', (done) => {
-      mockHappn.services.security.verifyAuthenticationDigest = function (creds, callback) {
-        callback(null, false);
-      };
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__digestLogin(
-        { username: 'joe', publicKey: 123 },
-        { publicKey: 123 },
-        null,
-        (e, r) => {
-          expect(r).to.be.null;
-          expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-          done();
-        }
+      mockHappn.services.security.checkTokenUserId.returns(true);
+      mockHappn.services.security.authorize.returns(['item1', 'mockReason']);
+      mockHappn.services.security.users.getUser.returns(user);
+      mockHappn.services.security.generateSession.returns('mockSession');
+      mockHappn.services.error.InvalidCredentialsError.callsFake((message) => {
+        test.chai.expect(message).to.equal('Invalid credentials');
+        return message;
+      });
+
+      happnerAuthProvider.__providerTokenLogin(credentials, previousSession, 1, callback);
+
+      await require('node:timers/promises').setTimeout(50);
+      test.chai.expect(callback).to.have.been.calledWithExactly(null, 'mockSession');
+      test.chai.expect(mockHappn.services.security.generateSession).to.have.been.calledWithExactly(
+        user,
+        1,
+        credentials,
+        {
+          session: previousSession,
+          token: credentials.token,
+        },
+        undefined
       );
     });
-
-    it('Tests __providerCredsLogin when getUser returns an error  ', (done) => {
-      mockHappn.services.security.users.getUser = function (user, callback) {
-        callback(new Error('bad'));
-      };
-
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerCredsLogin({ username: 'user' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('Error: bad');
-        done();
-      });
-    });
-
-    it('Tests __providerCredsLogin when getUser returns null', (done) => {
-      mockHappn.services.security.users.getUser = function (user, callback) {
-        callback(null, null);
-      };
-
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerCredsLogin({ username: 'user' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-        done();
-      });
-    });
-
-    it('Tests __providerCredsLogin when getPasswordHash returns user does not exist error  ', async () => {
-      let mockHappn = await mockServices();
-      mockHappn.services.security.users.getUser = function (user, callback) {
-        callback(null, { a: 'user' });
-      };
-
-      mockHappn.services.security.users.getPasswordHash = function (user, callback) {
-        callback(new Error('userJoe does not exist in the system'));
-      };
-
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerCredsLogin({ username: 'userJoe' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-      });
-    });
-
-    it('Tests __providerCredsLogin when getPasswordHash returns another error ', async () => {
-      let mockHappn = await mockServices();
-      mockHappn.services.security.users.getUser = function (user, callback) {
-        callback(null, { a: 'user' });
-      };
-
-      mockHappn.services.security.users.getPasswordHash = function (user, callback) {
-        callback(new Error('some other error'));
-      };
-
-      const happnProvider = HappnProvider.create(mockHappn, {});
-      happnProvider.__providerCredsLogin({ username: 'userJoe' }, null, (e, r) => {
-        expect(r).to.be.null;
-        expect(e.toString()).to.be('Error: some other error');
-      });
-    });
-
-    let stopServices = function (happnMock) {
-      return new Promise((res, rej) => {
-        async.eachSeries(
-          ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-          function (serviceName, eachServiceCB) {
-            if (!happnMock.services[serviceName].stop) return eachServiceCB();
-            happnMock.services[serviceName].stop(eachServiceCB);
-          },
-          (e) => {
-            if (e) return rej(e);
-            res();
-          }
-        );
-      });
-    };
-
-    let mockServices = function (servicesConfig) {
-      return new Promise((res, rej) => {
-        var testConfig = {
-          secure: true,
-          services: {
-            cache: {},
-            data: {},
-            crypto: {},
-            security: {},
-          },
-        };
-
-        var testServices = {};
-
-        testServices.cache = require('../../../../lib/services/cache/service');
-        testServices.crypto = require('../../../../lib/services/crypto/service');
-        testServices.data = require('../../../../lib/services/data/service');
-        testServices.security = require('../../../../lib/services/security/service');
-        testServices.session = require('../../../../lib/services/session/service');
-        testServices.utils = require('../../../../lib/services/utils/service');
-        testServices.error = require('../../../../lib/services/error/service');
-        testServices.log = require('../../../../lib/services/log/service');
-
-        var checkpoint = require('../../../../lib/services/security/checkpoint');
-
-        testServices.checkpoint = new checkpoint({
-          logger: Logger,
-        });
-
-        var happnMock = {
-          config: {
-            services: {
-              security: {},
-            },
-          },
-          services: {
-            system: {
-              package: require('../../../../package.json'),
-            },
-          },
-        };
-
-        if (servicesConfig) testConfig = servicesConfig;
-
-        async.eachSeries(
-          ['log', 'error', 'utils', 'crypto', 'cache', 'session', 'data', 'security'],
-          function (serviceName, eachServiceCB) {
-            testServices[serviceName] = new testServices[serviceName]({
-              logger: Logger,
-            });
-
-            testServices[serviceName].happn = happnMock;
-
-            happnMock.services[serviceName] = testServices[serviceName];
-
-            if (serviceName === 'error')
-              happnMock.services[serviceName].handleFatal = function (message, e) {
-                throw e;
-              };
-
-            if (serviceName === 'session') {
-              happnMock.services[serviceName].config = {};
-              return happnMock.services[serviceName].initializeCaches(eachServiceCB);
-            }
-
-            if (!happnMock.services[serviceName].initialize) return eachServiceCB();
-            else
-              testServices[serviceName].initialize(
-                testConfig.services[serviceName] || {},
-                eachServiceCB
-              );
-          },
-          function (e) {
-            if (e) return rej(e);
-
-            res(happnMock);
-          }
-        );
-      });
-    };
-  }
-);
+  });
+  context('__digestLogin', () => {});
+  context('__providerCredsLogin', () => {});
+});

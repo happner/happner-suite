@@ -21,7 +21,7 @@
     "test": "UPDATE_BROWSER_PRIMUS=true _mocha silence.js test/integration/* test/unit/* test/backward-compatibility/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-cover-unit": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-unit",
-    "test-unit": "mocha silence.js test/unit/**",
+    "test-unit": "mocha silence.js test/unit --recursive",
     "prepare": "rm -rf node_modules/happn-cluster/node_modules/happn-3 && rm -rf node_modules/happn/node_modules/happn-util-crypto && require-self"
   },
   "dependencies": {
