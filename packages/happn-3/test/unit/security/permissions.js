@@ -878,12 +878,7 @@ describe(test.testName(__filename, 3), function () {
 
     permissions.__upsertPermission = test.sinon.stub();
 
-    const result = permissions.__upsertPermissions(
-      mockName,
-      mockPermissionsPath,
-      mockActions,
-      mockAuthorized
-    );
+    permissions.__upsertPermissions(mockName, mockPermissionsPath, mockActions, mockAuthorized);
 
     test.chai.expect(permissions.__upsertPermission).to.have.callCount(0);
   });
@@ -908,12 +903,7 @@ describe(test.testName(__filename, 3), function () {
     const mockActions = [null];
     const mockAuthorized = {};
 
-    const result = permissions.__upsertPermissions(
-      mockName,
-      mockPermissionsPath,
-      mockActions,
-      mockAuthorized
-    );
+    permissions.__upsertPermissions(mockName, mockPermissionsPath, mockActions, mockAuthorized);
 
     test.chai
       .expect(mockHappn.services.data.upsert)
