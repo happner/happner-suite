@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const ProtocolConfigBuilder = require('../../lib/builders/protocol/protocol-config-builder');
+const FieldTypeValidator = require('../../lib/validators/field-type-validator');
 
 describe(helper.testName(), function () {
   it('builds a protocol config object with protocol functions', () => {
-    const protocolConfigBuilder = new ProtocolConfigBuilder();
+    const fieldTypeValidator = new FieldTypeValidator();
+    const protocolConfigBuilder = new ProtocolConfigBuilder(fieldTypeValidator);
 
     let mockAllowNestedPermissions = true;
     let mockSecure = true;

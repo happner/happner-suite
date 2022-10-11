@@ -12,14 +12,16 @@ const SystemConfigBuilder = require('../../lib/builders/system/system-config-bui
 const TransportConfigBuilder = require('../../lib/builders/transport/transport-config-builder');
 const HappnConfigBuilder = require('../../lib/builders/happn-config-builder');
 const HappnConfigValidator = require('../../lib/validators/happn-config-validator');
+const FieldTypeValidator = require('../../lib/validators/field-type-validator');
 
-describe(helper.testName(), function() {
+describe(helper.testName(), function () {
   it('builds a happn configuration object', () => {
+    const fieldTypeValidator = new FieldTypeValidator();
     const happnConfigBuilder = new HappnConfigBuilder();
     const cacheConfigBuilder = new CacheConfigBuilder();
     const connectConfigBuilder = new ConnectConfigBuilder();
     const dataConfigBuilder = new DataConfigBuilder();
-    const protocolConfigBuilder = new ProtocolConfigBuilder();
+    const protocolConfigBuilder = new ProtocolConfigBuilder(fieldTypeValidator);
     const publisherConfigBuilder = new PublisherConfigBuilder();
     const securityConfigBuilder = new SecurityConfigBuilder();
     const subscriptionConfigBuilder = new SubscriptionConfigBuilder();
@@ -95,8 +97,7 @@ describe(helper.testName(), function() {
     configuration.setSecurityAdminUsername('adminUserName');
     configuration.setSecurityAllowAnonymousAccess(false);
     configuration.setSecurityAuditPath('test/audit/path');
-    configuration.setSecurityAuthProvider('testProvider', new (class TestClass {
-    })());
+    configuration.setSecurityAuthProvider('testProvider', new (class TestClass {})());
     configuration.setSecurityCookie('testCookie123', 'test.domain', 'asdhgvausdgasuygdfash');
     configuration.setSecurityIsSecure(true);
     configuration.setSecurityLockTokenToLoginType(true);
@@ -126,12 +127,11 @@ describe(helper.testName(), function() {
     configuration.setTransportMode('testMode');
 
     const result = configuration.buildHappnConfig();
+    console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
     const isValid = happnConfigValidator.validateHappnConfig(result);
     helper.expect(isValid).to.equal(true);
-
-    console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // TODO - complete assertions
     let testCb1 = (err, result) => {
