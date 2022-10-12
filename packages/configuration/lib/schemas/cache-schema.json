@@ -1,0 +1,85 @@
+{
+  "$id": "cache-schema.json",
+  "$ref": "#/definitions/Cache",
+  "definitions": {
+    "Cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/CacheConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Cache"
+    },
+    "CacheConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Override"
+          }
+        },
+        "statisticsInterval": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "overrides",
+        "statisticsInterval"
+      ],
+      "title": "CacheConfig"
+    },
+    "Override": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_cache_authorization": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "checkpoint_cache_authorization_token": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_group_permissions": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_groups": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_passwords": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_user_permissions": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_users": {
+          "$ref": "#/definitions/CacheMaxValues"
+        }
+      },
+      "required": [],
+      "title": "Override"
+    },
+    "CacheMaxValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "integer"
+        },
+        "maxAge": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max",
+        "maxAge"
+      ],
+      "title": "CacheMaxValues"
+    }
+  }
+}

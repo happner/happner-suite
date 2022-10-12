@@ -323,7 +323,7 @@ export class Configuration {
   }
 
   setTransportMode(mode: string): void {
-    this.#transportConfigBuilder.withKeyPath(mode);
+    this.#transportConfigBuilder.withMode(mode);
   }
 
   /*

@@ -6,27 +6,27 @@ module.exports = class ConnectConfigBuilder extends BaseBuilder {
   }
 
   withSecurityCookieName(name) {
-    this.set('middleware.security.cookieName', name, BaseBuilder.Types.STRING);
+    this.set(`config.middleware.security.cookieName`, name, BaseBuilder.Types.STRING);
     return this;
   }
 
   withSecurityCookieDomain(domain) {
-    this.set('middleware.security.cookieDomain', domain, BaseBuilder.Types.STRING);
+    this.set(`config.middleware.security.cookieDomain`, domain, BaseBuilder.Types.STRING);
     return this;
   }
 
   withSecurityExclusion(exclusion) {
-    this.push('middleware.security.exclusions', exclusion, BaseBuilder.Types.STRING);
+    this.push(`config.middleware.security.exclusions`, exclusion, BaseBuilder.Types.STRING);
     return this;
   }
 
   withSecurityForbiddenResponsePath(path) {
-    this.set('middleware.security.forbiddenResponsePath', path, BaseBuilder.Types.STRING);
+    this.set(`config.middleware.security.forbiddenResponsePath`, path, BaseBuilder.Types.STRING);
     return this;
   }
 
   withSecurityUnauthorizedResponsePath(path) {
-    this.set('middleware.security.unauthorizedResponsePath', path, BaseBuilder.Types.STRING);
+    this.set(`config.middleware.security.unauthorizedResponsePath`, path, BaseBuilder.Types.STRING);
     return this;
   }
 };

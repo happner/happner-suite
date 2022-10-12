@@ -1,0 +1,92 @@
+{
+  "$id": "connect-schema.json",
+  "$ref": "#/definitions/Connect",
+  "definitions": {
+    "Connect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ConnectConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Connect"
+    },
+    "ConnectConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "middleware": {
+          "$ref": "#/definitions/Middleware"
+        }
+      },
+      "required": [
+        "middleware"
+      ],
+      "title": "ConnectConfig"
+    },
+    "Middleware": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "security": {
+          "$ref": "#/definitions/MiddlewareSecurity"
+        }
+      },
+      "required": [
+        "security"
+      ],
+      "title": "Middleware"
+    },
+    "MiddlewareSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cookieDomain": {
+          "type": "string"
+        },
+        "cookieName": {
+          "type": "string"
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbiddenResponsePath": {
+          "type": "string"
+        },
+        "unauthorizedResponsePath": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "exclusions",
+        "forbiddenResponsePath",
+        "unauthorizedResponsePath"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cookieName": {
+                "type": "string",
+                "pattern": ".*"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "cookieDomain"
+            ]
+          }
+        }
+      ],
+      "title": "MiddlewareSecurity"
+    }
+  }
+}

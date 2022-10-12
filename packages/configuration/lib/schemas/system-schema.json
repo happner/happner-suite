@@ -1,0 +1,32 @@
+{
+  "$id": "system-schema.json",
+  "$ref": "#/definitions/System",
+  "definitions": {
+    "System": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/SystemConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "System"
+    },
+    "SystemConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "SystemConfig"
+    }
+  }
+}

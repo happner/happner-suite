@@ -15,13 +15,13 @@ module.exports = class DataConfigBuilder extends BaseBuilder {
     builder.set('dbfile', dbFile, BaseBuilder.Types.STRING);
     builder.set('filename', fileName, BaseBuilder.Types.STRING);
 
-    this.push('datastores', builder, BaseBuilder.Types.OBJECT);
+    this.push('config.datastores', builder, BaseBuilder.Types.OBJECT);
 
     return this;
   }
 
   withSecure(secure) {
-    this.set('secure', secure, BaseBuilder.Types.BOOLEAN);
+    this.set('config.secure', secure, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 };

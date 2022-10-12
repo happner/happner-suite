@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const DataConfigBuilder = require('../../lib/builders/data/data-config-builder');
+const ConfigValidator = require('../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a data config object with nested datastore', () => {
@@ -21,11 +22,15 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.secure).to.equal(mockSecure);
-    helper.expect(result.datastores[0].name).to.equal(mockName);
-    helper.expect(result.datastores[0].provider).to.equal(mockProvider);
-    helper.expect(result.datastores[0].isDefault).to.equal(mockIsDefault);
-    helper.expect(result.datastores[0].settings.fsync).to.equal(mockIsFsync);
-    helper.expect(result.datastores[0].dbfile).to.equal(mockDbFile);
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateDataConfig(result);
+
+    helper.expect(result.config.secure).to.equal(mockSecure);
+    helper.expect(result.config.datastores[0].name).to.equal(mockName);
+    helper.expect(result.config.datastores[0].provider).to.equal(mockProvider);
+    helper.expect(result.config.datastores[0].isDefault).to.equal(mockIsDefault);
+    helper.expect(result.config.datastores[0].settings.fsync).to.equal(mockIsFsync);
+    helper.expect(result.config.datastores[0].dbfile).to.equal(mockDbFile);
   });
 });

@@ -18,32 +18,32 @@ module.exports = class SystemConfigBuilder extends BaseBuilder {
    */
 
   withCert(cert) {
-    this.set('cert', cert, BaseBuilder.Types.STRING);
+    this.set('config.cert', cert, BaseBuilder.Types.STRING);
     return this;
   }
 
   withCertPath(certPath) {
-    this.set('certPath', certPath, BaseBuilder.Types.STRING);
+    this.set('config.certPath', certPath, BaseBuilder.Types.STRING);
     return this;
   }
 
   withKeepAliveTimeout(timeout) {
-    this.set('keepAliveTimeout', timeout, BaseBuilder.Types.NUMERIC);
+    this.set('config.keepAliveTimeout', timeout, BaseBuilder.Types.NUMERIC);
     return this;
   }
 
   withKey(key) {
-    this.set('key', key, BaseBuilder.Types.STRING);
+    this.set('config.key', key, BaseBuilder.Types.STRING);
     return this;
   }
 
   withKeyPath(keyPath) {
-    this.set('keyPath', keyPath, BaseBuilder.Types.STRING);
+    this.set('config.keyPath', keyPath, BaseBuilder.Types.STRING);
     return this;
   }
 
   withMode(mode) {
-    this.set('mode', mode, BaseBuilder.Types.STRING);
+    this.set('config.mode', mode, BaseBuilder.Types.STRING);
     return this;
   }
 };

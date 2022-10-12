@@ -1,0 +1,47 @@
+{
+  "$id": "protocol-schema.json",
+  "$ref": "#/definitions/Protocol",
+  "definitions": {
+    "Protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ProtocolConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Protocol"
+    },
+    "ProtocolConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowNestedPermissions": {
+        },
+        "inboundLayers": {
+          "type": "array",
+          "items": {
+          }
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "outboundLayers": {
+          "type": "array",
+          "items": {
+          }
+        }
+      },
+      "required": [
+        "allowNestedPermissions",
+        "inboundLayers",
+        "outboundLayers",
+        "secure"
+      ],
+      "title": "ProtocolConfig"
+    }
+  }
+}

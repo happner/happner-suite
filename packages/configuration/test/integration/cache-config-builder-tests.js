@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const CacheConfigBuilder = require('../../lib/builders/cache/cache-config-builder');
+const ConfigValidator = require('../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a cache config object', () => {
@@ -62,8 +63,12 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateCacheConfig(result);
+
     // transform array to object
-    const reduced = result.overrides.reduce((previousValue, currentValue) => {
+    const reduced = result.config.overrides.reduce((previousValue, currentValue) => {
       let key = Object.keys(currentValue)[0];
       previousValue[key] = currentValue[key];
       return previousValue;
@@ -105,6 +110,6 @@ describe(helper.testName(), function () {
     helper
       .expect(reduced.checkpoint_cache_authorization_token.maxAge)
       .to.equal(mockCacheCheckPointCacheAuthTokenOverrideMaxAge);
-    helper.expect(result.statisticsInterval).to.equal(mockStatisticsInterval);
+    helper.expect(result.config.statisticsInterval).to.equal(mockStatisticsInterval);
   });
 });

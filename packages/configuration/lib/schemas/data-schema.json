@@ -1,0 +1,85 @@
+{
+  "$id": "data-schema.json",
+  "$ref": "#/definitions/Data",
+  "definitions": {
+    "Data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/DataConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Data"
+    },
+    "DataConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secure": {
+          "type": "boolean"
+        },
+        "datastores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Datastore"
+          }
+        }
+      },
+      "required": [
+        "datastores",
+        "secure"
+      ],
+      "title": "DataConfig"
+    },
+    "Datastore": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "settings": {
+          "$ref": "#/definitions/Settings"
+        },
+        "dbfile": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dbfile",
+        "filename",
+        "isDefault",
+        "name",
+        "provider",
+        "settings"
+      ],
+      "title": "Datastore"
+    },
+    "Settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fsync": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fsync"
+      ],
+      "title": "Settings"
+    }
+  }
+}

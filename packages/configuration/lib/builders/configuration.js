@@ -235,7 +235,7 @@ class Configuration {
         __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKeyPath(keyPath);
     }
     setTransportMode(mode) {
-        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withKeyPath(mode);
+        __classPrivateFieldGet(this, _Configuration_transportConfigBuilder, "f").withMode(mode);
     }
     /*
     HAPPN

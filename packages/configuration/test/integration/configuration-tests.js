@@ -11,7 +11,7 @@ const SubscriptionConfigBuilder = require('../../lib/builders/subscription/subsc
 const SystemConfigBuilder = require('../../lib/builders/system/system-config-builder');
 const TransportConfigBuilder = require('../../lib/builders/transport/transport-config-builder');
 const HappnConfigBuilder = require('../../lib/builders/happn-config-builder');
-const HappnConfigValidator = require('../../lib/validators/happn-config-validator');
+const ConfigValidator = require('../../lib/validators/config-validator');
 const FieldTypeValidator = require('../../lib/validators/field-type-validator');
 
 describe(helper.testName(), function () {
@@ -27,7 +27,7 @@ describe(helper.testName(), function () {
     const subscriptionConfigBuilder = new SubscriptionConfigBuilder();
     const systemConfigBuilder = new SystemConfigBuilder();
     const transportConfigBuilder = new TransportConfigBuilder();
-    const happnConfigValidator = new HappnConfigValidator();
+    const configValidator = new ConfigValidator();
 
     const configuration = new Configuration(
       happnConfigBuilder,
@@ -130,7 +130,7 @@ describe(helper.testName(), function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const isValid = happnConfigValidator.validateHappnConfig(result);
+    const isValid = configValidator.validateHappnConfig(result);
     helper.expect(isValid).to.equal(true);
 
     // TODO - complete assertions

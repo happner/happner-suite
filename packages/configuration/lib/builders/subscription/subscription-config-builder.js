@@ -17,27 +17,27 @@ module.exports = class SubscriptionConfigBuilder extends BaseBuilder {
    */
 
   withAllowNestedPermissions(shouldAllow) {
-    this.set('allowNestedPermissions', shouldAllow, BaseBuilder.Types.BOOLEAN);
+    this.set('config.allowNestedPermissions', shouldAllow, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withSubscriptionTreeSearchCacheSize(size) {
-    this.set('subscriptionTree.searchCache', size, BaseBuilder.Types.INTEGER);
+    this.set('config.subscriptionTree.searchCache', size, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withSubscriptionTreePermutationCacheSize(size) {
-    this.set('subscriptionTree.permutationCache', size, BaseBuilder.Types.INTEGER);
+    this.set('config.subscriptionTree.permutationCache', size, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withSubscriptionTreeTimeout(size) {
-    this.set('subscriptionTree.timeout', size, BaseBuilder.Types.INTEGER);
+    this.set('config.subscriptionTree.timeout', size, BaseBuilder.Types.INTEGER);
     return this;
   }
 
   withSubscriptionTreeFilterFunc(func) {
-    this.set('subscriptionTree.filter', func, BaseBuilder.Types.FUNCTION);
+    this.set('config.subscriptionTree.filter', func, BaseBuilder.Types.FUNCTION);
     return this;
   }
 };

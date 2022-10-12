@@ -13,7 +13,7 @@ module.exports = class SystemConfigBuilder extends BaseBuilder {
    */
 
   withName(name) {
-    this.set('name', name, BaseBuilder.Types.STRING);
+    this.set('config.name', name, BaseBuilder.Types.STRING);
     return this;
   }
 };

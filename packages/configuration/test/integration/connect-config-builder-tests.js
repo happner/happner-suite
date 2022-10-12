@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const ConnectConfigBuilder = require('../../lib/builders/connect/connect-config-builder');
+const ConfigValidator = require('../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a connect config object', () => {
@@ -21,16 +22,21 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.middleware.security.cookieName).to.equal(mockCookieName);
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateConnectConfig(result);
+
+    //assertions
+    helper.expect(result.config.middleware.security.cookieName).to.equal(mockCookieName);
     helper
-      .expect(result.middleware.security.cookieDomain)
+      .expect(result.config.middleware.security.cookieDomain)
       .to.equal(mockCookieDomain);
-    helper.expect(result.middleware.security.exclusions[0]).to.equal(mockExclusion);
+    helper.expect(result.config.middleware.security.exclusions[0]).to.equal(mockExclusion);
     helper
-      .expect(result.middleware.security.forbiddenResponsePath)
+      .expect(result.config.middleware.security.forbiddenResponsePath)
       .to.equal(mockForbiddenResponsePath);
     helper
-      .expect(result.middleware.security.unauthorizedResponsePath)
+      .expect(result.config.middleware.security.unauthorizedResponsePath)
       .to.equal(mockUnauthorizedResponsePath);
   });
 });

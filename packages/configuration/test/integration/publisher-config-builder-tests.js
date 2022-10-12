@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const PublisherConfigBuilder = require('../../lib/builders/publisher/publisher-config-builder');
+const ConfigValidator = require('../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a publisher config object', () => {
@@ -12,7 +13,11 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.timeout).to.equal(mockTimeout);
-    helper.expect(result.publicationOptions.acknowledgeTimeout).to.equal(mockAcknowledge);
+    // validate
+    const validator = new ConfigValidator();
+    validator.validatePublisherConfig(result);
+
+    helper.expect(result.config.timeout).to.equal(mockTimeout);
+    helper.expect(result.config.publicationOptions.acknowledgeTimeout).to.equal(mockAcknowledge);
   });
 });

@@ -1,0 +1,247 @@
+{
+  "$id": "services-security-schema.json",
+  "$ref": "#/definitions/ServicesSecurity",
+  "definitions": {
+    "ServicesSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/SecurityConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "ServicesSecurity"
+    },
+    "SecurityConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountLockout": {
+          "$ref": "#/definitions/AccountLockout"
+        },
+        "activateSessionManagement": {
+          "type": "boolean"
+        },
+        "adminGroup": {
+          "$ref": "#/definitions/AdminGroup"
+        },
+        "adminUser": {
+          "$ref": "#/definitions/AdminUser"
+        },
+        "allowAnonymousAccess": {
+          "type": "boolean"
+        },
+        "auditPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authProviders": {
+          "$ref": "#/definitions/AuthProviders"
+        },
+        "defaultAuthProvider": {
+          "type": "string"
+        },
+        "defaultNonceTTL": {
+          "type": "number"
+        },
+        "disableDefaultAdminNetworkConnections": {
+          "type": "boolean"
+        },
+        "cookieName": {
+          "type": "string"
+        },
+        "cookieDomain": {
+          "type": "string"
+        },
+        "httpsCookie": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "lockTokenToLoginType": {
+          "type": "boolean"
+        },
+        "lockTokenToUserId": {
+          "type": "boolean"
+        },
+        "logSessionActivity": {
+          "type": "boolean"
+        },
+        "pbkdf2Iterations": {
+          "type": "integer"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Profile"
+          }
+        },
+        "sessionActivityTTL": {
+          "type": "number"
+        },
+        "sessionTokenSecret": {
+          "type": "string"
+        },
+        "updateSubscriptionsOnSecurityDirectoryChanged": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accountLockout",
+        "activateSessionManagement",
+        "adminGroup",
+        "adminUser",
+        "allowAnonymousAccess",
+        "auditPaths",
+        "authProviders",
+        "cookieDomain",
+        "cookieName",
+        "httpsCookie",
+        "lockTokenToLoginType",
+        "lockTokenToUserId",
+        "logSessionActivity",
+        "pbkdf2Iterations",
+        "profiles",
+        "secure"
+      ],
+      "title": "SecurityConfig"
+    },
+    "AccountLockout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "type": "integer"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "retryInterval": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "attempts",
+        "enabled",
+        "retryInterval"
+      ],
+      "title": "AccountLockout"
+    },
+    "AdminGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "permissions": {
+          "$ref": "#/definitions/Permissions"
+        }
+      },
+      "required": [
+        "name",
+        "permissions"
+      ],
+      "title": "AdminGroup"
+    },
+    "Permissions": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+      },
+      "required": [
+      ],
+      "title": "Permissions"
+    },
+    "AdminUser": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "password",
+        "publicKey",
+        "username"
+      ],
+      "title": "AdminUser"
+    },
+    "AuthProviders": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "testProvider": {
+          "$ref": "#/definitions/TestProvider"
+        }
+      },
+      "required": [
+        "testProvider"
+      ],
+      "title": "AuthProviders"
+    },
+    "TestProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "title": "TestProvider"
+    },
+    "Profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/definitions/Policy"
+        },
+        "session": {
+          "$ref": "#/definitions/Session"
+        }
+      },
+      "required": [
+        "name",
+        "policy",
+        "session"
+      ],
+      "title": "Profile"
+    },
+    "Policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ttl": {
+          "type": "number"
+        },
+        "inactivity_threshold": {
+          "type": [
+            "number"
+          ]
+        }
+      },
+      "required": [
+        "inactivity_threshold",
+        "ttl"
+      ],
+      "title": "Policy"
+    },
+    "Session": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "Session"
+    }
+  }
+}

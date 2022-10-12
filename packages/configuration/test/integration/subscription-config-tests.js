@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
 const SubscriptionConfigBuilder = require('../../lib/builders/subscription/subscription-config-builder');
+const ConfigValidator = require('../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a subscription config object', () => {
@@ -21,10 +22,14 @@ describe(helper.testName(), function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    helper.expect(result.allowNestedPermissions).to.equal(mockAllowNestedPermissions);
-    helper.expect(result.subscriptionTree.filter).to.equal(mockFilterFunc);
-    helper.expect(result.subscriptionTree.permutationCache).to.equal(mockPermutationCacheSize);
-    helper.expect(result.subscriptionTree.searchCache).to.equal(mockSearchCacheSize);
-    helper.expect(result.subscriptionTree.timeout).to.equal(mockTimeout);
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateSubscriptionConfig(result);
+
+    helper.expect(result.config.allowNestedPermissions).to.equal(mockAllowNestedPermissions);
+    helper.expect(result.config.subscriptionTree.filter).to.equal(mockFilterFunc);
+    helper.expect(result.config.subscriptionTree.permutationCache).to.equal(mockPermutationCacheSize);
+    helper.expect(result.config.subscriptionTree.searchCache).to.equal(mockSearchCacheSize);
+    helper.expect(result.config.subscriptionTree.timeout).to.equal(mockTimeout);
   });
 });

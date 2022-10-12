@@ -7,7 +7,7 @@ module.exports = class PublisherConfigBuilder extends BaseBuilder {
 
   withAcknowledgeTimeout(acknowledge) {
     this.set(
-      'publicationOptions.acknowledgeTimeout',
+      'config.publicationOptions.acknowledgeTimeout',
       acknowledge,
       BaseBuilder.Types.BOOLEAN
     );
@@ -15,7 +15,7 @@ module.exports = class PublisherConfigBuilder extends BaseBuilder {
   }
 
   withTimeout(timeout) {
-    this.set('timeout', timeout, BaseBuilder.Types.INTEGER);
+    this.set('config.timeout', timeout, BaseBuilder.Types.INTEGER);
     return this;
   }
 };
