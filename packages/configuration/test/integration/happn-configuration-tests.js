@@ -1,15 +1,15 @@
 /* eslint-disable no-console */
 const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const { Configuration } = require('../../lib/builders/configuration');
-const CacheConfigBuilder = require('../../lib/builders/cache/cache-config-builder');
-const ConnectConfigBuilder = require('../../lib/builders/connect/connect-config-builder');
-const DataConfigBuilder = require('../../lib/builders/data/data-config-builder');
-const ProtocolConfigBuilder = require('../../lib/builders/protocol/protocol-config-builder');
-const PublisherConfigBuilder = require('../../lib/builders/publisher/publisher-config-builder');
-const SecurityConfigBuilder = require('../../lib/builders/security/security-config-builder');
-const SubscriptionConfigBuilder = require('../../lib/builders/subscription/subscription-config-builder');
-const SystemConfigBuilder = require('../../lib/builders/system/system-config-builder');
-const TransportConfigBuilder = require('../../lib/builders/transport/transport-config-builder');
+const { Configuration } = require('../../lib/configuration');
+const CacheConfigBuilder = require('../../lib/builders/cache-config-builder');
+const ConnectConfigBuilder = require('../../lib/builders/connect-config-builder');
+const DataConfigBuilder = require('../../lib/builders/data-config-builder');
+const ProtocolConfigBuilder = require('../../lib/builders/protocol-config-builder');
+const PublisherConfigBuilder = require('../../lib/builders/publisher-config-builder');
+const SecurityConfigBuilder = require('../../lib/builders/security-config-builder');
+const SubscriptionConfigBuilder = require('../../lib/builders/subscription-config-builder');
+const SystemConfigBuilder = require('../../lib/builders/system-config-builder');
+const TransportConfigBuilder = require('../../lib/builders/transport-config-builder');
 const HappnConfigBuilder = require('../../lib/builders/happn-config-builder');
 const ConfigValidator = require('../../lib/validators/config-validator');
 const FieldTypeValidator = require('../../lib/validators/field-type-validator');
