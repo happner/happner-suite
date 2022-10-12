@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-elasticsearch",
-  "version": "1.0.14",
+  "version": "1.0.16",
   "private": false,
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/*",
@@ -15,12 +15,12 @@
     "extract-values": "^0.1.2",
     "happn-logger": "2.2.0",
     "micromustache": "^5.2.0",
-    "redis-lru-cache": "^1.0.14",
+    "redis-lru-cache": "^1.0.16",
     "traverse": "0.6.6"
   },
   "devDependencies": {
     "happn-commons-test": "^1.1.0",
-    "happn-3": "13.2.1",
+    "happn-3": "13.4.0",
     "json-from-schema": "1.10.0"
   }
 }

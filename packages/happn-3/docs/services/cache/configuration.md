@@ -1,7 +1,9 @@
 Cache Service Configuration
 ---------------------------
 *The cache service manages a set of security and optimisation caches, it can be configured as follows:*
-
+- in a clustered environment, the security caches are eventually consistent
+- the following configuration example shows how to emit structured logs of the cache statistics periodically
+- the following configuration also shows how to override the defaults for specific security related LRU caches
 ### happn-3 configuration:
 ```javascript
 const config = {
@@ -10,7 +12,45 @@ const config = {
         cache: {
             config: {
                 statisticsInterval: 2e3, // setting a stats interval in milliseconds will print cache statistics to stdout for the interval
-
+                overrides: {
+                  // for LRU caches, these are what you can control in terms of cache sizes, and ttl's
+                  // these configurations show the defaults
+                  checkpoint_cache_authorization: {
+                    // this cache holds authorization results by user session and path, it speeds up authorization lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                  checkpoint_cache_authorization_token: {
+                    // this cache holds authorization results by user session and path for token based requests, it speeds up authorization lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                  cache_security_groups: {
+                    // security groups cache, speeds up group lookups
+                    max: 5000,
+                    maxAge: 0,
+                  },
+                  cache_security_users: {
+                    // security users cache, speeds up user lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                  cache_security_group_permissions: {
+                    // group permissions cache, speeds up group permission lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                  cache_security_user_permissions: {
+                    // user permissions cache, speeds up user permission lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                  cache_security_passwords: {
+                    // user passwords (hashed) by username cache, speeds up password lookups
+                    max: 10000,
+                    maxAge: 0,
+                  },
+                }
             }
         }
     }
@@ -27,7 +67,45 @@ const config = {
             cache: {
                 config: {
                     statisticsInterval: 2e3, // setting a stats interval in milliseconds will print cache statistics to stdout for the interval
-
+                    overrides: {
+                      // for LRU caches, these are what you can control in terms of cache sizes, and ttl's
+                      // these configurations show the defaults
+                      checkpoint_cache_authorization: {
+                        // this cache holds authorization results by user session and path, it speeds up authorization lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                      checkpoint_cache_authorization_token: {
+                        // this cache holds authorization results by user session and path for token based requests, it speeds up authorization lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                      cache_security_groups: {
+                        // security groups cache, speeds up group lookups
+                        max: 5000,
+                        maxAge: 0,
+                      },
+                      cache_security_users: {
+                        // security users cache, speeds up user lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                      cache_security_group_permissions: {
+                        // group permissions cache, speeds up group permission lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                      cache_security_user_permissions: {
+                        // user permissions cache, speeds up user permission lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                      cache_security_passwords: {
+                        // user passwords (hashed) by username cache, speeds up password lookups
+                        max: 10000,
+                        maxAge: 0,
+                      },
+                    }
                 }
             }
         }

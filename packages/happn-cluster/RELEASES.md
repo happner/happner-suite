@@ -298,3 +298,11 @@ non-release 2017-12-14
 -----------------
   - TEN-130: happn-logger update
 
+12.1.0 2022-10-22
+-----------------
+  - TEN-123: getAddress changes
+
+12.1.1 2022-10-03
+-----------------
+  - TEN-132: happn updates
+

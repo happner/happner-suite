@@ -29,11 +29,21 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
     this.utilsService = this.happn.services.utils;
     this.permissionsTemplate = require('./permissions-template').create(this.utilsService);
 
-    if (!config.__cache_checkpoint_authorization)
-      config.__cache_checkpoint_authorization = {
+    // backwards compatibility
+    if (!config.cache_checkpoint_authorization) {
+      config.cache_checkpoint_authorization = config.__cache_checkpoint_authorization || {
         max: 10e3,
         maxAge: 0,
       };
+    }
+
+    if (config.cache_checkpoint_authorization.max == null) {
+      config.cache_checkpoint_authorization.max = 10e3;
+    }
+
+    if (config.cache_checkpoint_authorization.maxAge == null) {
+      config.cache_checkpoint_authorization.maxAge = 0;
+    }
 
     if (!config.expiry_grace) config.expiry_grace = 60; //default expiry grace of 1 minute
     if (!config.groupPermissionsPolicy) config.groupPermissionsPolicy = 'most_restrictive';
@@ -45,7 +55,7 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
       'checkpoint_cache_authorization',
       {
         type: 'LRU',
-        cache: config.__cache_checkpoint_authorization,
+        cache: config.cache_checkpoint_authorization,
       }
     );
 
@@ -53,7 +63,7 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
       'checkpoint_cache_authorization_token',
       {
         type: 'LRU',
-        cache: config.__cache_checkpoint_authorization,
+        cache: config.cache_checkpoint_authorization,
       }
     );
 

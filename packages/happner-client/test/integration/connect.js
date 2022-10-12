@@ -1,9 +1,8 @@
 const test = require('../__fixtures/test-helper').create();
-var Happner = require('happner-2');
-var HappnerClient = require('../..');
-
-var certPath = test.path.dirname(__dirname) + test.path.sep + 'example.com.cert';
-var keyPath = test.path.dirname(__dirname) + test.path.sep + 'example.com.key';
+let Happner = require('happner-2');
+let HappnerClient = require('../..');
+let certPath = test.path.dirname(__dirname) + test.path.sep + 'example.com.cert';
+let keyPath = test.path.dirname(__dirname) + test.path.sep + 'example.com.key';
 
 describe(test.name(__filename, 3), function () {
   var server;

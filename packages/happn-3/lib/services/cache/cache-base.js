@@ -24,12 +24,31 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     return this.#opts;
   }
 
+  #transform(key) {
+    if (!this.#opts?.keyTransformers) {
+      return key;
+    }
+    let match;
+    const transformerFound = this.#opts.keyTransformers.find((transformer) => {
+      match = key.match(transformer.regex);
+      return match !== null;
+    });
+    if (!transformerFound) {
+      return key;
+    }
+    if (transformerFound.transform) {
+      return transformerFound.transform(key);
+    }
+    return match.groups.keyMask.toString();
+  }
+
   get(key, opts = {}) {
-    let cached = this.getInternal(key, opts);
+    let transformedKey = this.#transform(key);
+    let cached = this.getInternal(transformedKey, opts);
     if (cached == null) {
       this.#stats.misses++;
       if (opts.default) {
-        this.set(key, opts.default.value, opts.default.opts);
+        this.set(transformedKey, opts.default.value, opts.default.opts, true);
         cached = { data: opts.default.value, noclone: opts.default?.opts?.noclone };
       } else {
         return null;
@@ -45,31 +64,34 @@ module.exports = class CacheBase extends require('events').EventEmitter {
     return this.utils.clone(cached.data);
   }
 
-  set(key, data, opts = {}) {
+  set(key, data, opts = {}, transformedAlready) {
+    let transformedKey = transformedAlready ? key : this.#transform(key);
     const cacheItem = {
       data: opts.clone === false ? data : this.utils.clone(data),
-      key: key,
+      key: transformedKey,
       ttl: opts.ttl,
       noclone: opts.clone === false,
     };
-    this.setInternal(key, cacheItem, opts);
+    this.setInternal(transformedKey, cacheItem, opts);
     return cacheItem;
   }
 
   increment(key, by = 1, opts = {}) {
-    let currentValue = this.getInternal(key)?.data;
+    let transformedKey = this.#transform(key);
+    let currentValue = this.getInternal(transformedKey)?.data;
     if (typeof currentValue !== 'number') {
       currentValue = opts.initial || 0;
     }
     currentValue += by;
-    this.set(key, currentValue, opts);
+    this.set(transformedKey, currentValue, opts, true);
     return currentValue;
   }
 
   remove(key, opts) {
-    const existing = this.get(key, opts);
+    let transformedKey = this.#transform(key);
+    const existing = this.get(transformedKey, opts);
     if (existing) {
-      this.removeInternal(key);
+      this.removeInternal(transformedKey);
     }
     return existing;
   }
