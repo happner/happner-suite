@@ -12,7 +12,6 @@
   "workspaces": [
     "packages/demos",
     "packages/happn-3",
-    "packages/happn-db-provider-elasticsearch",
     "packages/happn-db-provider-loki",
     "packages/happn-db-provider-mongo",
     "packages/happn-db-provider-nedb",
@@ -26,7 +25,6 @@
     "packages/happner-cluster",
     "packages/happner-client",
     "packages/happner-2",
-    "packages/redis-lru-cache",
     "packages/tame-search"
   ],
   "dependencies": {
