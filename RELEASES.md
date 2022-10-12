@@ -17,6 +17,10 @@
 - happner-cluster: 12.2.2
 - redis-lru-cache: 1.0.15
 
+1.7.0 2022-09-14
+----------------
+- TEN-119: ease of configuration
+
 1.6.0 2022-09-01
 -----------------
 - TEN-130: issues with sync init functions and defer startup
