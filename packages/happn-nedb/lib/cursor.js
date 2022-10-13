@@ -2,7 +2,7 @@
  * Manage access to data, be it to find, update or remove it
  */
 var model = require('./model'),
-  _ = require('underscore');
+  _ = require('lodash');
 /**
  * Create a new cursor for this collection
  * @param {Datastore} db - The datastore this cursor is bound to
@@ -12,7 +12,6 @@ var model = require('./model'),
 function Cursor(db, query, execFn) {
   this.db = db;
   this.query = query || {};
-  _.mixin(require('underscore.deep'));
   if (execFn) {
     this.execFn = execFn;
   }
@@ -81,9 +80,6 @@ Cursor.prototype.project = function(candidates) {
 
   // Do the actual projection
   candidates.forEach(function(candidate) {
-    // <<<<<<< HEAD
-    //     var toPush = action === 1 ? _.deepPick(candidate, keys) : _.deepOmit(candidate, keys);
-    // =======
     var toPush;
     if (action === 1) {
       // pick-type projection

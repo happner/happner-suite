@@ -29,3 +29,7 @@
 1.0.6 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+2.0.0 2022-10-13
+-----------------
+  - TEN-101: happn-nedb update, clean npm audit

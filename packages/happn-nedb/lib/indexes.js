@@ -1,6 +1,6 @@
 var BinarySearchTree = require('binary-search-tree').AVLTree,
   model = require('./model'),
-  _ = require('underscore'),
+  _ = require('lodash'),
   util = require('util');
 /**
  * Two indexed pointers are equal iif they point to the same place

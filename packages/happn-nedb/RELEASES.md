@@ -25,3 +25,7 @@
 2.0.5 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+3.0.0 2022-10-13
+-----------------
+  - TEN-101: clean npm audit - removed lodash

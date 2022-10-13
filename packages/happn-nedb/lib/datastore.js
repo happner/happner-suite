@@ -4,7 +4,7 @@ var customUtils = require('./customUtils'),
   Executor = require('./executor'),
   Index = require('./indexes'),
   util = require('util'),
-  _ = require('underscore'),
+  _ = require('lodash'),
   Persistence = require('./persistence'),
   Cursor = require('./cursor');
 /**
@@ -715,7 +715,7 @@ Datastore.prototype._update = function(query, updateQuery, options, cb) {
         }
 
         // Update the datafile
-        var updatedDocs = _.pluck(modifications, 'newDoc');
+        var updatedDocs = _.map(modifications, 'newDoc');
         self.persistence.persistNewState(updatedDocs, function(err) {
           if (err) {
             return callback(err);

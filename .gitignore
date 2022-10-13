@@ -52,8 +52,8 @@ packages/happner-client/test/example.com.cert
 packages/happner-client/test/example.com.key
 
 #happn-primus-wrapper rules
-happn-primus-wrapper/test/primus.save.async.js
-happn-primus-wrapper/test/primus.save.sync.js
+packages/happn-primus-wrapper/test/primus.save.async.js
+packages/happn-primus-wrapper/test/primus.save.sync.js
 
 temp/*
 

@@ -4,11 +4,13 @@
 - TEN-101: removed elasticsearch support
 - happn-3: 13.5.0
 - happn-db-provider-mongo: 1.0.17
+- happn-db-provider-nedb: 2.0.0
 - happn-primus-wrapper: 9.0.0
 - happn-cluster: 12.2.0
 - happner-cluster: 12.3.0
 - happner-client: 12.5.0
 - happner-2: 12.4.0
+- happn-nedb: 3.0.0
 
 1.8.0 2022-10-03
 -----------------
