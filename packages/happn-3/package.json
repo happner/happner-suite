@@ -18,7 +18,8 @@
   "main": "./lib/index",
   "scripts": {
     "test-browser": "UPDATE_BROWSER_PRIMUS=true gulp --gulpfile test/browser/gulp-01.js",
-    "test": "UPDATE_BROWSER_PRIMUS=true _mocha silence.js test/integration/* test/unit/* test/backward-compatibility/* --recursive --exit",
+    "test": "UPDATE_BROWSER_PRIMUS=true _mocha silence.js test/integration/* test/unit/* --recursive --exit",
+    "test-backward-compatibility": "UPDATE_BROWSER_PRIMUS=true  npm install happn --no-save && _mocha silence.js test/backward-compatibility/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-unit": "mocha silence.js test/unit/**",
     "prepare": "rm -rf node_modules/happn-cluster/node_modules/happn-3 && rm -rf node_modules/happn/node_modules/happn-util-crypto && require-self"
@@ -56,7 +57,6 @@
     "commander": "^4.1.0",
     "debug": "4.1.1",
     "gulp": "^4.0.2",
-    "happn": "^2.21.3",
     "happn-cluster": "12.2.0",
     "happn-commons-test": "^1.1.0",
     "happn-db-provider-mongo": "1.0.17",
