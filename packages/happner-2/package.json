@@ -20,7 +20,7 @@
     "test-integration": "_mocha  --exit -- silence.js test/integration/**",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-browser": "mocha test/browser-leaking/01-test-disconnects.js && gulp --gulpfile test/browser/gulp-01.js",
-    "test-backward-compatibility": "npm install happner --no-save && _mocha silence.js test/backward-compatibility/** --exit"
+    "test-backward-compatibility": "_mocha silence.js test/backward-compatibility/** --exit"
   },
   "repository": {
     "type": "git",
