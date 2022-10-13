@@ -27,14 +27,11 @@
     "./lib/storage.js": "./browser-version/browser-specific/lib/storage.js"
   },
   "scripts": {
-    "test": "mocha test/* --recursive",
-    "test-cover": "env LOG_LEVEL=off nyc --reporter=lcov --reporter=text-summary mocha test/* test_lac/* --timeout 10000"
+    "test": "mocha test/* --recursive"
   },
   "dependencies": {
-    "async": "^3.2.0",
-    "binary-search-tree": "0.2.5",
     "localforage": "^1.3.0",
-    "lodash": "^4.17.21",
+    "happn-commons": "^1.1.0",
     "mkdirp": "~0.5.1"
   },
   "devDependencies": {

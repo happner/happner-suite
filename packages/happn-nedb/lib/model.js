@@ -6,7 +6,7 @@
  */
 
 var util = require('util'),
-  _ = require('lodash'),
+  _ = require('happn-commons')._,
   modifierFunctions = {},
   lastStepModifierFunctions = {},
   comparisonFunctions = {},

@@ -43,6 +43,7 @@ jobs:
     - run: npm run-script test-cover --workspace=happn-db-provider-mongo
 
     - run: npm run lint --package_name=happn-db-provider-nedb
+    - run: npm run-script test --workspace=happn-nedb
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
