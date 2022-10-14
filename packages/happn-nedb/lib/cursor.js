@@ -2,7 +2,7 @@
  * Manage access to data, be it to find, update or remove it
  */
 var model = require('./model'),
-  _ = require('underscore');
+  _ = require('happn-commons')._;
 /**
  * Create a new cursor for this collection
  * @param {Datastore} db - The datastore this cursor is bound to
@@ -12,7 +12,6 @@ var model = require('./model'),
 function Cursor(db, query, execFn) {
   this.db = db;
   this.query = query || {};
-  _.mixin(require('underscore.deep'));
   if (execFn) {
     this.execFn = execFn;
   }
@@ -21,7 +20,7 @@ function Cursor(db, query, execFn) {
 /**
  * Set a limit to the number of results
  */
-Cursor.prototype.limit = function(limit) {
+Cursor.prototype.limit = function (limit) {
   this._limit = limit;
   return this;
 };
@@ -29,7 +28,7 @@ Cursor.prototype.limit = function(limit) {
 /**
  * Skip a the number of results
  */
-Cursor.prototype.skip = function(skip) {
+Cursor.prototype.skip = function (skip) {
   this._skip = skip;
   return this;
 };
@@ -38,7 +37,7 @@ Cursor.prototype.skip = function(skip) {
  * Sort results of the query
  * @param {SortQuery} sortQuery - SortQuery is { field: order }, field can use the dot-notation, order is 1 for ascending and -1 for descending
  */
-Cursor.prototype.sort = function(sortQuery) {
+Cursor.prototype.sort = function (sortQuery) {
   this._sort = sortQuery;
   return this;
 };
@@ -48,7 +47,7 @@ Cursor.prototype.sort = function(sortQuery) {
  * @param {Object} projection - MongoDB-style projection. {} means take all fields. Then it's { key1: 1, key2: 1 } to take only key1 and key2
  *                              { key1: 0, key2: 0 } to omit only key1 and key2. Except _id, you can't mix takes and omits
  */
-Cursor.prototype.projection = function(projection) {
+Cursor.prototype.projection = function (projection) {
   this._projection = projection;
   return this;
 };
@@ -56,7 +55,7 @@ Cursor.prototype.projection = function(projection) {
 /**
  * Apply the projection
  */
-Cursor.prototype.project = function(candidates) {
+Cursor.prototype.project = function (candidates) {
   var res = [],
     self = this,
     keepId,
@@ -72,7 +71,7 @@ Cursor.prototype.project = function(candidates) {
 
   // Check for consistency
   keys = Object.keys(this._projection);
-  keys.forEach(function(k) {
+  keys.forEach(function (k) {
     if (action !== undefined && self._projection[k] !== action) {
       throw new Error("Can't both keep and omit fields except for _id");
     }
@@ -80,15 +79,12 @@ Cursor.prototype.project = function(candidates) {
   });
 
   // Do the actual projection
-  candidates.forEach(function(candidate) {
-    // <<<<<<< HEAD
-    //     var toPush = action === 1 ? _.deepPick(candidate, keys) : _.deepOmit(candidate, keys);
-    // =======
+  candidates.forEach(function (candidate) {
     var toPush;
     if (action === 1) {
       // pick-type projection
       toPush = { $set: {} };
-      keys.forEach(function(k) {
+      keys.forEach(function (k) {
         toPush.$set[k] = model.getDotValue(candidate, k);
         if (toPush.$set[k] === undefined) {
           delete toPush.$set[k];
@@ -98,7 +94,7 @@ Cursor.prototype.project = function(candidates) {
     } else {
       // omit-type projection
       toPush = { $unset: {} };
-      keys.forEach(function(k) {
+      keys.forEach(function (k) {
         toPush.$unset[k] = true;
       });
       toPush = model.modify(candidate, toPush);
@@ -122,7 +118,7 @@ Cursor.prototype.project = function(candidates) {
  *
  * @param {Function} callback - Signature: err, results
  */
-Cursor.prototype._exec = function(_callback) {
+Cursor.prototype._exec = function (_callback) {
   var res = [],
     added = 0,
     skipped = 0,
@@ -140,7 +136,7 @@ Cursor.prototype._exec = function(_callback) {
     }
   }
 
-  this.db.getCandidates(this.query, function(err, candidates) {
+  this.db.getCandidates(this.query, function (err, candidates) {
     if (err) {
       return callback(err);
     }
@@ -178,7 +174,7 @@ Cursor.prototype._exec = function(_callback) {
         key = keys[i];
         criteria.push({ key: key, direction: self._sort[key] });
       }
-      res.sort(function(a, b) {
+      res.sort(function (a, b) {
         var criterion, compare, i;
         for (i = 0; i < criteria.length; i++) {
           criterion = criteria[i];
@@ -215,7 +211,7 @@ Cursor.prototype._exec = function(_callback) {
   });
 };
 
-Cursor.prototype.exec = function() {
+Cursor.prototype.exec = function () {
   this.db.executor.push({ this: this, fn: this._exec, arguments: arguments });
 };
 

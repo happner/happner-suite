@@ -1,4 +1,4 @@
-name: CI happn
+name: CI happn backward compatibility
 
 on: [push]
 
@@ -10,7 +10,6 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x, 18.x]
-        mongodb-version: ['4.4']
 
     steps:
     - name: Git checkout
@@ -28,28 +27,7 @@ jobs:
         sudo sysctl -w fs.file-max=262144
         sudo sysctl -w vm.max_map_count=262144
 
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.6.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
-
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
-
-    - run: npm run lint --package_name=happn-3 
-    - run: npm run-script test-cover --workspace=happn-3
-    - run: npm run-script test-browser --workspace=happn-3
-
-    - name: Generate coverage branch
-      uses: team-tenacious/monorepo-coverage@main
-      continue-on-error: true
-      with:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        COVERAGE_BRANCH: platform-coverage
-        ROOT: "./packages"
-        PACKAGES: happn-3
-
-
-
-
-
+    - run: npm install happn
+    - run: npm run-script test-backward-compatibility --workspace=happn-3

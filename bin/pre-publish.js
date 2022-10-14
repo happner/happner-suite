@@ -160,14 +160,14 @@ function verifyPublish(packagesMetaData, masterPackage) {
   }
 
   if (issues.length > 0) {
-    console.warn('issues:');
+    console.warn('ISSUES:');
     issues.forEach((issue) => console.warn(issue));
     if (successes.length > 0) {
-      console.info('ok:');
-      successes.forEach((success) => console.info(success.name));
+      console.info('OK:');
+      successes.forEach((success) => { console.info(`- ${success.name}: ${success.newVersion} - ${success.versionJumped ? 'new' : 'unchanged'}`) });
     }
     if (prereleases.length > 0) {
-      console.info('prereleases ready for publish:');
+      console.info('PRERELEASES READY FOR PUBLISH:');
       getPublishOrder().forEach((packageName) => {
         const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
         if (found) {
@@ -177,7 +177,7 @@ function verifyPublish(packagesMetaData, masterPackage) {
     }
     return;
   }
-  console.info('ready for publish, in the following order:');
+  console.info('READY FOR PUBLISH:');
   successes
     .sort((a, b) => a.publishOrder - b.publishOrder)
     .forEach((success) => {
@@ -310,11 +310,9 @@ function getPublishOrder() {
     'happn-commons',
     'happn-commons-test',
     'happn-nedb',
-    'redis-lru-cache',
     'tame-search',
     'happn-db-provider-loki',
     'happn-db-provider-nedb',
-    'happn-db-provider-elasticsearch',
     'happn-db-provider-mongo',
     'happn-util-crypto',
     'happn-logger',

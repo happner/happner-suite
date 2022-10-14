@@ -306,3 +306,8 @@ non-release 2017-12-14
 -----------------
   - TEN-132: happn updates
 
+12.2.0 2022-10-12
+-----------------
+  - TEN-143: ws and primus update in happn-primus-wrapper
+  - TEN-101: removed elasticsearch support
+

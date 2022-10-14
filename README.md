@@ -94,14 +94,3 @@ happn-db-provider-nedb
 // configure in happner
 
 ```
-
-happn-db-provider-elasticsearch ![coverage](https://github.com/happner/happner-suite/blob/platform-coverage/master/latest/happn-db-provider-elasticsearch.badge.svg?raw=true)
-----------------------
-*still maintained for backward compatability - only for elasticsearch 6.4.0 downwards (will eventually be discontinued)*
-
-```javascript
-// configure in happn
-
-// configure in happner
-
-```
