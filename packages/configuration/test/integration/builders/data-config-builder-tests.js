@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const DataConfigBuilder = require('../../lib/builders/data-config-builder');
-const ConfigValidator = require('../../lib/validators/config-validator');
+const helper = require('happn-commons-test/lib/base-test-helper').create();
+const DataConfigBuilder = require('../../../lib/builders/data-config-builder');
+const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a data config object with nested datastore', () => {
@@ -21,10 +21,6 @@ describe(helper.testName(), function () {
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
-    // validate
-    const validator = new ConfigValidator();
-    validator.validateDataConfig(result);
 
     helper.expect(result.config.secure).to.equal(mockSecure);
     helper.expect(result.config.datastores[0].name).to.equal(mockName);

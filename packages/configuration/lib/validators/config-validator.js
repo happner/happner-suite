@@ -71,11 +71,13 @@ module.exports = class ConfigValidator {
   }
 
   #validate(config, schema) {
+    const result = { valid: false, errors: [] };
     const validate = this.#ajv.compile(schema);
-    const valid = validate(config);
+    result.valid = validate(config);
 
-    if (!valid) throw new Error(validate.errors);
-
-    return valid;
+    if (!result.valid) {
+      result.errors = validate.errors;
+    }
+    return result;
   }
 };

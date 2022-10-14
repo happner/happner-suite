@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const CacheConfigBuilder = require('../../lib/builders/cache-config-builder');
-const ConfigValidator = require('../../lib/validators/config-validator');
+const helper = require('happn-commons-test/lib/base-test-helper').create();
+const CacheConfigBuilder = require('../../../lib/builders/cache-config-builder');
+const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a cache config object', () => {
@@ -62,10 +62,6 @@ describe(helper.testName(), function () {
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
-    // validate
-    const validator = new ConfigValidator();
-    validator.validateCacheConfig(result);
 
     // transform array to object
     const reduced = result.config.overrides.reduce((previousValue, currentValue) => {

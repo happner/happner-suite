@@ -1,18 +1,18 @@
 /* eslint-disable no-console */
-const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const { Configuration } = require('../../lib/configuration');
-const CacheConfigBuilder = require('../../lib/builders/cache-config-builder');
-const ConnectConfigBuilder = require('../../lib/builders/connect-config-builder');
-const DataConfigBuilder = require('../../lib/builders/data-config-builder');
-const ProtocolConfigBuilder = require('../../lib/builders/protocol-config-builder');
-const PublisherConfigBuilder = require('../../lib/builders/publisher-config-builder');
-const SecurityConfigBuilder = require('../../lib/builders/security-config-builder');
-const SubscriptionConfigBuilder = require('../../lib/builders/subscription-config-builder');
-const SystemConfigBuilder = require('../../lib/builders/system-config-builder');
-const TransportConfigBuilder = require('../../lib/builders/transport-config-builder');
-const HappnConfigBuilder = require('../../lib/builders/happn-config-builder');
-const ConfigValidator = require('../../lib/validators/config-validator');
-const FieldTypeValidator = require('../../lib/validators/field-type-validator');
+const helper = require('happn-commons-test/lib/base-test-helper').create();
+const { Configuration } = require('../../../lib/configuration');
+const CacheConfigBuilder = require('../../../lib/builders/cache-config-builder');
+const ConnectConfigBuilder = require('../../../lib/builders/connect-config-builder');
+const DataConfigBuilder = require('../../../lib/builders/data-config-builder');
+const ProtocolConfigBuilder = require('../../../lib/builders/protocol-config-builder');
+const PublisherConfigBuilder = require('../../../lib/builders/publisher-config-builder');
+const SecurityConfigBuilder = require('../../../lib/builders/security-config-builder');
+const SubscriptionConfigBuilder = require('../../../lib/builders/subscription-config-builder');
+const SystemConfigBuilder = require('../../../lib/builders/system-config-builder');
+const TransportConfigBuilder = require('../../../lib/builders/transport-config-builder');
+const HappnConfigBuilder = require('../../../lib/builders/happn-config-builder');
+const ConfigValidator = require('../../../lib/validators/config-validator');
+const FieldTypeValidator = require('../../../lib/validators/field-type-validator');
 
 describe(helper.testName(), function () {
   it('builds a happn configuration object', () => {
@@ -128,10 +128,6 @@ describe(helper.testName(), function () {
 
     const result = configuration.buildHappnConfig();
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
-    // validate
-    const isValid = configValidator.validateHappnConfig(result);
-    helper.expect(isValid).to.equal(true);
 
     // TODO - complete assertions
     let testCb1 = (err, result) => {

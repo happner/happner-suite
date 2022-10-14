@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const TransportConfigBuilder = require('../../lib/builders/transport-config-builder');
-const ConfigValidator = require('../../lib/validators/config-validator');
+const helper = require('happn-commons-test/lib/base-test-helper').create();
+const TransportConfigBuilder = require('../../../lib/builders/transport-config-builder');
+const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a transport config object', () => {
@@ -23,10 +23,6 @@ describe(helper.testName(), function () {
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
-    // validate
-    const validator = new ConfigValidator();
-    validator.validateTransportConfig(result);
 
     helper.expect(result.config.mode).to.equal(mockMode);
     helper.expect(result.config.key).to.equal(mockKey);

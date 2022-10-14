@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const helper = require('../../../happn-commons-test/lib/base-test-helper').create();
-const ConnectConfigBuilder = require('../../lib/builders/connect-config-builder');
-const ConfigValidator = require('../../lib/validators/config-validator');
+const helper = require('happn-commons-test/lib/base-test-helper').create();
+const ConnectConfigBuilder = require('../../../lib/builders/connect-config-builder');
+const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a connect config object', () => {
@@ -21,10 +21,6 @@ describe(helper.testName(), function () {
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
-    // validate
-    const validator = new ConfigValidator();
-    validator.validateConnectConfig(result);
 
     //assertions
     helper.expect(result.config.middleware.security.cookieName).to.equal(mockCookieName);
