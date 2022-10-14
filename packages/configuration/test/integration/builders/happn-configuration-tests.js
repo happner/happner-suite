@@ -11,7 +11,6 @@ const SubscriptionConfigBuilder = require('../../../lib/builders/subscription-co
 const SystemConfigBuilder = require('../../../lib/builders/system-config-builder');
 const TransportConfigBuilder = require('../../../lib/builders/transport-config-builder');
 const HappnConfigBuilder = require('../../../lib/builders/happn-config-builder');
-const ConfigValidator = require('../../../lib/validators/config-validator');
 const FieldTypeValidator = require('../../../lib/validators/field-type-validator');
 
 describe(helper.testName(), function () {
@@ -27,7 +26,6 @@ describe(helper.testName(), function () {
     const subscriptionConfigBuilder = new SubscriptionConfigBuilder();
     const systemConfigBuilder = new SystemConfigBuilder();
     const transportConfigBuilder = new TransportConfigBuilder();
-    const configValidator = new ConfigValidator();
 
     const configuration = new Configuration(
       happnConfigBuilder,

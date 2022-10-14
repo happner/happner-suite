@@ -197,17 +197,6 @@ function createValidDataConfig() {
   };
 }
 
-function createValidProtocolConfig() {
-  return {
-    config: {
-      allowNestedPermissions: true,
-      inboundLayers: [null],
-      outboundLayers: [null],
-      secure: true,
-    },
-  };
-}
-
 function createValidPublisherConfig() {
   return {
     config: {

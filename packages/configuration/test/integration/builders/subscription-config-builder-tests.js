@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
 const SubscriptionConfigBuilder = require('../../../lib/builders/subscription-config-builder');
-const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
   it('builds a subscription config object', () => {
