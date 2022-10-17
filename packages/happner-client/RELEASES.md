@@ -367,3 +367,8 @@
 12.4.1 2022-10-03
 -----------------
   - TEN-132, TEN-138: happn and happner updates
+
+12.5.0 2022-10-12
+-----------------
+  - TEN-143: ws and primus update in happn-primus-wrapper
+  - TEN-101: removed elasticsearch support

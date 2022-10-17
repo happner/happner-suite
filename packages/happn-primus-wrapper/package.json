@@ -1,6 +1,6 @@
 {
   "name": "happn-primus-wrapper",
-  "version": "8.0.2",
+  "version": "9.0.0",
   "description": "Wraps primus with happner specific logic",
   "main": "index.js",
   "scripts": {
@@ -57,7 +57,7 @@
     "yeast": "~0.1.2"
   },
   "dependencies": {
-    "primus": "^7.3.1",
-    "ws": "6.1.4"
+    "primus": "^8.0.6",
+    "ws": "^8.9.0"
   }
 }

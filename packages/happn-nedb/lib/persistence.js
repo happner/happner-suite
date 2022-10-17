@@ -8,7 +8,7 @@
 var storage = require('./storage'),
   path = require('path'),
   model = require('./model'),
-  async = require('async'),
+  async = require('happn-commons').async,
   customUtils = require('./customUtils'),
   Index = require('./indexes');
 /**
@@ -49,12 +49,12 @@ function Persistence(options) {
   }
   this.afterSerialization =
     options.afterSerialization ||
-    function(s) {
+    function (s) {
       return s;
     };
   this.beforeDeserialization =
     options.beforeDeserialization ||
-    function(s) {
+    function (s) {
       return s;
     };
   for (i = 1; i < 30; i += 1) {
@@ -85,9 +85,9 @@ function Persistence(options) {
  * Check if a directory exists and create it on the fly if it is not the case
  * cb is optional, signature: err
  */
-Persistence.ensureDirectoryExists = function(dir, cb) {
-  var callback = cb || function() {};
-  storage.mkdirp(dir, function(err) {
+Persistence.ensureDirectoryExists = function (dir, cb) {
+  var callback = cb || function () {};
+  storage.mkdirp(dir, function (err) {
     return callback(err);
   });
 };
@@ -96,7 +96,7 @@ Persistence.ensureDirectoryExists = function(dir, cb) {
  * Return the path the datafile if the given filename is relative to the directory where Node Webkit stores
  * data for this application. Probably the best place to store data
  */
-Persistence.getNWAppFilename = function(appName, relativeFilename) {
+Persistence.getNWAppFilename = function (appName, relativeFilename) {
   var home;
 
   switch (process.platform) {
@@ -136,18 +136,18 @@ Persistence.getNWAppFilename = function(appName, relativeFilename) {
  * while the data file is append-only so it may grow larger
  * @param {Function} cb Optional callback, signature: err
  */
-Persistence.prototype.persistCachedDatabase = function(cb) {
-  var callback = cb || function() {},
+Persistence.prototype.persistCachedDatabase = function (cb) {
+  var callback = cb || function () {},
     toPersist = '',
     self = this;
   if (this.inMemoryOnly) {
     return callback(null);
   }
 
-  this.db.getAllData().forEach(function(doc) {
+  this.db.getAllData().forEach(function (doc) {
     toPersist += self.afterSerialization(model.serialize(doc)) + '\n';
   });
-  Object.keys(this.db.indexes).forEach(function(fieldName) {
+  Object.keys(this.db.indexes).forEach(function (fieldName) {
     if (fieldName != '_id') {
       // The special _id index is managed by datastore.js, the others need to be persisted
       toPersist +=
@@ -156,14 +156,14 @@ Persistence.prototype.persistCachedDatabase = function(cb) {
             $$indexCreated: {
               fieldName: fieldName,
               unique: self.db.indexes[fieldName].unique,
-              sparse: self.db.indexes[fieldName].sparse
-            }
+              sparse: self.db.indexes[fieldName].sparse,
+            },
           })
         ) + '\n';
     }
   });
 
-  storage.crashSafeWriteFile(this.filename, toPersist, function(err) {
+  storage.crashSafeWriteFile(this.filename, toPersist, function (err) {
     if (err) {
       return callback(err);
     }
@@ -175,7 +175,7 @@ Persistence.prototype.persistCachedDatabase = function(cb) {
 /**
  * Queue a rewrite of the datafile
  */
-Persistence.prototype.compactDatafile = function() {
+Persistence.prototype.compactDatafile = function () {
   this.db.executor.push({ this: this, fn: this.persistCachedDatabase, arguments: [] });
 };
 
@@ -183,13 +183,13 @@ Persistence.prototype.compactDatafile = function() {
  * Set automatic compaction every interval ms
  * @param {Number} interval in milliseconds, with an enforced minimum of 5 seconds
  */
-Persistence.prototype.setAutocompactionInterval = function(interval) {
+Persistence.prototype.setAutocompactionInterval = function (interval) {
   var self = this,
     minInterval = 5000,
     realInterval = Math.max(interval || 0, minInterval);
   this.stopAutocompaction();
 
-  this.autocompactionIntervalId = setInterval(function() {
+  this.autocompactionIntervalId = setInterval(function () {
     self.compactDatafile();
   }, realInterval);
 };
@@ -197,7 +197,7 @@ Persistence.prototype.setAutocompactionInterval = function(interval) {
 /**
  * Stop autocompaction (do nothing if autocompaction was not running)
  */
-Persistence.prototype.stopAutocompaction = function() {
+Persistence.prototype.stopAutocompaction = function () {
   if (this.autocompactionIntervalId) {
     clearInterval(this.autocompactionIntervalId);
   }
@@ -209,16 +209,16 @@ Persistence.prototype.stopAutocompaction = function() {
  * @param {Array} newDocs Can be empty if no doc was updated/removed
  * @param {Function} cb Optional, signature: err
  */
-Persistence.prototype.persistNewState = function(newDocs, cb) {
+Persistence.prototype.persistNewState = function (newDocs, cb) {
   var self = this,
     toPersist = '',
-    callback = cb || function() {};
+    callback = cb || function () {};
   // In-memory only datastore
   if (self.inMemoryOnly) {
     return callback(null);
   }
 
-  newDocs.forEach(function(doc) {
+  newDocs.forEach(function (doc) {
     toPersist += self.afterSerialization(model.serialize(doc)) + '\n';
   });
 
@@ -226,7 +226,7 @@ Persistence.prototype.persistNewState = function(newDocs, cb) {
     return callback(null);
   }
 
-  storage.appendFile(self.filename, toPersist, 'utf8', function(err) {
+  storage.appendFile(self.filename, toPersist, 'utf8', function (err) {
     return callback(err);
   });
 };
@@ -235,7 +235,7 @@ Persistence.prototype.persistNewState = function(newDocs, cb) {
  * From a database's raw data, return the corresponding
  * machine understandable collection
  */
-Persistence.prototype.treatRawData = function(rawData) {
+Persistence.prototype.treatRawData = function (rawData) {
   var data = rawData.split('\n'),
     dataById = {},
     tdata = [],
@@ -272,7 +272,7 @@ Persistence.prototype.treatRawData = function(rawData) {
     );
   }
 
-  Object.keys(dataById).forEach(function(k) {
+  Object.keys(dataById).forEach(function (k) {
     tdata.push(dataById[k]);
   });
 
@@ -289,8 +289,8 @@ Persistence.prototype.treatRawData = function(rawData) {
  * This operation is very quick at startup for a big collection (60ms for ~10k docs)
  * @param {Function} cb Optional callback, signature: err
  */
-Persistence.prototype.loadDatabase = function(cb) {
-  var callback = cb || function() {},
+Persistence.prototype.loadDatabase = function (cb) {
+  var callback = cb || function () {},
     self = this;
   self.db.resetIndexes();
 
@@ -301,10 +301,10 @@ Persistence.prototype.loadDatabase = function(cb) {
 
   async.waterfall(
     [
-      function(cb) {
-        Persistence.ensureDirectoryExists(path.dirname(self.filename), function(err) {
-          storage.ensureDatafileIntegrity(self.filename, function(err) {
-            storage.readFile(self.filename, 'utf8', function(err, rawData) {
+      function (cb) {
+        Persistence.ensureDirectoryExists(path.dirname(self.filename), function (err) {
+          storage.ensureDatafileIntegrity(self.filename, function (err) {
+            storage.readFile(self.filename, 'utf8', function (err, rawData) {
               if (err) {
                 return cb(err);
               }
@@ -316,7 +316,7 @@ Persistence.prototype.loadDatabase = function(cb) {
               }
 
               // Recreate all indexes in the datafile
-              Object.keys(treatedData.indexes).forEach(function(key) {
+              Object.keys(treatedData.indexes).forEach(function (key) {
                 self.db.indexes[key] = new Index(treatedData.indexes[key]);
               });
 
@@ -332,9 +332,9 @@ Persistence.prototype.loadDatabase = function(cb) {
             });
           });
         });
-      }
+      },
     ],
-    function(err) {
+    function (err) {
       if (err) {
         return callback(err);
       }

@@ -1,7 +1,28 @@
+2.0.0 2022-10-12
+-----------------
+- TEN-143: ws and primus update in happn-primus-wrapper
+- TEN-101: removed elasticsearch support
+- happn-3: 13.5.0
+- happn-db-provider-mongo: 1.0.17
+- happn-db-provider-nedb: 1.0.7
+- happn-primus-wrapper: 9.0.0
+- happn-cluster: 12.2.0
+- happner-cluster: 12.3.0
+- happner-client: 12.5.0
+- happner-2: 12.4.0
+- happn-nedb: 2.0.6
+
 1.8.0 2022-10-03
 -----------------
 - TEN-132: authorization cache key regex mask
 - TEN-138: api/client call fails when auth delegation switched on
+- happn-3: 13.4.0
+- happn-cluster: 12.1.1
+- happn-db-provider-elasticsearch: 1.0.16
+- happn-db-provider-mongo: 1.0.16
+- happner-2: 12.3.0
+- happner-client: 12.4.1
+- happner-cluster: 12.2.3
 
 1.7.0 2022-09-22
 -----------------
@@ -124,3 +145,4 @@
 - happner-2: 12.1.1
 - happner-client: 12.2.0
 - happner-cluster: 12.1.1
+

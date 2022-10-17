@@ -1,6 +1,6 @@
 {
   "name": "happner-suite",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
@@ -12,7 +12,6 @@
   "workspaces": [
     "packages/demos",
     "packages/happn-3",
-    "packages/happn-db-provider-elasticsearch",
     "packages/happn-db-provider-loki",
     "packages/happn-db-provider-mongo",
     "packages/happn-db-provider-nedb",
@@ -26,13 +25,12 @@
     "packages/happner-cluster",
     "packages/happner-client",
     "packages/happner-2",
-    "packages/redis-lru-cache",
     "packages/tame-search"
   ],
   "dependencies": {
     "axios": "^0.26.0",
     "cd": "^0.3.3",
-    "ws": "6.1.4"
+    "ws": "^8.9.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

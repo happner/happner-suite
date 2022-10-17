@@ -11,8 +11,6 @@ jobs:
       matrix:
         node-version: [16.x, 18.x]
         mongodb-version: ['4.4']
-        redis-version: ['6']
-        elastic-version: ['6.4.0']
 
     steps:
     - name: Git checkout
@@ -30,16 +28,6 @@ jobs:
         sudo sysctl -w fs.file-max=262144
         sudo sysctl -w vm.max_map_count=262144
 
-    - name: Start Elasticsearch
-      uses: elastic/elastic-github-actions/elasticsearch@master
-      with:
-        stack-version: ${{ matrix.elastic-version }}
-  
-    - name: Start Redis
-      uses: supercharge/redis-github-action@1.4.0
-      with:
-        redis-version: ${{ matrix.redis-version }}
-
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.6.0
       with:
@@ -55,9 +43,7 @@ jobs:
     - run: npm run-script test-cover --workspace=happn-db-provider-mongo
 
     - run: npm run lint --package_name=happn-db-provider-nedb
-
-    - run: npm run lint --package_name=happn-db-provider-elasticsearch
-    - run: npm run-script test-cover --workspace=happn-db-provider-elasticsearch
+    - run: npm run-script test --workspace=happn-nedb
 
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
@@ -66,7 +52,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         COVERAGE_BRANCH: platform-coverage
         ROOT: "./packages"
-        PACKAGES: happn-db-provider-loki,happn-db-provider-mongo,happn-db-provider-elasticsearch
+        PACKAGES: happn-db-provider-loki,happn-db-provider-mongo
 
 
 

@@ -10,9 +10,6 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x, 18.x]
-        mongodb-version: ['4.4']
-        redis-version: ['6']
-        elastic-version: ['6.4.0']
 
     steps:
       - name: Git checkout

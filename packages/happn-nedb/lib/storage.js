@@ -9,7 +9,7 @@
 
 var fs = require('fs'),
   mkdirp = require('mkdirp'),
-  async = require('async'),
+  async = require('happn-commons').async,
   path = require('path'),
   storage = {};
 storage.exists = fs.exists;
@@ -23,13 +23,13 @@ storage.mkdirp = mkdirp;
 /**
  * Explicit name ...
  */
-storage.ensureFileDoesntExist = function(file, callback) {
-  storage.exists(file, function(exists) {
+storage.ensureFileDoesntExist = function (file, callback) {
+  storage.exists(file, function (exists) {
     if (!exists) {
       return callback(null);
     }
 
-    storage.unlink(file, function(err) {
+    storage.unlink(file, function (err) {
       return callback(err);
     });
   });
@@ -41,7 +41,7 @@ storage.ensureFileDoesntExist = function(file, callback) {
  * @param {Boolean} options.isDir Optional, defaults to false
  * If options is a string, it is assumed that the flush of the file (not dir) called options was requested
  */
-storage.flushToStorage = function(options, callback) {
+storage.flushToStorage = function (options, callback) {
   var filename, flags;
   if (typeof options === 'string') {
     filename = options;
@@ -57,12 +57,12 @@ storage.flushToStorage = function(options, callback) {
     return callback(null);
   }
 
-  fs.open(filename, flags, function(err, fd) {
+  fs.open(filename, flags, function (err, fd) {
     if (err) {
       return callback(err);
     }
-    fs.fsync(fd, function(errFS) {
-      fs.close(fd, function(errC) {
+    fs.fsync(fd, function (errFS) {
+      fs.close(fd, function (errC) {
         if (errFS || errC) {
           var e = new Error('Failed to flush to storage');
           e.errorOnFsync = errFS;
@@ -82,17 +82,17 @@ storage.flushToStorage = function(options, callback) {
  * @param {String} data
  * @param {Function} cb Optional callback, signature: err
  */
-storage.crashSafeWriteFile = function(filename, data, cb) {
-  var callback = cb || function() {},
+storage.crashSafeWriteFile = function (filename, data, cb) {
+  var callback = cb || function () {},
     tempFilename = filename + '~';
 
   async.waterfall(
     [
       async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true }),
-      function(cb) {
-        storage.exists(filename, function(exists) {
+      function (cb) {
+        storage.exists(filename, function (exists) {
           if (exists) {
-            storage.flushToStorage(filename, function(err) {
+            storage.flushToStorage(filename, function (err) {
               return cb(err);
             });
           } else {
@@ -100,20 +100,20 @@ storage.crashSafeWriteFile = function(filename, data, cb) {
           }
         });
       },
-      function(cb) {
-        storage.writeFile(tempFilename, data, function(err) {
+      function (cb) {
+        storage.writeFile(tempFilename, data, function (err) {
           return cb(err);
         });
       },
       async.apply(storage.flushToStorage, tempFilename),
-      function(cb) {
-        storage.rename(tempFilename, filename, function(err) {
+      function (cb) {
+        storage.rename(tempFilename, filename, function (err) {
           return cb(err);
         });
       },
-      async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true })
+      async.apply(storage.flushToStorage, { filename: path.dirname(filename), isDir: true }),
     ],
-    function(err) {
+    function (err) {
       return callback(err);
     }
   );
@@ -124,25 +124,25 @@ storage.crashSafeWriteFile = function(filename, data, cb) {
  * @param {String} filename
  * @param {Function} callback signature: err
  */
-storage.ensureDatafileIntegrity = function(filename, callback) {
+storage.ensureDatafileIntegrity = function (filename, callback) {
   var tempFilename = filename + '~';
 
-  storage.exists(filename, function(filenameExists) {
+  storage.exists(filename, function (filenameExists) {
     // Write was successful
     if (filenameExists) {
       return callback(null);
     }
 
-    storage.exists(tempFilename, function(oldFilenameExists) {
+    storage.exists(tempFilename, function (oldFilenameExists) {
       // New database
       if (!oldFilenameExists) {
-        return storage.writeFile(filename, '', 'utf8', function(err) {
+        return storage.writeFile(filename, '', 'utf8', function (err) {
           callback(err);
         });
       }
 
       // Write failed, use old version
-      storage.rename(tempFilename, filename, function(err) {
+      storage.rename(tempFilename, filename, function (err) {
         return callback(err);
       });
     });
