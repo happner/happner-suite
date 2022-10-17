@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 /**
  * Load and modify part of fs to ensure writeFile will crash after writing 5000 bytes
  */
@@ -8,7 +10,7 @@ function rethrow() {
   // is fairly slow to generate.
   if (DEBUG) {
     var backtrace = new Error();
-    return function(err) {
+    return function (err) {
       if (err) {
         backtrace.stack =
           err.name + ': ' + err.message + backtrace.stack.substr(backtrace.name.length);
@@ -17,7 +19,7 @@ function rethrow() {
     };
   }
 
-  return function(err) {
+  return function (err) {
     if (err) {
       throw err; // Forgot a callback but don't know where? Use NODE_DEBUG=fs
     }
@@ -48,12 +50,12 @@ function writeAll(fd, isUserFd, buffer, offset, length, position, callback_) {
   var l = Math.min(5000, length); // Force write by chunks of 5000 bytes to ensure data will be incomplete on crash
 
   // write(fd, buffer, offset, length, position, callback)
-  fs.write(fd, buffer, offset, l, position, function(writeErr, written) {
+  fs.write(fd, buffer, offset, l, position, function (writeErr, written) {
     if (writeErr) {
       if (isUserFd) {
         if (callback) callback(writeErr);
       } else {
-        fs.close(fd, function() {
+        fs.close(fd, function () {
           if (callback) callback(writeErr);
         });
       }
@@ -77,7 +79,7 @@ function writeAll(fd, isUserFd, buffer, offset, length, position, callback_) {
   });
 }
 
-fs.writeFile = function(path, data, options, callback_) {
+fs.writeFile = function (path, data, options, callback_) {
   var callback = maybeCallback(arguments[arguments.length - 1]);
 
   if (!options || typeof options === 'function') {
@@ -97,7 +99,7 @@ fs.writeFile = function(path, data, options, callback_) {
     return;
   }
 
-  fs.open(path, flag, options.mode, function(openErr, fd) {
+  fs.open(path, flag, options.mode, function (openErr, fd) {
     if (openErr) {
       if (callback) callback(openErr);
     } else {
