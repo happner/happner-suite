@@ -24,7 +24,6 @@
         }
       },
       "required": [
-        "middleware"
       ],
       "title": "ConnectConfig"
     },
@@ -45,12 +44,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "cookieDomain": {
-          "type": "string"
-        },
-        "cookieName": {
-          "type": "string"
-        },
         "exclusions": {
           "type": "array",
           "items": {
@@ -65,23 +58,6 @@
         }
       },
       "required": [
-      ],
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "cookieName": {
-                "type": "string",
-                "pattern": ".*"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "cookieDomain"
-            ]
-          }
-        }
       ],
       "title": "MiddlewareSecurity"
     }

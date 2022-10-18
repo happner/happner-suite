@@ -23,18 +23,18 @@ function createValidSecurityConfig() {
         retryInterval: 2000,
       },
       adminGroup: {
-        name: 'adminGroup1',
-        permissions: {
-          '/test': ['testAction1', 'testAction2'],
+        custom_data: {
+          description: 'test description',
         },
       },
       adminUser: {
-        username: 'testUser',
         password: 'password123',
-        publicKey: 'publicKey3445',
+        custom_data: {
+          description: 'test description custom data',
+        },
+        publicKey: 'rqwetriyqeriyqweroq',
       },
       allowAnonymousAccess: false,
-      auditPaths: ['/audit/path'],
       authProviders: {
         testProvider: {},
       },
@@ -62,7 +62,6 @@ function createValidSecurityConfig() {
           },
         },
       ],
-      secure: true,
       sessionActivityTTL: 100,
       sessionTokenSecret: 'sessionTokenSecret123',
       updateSubscriptionsOnSecurityDirectoryChanged: true,

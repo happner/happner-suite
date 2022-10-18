@@ -26,9 +26,6 @@
           "items": {
           }
         },
-        "secure": {
-          "type": "boolean"
-        },
         "outboundLayers": {
           "type": "array",
           "items": {
@@ -36,10 +33,6 @@
         }
       },
       "required": [
-        "allowNestedPermissions",
-        "inboundLayers",
-        "outboundLayers",
-        "secure"
       ],
       "title": "ProtocolConfig"
     }

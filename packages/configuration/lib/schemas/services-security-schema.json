@@ -34,12 +34,6 @@
         "allowAnonymousAccess": {
           "type": "boolean"
         },
-        "auditPaths": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "authProviders": {
           "$ref": "#/definitions/AuthProviders"
         },
@@ -60,9 +54,6 @@
         },
         "httpsCookie": {
           "type": "string"
-        },
-        "secure": {
-          "type": "boolean"
         },
         "lockTokenToLoginType": {
           "type": "boolean"
@@ -93,22 +84,6 @@
         }
       },
       "required": [
-        "accountLockout",
-        "activateSessionManagement",
-        "adminGroup",
-        "adminUser",
-        "allowAnonymousAccess",
-        "auditPaths",
-        "authProviders",
-        "cookieDomain",
-        "cookieName",
-        "httpsCookie",
-        "lockTokenToLoginType",
-        "lockTokenToUserId",
-        "logSessionActivity",
-        "pbkdf2Iterations",
-        "profiles",
-        "secure"
       ],
       "title": "SecurityConfig"
     },
@@ -117,47 +92,49 @@
       "additionalProperties": false,
       "properties": {
         "attempts": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
         },
         "enabled": {
           "type": "boolean"
         },
         "retryInterval": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000
         }
       },
       "required": [
-        "attempts",
-        "enabled",
-        "retryInterval"
       ],
-      "title": "AccountLockout"
+      "title": "AccountLockout",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": true
+            }
+          },
+          "then": {
+            "required": [
+              "retryInterval",
+              "attempts"
+            ]
+          }
+        }
+      ]
     },
     "AdminGroup": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "permissions": {
-          "$ref": "#/definitions/Permissions"
+        "custom_data": {
+          "$ref": "#/definitions/CustomData"
         }
       },
       "required": [
-        "name",
-        "permissions"
       ],
       "title": "AdminGroup"
-    },
-    "Permissions": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-      },
-      "required": [
-      ],
-      "title": "Permissions"
     },
     "AdminUser": {
       "type": "object",
@@ -166,17 +143,14 @@
         "password": {
           "type": "string"
         },
-        "publicKey": {
-          "type": "string"
+        "custom_data": {
+          "$ref": "#/definitions/CustomData"
         },
-        "username": {
+        "publicKey": {
           "type": "string"
         }
       },
       "required": [
-        "password",
-        "publicKey",
-        "username"
       ],
       "title": "AdminUser"
     },
@@ -192,6 +166,16 @@
         "testProvider"
       ],
       "title": "AuthProviders"
+    },
+    "CustomData": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "title": "CustomData"
     },
     "TestProvider": {
       "type": "object",

@@ -9,9 +9,11 @@ const securitySchema = require('../schemas/services-security-schema.json');
 const subscriptionSchema = require('../schemas/subscription-schema.json');
 const systemSchema = require('../schemas/system-schema.json');
 const transportSchema = require('../schemas/transport-schema.json');
+const FieldTypeValidator = require('../validators/field-type-validator');
 
 module.exports = class ConfigValidator {
   #ajv;
+  #fieldTypeValidator;
 
   constructor() {
     this.#ajv = new Ajv({
@@ -28,6 +30,8 @@ module.exports = class ConfigValidator {
       ],
       strictNumbers: false, // to handle Infinity types
     });
+
+    this.#fieldTypeValidator = new FieldTypeValidator();
   }
 
   validateCacheConfig(config) {
@@ -43,7 +47,29 @@ module.exports = class ConfigValidator {
   }
 
   validateProtocolConfig(config) {
-    return this.#validate(config, protocolSchema);
+    let result = this.#validate(config, protocolSchema);
+
+    if (config.config.inboundLayers !== null) {
+      config.config.inboundLayers.forEach((layer) => {
+        let inboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
+        if (!inboundResult.isValid) {
+          if (result.valid) result.valid = false;
+          result.errors.push(inboundResult.error);
+        }
+      });
+    }
+
+    if (config.config.outboundLayers !== null) {
+      config.config.outboundLayers.forEach((layer) => {
+        let outboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
+        if (!outboundResult.isValid) {
+          if (result.valid) result.valid = false;
+          result.errors.push(outboundResult.error);
+        }
+      });
+    }
+
+    return result;
   }
 
   validatePublisherConfig(config) {

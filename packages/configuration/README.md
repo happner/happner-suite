@@ -48,61 +48,61 @@ etc.), followed by the specific config field name (eg: `statisticsInterval`):
 
 ### Configuration instance functions
 
-|function|related service|description
-|--------|-----------|-----------|
-|setCacheStatisticsCheckPointAuthOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsCheckPointAuthTokenOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsInterval(interval: number)| cache |
-|setCacheStatisticsSecurityGroupPermissionsOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsSecurityGroupsOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsSecurityPasswordsOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsSecurityUserPermissionsOverride(max: number, maxAge: number)| cache |
-|setCacheStatisticsSecurityUsersOverride(max: number, maxAge: number)| cache |
-|setConnectSecurityCookie(name: string, domain: string)| connect |
-|setConnectSecurityExclusion(exclusion: string)| connect |
-|setConnectSecurityForbiddenResponsePath(path: string)| connect |
-|setConnectSecurityUnauthorizedResponsePath(path: string)| connect |
-|setDataStore(name: string, provider: string, isDefault: boolean, isFsync: boolean, dbFile: string, fileName: string)| data |
-|setDataIsSecure(isSecure: boolean)| data |
-|setProtocolAllowNestedPermissions(isAllowed: boolean)| protocol |
-|setProtocolInboundLayer(layer: Function)| protocol |
-|setProtocolIsSecure(isSecure: boolean)| protocol |
-|setProtocolOutboundLayer(layer: Function)| protocol |
-|setPublisherAcknowledgeTimeout(acknowledge: boolean)| publisher |
-|setPublisherTimeout(timeout: number)| publisher |
-|setSecurityActivateSessionManagement(activate: boolean)| security |
-|setSecurityAccountLockoutEnabled(enabled: boolean)| security |
-|setSecurityAccountLockoutAttempts(attempts: number)| security |
-|setSecurityAccountLockoutRetryInterval(retryInterval: number)| security |
-|setSecurityAdminUsername(username: string)| security |
-|setSecurityAdminPassword(password: string)| security |
-|setSecurityAdminPublicKey(publicKey: string)| security |
-|setSecurityAdminGroupName(groupName: string)| security |
-|setSecurityAdminGroupPermission(permissionKey: string, actionPath: string)| security |
-|setSecurityAllowAnonymousAccess(allowAnonymous: boolean)| security |
-|setSecurityAuditPath(path: string)| security |
-|setSecurityAuthProvider(name: string, instance: any)| security |
-|setSecurityCookie(name: string, domain: string, cookie: string)| security |
-|setSecurityLogSessionActivity(shouldLog: boolean)| security |
-|setSecurityLockTokenToLoginType(shouldLock: boolean)| security |
-|setSecurityLockTokenToUserId(shouldLock: boolean)| security |
-|setSecurityPbkdf2Iterations(iterations: number)| security |
-|setSecurityProfile(  name: string, sessionKey: string, sessionMatchOn: any, policyTTL: number, policyInactiveThreshold: number)| security |
-|setSecurityIsSecure(isSecure: boolean)| security |
-|setSessionActivityTTL(ttl: number)| session |
-|setSessionTokenSecret(secret: string)| session |
-|setSubscriptionAllowNestedPermissions(shouldAllow: boolean)| subscription |
-|setSubscriptionTreeSearchCacheSize(size: number)| subscription |
-|setSubscriptionTreePermutationCacheSize(size: number)| subscription |
-|setSubscriptionTreeTimeout(timeout: number)| subscription |
-|setSubscriptionTreeFilterFunction(func: Function)| subscription |
-|setSystemName(name: string)| system |
-|setTransportCert(cert: string)| transport |
-|setTransportCertPath(certPath: string)| transport |
-|setTransportKeepAliveTimout(timeout: number)| transport |
-|setTransportKey(key: string)| transport |
-|setTransportKeyPath(keyPath: string)| transport |
-|setTransportMode(mode: string)| transport |
+|function|args|related service|description
+|--------|-----|------|-----------|
+|setCacheStatisticsCheckPointAuthOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsCheckPointAuthTokenOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsInterval<br/>(interval: number)| cache |
+|setCacheStatisticsSecurityGroupPermissionsOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsSecurityGroupsOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsSecurityPasswordsOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsSecurityUserPermissionsOverride<br/>(max: number, maxAge: number)| cache |
+|setCacheStatisticsSecurityUsersOverride<br/>(max: number, maxAge: number)| cache |
+|setConnectSecurityCookie<br/>(name: string, domain: string)| connect |
+|setConnectSecurityExclusion<br/>(exclusion: string)| connect |
+|setConnectSecurityForbiddenResponsePath<br/>(path: string)| connect |
+|setConnectSecurityUnauthorizedResponsePath<br/>(path: string)| connect |
+|setDataStore<br/>(name: string, provider: string, isDefault: boolean, isFsync: boolean, dbFile: string, fileName: string)| data |
+|setDataIsSecure<br/>(isSecure: boolean)| data |
+|setProtocolAllowNestedPermissions<br/>(isAllowed: boolean)| protocol |
+|setProtocolInboundLayer<br/>(layer: Function)| protocol |
+|setProtocolIsSecure<br/>(isSecure: boolean)| protocol |
+|setProtocolOutboundLayer<br/>(layer: Function)| protocol |
+|setPublisherAcknowledgeTimeout<br/>(acknowledge: boolean)| publisher |
+|setPublisherTimeout<br/>(timeout: number)| publisher |
+|setSecurityActivateSessionManagement<br/>(activate: boolean)| security |
+|setSecurityAccountLockoutEnabled<br/>(enabled: boolean)| security |
+|setSecurityAccountLockoutAttempts<br/>(attempts: number)| security |
+|setSecurityAccountLockoutRetryInterval<br/>(retryInterval: number)| security |
+|setSecurityAdminUsername<br/>(username: string)| security |
+|setSecurityAdminPassword<br/>(password: string)| security |
+|setSecurityAdminPublicKey<br/>(publicKey: string)| security |
+|setSecurityAdminGroupName<br/>(groupName: string)| security |
+|setSecurityAdminGroupPermission<br/>(permissionKey: string, actionPath: string)| security |
+|setSecurityAllowAnonymousAccess<br/>(allowAnonymous: boolean)| security |
+|setSecurityAuditPath<br/>(path: string)| security |
+|setSecurityAuthProvider<br/>(name: string, instance: any)| security |
+|setSecurityCookie<br/>(name: string, domain: string, cookie: string)| security |
+|setSecurityLogSessionActivity<br/>(shouldLog: boolean)| security |
+|setSecurityLockTokenToLoginType<br/>(shouldLock: boolean)| security |
+|setSecurityLockTokenToUserId<br/>(shouldLock: boolean)| security |
+|setSecurityPbkdf2Iterations<br/>(iterations: number)| security |
+|setSecurityProfile<br/>(name: string, sessionKey: string, sessionMatchOn: any, policyTTL: number, policyInactiveThreshold: number)| security |
+|setSecurityIsSecure<br/>(isSecure: boolean)| security |
+|setSessionActivityTTL<br/>(ttl: number)| session |
+|setSessionTokenSecret<br/>(secret: string)| session |
+|setSubscriptionAllowNestedPermissions<br/>(shouldAllow: boolean)| subscription |
+|setSubscriptionTreeSearchCacheSize<br/>(size: number)| subscription |
+|setSubscriptionTreePermutationCacheSize<br/>(size: number)| subscription |
+|setSubscriptionTreeTimeout<br/>(timeout: number)| subscription |
+|setSubscriptionTreeFilterFunction<br/>(func: Function)| subscription |
+|setSystemName<br/>(name: string)| system |
+|setTransportCert<br/>(cert: string)| transport |
+|setTransportCertPath<br/>(certPath: string)| transport |
+|setTransportKeepAliveTimout<br/>(timeout: number)| transport |
+|setTransportKey<br/>(key: string)| transport |
+|setTransportKeyPath<br/>(keyPath: string)| transport |
+|setTransportMode<br/>(mode: string)| transport |
 |buildHappnConfig| - | builds the Happn config file using values provided in above functions
 
 ## Links

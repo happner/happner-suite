@@ -31,6 +31,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "secure": {
+          "type": "boolean"
+        },
         "cache": {
           "$ref": "#/definitions/Cache"
         },

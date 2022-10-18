@@ -32,13 +32,14 @@ describe(helper.testName(), function () {
     helper.expect(result.errors[0].message).to.equal('must be boolean');
   });
 
-  it('validates data config with missing datastore name', () => {
+  it('invalidates data config with missing datastore name', () => {
     const cacheConfig = createValidDataConfig();
     delete cacheConfig.config.datastores[0].name;
 
     let result = validator.validateDataConfig(cacheConfig);
 
-    helper.expect(result.valid).to.equal(true);
+    helper.expect(result.valid).to.equal(false);
+    helper.expect(result.errors[0].message).to.equal("must have required property 'name'");
   });
 
   it('invalidates data config with invalid datastore name', () => {
@@ -63,16 +64,12 @@ describe(helper.testName(), function () {
 
   it('invalidates data config with invalid data provider', () => {
     const cacheConfig = createValidDataConfig();
-    cacheConfig.config.datastores[0].provider = 'invalid-provider';
+    cacheConfig.config.datastores[0].provider = 213871236;
 
     let result = validator.validateDataConfig(cacheConfig);
 
     helper.expect(result.valid).to.equal(false);
-    helper
-      .expect(result.errors[0].message)
-      .to.equal(
-        'must match pattern "(happn-db-provider-elasticsearch|happn-db-provider-loki|happn-db-provider-mongo|happn-db-provider-nedb)"'
-      );
+    helper.expect(result.errors[0].message).to.equal('must be string');
   });
 
   it('validates data config with missing default', () => {

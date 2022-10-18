@@ -27,8 +27,6 @@
         }
       },
       "required": [
-        "publicationOptions",
-        "timeout"
       ],
       "title": "PublisherConfig"
     },

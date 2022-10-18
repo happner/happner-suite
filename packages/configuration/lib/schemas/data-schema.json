@@ -41,8 +41,7 @@
           "type": "string"
         },
         "provider": {
-          "type": "string",
-          "pattern": "(happn-db-provider-elasticsearch|happn-db-provider-loki|happn-db-provider-mongo|happn-db-provider-nedb)"
+          "type": "string"
         },
         "isDefault": {
           "type": "boolean"
@@ -58,6 +57,7 @@
         }
       },
       "required": [
+        "name",
         "provider"
       ],
       "title": "Datastore"

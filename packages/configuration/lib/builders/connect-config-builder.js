@@ -5,6 +5,7 @@ module.exports = class ConnectConfigBuilder extends BaseBuilder {
     super();
   }
 
+  /* COOKIE STUFF CAN GO */
   withSecurityCookieName(name) {
     this.set(`config.middleware.security.cookieName`, name, BaseBuilder.Types.STRING);
     return this;
