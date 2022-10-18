@@ -3,8 +3,9 @@ const helper = require('happn-commons-test/lib/base-test-helper').create();
 const ConfigValidator = require('../../../lib/validators/config-validator');
 
 describe(helper.testName(), function () {
+  const validator = new ConfigValidator();
+
   it('validates connect config', () => {
-    const validator = new ConfigValidator();
     const config = createValidConnectConfig();
 
     const result = validator.validateConnectConfig(config);
@@ -12,7 +13,24 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  // TODO: negative cases
+  it('validates connect config with missing cookieName', () => {
+    const cacheConfig = createValidConnectConfig();
+    delete cacheConfig.config.middleware.security.cookieName;
+
+    let result = validator.validateConnectConfig(cacheConfig);
+
+    helper.expect(result.valid).to.equal(true);
+  });
+
+  it('invalidates connect config with invalid cookieName', () => {
+    const cacheConfig = createValidConnectConfig();
+    cacheConfig.config.middleware.security.cookieName = 12312321;
+
+    let result = validator.validateConnectConfig(cacheConfig);
+
+    helper.expect(result.valid).to.equal(false);
+    helper.expect(result.errors[0].message).to.equal('must be string');
+  });
 });
 
 function createValidConnectConfig() {
