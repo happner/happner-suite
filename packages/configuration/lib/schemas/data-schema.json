@@ -30,8 +30,6 @@
         }
       },
       "required": [
-        "datastores",
-        "secure"
       ],
       "title": "DataConfig"
     },
@@ -43,7 +41,8 @@
           "type": "string"
         },
         "provider": {
-          "type": "string"
+          "type": "string",
+          "pattern": "(happn-db-provider-elasticsearch|happn-db-provider-loki|happn-db-provider-mongo|happn-db-provider-nedb)"
         },
         "isDefault": {
           "type": "boolean"
@@ -59,12 +58,7 @@
         }
       },
       "required": [
-        "dbfile",
-        "filename",
-        "isDefault",
-        "name",
-        "provider",
-        "settings"
+        "provider"
       ],
       "title": "Datastore"
     },
@@ -77,7 +71,6 @@
         }
       },
       "required": [
-        "fsync"
       ],
       "title": "Settings"
     }
