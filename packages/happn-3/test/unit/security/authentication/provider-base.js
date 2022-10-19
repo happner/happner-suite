@@ -97,6 +97,54 @@ describe(test.testName(), function () {
           `Could not configure auth provider [object Object], returning base auth provider with limited functionality.`
         );
     });
+
+    it('can create an instance, various configs', () => {
+      // test with 1st variation
+      let config = {};
+      new BaseAuthProvider(mockHappn, config);
+
+      test.chai.expect(config).to.eql({
+        accountLockout: {
+          enabled: true,
+          attempts: 4,
+          retryInterval: 60 * 1000 * 10,
+        },
+      });
+
+      // test with 2nd variation
+      config = {
+        accountLockout: {
+          enabled: false,
+        },
+      };
+
+      new BaseAuthProvider(mockHappn, config);
+
+      test.chai.expect(config).to.eql({
+        accountLockout: {
+          enabled: false,
+        },
+      });
+
+      // test with 3rd variation
+      config = {
+        accountLockout: {
+          enabled: true,
+          attempts: 4,
+          retryInterval: 60 * 1000 * 10,
+        },
+      };
+
+      new BaseAuthProvider(mockHappn, config);
+
+      test.chai.expect(config).to.eql({
+        accountLockout: {
+          enabled: true,
+          attempts: 4,
+          retryInterval: 60 * 1000 * 10,
+        },
+      });
+    });
   });
 
   context('accessDenied', () => {
@@ -378,11 +426,471 @@ describe(test.testName(), function () {
         .expect(mockHappn.services.security.__checkRevocations)
         .to.have.been.calledOnceWithExactly(credentials.token);
     });
+
+    it('accessDenied, calls callback with error, previousSession.type is not equal to credentials.type', async () => {
+      mockConfig.lockTokenToLoginType = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        username: 'mockUsername',
+        type: 'mockType',
+        origin: null,
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: null,
+            lockTokenToOrigin: false,
+          },
+        ],
+      });
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(
+          `token was created using the login type ${'mockType'}, which does not match how the new token is to be created`
+        );
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(
+          `token was created using the login type ${'mockType'}, which does not match how the new token is to be created`
+        );
+    });
+
+    it('accessDenied, calls callback with error, checkDisableDefaultAdminNetworkConnections returns true', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        username: '_ADMIN',
+        type: 'mockType',
+        origin: null,
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: null,
+            lockTokenToOrigin: false,
+          },
+        ],
+      });
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(
+          `use of _ADMIN credentials over the network is disabled`
+        );
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(
+          `use of _ADMIN credentials over the network is disabled`
+        );
+    });
+
+    it('accessDenied, calls callback with error, disallowTokenLogins is true', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        username: '_ADMIN',
+        type: 'mockType',
+        origin: null,
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: true,
+            lockTokenToOrigin: false,
+          },
+        ],
+      });
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(`logins with this token are disallowed by policy`);
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(`logins with this token are disallowed by policy`);
+    });
+
+    it('accessDenied, calls callback with error, previousPolicy.lockTokenToOrigin is truthy and previousSession.origin is equal to system.name', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        username: '_ADMIN',
+        type: 'mockType',
+        origin: null,
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: true,
+            lockTokenToOrigin: true,
+          },
+        ],
+      });
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(`this token is locked to a different origin by policy`);
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(`this token is locked to a different origin by policy`);
+    });
+
+    it.skip('calls __providerTokenLogin, calls callback with error message', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = false;
+      mockConfig.lockTokenToLoginType = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 'mockType',
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        username: '_ADMIN',
+        type: 'mockType',
+        origin: 'mockOrigin',
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: false,
+            lockTokenToOrigin: false,
+          },
+        ],
+      });
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(`__providerTokenLogin not implemented.`);
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(`__providerTokenLogin not implemented.`);
+    });
+
+    it('calls __providerTokenLogin, calls callback with error message', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = false;
+
+      const get = test.sinon.stub().returns(null);
+      const set = test.sinon.stub();
+
+      mockHappn.services.cache.getOrCreate.returns({
+        get,
+        set,
+      });
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.throws(new Error('test error'));
+      mockHappn.services.error.InvalidCredentialsError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      await instance.tokenLogin(credentials, 1, request, callback);
+
+      test.chai.expect(set).to.have.been.calledWithExactly(
+        undefined,
+        { attempts: 1 },
+        {
+          ttl: mockConfig.accountLockout.retryInterval,
+        }
+      );
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(`Invalid credentials: test error`);
+      test.chai
+        .expect(mockHappn.services.error.InvalidCredentialsError)
+        .to.have.been.calledOnceWithExactly(`Invalid credentials: test error`);
+    });
   });
 
-  context('userCredsLogin', () => {});
+  context('userCredsLogin', () => {
+    it('accessDenied, calls callback with error message, account locked out', async () => {
+      const get = test.sinon.stub().returns({
+        attempts: 4,
+      });
 
-  context('userCredsLogin', () => {});
+      mockHappn.services.cache.getOrCreate.returns({
+        get,
+      });
 
-  context('checkDisableDefaultAdminNetworkConnections', () => {});
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      instance.userCredsLogin(credentials, 1, callback);
+
+      test.chai.expect(callback).to.have.been.calledOnceWithExactly(`Account locked out`);
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(`Account locked out`);
+    });
+
+    it('calls __providerCredsLogin if this.__checkLockedOut returns false', async () => {
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: null,
+      };
+
+      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
+        return errorMessage;
+      });
+
+      instance.userCredsLogin(credentials, 1, callback);
+
+      test.chai
+        .expect(callback)
+        .to.have.been.calledOnceWithExactly(`__providerCredsLogin not implemented.`);
+      test.chai
+        .expect(mockHappn.services.error.AccessDeniedError)
+        .to.have.been.calledOnceWithExactly(`__providerCredsLogin not implemented.`);
+    });
+  });
+
+  context('checkDisableDefaultAdminNetworkConnections', () => {
+    it('returns true', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const credentials = {
+        username: '_ADMIN',
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
+
+      test.chai.expect(result).to.be.true;
+    });
+
+    it('returns false', async () => {
+      mockConfig.disableDefaultAdminNetworkConnections = true;
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const credentials = {
+        username: 'mockUsername',
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
+
+      test.chai.expect(result).to.be.false;
+    });
+  });
+
+  context('__loginOK', () => {
+    it('with this.locks', async () => {
+      const remove = test.sinon.stub();
+      mockHappn.services.cache.getOrCreate.returns({
+        remove,
+      });
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+
+      mockHappn.services.security.generateSession.returns('mockSession');
+
+      instance.__loginOK(
+        credentials,
+        { password: 'mockPassword', username: 'username' },
+        1,
+        callback,
+        'mockTokenLogin',
+        'mockAdditionalInfo'
+      );
+
+      test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, 'mockSession');
+      test.chai.expect(remove).to.have.been.calledOnceWithExactly('username');
+      test.chai
+        .expect(mockHappn.services.security.generateSession)
+        .to.have.been.calledOnceWithExactly(
+          { username: 'username' },
+          1,
+          credentials,
+          'mockTokenLogin',
+          'mockAdditionalInfo'
+        );
+    });
+
+    it('without this.locks', async () => {
+      mockHappn.services.cache.getOrCreate.returns(null);
+
+      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const callback = test.sinon.stub();
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+      };
+
+      mockHappn.services.security.generateSession.returns('mockSession');
+
+      instance.__loginOK(
+        credentials,
+        { password: 'mockPassword', username: 'username' },
+        1,
+        callback,
+        'mockTokenLogin',
+        'mockAdditionalInfo'
+      );
+
+      test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, 'mockSession');
+      test.chai
+        .expect(mockHappn.services.security.generateSession)
+        .to.have.been.calledOnceWithExactly(
+          { username: 'username' },
+          1,
+          credentials,
+          'mockTokenLogin',
+          'mockAdditionalInfo'
+        );
+    });
+  });
 });
