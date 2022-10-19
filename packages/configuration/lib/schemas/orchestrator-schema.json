@@ -1,0 +1,43 @@
+{
+  "$id": "orchestrator-schema.json",
+  "$ref": "#/definitions/Orchestrator",
+  "definitions": {
+    "Orchestrator": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/OrchestratorConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Orchestrator"
+    },
+    "OrchestratorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stableReportInterval": {
+          "type": "integer"
+        },
+        "stabiliseTimeout": {
+          "type": "integer"
+        },
+        "minimumPeers": {
+          "type": "integer"
+        },
+        "replicate": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+      ],
+      "title": "OrchestratorConfig"
+    }
+  }
+}

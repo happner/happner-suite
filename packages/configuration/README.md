@@ -3,6 +3,18 @@
 The `Configuration` package is concerned with providing a more structured and intuitive approach to building `happn`
 , `happner`, `happn-cluster` and `happner-cluster` configuration files.
 
+## happn services
+
+
+## happn-cluster services
+
+- data
+- membership
+- orchestrator
+- replicator
+- proxy
+- health
+
 ## The Configuration class
 
 A single Typescript class, `Configuration` (found in `configuration.ts`), is the entry point and is used to create a

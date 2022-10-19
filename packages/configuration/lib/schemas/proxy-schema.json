@@ -1,0 +1,46 @@
+{
+  "$id": "proxy-schema.json",
+  "$ref": "#/definitions/Proxy",
+  "definitions": {
+    "Proxy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ProxyConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Proxy"
+    },
+    "ProxyConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "allowSelfSignedCerts": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "integer"
+        },
+        "keyPath": {
+          "type": "string"
+        },
+        "certPath": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "ProxyConfig"
+    }
+  }
+}

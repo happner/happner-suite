@@ -1,0 +1,92 @@
+{
+  "$id": "membership-schema.json",
+  "$ref": "#/definitions/Membership",
+  "definitions": {
+    "Membership": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/MembershipConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Membership"
+    },
+    "MembershipConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "boolean"
+        },
+        "seedWait": {
+          "type": "number"
+        },
+        "randomWait": {
+          "type": "number"
+        },
+        "joinType": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string",
+          "pattern": ""
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "port": {
+          "type": "integer"
+        },
+        "joinTimeout": {
+          "type": "integer"
+        },
+        "pingInterval": {
+          "type": "integer"
+        },
+        "pingTimeout": {
+          "type": "integer"
+        },
+        "pingReqTimeout": {
+          "type": "integer"
+        },
+        "pingReqGroupSize": {
+          "type": "integer"
+        },
+        "udp": {
+          "type": "object",
+          "$ref": "#/definitions/Udp"
+        },
+        "disseminationFactor": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "clusterName",
+        "port",
+        "hosts"
+      ],
+      "title": "MembershipConfig"
+    },
+    "Udp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxDgramSize": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "title": "Udp"
+    }
+  }
+}

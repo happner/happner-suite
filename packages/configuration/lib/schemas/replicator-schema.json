@@ -1,0 +1,31 @@
+{
+  "$id": "replicator-schema.json",
+  "$ref": "#/definitions/Replicator",
+  "definitions": {
+    "Replicator": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ReplicatorConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "Replicator"
+    },
+    "ReplicatorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "securityChangesetReplicateInterval": {
+          "type": "integer"
+        }
+      },
+      "required": [
+      ],
+      "title": "ReplicatorConfig"
+    }
+  }
+}
