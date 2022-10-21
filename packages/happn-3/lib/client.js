@@ -812,8 +812,6 @@
               if (e) return reject(e);
               resolve(result);
             });
-            // login is called before socket connection established...
-            // seems ok (streams must be paused till open)
           });
         });
       })

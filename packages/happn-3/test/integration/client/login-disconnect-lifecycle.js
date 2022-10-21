@@ -52,6 +52,5 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     }
 
     await Promise.all(operations);
-    // await test.delay(5e3);
   }
 });
