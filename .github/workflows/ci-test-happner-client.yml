@@ -1,4 +1,4 @@
-name: CI happner
+name: CI happner client
 
 on: [push]
 
