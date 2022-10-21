@@ -1,0 +1,35 @@
+name: CI happner browser
+
+on: [push]
+
+jobs:
+  happner:
+    env:
+        RUNNING_IN_ACTIONS: yes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+
+    - run: npm i -g npm@7 --registry=https://registry.npmjs.org
+    - run: npm install
+
+    - run: npm run-script test-browser --workspace=happner-client
+    - run: npm run-script test-browser --workspace=happner-2
+
+

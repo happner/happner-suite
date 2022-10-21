@@ -19,7 +19,7 @@ const commons = require('happn-commons'),
   fs = commons.fs,
   zlib = require('zlib'),
   md5 = require('md5'),
-  minify = require('uglify-es').minify,
+  { minify } = require('terser'),
   normalize = require('path').normalize,
   dirname = require('path').dirname,
   sep = require('path').sep,
@@ -34,71 +34,9 @@ const commons = require('happn-commons'),
 function Packager(mesh) {
   // eslint-disable-next-line no-useless-catch
   try {
+    this.mesh = mesh;
     this.log = mesh.log.createLogger('Packager');
-    const happnerClientPath = dirname(require.resolve('happner-client'));
     mesh.tools.packages = this.packages = {};
-
-    if (process.env.NODE_ENV === 'production') {
-      this.ensureCacheDirectory();
-      if (this.loadCachedScript()) {
-        return;
-      }
-    }
-    var script1 = normalize(mesh._mesh.happn.server.services.session.script);
-    var script2 = Happn.packager.browserClient();
-
-    var script3 = normalize([__dirname, 'shared', 'logger.js'].join(sep));
-    var script4 = normalize([__dirname, 'shared', 'promisify.js'].join(sep));
-    var script5 = normalize([__dirname, 'shared', 'mesh-error.js'].join(sep));
-    var script6 = normalize([__dirname, 'shared', 'messenger.js'].join(sep));
-    var script7 = normalize([__dirname, 'shared', 'internals.js'].join(sep));
-    var script8 = normalize([__dirname, 'shared', 'mesh-client.js'].join(sep));
-
-    var script9 = require.resolve('happner-semver');
-
-    var script10 = [happnerClientPath, 'lib', 'builders', 'request-builder.js'].join(sep);
-    var script11 = [happnerClientPath, 'lib', 'providers', 'connection-provider.js'].join(sep);
-    var script12 = [happnerClientPath, 'lib', 'providers', 'implementors-provider.js'].join(sep);
-    var script13 = [happnerClientPath, 'lib', 'providers', 'operations-provider.js'].join(sep);
-    var script14 = [happnerClientPath, 'lib', 'happner-client.js'].join(sep);
-
-    this.scripts = [
-      { watch: false, min: false, file: script1 },
-      { watch: false, min: false, file: script2 },
-      { watch: false, min: false, file: script3 },
-      { watch: true, min: false, file: script4 },
-      { watch: true, min: false, file: script5 },
-      { watch: true, min: false, file: script6 },
-      { watch: true, min: false, file: script7 },
-      { watch: true, min: false, file: script8 },
-      { watch: true, min: false, file: script9 },
-      { watch: true, min: false, file: script10 },
-      { watch: true, min: false, file: script11 },
-      { watch: true, min: false, file: script12 },
-      { watch: true, min: false, file: script13 },
-      { watch: true, min: false, file: script14 },
-      // With watch = true When not running NODE_ENV=production the package is re-assembled
-      // when the file changes.
-    ];
-
-    //backwards compatible with older versions of happner-client
-    let happnerClientVersion = require(happnerClientPath + sep + 'package.json').version;
-    if (semver.coercedSatisfies(happnerClientVersion, '>=11.3.0')) {
-      this.scripts.push({
-        watch: true,
-        min: false,
-        file: [happnerClientPath, 'lib', 'providers', 'light-implementors-provider.js'].join(sep),
-      });
-      this.scripts.push({
-        watch: true,
-        min: false,
-        file: [happnerClientPath, 'lib', 'light-client.js'].join(sep),
-      });
-    } else
-      this.log.warn(
-        `light client functionality not available with installed client version ${happnerClientVersion}, must be >= 11.3.0`
-      );
-
     this.merged = {}; // final product, merges scripts
     this.__fileWatchers = [];
     this.__watchedFiles = {};
@@ -157,120 +95,235 @@ Packager.prototype.resolveScript = async function (script) {
   return script;
 };
 
-Packager.prototype.initialize = function (callback) {
-  if (!this.scripts) {
-    return callback();
+Packager.prototype.initializeScripts = function (callback) {
+  const happnerClientPath = dirname(require.resolve('happner-client'));
+  let error;
+  if (process.env.NODE_ENV === 'production') {
+    this.ensureCacheDirectory();
+    if (this.loadCachedScript()) {
+      return callback(null, true);
+    }
   }
+  Happn.packager
+    .browserClient()
+    .then(
+      (result) => {
+        this.scripts = [
+          {
+            watch: false,
+            min: false,
+            file: normalize(this.mesh._mesh.happn.server.services.session.script),
+          },
+          { watch: false, min: false, file: result },
+          {
+            watch: false,
+            min: false,
+            file: normalize([__dirname, 'shared', 'logger.js'].join(sep)),
+          },
+          {
+            watch: true,
+            min: false,
+            file: normalize([__dirname, 'shared', 'promisify.js'].join(sep)),
+          },
+          {
+            watch: true,
+            min: false,
+            file: normalize([__dirname, 'shared', 'mesh-error.js'].join(sep)),
+          },
+          {
+            watch: true,
+            min: false,
+            file: normalize([__dirname, 'shared', 'messenger.js'].join(sep)),
+          },
+          {
+            watch: true,
+            min: false,
+            file: normalize([__dirname, 'shared', 'internals.js'].join(sep)),
+          },
+          {
+            watch: true,
+            min: false,
+            file: normalize([__dirname, 'shared', 'mesh-client.js'].join(sep)),
+          },
+          { watch: true, min: false, file: require.resolve('happner-semver') },
+          {
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'builders', 'request-builder.js'].join(sep),
+          },
+          {
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'providers', 'connection-provider.js'].join(sep),
+          },
+          {
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'providers', 'implementors-provider.js'].join(sep),
+          },
+          {
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'providers', 'operations-provider.js'].join(sep),
+          },
+          {
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'happner-client.js'].join(sep),
+          },
+          // With watch = true When not running NODE_ENV=production the package is re-assembled
+          // when the file changes.
+        ];
 
-  this.log.$$TRACE('Building /api/client package');
-  const lstatPromise = util.promisify(fs.lstat);
-  return (
-    Promise.all(
-      this.scripts.map((script) => {
-        return new Promise((resolve) => {
-          // handle each script object
-
-          if (process.env.NODE_ENV === 'production' && !script.min) {
-            return this.resolveScript(script).then((resolvedScript) => {
-              var gotMinFile = resolvedScript.file.replace(/\.js$/, '.min.js');
-              // Production
-              lstatPromise(gotMinFile)
-                .then(() => {
-                  resolvedScript.file = gotMinFile;
-                  resolvedScript.min = true;
-                  resolve(resolvedScript);
-                })
-                .catch(() => {
-                  resolvedScript.min = false;
-                  resolve(resolvedScript);
-                });
-            });
-          }
-          // Not production
-          return resolve(script);
-        });
-      })
+        //backwards compatible with older versions of happner-client
+        let happnerClientVersion = require(happnerClientPath + sep + 'package.json').version;
+        if (semver.coercedSatisfies(happnerClientVersion, '>=11.3.0')) {
+          this.scripts.push({
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'providers', 'light-implementors-provider.js'].join(
+              sep
+            ),
+          });
+          this.scripts.push({
+            watch: true,
+            min: false,
+            file: [happnerClientPath, 'lib', 'light-client.js'].join(sep),
+          });
+        } else {
+          this.log.warn(
+            `light client functionality not available with installed client version ${happnerClientVersion}, must be >= 11.3.0`
+          );
+        }
+      },
+      (e) => {
+        error = e;
+      }
     )
+    .finally(() => {
+      callback(error);
+    });
+};
 
-      // Read the files
-      .then((scripts) => {
-        return Promise.all(
-          scripts.map((script) => {
-            this.log.$$TRACE('reading script %s', script.file);
-            return this.readFile(script.file);
-          })
-        );
-      })
+Packager.prototype.initialize = function (callback) {
+  this.log.$$TRACE('Building /api/client package');
+  this.initializeScripts((e, cached) => {
+    if (e) return callback(e);
+    if (cached) return callback();
+    const lstatPromise = util.promisify(fs.lstat);
+    return (
+      Promise.all(
+        this.scripts.map((script) => {
+          return new Promise((resolve) => {
+            // handle each script object
 
-      // Load the buffer data onto the scripts array
-      .then((buffers) => {
-        buffers.forEach((buf, i) => {
-          this.scripts[i].buf = buf;
-        });
-      })
+            if (process.env.NODE_ENV === 'production' && !script.min) {
+              return this.resolveScript(script).then((resolvedScript) => {
+                var gotMinFile = resolvedScript.file.replace(/\.js$/, '.min.js');
+                // Production
+                lstatPromise(gotMinFile)
+                  .then(() => {
+                    resolvedScript.file = gotMinFile;
+                    resolvedScript.min = true;
+                    resolve(resolvedScript);
+                  })
+                  .catch(() => {
+                    resolvedScript.min = false;
+                    resolve(resolvedScript);
+                  });
+              });
+            }
+            // Not production
+            return resolve(script);
+          });
+        })
+      )
 
-      // TODO: Watch where necessary...
-      //   In non production mode, it would
-      //   be ideal if changes to the component scripts
-      //   were detected, averting the need to restart the
-      //   server to get the updated script to the browser.
-
-      // Minifi if production
-      .then(() => {
-        this.scripts.forEach((script) => {
-          if (process.env.NODE_ENV === 'production' && !script.min) {
-            this.log.$$TRACE('minify script %s', script.file);
-            script.buf = minify(script.buf.toString()).code;
-          }
-        });
-      })
-
-      // Set watchers
-      .then(() => {
-        this.scripts.forEach((script) => {
-          if (!script.watch) return;
-          if (process.env.NODE_ENV === 'production') return;
-          this.log.$$TRACE('(non-production) watching %s', script.file);
-
-          if (this.__watchedFiles[script.file]) {
-            return;
-          }
-
-          this.__watchedFiles[script.file] = 1; // prevent too many listeners on file
-          // for systems that run many mesh nodes
-          // in one process
-          this.__fileWatchers.push(
-            fs.watch(script.file, { interval: 1000 }, (curr, prev) => {
-              if (prev.mtime > curr.mtime) return;
-              this.log.warn('changed %s', script.file);
-
-              this.readFile(script.file)
-                .then((buf) => {
-                  script.buf = buf;
-                  return this.assemble();
-                })
-                .then(() => {
-                  this.log.warn('reload done');
-                })
-                .catch((e) => {
-                  this.log.error('reload failed', e);
-                });
+        // Read the files
+        .then((scripts) => {
+          return Promise.all(
+            scripts.map((script) => {
+              this.log.$$TRACE('reading script %s', script.file);
+              return this.readFile(script.file);
             })
           );
-        });
-      })
+        })
 
-      // Assemble the package.
-      .then(() => {
-        return this.assemble();
-      })
+        // Load the buffer data onto the scripts array
+        .then((buffers) => {
+          buffers.forEach((buf, i) => {
+            this.scripts[i].buf = buf;
+          });
+        })
 
-      .then(function () {
-        callback(null);
-      })
+        // TODO: Watch where necessary...
+        //   In non production mode, it would
+        //   be ideal if changes to the component scripts
+        //   were detected, averting the need to restart the
+        //   server to get the updated script to the browser.
 
-      .catch(callback)
-  );
+        // Minifi if production
+        .then(() => {
+          return Promise.all(
+            this.scripts.map((script) => {
+              if (process.env.NODE_ENV === 'production' && !script.min) {
+                this.log.$$TRACE('minify script %s', script.file);
+                return minify(script.buf.toString());
+              }
+              return { code: script.buf.toString() };
+            })
+          );
+        })
+
+        // Set watchers and minified code
+        .then((minified) => {
+          this.scripts.forEach((script, scriptIndex) => {
+            script.code = minified[scriptIndex].code;
+
+            if (!script.watch) return;
+            if (process.env.NODE_ENV === 'production') return;
+            this.log.$$TRACE('(non-production) watching %s', script.file);
+
+            if (this.__watchedFiles[script.file]) {
+              return;
+            }
+
+            this.__watchedFiles[script.file] = 1; // prevent too many listeners on file
+            // for systems that run many mesh nodes
+            // in one process
+            this.__fileWatchers.push(
+              fs.watch(script.file, { interval: 1000 }, (curr, prev) => {
+                if (prev.mtime > curr.mtime) return;
+                this.log.warn('changed %s', script.file);
+
+                this.readFile(script.file)
+                  .then((buf) => {
+                    script.buf = buf;
+                    return this.assemble();
+                  })
+                  .then(() => {
+                    this.log.warn('reload done');
+                  })
+                  .catch((e) => {
+                    this.log.error('reload failed', e);
+                  });
+              })
+            );
+          });
+        })
+
+        // Assemble the package.
+        .then(() => {
+          return this.assemble();
+        })
+
+        .then(function () {
+          callback(null);
+        })
+
+        .catch(callback)
+    );
+  });
 };
 
 Packager.prototype.stop = function () {
@@ -292,7 +345,7 @@ Packager.prototype.assemble = function () {
     _this.merged.script = '';
 
     _this.scripts.forEach(function (script) {
-      _this.merged.script += script.buf.toString() + '\n';
+      _this.merged.script += script.code.toString() + '\n';
     });
 
     _this.merged.md5 = md5(_this.merged.script);

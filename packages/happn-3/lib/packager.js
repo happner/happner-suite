@@ -113,10 +113,14 @@ module.exports = {
     }
 
     if (!this.__cachedBrowserClient) await this.__createBrowserClient(options);
-    if (!dirPath) return this.__cachedBrowserClient;
+    if (!dirPath) {
+      return this.__cachedBrowserClient;
+    }
     fs.ensureDirSync(clientDirPath);
     fs.writeFileSync(clientFilePath, this.__cachedBrowserClient, 'utf8');
-    if (!options.contentsOnly) return clientFilePath;
+    if (!options.contentsOnly) {
+      return clientFilePath;
+    }
     return this.__cachedBrowserClient;
   },
 };
