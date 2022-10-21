@@ -1837,13 +1837,14 @@
   HappnClient.prototype.__destroySocket = function (socket, callback) {
     //possible socket end needs to do its thing, we destroy in the next tick
     setTimeout(() => {
+      var destroyError;
       try {
         socket.destroy();
       } catch (e) {
         this.log.warn('socket.destroy failed in client: ' + e.toString());
-        return callback(e);
+        destroyError = e;
       }
-      callback();
+      callback(destroyError);
     }, 0);
   };
 
