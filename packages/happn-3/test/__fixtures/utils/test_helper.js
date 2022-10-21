@@ -1,6 +1,8 @@
 const commons = require('happn-commons');
 const BaseTestHelper = require('happn-commons-test');
 class TestHelper extends BaseTestHelper {
+  #instances = [];
+  #sessions = [];
   constructor() {
     super();
     this.__testFiles = [];
@@ -34,8 +36,22 @@ class TestHelper extends BaseTestHelper {
     return new TestHelper();
   }
 
+  /**
+   * 
+   * @param {*} options 
+   * @param {(test: TestHelper)=>void} handler 
+   * @returns 
+   */
   static describe(options, handler) {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
+  }
+
+  get sessions () {
+    return this.#sessions;
+  }
+
+  get instances () {
+    return this.#instances;
   }
 
   newTestFile(options) {
@@ -134,16 +150,24 @@ doRequest (path, token) {
   }
   createInstance(config = {}) {
     return new Promise((resolve, reject) => {
-      this.happn.service.create(config, function(e, happnInst) {
+      this.happn.service.create(config, (e, happnInst) => {
         if (e) return reject(e);
+        this.#instances.push(happnInst);
         resolve(happnInst);
       });
     });
   }
 
+  createInstanceBefore(config = {}) {
+    before('it creates an instance', async () => {
+      return await this.createInstance(config);
+    });
+  };
+
   destroyInstance(instance) {
     return new Promise((resolve, reject) => {
       if (!instance) return resolve();
+      this.#instances.splice(this.#instances.indexOf(instance), 1);
       instance.stop(function(e) {
         if (e) return reject(e);
         resolve();
@@ -151,26 +175,51 @@ doRequest (path, token) {
     });
   }
 
-  createAdminWSSession() {
+  async destroyAllInstances() {
+    await Promise.all(this.#instances.map(instance => {
+      return this.destroyInstance(instance);
+    }));
+  }
+
+  destroyAllInstancesAfter() {
+    after('it destroys all test instances', async () => {
+      await this.destroyAllInstances();
+    });
+  }
+
+  createAdminWSSession(options = {}) {
     return new Promise((resolve, reject) => {
-      this.happn.client.create({ username: '_ADMIN', password: 'happn' }, function(e, session) {
+      this.happn.client.create(this._.merge({ username: '_ADMIN', password: 'happn' }, options), (e, session) => {
         if (e) return reject(e);
+        this.#sessions.push(session);
         resolve(session);
       });
     });
   }
 
+  createAdminWSSessionBefore() {
+    before('it creates an admin session', this.createAdminWSSession.bind(this));
+  }
+
   async destroySessions(sessions) {
-    for (let session of sessions) {
+    sessions = sessions || this.#sessions;
+    for (let session of sessions.slice()) {
       await this.destroySession(session);
     }
+  }
+
+  destroyAllSessionsAfter() {
+    after('it destroys all sessions', async () => {
+      await this.destroySessions();
+    });
   }
 
   destroySession(session) {
     return new Promise((resolve, reject) => {
       if (!session) return resolve();
-      session.disconnect(function(e) {
+      session.disconnect((e) => {
         if (e) return reject(e);
+        this.#sessions.splice(this.#sessions.indexOf(session), 1);
         resolve();
       });
     });

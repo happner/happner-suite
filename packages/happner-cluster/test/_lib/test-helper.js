@@ -12,7 +12,12 @@ module.exports = class TestHelper extends BaseTestHelper {
     this.getSeq = require('./helpers/getSeq');
     this.client = require('./client');
   }
-
+  /**
+   *
+   * @param {*} options
+   * @param {(test: TestHelper)=>void} handler
+   * @returns
+   */
   static describe(options, handler) {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
   }

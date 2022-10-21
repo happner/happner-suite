@@ -9,6 +9,12 @@ class TestHelper extends BaseTestHelper {
     return new TestHelper();
   }
 
+  /**
+   *
+   * @param {*} options
+   * @param {(test: TestHelper)=>void} handler
+   * @returns
+   */
   static describe(options, handler) {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
   }

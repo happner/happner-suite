@@ -1,3 +1,5 @@
+const { client } = require('../../../lib');
+
 require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   const HappnClient = require('../../../lib/client');
   const Constants = require('../../../lib/constants');
@@ -678,5 +680,35 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       cookieName: 'happn_token_specified',
       interval: 650,
     });
+  });
+
+  it('tests the request queue', async () => {
+    const Client = require('../../../lib/client');
+    const client = new Client();
+    const queue = client.createQueue();
+    const results = [];
+    queue.onFulfilled((result) => {
+      results.push(result);
+    });
+    queue.push(async () => {
+      await test.delay(500);
+      return 1;
+    });
+    queue.push(async () => {
+      await test.delay(300);
+      return 2;
+    });
+    queue.push(async () => {
+      await test.delay(100);
+      return 3;
+    });
+    queue.push(
+      async (arg1, arg2) => {
+        return arg1 + arg2;
+      },
+      [3, 1]
+    );
+    await test.delay(2e3);
+    test.expect(results).to.eql([1, 2, 3, 4]);
   });
 });

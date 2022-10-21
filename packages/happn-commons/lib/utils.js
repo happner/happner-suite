@@ -1,7 +1,7 @@
 module.exports = {
   /*
-     Shared between the browser client and the server and nodejs client
-     */
+    Shared between the browser client and the server and nodejs client
+  */
   prepareWildPath: function (path) {
     //strips out duplicate sequential wildcards, ie simon***bishop -> simon*bishop
     return path.replace(/(.)\1+/g, '*');
