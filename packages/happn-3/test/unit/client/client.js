@@ -1,5 +1,3 @@
-const { client } = require('../../../lib');
-
 require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test) => {
   const HappnClient = require('../../../lib/client');
   const Constants = require('../../../lib/constants');
