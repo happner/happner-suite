@@ -10,23 +10,8 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipSeed(isSeed) {
-    this.set(`config.seed`, isSeed, BaseBuilder.Types.BOOLEAN);
-    return this;
-  }
-
-  withMembershipSeedWait(wait) {
-    this.set(`config.seedWait`, wait, BaseBuilder.Types.INTEGER);
-    return this;
-  }
-
-  withMembershipRandomWait(wait) {
-    this.set(`config.randomWait`, wait, BaseBuilder.Types.INTEGER);
-    return this;
-  }
-
-  withMembershipJoinType(joinType) {
-    this.set(`config.joinType`, joinType, BaseBuilder.Types.STRING);
+  withMembershipDisseminationFactor(factor) {
+    this.set(`config.disseminationFactor`, factor, BaseBuilder.Types.INTEGER);
     return this;
   }
 
@@ -35,18 +20,18 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipMemberHost(host) {
-    this.push(`config.hosts`, host, BaseBuilder.Types.STRING);
-    return this;
-  }
-
-  withMembershipPort(host) {
-    this.set(`config.port`, host, BaseBuilder.Types.INTEGER);
+  withMembershipJoinType(joinType) {
+    this.set(`config.joinType`, joinType, BaseBuilder.Types.STRING);
     return this;
   }
 
   withMembershipJoinTimeout(timeout) {
     this.set(`config.joinTimeout`, timeout, BaseBuilder.Types.INTEGER);
+    return this;
+  }
+
+  withMembershipMemberHost(host) {
+    this.push(`config.hosts`, host, BaseBuilder.Types.STRING);
     return this;
   }
 
@@ -70,13 +55,28 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipUdpMaxDgramSize(size) {
-    this.set(`config.udp.maxDgramSize`, size, BaseBuilder.Types.INTEGER);
+  withMembershipPort(host) {
+    this.set(`config.port`, host, BaseBuilder.Types.INTEGER);
     return this;
   }
 
-  withMembershipDisseminationFactor(factor) {
-    this.set(`config.disseminationFactor`, factor, BaseBuilder.Types.INTEGER);
+  withMembershipRandomWait(wait) {
+    this.set(`config.randomWait`, wait, BaseBuilder.Types.INTEGER);
+    return this;
+  }
+
+  withMembershipSeed(isSeed) {
+    this.set(`config.seed`, isSeed, BaseBuilder.Types.BOOLEAN);
+    return this;
+  }
+
+  withMembershipSeedWait(wait) {
+    this.set(`config.seedWait`, wait, BaseBuilder.Types.INTEGER);
+    return this;
+  }
+
+  withMembershipUdpMaxDgramSize(size) {
+    this.set(`config.udp.maxDgramSize`, size, BaseBuilder.Types.INTEGER);
     return this;
   }
 };

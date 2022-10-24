@@ -9,6 +9,11 @@ const securitySchema = require('../schemas/services-security-schema.json');
 const subscriptionSchema = require('../schemas/subscription-schema.json');
 const systemSchema = require('../schemas/system-schema.json');
 const transportSchema = require('../schemas/transport-schema.json');
+const healthSchema = require('../schemas/health-schema.json');
+const membershipSchema = require('../schemas/membership-schema.json');
+const orchestratorSchema = require('../schemas/orchestrator-schema.json');
+const proxySchema = require('../schemas/proxy-schema.json');
+const replicatorSchema = require('../schemas/replicator-schema.json');
 const FieldTypeValidator = require('../validators/field-type-validator');
 
 module.exports = class ConfigValidator {
@@ -27,6 +32,11 @@ module.exports = class ConfigValidator {
         subscriptionSchema,
         systemSchema,
         transportSchema,
+        healthSchema,
+        membershipSchema,
+        orchestratorSchema,
+        proxySchema,
+        replicatorSchema,
       ],
       strictNumbers: false, // to handle Infinity types
     });
@@ -90,6 +100,26 @@ module.exports = class ConfigValidator {
 
   validateTransportConfig(config) {
     return this.#validate(config, transportSchema);
+  }
+
+  validateHealthConfig(config) {
+    return this.#validate(config, healthSchema);
+  }
+
+  validateMembershipConfig(config) {
+    return this.#validate(config, membershipSchema);
+  }
+
+  validateOrchestratorConfig(config) {
+    return this.#validate(config, orchestratorSchema);
+  }
+
+  validateProxyConfig(config) {
+    return this.#validate(config, proxySchema);
+  }
+
+  validateReplicatorConfig(config) {
+    return this.#validate(config, replicatorSchema);
   }
 
   validateHappnConfig(config) {
