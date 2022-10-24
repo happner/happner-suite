@@ -5,15 +5,23 @@ The `Configuration` package is concerned with providing a more structured and in
 
 ## happn services
 
-
-## happn-cluster services
-
+- cache
+- connect
 - data
+- protocol
+- publisher
+- security
+- subscription
+- system
+- transport
+
+## happn-cluster services (in addition to the above services)
+
+- health
 - membership
 - orchestrator
-- replicator
 - proxy
-- health
+- replicator
 
 ## The Configuration class
 
