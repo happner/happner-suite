@@ -786,6 +786,19 @@ class TestHelper extends BaseTestHelper {
         });
     });
   }
+
+  async httpPost(url, data, opts) {
+    return new Promise((resolve, reject) => {
+      this.restler
+        .postJson(url, data, opts)
+        .on('complete', function (result) {
+          if (result.error) {
+            return reject(result.error);
+          }
+          resolve(result.data);
+        });
+    });
+  }
 }
 
 module.exports = TestHelper;
