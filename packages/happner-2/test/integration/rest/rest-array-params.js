@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   test.createServersBefore({
     secure: true,
     modules: {
