@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const HealthConfigBuilder = require('../../../lib/builders/health-config-builder');
+const HealthConfigBuilder = require('../../../lib/builders/services/health-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a health config object', () => {

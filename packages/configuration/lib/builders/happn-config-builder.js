@@ -1,5 +1,5 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-const ROOT = 'happn.services';
+const ROOT = require('../constants/config-constants').HAPPN_CONFIG_ROOT;
 
 module.exports = class HappnConfigBuilder extends BaseBuilder {
   constructor() {

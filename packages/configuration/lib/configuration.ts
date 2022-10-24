@@ -1,13 +1,13 @@
 import HappnConfigBuilder from './builders/happn-config-builder';
-import CacheConfigBuilder from './builders/cache-config-builder';
-import ConnectConfigBuilder from './builders/connect-config-builder';
-import DataConfigBuilder from './builders/data-config-builder';
-import ProtocolConfigBuilder from './builders/protocol-config-builder';
-import PublisherConfigBuilder from './builders/publisher-config-builder';
-import SecurityConfigBuilder from './builders/security-config-builder';
-import SubscriptionConfigBuilder from './builders/subscription-config-builder';
-import SystemConfigBuilder from './builders/system-config-builder';
-import TransportConfigBuilder from './builders/transport-config-builder';
+import CacheConfigBuilder from './builders/services/cache-config-builder';
+import ConnectConfigBuilder from './builders/services/connect-config-builder';
+import DataConfigBuilder from './builders/services/data-config-builder';
+import ProtocolConfigBuilder from './builders/services/protocol-config-builder';
+import PublisherConfigBuilder from './builders/services/publisher-config-builder';
+import SecurityConfigBuilder from './builders/services/security-config-builder';
+import SubscriptionConfigBuilder from './builders/services/subscription-config-builder';
+import SystemConfigBuilder from './builders/services/system-config-builder';
+import TransportConfigBuilder from './builders/services/transport-config-builder';
 
 export class Configuration {
   #happnConfigBuilder: HappnConfigBuilder;

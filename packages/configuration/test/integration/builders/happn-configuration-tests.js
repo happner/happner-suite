@@ -1,15 +1,15 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
 const { Configuration } = require('../../../lib/configuration');
-const CacheConfigBuilder = require('../../../lib/builders/cache-config-builder');
-const ConnectConfigBuilder = require('../../../lib/builders/connect-config-builder');
-const DataConfigBuilder = require('../../../lib/builders/data-config-builder');
-const ProtocolConfigBuilder = require('../../../lib/builders/protocol-config-builder');
-const PublisherConfigBuilder = require('../../../lib/builders/publisher-config-builder');
-const SecurityConfigBuilder = require('../../../lib/builders/security-config-builder');
-const SubscriptionConfigBuilder = require('../../../lib/builders/subscription-config-builder');
-const SystemConfigBuilder = require('../../../lib/builders/system-config-builder');
-const TransportConfigBuilder = require('../../../lib/builders/transport-config-builder');
+const CacheConfigBuilder = require('../../../lib/builders/services/cache-config-builder');
+const ConnectConfigBuilder = require('../../../lib/builders/services/connect-config-builder');
+const DataConfigBuilder = require('../../../lib/builders/services/data-config-builder');
+const ProtocolConfigBuilder = require('../../../lib/builders/services/protocol-config-builder');
+const PublisherConfigBuilder = require('../../../lib/builders/services/publisher-config-builder');
+const SecurityConfigBuilder = require('../../../lib/builders/services/security-config-builder');
+const SubscriptionConfigBuilder = require('../../../lib/builders/services/subscription-config-builder');
+const SystemConfigBuilder = require('../../../lib/builders/services/system-config-builder');
+const TransportConfigBuilder = require('../../../lib/builders/services/transport-config-builder');
 const HappnConfigBuilder = require('../../../lib/builders/happn-config-builder');
 const FieldTypeValidator = require('../../../lib/validators/field-type-validator');
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ProtocolConfigBuilder = require('../../../lib/builders/protocol-config-builder');
+const ProtocolConfigBuilder = require('../../../lib/builders/services/protocol-config-builder');
 const FieldTypeValidator = require('../../../lib/validators/field-type-validator');
 
 describe(helper.testName(), function () {
