@@ -5,7 +5,7 @@ const ConfigValidator = require('../../../lib/validators/config-validator');
 describe(helper.testName(), function () {
   const validator = new ConfigValidator();
 
-  it('validates full health config', () => {
+  it('validates full membership config', () => {
     const membershipConfig = createValidMembershipConfig();
     const result = validator.validateMembershipConfig(membershipConfig);
 
@@ -16,7 +16,7 @@ describe(helper.testName(), function () {
   clusterName
    */
 
-  it('invalidates health config with missing clusterName', () => {
+  it('invalidates membership config with missing clusterName', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.clusterName;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -24,7 +24,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(false);
   });
 
-  it('invalidates health config with invalid clusterName', () => {
+  it('invalidates membership config with invalid clusterName', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.clusterName = 7897438247;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -37,7 +37,7 @@ describe(helper.testName(), function () {
   disseminationFactor
    */
 
-  it('validates health config with missing disseminationFactor', () => {
+  it('validates membership config with missing disseminationFactor', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.disseminationFactor;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -45,7 +45,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid disseminationFactor', () => {
+  it('invalidates membership config with invalid disseminationFactor', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.disseminationFactor = 'invalid-factor';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -58,7 +58,7 @@ describe(helper.testName(), function () {
   host
    */
 
-  it('invalidates health config with missing host', () => {
+  it('invalidates membership config with missing host', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.host;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -67,7 +67,7 @@ describe(helper.testName(), function () {
     helper.expect(result.errors[0].message).to.equal("must have required property 'host'");
   });
 
-  it('invalidates health config with invalid host', () => {
+  it('invalidates membership config with invalid host', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.host = 2893129837;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -80,7 +80,7 @@ describe(helper.testName(), function () {
   joinType
    */
 
-  it('validates health config with missing joinType', () => {
+  it('validates membership config with missing joinType', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.joinType;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -88,7 +88,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid joinType', () => {
+  it('invalidates membership config with invalid joinType', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.joinType = 3284324;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -101,7 +101,7 @@ describe(helper.testName(), function () {
   joinTimeout
    */
 
-  it('validates health config with missing joinTimeout', () => {
+  it('validates membership config with missing joinTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.joinTimeout;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -109,7 +109,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid joinTimeout', () => {
+  it('invalidates membership config with invalid joinTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.joinTimeout = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -122,7 +122,7 @@ describe(helper.testName(), function () {
   hosts
    */
 
-  it('invalidates health config with missing hosts', () => {
+  it('invalidates membership config with missing hosts', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.hosts;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -131,7 +131,7 @@ describe(helper.testName(), function () {
     helper.expect(result.errors[0].message).to.equal("must have required property 'hosts'");
   });
 
-  it('invalidates health config with invalid hosts', () => {
+  it('invalidates membership config with invalid hosts', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.hosts[0] = 2893129837;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -144,7 +144,7 @@ describe(helper.testName(), function () {
   pingInterval
    */
 
-  it('validates health config with missing pingInterval', () => {
+  it('validates membership config with missing pingInterval', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.pingInterval;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -152,7 +152,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid pingInterval', () => {
+  it('invalidates membership config with invalid pingInterval', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.pingInterval = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -165,7 +165,7 @@ describe(helper.testName(), function () {
   pingTimeout
    */
 
-  it('validates health config with missing pingTimeout', () => {
+  it('validates membership config with missing pingTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.pingTimeout;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -173,7 +173,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid pingTimeout', () => {
+  it('invalidates membership config with invalid pingTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.pingTimeout = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -186,7 +186,7 @@ describe(helper.testName(), function () {
   pingReqTimeout
    */
 
-  it('validates health config with missing pingReqTimeout', () => {
+  it('validates membership config with missing pingReqTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.pingReqTimeout;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -194,7 +194,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid pingReqTimeout', () => {
+  it('invalidates membership config with invalid pingReqTimeout', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.pingReqTimeout = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -207,7 +207,7 @@ describe(helper.testName(), function () {
   pingReqGroupSize
    */
 
-  it('validates health config with missing pingReqGroupSize', () => {
+  it('validates membership config with missing pingReqGroupSize', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.pingReqGroupSize;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -215,7 +215,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid pingReqGroupSize', () => {
+  it('invalidates membership config with invalid pingReqGroupSize', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.pingReqGroupSize = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -228,7 +228,7 @@ describe(helper.testName(), function () {
   port
    */
 
-  it('invalidates health config with missing port', () => {
+  it('invalidates membership config with missing port', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.port;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -237,7 +237,7 @@ describe(helper.testName(), function () {
     helper.expect(result.errors[0].message).to.equal("must have required property 'port'");
   });
 
-  it('invalidates health config with invalid port', () => {
+  it('invalidates membership config with invalid port', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.port = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -250,7 +250,7 @@ describe(helper.testName(), function () {
  randomWait
   */
 
-  it('validates health config with missing randomWait', () => {
+  it('validates membership config with missing randomWait', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.randomWait;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -258,7 +258,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid randomWait', () => {
+  it('invalidates membership config with invalid randomWait', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.randomWait = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -271,7 +271,7 @@ describe(helper.testName(), function () {
  seed - TODO: is this required?
   */
 
-  it('validates health config with missing seed', () => {
+  it('validates membership config with missing seed', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.seed;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -279,7 +279,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid seed', () => {
+  it('invalidates membership config with invalid seed', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.seed = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -292,7 +292,7 @@ describe(helper.testName(), function () {
  udp.maxDgramSize - TODO: is this required?
   */
 
-  it('validates health config with missing udp', () => {
+  it('validates membership config with missing udp', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.udp;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -300,7 +300,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('validates health config with missing udp.maxDgramSize', () => {
+  it('validates membership config with missing udp.maxDgramSize', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.udp.maxDgramSize;
     const result = validator.validateMembershipConfig(membershipConfig);
@@ -308,7 +308,7 @@ describe(helper.testName(), function () {
     helper.expect(result.valid).to.equal(true);
   });
 
-  it('invalidates health config with invalid udp.maxDgramSize', () => {
+  it('invalidates membership config with invalid udp.maxDgramSize', () => {
     const membershipConfig = createValidMembershipConfig();
     membershipConfig.config.udp.maxDgramSize = 'invalid-type';
     const result = validator.validateMembershipConfig(membershipConfig);

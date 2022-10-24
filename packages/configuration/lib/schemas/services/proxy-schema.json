@@ -39,6 +39,7 @@
         }
       },
       "required": [
+        "host"
       ],
       "title": "ProxyConfig"
     }
