@@ -162,32 +162,6 @@ function __validate(validationType, options, obj, callback) {
     );
   }
 
-  if (validationType === 'permission') {
-    var permissionGroup = options[1];
-
-    if (!permissionGroup)
-      return callback(new Error('validation error: you need a group to add a permission to'));
-    if (!permissionGroup._meta.path)
-      return callback(
-        new Error(
-          'validation error: permission group path is not in your request, have you included the _meta?'
-        )
-      );
-
-    return this.dataService.get(permissionGroup._meta.path, {}, (e, result) => {
-      if (e) return callback(e);
-
-      if (!result)
-        return callback(
-          new Error(
-            'validation error: permission group does not exist: ' + permissionGroup._meta.path
-          )
-        );
-
-      callback();
-    });
-  }
-
   return callback(new Error('Unknown validation type: ' + validationType));
 }
 
