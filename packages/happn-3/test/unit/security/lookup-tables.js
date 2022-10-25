@@ -899,6 +899,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       );
   });
 
+  it('tests authorizeGroup, returns false if permissions.length is equal to 0', async () => {
+    const lookupTables = new LookupTables();
+    let path = '/{{username}}/{{company}}/test';
+    let user = { username: ['1', '2'], company: ['3', '4', '5'] };
+    let matches = [];
+
+    lookupTables.dataService = {
+      get: test.sinon.stub(),
+      extractData: test.sinon.stub().returns([]),
+    };
+
+    const result = lookupTables.authorizeGroup(user, path, matches);
+
+    await test.chai.expect(result).to.eventually.be.false;
+  });
+
   function sortPermissions(perms) {
     return perms.sort((a, b) => (a.path < b.path ? -1 : 1));
   }
