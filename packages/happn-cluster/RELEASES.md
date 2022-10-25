@@ -268,7 +268,22 @@ non-release 2017-12-14
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
-13.0.0 2022-05-17
+12.0.8 2022-05-26
+-----------------
+  - updates to commons libs, lint-fixes, updated all ip addresses in test to 127.0.0.1:
+  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
+  - TEN-54: all systems tested on node v18
+
+12.0.9 2022-06-02
+-----------------
+  - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
+
+12.0.10 2022-06-09
+-----------------
+  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
+
+13.0.0 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
+
 

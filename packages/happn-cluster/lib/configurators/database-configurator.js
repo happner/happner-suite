@@ -1,6 +1,5 @@
 //const commons = require('happn-commons');
 module.exports = class DatabaseConfigurator {
-  
   static create() {
     return new DatabaseConfigurator();
   }
@@ -32,4 +31,3 @@ module.exports = class DatabaseConfigurator {
     });
   }
 };
-

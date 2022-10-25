@@ -1,20 +1,20 @@
+const NODE_MAJOR_VERSION = process.versions.node.split('.')[0];
+const ip4Family = NODE_MAJOR_VERSION < 18 ? 'IPv4' : 4;
 // return specific address on specific NIC, or first external ipv4 address on on specific NIC or eth0 (default)
 // os and env arguments make the code testable
-module.exports = function(logger, env, os) {
+module.exports = function (logger, env, os) {
   logger = logger || console;
-  os = os || require("os");
+  os = os || require('os');
   env = env || process.env;
-  return function(interfaces) {
-    let networkInterfaceId = env["NETWORK_INTERFACE_ID"] || "eth0";
+  return function (interfaces) {
+    let networkInterfaceId = env['NETWORK_INTERFACE_ID'] || 'eth0';
     interfaces = interfaces || os.networkInterfaces();
+
     if (!interfaces[networkInterfaceId]) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
-    let interfaceItemIndex = parseInt(env["NETWORK_INTERFACE"] || 0);
-    if (
-      isNaN(interfaceItemIndex) ||
-      interfaceItemIndex >= interfaces[networkInterfaceId].length
-    ) {
+    let interfaceItemIndex = parseInt(env['NETWORK_INTERFACE'] || 0);
+    if (isNaN(interfaceItemIndex) || interfaceItemIndex >= interfaces[networkInterfaceId].length) {
       return getFirstAvailableAddress(networkInterfaceId, logger, os);
     }
     return interfaces[networkInterfaceId][interfaceItemIndex].address;
@@ -30,13 +30,13 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
       found.forEach((interfaceItem, interfaceItemIndex) => {
         if (
           !interfaceItem.internal &&
-          interfaceItem.family === "IPv4" &&
-          interfaceItem.address.indexOf("169.254") !== 0
+          interfaceItem.family === ip4Family &&
+          interfaceItem.address.indexOf('169.254') !== 0
         ) {
           candidates.push({
             nic: interfaceKey,
             index: interfaceItemIndex,
-            address: interfaceItem.address
+            address: interfaceItem.address,
           });
         }
       });
@@ -50,7 +50,5 @@ function getFirstAvailableAddress(interfaceId, logger, os) {
     return candidates[0].address;
   }
 
-  throw new Error(
-    `get address for SWIM or cluster: interface with id [${interfaceId}] not found`
-  );
+  throw new Error(`get address for SWIM or cluster: interface with id [${interfaceId}] not found`);
 }

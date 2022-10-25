@@ -62,17 +62,11 @@ module.exports = class Member {
   }
 
   get peer() {
-    return !!(
-      this.name &&
-      this.connectedTo &&
-      this.connectedFrom &&
-      this.subscribedTo &&
-      !this.error
-    );
+    return !!(this.name && this.connectedTo && this.subscribedTo && !this.error);
   }
 
   async connect(loginConfig) {
-    if (this.connectingTo || this.connectedTo) return;
+    if (this.connectingTo || this.connectedTo || this.client) return;
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -101,6 +95,7 @@ module.exports = class Member {
       this.log.warn(thisError.toString());
       return this.orchestrator.__stateUpdate(this);
     }
+    this.connectedTo = true;
 
     this.__disconnectServerSide = client.onEvent(
       'server-side-disconnect',
@@ -120,7 +115,6 @@ module.exports = class Member {
     );
 
     this.connectingTo = false;
-    this.connectedTo = true;
     this.client = client;
     this.name = client.serverInfo.name;
     this.orchestrator.__stateUpdate(this);
@@ -155,12 +149,18 @@ module.exports = class Member {
       throw error;
     }
   }
+  async stopClient() {
+    if (this.client) {
+      await this.client.disconnect({ reconnect: false });
+      await this.client.stop();
+      this.client = null;
+    }
+  }
 
   async stop() {
     if (this.client == null || this.client.status === 2) return; //dont try disconnect again
-    this.client.disconnect();
+    await this.stopClient();
     this.connectedTo = false;
-    this.client.session = null;
   }
 
   __onHappnDisconnect() {
