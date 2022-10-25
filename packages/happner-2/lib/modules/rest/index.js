@@ -331,6 +331,11 @@ Rest.prototype.__mapMethodArguments = function (
     this.__respond($happn, 'Call successful', response, null, res);
   };
 
+  // if we are passing in an array of arguments, they have already been intentionally mapped by the user
+  if (Array.isArray(body)) {
+    return body.concat([__callback]);
+  }
+
   let callbackFound = false;
   if (!body.parameters) body.parameters = {};
 
