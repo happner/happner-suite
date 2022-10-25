@@ -52,6 +52,12 @@ module.exports = class BaseBuilder {
     return this;
   }
 
+  setOnRoot(fieldIndex, fieldName, value, type) {
+    if (Object.keys(this.__data)[fieldIndex] === undefined)
+      throw new Error(`parent has no field at index ${fieldIndex}`);
+    return this.set(`${Object.keys(this.__data)[0]}.${fieldName}`, value, type);
+  }
+
   required(arrPropertyNames) {
     if (!Array.isArray(arrPropertyNames))
       throw new Error(`argument [arrPropertyNames] at position 0 must be a string array`);
