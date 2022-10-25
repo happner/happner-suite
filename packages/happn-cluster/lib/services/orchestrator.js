@@ -6,7 +6,7 @@ const EventEmitter = require('events').EventEmitter;
 const ServiceEntry = require('./orchestrator/serviceEntry');
 const getAddress = require('../utils/get-address');
 const CONSTANTS = require('./orchestrator/constants');
-var property = require('../utils/property');
+const property = require('../utils/property');
 const { performance } = require('perf_hooks');
 const NodeUtil = require('util');
 
@@ -178,7 +178,7 @@ module.exports = class Orchestrator extends EventEmitter {
     let endpoints = await this.fetchEndpoints();
     for (let [name, service] of Object.entries(this.registry)) {
       service.setEndpoints(endpoints[name] || []);
-      await service.cleanupMembers();
+      // await service.cleanupMembers();
     }
   }
 

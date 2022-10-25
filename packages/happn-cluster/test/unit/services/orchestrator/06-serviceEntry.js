@@ -126,38 +126,38 @@ require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) 
       test.expect(serviceEntry.endpoints).to.eql(['1', '2', '3']);
     });
 
-    it('tests the cleanupEndpoints method', (done) => {
-      let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
+    // it('tests the cleanupEndpoints method', (done) => {
+    //   let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);
 
-      let stopped = false;
+    //   let stopped = false;
 
-      serviceEntry.members = {
-        member1: { endpoint: 'member1' },
-        member2: { endpoint: 'member2' },
-        member3: {
-          endpoint: 'member3',
-          stop: async () => {
-            stopped = true;
-          },
-        },
-      };
-      orchestrator.removePeer = async (peer) => {
-        try {
-          test.expect(peer).to.be(serviceEntry.members.member3);
-          test.expect(stopped).to.be(true);
-          await test.delay(100); // peer removed is called before member is deleted
-          test.expect(serviceEntry.members).to.eql({
-            member1: { endpoint: 'member1' },
-            member2: { endpoint: 'member2' },
-          });
-          done();
-        } catch (e) {
-          done(e);
-        }
-      };
-      serviceEntry.setEndpoints(['member1', 'member2']);
-      serviceEntry.cleanupMembers();
-    });
+    //   serviceEntry.members = {
+    //     member1: { endpoint: 'member1' },
+    //     member2: { endpoint: 'member2' },
+    //     member3: {
+    //       endpoint: 'member3',
+    //       stop: async () => {
+    //         stopped = true;
+    //       },
+    //     },
+    //   };
+    //   orchestrator.removePeer = async (peer) => {
+    //     try {
+    //       test.expect(peer).to.be(serviceEntry.members.member3);
+    //       test.expect(stopped).to.be(true);
+    //       await test.delay(100); // peer removed is called before member is deleted
+    //       test.expect(serviceEntry.members).to.eql({
+    //         member1: { endpoint: 'member1' },
+    //         member2: { endpoint: 'member2' },
+    //       });
+    //       done();
+    //     } catch (e) {
+    //       done(e);
+    //     }
+    //   };
+    //   serviceEntry.setEndpoints(['member1', 'member2']);
+    //   serviceEntry.cleanupMembers();
+    // });
 
     it('tests addMembers method', (done) => {
       let serviceEntry = ServiceEntry.create('New Service2', 3, orchestrator);

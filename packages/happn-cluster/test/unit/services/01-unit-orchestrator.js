@@ -630,32 +630,29 @@ require('../../lib/test-helper').describe({ timeout: 5e3 }, function (test) {
         test.expect(o.peers['10-0-0-1_55001']).to.not.be(undefined);
         await o.on('peer/remove', async (name, member) => {
           test.expect(name).to.equal('10-0-0-1_55001');
-
           // it remains a member (reconnect loop) ...
           test.expect(member).to.equal(o.members['10.0.0.1:55001']);
-
           test.expect(o.members['10.0.0.1:55001']).to.not.be(undefined);
-
           // ...until DB confirms
-          delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.1:55001'];
-          await test.delay(300);
-          // await o.memberCheck();
-          test.expect(o.members['10.0.0.1:55001']).to.be(undefined);
+          // delete o.happn.services.data.storage['/_SYSTEM/DEPLOYMENT/10.0.0.1:55001'];
+          // await test.delay(300);
+          // // await o.memberCheck();
+          // test.expect(o.members['10.0.0.1:55001']).to.be(undefined);
 
           done();
         });
-        MockHappnClient.instances['10-0-0-1_55001'].emitDisconnect();
-        MockSession.instance.emit('connection-ended', {
-          info: {
-            name: '10-0-0-1_55001',
-            clusterName: 'happn-cluster',
-            endpoint: '10.0.0.1:55001',
-            serviceName: 'happn-cluster-node',
-          },
-        });
+        // MockSession.instance.emit('connection-ended', {
+        //   info: {
+        //     name: '10-0-0-1_55001',
+        //     clusterName: 'happn-cluster',
+        //     endpoint: '10.0.0.1:55001',
+        //     serviceName: 'happn-cluster-node',
+        //   },
+        // });
 
         await new Promise((resolve) => {
           done = resolve;
+          MockHappnClient.instances['10-0-0-1_55001'].emitDisconnect();
         });
         o.stop();
       });

@@ -54,8 +54,8 @@ module.exports = class ServiceEntry {
     return this.numPeers >= this.expected;
   }
 
-  setEndpoints(found) {
-    this.endpoints = found || [];
+  setEndpoints(found = []) {
+    this.endpoints = found;
   }
 
   addMembers() {
@@ -95,13 +95,13 @@ module.exports = class ServiceEntry {
     return this.orchestrator.__stateUpdate(this.members[member.endpoint]);
   }
 
-  async cleanupMembers() {
-    for (let [endpoint, member] of Object.entries(this.members)) {
-      if (!this.endpoints.includes(endpoint)) {
-        await member.stop();
-        this.orchestrator.removePeer(member);
-        this.removeMember(member);
-      }
-    }
-  }
+  // async cleanupMembers() {
+  //   for (let [endpoint, member] of Object.entries(this.members)) {
+  //     if (!this.endpoints.includes(endpoint)) {
+  //       await member.stop();
+  //       this.orchestrator.removePeer(member);
+  //       this.removeMember(member);
+  //     }
+  //   }
+  // }
 };
