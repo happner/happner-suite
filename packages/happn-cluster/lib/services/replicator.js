@@ -59,8 +59,8 @@ Replicator.prototype.stop = function (options, callback) {
   callback();
 };
 
-Replicator.prototype.start = require('util').promisify(function (callback) {
-  property(this, 'localClient', this.happn.services.orchestrator.members.__self.client);
+Replicator.prototype.start = util.promisify(function (callback) {
+  property(this, 'localClient', this.happn.services.orchestrator.localClient);
   this.securityChangesetReplicate();
   this.localClient.on(
     '/__REPLICATE',
@@ -174,8 +174,7 @@ Replicator.prototype.emitSecurityDataChanged = function (payload, isLocal, origi
 };
 
 Replicator.prototype.__defaults = function (callback) {
-  if (!this.config.securityChangesetReplicateInterval) {
-    this.config.securityChangesetReplicateInterval = 3e3;
-  }
+  if (!this.config.securityChangesetReplicateInterval)
+    this.config.securityChangesetReplicateInterval = 3000;
   callback();
 };

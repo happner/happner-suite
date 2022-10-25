@@ -250,7 +250,7 @@ non-release 2017-12-14
 -----------------
   - TEN-92, TEN-93: logging levels and events
   - TEN-102: loki snapshot  file redundancy
-
+  
 12.0.4 2022-04-06
 -----------------
   - TEN-103: set default timeout on component loading wait warning to 30secs
@@ -268,46 +268,7 @@ non-release 2017-12-14
 -----------------
   - TEN-114: happner-2: enforce MESH_GST, MESH_ADMIN upsert on startup, ensures db dir
 
-12.0.8 2022-05-26
+13.0.0 2022-05-17
 -----------------
-  - updates to commons libs, lint-fixes, updated all ip addresses in test to 127.0.0.1:
-  - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer
-  - TEN-54: all systems tested on node v18
-
-12.0.9 2022-06-02
------------------
-  - TEN-49: fixed persisted cache and loki provider issues, caused by revoked tokens
-
-12.0.10 2022-06-09
------------------
-  - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
-
-12.0.11 2022-06-28
------------------
-  - TEN-123: fix to getaddress - issue with bad breaking release in node 18.4
-
-12.0.12 2022-07-14
------------------
-  - TEN-125: body-parser v1.20.0 causes memory leak
-
-12.0.13 2022-08-07
------------------
-  - TEN-31: updated unit tests
-
-12.0.14 2022-09-08
------------------
-  - TEN-130: happn-logger update
-
-12.1.0 2022-10-22
------------------
-  - TEN-123: getAddress changes
-
-12.1.1 2022-10-03
------------------
-  - TEN-132: happn updates
-
-12.2.0 2022-10-12
------------------
-  - TEN-143: ws and primus update in happn-primus-wrapper
-  - TEN-101: removed elasticsearch support
+  - SMC-4817: mongo-based membership strategy
 
