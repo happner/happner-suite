@@ -1318,6 +1318,9 @@ function generateSession(user, sessionId, credentials, tokenLogin, additionalInf
   //if we are logging in via websockets (and possibly the browser), we want to ensure the correct cookie name is used
   if (this.config.httpsCookie && sessionId) {
     let sessionInfo = this.sessionService.getSession(sessionId);
+    if (sessionInfo == null) {
+      return null;
+    }
     if (
       sessionInfo.headers['x-forwarded-proto'] === 'https' ||
       sessionInfo.headers['x-forwarded-proto'] === 'wss' ||
