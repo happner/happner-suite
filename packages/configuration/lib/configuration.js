@@ -10,17 +10,22 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Configuration_happnConfigBuilder, _Configuration_cacheConfigBuilder, _Configuration_connectConfigBuilder, _Configuration_dataConfigBuilder, _Configuration_protocolConfigBuilder, _Configuration_publisherConfigBuilder, _Configuration_securityConfigBuilder, _Configuration_subscriptionConfigBuilder, _Configuration_systemConfigBuilder, _Configuration_transportConfigBuilder;
+var _Configuration_happnConfigBuilder, _Configuration_cacheConfigBuilder, _Configuration_connectConfigBuilder, _Configuration_dataConfigBuilder, _Configuration_healthConfigBuilder, _Configuration_membershipConfigBuilder, _Configuration_orchestratorConfigBuilder, _Configuration_protocolConfigBuilder, _Configuration_proxyConfigBuilder, _Configuration_publisherConfigBuilder, _Configuration_replicatorConfigBuilder, _Configuration_securityConfigBuilder, _Configuration_subscriptionConfigBuilder, _Configuration_systemConfigBuilder, _Configuration_transportConfigBuilder;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Configuration = void 0;
 class Configuration {
-    constructor(happnConfigBuilder, cacheConfigBuilder, connectConfigBuilder, dataConfigBuilder, protocolConfigBuilder, publisherConfigBuilder, securityConfigBuilder, subscriptionConfigBuilder, systemConfigBuilder, transportConfigBuilder) {
+    constructor(happnConfigBuilder, cacheConfigBuilder, connectConfigBuilder, dataConfigBuilder, healthConfigBuilder, membershipConfigBuilder, orchestratorConfigBuilder, protocolConfigBuilder, proxyConfigBuilder, publisherConfigBuilder, replicatorConfigBuilder, securityConfigBuilder, subscriptionConfigBuilder, systemConfigBuilder, transportConfigBuilder) {
         _Configuration_happnConfigBuilder.set(this, void 0);
         _Configuration_cacheConfigBuilder.set(this, void 0);
         _Configuration_connectConfigBuilder.set(this, void 0);
         _Configuration_dataConfigBuilder.set(this, void 0);
+        _Configuration_healthConfigBuilder.set(this, void 0);
+        _Configuration_membershipConfigBuilder.set(this, void 0);
+        _Configuration_orchestratorConfigBuilder.set(this, void 0);
         _Configuration_protocolConfigBuilder.set(this, void 0);
+        _Configuration_proxyConfigBuilder.set(this, void 0);
         _Configuration_publisherConfigBuilder.set(this, void 0);
+        _Configuration_replicatorConfigBuilder.set(this, void 0);
         _Configuration_securityConfigBuilder.set(this, void 0);
         _Configuration_subscriptionConfigBuilder.set(this, void 0);
         _Configuration_systemConfigBuilder.set(this, void 0);
@@ -29,8 +34,13 @@ class Configuration {
         __classPrivateFieldSet(this, _Configuration_cacheConfigBuilder, cacheConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_connectConfigBuilder, connectConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_dataConfigBuilder, dataConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_healthConfigBuilder, healthConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_membershipConfigBuilder, membershipConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_orchestratorConfigBuilder, orchestratorConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_protocolConfigBuilder, protocolConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_proxyConfigBuilder, proxyConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_publisherConfigBuilder, publisherConfigBuilder, "f");
+        __classPrivateFieldSet(this, _Configuration_replicatorConfigBuilder, replicatorConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_securityConfigBuilder, securityConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_subscriptionConfigBuilder, subscriptionConfigBuilder, "f");
         __classPrivateFieldSet(this, _Configuration_systemConfigBuilder, systemConfigBuilder, "f");
@@ -101,6 +111,73 @@ class Configuration {
         __classPrivateFieldGet(this, _Configuration_dataConfigBuilder, "f").withSecure(isSecure);
     }
     /*
+    HEALTH - happn-cluster specific
+     */
+    setHealthInterval(interval) {
+        __classPrivateFieldGet(this, _Configuration_healthConfigBuilder, "f").withHealthInterval(interval);
+    }
+    setHealthWarmupLimit(limit) {
+        __classPrivateFieldGet(this, _Configuration_healthConfigBuilder, "f").withHealthWarmupLimit(limit);
+    }
+    /*
+    MEMBERSHIP - happn-cluster specific
+     */
+    setMembershipClusterName(name) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipClusterName(name);
+    }
+    setMembershipDisseminationFactor(factor) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipDisseminationFactor(factor);
+    }
+    setMembershipHost(host, port) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipHost(host);
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipPort(port);
+    }
+    setMembershipJoinTimeout(timeout) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipJoinTimeout(timeout);
+    }
+    setMembershipJoinType(type) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipJoinType(type);
+    }
+    setMembershipMemberHost(host) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipMemberHost(host);
+    }
+    setMembershipPing(interval, pingTimeout, requestTimeout, requestGroupSize) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipPingInterval(interval);
+        if (pingTimeout !== undefined)
+            __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipPingTimeout(pingTimeout);
+        if (requestTimeout !== undefined)
+            __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipPingReqTimeout(requestTimeout);
+        if (requestGroupSize !== undefined)
+            __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipPingReqGroupSize(requestGroupSize);
+    }
+    setMembershipRandomWait(wait) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipRandomWait(wait);
+    }
+    setMembershipIsSeed(isSeed) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipIsSeed(isSeed);
+    }
+    setMembershipSeedWait(wait) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipSeedWait(wait);
+    }
+    setMembershipUdpMaxDgramSize(size) {
+        __classPrivateFieldGet(this, _Configuration_membershipConfigBuilder, "f").withMembershipUdpMaxDgramSize(size);
+    }
+    /*
+    ORCHESTRATOR - happn-cluster specific
+     */
+    setOrchestratorMinimumPeers(minimum) {
+        __classPrivateFieldGet(this, _Configuration_orchestratorConfigBuilder, "f").withOrchestratorMinimumPeers(minimum);
+    }
+    setOrchestratorReplicatePath(path) {
+        __classPrivateFieldGet(this, _Configuration_orchestratorConfigBuilder, "f").withOrchestratorReplicatePath(path);
+    }
+    setOrchestratorStableReportInterval(interval) {
+        __classPrivateFieldGet(this, _Configuration_orchestratorConfigBuilder, "f").withOrchestratorStableReportInterval(interval);
+    }
+    setOrchestratorStabiliseTimeout(timeout) {
+        __classPrivateFieldGet(this, _Configuration_orchestratorConfigBuilder, "f").withOrchestratorStabiliseTimeout(timeout);
+    }
+    /*
     PROTOCOLS
      */
     setProtocolAllowNestedPermissions(isAllowed) {
@@ -116,6 +193,25 @@ class Configuration {
         __classPrivateFieldGet(this, _Configuration_protocolConfigBuilder, "f").withOutboundLayer(layer);
     }
     /*
+    PROXY - happn-cluster specific
+     */
+    setProxyAllowSelfSignedCerts(allow) {
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyAllowSelfSignedCerts(allow);
+    }
+    setProxyCertPath(path) {
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyCertPath(path);
+    }
+    setProxyHost(host, port) {
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyHost(host);
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyPort(port);
+    }
+    setProxyKeyPath(path) {
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyKeyPath(path);
+    }
+    setProxyTimeout(timeout) {
+        __classPrivateFieldGet(this, _Configuration_proxyConfigBuilder, "f").withProxyTimeout(timeout);
+    }
+    /*
     PUBLISHER
      */
     setPublisherAcknowledgeTimeout(acknowledge) {
@@ -123,6 +219,12 @@ class Configuration {
     }
     setPublisherTimeout(timeout) {
         __classPrivateFieldGet(this, _Configuration_publisherConfigBuilder, "f").withTimeout(timeout);
+    }
+    /*
+    REPLICATOR - happn-cluster specific
+     */
+    setReplicatorSecurityChangeSetReplicateInterval(interval) {
+        __classPrivateFieldGet(this, _Configuration_replicatorConfigBuilder, "f").withReplicatorSecurityChangeSetReplicateInterval(interval);
     }
     /*
     SECURITY
@@ -255,5 +357,5 @@ class Configuration {
     }
 }
 exports.Configuration = Configuration;
-_Configuration_happnConfigBuilder = new WeakMap(), _Configuration_cacheConfigBuilder = new WeakMap(), _Configuration_connectConfigBuilder = new WeakMap(), _Configuration_dataConfigBuilder = new WeakMap(), _Configuration_protocolConfigBuilder = new WeakMap(), _Configuration_publisherConfigBuilder = new WeakMap(), _Configuration_securityConfigBuilder = new WeakMap(), _Configuration_subscriptionConfigBuilder = new WeakMap(), _Configuration_systemConfigBuilder = new WeakMap(), _Configuration_transportConfigBuilder = new WeakMap();
+_Configuration_happnConfigBuilder = new WeakMap(), _Configuration_cacheConfigBuilder = new WeakMap(), _Configuration_connectConfigBuilder = new WeakMap(), _Configuration_dataConfigBuilder = new WeakMap(), _Configuration_healthConfigBuilder = new WeakMap(), _Configuration_membershipConfigBuilder = new WeakMap(), _Configuration_orchestratorConfigBuilder = new WeakMap(), _Configuration_protocolConfigBuilder = new WeakMap(), _Configuration_proxyConfigBuilder = new WeakMap(), _Configuration_publisherConfigBuilder = new WeakMap(), _Configuration_replicatorConfigBuilder = new WeakMap(), _Configuration_securityConfigBuilder = new WeakMap(), _Configuration_subscriptionConfigBuilder = new WeakMap(), _Configuration_systemConfigBuilder = new WeakMap(), _Configuration_transportConfigBuilder = new WeakMap();
 //# sourceMappingURL=configuration.js.map

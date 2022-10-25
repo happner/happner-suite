@@ -20,13 +20,13 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipJoinType(joinType) {
-    this.set(`config.joinType`, joinType, BaseBuilder.Types.STRING);
+  withMembershipJoinTimeout(timeout) {
+    this.set(`config.joinTimeout`, timeout, BaseBuilder.Types.INTEGER);
     return this;
   }
 
-  withMembershipJoinTimeout(timeout) {
-    this.set(`config.joinTimeout`, timeout, BaseBuilder.Types.INTEGER);
+  withMembershipJoinType(joinType) {
+    this.set(`config.joinType`, joinType, BaseBuilder.Types.STRING);
     return this;
   }
 
@@ -55,8 +55,8 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipPort(host) {
-    this.set(`config.port`, host, BaseBuilder.Types.INTEGER);
+  withMembershipPort(port) {
+    this.set(`config.port`, port, BaseBuilder.Types.INTEGER);
     return this;
   }
 
@@ -65,7 +65,7 @@ module.exports = class MembershipConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withMembershipSeed(isSeed) {
+  withMembershipIsSeed(isSeed) {
     this.set(`config.seed`, isSeed, BaseBuilder.Types.BOOLEAN);
     return this;
   }

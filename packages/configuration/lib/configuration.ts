@@ -2,8 +2,13 @@ import HappnConfigBuilder from './builders/happn-config-builder';
 import CacheConfigBuilder from './builders/services/cache-config-builder';
 import ConnectConfigBuilder from './builders/services/connect-config-builder';
 import DataConfigBuilder from './builders/services/data-config-builder';
+import HealthConfigBuilder from './builders/services/health-config-builder';
+import MembershipConfigBuilder from './builders/services/membership-config-builder';
+import OrchestratorConfigBuilder from './builders/services/orchestrator-config-builder';
 import ProtocolConfigBuilder from './builders/services/protocol-config-builder';
+import ProxyConfigBuilder from './builders/services/proxy-config-builder';
 import PublisherConfigBuilder from './builders/services/publisher-config-builder';
+import ReplicatorConfigBuilder from './builders/services/replicator-config-builder';
 import SecurityConfigBuilder from './builders/services/security-config-builder';
 import SubscriptionConfigBuilder from './builders/services/subscription-config-builder';
 import SystemConfigBuilder from './builders/services/system-config-builder';
@@ -14,8 +19,13 @@ export class Configuration {
   #cacheConfigBuilder: CacheConfigBuilder;
   #connectConfigBuilder: ConnectConfigBuilder;
   #dataConfigBuilder: DataConfigBuilder;
+  #healthConfigBuilder: HealthConfigBuilder;
+  #membershipConfigBuilder: MembershipConfigBuilder;
+  #orchestratorConfigBuilder: OrchestratorConfigBuilder;
   #protocolConfigBuilder: ProtocolConfigBuilder;
+  #proxyConfigBuilder: ProxyConfigBuilder;
   #publisherConfigBuilder: PublisherConfigBuilder;
+  #replicatorConfigBuilder: ReplicatorConfigBuilder;
   #securityConfigBuilder: SecurityConfigBuilder;
   #subscriptionConfigBuilder: SubscriptionConfigBuilder;
   #systemConfigBuilder: SystemConfigBuilder;
@@ -26,8 +36,13 @@ export class Configuration {
     cacheConfigBuilder: CacheConfigBuilder,
     connectConfigBuilder: ConnectConfigBuilder,
     dataConfigBuilder: DataConfigBuilder,
+    healthConfigBuilder: HealthConfigBuilder,
+    membershipConfigBuilder: MembershipConfigBuilder,
+    orchestratorConfigBuilder: OrchestratorConfigBuilder,
     protocolConfigBuilder: ProtocolConfigBuilder,
+    proxyConfigBuilder: ProxyConfigBuilder,
     publisherConfigBuilder: PublisherConfigBuilder,
+    replicatorConfigBuilder: ReplicatorConfigBuilder,
     securityConfigBuilder: SecurityConfigBuilder,
     subscriptionConfigBuilder: SubscriptionConfigBuilder,
     systemConfigBuilder: SystemConfigBuilder,
@@ -37,8 +52,13 @@ export class Configuration {
     this.#cacheConfigBuilder = cacheConfigBuilder;
     this.#connectConfigBuilder = connectConfigBuilder;
     this.#dataConfigBuilder = dataConfigBuilder;
+    this.#healthConfigBuilder = healthConfigBuilder;
+    this.#membershipConfigBuilder = membershipConfigBuilder;
+    this.#orchestratorConfigBuilder = orchestratorConfigBuilder;
     this.#protocolConfigBuilder = protocolConfigBuilder;
+    this.#proxyConfigBuilder = proxyConfigBuilder;
     this.#publisherConfigBuilder = publisherConfigBuilder;
+    this.#replicatorConfigBuilder = replicatorConfigBuilder;
     this.#securityConfigBuilder = securityConfigBuilder;
     this.#subscriptionConfigBuilder = subscriptionConfigBuilder;
     this.#systemConfigBuilder = systemConfigBuilder;
@@ -133,6 +153,98 @@ export class Configuration {
   }
 
   /*
+  HEALTH - happn-cluster specific
+   */
+
+  setHealthInterval(interval: number): void {
+    this.#healthConfigBuilder.withHealthInterval(interval);
+  }
+
+  setHealthWarmupLimit(limit: number): void {
+    this.#healthConfigBuilder.withHealthWarmupLimit(limit);
+  }
+
+  /*
+  MEMBERSHIP - happn-cluster specific
+   */
+
+  setMembershipClusterName(name: string): void {
+    this.#membershipConfigBuilder.withMembershipClusterName(name);
+  }
+
+  setMembershipDisseminationFactor(factor: number): void {
+    this.#membershipConfigBuilder.withMembershipDisseminationFactor(factor);
+  }
+
+  setMembershipHost(host: string, port: number): void {
+    this.#membershipConfigBuilder.withMembershipHost(host);
+    this.#membershipConfigBuilder.withMembershipPort(port);
+  }
+
+  setMembershipJoinTimeout(timeout: number): void {
+    this.#membershipConfigBuilder.withMembershipJoinTimeout(timeout);
+  }
+
+  setMembershipJoinType(type: string): void {
+    this.#membershipConfigBuilder.withMembershipJoinType(type);
+  }
+
+  setMembershipMemberHost(host: string): void {
+    this.#membershipConfigBuilder.withMembershipMemberHost(host);
+  }
+
+  setMembershipPing(
+    interval: number,
+    pingTimeout?: number,
+    requestTimeout?: number,
+    requestGroupSize?: number
+  ): void {
+    this.#membershipConfigBuilder.withMembershipPingInterval(interval);
+    if (pingTimeout !== undefined)
+      this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
+    if (requestTimeout !== undefined)
+      this.#membershipConfigBuilder.withMembershipPingReqTimeout(requestTimeout);
+    if (requestGroupSize !== undefined)
+      this.#membershipConfigBuilder.withMembershipPingReqGroupSize(requestGroupSize);
+  }
+
+  setMembershipRandomWait(wait: number): void {
+    this.#membershipConfigBuilder.withMembershipRandomWait(wait);
+  }
+
+  setMembershipIsSeed(isSeed: boolean): void {
+    this.#membershipConfigBuilder.withMembershipIsSeed(isSeed);
+  }
+
+  setMembershipSeedWait(wait: boolean): void {
+    this.#membershipConfigBuilder.withMembershipSeedWait(wait);
+  }
+
+  setMembershipUdpMaxDgramSize(size: boolean): void {
+    this.#membershipConfigBuilder.withMembershipUdpMaxDgramSize(size);
+  }
+
+  /*
+  ORCHESTRATOR - happn-cluster specific
+   */
+
+  setOrchestratorMinimumPeers(minimum: number): void {
+    this.#orchestratorConfigBuilder.withOrchestratorMinimumPeers(minimum);
+  }
+
+  setOrchestratorReplicatePath(path: string): void {
+    this.#orchestratorConfigBuilder.withOrchestratorReplicatePath(path);
+  }
+
+  setOrchestratorStableReportInterval(interval: string): void {
+    this.#orchestratorConfigBuilder.withOrchestratorStableReportInterval(interval);
+  }
+
+  setOrchestratorStabiliseTimeout(timeout: string): void {
+    this.#orchestratorConfigBuilder.withOrchestratorStabiliseTimeout(timeout);
+  }
+
+  /*
   PROTOCOLS
    */
 
@@ -153,6 +265,31 @@ export class Configuration {
   }
 
   /*
+  PROXY - happn-cluster specific
+   */
+
+  setProxyAllowSelfSignedCerts(allow: boolean): void {
+    this.#proxyConfigBuilder.withProxyAllowSelfSignedCerts(allow);
+  }
+
+  setProxyCertPath(path: string): void {
+    this.#proxyConfigBuilder.withProxyCertPath(path);
+  }
+
+  setProxyHost(host: string, port: number): void {
+    this.#proxyConfigBuilder.withProxyHost(host);
+    this.#proxyConfigBuilder.withProxyPort(port);
+  }
+
+  setProxyKeyPath(path: string): void {
+    this.#proxyConfigBuilder.withProxyKeyPath(path);
+  }
+
+  setProxyTimeout(timeout: number): void {
+    this.#proxyConfigBuilder.withProxyTimeout(timeout);
+  }
+
+  /*
   PUBLISHER
    */
 
@@ -162,6 +299,14 @@ export class Configuration {
 
   setPublisherTimeout(timeout: number): void {
     this.#publisherConfigBuilder.withTimeout(timeout);
+  }
+
+  /*
+  REPLICATOR - happn-cluster specific
+   */
+
+  setReplicatorSecurityChangeSetReplicateInterval(interval: number): void {
+    this.#replicatorConfigBuilder.withReplicatorSecurityChangeSetReplicateInterval(interval);
   }
 
   /*

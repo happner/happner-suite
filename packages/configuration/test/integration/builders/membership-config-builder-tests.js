@@ -34,7 +34,7 @@ describe(helper.testName(), function () {
       .withMembershipPingReqGroupSize(mockPingReqGroupSize)
       .withMembershipPort(mockPort)
       .withMembershipRandomWait(mockRandomWait)
-      .withMembershipSeed(mockIsSeed)
+      .withMembershipIsSeed(mockIsSeed)
       .withMembershipSeedWait(mockSeedWait)
       .withMembershipUdpMaxDgramSize(mockMaxUdpDgramSize)
       .build();
