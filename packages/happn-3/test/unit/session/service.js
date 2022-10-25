@@ -1002,4 +1002,254 @@ describe(test.testName(__filename, 3), function () {
 
     createStub.restore();
   });
+
+  it('attachSession, returns if sessionData is equal to null', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+    const callback = test.sinon.stub();
+    const config = test.sinon.stub();
+
+    sessionService.happn = mockHappn;
+
+    const result = sessionService.attachSession(config, callback);
+
+    test.chai.expect(result).to.have.returned;
+    test.chai.expect(result).to.equal();
+  });
+
+  it('attachSession, returns sessionData', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+    const set = test.sinon.stub();
+
+    sessionService.happn = mockHappn;
+
+    const client = {
+      on: test.sinon.stub(),
+      address: 'mockAdress',
+      request: {
+        connection: {
+          encrypted: 'mockEncrypted',
+        },
+        url: 'mockUrl',
+      },
+    };
+
+    mockHappn.services.cache.create.returns({
+      set,
+    });
+    mockHappn.services.system.getDescription.returns('mockDescription');
+
+    const uuidStub = test.sinon.stub(uuid, 'v4').returns('033e720c-b65a-4bd4-9a80-09175af398eb');
+    const nowStub = test.sinon.stub(Date, 'now').returns(1666181617938);
+
+    sessionService.initialize({ disableSessionEventLogging: true }, test.sinon.stub());
+    sessionService.initializeCaches(test.sinon.stub());
+    sessionService.onConnect(client);
+
+    const result = sessionService.attachSession('033e720c-b65a-4bd4-9a80-09175af398eb', {
+      item1: 'item1',
+    });
+
+    test.chai.expect(result).to.eql({
+      address: 'mockAdress',
+      encrypted: true,
+      happn: 'mockDescription',
+      headers: {},
+      id: '033e720c-b65a-4bd4-9a80-09175af398eb',
+      item1: 'item1',
+      msgCount: 0,
+      protocol: 'happn',
+      url: 'mockUrl',
+    });
+
+    test.chai
+      .expect(set)
+      .to.have.been.calledOnceWithExactly('033e720c-b65a-4bd4-9a80-09175af398eb', {
+        msgCount: 0,
+        id: '033e720c-b65a-4bd4-9a80-09175af398eb',
+        protocol: 'happn',
+        happn: 'mockDescription',
+        headers: {},
+        encrypted: true,
+        address: 'mockAdress',
+        url: 'mockUrl',
+        item1: 'item1',
+      });
+
+    uuidStub.restore();
+    nowStub.restore();
+  });
+
+  it('handleMessage, calls processMessageIn callback without error', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+    const set = test.sinon.stub();
+
+    sessionService.happn = mockHappn;
+
+    const client = {
+      on: test.sinon.stub(),
+      address: 'mockAdress',
+      request: {
+        connection: {
+          encrypted: 'mockEncrypted',
+        },
+        url: 'mockUrl',
+      },
+      write: test.sinon.stub(),
+      onLegacyPing: test.sinon.stub(),
+    };
+
+    mockHappn.services.cache.create.returns({
+      set,
+    });
+    mockHappn.services.protocol.processMessageIn.callsFake((_, cb) => {
+      cb(null, {
+        response: {},
+      });
+    });
+    mockHappn.services.system.getDescription.returns('mockDescription');
+
+    const uuidStub = test.sinon.stub(uuid, 'v4').returns('033e720c-b65a-4bd4-9a80-09175af398eb');
+    const nowStub = test.sinon.stub(Date, 'now').returns(1666181617938);
+
+    sessionService.onConnect(client);
+    sessionService.handleMessage('test', client);
+
+    test.chai.expect(mockHappn.services.protocol.processMessageIn).to.have.been.calledOnce;
+    test.chai.expect(mockHappn.services.error.handleSystem).to.not.have.been.called;
+    test.chai.expect(client.onLegacyPing).to.not.have.been.called;
+    test.chai.expect(client.write).to.have.been.calledOnceWithExactly({
+      __outbound: true,
+    });
+
+    uuidStub.restore();
+    nowStub.restore();
+  });
+
+  it('handleMessage, calls processMessageIn callback with error', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+    const set = test.sinon.stub();
+
+    sessionService.happn = mockHappn;
+
+    const client = {
+      on: test.sinon.stub(),
+      address: 'mockAdress',
+      request: {
+        connection: {
+          encrypted: 'mockEncrypted',
+        },
+        url: 'mockUrl',
+      },
+      write: test.sinon.stub(),
+      onLegacyPing: test.sinon.stub(),
+    };
+
+    mockHappn.services.cache.create.returns({
+      set,
+    });
+    mockHappn.services.protocol.processMessageIn.callsFake((_, cb) => {
+      cb(new Error('test error'));
+    });
+    mockHappn.services.system.getDescription.returns('mockDescription');
+
+    const uuidStub = test.sinon.stub(uuid, 'v4').returns('033e720c-b65a-4bd4-9a80-09175af398eb');
+    const nowStub = test.sinon.stub(Date, 'now').returns(1666181617938);
+
+    sessionService.onConnect(client);
+    sessionService.handleMessage('test', client);
+
+    test.chai.expect(mockHappn.services.protocol.processMessageIn).to.have.been.calledOnce;
+    test.chai
+      .expect(mockHappn.services.error.handleSystem)
+      .to.have.been.calledOnceWithExactly(
+        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'test error')),
+        'SessionService.handleMessage',
+        1
+      );
+    test.chai.expect(client.onLegacyPing).to.not.have.been.calledOnceWithExactly('test');
+    test.chai.expect(client.write).to.not.have.been.called;
+
+    uuidStub.restore();
+    nowStub.restore();
+  });
+
+  it('handleMessage, returns if message.indexOf primus::ping:: is true, session exists', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+    const set = test.sinon.stub();
+
+    sessionService.happn = mockHappn;
+
+    const client = {
+      on: test.sinon.stub(),
+      address: 'mockAdress',
+      request: {
+        connection: {
+          encrypted: 'mockEncrypted',
+        },
+        url: 'mockUrl',
+      },
+      write: test.sinon.stub(),
+      onLegacyPing: test.sinon.stub(),
+    };
+
+    mockHappn.services.cache.create.returns({
+      set,
+    });
+    mockHappn.services.system.getDescription.returns('mockDescription');
+
+    const uuidStub = test.sinon.stub(uuid, 'v4').returns('033e720c-b65a-4bd4-9a80-09175af398eb');
+    const nowStub = test.sinon.stub(Date, 'now').returns(1666181617938);
+
+    sessionService.onConnect(client);
+    sessionService.handleMessage('primus::ping::', client);
+
+    test.chai.expect(client.onLegacyPing).to.have.been.calledOnceWithExactly('primus::ping::');
+
+    uuidStub.restore();
+    nowStub.restore();
+  });
+
+  it('handleMessage, returns if message.indexOf primus::ping:: is true, session does not exist', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+
+    sessionService.happn = mockHappn;
+
+    const client = {
+      sessionId: null,
+      onLegacyPing: test.sinon.stub(),
+    };
+
+    sessionService.handleMessage('primus::ping::', client);
+
+    test.chai.expect(client.onLegacyPing).to.have.been.calledOnceWithExactly('primus::ping::');
+  });
+
+  it('handleMessage, returns and calles __discardMessage if session does not exist', async () => {
+    const sessionService = new SessionService({
+      logger: Logger,
+    });
+
+    sessionService.happn = mockHappn;
+
+    const client = {};
+    const emitSpy = test.sinon.spy(sessionService, 'emit');
+
+    sessionService.handleMessage({ action: 'configure-session' }, client);
+
+    test.chai
+      .expect(emitSpy)
+      .to.have.been.calledOnceWithExactly('message-discarded', { action: 'configure-session' });
+  });
 });
