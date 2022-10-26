@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 const mongodb = require('mongodb'),
-  mongoclient = mongodb.MongoClient,
   util = require('util');
 
 MongoDataStore.prototype.ObjectID = mongodb.ObjectId;
@@ -32,21 +31,18 @@ function MongoDataStore(config) {
 }
 
 function initialize(callback) {
-  mongoclient.connect(this.config.url, this.config.opts, (err, client) => {
-    if (err) return callback(err);
-    let db = client.db(this.config.database);
-    let collection = db.collection(this.config.collection);
-
-    Object.defineProperty(this, 'data', {
-      value: collection,
-    });
-
+  let connectionError;
+  try {
     Object.defineProperty(this, 'connection', {
-      value: client,
+      value: new mongodb.MongoClient(this.config.url, this.config.opts),
     });
-
-    return callback();
-  });
+    Object.defineProperty(this, 'data', {
+      value: this.connection.db(this.config.database).collection(this.config.collection),
+    });
+  } catch (e) {
+    connectionError = e;
+  }
+  callback(connectionError);
 }
 
 function findOne(criteria, fields, callback) {
@@ -136,7 +132,9 @@ function remove(criteria, callback) {
 
 function disconnect(callback) {
   try {
-    if (this.connection) return this.connection.close(callback);
+    if (this.connection) {
+      return this.connection.close(callback);
+    }
   } catch (e) {
     console.warn('failed disconnecting mongo client', e);
   }

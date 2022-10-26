@@ -1,3 +1,5 @@
+const { add } = require('lodash');
+
 module.exports = class BaseDataProvider extends require('events').EventEmitter {
   constructor(settings, logger) {
     super();
@@ -31,17 +33,21 @@ module.exports = class BaseDataProvider extends require('events').EventEmitter {
   addCriteria(pathObject, criteria) {
     return { $and: [pathObject, criteria] };
   }
-  getPathCriteria(path, pathKey = 'path') {
+  getPathCriteria(path, pathKey = 'path', additionalCriteria) {
     if (path.indexOf('*') === -1) {
       return { [pathKey]: path };
     }
-    return {
+    const pathCriteria = {
       [pathKey]: {
         $regex: new RegExp(
           '^' + this.escapeRegex(this.preparePath(path)).replace(/\\\*/g, '.*') + '$'
         ),
       },
     };
+    if (additionalCriteria != null) {
+      return this.addCriteria(pathCriteria, additionalCriteria);
+    }
+    return pathCriteria;
   }
   preparePath(path) {
     return path.replace(/(\*)\1+/g, '$1');

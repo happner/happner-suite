@@ -187,7 +187,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       case constants.DATA_OPERATION_TYPES.INSERT:
         return this.insertInternal(operation.arguments[0], preserveTimestamps);
       case constants.DATA_OPERATION_TYPES.REMOVE:
-        return this.removeInternal(operation.arguments[0]);
+        return this.removeInternal(operation.arguments[0], operation.arguments[1]);
       default:
         throw new Error(`unknown data operation type: ${operation.operationType}`);
     }
@@ -361,14 +361,19 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       }
     );
   }
-  remove(path, callback) {
+  remove(path, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
     this.operationQueue.push(
-      { operationType: constants.DATA_OPERATION_TYPES.REMOVE, arguments: [path] },
+      { operationType: constants.DATA_OPERATION_TYPES.REMOVE, arguments: [path, options.criteria] },
       callback
     );
   }
-  removeInternal(path) {
-    const toRemove = this.collection.chain().find(this.getPathCriteria(path));
+  removeInternal(path, criteria) {
+    const toRemove = this.collection.chain().find(this.getPathCriteria(path, undefined, criteria));
     const removed = toRemove.count();
     if (removed > 0) {
       toRemove.remove();
@@ -446,6 +451,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     callback(null, result);
   }
   count(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
     parameters.options = parameters.options || {};
     parameters.options.count = true;
     this.find(path, parameters, callback);
