@@ -401,6 +401,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
         .catch(done);
     });
 
+    it('should delete multiple items filtered by criteria', async () => {
+      await dataComponent.set('test/delete/1', { test: 1 });
+      await dataComponent.set('test/delete/2', { test: 2 });
+      await dataComponent.set('test/delete/3', { test: 3 });
+      let items = (await dataComponent.get('test/delete/*')).map((item) => item.test);
+      test.expect(items).to.eql([1, 2, 3]);
+      await dataComponent.remove('test/delete/*', {
+        criteria: {
+          test: { $eq: 2 },
+        },
+      });
+      items = (await dataComponent.get('test/delete/*')).map((item) => item.test);
+      test.expect(items).to.eql([1, 3]);
+      await dataComponent.remove('test/delete/*');
+      items = (await dataComponent.get('test/delete/*')).map((item) => item.test);
+      test.expect(items).to.eql([]);
+    });
+
     it('can get paths', function (done) {
       Promise.all([
         dataComponent.set('this/one', 1),

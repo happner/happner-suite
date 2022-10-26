@@ -687,7 +687,7 @@ describe(test.testName(__filename, 3), function () {
     test.expect((await listenerclient.get(removePath)).length).to.be(0);
   });
 
-  it('should remove multiple items with options', async () => {
+  it('should delete multiple items filtered by criteria', async () => {
     await publisherclient.set('test/delete/1', { test: 1 });
     await publisherclient.set('test/delete/2', { test: 2 });
     await publisherclient.set('test/delete/3', { test: 3 });
