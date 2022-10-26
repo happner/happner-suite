@@ -1,5 +1,3 @@
-const { add } = require('lodash');
-
 module.exports = class BaseDataProvider extends require('events').EventEmitter {
   constructor(settings, logger) {
     super();
