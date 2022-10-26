@@ -533,7 +533,13 @@ function __upsertInternal(path, setData, options, callback) {
 }
 
 function remove(path, options, callback) {
-  if (typeof options === 'function') callback = options;
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  if (options == null) {
+    options = {};
+  }
   if (options?.criteria) {
     // ensure we add the data. prefix
     options.criteria = this.parseFields(options.criteria);
