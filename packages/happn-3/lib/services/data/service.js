@@ -534,7 +534,11 @@ function __upsertInternal(path, setData, options, callback) {
 
 function remove(path, options, callback) {
   if (typeof options === 'function') callback = options;
-  this.db(path).remove(path, function (e, removed) {
+  if (options?.criteria) {
+    // ensure we add the data. prefix
+    options.criteria = this.parseFields(options.criteria);
+  }
+  this.db(path).remove(path, options, function (e, removed) {
     if (e) return callback(new Error('error removing item on path ' + path, e));
     callback(null, removed);
   });

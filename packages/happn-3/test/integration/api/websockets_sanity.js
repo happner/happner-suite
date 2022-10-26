@@ -770,6 +770,24 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     }
   });
 
+  it('should delete multiple items with options', async () => {
+    await publisherclient.set('test/delete/1', { test: 1 });
+    await publisherclient.set('test/delete/2', { test: 2 });
+    await publisherclient.set('test/delete/3', { test: 3 });
+    let items = (await publisherclient.get('test/delete/*')).map((item) => item.test);
+    test.expect(items).to.eql([1, 2, 3]);
+    await publisherclient.remove('test/delete/*', {
+      criteria: {
+        test: { $eq: 2 },
+      },
+    });
+    items = (await publisherclient.get('test/delete/*')).map((item) => item.test);
+    test.expect(items).to.eql([1, 3]);
+    await publisherclient.remove('test/delete/*');
+    items = (await publisherclient.get('test/delete/*')).map((item) => item.test);
+    test.expect(items).to.eql([]);
+  });
+
   it('the publisher should set new data then update the data', function (callback) {
     try {
       var test_path_end = test.newid();
