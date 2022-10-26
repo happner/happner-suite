@@ -1,5 +1,5 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-module.exports = class EndpointBuilder extends BaseBuilder {
+module.exports = class EndpointConfigBuilder extends BaseBuilder {
   /*
   'test': {
         reconnect:{ // as per Primus's reconnection settings
