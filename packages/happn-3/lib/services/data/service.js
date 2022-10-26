@@ -540,7 +540,7 @@ function remove(path, options, callback) {
   if (options == null) {
     options = {};
   }
-  if (options?.criteria) {
+  if (options.criteria) {
     // ensure we add the data. prefix
     options.criteria = this.parseFields(options.criteria);
   }
