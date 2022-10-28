@@ -1102,13 +1102,13 @@
     }
   });
 
-  HappnClient.prototype.remove = utils.maybePromisify(function (path, parameters, handler) {
-    if (typeof parameters === 'function') {
-      handler = parameters;
-      parameters = {};
+  HappnClient.prototype.remove = utils.maybePromisify(function (path, options, handler) {
+    if (typeof options === 'function') {
+      handler = options;
+      options = {};
     }
 
-    return this.__performDataRequest(path, 'remove', null, parameters, handler);
+    return this.__performDataRequest(path, 'remove', null, options, handler);
   });
 
   HappnClient.prototype.__updateListenerRef = function (listener, remoteRef) {
