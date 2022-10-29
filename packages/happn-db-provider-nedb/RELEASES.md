@@ -33,3 +33,7 @@
 1.0.7 2022-10-13
 -----------------
   - TEN-101: happn-nedb update, clean npm audit
+
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove

@@ -25,3 +25,10 @@
 3.0.5 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+3.0.6 2022-10-29
+-----------------
+  - TEN-129: security service tests
+  - TEN-141: fatal on security generate session
+  - TEN-144: rest array arguments
+  - TEN-146: preserve criteria on remove

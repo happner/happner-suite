@@ -7,3 +7,7 @@
 -----------------
   - TEN-49: add diagnostics log to caching service, refactored happn-3 caching layer: added CACHE_TYPE to constants
   - TEN-54: all systems tested on node v18
+
+1.2.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove

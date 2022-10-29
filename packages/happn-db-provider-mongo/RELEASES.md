@@ -75,3 +75,7 @@
 -----------------
   - TEN-143: ws and primus update in happn-primus-wrapper
   - TEN-101: removed elasticsearch support
+
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
