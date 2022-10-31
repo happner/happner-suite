@@ -1,4 +1,6 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
+const { CREATE_TYPE, PARAMETER_TYPE } = require('../../constants/module-constants');
+
 module.exports = class ModulesConfigBuilder extends BaseBuilder {
   /*
   modules: {
@@ -65,25 +67,60 @@ module.exports = class ModulesConfigBuilder extends BaseBuilder {
       return this;
     }
 
-    withConstruct(params, name = null) {
-      if (name) this.set('construct.name', name, BaseBuilder.Types.ARRAY);
-
-      // validate the param fields
-      params.forEach((param) => {
-        if (param.value === undefined) throw new Error("missing param field 'value'");
-      });
-
-      this.set('construct.parameters', params, BaseBuilder.Types.ARRAY);
-      return this;
+    beginConstruct() {
+      return new this.ModuleCreationBuilder(this, CREATE_TYPE.CONSTRUCT);
     }
 
-    withCreateParameters(params) {
-      this.set('create.parameters', params, BaseBuilder.Types.ARRAY);
-      return this;
+    beginCreate() {
+      return new this.ModuleCreationBuilder(this, CREATE_TYPE.FACTORY);
     }
 
     endModule() {
       return this.#parent;
     }
+
+    ModuleCreationBuilder = class extends BaseBuilder {
+      #parent;
+
+      constructor(parent, type) {
+        super();
+        this.#parent = parent;
+        this.#parent.set(type, this, BaseBuilder.Types.OBJECT);
+      }
+
+      withName(name) {
+        this.set('name', name, BaseBuilder.Types.STRING);
+        return this;
+      }
+
+      withParameter(name, value, type) {
+        this.#checkType(type);
+        if (type === PARAMETER_TYPE.CALLBACK)
+          this.push('parameters', { name, type }, BaseBuilder.Types.OBJECT);
+        else this.push('parameters', { name, value, type }, BaseBuilder.Types.OBJECT);
+        return this;
+      }
+
+      withCallbackParameter(name, type) {
+        this.#checkType(type);
+        this.push('callback.parameters', { name, type }, BaseBuilder.Types.OBJECT);
+        return this;
+      }
+
+      endConstruct() {
+        return this.#parent;
+      }
+
+      endCreate() {
+        return this.#parent;
+      }
+
+      #checkType(type) {
+        if (type) {
+          if (!Object.keys(PARAMETER_TYPE).find((key) => PARAMETER_TYPE[key] === type))
+            throw new Error('unknown parameter type');
+        }
+      }
+    };
   };
 };
