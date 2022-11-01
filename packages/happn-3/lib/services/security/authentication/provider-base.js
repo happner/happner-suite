@@ -99,7 +99,8 @@ module.exports = class AuthProvider {
       return this.accessDenied('use of _ADMIN credentials over the network is disabled', callback);
 
     if (credentials.token) return this.tokenLogin(credentials, sessionId, request, callback);
-    else return this.userCredsLogin(credentials, sessionId, callback);
+
+    this.userCredsLogin(credentials, sessionId, callback);
   }
 
   async tokenLogin(credentials, sessionId, request, callback) {
@@ -186,7 +187,11 @@ module.exports = class AuthProvider {
   __loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
     delete user.password;
     if (this.__locks) this.__locks.remove(user.username); //remove previous locks
-    callback(null, this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo));
+    const session = this.generateSession(user, sessionId, credentials, tokenLogin, additionalInfo);
+    if (session == null) {
+      return callback(new Error('session disconnected during login'));
+    }
+    callback(null, session);
   }
 
   checkDisableDefaultAdminNetworkConnections(credentials, request) {

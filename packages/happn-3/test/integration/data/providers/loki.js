@@ -34,6 +34,10 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
     await testIncrement();
   });
 
+  it('tests remove', async () => {
+    await testRemove();
+  });
+
   it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
     await testPersistence({
       fsync: true,
@@ -63,6 +67,49 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
       fsync: true,
     });
   });
+
+  it('tests remove - fsync', async () => {
+    await testRemove({
+      fsync: true,
+    });
+  });
+
+  async function testRemove(settings) {
+    const lokiProvider = new LokiDataProvider(mockLogger);
+    lokiProvider.settings = {
+      ...{
+        filename: testFileName,
+        snapshotRollOverThreshold: 5,
+      },
+      ...settings,
+    };
+    await lokiProvider.initialize();
+    await lokiProvider.insert({
+      path: 'test/remove/1',
+      data: { test: 'test1' },
+    });
+    await lokiProvider.insert({
+      path: 'test/remove/2',
+      data: { test: 'test2' },
+    });
+    await lokiProvider.insert({
+      path: 'test/remove/3',
+      data: { test: 'test3' },
+    });
+    test.expect(await getCount(lokiProvider, 'test/remove/*')).to.be(3);
+    const result1 = await lokiProvider.remove('test/remove/*', {
+      criteria: { 'data.test': { $eq: 'test3' } },
+    });
+    test.expect(result1.data.removed).to.be(1);
+    test.expect(await getCount(lokiProvider, 'test/remove/*')).to.be(2);
+    const result2 = await lokiProvider.remove('test/remove/*');
+    test.expect(result2.data.removed).to.be(2);
+    test.expect(await getCount(lokiProvider, 'test/remove/*')).to.be(0);
+  }
+
+  async function getCount(lokiProvider, path) {
+    return (await lokiProvider.count(path)).data.value;
+  }
 
   async function testMerge(settings) {
     const lokiProvider = new LokiDataProvider(mockLogger);

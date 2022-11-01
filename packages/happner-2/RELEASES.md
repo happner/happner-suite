@@ -995,3 +995,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - TEN-143: ws and primus update in happn-primus-wrapper
   - TEN-101: removed elasticsearch support
+
+12.5.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove

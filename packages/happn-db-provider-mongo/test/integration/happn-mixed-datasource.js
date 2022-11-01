@@ -916,9 +916,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
         property3: 'property3',
       },
       null,
-      function (e, result) {
-        //////////////////console.log('did delete set');
-        //path, event_type, count, handler, done
+      function () {
         //We listen for the DELETE event
         listenerclient.on(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/delete_me',
@@ -941,7 +939,6 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
 
             //we needed to have removed a single item
             test.expect(eventData.payload.removed).to.be(1);
-
             callback();
           },
           function (e) {
@@ -980,7 +977,6 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
       },
       function (message) {
         //we detach all listeners from the path here
-        ////console.log('ABOUT OFF PATH');
         listenerclient.offPath(
           '/1_eventemitter_embedded_sanity/' + test_id + '/testsubscribe/data/on_off_test',
           function (e) {
@@ -992,10 +988,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
                 event_type: 'set',
                 count: 0,
               },
-              function (message) {
-                ////console.log('ON RAN');
-                ////console.log(message);
-
+              function () {
                 listenerclient.off(currentListenerId, function (e) {
                   if (e) return callback(new Error(e));
                   else return callback();
@@ -1014,11 +1007,8 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
                     property3: 'property3',
                   },
                   {},
-                  function (e, setresult) {
+                  function (e) {
                     if (e) return callback(new Error(e));
-
-                    ////console.log('DID ON SET');
-                    ////console.log(setresult);
                   }
                 );
               }

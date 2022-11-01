@@ -144,9 +144,13 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
     );
   }
 
-  remove(path, callback) {
+  remove(path, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
     return this.db.remove(
-      this.getPathCriteria(path, '_id'),
+      this.getPathCriteria(path, '_id', options.criteria),
       {
         multi: true,
       },
@@ -155,11 +159,11 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
 
         callback(null, {
           data: {
-            removed: removed,
+            removed,
           },
           _meta: {
             timestamp: Date.now(),
-            path: path,
+            path,
           },
         });
       }
@@ -210,6 +214,10 @@ module.exports = class NedbProvider extends commons.BaseDataProvider {
   }
 
   count(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
     var pathCriteria = this.getPathCriteria(path, '_id');
 
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);

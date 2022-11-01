@@ -1021,3 +1021,10 @@
   - TEN-143: ws and primus update in happn-primus-wrapper
   - TEN-101: removed elasticsearch support
 
+13.6.0 2022-10-29
+-----------------
+  - TEN-129: security service tests
+  - TEN-141: fatal on security generate session
+  - TEN-144: rest array arguments
+  - TEN-146: preserve criteria on remove
+

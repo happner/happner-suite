@@ -521,7 +521,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
       cb(null, mockSocket());
     };
     happnClient.connect(function (err, data) {
-      test.expect(err).to.be(null);
+      test.expect(err).to.be(undefined);
       test.expect(data).to.be('done');
       done();
     });
@@ -1766,6 +1766,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
 
   function mockHappnClient(log, state, session, serverInfo, socket, clientOptions) {
     happnClient = new HappnClient();
+    happnClient.__connectionQueue = happnClient.createQueue();
 
     happnClient.__initializeEvents();
     happnClient.__initializeState();

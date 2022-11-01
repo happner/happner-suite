@@ -106,6 +106,10 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
   }
 
   count(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
     let findParameters = Object.assign({}, parameters);
     findParameters.count = true;
     return this.find(path, findParameters, callback);
@@ -256,19 +260,26 @@ module.exports = class MongoProvider extends commons.BaseDataProvider {
     );
   }
 
-  remove(path, callback) {
-    return this.db.remove(this.getPathCriteria(path), function (e, removed) {
-      if (e) return callback(e);
-      callback(null, {
-        data: {
-          removed: removed.deletedCount,
-        },
-        _meta: {
-          timestamp: Date.now(),
-          path: path,
-        },
-      });
-    });
+  remove(path, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    return this.db.remove(
+      this.getPathCriteria(path, undefined, options.criteria),
+      function (e, removed) {
+        if (e) return callback(e);
+        callback(null, {
+          data: {
+            removed: removed.deletedCount,
+          },
+          _meta: {
+            timestamp: Date.now(),
+            path: path,
+          },
+        });
+      }
+    );
   }
 
   batchInsert(data, options, callback) {
