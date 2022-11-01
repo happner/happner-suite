@@ -286,4 +286,6 @@ non-release 2017-12-14
 -----------------
   - SMC-4817: mongo-based membership strategy
 
-
+13.0.1 2022-10-26
+-----------------
+  - SMC-4817/TEN-12: mongo-based membership strategy - no longer removes peer/member if its info is missing from the db
