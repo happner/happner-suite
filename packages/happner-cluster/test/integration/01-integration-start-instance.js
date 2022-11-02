@@ -10,7 +10,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     if (!client) return done();
     client.disconnect(done);
   });
-
+  after('wait for db entry to timeout', done => 
+    setTimeout(done, 3000)
+  )
   it('starts', function (done) {
     this.timeout(20000);
 
