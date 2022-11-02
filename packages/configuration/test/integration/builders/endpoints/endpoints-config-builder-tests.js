@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const EndpointConfigBuilder = require('../../../../lib/builders/endpoints/endpoint-config-builder');
+const EndpointsConfigBuilder = require('../../../../lib/builders/endpoints/endpoints-config-builder');
 
 describe(helper.testName(), function () {
-  it('builds an endpoint config object', () => {
+  it('builds an endpoints config object', () => {
     const mockName = 'mock-name';
     const mockAllowSelfSignedCerts = true;
     const mockHost = '192.168.1.125';
@@ -14,9 +14,10 @@ describe(helper.testName(), function () {
     const mockUsername = 'user1';
     const mockPassword = 'superSecretPassword';
 
-    const builder = new EndpointConfigBuilder();
+    const builder = new EndpointsConfigBuilder();
     const result = builder
-      .withEndpointName(mockName)
+      .beginEndpoint()
+      .withName(mockName)
       .withAllowSelfSignedCerts(mockAllowSelfSignedCerts)
       .withHost(mockHost)
       .withPort(mockPort)
@@ -24,6 +25,7 @@ describe(helper.testName(), function () {
       .withUsername(mockUsername)
       .withPassword(mockPassword)
       .withReconnect(mockReconnectMax, mockReconnectRetries)
+      .endEndpoint()
       .build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));

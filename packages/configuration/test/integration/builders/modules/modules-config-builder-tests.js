@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ModuleConfigBuilder = require('../../../lib/builders/modules/modules-config-builder');
+const ModulesConfigBuilder = require('../../../../lib/builders/modules/modules-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a modules config object', () => {
@@ -36,7 +36,7 @@ describe(helper.testName(), function () {
     const mockCreate3CallbackParam2Name = 'res';
     const mockCreate3CallbackParam2Type = 'instance';
 
-    const builder = new ModuleConfigBuilder();
+    const builder = new ModulesConfigBuilder();
     const result = builder
       .beginModule()
       .withName(mockName1)
