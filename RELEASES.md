@@ -1,3 +1,8 @@
+2.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default mongo sort by path
+- happn-db-provider-mongo: 1.1.1
+
 2.1.0 2022-10-29
 -----------------
 - TEN-129: security service tests
