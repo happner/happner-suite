@@ -69,7 +69,7 @@ function find(criteria, searchOptions, sortOptions, callback) {
   this.data
     .find(criteria, searchOptions)
     .maxTimeMS(maxTimeMS)
-    .sort(sortOptions || { path: 1 })
+    .sort(sortOptions || {})
     .toArray(callback);
 }
 
