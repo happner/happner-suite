@@ -999,3 +999,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.5.0 2022-10-29
 -----------------
   - TEN-146: preserve criteria on remove
+
+12.5.1 2022-11-05
+-----------------
+  - TEN-135: mongo search does not sort by path

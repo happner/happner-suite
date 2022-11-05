@@ -1,7 +1,12 @@
 2.1.1 2022-11-04
 -----------------
 - TEN-135: do not insert default mongo sort by path
+- happn-3: 13.6.1
 - happn-db-provider-mongo: 1.1.1
+- happn-cluster: 12.2.2
+- happner-cluster: 12.3.2
+- happner-client: 12.5.2
+- happner-2: 12.5.1
 
 2.1.0 2022-10-29
 -----------------
