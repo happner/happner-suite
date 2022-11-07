@@ -79,3 +79,7 @@
 1.1.0 2022-10-29
 -----------------
   - TEN-146: preserve criteria on remove
+
+1.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default sort by path
