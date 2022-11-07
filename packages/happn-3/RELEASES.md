@@ -1028,3 +1028,7 @@
   - TEN-144: rest array arguments
   - TEN-146: preserve criteria on remove
 
+13.6.1 2022-11-05
+-----------------
+  - TEN-135: mongo search does not sort by path
+

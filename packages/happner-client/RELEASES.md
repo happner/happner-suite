@@ -379,3 +379,7 @@
   - TEN-141: fatal on security generate session
   - TEN-144: rest array arguments
   - TEN-146: preserve criteria on remove
+
+12.5.2 2022-11-05
+-----------------
+  - TEN-135: mongo search does not sort by path
