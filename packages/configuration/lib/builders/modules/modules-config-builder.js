@@ -94,7 +94,7 @@ module.exports = class ModulesConfigBuilder extends BaseBuilder {
       }
 
       withParameter(name, value, type) {
-        this.#checkType(type);
+        this.#checkParameterType(type);
         if (type === PARAMETER_TYPE.CALLBACK)
           this.push('parameters', { name, type }, BaseBuilder.Types.OBJECT);
         else this.push('parameters', { name, value, type }, BaseBuilder.Types.OBJECT);
@@ -102,7 +102,7 @@ module.exports = class ModulesConfigBuilder extends BaseBuilder {
       }
 
       withCallbackParameter(name, type) {
-        this.#checkType(type);
+        this.#checkParameterType(type);
         this.push('callback.parameters', { name, type }, BaseBuilder.Types.OBJECT);
         return this;
       }
@@ -115,7 +115,7 @@ module.exports = class ModulesConfigBuilder extends BaseBuilder {
         return this.#parent;
       }
 
-      #checkType(type) {
+      #checkParameterType(type) {
         if (type) {
           if (!Object.keys(PARAMETER_TYPE).find((key) => PARAMETER_TYPE[key] === type))
             throw new Error('unknown parameter type');
