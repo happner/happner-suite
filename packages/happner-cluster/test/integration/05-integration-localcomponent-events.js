@@ -69,7 +69,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   after('stop server', function (done) {
     if (!server) return done();
-    server.stop({ reconnect: false }, done);
+    server.stop({ reconnect: false }, () => setTimeout(done, 3000));
   });
 
   it('can subscribe to event from local components', function (done) {

@@ -559,7 +559,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return stopServer(servers[2]);
         })
         .then(() => {
-          return test.delay(3e3);
+          return test.delay(6e3);
         })
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null
@@ -573,7 +573,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return startInternal(getSeq.getNext(), 2);
         })
         .then(() => {
-          return test.delay(3e3);
+          return test.delay(5e3);
         })
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null

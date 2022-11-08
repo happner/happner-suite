@@ -1,4 +1,4 @@
-const Promise = require('bluebird');
+// const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -217,6 +217,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       try {
         await localInstance.exchange.localComponent1.callDependency(componentName, methodName);
       } catch (e) {
+        console.log(e)
         if (e.message.indexOf('Not implemented') > -1) return false;
         return e.message;
       }
@@ -253,11 +254,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
           ),
         ])
       );
-      await delay(5000); //wait for discvery
+      await delay(3000); //wait for discvery
       outcomes.push(await tryCallDependency('remoteComponent5', 'method1'));
       outcomes.push(await tryCallDependency('remoteComponent3', 'method1'));
       test.expect(outcomes).to.eql([true, true, false, false, true, true]);
-      await delay(5000);
+      await delay(3000);
     });
   });
 });

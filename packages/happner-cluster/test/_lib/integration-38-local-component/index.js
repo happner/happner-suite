@@ -9,8 +9,8 @@ module.exports = class Component {
   }
 
   async stop($happn) {
-    await $happn.event.testComponent.off(this.eventHandle);
-    await $happn.event.testComponent.off(this.eventHandle2);
+    if (this.eventHandle) await $happn.event.testComponent.off(this.eventHandle);
+    if (this.eventHandle2) await $happn.event.testComponent.off(this.eventHandle2);
   }
   async subscribeSecondEvent($happn) {
     this.eventHandle2 = await $happn.event.testComponent.on('SECOND', (data) => {

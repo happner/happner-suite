@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
@@ -89,8 +88,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   beforeEach('clear mongo collection', function (done) {
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
+    stopCluster(servers, function () {
       servers = [];
       clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
@@ -280,14 +278,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return users.denyMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
         .then(function () {
-          return test.delay(3e3);
-        })
-        .then(function () {
           gotToFinalAttempt = true;
           return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .then(function () {
-          done(new Error('unexpected success'));
         })
         .catch(function (e) {
           test.expect(gotToFinalAttempt).to.be(true);
@@ -373,6 +365,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         })
         .then(function () {
           return users.allowEvent(localInstance, 'username', 'remoteComponent', '/brokered/event');
+        })
+        .then(function () {
+          return test.delay(3e3);
         })
         .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));
@@ -478,6 +473,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
+          return test.delay(3e3);
+        })
+        .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -499,6 +497,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'remoteComponent',
             'brokeredMethodFail'
           );
+        })
+        .then(function () {
+          return test.delay(3e3);
         })
         .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));
@@ -526,6 +527,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
+          return test.delay(3e3);
+        })
+        .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(2));
         })
         .then(function (client) {
@@ -541,21 +545,26 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', function (done) {
       startClusterEdgeFirst()
         .then(function () {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+          return users.allowMethod(localInstance, 'username', 'brokerComponent10', 'directMethod');
         })
         .then(function () {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+          return users.allowMethod(
+            localInstance,
+            'username',
+            'remoteComponent',
+            'brokeredMethod10'
+          );
         })
         .then(function () {
           return testclient.create('username', 'password', getSeq.getPort(1));
         })
         .then(function (client) {
-          return client.exchange.remoteComponent.brokeredMethod1();
+          return client.exchange.remoteComponent.brokeredMethod10();
         })
         .catch(function (e) {
           test
             .expect(e.toString())
-            .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod1');
+            .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod10');
           setTimeout(done, 2000);
         });
     });

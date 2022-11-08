@@ -83,8 +83,11 @@ module.exports = class ServiceEntry {
   }
 
   async connectionFrom(member) {
-    this.members[member.endpoint] =
-      this.members[member.endpoint] || Member.create(member, this.orchestrator);
+    if (this.members[member.endpoint]?.client?.status === 2)
+      this.members[member.endpoint] = Member.create(member, this.orchestrator);
+    else
+      this.members[member.endpoint] =
+        this.members[member.endpoint] || Member.create(member, this.orchestrator);
 
     await this.members[member.endpoint].connectionFrom(member);
   }
@@ -95,13 +98,13 @@ module.exports = class ServiceEntry {
     return this.orchestrator.__stateUpdate(this.members[member.endpoint]);
   }
 
-  // async cleanupMembers() {
-  //   for (let [endpoint, member] of Object.entries(this.members)) {
-  //     if (!this.endpoints.includes(endpoint)) {
-  //       await member.stop();
-  //       this.orchestrator.removePeer(member);
-  //       this.removeMember(member);
-  //     }
-  //   }
-  // }
+  async cleanupMembers() {
+    for (let [endpoint, member] of Object.entries(this.members)) {
+      if (!this.endpoints.includes(endpoint)) {
+        await member.stop();
+        this.orchestrator.removePeer(member);
+        this.removeMember(member);
+      }
+    }
+  }
 };
