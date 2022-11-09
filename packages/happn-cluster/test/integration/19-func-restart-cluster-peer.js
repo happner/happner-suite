@@ -8,7 +8,7 @@ var clusterSize = 5;
 var happnSecure = true;
 
 // eslint-disable-next-line no-unused-vars
-require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
   hooks.startCluster({
     testSequence: testSequence,
     size: clusterSize,
