@@ -7,7 +7,7 @@ const testlightclient = require('../_lib/client-light');
 const getSeq = require('../_lib/helpers/getSeq');
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 150e3 }, (test) => {
   const servers = [];
   let localInstance;
 
