@@ -45,7 +45,7 @@ const systemConfigBuilder = new SystemConfigBuilder();
 const transportConfigBuilder = new TransportConfigBuilder();
 const configValidator = new ConfigValidator();
 
-const configuration = new Configuration(
+const configuration = new HappnConfigurationBuilder(
   happnConfigBuilder,
   cacheConfigBuilder,
   connectConfigBuilder,

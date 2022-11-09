@@ -1,5 +1,5 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-module.exports = class SystemConfigBuilder extends BaseBuilder {
+module.exports = class TransportConfigBuilder extends BaseBuilder {
   constructor() {
     super();
   }

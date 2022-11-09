@@ -11,6 +11,7 @@
     "node_modules"
   ],
   "include": [
-    "lib/configuration.ts"
+    "lib/factories/happn-configuration-builder.ts",
+    "lib/factories/happn-cluster-configuration-builder.ts"
   ]
 }

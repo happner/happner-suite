@@ -1,3 +1,3 @@
 module.exports = {
-  HAPPN_CONFIG_ROOT: 'happn.services',
+  HAPPN_SERVICES_ROOT: 'services',
 };
