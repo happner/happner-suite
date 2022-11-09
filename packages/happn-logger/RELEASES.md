@@ -29,3 +29,10 @@
 2.2.0 2022-09-08
 -----------------
   - TEN-130: able to override logger configuration
+
+2.2.1 2022-10-29
+-----------------
+  - TEN-129: security service tests
+  - TEN-141: fatal on security generate session
+  - TEN-144: rest array arguments
+  - TEN-146: preserve criteria on remove

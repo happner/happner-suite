@@ -148,7 +148,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         'remoteComponent4',
         'method1',
         function (e, result) {
-          if (e) return done(e);
+          if (e) return done(e);getInjectedElements
           try {
             test.expect(result.split(':')[1]).to.be('component4-v2');
             done();

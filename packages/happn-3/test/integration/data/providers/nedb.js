@@ -24,6 +24,11 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   it('can increment', async () => {
     await testIncrement();
   });
+  it('can remove', async () => {
+    await testRemove({
+      fsync: true,
+    });
+  });
   it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there - fsync', async () => {
     await testPersistence({
       fsync: true,
@@ -39,6 +44,45 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
       fsync: true,
     });
   });
+
+  it('can remove - fsync', async () => {
+    await testRemove({
+      fsync: true,
+    });
+  });
+
+  async function testRemove(settings) {
+    const nedbProvider = new NEDBDataProvider(
+      {
+        ...{
+          filename: testFileName,
+        },
+        ...settings,
+      },
+      mockLogger
+    );
+    await nedbProvider.initialize();
+    await nedbProvider.upsert('test/remove/1', { data: { test: 'test1' } });
+    await nedbProvider.upsert('test/remove/2', { data: { test: 'test2' } });
+    await nedbProvider.upsert('test/remove/3', { data: { test: 'test3' } });
+    test.expect(await getCount(nedbProvider, 'test/remove/*')).to.be(3);
+    const result1 = await nedbProvider.remove('test/remove/*', {
+      criteria: {
+        'data.test': {
+          $eq: 'test1',
+        },
+      },
+    });
+    test.expect(result1.data.removed).to.be(1);
+    test.expect(await getCount(nedbProvider, 'test/remove/*')).to.be(2);
+    const result2 = await nedbProvider.remove('test/remove/*');
+    test.expect(result2.data.removed).to.be(2);
+    test.expect(await getCount(nedbProvider, 'test/remove/*')).to.be(0);
+  }
+
+  async function getCount(nedbProvider, path) {
+    return (await nedbProvider.count(path)).data.value;
+  }
 
   async function testIncrement(settings) {
     const nedbProvider = new NEDBDataProvider(

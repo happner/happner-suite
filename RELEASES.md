@@ -1,3 +1,34 @@
+2.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default mongo sort by path
+- happn-3: 13.6.1
+- happn-db-provider-mongo: 1.1.1
+- happn-cluster: 12.2.2
+- happner-cluster: 12.3.2
+- happner-client: 12.5.2
+- happner-2: 12.5.1
+
+2.1.0 2022-10-29
+-----------------
+- TEN-129: security service tests
+- TEN-141: fatal on security generate session
+- TEN-144: rest array arguments
+- TEN-146: preserve criteria on remove
+- happn-commons: 1.2.0
+- happn-commons-test: 1.1.1
+- happn-3: 13.6.0
+- happn-db-provider-mongo: 1.1.0
+- happn-db-provider-nedb: 1.1.0
+- happn-db-provider-loki: 1.1.0
+- happn-cluster: 12.2.1
+- happner-cluster: 12.3.1
+- happner-client: 12.5.1
+- happner-2: 12.5.0
+- happn-nedb: 2.0.7
+- tame-search: 3.0.6
+- happn-util-crypto: 3.0.6
+- happn-logger: 12.2.1
+
 2.0.0 2022-10-12
 -----------------
 - TEN-143: ws and primus update in happn-primus-wrapper

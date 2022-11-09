@@ -882,7 +882,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       test.chai.expect(mockPush).to.have.been.calledWith(
         {
           operationType: 'REMOVE',
-          arguments: ['mockPath'],
+          arguments: ['mockPath', undefined],
         },
         test.sinon.match.func
       );

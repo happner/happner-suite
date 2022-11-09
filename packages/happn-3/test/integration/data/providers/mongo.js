@@ -20,7 +20,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
     await test.cleanup();
   });
 
-  it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {
+  it('does some inserts, restarts the provider and checks the data is still there', async () => {
     await testPersistence();
   });
   it('can count', async () => {
@@ -29,6 +29,44 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   it('can increment', async () => {
     await testIncrement();
   });
+  it('can remove', async () => {
+    await testRemove({
+      fsync: true,
+    });
+  });
+  async function testRemove(settings) {
+    const mongoProvider = new MongoDataProvider(
+      {
+        ...settings,
+        database,
+        collection,
+      },
+      mockLogger
+    );
+    await mongoProvider.initialize();
+    await mongoProvider.upsert('test/remove/1', { data: { test: 'test1' } });
+    await mongoProvider.upsert('test/remove/2', { data: { test: 'test2' } });
+    await mongoProvider.upsert('test/remove/3', { data: { test: 'test3' } });
+    test.expect(await getCount(mongoProvider, 'test/remove/*')).to.be(3);
+    const result1 = await mongoProvider.remove('test/remove/*', {
+      criteria: {
+        'data.test': {
+          $eq: 'test1',
+        },
+      },
+    });
+    test.expect(result1.data.removed).to.be(1);
+    test.expect(await getCount(mongoProvider, 'test/remove/*')).to.be(2);
+    const result2 = await mongoProvider.remove('test/remove/*');
+    test.expect(result2.data.removed).to.be(2);
+    test.expect(await getCount(mongoProvider, 'test/remove/*')).to.be(0);
+    await mongoProvider.stop();
+  }
+
+  async function getCount(mongoProvider, path) {
+    const count = (await mongoProvider.count(path)).data.value;
+    return count;
+  }
 
   async function testIncrement(settings) {
     const mongoProvider = new MongoDataProvider(
@@ -49,6 +87,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
     test.expect(results).to.eql([1, 3, 4]);
     const found = await mongoProvider.find('test/increment');
     test.expect(found[0].data.testGauge.value).to.be(4);
+    await mongoProvider.stop();
   }
 
   async function testCount(settings) {
@@ -102,6 +141,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
         })
       )
       .to.eql({ data: { value: 2 } });
+    await mongoProvider.stop();
   }
 
   async function testPersistence(settings) {
@@ -171,5 +211,6 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
     await mongoProvider.initialize();
     found = await mongoProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
+    await mongoProvider.stop();
   }
 });

@@ -282,10 +282,26 @@ non-release 2017-12-14
 -----------------
   - TEN-31: further logging restrictions (info -> debug) and clustering allowances (debug -> info)
 
+
+12.2.1 2022-10-29
+-----------------
+  - TEN-129: security service tests
+  - TEN-141: fatal on security generate session
+  - TEN-144: rest array arguments
+  - TEN-146: preserve criteria on remove
+
+12.2.2 2022-11-05
+-----------------
+  - TEN-135: mongo search does not sort by path
+
+
 13.0.0 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
 
-13.0.1 2022-10-26
+13.0.1 2022-11-08
 -----------------
   - SMC-4817/TEN-12: mongo-based membership strategy - no longer removes peer/member if its info is missing from the db
+
+
+

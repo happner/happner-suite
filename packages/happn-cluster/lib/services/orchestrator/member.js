@@ -36,7 +36,6 @@ module.exports = class Member {
       this.connectedFrom = true; // ...or from itselfurl
       this.subscribedTo = true;
       this.connectingTo = false;
-      this.waitingForReconnect = false;
       this.client = this.orchestrator.localClient;
     }
     this.orchestrator.__stateUpdate(this);
@@ -67,8 +66,7 @@ module.exports = class Member {
   }
 
   async connect(loginConfig) {
-    if (this.connectingTo || this.connectedTo /*|| this.waitingForReconnect */|| this.client)
-      return;
+    if (this.connectingTo || this.connectedTo || this.client) return;
     this.connectingTo = true;
     loginConfig.url = loginConfig.protocol + '://' + this.endpoint;
 
@@ -167,8 +165,7 @@ module.exports = class Member {
 
   __onHappnDisconnect() {
     this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
-    // if (!this.connectedTo) return;
-    this.waitingForReconnect = true;
+    if (!this.connectedTo) return;
     this.connectedTo = false;
     this.orchestrator.__stateUpdate(this);
     // leave it in reconnect loop until DB confirms

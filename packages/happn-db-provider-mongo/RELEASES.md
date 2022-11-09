@@ -76,6 +76,14 @@
   - TEN-143: ws and primus update in happn-primus-wrapper
   - TEN-101: removed elasticsearch support
 
-1.0.18 2022-10-26
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
+
+1.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default sort by path
+
+1.1.2 2022-11-08
 -----------------
   - TEN-12: mongo-based membership strategy (dev dependencies changes)

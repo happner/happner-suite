@@ -33,3 +33,7 @@
 1.0.7 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
