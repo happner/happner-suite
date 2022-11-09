@@ -14,6 +14,9 @@ const membershipSchema = require('../schemas/services/membership-schema.json');
 const orchestratorSchema = require('../schemas/services/orchestrator-schema.json');
 const proxySchema = require('../schemas/services/proxy-schema.json');
 const replicatorSchema = require('../schemas/services/replicator-schema.json');
+const componentsSchema = require('../schemas/components/components-schema.json');
+const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
+const modulesSchema = require('../schemas/modules/modules-schema.json');
 const FieldTypeValidator = require('../validators/field-type-validator');
 
 module.exports = class ConfigValidator {
@@ -37,8 +40,12 @@ module.exports = class ConfigValidator {
         orchestratorSchema,
         proxySchema,
         replicatorSchema,
+        componentsSchema,
+        endpointsSchema,
+        modulesSchema,
       ],
       strictNumbers: false, // to handle Infinity types
+      allowUnionTypes: true, // handle multiple allowed types, eg: string,object
     });
 
     this.#fieldTypeValidator = new FieldTypeValidator();
@@ -125,6 +132,26 @@ module.exports = class ConfigValidator {
   validateHappnConfig(config) {
     return this.#validate(config, happnSchema);
   }
+
+  /*****************************************************
+   HAPPNER-SPECIFIC
+   ****************************************************/
+
+  validateComponentsConfig(config) {
+    return this.#validate(config, componentsSchema);
+  }
+
+  validateEndpointsConfig(config) {
+    return this.#validate(config, endpointsSchema);
+  }
+
+  validateModulesConfig(config) {
+    return this.#validate(config, modulesSchema);
+  }
+
+  /*
+  HELPERS
+   */
 
   #validate(config, schema) {
     const result = { valid: false, errors: [] };
