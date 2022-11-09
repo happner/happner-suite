@@ -54,7 +54,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   }
 
   beforeEach('clear mongo', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
+    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function (e) {
       done(e);
     });
   });

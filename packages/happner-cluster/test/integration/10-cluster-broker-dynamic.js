@@ -7,18 +7,23 @@ const testlightclient = require('../_lib/client-light');
 const getSeq = require('../_lib/helpers/getSeq');
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-require('../_lib/test-helper').describe({ timeout: 150e3 }, (test) => {
+
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   const servers = [];
   let localInstance;
 
   beforeEach('clear mongo collection', function (done) {
     this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
+    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
+      if (servers.length) {
+        stopCluster(servers, function (e) {
+          if (e) return done(e);
+          servers.splice(0, servers.length);
+          done();
+        });
+      } else {
         done();
-      });
+      }
     });
   });
 
