@@ -148,7 +148,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         'remoteComponent4',
         'method1',
         function (e, result) {
-          if (e) return done(e);getInjectedElements
+          if (e) return done(e);
           try {
             test.expect(result.split(':')[1]).to.be('component4-v2');
             done();
@@ -217,7 +217,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       try {
         await localInstance.exchange.localComponent1.callDependency(componentName, methodName);
       } catch (e) {
-        console.log(e)
         if (e.message.indexOf('Not implemented') > -1) return false;
         return e.message;
       }
