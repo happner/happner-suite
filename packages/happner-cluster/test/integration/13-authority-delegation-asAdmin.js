@@ -43,7 +43,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   }
 
   beforeEach('clear mongo', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
+    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function (e) {
       done(e);
     });
   });
@@ -82,7 +82,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   // })
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -107,7 +107,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is able to execute a remote components method - asAdmin', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -130,7 +130,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to execute a remote components method, 2 levels deep', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -158,7 +158,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is able to execute a remote components method, 2 levels deep - asAdmin', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -184,7 +184,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
@@ -206,7 +206,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is able to subscribe to a remote components event - asAdmin', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
@@ -225,7 +225,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event, 2 levels deep', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -253,7 +253,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is able to subscribe to a remote components event, 2 levels deep - asAdmin', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
 
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
@@ -279,7 +279,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('ensures a happner client without the correct permissions is unable to modify a remote components data', function (done) {
-    this.timeout(4000);
+    this.timeout(6e3);
     let thisClient;
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToData')
