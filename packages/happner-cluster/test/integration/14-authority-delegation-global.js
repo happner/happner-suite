@@ -51,7 +51,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     this.timeout(20000);
     localInstance = test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1));
     await test.delay(2000);
-    servers =  await Promise.all([
+    servers = await Promise.all([
       localInstance,
       test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
       test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
@@ -65,7 +65,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     if (!servers) return;
     await stopCluster(servers);
   });
-  
+
   it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
     this.timeout(5000);
 
