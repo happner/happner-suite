@@ -3,35 +3,23 @@ const commons = require('happn-commons');
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
 const tcpPortUsed = require('happn-tcp-port-used');
+const CryptoUtils = require('happn-util-crypto');
 
 function TransportService() {
   EventEmitter.call(this);
   this.https = require('https');
   this.http = require('http');
   this.fs = commons.fs;
+  this.cryptoUtils = new CryptoUtils();
 }
 
 util.inherits(TransportService, EventEmitter);
 
-TransportService.prototype.createCertificate = function (keyPath, certPath, callback) {
-  var pem = require('pem');
-
-  pem.createCertificate(
-    {
-      selfSigned: true,
-    },
-    (err, keys) => {
-      if (err) return callback(err);
-
-      this.fs.writeFileSync(keyPath, keys.serviceKey);
-      this.fs.writeFileSync(certPath, keys.certificate);
-
-      callback(null, {
-        cert: keys.certificate,
-        key: keys.serviceKey,
-      });
-    }
-  );
+TransportService.prototype.createCertificate = function (keyPath, certPath) {
+  const X509 = this.cryptoUtils.createCertificateX509();
+  this.fs.writeFileSync(keyPath, X509.key);
+  this.fs.writeFileSync(certPath, X509.cert);
+  return X509;
 };
 
 TransportService.prototype.__createHttpsServer = function (options, app, callback) {
@@ -91,12 +79,13 @@ TransportService.prototype.createServer = function (config, app, log, callback) 
   if (!keyFileExists && !certFileExists) {
     log.warn('cert file ' + config.certPath + ' is missing, trying to generate...');
   }
-
-  return this.createCertificate(config.keyPath, config.certPath, (e, keys) => {
-    if (e) return callback(e);
-    options = keys;
-    this.__createHttpsServer(options, app, callback);
-  });
+  let keys;
+  try {
+    keys = this.createCertificate(config.keyPath, config.certPath);
+  } catch (e) {
+    return callback(e);
+  }
+  this.__createHttpsServer(keys, app, callback);
 };
 
 TransportService.prototype.listen = function (host, port, options, callback) {

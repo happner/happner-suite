@@ -193,8 +193,8 @@ describe(
         },
       };
 
-      transportMock.createCertificate = function (keyPath, certPath, callback) {
-        return callback(new Error('test error'));
+      transportMock.createCertificate = function () {
+        throw new Error('test error');
       };
 
       transportMock.initialize(
