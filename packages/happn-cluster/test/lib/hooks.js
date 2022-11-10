@@ -58,6 +58,8 @@ module.exports.startCluster = function (clusterOpts) {
       servers.push(HappnCluster.create(clone(config)));
     }
     self.servers = await Promise.all(servers);
+    
+    self.ports = self.servers.map((server) => server.config.port);
     await test.delay(2000);
     return self.servers;
   });

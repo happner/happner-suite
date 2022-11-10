@@ -65,11 +65,6 @@ testConfigs.forEach((testConfig) => {
         ).pop();
       }
 
-      // increment ports to one beyond last existing peer
-      config.port++;
-      // config.services.membership.config.port++;
-      config.services.proxy.config.port++;
-      // console.log(config)
       var stopServer = this.servers.pop();
       setTimeout(function () {
         stopServer.stop({ reconnect: false });

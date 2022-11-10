@@ -44,7 +44,8 @@ testConfigs.forEach((testConfig) => {
 
     before('connect a client to each server', async function () {
       let clients = await Promise.all(
-        this.__configs.map((config) => {
+        this.servers.map((server) => {
+          let config = server.config;
           var loginConfig = {
             config: {
               secure: happnSecure,

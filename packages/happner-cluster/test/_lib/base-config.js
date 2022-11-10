@@ -1,6 +1,6 @@
 const PORT_CONSTANTS = require('./helpers/port-constants');
 module.exports = function (
-  extendedSeq,
+  seq,
   minPeers,
   secure,
   requestTimeout,
@@ -10,11 +10,9 @@ module.exports = function (
   replicate,
   logFile
 ) {
-  let [first, seq] = extendedSeq;
   var clusterRequestTimeout = requestTimeout ? requestTimeout : 10 * 1000;
   var clusterResponseTimeout = responseTimeout ? responseTimeout : 20 * 1000;
 
-  hosts = hosts ? hosts.split(',') : ['127.0.0.1:' + (PORT_CONSTANTS.SWIM_BASE + first).toString()];
   joinTimeout = joinTimeout || 300;
   if (logFile) {
     process.env.LOG_FILE = logFile;
@@ -25,7 +23,7 @@ module.exports = function (
   return {
     name: 'MESH_' + seq,
     domain: 'DOMAIN_NAME',
-    port: PORT_CONSTANTS.HAPPN_BASE + seq,
+    port: 0,
     ignoreDependenciesOnStartup: true,
     cluster: {
       requestTimeout: clusterRequestTimeout,
@@ -52,19 +50,9 @@ module.exports = function (
             autoUpdateDBVersion: true,
           },
         },
-        membership: {
-          config: {
-            host: '127.0.0.1',
-            port: PORT_CONSTANTS.SWIM_BASE + seq,
-            seed: seq === first,
-            seedWait: 1000,
-            hosts,
-            joinTimeout,
-          },
-        },
         proxy: {
           config: {
-            port: PORT_CONSTANTS.PROXY_BASE + seq,
+            port: 0,
           },
         },
         orchestrator: {

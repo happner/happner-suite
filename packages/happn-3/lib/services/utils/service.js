@@ -1,6 +1,7 @@
 let commons = require("happn-commons"),
   fastClone = commons.fastClone,
   ms = require("ms"),
+  net = require("net"),
   happnUtils = commons.utils,
   fs = commons.fs,
   LRU = commons.lruCache,
@@ -251,4 +252,16 @@ UtilsService.prototype.getTemplatedPathCombinations = function (template, contex
   }
 
   return templates;
+};
+UtilsService.prototype.getFreePort = async function () {
+  return new Promise((res, rej) => {
+    const srv = net.createServer();
+    srv.listen(0, () => {
+      const port = srv.address().port;
+      srv.close((err) => {
+        if (err) return rej(err);
+        res(port);
+      });
+    });
+  });
 };

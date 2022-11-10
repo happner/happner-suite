@@ -300,7 +300,7 @@ module.exports = class Orchestrator extends EventEmitter {
     let error = false;
     let errors = [];
     Object.values(this.members).forEach((member) => {
-      if (member.error /*&& !member.waitingForReconnect*/) {
+      if (member.error) {
         error = true;
         errors.push(member.error);
       }

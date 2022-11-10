@@ -20,10 +20,6 @@ module.exports.createMemberConfigs = Util.promisify(function (
 ) {
   var transport = null;
 
-  var happnPortBase = testSequence * 200 + 1025;
-  var swimPortBase = happnPortBase + clusterSize * 2;
-  var proxyPortBase = swimPortBase + clusterSize * 2;
-
   if (happnSecure) {
     transport = {
       mode: 'https',
@@ -52,7 +48,7 @@ module.exports.createMemberConfigs = Util.promisify(function (
     i++;
 
     var config = {
-      port: happnPortBase + i,
+      port: 0,
       transport: transport,
       services: {
         data: {
@@ -86,7 +82,7 @@ module.exports.createMemberConfigs = Util.promisify(function (
         proxy: {
           config: {
             host: '0.0.0.0',
-            port: proxyPortBase + i,
+            port: 0,
             allowSelfSignedCerts: true,
           },
         },
@@ -129,10 +125,6 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
 ) {
   var transport = null;
 
-  var happnPortBase = testSequence * 200 + 1025;
-  var swimPortBase = happnPortBase + clusterSize * 2;
-  var proxyPortBase = swimPortBase + clusterSize * 2;
-
   if (happnSecure) {
     transport = {
       mode: 'https',
@@ -166,7 +158,7 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
     i++;
 
     var config = {
-      port: happnPortBase + i,
+      port: 0,
       transport: transport,
       services: {
         data: {
@@ -203,7 +195,7 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
         proxy: {
           config: {
             host: '0.0.0.0',
-            port: proxyPortBase + i,
+            port: 0,
             allowSelfSignedCerts: true,
           },
         },

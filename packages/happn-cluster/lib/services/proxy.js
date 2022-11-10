@@ -7,7 +7,6 @@ var GetAddress = require('../utils/get-address');
 var proxy = require('http-proxy');
 var dface = require('dface');
 var property = require('../utils/property');
-const Util = require('util');
 function Proxy(opts) {
   property(this, 'log', opts.logger.createLogger('Proxy'));
   property(this, 'getAddress', GetAddress(this.log));
@@ -32,7 +31,7 @@ Proxy.prototype.initialize = function (config, callback) {
   }
 };
 
-Proxy.prototype.start = Util.promisify(function (callback) {
+Proxy.prototype.start = async function () {
   var port,
     host,
     self = this;
@@ -48,12 +47,13 @@ Proxy.prototype.start = Util.promisify(function (callback) {
     return 55000;
   };
 
-  try {
-    port = typeof this.config.port !== 'undefined' ? this.config.port : defaultPort();
-    host = dface(this.config.host);
-  } catch (err) {
-    callback(err);
+  port = typeof this.config.port !== 'undefined' ? this.config.port : defaultPort();
+  if (this.config.port === 0) {
+    port = await this.happn.services.utils.getFreePort();
+    this.config.port = port;
+    this.happn.config.services.proxy.port = port;
   }
+  host = dface(this.config.host);
 
   var protocol = this.happn.services.transport.config.mode;
 
@@ -91,24 +91,27 @@ Proxy.prototype.start = Util.promisify(function (callback) {
 
   this.__proxyServer = proxy.createProxyServer(opts);
 
+  let done, returnError;
   var onError = function (error) {
     self.__proxyServer._server.removeListener('listening', onListening);
-    callback(error);
+    returnError(error);
   };
-
   var onListening = function () {
     self.log.info('forwarding %s to %s', listening, target);
     self.__proxyServer._server.removeListener('error', onError);
 
     self.__proxyServer.on('error', self.__onProxyErrorListener);
     self.__proxyServer._server.on('error', self.__onServerErrorListener);
-    callback();
+    done();
   };
-
   this.__proxyServer.listen(port, host); // need to listen() first, it creates the internal _server (odd)
   this.__proxyServer._server.once('error', onError);
   this.__proxyServer._server.once('listening', onListening);
-});
+  return new Promise((res, rej) => {
+    done = res;
+    returnError = rej;
+  });
+};
 
 Proxy.prototype.stop = function (options, callback) {
   this.log.info('stopping proxy');
