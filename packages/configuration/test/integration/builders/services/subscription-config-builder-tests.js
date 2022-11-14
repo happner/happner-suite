@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { SubscriptionConfigBuilder } = require('../../../../lib/ts/builders/happn/services/subscription-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const SubscriptionConfigBuilder = require('../../../../lib/builders/services/subscription-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a subscription config object', () => {

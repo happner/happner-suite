@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { EndpointsConfigBuilder } = require('../../../../lib/ts/builders/happner/endpoints/endpoints-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const EndpointsConfigBuilder = require('../../../../lib/builders/endpoints/endpoints-config-builder');
 
 describe(helper.testName(), function () {
   it('builds an endpoints config object', () => {

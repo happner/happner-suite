@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { DataConfigBuilder } = require('../../../../lib/ts/builders/happn/services/data-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const DataConfigBuilder = require('../../../../lib/builders/services/data-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a data config object with nested datastore', () => {

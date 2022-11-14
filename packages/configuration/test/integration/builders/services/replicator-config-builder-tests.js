@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { ReplicatorConfigBuilder } = require('../../../../lib/ts/builders/happn/services/replicator-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ReplicatorConfigBuilder = require('../../../../lib/builders/services/replicator-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a replicator config object', () => {

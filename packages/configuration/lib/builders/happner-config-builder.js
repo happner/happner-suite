@@ -1,12 +1,13 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
+const HappnConfigBuilder = require('./happn-config-builder');
 
-module.exports = class HappnerConfigBuilder extends BaseBuilder {
+module.exports = class HappnerConfigBuilder extends HappnConfigBuilder {
   constructor() {
     super();
   }
 
   withName(name) {
-    this.set('happn', name, BaseBuilder.Types.STRING);
+    this.set('name', name, BaseBuilder.Types.STRING);
     return this;
   }
 
@@ -17,11 +18,6 @@ module.exports = class HappnerConfigBuilder extends BaseBuilder {
 
   withListenFirst(listenFirst) {
     this.set('listenFirst', listenFirst, BaseBuilder.Types.BOOLEAN);
-    return this;
-  }
-
-  withHappnConfigBuilder(happnBuilder) {
-    this.set('happn', happnBuilder, BaseBuilder.Types.OBJECT);
     return this;
   }
 

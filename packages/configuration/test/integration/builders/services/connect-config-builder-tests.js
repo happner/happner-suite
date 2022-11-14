@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
+const {
+  ConnectConfigBuilder,
+} = require('../../../../lib/ts/builders/happn/services/connect-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ConnectConfigBuilder = require('../../../../lib/builders/services/connect-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a connect config object', () => {
@@ -23,9 +25,7 @@ describe(helper.testName(), function () {
 
     //assertions
     helper.expect(result.config.middleware.security.cookieName).to.equal(mockCookieName);
-    helper
-      .expect(result.config.middleware.security.cookieDomain)
-      .to.equal(mockCookieDomain);
+    helper.expect(result.config.middleware.security.cookieDomain).to.equal(mockCookieDomain);
     helper.expect(result.config.middleware.security.exclusions[0]).to.equal(mockExclusion);
     helper
       .expect(result.config.middleware.security.forbiddenResponsePath)

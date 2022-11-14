@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { OrchestratorConfigBuilder } = require('../../../../lib/ts/builders/happn/services/orchestrator-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const OrchestratorConfigBuilder = require('../../../../lib/builders/services/orchestrator-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a orchestrator config object', () => {

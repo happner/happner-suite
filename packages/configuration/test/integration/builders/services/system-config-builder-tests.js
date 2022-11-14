@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { SystemConfigBuilder } = require('../../../../lib/ts/builders/happn/services/system-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const SystemConfigBuilder = require('../../../../lib/builders/services/system-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a subscription config object', () => {

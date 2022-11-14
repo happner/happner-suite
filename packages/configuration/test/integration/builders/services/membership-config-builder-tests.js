@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { MembershipConfigBuilder } = require('../../../../lib/ts/builders/happn/services/membership-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const MembershipConfigBuilder = require('../../../../lib/builders/services/membership-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a membership config object', () => {

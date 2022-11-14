@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { ModulesConfigBuilder } = require('../../../../lib/ts/builders/happner/modules/modules-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ModulesConfigBuilder = require('../../../../lib/builders/modules/modules-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a modules config object', () => {

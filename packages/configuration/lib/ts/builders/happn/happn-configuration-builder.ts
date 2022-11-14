@@ -1,16 +1,17 @@
-import HappnConfigBuilder from '../builders/happn-config-builder';
-import CacheConfigBuilder from '../builders/services/cache-config-builder';
-import ConnectConfigBuilder from '../builders/services/connect-config-builder';
-import DataConfigBuilder from '../builders/services/data-config-builder';
-import ProtocolConfigBuilder from '../builders/services/protocol-config-builder';
-import PublisherConfigBuilder from '../builders/services/publisher-config-builder';
-import SecurityConfigBuilder from '../builders/services/security-config-builder';
-import SubscriptionConfigBuilder from '../builders/services/subscription-config-builder';
-import SystemConfigBuilder from '../builders/services/system-config-builder';
-import TransportConfigBuilder from '../builders/services/transport-config-builder';
+const BaseBuilder = require('happn-commons/lib/base-builder');
+import { CacheConfigBuilder } from './services/cache-config-builder';
+import { ConnectConfigBuilder } from './services/connect-config-builder';
+import { DataConfigBuilder } from './services/data-config-builder';
+import { ProtocolConfigBuilder } from './services/protocol-config-builder';
+import { PublisherConfigBuilder } from './services/publisher-config-builder';
+import { SecurityConfigBuilder } from './services/security-config-builder';
+import { SubscriptionConfigBuilder } from './services/subscription-config-builder';
+import { SystemConfigBuilder } from './services/system-config-builder';
+import { TransportConfigBuilder } from './services/transport-config-builder';
 
-export class HappnConfigurationBuilder {
-  #happnConfigBuilder: HappnConfigBuilder;
+const ROOT = require('../../../constants/config-constants').HAPPN_SERVICES_ROOT;
+
+export class HappnConfigurationBuilder extends BaseBuilder {
   #cacheConfigBuilder: CacheConfigBuilder;
   #connectConfigBuilder: ConnectConfigBuilder;
   #dataConfigBuilder: DataConfigBuilder;
@@ -22,7 +23,6 @@ export class HappnConfigurationBuilder {
   #transportConfigBuilder: TransportConfigBuilder;
 
   constructor(
-    happnConfigBuilder: HappnConfigBuilder,
     cacheConfigBuilder: CacheConfigBuilder,
     connectConfigBuilder: ConnectConfigBuilder,
     dataConfigBuilder: DataConfigBuilder,
@@ -33,7 +33,7 @@ export class HappnConfigurationBuilder {
     systemConfigBuilder: SystemConfigBuilder,
     transportConfigBuilder: TransportConfigBuilder
   ) {
-    this.#happnConfigBuilder = happnConfigBuilder;
+    super();
     this.#cacheConfigBuilder = cacheConfigBuilder;
     this.#connectConfigBuilder = connectConfigBuilder;
     this.#dataConfigBuilder = dataConfigBuilder;
@@ -165,115 +165,6 @@ export class HappnConfigurationBuilder {
   }
 
   /*
-  HEALTH - happn-cluster specific
-   */
-
-  // withHealthInterval(interval: number): HappnConfigurationBuilder {
-  //   this.#healthConfigBuilder.withHealthInterval(interval);
-  //   return this;
-  // }
-  //
-  // withHealthWarmupLimit(limit: number): HappnConfigurationBuilder {
-  //   this.#healthConfigBuilder.withHealthWarmupLimit(limit);
-  //   return this;
-  // }
-
-  /*
-  MEMBERSHIP - happn-cluster specific
-   */
-
-  // withMembershipClusterName(name: string): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipClusterName(name);
-  //   return this;
-  // }
-  //
-  // withMembershipDisseminationFactor(factor: number): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipDisseminationFactor(factor);
-  //   return this;
-  // }
-  //
-  // withMembershipHost(host: string, port: number): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipHost(host);
-  //   this.#membershipConfigBuilder.withMembershipPort(port);
-  //   return this;
-  // }
-  //
-  // withMembershipJoinTimeout(timeout: number): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipJoinTimeout(timeout);
-  //   return this;
-  // }
-  //
-  // withMembershipJoinType(type: string): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipJoinType(type);
-  //   return this;
-  // }
-  //
-  // withMembershipMemberHost(host: string): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipMemberHost(host);
-  //   return this;
-  // }
-  //
-  // withMembershipPing(
-  //   interval: number,
-  //   pingTimeout?: number,
-  //   requestTimeout?: number,
-  //   requestGroupSize?: number
-  // ): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipPingInterval(interval);
-  //   if (pingTimeout !== undefined)
-  //     this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
-  //   if (requestTimeout !== undefined)
-  //     this.#membershipConfigBuilder.withMembershipPingReqTimeout(requestTimeout);
-  //   if (requestGroupSize !== undefined)
-  //     this.#membershipConfigBuilder.withMembershipPingReqGroupSize(requestGroupSize);
-  //   return this;
-  // }
-  //
-  // withMembershipRandomWait(wait: number): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipRandomWait(wait);
-  //   return this;
-  // }
-  //
-  // withMembershipIsSeed(isSeed: boolean): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipIsSeed(isSeed);
-  //   return this;
-  // }
-  //
-  // withMembershipSeedWait(wait: boolean): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipSeedWait(wait);
-  //   return this;
-  // }
-  //
-  // withMembershipUdpMaxDgramSize(size: boolean): HappnConfigurationBuilder {
-  //   this.#membershipConfigBuilder.withMembershipUdpMaxDgramSize(size);
-  //   return this;
-  // }
-
-  /*
-  ORCHESTRATOR - happn-cluster specific
-   */
-
-  // withOrchestratorMinimumPeers(minimum: number): HappnConfigurationBuilder {
-  //   this.#orchestratorConfigBuilder.withOrchestratorMinimumPeers(minimum);
-  //   return this;
-  // }
-  //
-  // withOrchestratorReplicatePath(path: string): HappnConfigurationBuilder {
-  //   this.#orchestratorConfigBuilder.withOrchestratorReplicatePath(path);
-  //   return this;
-  // }
-  //
-  // withOrchestratorStableReportInterval(interval: string): HappnConfigurationBuilder {
-  //   this.#orchestratorConfigBuilder.withOrchestratorStableReportInterval(interval);
-  //   return this;
-  // }
-  //
-  // withOrchestratorStabiliseTimeout(timeout: string): HappnConfigurationBuilder {
-  //   this.#orchestratorConfigBuilder.withOrchestratorStabiliseTimeout(timeout);
-  //   return this;
-  // }
-
-  /*
   PROTOCOLS
    */
 
@@ -298,36 +189,6 @@ export class HappnConfigurationBuilder {
   }
 
   /*
-  PROXY - happn-cluster specific
-   */
-
-  // withProxyAllowSelfSignedCerts(allow: boolean): HappnConfigurationBuilder {
-  //   this.#proxyConfigBuilder.withProxyAllowSelfSignedCerts(allow);
-  //   return this;
-  // }
-  //
-  // withProxyCertPath(path: string): HappnConfigurationBuilder {
-  //   this.#proxyConfigBuilder.withProxyCertPath(path);
-  //   return this;
-  // }
-  //
-  // withProxyHost(host: string, port: number): HappnConfigurationBuilder {
-  //   this.#proxyConfigBuilder.withProxyHost(host);
-  //   this.#proxyConfigBuilder.withProxyPort(port);
-  //   return this;
-  // }
-  //
-  // withProxyKeyPath(path: string): HappnConfigurationBuilder {
-  //   this.#proxyConfigBuilder.withProxyKeyPath(path);
-  //   return this;
-  // }
-  //
-  // withProxyTimeout(timeout: number): HappnConfigurationBuilder {
-  //   this.#proxyConfigBuilder.withProxyTimeout(timeout);
-  //   return this;
-  // }
-
-  /*
   PUBLISHER
    */
 
@@ -340,15 +201,6 @@ export class HappnConfigurationBuilder {
     this.#publisherConfigBuilder.withTimeout(timeout);
     return this;
   }
-
-  /*
-  REPLICATOR - happn-cluster specific
-   */
-
-  // withReplicatorSecurityChangeSetReplicateInterval(interval: number): HappnConfigurationBuilder {
-  //   this.#replicatorConfigBuilder.withReplicatorSecurityChangeSetReplicateInterval(interval);
-  //   return this;
-  // }
 
   /*
   SECURITY
@@ -553,16 +405,16 @@ export class HappnConfigurationBuilder {
    */
 
   build() {
-    return this.#happnConfigBuilder
-      .withCacheConfigBuilder(this.#cacheConfigBuilder)
-      .withConnectConfigBuilder(this.#connectConfigBuilder)
-      .withDataConfigBuilder(this.#dataConfigBuilder)
-      .withProtocolConfigBuilder(this.#protocolConfigBuilder)
-      .withPublisherConfigBuilder(this.#publisherConfigBuilder)
-      .withSecurityConfigBuilder(this.#securityConfigBuilder)
-      .withSubscriptionConfigBuilder(this.#subscriptionConfigBuilder)
-      .withSystemConfigBuilder(this.#systemConfigBuilder)
-      .withTransportConfigBuilder(this.#transportConfigBuilder)
-      .build();
+    this.set(`${ROOT}.cache`, this.#cacheConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.connect`, this.#connectConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.data`, this.#dataConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.protocol`, this.#protocolConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.publisher`, this.#publisherConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.security`, this.#securityConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.subscription`, this.#subscriptionConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.system`, this.#systemConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set(`${ROOT}.transport`, this.#transportConfigBuilder, BaseBuilder.Types.OBJECT);
+
+    return super.build();
   }
 }

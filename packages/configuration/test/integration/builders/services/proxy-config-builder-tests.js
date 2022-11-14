@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { ProxyConfigBuilder } = require('../../../../lib/ts/builders/happn/services/proxy-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ProxyConfigBuilder = require('../../../../lib/builders/services/proxy-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a proxy config object', () => {

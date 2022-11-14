@@ -1,23 +1,22 @@
-import HappnClusterConfigBuilder from '../builders/happn-cluster-config-builder';
-import HealthConfigBuilder from '../builders/services/health-config-builder';
-import MembershipConfigBuilder from '../builders/services/membership-config-builder';
-import OrchestratorConfigBuilder from '../builders/services/orchestrator-config-builder';
-import ProxyConfigBuilder from '../builders/services/proxy-config-builder';
-import ReplicatorConfigBuilder from '../builders/services/replicator-config-builder';
-import { HappnConfigurationBuilder } from './happn-configuration-builder';
-import HappnConfigBuilder from '../builders/happn-config-builder';
-import CacheConfigBuilder from '../builders/services/cache-config-builder';
-import ConnectConfigBuilder from '../builders/services/connect-config-builder';
-import DataConfigBuilder from '../builders/services/data-config-builder';
-import ProtocolConfigBuilder from '../builders/services/protocol-config-builder';
-import PublisherConfigBuilder from '../builders/services/publisher-config-builder';
-import SecurityConfigBuilder from '../builders/services/security-config-builder';
-import SubscriptionConfigBuilder from '../builders/services/subscription-config-builder';
-import SystemConfigBuilder from '../builders/services/system-config-builder';
-import TransportConfigBuilder from '../builders/services/transport-config-builder';
+const BaseBuilder = require('happn-commons/lib/base-builder');
+
+import { HappnConfigurationBuilder } from '../happn/happn-configuration-builder';
+import { CacheConfigBuilder } from '../happn/services/cache-config-builder';
+import { ConnectConfigBuilder } from '../happn/services/connect-config-builder';
+import { DataConfigBuilder } from '../happn/services/data-config-builder';
+import { HealthConfigBuilder } from '../happn/services/health-config-builder';
+import { MembershipConfigBuilder } from '../happn/services/membership-config-builder';
+import { ProtocolConfigBuilder } from '../happn/services/protocol-config-builder';
+import { PublisherConfigBuilder } from '../happn/services/publisher-config-builder';
+import { SecurityConfigBuilder } from '../happn/services/security-config-builder';
+import { SubscriptionConfigBuilder } from '../happn/services/subscription-config-builder';
+import { SystemConfigBuilder } from '../happn/services/system-config-builder';
+import { TransportConfigBuilder } from '../happn/services/transport-config-builder';
+import { OrchestratorConfigBuilder } from '../happn/services/orchestrator-config-builder';
+import { ProxyConfigBuilder } from '../happn/services/proxy-config-builder';
+import { ReplicatorConfigBuilder } from '../happn/services/replicator-config-builder';
 
 export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder {
-  #happnClusterConfigBuilder: HappnClusterConfigBuilder;
   #healthConfigBuilder: HealthConfigBuilder;
   #membershipConfigBuilder: MembershipConfigBuilder;
   #orchestratorConfigBuilder: OrchestratorConfigBuilder;
@@ -25,7 +24,6 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
   #replicatorConfigBuilder: ReplicatorConfigBuilder;
 
   constructor(
-    happnConfigBuilder: HappnConfigBuilder,
     cacheConfigBuilder: CacheConfigBuilder,
     connectConfigBuilder: ConnectConfigBuilder,
     dataConfigBuilder: DataConfigBuilder,
@@ -35,7 +33,6 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
     subscriptionConfigBuilder: SubscriptionConfigBuilder,
     systemConfigBuilder: SystemConfigBuilder,
     transportConfigBuilder: TransportConfigBuilder,
-    happnClusterConfigBuilder: HappnClusterConfigBuilder,
     healthConfigBuilder: HealthConfigBuilder,
     membershipConfigBuilder: MembershipConfigBuilder,
     orchestratorConfigBuilder: OrchestratorConfigBuilder,
@@ -43,7 +40,6 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
     replicatorConfigBuilder: ReplicatorConfigBuilder
   ) {
     super(
-      happnConfigBuilder,
       cacheConfigBuilder,
       connectConfigBuilder,
       dataConfigBuilder,
@@ -54,7 +50,6 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
       systemConfigBuilder,
       transportConfigBuilder
     );
-    this.#happnClusterConfigBuilder = happnClusterConfigBuilder;
     this.#healthConfigBuilder = healthConfigBuilder;
     this.#membershipConfigBuilder = membershipConfigBuilder;
     this.#orchestratorConfigBuilder = orchestratorConfigBuilder;
@@ -137,12 +132,12 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
     return this;
   }
 
-  withMembershipSeedWait(wait: boolean): HappnClusterConfigurationBuilder {
+  withMembershipSeedWait(wait: number): HappnClusterConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipSeedWait(wait);
     return this;
   }
 
-  withMembershipUdpMaxDgramSize(size: boolean): HappnClusterConfigurationBuilder {
+  withMembershipUdpMaxDgramSize(size: number): HappnClusterConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipUdpMaxDgramSize(size);
     return this;
   }
@@ -161,12 +156,12 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
     return this;
   }
 
-  withOrchestratorStableReportInterval(interval: string): HappnClusterConfigurationBuilder {
+  withOrchestratorStableReportInterval(interval: number): HappnClusterConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorStableReportInterval(interval);
     return this;
   }
 
-  withOrchestratorStabiliseTimeout(timeout: string): HappnClusterConfigurationBuilder {
+  withOrchestratorStabiliseTimeout(timeout: number): HappnClusterConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorStabiliseTimeout(timeout);
     return this;
   }
@@ -215,14 +210,15 @@ export class HappnClusterConfigurationBuilder extends HappnConfigurationBuilder 
   build() {
     const happnConfig = super.build();
 
-    const happnClusterConfig = this.#happnClusterConfigBuilder
-      .withHealthConfigBuilder(this.#healthConfigBuilder)
-      .withMembershipConfigBuilder(this.#membershipConfigBuilder)
-      .withOrchestratorConfigBuilder(this.#orchestratorConfigBuilder)
-      .withProxyConfigBuilder(this.#proxyConfigBuilder)
-      .withReplicatorConfigBuilder(this.#replicatorConfigBuilder)
-      .build();
+    const clusterBuilder = new BaseBuilder();
+    clusterBuilder.set(`health`, this.#healthConfigBuilder, BaseBuilder.Types.OBJECT);
+    clusterBuilder.set(`membership`, this.#membershipConfigBuilder, BaseBuilder.Types.OBJECT);
+    clusterBuilder.set(`orchestrator`, this.#orchestratorConfigBuilder, BaseBuilder.Types.OBJECT);
+    clusterBuilder.set(`proxy`, this.#proxyConfigBuilder, BaseBuilder.Types.OBJECT);
+    clusterBuilder.set(`replicator`, this.#replicatorConfigBuilder, BaseBuilder.Types.OBJECT);
 
-    return { ...happnConfig, ...happnClusterConfig };
+    const clusterConfig = clusterBuilder.build();
+
+    return { happn: happnConfig, ...clusterConfig };
   }
 }

@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const CacheConfigBuilder = require('../../../../lib/builders/services/cache-config-builder');
+const {
+  CacheConfigBuilder,
+} = require('../../../../lib/ts/builders/happn/services/cache-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a cache config object', () => {

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ProtocolConfigBuilder = require('../../../../lib/builders/services/protocol-config-builder');
 const FieldTypeValidator = require('../../../../lib/validators/field-type-validator');
+const { ProtocolConfigBuilder } = require('../../../../lib/ts/builders/happn/services/protocol-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a protocol config object with protocol functions', () => {

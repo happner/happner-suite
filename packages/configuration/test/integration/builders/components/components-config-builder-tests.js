@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
+const {
+  ComponentsConfigBuilder,
+} = require('../../../../lib/ts/builders/happner/components/components-config-builder');
+
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const ComponentsConfigBuilder = require('../../../../lib/builders/components/components-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a components config object', () => {
@@ -36,6 +39,7 @@ describe(helper.testName(), function () {
     const mockComponent2FuncCallbackParamType = 'error';
 
     const builder = new ComponentsConfigBuilder();
+
     const result = builder
       .beginComponent()
       .withName(mockComponent1Name)

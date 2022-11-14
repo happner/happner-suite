@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { SecurityConfigBuilder } = require('../../../../lib/ts/builders/happn/services/security-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const SecurityConfigBuilder = require('../../../../lib/builders/services/security-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a security config object', () => {

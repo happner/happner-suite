@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+const { TransportConfigBuilder } = require('../../../../lib/ts/builders/happn/services/transport-config-builder');
 const helper = require('happn-commons-test/lib/base-test-helper').create();
-const TransportConfigBuilder = require('../../../../lib/builders/services/transport-config-builder');
 
 describe(helper.testName(), function () {
   it('builds a transport config object', () => {
