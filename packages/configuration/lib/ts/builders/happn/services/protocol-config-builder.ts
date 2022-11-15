@@ -1,4 +1,4 @@
-import FieldTypeValidator from '../../../../validators/field-type-validator';
+import { FieldTypeValidator } from '../../../validators/field-type-validator.js';
 
 const BaseBuilder = require('happn-commons/lib/base-builder');
 

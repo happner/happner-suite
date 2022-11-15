@@ -16,4 +16,3 @@ class PublisherConfigBuilder extends BaseBuilder {
     }
 }
 exports.PublisherConfigBuilder = PublisherConfigBuilder;
-//# sourceMappingURL=publisher-config-builder.js.map

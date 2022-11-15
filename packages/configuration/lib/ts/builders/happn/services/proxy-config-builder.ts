@@ -1,5 +1,3 @@
-import { ProtocolConfigBuilder } from './protocol-config-builder';
-
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
 export class ProxyConfigBuilder extends BaseBuilder {

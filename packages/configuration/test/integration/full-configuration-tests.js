@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
-const helper = require('happn-commons-test/lib/base-test-helper').create();
+const TestHelper = require('happn-commons-test/lib/base-test-helper');
 const { ConfigBuilderFactory } = require('../../lib/ts/factories/config-builder-factory');
+
+const helper = TestHelper.create();
 
 describe(helper.testName(), function () {
   it('builds a happn configuration object', () => {

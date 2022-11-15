@@ -1,19 +1,19 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
-import { CacheConfigBuilder } from '../happn/services/cache-config-builder';
-import { ConnectConfigBuilder } from '../happn/services/connect-config-builder';
-import { DataConfigBuilder } from '../happn/services/data-config-builder';
-import { ProtocolConfigBuilder } from '../happn/services/protocol-config-builder';
-import { PublisherConfigBuilder } from '../happn/services/publisher-config-builder';
-import { SecurityConfigBuilder } from '../happn/services/security-config-builder';
-import { SubscriptionConfigBuilder } from '../happn/services/subscription-config-builder';
-import { SystemConfigBuilder } from '../happn/services/system-config-builder';
-import { TransportConfigBuilder } from '../happn/services/transport-config-builder';
+import { CacheConfigBuilder } from '../happn/services/cache-config-builder.js';
+import { ConnectConfigBuilder } from '../happn/services/connect-config-builder.js';
+import { DataConfigBuilder } from '../happn/services/data-config-builder.js';
+import { ProtocolConfigBuilder } from '../happn/services/protocol-config-builder.js';
+import { PublisherConfigBuilder } from '../happn/services/publisher-config-builder.js';
+import { SecurityConfigBuilder } from '../happn/services/security-config-builder.js';
+import { SubscriptionConfigBuilder } from '../happn/services/subscription-config-builder.js';
+import { SystemConfigBuilder } from '../happn/services/system-config-builder.js';
+import { TransportConfigBuilder } from '../happn/services/transport-config-builder.js';
 
-import { HappnConfigurationBuilder } from '../happn/happn-configuration-builder';
-import { ComponentsConfigBuilder } from './components/components-config-builder';
-import { EndpointsConfigBuilder } from './endpoints/endpoints-config-builder';
-import { ModulesConfigBuilder } from './modules/modules-config-builder';
+import { HappnConfigurationBuilder } from '../happn/happn-configuration-builder.js';
+import { ComponentsConfigBuilder } from './components/components-config-builder.js';
+import { EndpointsConfigBuilder } from './endpoints/endpoints-config-builder.js';
+import { ModulesConfigBuilder } from './modules/modules-config-builder.js';
 
 export class HappnerConfigurationBuilder extends HappnConfigurationBuilder {
   #componentsConfigBuilder: ComponentsConfigBuilder;

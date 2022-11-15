@@ -15,7 +15,7 @@ export class ComponentsConfigBuilder extends BaseBuilder {
 export class ComponentConfigBuilder extends BaseBuilder {
   #parent;
 
-  constructor(parent) {
+  constructor(parent: ComponentsConfigBuilder) {
     super();
     this.#parent = parent;
   }
@@ -62,7 +62,7 @@ export class ComponentConfigBuilder extends BaseBuilder {
 export class FunctionBuilder extends BaseBuilder {
   #parent;
 
-  constructor(parent) {
+  constructor(parent: ComponentConfigBuilder) {
     super();
     this.#parent = parent;
   }

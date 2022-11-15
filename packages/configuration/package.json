@@ -4,13 +4,17 @@
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
   "main": "index.js",
   "scripts": {
-    "test-integration": "_mocha  --exit -- silence.js test/integration/**",
+    "compile": "tsc --build --clean && tsc --module node16 --allowJs true lib/ts/**/*.ts",
+    "test-integration": "npm run compile && _mocha --exit -- silence.js --recursive test",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm run test-integration"
   },
+  "type": "commonjs",
   "author": "leebow",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^10.0.0"
+    "@types/node": "^18.11.9",
+    "mocha": "^10.0.0",
+    "typescript": "^4.8.4"
   },
   "dependencies": {
     "acorn": "^8.8.0",

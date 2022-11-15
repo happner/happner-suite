@@ -1,26 +1,26 @@
-import { HappnConfigurationBuilder } from '../builders/happn/happn-configuration-builder';
-import { HappnClusterConfigurationBuilder } from '../builders/happn-cluster/happn-cluster-configuration-builder';
+import { HappnConfigurationBuilder } from '../builders/happn/happn-configuration-builder.js';
+import { HappnClusterConfigurationBuilder } from '../builders/happn-cluster/happn-cluster-configuration-builder.js';
 
-import { CacheConfigBuilder } from '../builders/happn/services/cache-config-builder';
-import { ConnectConfigBuilder } from '../builders/happn/services/connect-config-builder';
-import { DataConfigBuilder } from '../builders/happn/services/data-config-builder';
-import { PublisherConfigBuilder } from '../builders/happn/services/publisher-config-builder';
-import { ProtocolConfigBuilder } from '../builders/happn/services/protocol-config-builder';
-import { SecurityConfigBuilder } from '../builders/happn/services/security-config-builder';
-import { SubscriptionConfigBuilder } from '../builders/happn/services/subscription-config-builder';
-import { SystemConfigBuilder } from '../builders/happn/services/system-config-builder';
-import { TransportConfigBuilder } from '../builders/happn/services/transport-config-builder';
-import { MembershipConfigBuilder } from '../builders/happn/services/membership-config-builder';
-import { OrchestratorConfigBuilder } from '../builders/happn/services/orchestrator-config-builder';
-import { ReplicatorConfigBuilder } from '../builders/happn/services/replicator-config-builder';
-import { ProxyConfigBuilder } from '../builders/happn/services/proxy-config-builder';
-import { HealthConfigBuilder } from '../builders/happn/services/health-config-builder';
+import { CacheConfigBuilder } from '../builders/happn/services/cache-config-builder.js';
+import { ConnectConfigBuilder } from '../builders/happn/services/connect-config-builder.js';
+import { DataConfigBuilder } from '../builders/happn/services/data-config-builder.js';
+import { PublisherConfigBuilder } from '../builders/happn/services/publisher-config-builder.js';
+import { ProtocolConfigBuilder } from '../builders/happn/services/protocol-config-builder.js';
+import { SecurityConfigBuilder } from '../builders/happn/services/security-config-builder.js';
+import { SubscriptionConfigBuilder } from '../builders/happn/services/subscription-config-builder.js';
+import { SystemConfigBuilder } from '../builders/happn/services/system-config-builder.js';
+import { TransportConfigBuilder } from '../builders/happn/services/transport-config-builder.js';
+import { MembershipConfigBuilder } from '../builders/happn/services/membership-config-builder.js';
+import { OrchestratorConfigBuilder } from '../builders/happn/services/orchestrator-config-builder.js';
+import { ReplicatorConfigBuilder } from '../builders/happn/services/replicator-config-builder.js';
+import { ProxyConfigBuilder } from '../builders/happn/services/proxy-config-builder.js';
+import { HealthConfigBuilder } from '../builders/happn/services/health-config-builder.js';
 
-import FieldTypeValidator from '../../validators/field-type-validator';
-import { HappnerConfigurationBuilder } from '../builders/happner/happner-configuration-builder';
-import { ComponentsConfigBuilder } from '../builders/happner/components/components-config-builder';
-import { EndpointsConfigBuilder } from '../builders/happner/endpoints/endpoints-config-builder';
-import { ModulesConfigBuilder } from '../builders/happner/modules/modules-config-builder';
+import { FieldTypeValidator } from '../validators/field-type-validator.js';
+import { HappnerConfigurationBuilder } from '../builders/happner/happner-configuration-builder.js';
+import { ComponentsConfigBuilder } from '../builders/happner/components/components-config-builder.js';
+import { EndpointsConfigBuilder } from '../builders/happner/endpoints/endpoints-config-builder.js';
+import { ModulesConfigBuilder } from '../builders/happner/modules/modules-config-builder.js';
 
 const BUILDER_TYPE = require('../../constants/builder-constants');
 

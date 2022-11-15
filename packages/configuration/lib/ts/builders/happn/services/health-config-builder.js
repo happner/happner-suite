@@ -16,4 +16,3 @@ class HealthConfigBuilder extends BaseBuilder {
     }
 }
 exports.HealthConfigBuilder = HealthConfigBuilder;
-//# sourceMappingURL=health-config-builder.js.map

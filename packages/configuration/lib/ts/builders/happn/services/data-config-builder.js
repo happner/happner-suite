@@ -23,4 +23,3 @@ class DataConfigBuilder extends BaseBuilder {
     }
 }
 exports.DataConfigBuilder = DataConfigBuilder;
-//# sourceMappingURL=data-config-builder.js.map

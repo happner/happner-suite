@@ -68,4 +68,3 @@ class MembershipConfigBuilder extends BaseBuilder {
     }
 }
 exports.MembershipConfigBuilder = MembershipConfigBuilder;
-//# sourceMappingURL=membership-config-builder.js.map

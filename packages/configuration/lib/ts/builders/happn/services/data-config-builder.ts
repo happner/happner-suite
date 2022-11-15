@@ -27,7 +27,7 @@ export class DataConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withSecure(secure) {
+  withSecure(secure: boolean) {
     this.set('config.secure', secure, BaseBuilder.Types.BOOLEAN);
     return this;
   }

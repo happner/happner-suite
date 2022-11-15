@@ -28,4 +28,3 @@ class SubscriptionConfigBuilder extends BaseBuilder {
     }
 }
 exports.SubscriptionConfigBuilder = SubscriptionConfigBuilder;
-//# sourceMappingURL=subscription-config-builder.js.map

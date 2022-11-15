@@ -14,7 +14,7 @@ export class ModulesConfigBuilder extends BaseBuilder {
 export class ModuleConfigBuilder extends BaseBuilder {
   #parent;
 
-  constructor(parent) {
+  constructor(parent: ModulesConfigBuilder) {
     super();
     this.#parent = parent;
   }

@@ -1,13 +1,13 @@
 const BaseBuilder = require('happn-commons/lib/base-builder');
-import { CacheConfigBuilder } from './services/cache-config-builder';
-import { ConnectConfigBuilder } from './services/connect-config-builder';
-import { DataConfigBuilder } from './services/data-config-builder';
-import { ProtocolConfigBuilder } from './services/protocol-config-builder';
-import { PublisherConfigBuilder } from './services/publisher-config-builder';
-import { SecurityConfigBuilder } from './services/security-config-builder';
-import { SubscriptionConfigBuilder } from './services/subscription-config-builder';
-import { SystemConfigBuilder } from './services/system-config-builder';
-import { TransportConfigBuilder } from './services/transport-config-builder';
+import { CacheConfigBuilder } from './services/cache-config-builder.js';
+import { ConnectConfigBuilder } from './services/connect-config-builder.js';
+import { DataConfigBuilder } from './services/data-config-builder.js';
+import { ProtocolConfigBuilder } from './services/protocol-config-builder.js';
+import { PublisherConfigBuilder } from './services/publisher-config-builder.js';
+import { SecurityConfigBuilder } from './services/security-config-builder.js';
+import { SubscriptionConfigBuilder } from './services/subscription-config-builder.js';
+import { SystemConfigBuilder } from './services/system-config-builder.js';
+import { TransportConfigBuilder } from './services/transport-config-builder.js';
 
 const ROOT = require('../../../constants/config-constants').HAPPN_SERVICES_ROOT;
 
