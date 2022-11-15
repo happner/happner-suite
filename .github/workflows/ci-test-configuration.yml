@@ -3,7 +3,7 @@ name: CI configuration
 on: [push]
 
 jobs:
-  happner:
+  configuration:
     env:
       RUNNING_IN_ACTIONS: yes
     runs-on: ubuntu-latest
