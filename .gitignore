@@ -53,3 +53,5 @@ packages/happner-client/test/example.com.key
 
 temp/*
 
+# configuration compilation output
+/packages/configuration/dist/
