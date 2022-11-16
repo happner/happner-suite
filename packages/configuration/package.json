@@ -1,5 +1,5 @@
 {
-  "name": "happner-configuration",
+  "name": "configuration",
   "version": "0.0.1",
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
   "main": "index.ts",
