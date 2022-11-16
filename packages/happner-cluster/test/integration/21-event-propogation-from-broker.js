@@ -9,7 +9,8 @@ const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   var servers = [],
-    localInstance;
+    localInstance,
+    proxyPorts;
 
   function localInstanceConfig(seq, sync, replicate) {
     var config = baseConfig(seq, sync, true, null, null, null, null, replicate);
@@ -76,12 +77,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   }
 
   beforeEach('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+  });
+  
+  afterEach('stop cluster', function (done) {
+    if (!servers) return done();
     stopCluster(servers, function () {
       servers = [];
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   function startInternal(id, clusterMin, replicate) {
@@ -100,81 +107,38 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     return test.HappnerCluster.create(blankInstanceConfig(id, clusterMin, replicate));
   }
 
-  function startClusterInternalFirst(replicate) {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1, replicate)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2, replicate);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return startBlank(getSeq.getNext(), 3, replicate);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterInternalFirst(replicate) {
+    servers.push((localInstance = await startInternal(0, 1, replicate)));
+    servers.push(await startEdge(1, 2, replicate));
+    servers.push(await startBlank(2, 3, replicate));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  function startClusterNoDataInBroker(replicate) {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1, replicate)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdgeNoData(getSeq.getNext(), 2, replicate);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return startBlank(getSeq.getNext(), 3, replicate);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterEdgeFirst(replicate) {
+    servers.push(await startEdge(0, 1, replicate));
+    localInstance = await startInternal(1, 2, replicate);
+    servers.push(localInstance);
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  function startClusterEdgeFirst() {
-    return new Promise(function (resolve, reject) {
-      startEdge(getSeq.getFirst(), 1)
-        .then(function (server) {
-          servers.push(server);
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterNoDataInBroker(replicate) {
+    servers.push((localInstance = await startInternal(0, 1, replicate)));
+    servers.push(await startEdgeNoData(1, 2, replicate));
+    servers.push(await startBlank(2, 3, replicate));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
-
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
-  });
 
   it('1. connects a client to the blank instance,checks data events', function (done) {
     let test1Server;
     let handler = test.sinon.stub();
-    startBlank(getSeq.getFirst(), 1)
+    startBlank(0, 1)
       .then((server) => {
         servers.push(server);
         test1Server = server;
+        proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
         return users.add(test1Server, 'username', 'password');
       })
       .then(function () {
@@ -188,7 +152,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(test1Server, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         return client.data.on('_data/data/brokered/event', handler);
@@ -197,7 +161,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return test1Server.exchange.data.set('/brokered/event', { data: 'data1' }, {});
       })
       .then(() => {
-        return delay(2500);
+        return delay(3500);
       })
       .then(() => {
         test.sinon.assert.calledOnce(handler);
@@ -213,11 +177,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     let client1handler2 = test.sinon.stub();
     let client2handler1 = test.sinon.stub();
     let client2handler2 = test.sinon.stub();
-    startBlank(getSeq.getFirst(), 1)
+    startBlank(0, 1)
       .then((server) => {
         servers.push(server);
         test2Server1 = server;
-        return startBlank(getSeq.getNext(), 2);
+        return startBlank(1, 2);
       })
       .then((server) => {
         servers.push(server);
@@ -225,6 +189,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.add(test2Server1, 'username', 'password');
       })
       .then(function () {
+        proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
         users.allowEvent(test2Server1, 'username', 'data', '/test/event1');
         users.allowEvent(test2Server1, 'username', 'data', '/test/event2');
         users.allowEvent(test2Server2, 'username', 'data', '/test/event1');
@@ -239,11 +204,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(test2Server2, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         test2Client1 = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then(async (client) => {
         test2Client2 = client;
@@ -277,11 +242,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     let client1handler2 = test.sinon.stub();
     let client2handler1 = test.sinon.stub();
     let client2handler2 = test.sinon.stub();
-    startBlank(getSeq.getFirst(), 1)
+    startBlank(0, 1)
       .then((server) => {
         servers.push(server);
         test3Server1 = server;
-        return startBlank(getSeq.getNext(), 2);
+        return startBlank(1, 2);
       })
       .then((server) => {
         servers.push(server);
@@ -289,6 +254,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.add(test3Server1, 'username', 'password');
       })
       .then(function () {
+        proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
         users.allowEvent(test3Server1, 'username', 'data', '/test/event1');
         users.allowEvent(test3Server1, 'username', 'data', '/test/event2');
         users.allowEvent(test3Server2, 'username', 'data', '/test/event1');
@@ -303,11 +269,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(test3Server2, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         test3Client1 = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         test3Client2 = client;
@@ -357,11 +323,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;
@@ -410,11 +376,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;
@@ -463,11 +429,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;
@@ -516,11 +482,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;
@@ -569,11 +535,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;
@@ -615,11 +581,11 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         return users.allowMethod(brokerServer, 'username', 'data', 'set');
       })
       .then(() => {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then((client) => {
         remoteClient = client;
-        return testclient.create('username', 'password', getSeq.getPort(2));
+        return testclient.create('username', 'password', proxyPorts[1]);
       })
       .then((client) => {
         brokerClient = client;

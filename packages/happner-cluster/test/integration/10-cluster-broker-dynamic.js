@@ -26,20 +26,19 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   beforeEach('clear mongo collection', function (done) {
     this.timeout(20000);
-    clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
+    try {
+      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
+    } catch (e) {
+      done(e);
+    }
   });
 
-  after('stop cluster', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+  after('stop cluster', async function () {
+    await stopCluster(servers);
   });
 
   //in case needed in future
-  //test.printOpenHandlesAfter(5e3);
+  //test.printOpenHandlesAfter(5e3);E
 
   context('exchange', function () {
     it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
@@ -700,7 +699,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .catch(done);
     });
   });
-  context.only('errors', function () {
+  context('errors', function () {
     it('ensures an error is raised if we are injecting internal components with duplicate names', function (done) {
       test.HappnerCluster.create(errorInstanceConfigDuplicateBrokered(0, 1))
         .then(() => {
@@ -727,39 +726,35 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(() => {
+          return test.delay(3e3);
+        })
+        .then(() => {
           return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           //first test our broker components methods are directly callable
           client.exchange.remoteComponent.brokeredMethodFail(function (e) {
             test.expect(e.toString()).to.be('Error: test error');
+            console.log('DONE');
             setTimeout(done, 2000);
           });
         })
         .catch(done);
     });
 
-    it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a promise', function (done) {
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent',
-            'brokeredMethodFail'
-          );
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          //first test our broker components methods are directly callable
-          return client.exchange.remoteComponent.brokeredMethodFail();
-        })
-        .catch(function (e) {
-          test.expect(e.toString()).to.be('Error: test error');
-          done();
-        });
+    it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a promise', async function () {
+      console.log('PROMISE');
+      try {
+        await startClusterInternalFirst();
+        await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethodFail');
+        await test.delay(3e3);
+        let client = await testclient.create('username', 'password', proxyPorts[1]);
+        await client.exchange.remoteComponent.brokeredMethodFail();
+        throw new Error('TEST FAILURE');
+      } catch (e) {
+        // console.log(e)
+        test.expect(e.toString()).to.be('Error: test error');
+      }
     });
 
     it('ensures an error is handled and returned accordingly if we execute an internal components method that times out', function (done) {
@@ -775,6 +770,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(() => {
+          return test.delay(3e3);
+        })
+        .then(() => {
           return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
@@ -787,26 +785,20 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         });
     });
 
-    it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', function (done) {
-      startClusterEdgeFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          return client.exchange.remoteComponent.brokeredMethod1();
-        })
-        .catch(function (e) {
-          test
-            .expect(e.toString())
-            .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod1');
-          setTimeout(done, 2000);
-        });
+    it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', async function () {
+      this.timeout(20000);
+      try {
+        await startClusterEdgeFirst();
+        await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+        await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+        let client = await testclient.create('username', 'password', proxyPorts[0]);
+        await client.exchange.remoteComponent.brokeredMethod1();
+        throw new Error('TEST FAILURE');
+      } catch (e) {
+        test
+          .expect(e.toString())
+          .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod1');
+      }
     });
   });
 
@@ -821,6 +813,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'remoteComponent1',
             'brokeredMethod1'
           );
+        })
+        .then(() => {
+          return test.delay(3e3);
         })
         .then(() => {
           return testclient.create('username', 'password', proxyPorts[1]);

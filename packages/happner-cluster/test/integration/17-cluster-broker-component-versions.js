@@ -8,7 +8,8 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   var servers = [],
-    localInstance;
+    localInstance,
+    proxyPorts;
 
   function localInstanceConfig(seq, sync) {
     var config = baseConfig(seq, sync, true);
@@ -81,21 +82,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
   }
 
-  function startClusterInternalFirst() {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterInternalFirst(dynamic) {
+    localInstance = await startInternal(0, 1, dynamic);
+    servers.push(localInstance);
+    servers.push(await startEdge(1, 2, dynamic));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   after('stop cluster', function (done) {
@@ -148,7 +140,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           });
         })
         .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(2));
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           thisClient = client;
@@ -215,7 +207,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           });
         })
         .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(2));
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           thisClient = client;

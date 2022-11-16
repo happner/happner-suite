@@ -27,31 +27,12 @@ module.exports = class Configuration extends require('./helper') {
     return require(`../configurations/${test}/${index}`);
   }
 
-  construct(
-    test,
-    extendedIndex,
-    secure = true,
-    minPeers,
-    hosts,
-    joinTimeout,
-    replicate,
-    nameSuffix
-  ) {
-    let [seqIndex, index] = extendedIndex;
-    const base = this.base(
-      index,
-      seqIndex,
-      secure,
-      minPeers,
-      hosts,
-      joinTimeout,
-      replicate,
-      nameSuffix
-    );
+  construct(test, index, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix) {
+    const base = this.base(index, secure, minPeers, hosts, joinTimeout, replicate, nameSuffix);
     return _.defaultsDeep(base, this.get(test, index));
   }
 
-  base(index, seqIndex, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix = '') {
+  base(index, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix = '') {
     replicate = replicate || ['*'];
 
     return {

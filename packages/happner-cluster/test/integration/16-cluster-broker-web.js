@@ -8,6 +8,8 @@ const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let servers = [];
+  let proxyPorts;
+  let internalInstance, edgeInstance;
 
   function localInstanceConfig(seq, sync, dynamic) {
     var config = baseConfig(seq, sync, true);
@@ -88,29 +90,47 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   afterEach('stop cluster', function (done) {
     if (!servers) return done();
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+    stopCluster(servers, () => {
+      servers = [];
+      done();
     });
+  });
+
+  after('clear mongo clollection', (done) => {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   function startInternal(id, clusterMin) {
     return new Promise((resolve, reject) => {
       return test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin))
         .then(function (instance) {
-          servers.push(instance);
           resolve(instance);
         })
         .catch(reject);
     });
+  }
+  async function startClusterEdgeFirst(dynamic) {
+    servers.push((edgeInstance = await startEdge(0, 1, dynamic)));
+    servers.push((internalInstance = await startInternal(1, 2, dynamic)));
+    await test.delay(3e3);
+    await users.add(edgeInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
+  }
+
+  async function startClusterEdgeFirstHighAvailable(dynamic) {
+    servers.push((edgeInstance = await startEdge(0, 1, dynamic)));
+    servers.push((internalInstance = await startInternal(1, 2, dynamic)));
+    servers.push(await startInternal(2, 3, dynamic));
+    await test.delay(3e3);
+    await users.add(edgeInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   function startEdge(id, clusterMin, dynamic) {
     return new Promise((resolve, reject) => {
       return test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic))
         .then(function (instance) {
-          servers.push(instance);
+          // servers.push(instance);
           resolve(instance);
         })
         .catch(reject);
@@ -148,41 +168,29 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   context('web', function () {
     it('starts the cluster broker, we ensure direct calls to the brokered component succeed', function (done) {
       var thisClient;
-      var edgeInstance;
-      var internalInstance;
-      startEdge(getSeq.getFirst(), 1)
-        .then(function (instance) {
-          edgeInstance = instance;
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (instance) {
-          internalInstance = instance;
-          return new Promise((resolve) => {
-            setTimeout(resolve, 5000);
-          });
-        })
+      startClusterEdgeFirst()
         .then(function () {
-          return users.add(edgeInstance, 'username', 'password');
+          return test.delay(3e3);
         })
         .then(function () {
           return users.allowWebMethod(internalInstance, 'username', '/remoteComponent1/testJSON');
         })
         .then(function () {
-          return testclient.create('_ADMIN', 'happn', getSeq.getPort(2));
+          return testclient.create('_ADMIN', 'happn', proxyPorts[1]);
         })
         .then(function (adminClient) {
-          return testWebCall(adminClient, '/remoteComponent1/testJSON', getSeq.getPort(2));
+          return testWebCall(adminClient, '/remoteComponent1/testJSON', proxyPorts[1]);
         })
         .then(function (result) {
           test.expect(JSON.parse(result.body)).to.eql({
             test: 'data',
           });
-          return testclient.create('username', 'password', getSeq.getPort(2));
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           thisClient = client;
           //first test our broker components methods are directly callable
-          return testWebCall(thisClient, '/remoteComponent1/testJSON', getSeq.getPort(2));
+          return testWebCall(thisClient, '/remoteComponent1/testJSON', proxyPorts[1]);
         })
         .then(function (result) {
           test.expect(JSON.parse(result.body)).to.eql({
@@ -195,41 +203,26 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
     it('starts the cluster broker, we ensure indirect calls to the brokered component succeed', function (done) {
       var thisClient;
-      var edgeInstance;
-      var internalInstance;
-      startEdge(getSeq.getFirst(), 1)
-        .then(function (instance) {
-          edgeInstance = instance;
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (instance) {
-          internalInstance = instance;
-          return new Promise((resolve) => {
-            setTimeout(resolve, 5000);
-          });
-        })
-        .then(function () {
-          return users.add(edgeInstance, 'username', 'password');
-        })
+      startClusterEdgeFirst()
         .then(function () {
           return users.allowWebMethod(internalInstance, 'username', '/remoteComponent1/testJSON');
         })
         .then(function () {
-          return testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+          return testclient.create('_ADMIN', 'happn', proxyPorts[0]);
         })
         .then(function (adminClient) {
-          return testWebCall(adminClient, '/remoteComponent1/testJSON', getSeq.getPort(1));
+          return testWebCall(adminClient, '/remoteComponent1/testJSON', proxyPorts[0]);
         })
         .then(function (result) {
           test.expect(JSON.parse(result.body)).to.eql({
             test: 'data',
           });
-          return testclient.create('username', 'password', getSeq.getPort(1));
+          return testclient.create('username', 'password', proxyPorts[0]);
         })
         .then(function (client) {
           thisClient = client;
           //first test our broker components methods are directly callable
-          return testWebCall(thisClient, '/remoteComponent1/testJSON', getSeq.getPort(1));
+          return testWebCall(thisClient, '/remoteComponent1/testJSON', proxyPorts[0]);
         })
         .then(function (result) {
           test.expect(JSON.parse(result.body)).to.eql({
@@ -247,7 +240,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         let response = await testWebCall(
           checkClient,
           '/remoteComponent1/testJSONSticky',
-          getSeq.getPort(1)
+          proxyPorts[0]
         );
         if (response.body.toString().indexOf(`MESH_${meshId}`) > -1) client = checkClient;
         else await checkClient.disconnect();
@@ -272,86 +265,45 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         results.push(result);
       };
 
-      startEdge(getSeq.getFirst(), 1)
-        .then(function (instance) {
-          edgeInstance = instance;
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (instance) {
-          internalInstance1 = instance;
-          return startInternal(getSeq.getNext(), 3);
-        })
-        .then(function () {
-          return new Promise((resolve) => {
-            setTimeout(resolve, 2000);
-          });
-        })
-        .then(function () {
-          return users.add(edgeInstance, 'username', 'password');
-        })
+      startClusterEdgeFirstHighAvailable()
         .then(function () {
           return users.allowWebMethod(
-            internalInstance1,
+            internalInstance,
             'username',
             '/remoteComponent1/testJSONSticky'
           );
         })
         .then(function () {
-          return getClientForMesh(
-            getSeq.lookupFirst() + 1,
-            'username',
-            'password',
-            getSeq.getPort(1)
-          );
+          return getClientForMesh(1, 'username', 'password', proxyPorts[0]);
         })
         .then(function (client) {
           thisClientMesh2 = client;
-          return getClientForMesh(
-            getSeq.lookupFirst() + 2,
-            'username',
-            'password',
-            getSeq.getPort(1)
-          );
+          return getClientForMesh(2, 'username', 'password', proxyPorts[0]);
         })
         .then(function (client) {
           thisClientMesh3 = client;
-          return testWebCall(
-            thisClientMesh2,
-            '/remoteComponent1/testJSONSticky',
-            getSeq.getPort(1)
-          );
+          return testWebCall(thisClientMesh2, '/remoteComponent1/testJSONSticky', proxyPorts[0]);
         })
         .then(function (response) {
           pushResults(response);
-          return testWebCall(
-            thisClientMesh3,
-            '/remoteComponent1/testJSONSticky',
-            getSeq.getPort(1)
-          );
+          return testWebCall(thisClientMesh3, '/remoteComponent1/testJSONSticky', proxyPorts[0]);
         })
         .then(function (response) {
           pushResults(response);
           return new Promise((resolve, reject) => {
-            internalInstance1.stop((e) => {
+            internalInstance.stop((e) => {
               if (e) return reject(e);
+              servers.splice(1, 1);
               setTimeout(resolve, 3000);
             });
           });
         })
         .then(function () {
-          return testWebCall(
-            thisClientMesh2,
-            '/remoteComponent1/testJSONSticky',
-            getSeq.getPort(1)
-          );
+          return testWebCall(thisClientMesh2, '/remoteComponent1/testJSONSticky', proxyPorts[0]);
         })
         .then(function (response) {
           pushResults(response);
-          return testWebCall(
-            thisClientMesh3,
-            '/remoteComponent1/testJSONSticky',
-            getSeq.getPort(1)
-          );
+          return testWebCall(thisClientMesh3, '/remoteComponent1/testJSONSticky', proxyPorts[0]);
         })
         .then(function (response) {
           pushResults(response);

@@ -20,18 +20,19 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
 
   it('starts the cluster broker first, client connects and receives no further schema updates, when we flip-flop internal host', async () => {
     let schemaPublicationCount = 0;
-    let edgeInstance = await startEdge(getSeq.getFirst(), 1);
-    let internalInstance = await startInternal(getSeq.getNext(), 2);
+    let edgeInstance = await startEdge(0, 1);
+    let internalInstance = await startInternal(1, 2);
     await test.delay(5e3);
+    let proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
     await users.add(edgeInstance, 'username', 'password');
-    const client = await testclient.create('username', 'password', getSeq.getPort(1));
+    const client = await testclient.create('username', 'password', proxyPorts[0]);
     await client.data.on('/mesh/schema/description', () => {
       schemaPublicationCount++;
     });
     await internalInstance.stop({ reconnect: false });
     await test.delay(5e3);
     servers.pop(); //chuck the stopped server away
-    await startInternal(getSeq.getCurrent(), 2);
+    await startInternal(1, 2);
     await test.delay(5e3);
     test.expect(schemaPublicationCount).to.be(0);
   });

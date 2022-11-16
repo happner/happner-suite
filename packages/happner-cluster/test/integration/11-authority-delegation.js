@@ -6,7 +6,7 @@ const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const getSeq = require('../_lib/helpers/getSeq');
 require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
-  var servers, localInstance;
+  var servers, localInstance, proxyPorts;
 
   function localInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
@@ -58,15 +58,16 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
 
   beforeEach('start cluster', async function () {
     this.timeout(20000);
-    localInstance = test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1));
+    localInstance = test.HappnerCluster.create(localInstanceConfig(0, 1));
     await test.delay(2000);
     servers = await Promise.all([
       localInstance,
-      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(1, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(2, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(3, 1)),
     ]);
     localInstance = servers[0];
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
     await users.add(servers[1], 'username', 'password');
   });
 
@@ -81,7 +82,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
       .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then(function (client) {
         let thisClient = client;
@@ -109,7 +110,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
         return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method2');
       })
       .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then(function (client) {
         let thisClient = client;
@@ -134,7 +135,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
       .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then(function (client) {
         let thisClient = client;
@@ -159,7 +160,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
         return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method3');
       })
       .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then(function (client) {
         let thisClient = client;
@@ -184,7 +185,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     users
       .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToData')
       .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
+        return testclient.create('username', 'password', proxyPorts[0]);
       })
       .then(function (client) {
         thisClient = client;

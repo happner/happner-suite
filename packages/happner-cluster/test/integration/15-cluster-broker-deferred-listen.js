@@ -91,90 +91,54 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     });
   }
 
-  function startEdge(id, clusterMin, dynamic) {
-    return new Promise((resolve, reject) => {
-      return test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic))
-        .then(function (instance) {
-          servers.push(instance);
-          resolve(instance);
-        })
-        .catch(reject);
-    });
+  async function startEdge(id, clusterMin, dynamic) {
+    let instance = await test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic));
+    servers.push(instance);
+    return instance;
   }
 
   context('exchange', function () {
-    it('starts the cluster broker first, fails to connect a client to the broker instance because listening is deferred, we start the internal brokered node, the client is now able to connect as we have the full API dynamically loaded', function (done) {
+    it('starts the cluster broker first, fails to connect a client to the broker instance because listening is deferred, we start the internal brokered node, the client is now able to connect as we have the full API dynamically loaded', async function () {
       var thisClient;
       var gotToFinalAttempt = false;
       var edgeInstance;
-      startEdge(getSeq.getFirst(), 1)
-        .then((instance) => {
-          edgeInstance = instance;
-          return new Promise((resolve, reject) => {
-            testclient
-              .create('username', 'password', getSeq.getPort(1))
-              .then(() => {
-                reject(new Error('not meant to happen'));
-              })
-              .catch((e) => {
-                if (e.message.indexOf('connect ECONNREFUSED') !== 0)
-                  return reject('unexpected error: ' + e.message);
-                users
-                  .add(edgeInstance, 'username', 'password')
-                  .then(() => {
-                    resolve();
-                  })
-                  .catch(reject);
-              });
-          });
-        })
-        .then(function () {
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function () {
-          return users.allowMethod(edgeInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(function () {
-          return users.allowMethod(edgeInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(function () {
-          return users.allowMethod(edgeInstance, 'username', 'remoteComponent1', 'brokeredMethod1');
-        })
-        .then(function () {
-          return new Promise((resolve) => {
-            setTimeout(resolve, 5000);
-          });
-        })
-        .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(1));
-        })
-        .then(function (client) {
-          thisClient = client;
-          //first test our broker components methods are directly callable
-          return thisClient.exchange.brokerComponent.directMethod();
-        })
-        .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
-          //call an injected method
-          return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
-          return thisClient.exchange.remoteComponent1.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod1');
-          return users.denyMethod(edgeInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(function () {
-          gotToFinalAttempt = true;
-          return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .catch(function (e) {
-          test.expect(gotToFinalAttempt).to.be(true);
-          test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-          setTimeout(done, 2000);
-        });
+      let proxyPorts = [];
+      edgeInstance = await startEdge(0, 1);
+      try {
+        await testclient.create('username', 'password', proxyPorts[0]);
+        throw new Error('not meant to happen');
+      } catch (e) {
+        if (e.message.indexOf('connect ECONNREFUSED') !== 0) throw 'unexpected error: ' + e.message;
+      }
+      await users.add(edgeInstance, 'username', 'password');
+
+      let instance = await startInternal(1, 2);
+      await test.delay(3e3);
+      proxyPorts.push(edgeInstance._mesh.happn.server.config.services.proxy.port);
+      proxyPorts.push(instance._mesh.happn.server.config.services.proxy.port);
+      await users.allowMethod(edgeInstance, 'username', 'brokerComponent', 'directMethod');
+      await users.allowMethod(edgeInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+      await users.allowMethod(edgeInstance, 'username', 'remoteComponent1', 'brokeredMethod1');
+      await test.delay(3e3);
+
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
+      let result = await thisClient.exchange.brokerComponent.directMethod();
+      test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
+
+      //call an injected method
+      result = await thisClient.exchange.remoteComponent.brokeredMethod1();
+      test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+      result = await thisClient.exchange.remoteComponent1.brokeredMethod1();
+      test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod1');
+      await users.denyMethod(edgeInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+      try {
+        gotToFinalAttempt = true;
+        await thisClient.exchange.remoteComponent.brokeredMethod1();
+        throw new Error('not meant to happen');
+      } catch (e) {
+        test.expect(gotToFinalAttempt).to.be(true);
+        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+      }
     });
   });
 });
