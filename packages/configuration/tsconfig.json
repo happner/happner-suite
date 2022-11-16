@@ -2,16 +2,19 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "sourceMap": true,
+    "sourceMap": false,
     "allowJs": true,
     "esModuleInterop": true,
     "watch": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "resolveJsonModule": true
   },
   "exclude": [
     "node_modules"
   ],
   "include": [
-    "lib/**/*"
+    "index.ts",
+    "lib/**/*.ts",
+    "lib/**/*.json",
   ]
 }

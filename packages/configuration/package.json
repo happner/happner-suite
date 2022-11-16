@@ -1,14 +1,15 @@
 {
-  "name": "configuration",
+  "name": "happner-configuration",
   "version": "0.0.1",
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "compile": "tsc --build --clean && tsc",
-    "test": "mocha --require ts-node/register 'test/**/**/**/*.ts'",
+    "clean": "tsc --build --clean",
+    "compile": "npm run clean && tsc",
+    "test": "mocha --require ts-node/register 'test/**/*.ts'",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm run test"
   },
-  "author": "leebow",
+  "author": "Tenacious & SMC",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.4",

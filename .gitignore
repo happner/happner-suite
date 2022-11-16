@@ -54,4 +54,6 @@ packages/happner-client/test/example.com.key
 temp/*
 
 # configuration compilation output
-/packages/configuration/dist/
+/packages/configuration/dist/index.js
+/packages/configuration/dist/lib
+!/packages/configuration/dist/package.json

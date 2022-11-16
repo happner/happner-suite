@@ -4,16 +4,12 @@ import { expect } from 'chai';
 
 describe('connect configuration builder tests', function () {
   it('builds a connect config object', () => {
-    const mockCookieName = 'testCookie';
-    const mockCookieDomain = 'test.domain';
     const mockExclusion = '/exclusion/path/*';
     const mockForbiddenResponsePath = '/forbidden';
     const mockUnauthorizedResponsePath = '/unauthorized';
 
     const builder = new ConnectConfigBuilder();
     const result = builder
-      .withSecurityCookieName(mockCookieName)
-      .withSecurityCookieDomain(mockCookieDomain)
       .withSecurityExclusion(mockExclusion)
       .withSecurityForbiddenResponsePath(mockForbiddenResponsePath)
       .withSecurityUnauthorizedResponsePath(mockUnauthorizedResponsePath)
@@ -22,8 +18,6 @@ describe('connect configuration builder tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     //assertions
-    expect(result.config.middleware.security.cookieName).to.equal(mockCookieName);
-    expect(result.config.middleware.security.cookieDomain).to.equal(mockCookieDomain);
     expect(result.config.middleware.security.exclusions[0]).to.equal(mockExclusion);
     expect(result.config.middleware.security.forbiddenResponsePath).to.equal(
       mockForbiddenResponsePath

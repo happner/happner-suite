@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { ConfigBuilderFactory } from '../../lib/factories/config-builder-factory';
+import { ConfigValidator } from '../../lib/validators/config-validator';
 import { expect } from 'chai';
 
 describe('full configuration tests', function () {
@@ -8,6 +9,10 @@ describe('full configuration tests', function () {
     setHappnConfigValues(configuration);
 
     const result = configuration.build();
+
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateHappnConfig(result);
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
@@ -26,6 +31,10 @@ describe('full configuration tests', function () {
 
     const result = happnClusterBuilder.build();
 
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateHappnConfig(result);
+
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
 });
@@ -43,7 +52,6 @@ function setHappnConfigValues(configuration) {
       .withCacheStatisticsSecurityUsersOverride(15, 20000)
 
       // connect
-      .withConnectSecurityCookie('testCookie', 'test.domain')
       .withConnectSecurityExclusion('/test/exclusion')
       .withConnectSecurityForbiddenResponsePath('forbidden/response/path')
       .withConnectSecurityUnauthorizedResponsePath('unauthorized/response/path')
@@ -73,16 +81,11 @@ function setHappnConfigValues(configuration) {
       .withSecurityAccountLockoutEnabled(true)
       .withSecurityAccountLockoutRetryInterval(1000)
       .withSecurityActivateSessionManagement(true)
-      .withSecurityAdminGroupName('testGroup')
-      .withSecurityAdminGroupPermission('testKey', 'test/path')
       .withSecurityAdminPassword('adminPassword')
       .withSecurityAdminPublicKey('401be6df11a34')
-      .withSecurityAdminUsername('adminUserName')
+      .withSecurityAdminGroupCustomData('custom admin group data')
       .withSecurityAllowAnonymousAccess(false)
-      .withSecurityAuditPath('test/audit/path')
       .withSecurityAuthProvider('testProvider', new (class TestClass {})())
-      .withSecurityCookie('testCookie123', 'test.domain', 'asdhgvausdgasuygdfash')
-      .withSecurityIsSecure(true)
       .withSecurityLockTokenToLoginType(true)
       .withSecurityLockTokenToUserId(true)
       .withSecurityLogSessionActivity(true)

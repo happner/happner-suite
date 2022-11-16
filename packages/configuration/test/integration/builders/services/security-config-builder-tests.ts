@@ -8,21 +8,12 @@ describe('security configuration builder tests', function () {
     const mockAccountLockoutAttempts = 5;
     const mockAccountLockoutEnabled = true;
     const mockAccountLockoutRetryInterval = 2000;
-    const mockAdminGroupName = 'adminGroup1';
-    const mockAdminGroupPermissionPath1 = '/test';
-    const mockAdminGroupPermissionPath1Action1 = 'testAction1';
-    const mockAdminGroupPermissionPath1Action2 = 'testAction2';
+    const mockAdminGroupCustomData = 'admin group custom description';
     const mockAdminPassword = 'password123';
     const mockAdminPublicKey = 'publicKey3445';
-    const mockAdminUserName = 'testUser';
     const mockAllowAnonymousAccess = false;
-    const mockAuditPath = '/audit/path';
     const mockAuthProvider1Name = 'testProvider';
     const mockAuthProvider1Instance = createTestAuthProvider();
-
-    const mockCookie = 'b654adef8979ceef21123';
-    const mockCookieDomain = 'cookie.domain';
-    const mockCookieName = 'testCookie';
 
     const mockDefaultAuthProvider = 'testProvider';
     const mockDefaultNonceTTL = 60000;
@@ -40,7 +31,6 @@ describe('security configuration builder tests', function () {
     const mockProfilePolicyTTL = 1e3;
     const mockProfilePolicyInactivityThreshold = Number.POSITIVE_INFINITY;
 
-    const mockSecure = true;
     const mockSessionActivityTTL = 1e2;
     const mockSessionTokenSecret = 'sessionTokenSecret123';
 
@@ -53,16 +43,11 @@ describe('security configuration builder tests', function () {
       .withAccountLockoutAttempts(mockAccountLockoutAttempts)
       .withAccountLockoutEnabled(mockAccountLockoutEnabled)
       .withAccountLockoutRetryInterval(mockAccountLockoutRetryInterval)
-      .withAdminGroupName(mockAdminGroupName)
-      .withAdminGroupPermission(mockAdminGroupPermissionPath1, mockAdminGroupPermissionPath1Action1)
-      .withAdminGroupPermission(mockAdminGroupPermissionPath1, mockAdminGroupPermissionPath1Action2)
-      .withAdminUsername(mockAdminUserName)
       .withAdminPassword(mockAdminPassword)
       .withAdminPublicKey(mockAdminPublicKey)
+      .withAdminGroupCustomData(mockAdminGroupCustomData)
       .withAllowAnonymousAccess(mockAllowAnonymousAccess)
-      .withAuditPath(mockAuditPath)
       .withAuthProvider(mockAuthProvider1Name, mockAuthProvider1Instance)
-      .withHttpsCookie(mockCookieName, mockCookieDomain, mockCookie)
       .withDefaultAuthProvider(mockDefaultAuthProvider)
       .withDefaultNonceTTL(mockDefaultNonceTTL)
       .withDisableDefaultAdminNetworkConnections(mockDisableDefaultAdminNetworkConnections)
@@ -77,7 +62,6 @@ describe('security configuration builder tests', function () {
         mockProfilePolicyTTL,
         mockProfilePolicyInactivityThreshold
       )
-      .withSecure(mockSecure)
       .withSessionActivityTTL(mockSessionActivityTTL)
       .withSessionTokenSecret(mockSessionTokenSecret)
       .withUpdateSubscriptionsOnSecurityDirectoryChanged(
@@ -91,25 +75,13 @@ describe('security configuration builder tests', function () {
     expect(result.config.accountLockout.attempts).to.equal(mockAccountLockoutAttempts);
     expect(result.config.accountLockout.enabled).to.equal(mockAccountLockoutEnabled);
     expect(result.config.accountLockout.retryInterval).to.equal(mockAccountLockoutRetryInterval);
-    expect(result.config.adminGroup.name).to.equal(mockAdminGroupName);
-    expect(result.config.adminGroup.permissions[mockAdminGroupPermissionPath1][0]).to.equal(
-      mockAdminGroupPermissionPath1Action1
-    );
-    expect(result.config.adminGroup.permissions[mockAdminGroupPermissionPath1][1]).to.equal(
-      mockAdminGroupPermissionPath1Action2
-    );
-    expect(result.config.adminUser.username).to.equal(mockAdminUserName);
     expect(result.config.adminUser.password).to.equal(mockAdminPassword);
     expect(result.config.adminUser.publicKey).to.equal(mockAdminPublicKey);
     expect(result.config.allowAnonymousAccess).to.equal(mockAllowAnonymousAccess);
-    expect(result.config.auditPaths[0]).to.equal(mockAuditPath);
     expect(result.config.authProviders[mockAuthProvider1Name]).to.equal(mockAuthProvider1Instance);
     expect(result.config.authProviders[mockAuthProvider1Name].testFunc()).to.equal(
       'test func called'
     );
-    expect(result.config.cookieName).to.equal(mockCookieName);
-    expect(result.config.cookieDomain).to.equal(mockCookieDomain);
-    expect(result.config.httpsCookie).to.equal(mockCookie);
     expect(result.config.defaultAuthProvider).to.equal(mockDefaultAuthProvider);
     expect(result.config.defaultNonceTTL).to.equal(mockDefaultNonceTTL);
     expect(result.config.disableDefaultAdminNetworkConnections).to.equal(
@@ -127,7 +99,6 @@ describe('security configuration builder tests', function () {
     expect(result.config.profiles[0].session[mockProfileSessionKey].$eq).to.equal(
       mockProfileSessionMatchOn
     );
-    expect(result.config.secure).to.equal(mockSecure);
     expect(result.config.sessionActivityTTL).to.equal(mockSessionActivityTTL);
     expect(result.config.sessionTokenSecret).to.equal(mockSessionTokenSecret);
     expect(result.config.updateSubscriptionsOnSecurityDirectoryChanged).to.equal(

@@ -60,11 +60,6 @@ export class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withSecure(isSecure: boolean): SecurityConfigBuilder {
-    this.set('config.secure', isSecure, BaseBuilder.Types.BOOLEAN);
-    return this;
-  }
-
   withAllowAnonymousAccess(allow: boolean): SecurityConfigBuilder {
     this.set('config.allowAnonymousAccess', allow, BaseBuilder.Types.BOOLEAN);
     return this;
@@ -101,16 +96,6 @@ export class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withAuditPath(path: string): SecurityConfigBuilder {
-    this.push('config.auditPaths', path, BaseBuilder.Types.STRING);
-    return this;
-  }
-
-  withAdminUsername(username: string): SecurityConfigBuilder {
-    this.set('config.adminUser.username', username, BaseBuilder.Types.STRING);
-    return this;
-  }
-
   withAdminPassword(password: string): SecurityConfigBuilder {
     this.set('config.adminUser.password', password, BaseBuilder.Types.STRING);
     return this;
@@ -121,13 +106,8 @@ export class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withAdminGroupName(name: string): SecurityConfigBuilder {
-    this.set('config.adminGroup.name', name, BaseBuilder.Types.STRING);
-    return this;
-  }
-
-  withAdminGroupPermission(permissionKey: string, action: string): SecurityConfigBuilder {
-    this.push(`config.adminGroup.permissions.${permissionKey}`, action, BaseBuilder.Types.STRING);
+  withAdminGroupCustomData(description: string): SecurityConfigBuilder {
+    this.push(`config.adminGroup.custom_data.description`, description, BaseBuilder.Types.STRING);
     return this;
   }
 

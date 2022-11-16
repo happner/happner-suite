@@ -1,0 +1,12 @@
+{
+  "name": "happner-configuration",
+  "version": "0.0.1",
+  "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
+  "main": "index.js",
+  "author": "Tenacious & SMC",
+  "license": "ISC",
+  "dependencies": {
+    "acorn": "^8.8.0",
+    "ajv": "^8.11.0"
+  }
+}

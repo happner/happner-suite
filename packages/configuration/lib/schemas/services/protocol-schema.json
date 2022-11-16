@@ -19,6 +19,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "secure": {
+          "type": "boolean"
+        },
         "allowNestedPermissions": {
         },
         "inboundLayers": {

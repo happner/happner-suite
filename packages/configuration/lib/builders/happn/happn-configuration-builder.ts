@@ -111,10 +111,6 @@ export class HappnConfigurationBuilder extends BaseBuilder {
   /*
   CONNECT
    */
-  withConnectSecurityCookie(name: string, domain: string): HappnConfigurationBuilder {
-    this.#connectConfigBuilder.withSecurityCookieDomain(domain).withSecurityCookieName(name);
-    return this;
-  }
 
   /***
    * Can be invoked multiple times to add more than 1 exclusion
@@ -227,11 +223,6 @@ export class HappnConfigurationBuilder extends BaseBuilder {
     return this;
   }
 
-  withSecurityAdminUsername(username: string): HappnConfigurationBuilder {
-    this.#securityConfigBuilder.withAdminUsername(username);
-    return this;
-  }
-
   withSecurityAdminPassword(password: string): HappnConfigurationBuilder {
     this.#securityConfigBuilder.withAdminPassword(password);
     return this;
@@ -242,8 +233,8 @@ export class HappnConfigurationBuilder extends BaseBuilder {
     return this;
   }
 
-  withSecurityAdminGroupName(groupName: string): HappnConfigurationBuilder {
-    this.#securityConfigBuilder.withAdminGroupName(groupName);
+  withSecurityAdminGroupCustomData(description: string): HappnConfigurationBuilder {
+    this.#securityConfigBuilder.withAdminGroupCustomData(description);
     return this;
   }
 
@@ -258,11 +249,6 @@ export class HappnConfigurationBuilder extends BaseBuilder {
 
   withSecurityAllowAnonymousAccess(allowAnonymous: boolean): HappnConfigurationBuilder {
     this.#securityConfigBuilder.withAllowAnonymousAccess(allowAnonymous);
-    return this;
-  }
-
-  withSecurityAuditPath(path: string): HappnConfigurationBuilder {
-    this.#securityConfigBuilder.withAuditPath(path);
     return this;
   }
 
@@ -312,11 +298,6 @@ export class HappnConfigurationBuilder extends BaseBuilder {
       policyTTL,
       policyInactiveThreshold
     );
-    return this;
-  }
-
-  withSecurityIsSecure(isSecure: boolean): HappnConfigurationBuilder {
-    this.#securityConfigBuilder.withSecure(isSecure);
     return this;
   }
 
