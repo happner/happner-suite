@@ -307,13 +307,15 @@ function __getAuthProviderForUser(username, callback) {
   });
 }
 
-function __matchAuthProvider(credentials, callback) {
+function __matchAuthProvider(credentials, callback, allowCredentialsAuthType) {
   if (credentials.token) {
+    // authType in the token
     let decodedToken = this.decodeToken(credentials.token);
-    return callback(null, this.__getAuthProvider(decodedToken ? decodedToken.authType : 'default'));
+    return this.__matchAuthProvider(decodedToken, callback, true);
   }
   if (credentials.authType != null) {
-    if (this.config.allowUserChooseAuthProvider === false) {
+    // user specifies their own authType
+    if (this?.config?.allowUserChooseAuthProvider === false && !allowCredentialsAuthType) {
       return callback(
         this.happn.services.error.InvalidCredentialsError(
           'security policy disallows choosing of own auth provider'
@@ -322,6 +324,11 @@ function __matchAuthProvider(credentials, callback) {
     }
     return callback(null, this.__getAuthProvider(credentials.authType));
   }
+  if (credentials.username == null) {
+    // no user specified
+    return callback(null, this.__getAuthProvider('default'));
+  }
+  // get by username
   this.__getAuthProviderForUser(credentials.username, (e, authProvider) => {
     if (e) {
       return callback(e);

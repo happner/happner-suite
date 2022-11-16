@@ -31,7 +31,6 @@ describe(
       });
     }
 
-
     it('Tests adding a non-happ3 auth provider (by path) in config, by config the default auth provider should be the added provider', async () => {
       let instance = await getService({
         services: {
