@@ -48,7 +48,10 @@ SecurityService.prototype.linkAnonymousGroup = linkAnonymousGroup;
 SecurityService.prototype.unlinkAnonymousGroup = unlinkAnonymousGroup;
 SecurityService.prototype.__initializeReplication = __initializeReplication;
 SecurityService.prototype.__initializeAuthProviders = __initializeAuthProviders;
+
 SecurityService.prototype.__getAuthProvider = __getAuthProvider;
+SecurityService.prototype.__getAuthProviderForUser = __getAuthProviderForUser;
+SecurityService.prototype.__matchAuthProvider = __matchAuthProvider;
 
 SecurityService.prototype.deactivateSessionManagement = deactivateSessionManagement;
 SecurityService.prototype.activateSessionActivity = activateSessionActivity;
@@ -287,39 +290,77 @@ function processUnsecureLogin(message, callback) {
 }
 
 function __getAuthProvider(authType) {
-  return this.authProviders[authType] || this.authProviders['default'];
+  const foundAuthType = this.authProviders[authType] ? authType : 'default';
+  return { instance: this.authProviders[foundAuthType], authType: foundAuthType };
+}
+
+function __getAuthProviderForUser(username, callback) {
+  if (username === '_ADMIN' || username === '_ANONYMOUS') {
+    return callback(null, this.__getAuthProvider('happn'));
+  }
+  this.users.getUser(username, (e, user) => {
+    if (e) return callback(e);
+    if (!user) {
+      return callback(null, this.__getAuthProvider('default'));
+    }
+    return callback(null, this.__getAuthProvider(user.authType));
+  });
+}
+
+function __matchAuthProvider(credentials, callback) {
+  if (credentials.token) {
+    let decodedToken = this.decodeToken(credentials.token);
+    return callback(null, this.__getAuthProvider(decodedToken ? decodedToken.authType : 'default'));
+  }
+  if (credentials.authType != null) {
+    if (this.config.allowUserChooseAuthProvider === false) {
+      return callback(
+        this.happn.services.error.InvalidCredentialsError(
+          'security policy disallows choosing of own auth provider'
+        )
+      );
+    }
+    return callback(null, this.__getAuthProvider(credentials.authType));
+  }
+  this.__getAuthProviderForUser(credentials.username, (e, authProvider) => {
+    if (e) {
+      return callback(e);
+    }
+    return callback(null, authProvider);
+  });
 }
 
 function processLogin(message, callback) {
   let credentials = message.request.data;
   let sessionId = null;
   if (message.session) sessionId = message.session.id;
-
-  let authProvider, decodedToken;
-  if (credentials.token) {
-    decodedToken = this.decodeToken(credentials.token);
-    authProvider = this.__getAuthProvider(decodedToken ? decodedToken.authType : 'default');
-  } else authProvider = this.__getAuthProvider(credentials.authType);
-  if (credentials.username === '_ADMIN' && this.authProviders.happn)
-    authProvider = this.authProviders.happn;
-  authProvider.login(credentials, sessionId, message.request, (e, session) => {
+  this.__matchAuthProvider(credentials, (e, authProvider) => {
     if (e) return callback(e);
-    let attachedSession = this.happn.services.session.attachSession(sessionId, session);
-    if (!attachedSession)
-      return callback(new Error('session with id ' + sessionId + ' dropped while logging in'));
-    let decoupledSession = this.happn.services.utils.clone(attachedSession);
-    delete decoupledSession.user.groups; //needlessly large list of security groups passed back, groups are necessary on server side though
-
-    message.response = {
-      data: decoupledSession,
-    };
-
-    callback(null, message);
+    authProvider.instance.login(credentials, sessionId, message.request, (e, session) => {
+      if (e) return callback(e);
+      let attachedSession = this.happn.services.session.attachSession(
+        sessionId,
+        session,
+        authProvider.authType
+      );
+      if (!attachedSession) {
+        return callback(new Error('session with id ' + sessionId + ' dropped while logging in'));
+      }
+      let decoupledSession = this.happn.services.utils.clone(attachedSession);
+      delete decoupledSession.user.groups; //needlessly large list of security groups passed back, groups are necessary on server side though
+      message.response = {
+        data: decoupledSession,
+      };
+      callback(null, message);
+    });
   });
 }
 
-function login(...args) {
-  return this.__getAuthProvider(args[0] ? args[0].authType : '').login(...args);
+function login(credentials, sessionId, request, callback) {
+  this.__matchAuthProvider(credentials, (e, authProvider) => {
+    if (e) return callback(e);
+    return authProvider.instance.login(credentials, sessionId, request, callback);
+  });
 }
 
 function processAuthorizeUnsecure(message, callback) {
@@ -599,21 +640,21 @@ function __initializeSessionManagement(config) {
 function __initializeAuthProviders(config) {
   let authProviders = config.authProviders || {};
   this.authProviders = {};
-
-  if (authProviders.happn !== false)
-    this.authProviders.happn = require(path.resolve(
-      __dirname,
-      `./authentication/happn-provider.js`
-    )).create(this.happn, config);
-  delete authProviders.happn;
-
+  this.authProviders.happn = require(path.resolve(
+    __dirname,
+    `./authentication/happn-provider.js`
+  )).create(this.happn, config);
   let defaultAuthProvider = config.defaultAuthProvider || 'happn';
 
   Object.keys(authProviders).forEach((key) => {
+    if (key === 'happn') {
+      // already added (above)
+      return;
+    }
     let provider = authProviders[key];
     this.authProviders[key] = BaseAuthProvider.create(this.happn, config, provider);
   });
-  this.authProviders.default = this.authProviders[defaultAuthProvider] || this.authProviders[0]; //The || is for cases where you are not using happn3 auth provider, but have not specified another default provider
+  this.authProviders.default = this.authProviders[defaultAuthProvider];
 }
 
 function activateSessionActivity(callback) {

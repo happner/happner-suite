@@ -164,6 +164,13 @@ doRequest (path, token) {
     });
   };
 
+  createUserBefore(credentials, instanceIndex = 0) {
+    before('it creates a user', async () => {
+      if (!credentials.password) credentials.password = 'password';
+      await this.instances[instanceIndex].services.security.users.upsertUser(credentials);
+    });
+  }
+
   destroyInstance(instance) {
     return new Promise((resolve, reject) => {
       if (!instance) return resolve();

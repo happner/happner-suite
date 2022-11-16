@@ -22,6 +22,16 @@ describe(
       });
     }
 
+    function testLogin(instance, credentials, sessionId, request) {
+      return new Promise((resolve) => {
+        instance.services.security.login(credentials, sessionId, request, (e, result) => {
+          if (e) return resolve(e.message);
+          resolve(result);
+        });
+      });
+    }
+
+
     it('Tests adding a non-happ3 auth provider (by path) in config, by config the default auth provider should be the added provider', async () => {
       let instance = await getService({
         services: {
@@ -47,10 +57,11 @@ describe(
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
       );
-      //Over-ridden function
-      expect(instance.services.security.authProviders.default.login()).to.eql(
+
+      expect(await testLogin(instance, { authType: 'unconfigured' }, undefined, {})).to.be(
         'Login called in second auth provider'
       );
+
       //Base class function
       instance.services.security.authProviders.default.accessDenied('Error Message', async (e) => {
         expect(e.toString()).to.be('AccessDenied: Error Message');
@@ -77,14 +88,14 @@ describe(
       });
 
       expect(Object.keys(instance.services.security.authProviders)).to.eql([
+        'happn',
         'blankAuth',
         'default',
-      ]); //No happn
+      ]);
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
       );
-      //Over-ridden function
-      expect(instance.services.security.authProviders.default.login()).to.eql(
+      expect(await testLogin(instance, { authType: 'unconfigured' }, undefined, {})).to.be(
         'Login called in second auth provider'
       );
       //Base class function

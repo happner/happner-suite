@@ -106,8 +106,9 @@ function _process(req, res, next) {
               e.message === 'Invalid credentials' ||
               e.code === 401 ||
               e.message === 'use of _ADMIN credentials over the network is disabled'
-            )
+            ) {
               return this.__respond('login failed', null, e, res, 401);
+            }
             return this.__respond('login failed', null, e, res, 500);
           }
           this.__respond('login successful', session.token, null, res);
