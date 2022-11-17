@@ -311,6 +311,13 @@ function __matchAuthProvider(credentials, callback, allowCredentialsAuthType) {
   if (credentials.token) {
     // authType in the token
     let decodedToken = this.decodeToken(credentials.token);
+    if (decodedToken == null) {
+      return callback(
+        this.happn.services.error.InvalidCredentialsError(
+          'Invalid credentials: invalid session token'
+        )
+      );
+    }
     return this.__matchAuthProvider(decodedToken, callback, true);
   }
   if (credentials.authType != null) {
@@ -318,7 +325,7 @@ function __matchAuthProvider(credentials, callback, allowCredentialsAuthType) {
     if (this?.config?.allowUserChooseAuthProvider === false && !allowCredentialsAuthType) {
       return callback(
         this.happn.services.error.InvalidCredentialsError(
-          'security policy disallows choosing of own auth provider'
+          'Invalid credentials: security policy disallows choosing of own auth provider'
         )
       );
     }

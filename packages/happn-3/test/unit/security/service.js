@@ -169,10 +169,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     );
   };
 
-  var mockServices = function (callback, servicesConfig) {
+  var mockServices = function (callback, servicesConfig, overrides = { services: {} }) {
     var testConfig = {
       secure: true,
       services: {
+        log: {},
         cache: {},
         data: {},
         crypto: {},
@@ -184,15 +185,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
     var testServices = {};
 
-    testServices.cache = require('../../../lib/services/cache/service');
-    testServices.crypto = require('../../../lib/services/crypto/service');
-    testServices.data = require('../../../lib/services/data/service');
-    testServices.security = require('../../../lib/services/security/service');
-    testServices.session = require('../../../lib/services/session/service');
-    testServices.system = require('../../../lib/services/system/service');
-    testServices.utils = require('../../../lib/services/utils/service');
-    testServices.error = require('../../../lib/services/error/service');
-    testServices.log = require('../../../lib/services/log/service');
+    testServices.cache =
+      overrides?.services?.cache || require('../../../lib/services/cache/service');
+    testServices.crypto =
+      overrides?.services?.crypto || require('../../../lib/services/crypto/service');
+    testServices.data = overrides?.services?.data || require('../../../lib/services/data/service');
+    testServices.security =
+      overrides?.services?.security || require('../../../lib/services/security/service');
+    testServices.session =
+      overrides?.services?.session || require('../../../lib/services/session/service');
+    testServices.system =
+      overrides?.services?.system || require('../../../lib/services/system/service');
+    testServices.utils =
+      overrides?.services?.utils || require('../../../lib/services/utils/service');
+    testServices.error =
+      overrides?.services?.error || require('../../../lib/services/error/service');
+    testServices.log = overrides?.services?.log || require('../../../lib/services/log/service');
 
     var checkpoint = require('../../../lib/services/security/checkpoint');
 
@@ -245,10 +253,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       },
       function (e) {
         if (e) return callback(e);
-
-        callback(null, happnMock);
+        callback(null, test._.merge(happnMock, overrides));
       }
     );
+  };
+
+  let mockServicesPromise = function (servicesConfig, overrides) {
+    return new Promise((resolve, reject) => {
+      mockServices(
+        (e, result) => {
+          if (e) return reject(e);
+          resolve(result);
+        },
+        servicesConfig,
+        overrides
+      );
+    });
   };
 
   let serviceInstance = null;
@@ -4394,13 +4414,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly(false, test.sinon.match.func);
   });
 
-  xit('tests __initializeAuthProviders - creates BaseAuthProviders', async () => {
+  it('tests __initializeAuthProviders - creates BaseAuthProviders', async () => {
     const BaseAuthProvider = require('../../../lib/services/security/authentication/provider-base');
     const serviceInst = new SecurityService({
       logger: Logger,
     });
     const mockConfig = {
-      authProviders: { happn: false, mockAuthProvider: 'mockAuthProvider' },
+      authProviders: { mockAuthProvider: 'mockAuthProvider' },
       defaultAuthProvider: null,
     };
     const mockCallback = test.sinon.stub();
@@ -4422,41 +4442,27 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
 
     const stubCreate = test.sinon.stub(BaseAuthProvider, 'create').returns('mockAuthProvider');
-
-    serviceInst.happn = {
-      config: {
-        disableDefaultAdminNetworkConnections: false,
-      },
-      services: {
-        cache: {},
-        data: {
-          pathField: 'mockPathField',
-        },
-      },
-    };
-
+    serviceInst.happn = await mockServicesPromise();
     serviceInst.initialize(mockConfig, mockCallback);
+    await require('node:timers/promises').setTimeout(1e3);
 
-    await require('node:timers/promises').setTimeout(2e3);
-
-    test.chai.expect(stubCreate).to.have.been.calledWithExactly(
-      {
-        config: { disableDefaultAdminNetworkConnections: false },
-        services: { cache: {}, data: { pathField: 'mockPathField' } },
+    test.chai.expect(stubCreate.lastCall.args[1]).to.eql({
+      accountLockout: {
+        attempts: 4,
+        enabled: true,
+        retryInterval: 600000,
       },
-      {
-        authProviders: { mockAuthProvider: 'mockAuthProvider' },
-        defaultAuthProvider: null,
-        updateSubscriptionsOnSecurityDirectoryChanged: true,
-        defaultNonceTTL: 60000,
-        logSessionActivity: false,
-        sessionActivityTTL: 86400000,
-        pbkdf2Iterations: 10000,
-        lockTokenToLoginType: true,
-        cookieName: 'happn_token',
-      },
-      'mockAuthProvider'
-    );
+      authProviders: { mockAuthProvider: 'mockAuthProvider' },
+      defaultAuthProvider: null,
+      updateSubscriptionsOnSecurityDirectoryChanged: true,
+      defaultNonceTTL: 60000,
+      logSessionActivity: false,
+      sessionActivityTTL: 86400000,
+      pbkdf2Iterations: 10000,
+      lockTokenToLoginType: true,
+      cookieName: 'happn_token',
+    });
+    test.chai.expect(stubCreate.lastCall.args[2]).to.eql('mockAuthProvider');
   });
 
   it('tests activateSessionActivity returns this.__loadSessionActivity', () => {
@@ -6948,23 +6954,31 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     stubQue.restore();
   });
 
-  xit('tests __replicateDataChanged - calls replicator.send and reject promise', async () => {
-    const async = require('happn-commons').async;
+  it('tests __replicateDataChanged - calls replicator.send and reject promise', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
     const mockConfig = {};
-    const callback = test.sinon.stub();
-    const stubQue = test.sinon.stub(async, 'queue');
-    const mockCallback = null;
-
-    stubQue.callsFake((callback) => {
-      const task = {
-        whatHappnd: 'link-group',
-        changedData: { replicated: false },
-        additionalInfo: null,
-      };
-      callback(task, mockCallback);
+    const handleFatal = test.sinon.stub();
+    serviceInst.happn = {
+      config: {},
+      services: {
+        error: {
+          handleFatal,
+        },
+        data: {},
+        replicator: {
+          send: test.sinon.stub().callsFake((_, __, callback) => {
+            callback('mockError');
+          }),
+        },
+      },
+    };
+    await new Promise((resolve) => {
+      serviceInst.initialize(mockConfig, () => {
+        // ignore errors, gets as far as creating queue
+        resolve();
+      });
     });
     const stubResetSessionPermissions = test.sinon
       .stub(serviceInst, 'resetSessionPermissions')
@@ -6979,34 +6993,18 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     serviceInst.groups = {
       clearCaches: test.sinon.stub(),
     };
-    serviceInst.happn = {
-      services: {
-        cache: 'mockCache',
-        data: 'mockData',
-        session: null,
-        replicator: {
-          send: test.sinon.stub(),
-        },
-      },
-      config: {
-        disableDefaultAdminNetworkConnections: false,
-      },
-      error: {
-        handleFatal: test.sinon.stub(),
-      },
-    };
-    serviceInst.happn.services.replicator.send.callsFake((_, __, callback) => {
-      callback('mockError');
-    });
-
-    serviceInst.initialize(mockConfig, callback);
+    serviceInst.dataChanged('link-group', {});
+    await test.delay(2e3);
 
     test.chai
       .expect(stubResetSessionPermissions)
-      .to.have.been.calledWithExactly('link-group', { replicated: false }, null);
+      .to.have.been.calledWithExactly('link-group', {}, undefined);
+
+    test.chai
+      .expect(handleFatal)
+      .to.have.been.calledWithExactly('failure updating cached security data', 'mockError');
 
     stubResetSessionPermissions.restore();
-    stubQue.restore();
   });
 
   it('tests __replicateDataChanged - changedData.replicated is true .', async () => {

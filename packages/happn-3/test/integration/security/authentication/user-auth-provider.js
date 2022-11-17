@@ -41,7 +41,9 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     }
     test
       .expect(errorMessage)
-      .to.be('AccessDenied: security policy disallows choosing of own auth provider');
+      .to.be(
+        'AccessDenied: Invalid credentials: security policy disallows choosing of own auth provider'
+      );
   });
 
   test.destroyAllInstancesAfter();
