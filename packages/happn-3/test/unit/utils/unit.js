@@ -272,6 +272,12 @@ describe(
       utils.wrapImmediate(callback, 1000)('param1', 'param2', 'param3');
     });
 
+    it('tests creating a self signed cert', function () {
+      const certificate = utils.selfSignedCertUtil.createCertificate('happner-framework.com');
+      expect(certificate.cert).to.not.be(null);
+      expect(certificate.key).to.not.be(null);
+    });
+
     it('tests wildcardMatch utils service ', function (done) {
       expect(utils.wildcardMatch('/test/complex/*/short', '/test/complex/and/short')).to.be(true);
       expect(utils.wildcardMatch('/test/complex/*', '/test/complex/and/short')).to.be(true);

@@ -9,67 +9,10 @@ module.exports = class TransportService extends require('events').EventEmitter {
     this.http = require('http');
     this.fs = commons.fs;
   }
-  createCertificateX509(keySize, serialNumber, attrs, validFrom, validPeriod) {
-    var forge = require('node-forge');
-    var pki = forge.pki;
-
-    // generate a keypair or use one you have already
-    var keys = pki.rsa.generateKeyPair(keySize || 2048);
-
-    // create a new certificate
-    var cert = pki.createCertificate();
-
-    // fill the required fields
-    cert.publicKey = keys.publicKey;
-    cert.serialNumber = serialNumber || '01';
-    cert.validity.notBefore = validFrom || new Date();
-    cert.validity.notAfter = new Date();
-    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + validPeriod || 100);
-
-    // use your own attributes here, or supply a csr (check the docs)
-    attrs = attrs || [
-      {
-        name: 'commonName',
-        value: 'Default',
-      },
-      {
-        name: 'countryName',
-        value: 'Default',
-      },
-      {
-        shortName: 'ST',
-        value: 'Default',
-      },
-      {
-        name: 'localityName',
-        value: 'Default',
-      },
-      {
-        name: 'organizationName',
-        value: 'Default',
-      },
-      {
-        shortName: 'OU',
-        value: 'Default',
-      },
-    ];
-
-    // here we set subject and issuer as the same one
-    cert.setSubject(attrs);
-    cert.setIssuer(attrs);
-
-    // the actual certificate signing
-    cert.sign(keys.privateKey);
-
-    // now convert the Forge certificate to PEM format
-    return {
-      key: pki.privateKeyToPem(keys.privateKey),
-      cert: pki.certificateToPem(cert),
-    };
-  }
 
   createCertificate(keyPath, certPath) {
-    const X509 = this.createCertificateX509();
+    const X509 =
+      this.happn.services.utils.selfSignedCertUtil.createCertificate('happner-framework.com');
     this.fs.writeFileSync(keyPath, X509.key);
     this.fs.writeFileSync(certPath, X509.cert);
     return X509;
