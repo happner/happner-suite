@@ -1,7 +1,3 @@
-const {
-  test,
-} = require('../../happn-3/test/__fixtures/test/integration/security/https_initialization_config');
-
 describe('crypto-test', function () {
   var crypto;
   let expect;
