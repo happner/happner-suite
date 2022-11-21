@@ -24,19 +24,21 @@ restClient.postJson('http://localhost:10000/rest/login', operation).on('complete
   });
 
   // methods are called via the URI /rest/method/[component name]/[method name]
-  // the exposed component method can also be called with an array of arguments:
+  // the exposed component method is called with an array of arguments:
   restClient.postJson('http://localhost:10000/rest/method/testComponent/testMethod', [{'number':1}, {'number':2}]).on('complete', function(result){
       expect(result).to.be(3);
       done();
   });
+
   /* 
-    assuming the exposed method (inside the mesh) looks like the following, opts and opts1 are interleaved between the special arguments $happn and $origin in the order that they appear in the array the http client is pushing up to the endpoint:
-    class TestComponent {
-      async testMethod($happn, opts, $origin, opts1) {
-        return opts.number + opts1.number;
-      }
-    }
+    assuming the exposed method (inside the mesh) looks like the following:
   */
+  class ServerSideTestComponent {
+    //opts and opts1 are interleaved between the special arguments $happn and $origin in the order that they appear in the array the http client is pushing up to the endpoint:
+    async testMethod($happn, opts, $origin, opts1) {
+      return opts.number + opts1.number;
+    }
+  }
   // THE OLD WAY: previously the arguments required naming in an object based structure (the system is backwards compatible with these types of calls)
   var operation = {
     parameters:{
