@@ -39,6 +39,8 @@ describe(
               function () {
                 return true;
               },
+            selfSignedCertUtil:
+              require('../../../lib/services/utils/self-signed-cert-util').create(),
           },
         },
       };

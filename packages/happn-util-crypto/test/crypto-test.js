@@ -1,4 +1,6 @@
-const { test } = require('../../happn-3/test/__fixtures/test/integration/security/https_initialization_config');
+const {
+  test,
+} = require('../../happn-3/test/__fixtures/test/integration/security/https_initialization_config');
 
 describe('crypto-test', function () {
   var crypto;
@@ -132,11 +134,5 @@ describe('crypto-test', function () {
 
       callback();
     }).timeout(3000);
-
-    it('creates an X509 certificate', function () {
-      const X509 = cryptoUtil.createCertificateX509();
-      test.expect(X509.key.length).to.be.greaterThan(0);
-      test.expect(X509.cert.length).to.be.greaterThan(0);
-    });
   });
 });
