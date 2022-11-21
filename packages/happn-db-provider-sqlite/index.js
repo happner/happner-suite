@@ -320,14 +320,6 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     parameters.options.count = true;
     this.find(path, parameters, callback);
   }
-  findOne(criteria, fields, callback) {
-    if (typeof fields === 'function') {
-      callback = fields;
-      fields = null;
-    }
-    let result = null;
-    //TODO...
-  }
   increment(path, counterName, increment, callback) {
     if (typeof increment === 'function') {
       callback = increment;
