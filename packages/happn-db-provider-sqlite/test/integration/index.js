@@ -14,8 +14,8 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
 
   async function getProvider(settings) {
     const sqliteProvider = new SQLiteDataProvider({}, mockLogger);
-    sqliteProvider.settings = {
-      ...{
+    sqliteProvider.settings = test.commons._.defaultsDeep(
+      {
         filename: testFileName,
         schema: [
           {
@@ -29,8 +29,8 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
           },
         ],
       },
-      ...settings,
-    };
+      settings
+    );
     await sqliteProvider.initialize();
     return sqliteProvider;
   }
@@ -69,16 +69,26 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       await testIncrement();
     });
   });
-  async function testMerge(settings) {
-    const sqliteProvider = new SQLiteDataProvider(mockLogger);
-    sqliteProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
-      },
-      ...settings,
-    };
-    await sqliteProvider.initialize();
+  async function testMerge() {
+    const sqliteProvider = await getProvider({
+      schema: [
+        {
+          name: 'test',
+          pattern: 'test/path/*',
+          model: {
+            data_test1: {
+              type: Sequelize.STRING,
+            },
+            data_test2: {
+              type: Sequelize.STRING,
+            },
+            data_test3: {
+              type: Sequelize.STRING,
+            },
+          },
+        },
+      ],
+    });
     await sqliteProvider.merge('test/path/1', { data: { test1: 'test1' } });
     await sqliteProvider.merge('test/path/1', { data: { test2: 'test2' } });
     await sqliteProvider.merge('test/path/1', { data: { test3: 'test3' } });
@@ -88,15 +98,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   }
 
   async function testIncrement(settings) {
-    const sqliteProvider = new SQLiteDataProvider(mockLogger);
-    sqliteProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
-      },
-      ...settings,
-    };
-    await sqliteProvider.initialize();
+    const sqliteProvider = await getProvider(settings);
     await sqliteProvider.increment('test/increment', 'testGauge');
     await sqliteProvider.increment('test/increment', 'testGauge', 2);
     await sqliteProvider.increment('test/increment', 'testGauge');
