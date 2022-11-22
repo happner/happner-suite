@@ -12,6 +12,29 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     trace: test.sinon.stub(),
   };
 
+  async function getProvider(settings) {
+    const sqliteProvider = new SQLiteDataProvider({}, mockLogger);
+    sqliteProvider.settings = {
+      ...{
+        filename: testFileName,
+        schema: [
+          {
+            name: 'test',
+            pattern: 'test/path/*',
+            model: {
+              test_data: {
+                type: Sequelize.STRING,
+              },
+            },
+          },
+        ],
+      },
+      ...settings,
+    };
+    await sqliteProvider.initialize();
+    return sqliteProvider;
+  }
+
   context('Data operations', () => {
     before('ensures temp dir and test file', () => {
       test.fs.ensureDirSync(testDirPath);
@@ -32,8 +55,11 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       await testPersistence();
     });
 
-    xit('can count', async () => {
+    it('can count without criteria', async () => {
       await testCount();
+    });
+    xit('can count with criteria', async () => {
+      await testCountWithCriteria();
     });
     xit('can merge', async () => {
       await testMerge();
@@ -80,37 +106,20 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     test.expect(found[0].data.testGauge.value).to.be(4);
   }
 
-  async function testCount(settings) {
-    const sqliteProvider = new SQLiteDataProvider(mockLogger);
-    const created = 1634804510343;
-    const modified = created;
-    sqliteProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
-      },
-      ...settings,
-    };
-    await sqliteProvider.initialize();
+  async function testCountWithCriteria(settings) {
+    const sqliteProvider = await getProvider(settings);
     await sqliteProvider.insert({
       path: 'test/path/1',
       data: { test: 'test1' },
-      created,
-      modified,
     });
     await sqliteProvider.insert({
       path: 'test/path/2',
       data: { test: 'test2' },
-      created,
-      modified,
     });
     await sqliteProvider.insert({
       path: 'test/path/3',
       data: { test: 'test2' },
-      created,
-      modified,
     });
-
     test
       .expect(
         await sqliteProvider.count('test/path/*', {
@@ -136,27 +145,24 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       .to.eql({ data: { value: 2 } });
   }
 
-  async function getProvider(settings) {
-    const sqliteProvider = new SQLiteDataProvider({}, mockLogger);
-    sqliteProvider.settings = {
-      ...{
-        filename: testFileName,
-        schema: [
-          {
-            name: 'test',
-            pattern: 'test/path/*',
-            model: {
-              test_data: {
-                type: Sequelize.STRING,
-              },
-            },
-          },
-        ],
-      },
-      ...settings,
-    };
-    await sqliteProvider.initialize();
-    return sqliteProvider;
+  async function testCount(settings) {
+    const sqliteProvider = await getProvider(settings);
+    await sqliteProvider.insert({
+      path: 'test/path/1',
+      data: { test: 'test1' },
+    });
+    await sqliteProvider.insert({
+      path: 'test/path/2',
+      data: { test: 'test2' },
+    });
+    await sqliteProvider.insert({
+      path: 'test/path/3',
+      data: { test: 'test2' },
+    });
+
+    test.expect(await sqliteProvider.count('test/path/*', {})).to.eql({ data: { value: 3 } });
+
+    test.expect(await sqliteProvider.count('test/path/1', {})).to.eql({ data: { value: 1 } });
   }
 
   async function testPersistence(settings) {

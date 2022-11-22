@@ -22,7 +22,6 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.merge = util.maybePromisify(this.merge);
     this.insert = util.maybePromisify(this.insert);
     this.find = util.maybePromisify(this.find);
-    this.findOne = util.maybePromisify(this.findOne);
     this.remove = util.maybePromisify(this.remove);
     this.count = util.maybePromisify(this.count);
     this.#delimiter = settings.delimiter || '_';
@@ -64,7 +63,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     callback();
   }
   async #ensureModel() {
-    if (this.settings.schema == null && this.settings.schema.length === 0) {
+    if (this.settings.schema == null || this.settings.schema.length === 0) {
       throw new Error(
         'schema with model configurations must be defined for Sqlite provider settings'
       );
@@ -249,8 +248,14 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     if (options.criteria) {
       //TODO...
     }
+    // skip before count because we may want to get the count of leftovers after skip
     if (extendedOptions.skip) {
       sqlOptions.offset = extendedOptions.skip;
+    }
+    if (extendedOptions.count === true) {
+      sqlOptions.attributes = [[this.db.fn('COUNT', this.db.col('path')), 'value']];
+      // just return it, limiting and sorting don't matter
+      return sqlOptions;
     }
     // only ever fetch 30 by default
     sqlOptions.limit = extendedOptions.limit || 30;
@@ -282,6 +287,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     if (options == null) {
       options = {};
     }
+    const extendedOptions = options.options || {};
     let findError, findResult;
     const model = this.#getModel(path);
     if (model == null) {
@@ -296,12 +302,20 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     model[findMethod](sqlOptions)
       .then(
         (found) => {
-          const transformed = this.#transformDataValues(found);
-          if (Array.isArray(transformed)) {
-            findResult = transformed;
-          } else {
-            findResult = [transformed];
+          if (!extendedOptions.count) {
+            const transformed = this.#transformDataValues(found);
+            if (Array.isArray(transformed)) {
+              findResult = transformed;
+            } else {
+              findResult = [transformed];
+            }
+            return;
           }
+          findResult = {
+            data: {
+              value: (Array.isArray(found) ? found[0] : found).dataValues.value,
+            },
+          };
         },
         (error) => {
           findError = error;
