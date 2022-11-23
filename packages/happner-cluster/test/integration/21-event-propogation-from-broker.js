@@ -5,7 +5,6 @@ const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const delay = require('await-delay');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   var servers = [],
@@ -79,7 +78,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   beforeEach('clear mongo collection', function (done) {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
-  
+
   afterEach('stop cluster', function (done) {
     if (!servers) return done();
     stopCluster(servers, function () {

@@ -8,7 +8,8 @@ HappnerCluster.create(config)
     meshInstance = instance;
     if (typeof process.send === 'function') process.send('ready');
   })
-  .catch(function () {
+  .catch(function (e) {
+    console.log(e);
     if (typeof process.send === 'function') process.send('error');
     process.exit(1);
   });
@@ -19,6 +20,9 @@ process.on('message', async (m) => {
       await meshInstance.stop();
     }
     process.exit(0);
+  }
+  if (m === 'getPort') {
+    process.send({ port: meshInstance._mesh.happn.server.config.services.proxy.port });
   }
   if (m === 'listenOnPeers') {
     meshInstance._mesh.happn.server.services.orchestrator.on('peer/add', (name) => {

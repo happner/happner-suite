@@ -6,8 +6,12 @@ module.exports = async function (servers, done) {
     let dataService = server._mesh.happn.server.services.data;
     let keepAlivePath = `/SYSTEM/DEPLOYMENT/${orchestrator.deployment}/${orchestrator.serviceName}/${orchestrator.endpoint}`;
     await orchestrator.stop();
+    try {
     await dataService.remove(keepAlivePath);
-    await server.stop({ reconnect: false });
+  } catch (e) {
+    console.log(e);
+  }
+  await server.stop({ reconnect: false });
     await delay(300);
   }
   if (done) return done();

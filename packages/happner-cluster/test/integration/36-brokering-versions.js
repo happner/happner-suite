@@ -7,39 +7,34 @@ const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  const servers = [];
-  let localInstance;
+  let servers = [],
+    localInstance,
+    proxyPorts;
 
   beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
-  after('stop cluster', function (done) {
-    this.timeout(20000);
+  afterEach('stop cluster', function (done) {
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      servers = [];
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   it('can broker with version "*", no methods defined, lower version joins first', async function () {
     await startClusterInternalFirst();
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getVersion');
 
-    let thisClient = await testclient.create('username', 'password', getSeq.getPort(2));
+    let thisClient = await testclient.create('username', 'password', proxyPorts[1]);
     let version = await thisClient.exchange.remoteComponent.getVersion();
     test
       .expect(version)
       .to.eql({ mesh: getSeq.getMeshName(1), version: '2.1.2', component: 'remoteComponent1' });
-    await startInternal2(getSeq.getNext(), 2);
+    await startInternal2(2, 2);
     await test.delay(3000);
     let version2;
     [version, version2] = await Promise.all([
@@ -58,12 +53,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await startClusterHighVersionFirst();
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getVersion');
 
-    let thisClient = await testclient.create('username', 'password', getSeq.getPort(2));
+    let thisClient = await testclient.create('username', 'password', proxyPorts[1]);
     let version = await thisClient.exchange.remoteComponent.getVersion();
     test
       .expect(version)
       .to.eql({ mesh: getSeq.getMeshName(1), version: '3.4.5', component: 'remoteComponent2' });
-    await startInternal(getSeq.getNext(), 2);
+    await startInternal(2, 2);
     await test.delay(1000);
     version = await thisClient.exchange.remoteComponent.getVersion();
     let version2 = await thisClient.exchange.remoteComponent.getVersion(); //To test that it doesn't round robin to a lower version component
@@ -141,38 +136,19 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     servers.push(server);
     return server;
   }
-
-  function startClusterInternalFirst() {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1)
-        .then(function (server) {
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2);
-        })
-        .then(function () {
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(function () {
-          setTimeout(resolve, 2000);
-        })
-        .catch(reject);
-    });
+  async function startClusterInternalFirst(dynamic) {
+    localInstance = await startInternal(0, 1, dynamic);
+    await startEdge(1, 2, dynamic);
+    await test.delay(2e3)
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  function startClusterHighVersionFirst() {
-    return new Promise(function (resolve, reject) {
-      startInternal2(getSeq.getFirst(), 1)
-        .then(function (server) {
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2);
-        })
-        .then(function () {
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(function () {
-          setTimeout(resolve, 2000);
-        })
-        .catch(reject);
-    });
+  async function startClusterHighVersionFirst(dynamic) {
+    localInstance = await startInternal2(0, 1, dynamic);
+    await startEdge(1, 2, dynamic);
+    await test.delay(2e3)
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 });

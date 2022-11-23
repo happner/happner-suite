@@ -9,37 +9,34 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const getSeq = require('../_lib/helpers/getSeq');
   const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
-  const servers = [];
-  let localInstance;
+  let servers = [],
+    localInstance,
+    proxyPorts;
 
   beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
-  after('stop cluster', function (done) {
-    this.timeout(20000);
+  afterEach('stop cluster', function (done) {
+    if (!servers) return done();
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      servers = [];
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   it('starts up the edge cluster node first, with * version and forward declared methods, we start the internal node and ensure the extra api methods have been extended', async () => {
     await startClusterEdgeFirst();
+    await test.delay(3e3);
     await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
     await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'declaredMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'undeclaredMethod');
-    await test.delay(5000);
-    const client = await testclient.create('username', 'password', getSeq.getPort(1));
+    await test.delay(5e3);
+    const client = await testclient.create('username', 'password', proxyPorts[0]);
     let result = await client.exchange.brokerComponent.directMethod();
     test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
     result = await client.exchange.remoteComponent.brokeredMethod1();
@@ -48,17 +45,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:declaredMethod');
     result = await client.exchange.remoteComponent1.undeclaredMethod();
     test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:undeclaredMethod');
-    await test.delay(2000);
+    await test.delay(4e3);
   });
 
   it('starts up the internal cluster node first, with * version and forward declared methods, we start the edge node and ensure the extra api methods have been extended', async () => {
     await startClusterInternalFirst();
+    await test.delay(3e3);
     await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
     await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'declaredMethod');
     await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'undeclaredMethod');
-    await test.delay(5000);
-    const client = await testclient.create('username', 'password', getSeq.getPort(2));
+    await test.delay(5e3);
+    const client = await testclient.create('username', 'password', proxyPorts[1]);
     let result = await client.exchange.brokerComponent.directMethod();
     test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
     result = await client.exchange.remoteComponent.brokeredMethod1();
@@ -122,45 +120,25 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   async function startInternal(id, clusterMin) {
     const server = await test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
-    servers.push(server);
     return server;
   }
 
   async function startEdge(id, clusterMin, dynamic) {
     const server = await test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic));
-    servers.push(server);
     return server;
   }
 
-  function startClusterEdgeFirst(dynamic) {
-    return new Promise(function (resolve, reject) {
-      startEdge(getSeq.getFirst(), 1, dynamic)
-        .then(function () {
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          localInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterInternalFirst(dynamic) {
+    servers.push((localInstance = await startInternal(0, 1, dynamic)));
+    servers.push(await startEdge(1, 2, dynamic));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  function startClusterInternalFirst(replicate) {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1, replicate)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2, replicate);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterEdgeFirst(dynamic) {
+    servers.push(await startEdge(0, 1, dynamic));
+    servers.push((localInstance = await startInternal(1, 2, dynamic)));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 });

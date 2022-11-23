@@ -7,45 +7,34 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const { fork } = require('child_process');
 
 require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
-  const servers = [];
+  let servers = [];
+
   beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
-  after('Move up getSeq sequence to account for subprocesses', (done) => {
-    getSeq.getNext();
-    getSeq.getNext();
-    done();
-  });
-
-  after('stop cluster', function (done) {
-    this.timeout(30000);
+  afterEach('stop cluster', function (done) {
+    if (!servers) return done();
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      servers = [];
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
     let client;
     let child;
-    let first = getSeq.getFirst();
-    await startEdge(first, 1);
-    child = fork(libDir + 'test-25-sub-process.js', ['2', getSeq.lookupFirst().toString()]);
+    await startEdge(0, 1);
+    child = fork(libDir + 'test-25-sub-process.js', ['1']);
     child.on('message', (msg) => {
       if (msg === 'kill') child.kill('SIGKILL');
     });
     await test.delay(7000);
-
-    client = await testclient.create('username', 'password', getSeq.getPort(1));
+    let proxyPort = servers[0]._mesh.happn.server.config.services.proxy.port;
+    client = await testclient.create('username', 'password', proxyPort);
     let result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be(getSeq.getMeshName(2) + ':brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
@@ -56,7 +45,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     } catch (e) {
       test.expect(e.message).to.be('Request timed out');
     }
-    child = await fork(libDir + 'test-25-sub-process.js', ['3', getSeq.lookupFirst().toString()]);
+    child = await fork(libDir + 'test-25-sub-process.js', ['2']);
     await test.delay(8000);
     result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be(getSeq.getMeshName(3) + ':brokenComponent:happyMethod');

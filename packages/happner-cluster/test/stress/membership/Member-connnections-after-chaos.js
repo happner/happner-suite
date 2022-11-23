@@ -8,12 +8,14 @@ const clearMongoCollection = require('../../_lib/clear-mongo-collection');
 
 require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   const _ = test._;
-  let _AdminClient;
-  let nodeConfigs = [];
-  let testClients = [];
-  let meshNames = [];
-  let clusterSize = 8;
-  let servers;
+  let _AdminClient,
+    nodeConfigs = [],
+    testClients = [],
+    meshNames = [],
+    clusterSize = 8,
+    servers,
+    proxyPorts,
+    killedPorts = [];
 
   before('clear mongo collection', (done) => {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
@@ -21,10 +23,8 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
 
   before('start cluster', async () => {
     const serverPromises = [];
-    let i = 0;
-    while (i < clusterSize) {
-      let seq = i === 0 ? getSeq.getFirst() : getSeq.getNext();
-      const remoteComponent = baseConfig(seq, 2, true, null, null, null, null, null);
+    for (let i = 0; i < clusterSize; i++) {
+      const remoteComponent = baseConfig(i, 2, true);
       remoteComponent.happn.services.orchestrator.config.serviceName = 'testComponent';
       remoteComponent.happn.services.orchestrator.config.cluster = { testComponent: clusterSize };
       remoteComponent.happn.services.cache.config.statisticsInterval = 0;
@@ -42,13 +42,13 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       nodeConfigs.push(remoteComponent);
       meshNames.push(remoteComponent.name);
       serverPromises.push(clusterHelper.start(remoteComponent));
-      i++;
     }
     servers = await Promise.all(serverPromises);
+    proxyPorts = await clusterHelper.getPorts();
   });
 
   before('create test clients', async () => {
-    _AdminClient = await testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+    _AdminClient = await testclient.create('_ADMIN', 'happn', proxyPorts[0]);
     await users.add(_AdminClient, 'username', 'password');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'block');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'getEvents');
@@ -58,10 +58,11 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'subscribeSecondEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'fireSecondEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'offSecondEvent');
-    for (let i = 1; i <= clusterSize; i++) {
-      testClients.push(await testclient.create('username', 'password', getSeq.getPort(i)));
+    for (let i = 0; i < clusterSize; i++) {
+      testClients.push(await testclient.create('username', 'password', proxyPorts[i]));
     }
   });
+
   after('disconnect _ADMIN client', async () => {
     if (_AdminClient) await _AdminClient.disconnect();
     _AdminClient = null;
@@ -83,8 +84,8 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await testNewSubscriptions([1, 5]);
   });
   it('short kill', async () => {
-    await restartNode(5, 0);
-    await test.delay(3e3);
+    await restartNode(5, 3e3);
+    await test.delay(5e3);
     await testConnections();
     await checkPeers();
     await testNewSubscriptions([1, 5]);
@@ -390,28 +391,36 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     for (let i = 0; i < clusterSize; i++) {
       try {
         let details = await clusterHelper.listMembers(i);
-        test.expect(details.members.length).to.eql(clusterSize);
-        test.expect(details.peers.length).to.eql(clusterSize);
-        test.expect(details.peerEndpoints.length).to.eql(clusterSize);
+        test.expect(details.members.length).to.be.above(clusterSize - 1);
+        test.expect(details.peers.length).to.be(clusterSize);
+        test.expect(details.peerEndpoints.length).to.be(clusterSize);
         test
-          .expect(test._.isEqual(details.members.sort(), details.peerEndpoints.sort()))
-          .to.be(true);
+          .expect(
+            details.peerEndpoints.every((peerEndpoint) => details.members.includes(peerEndpoint))
+          )
+          .to.be(true); // Killed nodes endpoints will still be listed as members.
       } catch (e) {
+        console.log(e);
         errored = true;
         errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(i + 1)}`));
       }
     }
     if (errored) {
-      throw new Error('Test failed due to peer/member mismatch (some membersin unstable state)');
+      console.log(JSON.stringify(errors, null, 2));
+      throw new Error('Test failed due to peer/member mismatch (some members in unstable state)');
     }
   }
   async function restartNode(index, restartDelay = 5000) {
     testClients[index] = null;
     let stopped = await clusterHelper.stopChild(index);
     if (stopped !== true) throw new Error('FAILED TO STOP NODE');
+
     await test.delay(restartDelay);
     servers[index] = await clusterHelper.start(nodeConfigs[index], index);
-    testClients[index] = await testclient.create('username', 'password', getSeq.getPort(index + 1));
+    await test.delay(2e3);
+    killedPorts.push(proxyPorts[index]);
+    proxyPorts[index] = (await clusterHelper.getPorts(index))[0];
+    testClients[index] = await testclient.create('username', 'password', proxyPorts[index]);
   }
 
   async function blockNode(index, delay = 8e3) {

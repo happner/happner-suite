@@ -16,6 +16,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     testUserHappnerClient,
     testUserHappnerClientAPI,
     testUserLightClient,
+    proxyPorts,
     testUsers = [];
 
   before('clear mongo', clearMongo);
@@ -26,7 +27,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('can do without as, happner client', async () => {
     const [testUserHappnerClient, testUserHappnerClientAPI] = await createHappnerClientAndAPI(
       { username: 'testUser', password: 'password' },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
     test
       .expect(
@@ -43,7 +44,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('can do without as, light client', async () => {
     const testEdgeUser = await createLightClient(
       { username: 'testUser', password: 'password', domain: 'DOMAIN_NAME' },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
     test
       .expect(
@@ -200,7 +201,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     let errorMessage;
     testUserLightClient = await createLightClient(
       { username: 'testUser', password: 'password', domain: 'DOMAIN_NAME' },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
     try {
       await testUserLightClient.exchange.$call({
@@ -287,7 +288,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     let errorMessage;
     [testUserHappnerClient, testUserHappnerClientAPI] = await createHappnerClientAndAPI(
       { username: 'testUser', password: 'password' },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
     try {
       await testUserHappnerClientAPI.exchange.$call({
@@ -409,28 +410,21 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   }
 
-  function startCluster(done) {
+  async function startCluster() {
     this.timeout(20000);
-    test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
-      localInstance = local;
-    });
+    let localInstancePromise = test.HappnerCluster.create(localInstanceConfig(0, 1));
+    await test.delay(1e3);
+    servers = await Promise.all([
+      localInstancePromise,
+      test.HappnerCluster.create(remoteInstanceConfig(1, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(2, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(3, 1)),
+    ]);
 
-    setTimeout(() => {
-      Promise.all([
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      ])
-        .then(function (_servers) {
-          servers = _servers;
-          //localInstance = servers[0];
-          return users.add(servers[0], 'username', 'password');
-        })
-        .then(function () {
-          setTimeout(done, 5e3);
-        })
-        .catch(done);
-    }, 2000);
+    localInstance = servers[0];
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
+    await users.add(servers[0], 'username', 'password');
+    await test.delay(3e3);
   }
 
   after('it disconnects the admin user', disconnectAdminUsers);
@@ -480,17 +474,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   async function connectAdminUsers() {
-    adminUser = await new testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+    adminUser = await new testclient.create('_ADMIN', 'happn', proxyPorts[0]);
     [adminUserHappnerClient, adminUserHappnerClientAPI] = await createHappnerClientAndAPI(
       {
         discoverMethods: true,
       },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
-    adminUserLightClient = await createLightClient({ domain: 'DOMAIN_NAME' }, getSeq.getPort(1));
+    adminUserLightClient = await createLightClient({ domain: 'DOMAIN_NAME' }, proxyPorts[0]);
   }
   async function connectTestUser(id = '') {
-    const testUser = await new testclient.create(`testUser${id}`, 'password', getSeq.getPort(1));
+    const testUser = await new testclient.create(`testUser${id}`, 'password', proxyPorts[0]);
     testUsers.push(testUser);
     return testUser;
   }
@@ -551,9 +545,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return new Promise((resolve, reject) => {
       restClient
         .postJson(
-          `http://127.0.0.1:${getSeq.getPort(
-            1
-          )}/rest/method/${componentName}/${methodName}?happn_token=` + token,
+          `http://127.0.0.1:${proxyPorts[0]}/rest/method/${componentName}/${methodName}?happn_token=` +
+            token,
           operation
         )
         .on('complete', function (result) {

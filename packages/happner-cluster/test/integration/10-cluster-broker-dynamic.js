@@ -1038,16 +1038,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   async function startClusterEdgeFirstHighAvailable(dynamic) {
     servers.push(await startEdge(0, 1, dynamic));
-    localInstance = await startInternal(1, 2, dynamic);
-    servers.push(localInstance);
+    servers.push((localInstance = await startInternal(1, 2, dynamic)));
     servers.push(await startInternal(2, 3, dynamic));
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   async function startClusterInternalFirst(dynamic) {
-    localInstance = await startInternal(0, 1, dynamic);
-    servers.push(localInstance);
+    servers.push((localInstance = await startInternal(0, 1, dynamic)));
     servers.push(await startEdge(1, 2, dynamic));
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
@@ -1055,8 +1053,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   async function startClusterEdgeFirst(dynamic) {
     servers.push(await startEdge(0, 1, dynamic));
-    localInstance = await startInternal(1, 2, dynamic);
-    servers.push(localInstance);
+    servers.push((localInstance = await startInternal(1, 2, dynamic)));
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }

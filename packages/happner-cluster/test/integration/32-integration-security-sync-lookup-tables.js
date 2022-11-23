@@ -5,7 +5,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const users = require('../_lib/user-permissions');
   const client = require('../_lib/client');
   const getSeq = require('../_lib/helpers/getSeq');
-  let servers, testClient, savedUsers, savedGroups;
+  let servers, testClient, savedUsers, savedGroups, proxyPorts;
 
   function serverConfig(seq, minPeers) {
     var config = baseConfig(seq, minPeers, true);
@@ -27,8 +27,9 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   before('start cluster', async () => {
     servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
+    servers.push(await test.HappnerCluster.create(serverConfig(0, 1)));
+    servers.push(await test.HappnerCluster.create(serverConfig(1, 2)));
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
     savedUsers = await Promise.all(
       ['lookupUser1', 'lookupUser2', 'lookupUser3'].map((userName) =>
         users.add(servers[0], userName, 'password', null, {
@@ -63,7 +64,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('can fetch data if lookup tables and permissions are configured correctly, tests removing and adding paths to table (Lookup table and permission upserted on server[0], client on server[1]', async () => {
-    testClient = await client.create(savedUsers[0].username, 'password', getSeq.getPort(2)); //Second server
+    testClient = await client.create(savedUsers[0].username, 'password', proxyPorts[1]); //Second server
     let testTable1 = {
       name: 'STANDARD_ABC1',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1'],
@@ -119,7 +120,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('tests removing a permission, makes sure we can only access data when properly configured', async () => {
-    testClient = await client.create(savedUsers[1].username, 'password', getSeq.getPort(2)); //Second server
+    testClient = await client.create(savedUsers[1].username, 'password', proxyPorts[1]); //Second server
     let testTable = {
       name: 'STANDARD_ABC2',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'],
@@ -161,7 +162,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('tests unlinking a table from a group, makes sure we can only access data when properly configured', async () => {
-    testClient = await client.create(savedUsers[2].username, 'password', getSeq.getPort(2)); //Second server
+    testClient = await client.create(savedUsers[2].username, 'password', proxyPorts[1]); //Second server
     let testTable = {
       name: 'STANDARD_ABC3',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'],

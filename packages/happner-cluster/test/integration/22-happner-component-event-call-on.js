@@ -7,26 +7,25 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
-  var servers = [],
-    localInstance;
+  let servers = [],
+    localInstance,
+    proxyPorts;
 
   beforeEach('clear mongo collection', function (done) {
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+  });
+
+  afterEach('stop cluster', function (done) {
+    // console.log('AFTER ALL');
+    if (!servers) return done();
+    stopCluster(servers, () => {
       servers = [];
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      done();
     });
   });
 
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   context('exchange', function () {
@@ -37,7 +36,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         await test.delay(2000);
         await setUpSecurity(localInstance);
         await test.delay(2000);
-        thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+        thisClient = await testclient.create('username', 'password', proxyPorts[0]);
         const result1 = await thisClient.exchange.$call({
           component: 'brokerComponent',
           method: 'directMethod',
@@ -88,10 +87,10 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       let thisClient,
         emitted = [];
       await startClusterEdgeFirst();
-      await test.delay(2000);
+      await test.delay(3e3);
       await setUpSecurity(localInstance);
-      await test.delay(2000);
-      thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+      await test.delay(3000);
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await thisClient.exchange.$call({
         component: 'brokerComponent',
         method: 'directMethod',
@@ -127,7 +126,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       await test.delay(2000);
       await setUpSecurity(localInstance);
       await test.delay(2000);
-      thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await thisClient.exchange.$call({
         component: 'brokerComponent',
         method: 'directMethod',
@@ -168,7 +167,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       await test.delay(2000);
       await setUpSecurity(localInstance);
       await test.delay(2000);
-      thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await thisClient.exchange.$call({
         component: 'brokerComponent',
         method: 'directMethod',
@@ -220,7 +219,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       await test.delay(2000);
       await setUpSecurity(localInstance);
       await test.delay(2000);
-      thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       const events = [];
       await thisClient.event.$on(
         {
@@ -248,7 +247,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       await test.delay(2000);
       await setUpSecurity(localInstance);
       await test.delay(2000);
-      thisClient = await testclient.create('username', 'password', getSeq.getPort(1));
+      thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await thisClient.exchange.$call({
         component: 'brokerComponent',
         method: 'directMethod',
@@ -333,7 +332,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
           });
         })
         .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(2));
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           thisClient = client;
@@ -418,7 +417,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
           });
         })
         .then(function () {
-          return testclient.create('username', 'password', getSeq.getPort(2));
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           thisClient = client;
@@ -447,39 +446,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   function startEdge(id, clusterMin) {
     return test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
   }
-
-  function startClusterEdgeFirst() {
-    return new Promise(function (resolve, reject) {
-      startEdge(getSeq.getFirst(), 1)
-        .then(function (server) {
-          servers.push(server);
-          return startInternal(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterInternalFirst() {
+    servers.push((localInstance = await startInternal(0, 1)));
+    servers.push(await startEdge(1, 2));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  function startClusterInternalFirst() {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2);
-        })
-        .then(function (server) {
-          servers.push(server);
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+  async function startClusterEdgeFirst() {
+    servers.push(await startEdge(0, 1));
+    servers.push((localInstance = await startInternal(1, 2)));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   function localInstanceConfig(seq, sync) {

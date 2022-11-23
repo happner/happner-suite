@@ -106,11 +106,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   before('start cluster', async () => {
     servers = await Promise.all([
-      test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst())),
-      test.HappnerCluster.create(remoteInstance1Config(getSeq.getNext())),
-      test.HappnerCluster.create(remoteInstance2Config(getSeq.getNext())),
+      test.HappnerCluster.create(localInstanceConfig(0)),
+      test.HappnerCluster.create(remoteInstance1Config(1)),
+      test.HappnerCluster.create(remoteInstance2Config(2)),
     ]);
     localInstance = servers[0];
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   });
 
   after('stop cluster', function (done) {
@@ -244,12 +245,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       test.expect(outcomes).to.eql([true, true, false, false]);
       servers = servers.concat(
         await Promise.all([
-          test.HappnerCluster.create(
-            remoteInstance1Config([getSeq.lookupFirst(), getSeq.lookupFirst() + 1])
-          ),
-          test.HappnerCluster.create(
-            remoteInstance2Config([getSeq.lookupFirst(), getSeq.lookupFirst() + 2])
-          ),
+          test.HappnerCluster.create(remoteInstance1Config(1)),
+          test.HappnerCluster.create(remoteInstance2Config(2)),
         ])
       );
       await delay(3000); //wait for discvery

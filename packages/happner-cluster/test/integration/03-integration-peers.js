@@ -1,11 +1,15 @@
 const unique = require('array-unique');
-
+const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let servers, localInstance;
+
+  beforeEach('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+  });
 
   beforeEach('start cluster', async function () {
     servers = await Promise.all([
@@ -16,10 +20,9 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     ]);
     localInstance = servers[0];
   });
-
   afterEach('stop cluster', async function () {
     if (servers) await stopCluster(servers);
-  })
+  });
 
   it('removes implementation on peer departure', async function () {
     let replies = await Promise.all([

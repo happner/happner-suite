@@ -6,34 +6,30 @@ const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  const servers = [];
-  let localInstance;
+  let servers = [],
+    localInstance,
+    proxyPorts;
 
   beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
-    });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
-  after('stop cluster', function (done) {
-    this.timeout(20000);
+  afterEach('stop cluster', function (done) {
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
+      servers = [];
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   context('rest', function () {
     it('does a rest call', async function () {
       let axios = test.axios;
       await startClusterInternalFirst();
-      let port = getSeq.getPort(2);
+      await test.delay(2e3)
+      let port = proxyPorts[1];
       let credentials = {
         username: '_ADMIN',
         password: 'ADMIN_PASSWORD',
@@ -46,7 +42,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       ).data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.not.be.ok();
-      await startInternal2(getSeq.getNext(), 2);
+      await startInternal2(2, 2);
       await test.delay(3000);
       description = (await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`))
         .data.data;
@@ -118,7 +114,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     async function startInternal(id, clusterMin) {
       const server = await test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
-      servers.push(server);
       return server;
     }
 
@@ -129,25 +124,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     }
     async function startEdge(id, clusterMin) {
       const server = await test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
-      servers.push(server);
       return server;
     }
-
-    function startClusterInternalFirst() {
-      return new Promise(function (resolve, reject) {
-        startInternal(getSeq.getFirst(), 1)
-          .then(function (server) {
-            localInstance = server;
-            return startEdge(getSeq.getNext(), 2);
-          })
-          .then(function () {
-            return users.add(localInstance, 'username', 'password');
-          })
-          .then(function () {
-            setTimeout(resolve, 2000);
-          })
-          .catch(reject);
-      });
+    async function startClusterInternalFirst(dynamic) {
+      servers.push((localInstance = await startInternal(0, 1, dynamic)));
+      servers.push(await startEdge(1, 2, dynamic));
+      await users.add(localInstance, 'username', 'password');
+      proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
     }
   });
 });

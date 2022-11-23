@@ -10,49 +10,41 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     password = 'happn',
     cluster,
     meshNames = [];
+
   before('it starts the cluster', startCluster);
   before('it connects the client', connectClient);
   it('can reach methods inside the cluster', callMethods);
   after('it disconnects the client', disconnectClient);
   after('it stops the cluster', stopCluster);
+  let getProxyPorts = (cluster) => {
+    return cluster.instances
+      .sort((a, b) => {
+        if (a._mesh.config.name < b._mesh.config.name) return -1;
+        return 1;
+      })
+      .map((server) => server._mesh.happn.server.config.services.proxy.port);
+  };
 
   async function startCluster() {
     cluster = helpers.cluster.create();
 
+    await cluster.member.start(helpers.configuration.construct(34, 0, true, 1), 2000);
+
+    await cluster.member.start(helpers.configuration.construct(34, 1, true, 1), 2000);
+
     await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getFirst(), 0], true, 1),
+      helpers.configuration.construct(34, 1, true, 1, undefined, undefined, undefined, 'b'),
       2000
     );
 
-    await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 1], true, 1),
-      2000
-    );
-
-    await cluster.member.start(
-      helpers.configuration.construct(
-        34,
-        [helpers.getSeq.getNext(), 1],
-        true,
-        1,
-        undefined,
-        undefined,
-        undefined,
-        'b'
-      ),
-      2000
-    );
-
-    await cluster.member.start(
-      helpers.configuration.construct(34, [helpers.getSeq.getNext(), 2], true, 1),
-      6000
-    );
+    await cluster.member.start(helpers.configuration.construct(34, 2, true, 1), 6000);
 
     meshNames = cluster.instances.map((instance) => instance._mesh.config.name);
   }
 
   async function connectClient() {
-    client = await helpers.client.create(username, password, helpers.getSeq.getPort(4));
+    let proxyPorts = getProxyPorts(cluster);
+    client = await helpers.client.create(username, password, proxyPorts[3]);
   }
 
   async function callMethods() {

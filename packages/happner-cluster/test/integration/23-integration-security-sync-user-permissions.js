@@ -7,7 +7,7 @@ const client = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let servers, client1, client2;
+  let servers, client1, client2, proxyPorts;
 
   function serverConfig(seq, minPeers) {
     var config = baseConfig(seq, minPeers, true);
@@ -33,18 +33,19 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   before('start cluster', async () => {
     servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
+    servers.push(await test.HappnerCluster.create(serverConfig(0, 1)));
+    servers.push(await test.HappnerCluster.create(serverConfig(1, 2)));
     await users.add(servers[0], 'username', 'password');
-    await test.delay(5000);
+    await test.delay(3e3);
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   });
 
   before('start client1', async () => {
-    client1 = await client.create('username', 'password', getSeq.getPort(1));
+    client1 = await client.create('username', 'password', proxyPorts[0]);
   });
 
   before('start client2', async () => {
-    client2 = await client.create('username', 'password', getSeq.getPort(2));
+    client2 = await client.create('username', 'password', proxyPorts[1]);
   });
 
   after('stop clients', async () => {

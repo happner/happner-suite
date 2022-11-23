@@ -29,25 +29,21 @@ require('../_lib/test-helper').describe(
     });
 
     async function startEdge() {
-      const config = localInstanceConfig(test.getSeq.getFirst(), 1);
+      const config = localInstanceConfig(0, 1);
       config.cluster.dependenciesSatisfiedDeferListen = true;
       config.authorityDelegationOn = true;
-      clientPort = config.port;
+
       servers.push(await test.HappnerCluster.create(config));
       return servers[0];
     }
 
     async function startInternal1() {
-      servers.push(
-        await test.HappnerCluster.create(remoteInstanceConfig1(test.getSeq.getNext(), 1))
-      );
+      servers.push(await test.HappnerCluster.create(remoteInstanceConfig1(1, 1)));
       return servers[1];
     }
 
     async function startInternal2() {
-      servers.push(
-        await test.HappnerCluster.create(remoteInstanceConfig2(test.getSeq.getNext(), 2))
-      );
+      servers.push(await test.HappnerCluster.create(remoteInstanceConfig2(2, 2)));
       return servers[2];
     }
 
@@ -103,6 +99,7 @@ require('../_lib/test-helper').describe(
     }
 
     async function connectClient() {
+      clientPort = servers[0]._mesh.happn.server.config.port;
       happnerClient = await test.client.create('_ADMIN', 'happn', clientPort);
     }
 

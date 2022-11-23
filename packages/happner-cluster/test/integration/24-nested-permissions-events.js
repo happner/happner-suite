@@ -29,7 +29,7 @@ SecuredComponent.prototype.fireEvent = function ($happn, eventName, callback) {
 };
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let servers, client1, client2, remoteServer;
+  let servers, client1, client2, remoteServer, proxyPorts;
 
   function serverConfig(seq, minPeers) {
     var config = baseConfig(seq, minPeers, true);
@@ -63,13 +63,14 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   before('start cluster', async () => {
     servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
+    servers.push(await test.HappnerCluster.create(serverConfig(0, 1)));
+    servers.push(await test.HappnerCluster.create(serverConfig(1, 2)));
     remoteServer = servers[0];
     for (let user of Object.keys(permissions)) {
       await users.add(servers[0], user, 'password', permissions[user]);
     }
-    await test.delay(5000);
+    await test.delay(3e3);
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   });
 
   after('stop clients', async () => {
@@ -83,7 +84,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it("we add a test user that has permissions to access some of the ProtectedComponent events, subscribe on a nested-path ('**'), we test that this works", async () => {
-    let listenerClient = await client.create('test1User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test1User', 'password', proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
@@ -100,7 +101,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('we add a test user that has permissions to access some of the ProtectedComponent events, including events  on sub/paths, subscribe on **, we test that this works', async () => {
-    let listenerClient = await client.create('test2User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test2User', 'password', proxyPorts[1]);
     let receivedEvents = [];
     await listenerClient.event.SecuredComponent.on('**', (message) => {
       receivedEvents.push(message.value);
@@ -121,7 +122,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('we add a test user that has permissions to access some of the ProtectedComponent events, including a permission on sub-path/* we test that this works', async () => {
-    let listenerClient = await client.create('test3User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test3User', 'password', proxyPorts[1]);
     let receivedEvents = [];
     await listenerClient.event.SecuredComponent.on('**', (message) => {
       receivedEvents.push(message.value);
@@ -144,7 +145,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it("subscription on '**' will be unauthorized if we have no permissions to any subpaths", async () => {
-    let listenerClient = await client.create('test4User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test4User', 'password', proxyPorts[1]);
     let receivedEvents = [];
     let errorCaught = false;
     try {
@@ -161,7 +162,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it("adding and then removing permissions with subscription on '**'", async () => {
-    let listenerClient = await client.create('test5User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test5User', 'password', proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
@@ -223,7 +224,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it("Removing then adding permissions with subscription on '**'", async () => {
-    let listenerClient = await client.create('test6User', 'password', getSeq.getPort(2));
+    let listenerClient = await client.create('test6User', 'password', proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {

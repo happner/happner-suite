@@ -14,8 +14,8 @@ module.exports = class Cluster extends Helper {
         this.childProcess[childProcess.pid] = childProcess;
         if (index || index === 0) this.pids[index] = childProcess.pid;
         else this.pids.push(childProcess.pid);
-        childProcess.on('message', function (message) {
-          if (message === 'ready') return resolve(childProcess);
+        childProcess.on('message', function (message, data) {
+          if (message === 'ready') return resolve(childProcess, data);
         });
         childProcess.on('error', (code) => {
           this.removeChildProcess(childProcess);
@@ -57,6 +57,24 @@ module.exports = class Cluster extends Helper {
         });
         this.childProcess[pid].send('getPeerEvents');
       });
+    };
+    this.getPorts = async (index) => {
+      let ports = [];
+      let pids = index || index === 0 ? [this.pids[index]] : this.pids;
+      for (let pid of pids) {
+        let gotPort;
+        this.childProcess[pid].once('message', (info) => {
+          // console.log(info)
+          ports.push(info.port);
+          gotPort();
+        });
+        let done = new Promise((res) => {
+          gotPort = res;
+        });
+        this.childProcess[pid].send('getPort');
+        await done;
+      }
+      return ports;
     };
     this.stopChild = async (index, timeOut = 5000) => {
       let pid = this.pids[index];

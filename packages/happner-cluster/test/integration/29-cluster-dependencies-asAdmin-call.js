@@ -8,34 +8,31 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const testclient = require('../_lib/client');
   const getSeq = require('../_lib/helpers/getSeq');
   const clearMongoCollection = require('../_lib/clear-mongo-collection');
-  const servers = [];
+  let servers = [];
 
   beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers.splice(0, servers.length);
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
+  });
+
+  afterEach('stop cluster', function (done) {
+    if (!servers) return done();
+    stopCluster(servers, function () {
+      servers = [];
+      done();
     });
   });
 
-  after('stop cluster', function (done) {
-    this.timeout(20000);
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
-    });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   it('starts up the edge cluster node first, with * version and forward declared methods, we start the internal node and ensure the extra api methods have been extended', async () => {
-    const edgeInstance = await startEdge(getSeq.getFirst(), 1);
+    const edgeInstance = await startEdge(0, 1);
     await users.add(edgeInstance, 'username', 'password');
     await users.allowMethod(edgeInstance, 'username', 'edgeComponent', 'callRemote');
     await users.allowMethod(edgeInstance, 'username', 'remoteComponent', 'remoteMethod');
-    const client = await testclient.create('username', 'password', getSeq.getPort(1));
+    let proxyPort = servers[0]._mesh.happn.server.config.services.proxy.port;
+    const client = await testclient.create('username', 'password', proxyPort);
     let errorMessage;
     try {
       await client.exchange.edgeComponent.callRemote();
@@ -47,7 +44,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       .to.be(
         'invalid endpoint options: [remoteComponent.remoteMethod] method does not exist on the api'
       );
-    await startInternal(getSeq.getNext(), 2);
+    await startInternal(1, 2);
     await test.delay(2000);
     await client.exchange.edgeComponent.callRemote();
   });

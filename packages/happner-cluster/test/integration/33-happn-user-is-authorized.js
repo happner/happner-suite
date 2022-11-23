@@ -6,7 +6,7 @@ const client = require('../_lib/client');
 const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
-  let servers, testClient, savedUser, savedGroup;
+  let servers, testClient, savedUser, savedGroup, proxyPorts;
 
   function serverConfig(seq, minPeers) {
     var config = baseConfig(seq, minPeers, true);
@@ -45,7 +45,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   );
 
   before('start client', async () => {
-    testClient = await client.create('lookupUser', 'password', getSeq.getPort(2)); //Second server
+    testClient = await client.create('lookupUser', 'password', proxyPorts[1]); //Second server
   });
 
   after('stop client', async () => {
@@ -116,8 +116,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
   async function startClusterAndCreateSecurityResources() {
     servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
+    servers.push(await test.HappnerCluster.create(serverConfig(1, 1)));
+    servers.push(await test.HappnerCluster.create(serverConfig(2, 2)));
     savedUser = await users.add(servers[0], 'lookupUser', 'password', null, {
       company: 'COMPANY_ABC',
       oem: 'OEM_ABC',
@@ -158,6 +158,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
 
     await servers[0].exchange.security.linkGroup(savedGroup, savedUser);
     await test.delay(4000);
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   async function trySomething(methodToTry) {

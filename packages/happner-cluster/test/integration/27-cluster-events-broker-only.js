@@ -9,25 +9,22 @@ const clearMongoCollection = require('../_lib/clear-mongo-collection');
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   let servers = [],
     localInstance,
-    edgeInstance;
+    edgeInstance,
+    proxyPorts;
 
   beforeEach('clear mongo collection', function (done) {
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers = [];
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
-    });
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
-  after('stop cluster', function (done) {
+  afterEach('stop cluster', function (done) {
     if (!servers) return done();
     stopCluster(servers, function () {
-      clearMongoCollection('mongodb://localhost', 'happn-cluster', function () {
-        done();
-      });
+      servers = [];
+      done();
     });
+  });
+  after('clear mongo collection', function (done) {
+    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
 
   it('internal first, connects a client to the local instance, and is able to access the remote component events via the broker, inter-cluster events on', async () => {
@@ -39,7 +36,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await users.allowMethod(localInstance, 'username', 'localComponent', 'getReceivedEvents');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getReceivedEvents');
     await users.allowEvent(localInstance, 'username', 'remoteComponent', '/remote/event');
-    const client = await testclient.create('username', 'password', getSeq.getPort(2));
+    const client = await testclient.create('username', 'password', proxyPorts[1]);
     const receivedEvents = [];
     await client.event.remoteComponent.on('/remote/event', function (data) {
       receivedEvents.push(data);
@@ -65,7 +62,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await users.allowMethod(localInstance, 'username', 'localComponent', 'getReceivedEvents');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getReceivedEvents');
     await users.allowEvent(localInstance, 'username', 'remoteComponent', '/remote/event');
-    const client = await testclient.create('username', 'password', getSeq.getPort(2));
+    const client = await testclient.create('username', 'password', proxyPorts[1]);
     const receivedEvents = [];
     await client.event.remoteComponent.on('/remote/event', function (data) {
       receivedEvents.push(data);
@@ -85,7 +82,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     // we revoke permission to localComponent.postEvent - using the edge instance
     // we ensure that the revocation makes its way to the internal cluster member
 
-    const internalClient = await testclient.create('username', 'password', getSeq.getPort(1));
+    const internalClient = await testclient.create('username', 'password', proxyPorts[0]);
     //this should work for now...
     await internalClient.exchange.remoteComponent.postEvent();
     // now deny the method on the edge instance
@@ -110,7 +107,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await users.allowMethod(localInstance, 'username', 'localComponent', 'getReceivedEvents');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getReceivedEvents');
     await users.allowEvent(localInstance, 'username', 'remoteComponent', '/remote/event');
-    const client = await testclient.create('username', 'password', getSeq.getPort(1));
+    const client = await testclient.create('username', 'password', proxyPorts[0]);
     const receivedEvents = [];
     await client.event.remoteComponent.on('/remote/event', function (data) {
       receivedEvents.push(data);
@@ -136,7 +133,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await users.allowMethod(localInstance, 'username', 'localComponent', 'getReceivedEvents');
     await users.allowMethod(localInstance, 'username', 'remoteComponent', 'getReceivedEvents');
     await users.allowEvent(localInstance, 'username', 'remoteComponent', '/remote/event');
-    const client = await testclient.create('username', 'password', getSeq.getPort(1));
+    const client = await testclient.create('username', 'password', proxyPorts[0]);
     const receivedEvents = [];
     await client.event.remoteComponent.on('/remote/event', function (data) {
       receivedEvents.push(data);
@@ -205,47 +202,23 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       localInstanceConfig(id, clusterMin, suppressInterClusterEvents)
     );
   }
-
-  function startClusterInternalFirst(
+  async function startClusterInternalFirst(
     suppressInterClusterEventsLocal,
     suppressInterClusterEventsRemote
   ) {
-    return new Promise(function (resolve, reject) {
-      startInternal(getSeq.getFirst(), 1, suppressInterClusterEventsRemote)
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return startEdge(getSeq.getNext(), 2, suppressInterClusterEventsLocal);
-        })
-        .then(function (server) {
-          servers.push(server);
-          edgeInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+    servers.push((localInstance = await startInternal(0, 1, suppressInterClusterEventsRemote)));
+    servers.push((edgeInstance = await startEdge(1, 2, suppressInterClusterEventsLocal)));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  function startClusterEdgeFirst(
+  async function startClusterEdgeFirst(
     suppressInterClusterEventsLocal,
     suppressInterClusterEventsRemote
   ) {
-    return new Promise(function (resolve, reject) {
-      startEdge(getSeq.getFirst(), 1, suppressInterClusterEventsLocal)
-        .then(function (server) {
-          servers.push(server);
-          edgeInstance = server;
-          return startInternal(getSeq.getNext(), 2, suppressInterClusterEventsRemote);
-        })
-        .then(function (server) {
-          servers.push(server);
-          localInstance = server;
-          return users.add(localInstance, 'username', 'password');
-        })
-        .then(resolve)
-        .catch(reject);
-    });
+    servers.push((edgeInstance = await startEdge(0, 1, suppressInterClusterEventsLocal)));
+    servers.push((localInstance = await startInternal(1, 2, suppressInterClusterEventsRemote)));
+    await users.add(localInstance, 'username', 'password');
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 });

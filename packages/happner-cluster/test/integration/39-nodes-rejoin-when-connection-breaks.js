@@ -8,15 +8,15 @@ const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').crea
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  let _AdminClient;
-  let testClient;
+  let _AdminClient, testClient, proxyPorts;
 
   before('clear mongo collection', (done) => {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
+
   before('start cluster', async () => {
     const serverPromises = [];
-    const remoteComponent = baseConfig(getSeq.getFirst(), 2, true, null, null, null, null, null);
+    const remoteComponent = baseConfig(0, 2, true);
     remoteComponent.modules = {
       remoteComponent: {
         path: libDir + 'integration-37-remote-component',
@@ -29,7 +29,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       },
     };
     serverPromises.push(clusterHelper.start(remoteComponent));
-    const brokerComponent = baseConfig(getSeq.getNext(), 2, true, null, null, null, null, null);
+    const brokerComponent = baseConfig(1, 2, true);
     brokerComponent.modules = {
       brokerComponent: {
         path: libDir + 'integration-37-broker-component',
@@ -42,14 +42,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       },
     };
     serverPromises.push(clusterHelper.start(brokerComponent));
-    return Promise.all(serverPromises);
+    let servers = await Promise.all(serverPromises);
+    // await test.delay(3e3)
+    proxyPorts = await clusterHelper.getPorts()
   });
+
   before('create test clients', async () => {
-    _AdminClient = await testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+    _AdminClient = await testclient.create('_ADMIN', 'happn', proxyPorts[0]);
     await users.add(_AdminClient, 'username', 'password');
     await users.allowMethod(_AdminClient, 'username', 'brokerComponent', 'block');
     await users.allowMethod(_AdminClient, 'username', 'remoteComponent', 'brokeredMethod1');
-    testClient = await testclient.create('username', 'password', getSeq.getPort(2));
+    testClient = await testclient.create('username', 'password', proxyPorts[1]);
   });
   after('disconnect _ADMIN client', async () => {
     await _AdminClient.disconnect();

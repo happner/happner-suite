@@ -15,6 +15,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   let clusterSize = 4;
   let servers;
   let erroredMesh;
+  let proxyPorts;
   before('clear mongo collection', (done) => {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
   });
@@ -23,8 +24,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     const serverPromises = [];
     let i = 0;
     while (i < clusterSize) {
-      let seq = i === 0 ? getSeq.getFirst() : getSeq.getNext();
-      const remoteComponent = baseConfig(seq, 2, true, null, null, null, null, null);
+      const remoteComponent = baseConfig(i, 2, true);
       remoteComponent.happn.services.orchestrator.config.serviceName = 'testComponent';
       remoteComponent.happn.services.orchestrator.config.cluster = { testComponent: clusterSize };
       remoteComponent.modules = {
@@ -48,10 +48,12 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
       i++;
     }
     servers = await Promise.all(serverPromises);
+    proxyPorts = await clusterHelper.getPorts();
+    proxyPorts.push(servers[clusterSize - 1]._mesh.happn.server.config.services.proxy.port);
   });
 
   before('create test clients', async () => {
-    _AdminClient = await testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+    _AdminClient = await testclient.create('_ADMIN', 'happn', proxyPorts[0]);
     await users.add(_AdminClient, 'username', 'password');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'block');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'getEvents');
@@ -61,8 +63,8 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'subscribeSecondEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'fireSecondEvent');
     await users.allowMethod(_AdminClient, 'username', 'testComponent', 'offSecondEvent');
-    for (let i = 1; i <= clusterSize; i++) {
-      testClients.push(await testclient.create('username', 'password', getSeq.getPort(i)));
+    for (let i = 0; i < clusterSize; i++) {
+      testClients.push(await testclient.create('username', 'password', proxyPorts[i]));
     }
   });
   after('disconnect _ADMIN client', async () => {
