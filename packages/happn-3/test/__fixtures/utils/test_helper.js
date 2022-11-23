@@ -90,7 +90,7 @@ class TestHelper extends BaseTestHelper {
     return { deleted, errors, lastError };
   }
   //eslint-disable-next-line
-doRequest (path, token) {
+doRequest (path, token, toJSON) {
     return new Promise((resolve, reject) => {
       let options = {
         url: 'http://127.0.0.1:55000' + path
@@ -100,6 +100,9 @@ doRequest (path, token) {
       };
       this.request(options, function(error, response) {
         if (error) return reject(error);
+        if (toJSON) {
+          return resolve(JSON.parse(response.body));
+        }
         resolve(response);
       });
     });
@@ -163,6 +166,13 @@ doRequest (path, token) {
       return await this.createInstance(config);
     });
   };
+
+  createUserBefore(credentials, instanceIndex = 0) {
+    before('it creates a user', async () => {
+      if (!credentials.password) credentials.password = 'password';
+      await this.instances[instanceIndex].services.security.users.upsertUser(credentials);
+    });
+  }
 
   destroyInstance(instance) {
     return new Promise((resolve, reject) => {

@@ -81,6 +81,10 @@ function _process(req, res, next) {
         ['publicKey', 'public_key', 'public', 'key', 'public-key', 'pk'],
         query
       );
+      params.token = this.happn.services.utils.getFirstMatchingProperty(
+        ['token', 'happn_token', 't'],
+        query
+      );
       params.digest = this.happn.services.utils.getFirstMatchingProperty(['digest'], query);
       //login type is stateless
       params.type = 0;
@@ -106,8 +110,9 @@ function _process(req, res, next) {
               e.message === 'Invalid credentials' ||
               e.code === 401 ||
               e.message === 'use of _ADMIN credentials over the network is disabled'
-            )
+            ) {
               return this.__respond('login failed', null, e, res, 401);
+            }
             return this.__respond('login failed', null, e, res, 500);
           }
           this.__respond('login successful', session.token, null, res);

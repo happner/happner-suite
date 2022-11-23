@@ -1795,10 +1795,10 @@ serviceInstanceLocked.services.session.localClient({
 ```
 AUTHENTICATION PROVIDER(S)
 --------------------------
-Happn-3 can now be configured with multiple, and/or custom authentication providers. By default, happn-3 will launch using the "happn" authentication provider, 
+*Happn-3 can now be configured with multiple, and/or custom authentication providers. By default, happn-3 will launch using the "happn" authentication provider, 
 and work as it has always done. In order to use a different authentication provider, you must pass in either an absolute path, or an installed module name, 
-in the security service config. Note that the standard happn provider is always available unless you specify the fal
-Example: Happn-3 and 2 other providers, otherAuthProvider default
+in the security service config.*
+### Example: Happn-3 and 2 other providers, otherAuthProvider default:
 ```javascript
 const serviceConfig = {
   secure: true,
@@ -1820,65 +1820,85 @@ service.create(serviceConfig, function(e, happnInst) {
   //server created with three auth providers, one at /path/to/other/provider.js, one in module 'moduleName', and the standard happn provider
 });
 ```
- Note that the standard happn provider is always available unless you specify the flag happn: false in authProviders 
+Specifying which authentication provider to use:
+------------------------------------------------
+*The authentication provider to use can be specified either by saving a user with an authType property, or by specifying the authType in the login request*
 
- ```javascript
-const serviceConfig = {
+Defining authType by user:
+--------------------------
+### This security service is being created with the parameter `allowUserChooseAuthProvider: false` that disables the authType being provided on request, this means the authType must be attached to the user, or the default happn authentication provider will be used:
+```javascript
+let happn = require('happn-3');
+let service = await happn.service.create({
   secure: true,
   services: {
     security: {
       config: {
+        //NB: this means login requests will not be able to specifiy the authType
+        allowUserChooseAuthProvider: false,
         authProviders:{          
-          otherAuthProvider: '/path/to/other/provider.js',          
-          happn:false      
-        },
-        defaultAuthProvider: 'otherAuthProvider'
+          customAuthProvider: 'my-custom-auth-module',      
+        }
+      }
     }
   }
-};
-
-var happn = require('../lib/index')
-var service = happn.service;
-service.create(serviceConfig, function(e, happnInst) {
-  //server created with only one auth provider,  at /path/to/other/provider.js, and NO  standard happn provider
 });
 ```
-In order to specify which authentication provider to use, requests should add a flag, `authType: 'auth-provider-name'`, to the credentials object used at login, where name is the providers name (as it appears as a key in config.authProviders). For example to authenticate with moduleProvider:
+### A user is added with the property `authType: 'customAuthProvider'`, logins for this username will automatically use the configured custom authentication provider:
+```javascript
+await service.services.security.users.upsertUser({
+  username: 'test',
+  password: 'test',
+  authType: 'customAuthProvider'
+});
 ```
+Defining authType by request:
+-----------------------------
+*In order to specify which authentication provider to use, requests should add a flag, `authType: 'auth-provider-name'`, to the credentials object used at login, where name is the providers name (as it appears as a key in config.authProviders).*
+
+### Example to authenticate with moduleProvider:
+```javascript
 happn.client.create({username: "user", password: "pass", authType: "moduleProvider"}, ...)
 \\or
 happpnInstance.services.security.login( {username: "user", password: "pass", authType: "moduleProvider"}, ...)
 ```
-Also note, that when using non default authprovider settings, the happn-3 auth provider must be included explicitly in security.config.
+*NB: this will only work with a server security configuration with `allowUserChooseAuthProvider: undefiend || true`*
 
 CREATING CUSTOM AUTH PROVIDERS (AND TEMPLATE)
 ---------------------------------------------
-The file or module which contains the custom auth provider should be structured as a function which returns a class that extends the functions argument.
-The custom auth provider should implement at least one of the functions, __providerCredsLogin and __providerTokenLogin and will have access to the __loginOK and __loginFailed methods,
-as well as the other methods of the base auth provider class which can be examined at ./lib/services/security/authentication/provider-base.js
-Example/template auth module:
-```
-module.exports = function(BaseClass) {  
-  return class AuthProvider extends BaseClass {
+*The file or module which contains the custom auth provider should be structured as a function which returns a class that extends the functions argument. The custom auth provider should implement at least one of the functions, __providerCredsLogin and __providerTokenLogin and will have access to the __loginOK and __loginFailed methods as well as the other methods of the base auth provider class which can be examined at ./lib/services/security/authentication/provider-base.js*
+### Example/template auth module:
+```javascript
+// the BaseAuthProviderClass is passed in by the system, you need to extend it in your custom auth provider
+module.exports = function(BaseAuthProviderClass) {  
+  return class AuthProvider extends BaseAuthProviderClass {
     coonstructor(happn,config) {
       super(happn,config)
     }
     static create(happn,config) {
-      return new AuthProvider(happn,config)
+      return new AuthProvider(happn, config);
     }
-
+    // called when we are logging in via standard user credentials (username, password)
     __providerCredsLogin(credentials, sessionId, callback) {
       // Examine credentials.username and credentials.password
-      //Login OK
-      if (ok)  return this.__loginOK(credentials, user, sessionId, callback) //User can be fetched from this.users.getUser();      
-      if (!ok)  return this.__loginFailed(credentials.userName, 'ErrorMessage', new Error("failed"), callback )
+      // __loginOK already exists on the custom provider via inheritence of BaseAuthProviderClass
+      // User can be fetched from this.users.getUser(); (this.users exposed via inheritence)
+      if (credentials.username === 'good user')  {
+        return this.__loginOK(credentials, user, sessionId, callback);
+      }
+      // __loginFailed already exists on the custom provider via inheritence of BaseAuthProviderClass
+      this.__loginFailed(credentials.username, 'ErrorMessage', new Error("failed"), callback );
     }
 
-    __providerTokenLogin(credentials, previousSession, sessionId, callback) {
-      // Examine credentials.username and credentials.token
+    // called when we are logging in via a token (token is present in the credentials)
+    __providerTokenLogin(credentials, decodedToken, sessionId, callback) {
+      // Examine credentials.token
       //Login OK
-      if (ok)  return this.__loginOK(credentials, user, sessionId, callback) //User can be fetched from this.users.getUser();      
-      if (!ok)  return this.__loginFailed(credentials.userName, 'ErrorMessage', new Error("failed"), callback )
+      if (credentials.token === "good token" && decodedToken.username === "good user")  {
+        return this.__loginOK(credentials, user, sessionId, callback);
+      }
+      // Bad or stale token
+      this.__loginFailed(decodedToken.username, 'ErrorMessage', new Error("failed"), callback);
     }
   } 
 }
