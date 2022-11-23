@@ -81,13 +81,6 @@ SecurityService.prototype.resetSessionPermissions = resetSessionPermissions;
 SecurityService.prototype.dataChanged = util.maybePromisify(dataChanged);
 SecurityService.prototype.__replicateDataChanged = __replicateDataChanged;
 
-//Auditing methods
-//-----------------------------
-
-SecurityService.prototype.getAuditData = getAuditData;
-SecurityService.prototype.getAuditPath = getAuditPath;
-SecurityService.prototype.doAudit = util.maybePromisify(doAudit);
-
 //Request authorization methods
 //-----------------------------
 
@@ -205,78 +198,6 @@ async function initialize(config) {
   this.__cache_security_authentication_nonce = this.cacheService.create(
     'security_authentication_nonce'
   );
-}
-
-function getAuditData(message) {
-  let path = message.request.path ? message.request.path : message.request.action;
-
-  if (path.indexOf('/ALL@') === 0) path = path.replace('/ALL@', '');
-  if (path.indexOf('/SET@') === 0) path = path.replace('/SET@', '');
-  if (path.indexOf('/REMOVE@') === 0) path = path.replace('/REMOVE@', '');
-
-  if (
-    this.config.audit.paths &&
-    !this.happn.services.utils.wildcardMatchMultiple(this.config.audit.paths, path)
-  )
-    return null;
-
-  let data = {};
-
-  if (message.request.action === 'get') {
-    //dont need to return all the data
-    if (Array.isArray(message.response)) data.response = message.response.length;
-    else data.response = 1;
-  } else data.response = message.response;
-
-  data.session = {
-    type: message.session.type,
-    username: message.session.user.username,
-    protocol: message.session.protocol,
-  };
-
-  return data;
-}
-
-function getAuditPath(message) {
-  let requestPath = message.request.path ? message.request.path : null;
-  let auditPath = '/_AUDIT/';
-
-  if (requestPath) {
-    if (requestPath.indexOf('@') > -1) requestPath = requestPath.split('@')[1]; //take out 'on' event type specifiers, ie SET@
-
-    requestPath = this.happn.services.utils.replacePrefix(requestPath, '/');
-    requestPath = this.happn.services.utils.replaceSuffix(requestPath, '/');
-
-    auditPath += requestPath + '/';
-  }
-
-  auditPath += message.request.action;
-
-  return auditPath;
-}
-
-function doAudit(message, callback) {
-  let auditData = this.getAuditData(message);
-  //path, data, options, callback
-  if (auditData != null) {
-    let auditPath = this.getAuditPath(message); ///_AUDIT/[message.request.path]/[message.request.action] ie: /_AUDIT/users/all/*/get
-
-    this.dataService.upsert(
-      auditPath,
-      auditData,
-      {
-        set_type: 'sibling',
-      },
-      (e) => {
-        if (e)
-          return callback(
-            this.happn.services.error.SystemError('security audit failed', e.toString())
-          );
-
-        return callback(null, message);
-      }
-    );
-  } else callback(null, message);
 }
 
 function processUnsecureLogin(message, callback) {
