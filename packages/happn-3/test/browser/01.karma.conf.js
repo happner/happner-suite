@@ -32,12 +32,6 @@ module.exports = function (config) {
       'test/browser/06_login_promise.js',
     ],
 
-    // list of files / patterns to load in the browser
-    // files: [
-    //  'build/crypto-min.js',
-    //   {pattern: 'test/crypto-test.js', included: false}
-    // ],
-
     // list of files to exclude
     exclude: [],
 

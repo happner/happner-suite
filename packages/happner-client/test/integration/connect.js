@@ -10,6 +10,7 @@ describe(test.name(__filename, 3), function () {
   function startServer(done) {
     if (this.timeout) this.timeout(10000);
     if (server) return done();
+    let error;
     Happner.create({
       util: {
         logLevel: process.env.LOG_LEVEL || 'warn',
@@ -28,11 +29,17 @@ describe(test.name(__filename, 3), function () {
         },
       },
     })
-      .then(function (_server) {
-        server = _server;
-      })
-      .then(done)
-      .catch(done);
+      .then(
+        (result) => {
+          server = result;
+        },
+        (e) => {
+          error = e;
+        }
+      )
+      .finally(() => {
+        done(error);
+      });
   }
 
   function stopServer(done) {
