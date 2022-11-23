@@ -46,15 +46,12 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     after(async () => {
       test.unlinkFiles([testFileName, tempTestFileName]);
     });
-
     it('starts up the provider', async () => {
       await getProvider();
     });
-
     it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {
       await testPersistence();
     });
-
     it('can count without criteria', async () => {
       await testCount();
     });
@@ -64,7 +61,6 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     xit('can merge', async () => {
       await testMerge();
     });
-
     xit('can increment', async () => {
       await testIncrement();
     });
