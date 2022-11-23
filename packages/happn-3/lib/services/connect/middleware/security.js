@@ -81,6 +81,10 @@ function _process(req, res, next) {
         ['publicKey', 'public_key', 'public', 'key', 'public-key', 'pk'],
         query
       );
+      params.token = this.happn.services.utils.getFirstMatchingProperty(
+        ['token', 'happn_token', 't'],
+        query
+      );
       params.digest = this.happn.services.utils.getFirstMatchingProperty(['digest'], query);
       //login type is stateless
       params.type = 0;

@@ -1331,7 +1331,7 @@ function __profileSession(session) {
 function generateToken(session, type) {
   let decoupledSession = this.happn.services.utils.clone(session);
 
-  decoupledSession.type = type || 1; //session based type if  not specified
+  decoupledSession.type = type == null ? 1 : type; //session based type if  not specified
   decoupledSession.isToken = true;
 
   delete decoupledSession.permissionSetKey; //this should never be used as it may get out of sync
@@ -1364,7 +1364,7 @@ function generateSession(user, sessionId, credentials, tokenLogin, additionalInf
 
   additionalInfo = additionalInfo || {};
   if (tokenLogin) session.token = tokenLogin.token;
-  else session.token = this.generateToken({ ...session, ...additionalInfo });
+  else session.token = this.generateToken({ ...session, ...additionalInfo }, credentials.type);
 
   // It is not possible for the login (websocket call) to assign the session token (cookie) server side,
   // so the cookie is therefore created in the browser upon login success.

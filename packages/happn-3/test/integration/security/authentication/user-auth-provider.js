@@ -32,6 +32,20 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     await connectAndVerifyAuthProvider('_ADMIN', 'happn', 'happn');
   });
 
+  it('tests doing a login directed at the test auth provider, we also login with the tokin and ensure that works', async () => {
+    const sessionInfo = await test.doRequest(
+      '/auth/login?username=secondTestuser@somewhere.com&password=secondPass',
+      null,
+      true
+    );
+    const sessionInfo1 = await test.doRequest(
+      `/auth/login?happn_token=${sessionInfo.data}`,
+      null,
+      true
+    );
+    test.expect(sessionInfo1.data.length).to.be.greaterThan(0);
+  });
+
   it('disallows the user from choosing an auth provider', async () => {
     let errorMessage;
     try {

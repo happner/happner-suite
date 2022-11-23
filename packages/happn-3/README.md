@@ -1887,18 +1887,18 @@ module.exports = function(BaseAuthProviderClass) {
         return this.__loginOK(credentials, user, sessionId, callback);
       }
       // __loginFailed already exists on the custom provider via inheritence of BaseAuthProviderClass
-      this.__loginFailed(credentials.userName, 'ErrorMessage', new Error("failed"), callback );
+      this.__loginFailed(credentials.username, 'ErrorMessage', new Error("failed"), callback );
     }
 
     // called when we are logging in via a token (token is present in the credentials)
-    __providerTokenLogin(credentials, previousSession, sessionId, callback) {
+    __providerTokenLogin(credentials, decodedToken, sessionId, callback) {
       // Examine credentials.token
       //Login OK
-      if (credentials.token === "good token")  {
-        return this.__loginOK(credentials, user, sessionId, callback) 
+      if (credentials.token === "good token" && decodedToken.username === "good user")  {
+        return this.__loginOK(credentials, user, sessionId, callback);
       }
       // Bad or stale token
-      this.__loginFailed(credentials.userName, 'ErrorMessage', new Error("failed"), callback);
+      this.__loginFailed(decodedToken.username, 'ErrorMessage', new Error("failed"), callback);
     }
   } 
 }

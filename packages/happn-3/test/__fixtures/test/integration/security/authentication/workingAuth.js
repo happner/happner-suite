@@ -7,12 +7,19 @@ module.exports = function(ParentClass) {
     static create(happn, config) {
       return new TestAuthProvider(happn, config);
     }
-   __providerCredsLogin(credentials, sessionId, callback) {      
-      if (credentials.username === "secondTestuser@somewhere.com" && credentials.password === "secondPass") {        
+    __providerCredsLogin(credentials, sessionId, callback) {      
+        if (credentials.username === "secondTestuser@somewhere.com" && credentials.password === "secondPass") {        
+          let user = {username: "secondTestuser@somewhere.com", groups:[]}
+          return this.__loginOK(credentials, user, sessionId, callback);
+        }
+        return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      }
+    __providerTokenLogin(credentials, decodedToken, sessionId, callback) {      
+      if (decodedToken.username === "secondTestuser@somewhere.com" && credentials.token != null) {        
         let user = {username: "secondTestuser@somewhere.com", groups:[]}
         return this.__loginOK(credentials, user, sessionId, callback);
       }
       return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
-      }
-  };
+    }
+  }
 };

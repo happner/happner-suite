@@ -90,7 +90,7 @@ class TestHelper extends BaseTestHelper {
     return { deleted, errors, lastError };
   }
   //eslint-disable-next-line
-doRequest (path, token) {
+doRequest (path, token, toJSON) {
     return new Promise((resolve, reject) => {
       let options = {
         url: 'http://127.0.0.1:55000' + path
@@ -100,6 +100,9 @@ doRequest (path, token) {
       };
       this.request(options, function(error, response) {
         if (error) return reject(error);
+        if (toJSON) {
+          return resolve(JSON.parse(response.body));
+        }
         resolve(response);
       });
     });
