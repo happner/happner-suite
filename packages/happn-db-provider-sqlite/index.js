@@ -376,10 +376,12 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
 
     const model = this.#getModel(path);
 
-    let error;
-    model
-      .increment({ [counterName]: increment })
-      .catch((e) => (error = e))
-      .finally(() => callback(error));
+    this.#mutate(
+      path,
+      async () => {
+        return model.increment({ [counterName]: increment });
+      },
+      callback
+    );
   }
 };
