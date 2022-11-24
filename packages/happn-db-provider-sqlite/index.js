@@ -313,6 +313,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     }
     return sqlOptions;
   }
+
   find(path, options, callback) {
     if (typeof options === 'function') {
       callback = options;
@@ -359,6 +360,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         callback(findError, findResult);
       });
   }
+
   count(path, parameters, callback) {
     if (typeof parameters === 'function') {
       callback = parameters;
@@ -368,6 +370,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     parameters.options.count = true;
     this.find(path, parameters, callback);
   }
+
   increment(path, counterName, increment, callback) {
     if (typeof increment === 'function') {
       callback = increment;
