@@ -21,10 +21,8 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
           {
             name: 'test',
             pattern: 'test/path/*',
-            model: {
-              test_data: {
-                type: Sequelize.STRING,
-              },
+            indexes: {
+              'test.data': Sequelize.STRING,
             },
           },
         ],
@@ -159,7 +157,6 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     });
 
     test.expect(await sqliteProvider.count('test/path/*', {})).to.eql({ data: { value: 3 } });
-
     test.expect(await sqliteProvider.count('test/path/1', {})).to.eql({ data: { value: 1 } });
   }
 

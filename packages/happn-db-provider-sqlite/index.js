@@ -4,8 +4,7 @@ const commons = require('happn-commons'),
   fs = commons.fs,
   // eslint-disable-next-line no-unused-vars
   { Sequelize, Model, DataTypes, ModelStatic, Op } = require('sequelize'),
-  flatten = require('flat'),
-  unflatten = flatten.unflatten;
+  flatten = require('flat');
 
 module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   #pathToModelCache;
@@ -68,42 +67,29 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         'schema with model configurations must be defined for Sqlite provider settings'
       );
     }
-    for (let modelConfig of this.settings.schema) {
-      let mergedModel = this.#mergeDefaultModel(modelConfig.model);
-      this.#models[modelConfig.name] = this.db.define(modelConfig.name, mergedModel, {
+    for (let indexConfig of this.settings.schema) {
+      let model = this.#createModel(indexConfig.indexes);
+      this.#models[indexConfig.name] = this.db.define(indexConfig.name, model, {
         timestamps: true,
       });
     }
     await this.db.sync();
   }
-  #mergeDefaultModel(model) {
+  #createModel(indexes) {
     // ensure we store all configured properties under data.
-    let dataModel = commons._.transform(
-      model,
-      (result, value, key) => {
-        result[`data${this.#delimiter}${key}`] = value;
-        return result;
-      },
-      {}
-    );
+    let dataModel = Object.keys(indexes).reduce((transformed, key) => {
+      transformed[`data${this.#delimiter}${key.replace('.', this.#delimiter)}`] = indexes[key];
+      return transformed;
+    }, {});
     return commons._.merge(dataModel, {
       path: {
         type: DataTypes.STRING,
         primaryKey: true,
       },
-      createdAt: { type: Sequelize.DATE, field: 'created' },
-      updatedAt: { type: Sequelize.DATE, field: 'modified' },
-      deletedAt: { type: Sequelize.DATE, field: 'deleted' },
-    });
-  }
-  #exec(query) {
-    return new Promise((resolve, reject) => {
-      this.db.exec(query, (e, result) => {
-        if (e) {
-          return reject(e);
-        }
-        resolve(result);
-      });
+      createdAt: { type: DataTypes.DATE, field: 'created' },
+      updatedAt: { type: DataTypes.DATE, field: 'modified' },
+      deletedAt: { type: DataTypes.DATE, field: 'deleted' },
+      json: { type: DataTypes.JSON },
     });
   }
   /**
@@ -148,36 +134,18 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     if (Array.isArray(instance)) {
       return instance.map((item) => this.#transformDataValues(item));
     }
-    return commons._.transform(
-      instance.dataValues,
-      (result, value, key) => {
-        if (key === 'createdAt') {
-          result[`created`] = value;
-          return result;
-        }
-        if (key === 'deletedAt') {
-          result[`deleted`] = value;
-          return result;
-        }
-        if (key === 'updatedAt') {
-          result[`modified`] = value;
-          return result;
-        }
-        if (key.includes(this.#delimiter)) {
-          result = commons._.merge(
-            result,
-            unflatten({ [key]: value }, { delimiter: this.#delimiter })
-          );
-          return result;
-        }
-        result[key] = value;
-        return result;
-      },
-      {}
-    );
+    return {
+      path: instance.dataValues.path,
+      created: instance.dataValues.createdAt,
+      modified: instance.dataValues.updatedAt,
+      deleted: instance.dataValues.deletedAt,
+      data: instance.dataValues.json,
+    };
   }
   #getRow(document) {
-    return flatten(document, { delimiter: this.#delimiter });
+    const flattened = flatten(document, { delimiter: this.#delimiter });
+    flattened.json = document.data;
+    return flattened;
   }
   insert(document, callback) {
     let insertResult, insertError;
