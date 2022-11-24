@@ -1826,7 +1826,7 @@ Specifying which authentication provider to use:
 
 Defining authType by user:
 --------------------------
-### This security service is being created with the parameter `allowUserChooseAuthProvider: false` that disables the authType being provided on request, this means the authType must be attached to the user, or the default happn authentication provider will be used:
+### This below instance's security service is being created with the option `allowUserChooseAuthProvider: false`, that disables the authType being provided on request, this means the authType must be attached to the user, requests with authType defined against a server configured with `allowUserChooseAuthProvider: false` will be rejected as with an "Invalid credentials" response:
 ```javascript
 let happn = require('happn-3');
 let service = await happn.service.create({
@@ -1862,7 +1862,7 @@ happn.client.create({username: "user", password: "pass", authType: "moduleProvid
 \\or
 happpnInstance.services.security.login( {username: "user", password: "pass", authType: "moduleProvider"}, ...)
 ```
-*NB: this will only work with a server security configuration with `allowUserChooseAuthProvider: undefiend || true`*
+*NB: this will only work with a server security configuration with `allowUserChooseAuthProvider: undefined || true`*
 
 CREATING CUSTOM AUTH PROVIDERS (AND TEMPLATE)
 ---------------------------------------------
