@@ -61,10 +61,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
 
   it('starts an https server, with a configured cert and key file path pointing to existing files', function (done) {
     var serviceConfig = config.test2_config;
-
     getService(serviceConfig, function (e) {
       if (e) return done(e);
-
       getClient(clientConfig, done);
     });
   });

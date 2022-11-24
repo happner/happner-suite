@@ -88,6 +88,7 @@ describe(test.testName(__filename, 3), function () {
       happnVersion: undefined,
       happn: undefined,
       user: { username: 'username', publicKey: 'publicKey' },
+      authType: undefined,
     });
   });
 
@@ -129,6 +130,7 @@ describe(test.testName(__filename, 3), function () {
         upgradeUrl: undefined,
         happnVersion: undefined,
         happn: 'description',
+        authType: undefined,
       });
       done();
     });
@@ -1063,6 +1065,7 @@ describe(test.testName(__filename, 3), function () {
       msgCount: 0,
       protocol: 'happn',
       url: 'mockUrl',
+      authType: undefined,
     });
 
     test.chai
@@ -1077,6 +1080,7 @@ describe(test.testName(__filename, 3), function () {
         address: 'mockAdress',
         url: 'mockUrl',
         item1: 'item1',
+        authType: undefined,
       });
 
     uuidStub.restore();

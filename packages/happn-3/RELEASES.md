@@ -1032,3 +1032,8 @@
 -----------------
   - TEN-135: mongo search does not sort by path
 
+13.7.0 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+
