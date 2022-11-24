@@ -83,3 +83,8 @@
 1.1.1 2022-11-04
 -----------------
 - TEN-135: do not insert default sort by path
+
+1.1.2 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
