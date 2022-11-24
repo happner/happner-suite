@@ -12,6 +12,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   #models = {};
   #delimiter;
   #systemColumns = ['created', 'modified', 'deleted', 'path'];
+  #hashRingSemaphore;
   constructor(settings = {}, logger) {
     super(settings, logger);
 
@@ -25,6 +26,9 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.remove = util.maybePromisify(this.remove);
     this.count = util.maybePromisify(this.count);
     this.#delimiter = settings.delimiter || '_';
+    this.#hashRingSemaphore = require('happn-commons').HashRingSemaphore.create({
+      slots: settings.mutateSlots || 10, // 10 parallel mutations
+    });
   }
 
   initialize(callback) {
@@ -58,10 +62,12 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         callback(modelEnsuredError, modelEnsuredResult);
       });
   }
+
   stop(callback) {
     this.db.close();
     callback();
   }
+
   async #ensureModel() {
     if (this.settings.schema == null || this.settings.schema.length === 0) {
       throw new Error(
@@ -77,6 +83,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     }
     await this.db.sync();
   }
+
   #createModel(indexes) {
     const configuredIndexes = [];
     // ensure we store all configured properties under data.
@@ -103,6 +110,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       indexes: configuredIndexes,
     };
   }
+
   /**
    *
    * @param {*} path
@@ -141,6 +149,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     }
     return null;
   }
+
   #transformDataValues(instance) {
     if (Array.isArray(instance)) {
       return instance.map((item) => this.#transformDataValues(item));
@@ -153,13 +162,34 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       data: instance.dataValues.json,
     };
   }
+
   #getRow(document) {
     const flattened = flatten(document, { delimiter: this.#delimiter });
     flattened.json = document.data;
     return flattened;
   }
+
+  #mutate(path, fn, callback) {
+    let mutateResult, mutateError;
+    this.#hashRingSemaphore
+      .lock(path, fn)
+      .then(
+        (result) => {
+          mutateResult = result;
+        },
+        (error) => {
+          mutateError = error;
+        }
+      )
+      .finally(() => {
+        if (mutateError) {
+          return callback(mutateError);
+        }
+        callback(null, mutateResult);
+      });
+  }
+
   insert(document, callback) {
-    let insertResult, insertError;
     const model = this.#getModel(document.path);
     if (model == null) {
       return callback(
@@ -169,26 +199,29 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       );
     }
     const row = this.#getRow(document);
-    model
-      .create(row)
-      .then(
-        (result) => {
-          insertResult = result;
-        },
-        (error) => {
-          insertError = error;
-        }
-      )
-      .finally(() => {
-        if (insertError) {
-          return callback(insertError);
-        }
-        const transformed = this.#transformDataValues(insertResult);
-        callback(null, transformed);
-      });
+    this.#mutate(
+      document.path,
+      async () => {
+        const result = await model.create(row);
+        return this.#transformDataValues(result);
+      },
+      callback
+    );
   }
+
   merge(path, document, callback) {
-    this.upsert(path, document, { merge: true }, callback);
+    this.#mutate(
+      path,
+      async () => {
+        const found = await this.find(path);
+        if (!found) {
+          return await this.upsert(path, document);
+        }
+        found.data = commons._.merge(found.data, document.data);
+        return await this.upsert(path, found);
+      },
+      callback
+    );
   }
 
   upsert(path, document, options, callback) {
@@ -196,15 +229,19 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       callback = options;
       options = {};
     }
-
+    if (options.merge === true) {
+      return this.merge(path, document, callback);
+    }
     const model = this.#getModel(path);
     const row = this.#getRow(document);
-
-    let error;
-    model
-      .upsert(row, this.#getOptions(options))
-      .catch((e) => (error = e))
-      .finally(() => callback(error));
+    this.#mutate(
+      path,
+      async () => {
+        const result = await model.upsert(row, this.#getOptions(options));
+        return this.#transformDataValues(result.dataValues);
+      },
+      callback
+    );
   }
 
   remove(path, options, callback) {
@@ -213,13 +250,14 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       options = {};
     }
     options = options || {};
-
     const model = this.#getModel(path);
-    let error;
-    model
-      .destroy(this.#getOptions(options))
-      .catch((e) => (error = e))
-      .finally(() => callback(error));
+    this.#mutate(
+      path,
+      async () => {
+        return model.destroy(this.#getOptions(options));
+      },
+      callback
+    );
   }
 
   #getOptions(path, options = {}) {
