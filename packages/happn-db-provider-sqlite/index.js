@@ -69,29 +69,39 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       );
     }
     for (let indexConfig of this.settings.schema) {
-      let model = this.#createModel(indexConfig.indexes);
-      this.#models[indexConfig.name] = this.db.define(indexConfig.name, model, {
+      let modelAndIndexes = this.#createModel(indexConfig.indexes);
+      this.#models[indexConfig.name] = this.db.define(indexConfig.name, modelAndIndexes.model, {
         timestamps: true,
+        indexes: modelAndIndexes.indexes,
       });
     }
     await this.db.sync();
   }
   #createModel(indexes) {
+    const configuredIndexes = [];
     // ensure we store all configured properties under data.
     let dataModel = Object.keys(indexes).reduce((transformed, key) => {
-      transformed[`data${this.#delimiter}${key.replace('.', this.#delimiter)}`] = indexes[key];
+      const dataKey = `data${this.#delimiter}${key.replace('.', this.#delimiter)}`;
+      configuredIndexes.push({
+        name: `${dataKey}_index`,
+        fields: [dataKey],
+      });
+      transformed[dataKey] = indexes[key];
       return transformed;
     }, {});
-    return commons._.merge(dataModel, {
-      path: {
-        type: DataTypes.STRING,
-        primaryKey: true,
-      },
-      createdAt: { type: DataTypes.DATE, field: 'created' },
-      updatedAt: { type: DataTypes.DATE, field: 'modified' },
-      deletedAt: { type: DataTypes.DATE, field: 'deleted' },
-      json: { type: DataTypes.JSON },
-    });
+    return {
+      model: commons._.merge(dataModel, {
+        path: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
+        createdAt: { type: DataTypes.DATE, field: 'created' },
+        updatedAt: { type: DataTypes.DATE, field: 'modified' },
+        deletedAt: { type: DataTypes.DATE, field: 'deleted' },
+        json: { type: DataTypes.JSON },
+      }),
+      indexes: configuredIndexes,
+    };
   }
   /**
    *
