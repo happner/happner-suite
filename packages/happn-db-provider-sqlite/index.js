@@ -5,7 +5,8 @@ const commons = require('happn-commons'),
   // eslint-disable-next-line no-unused-vars
   { Sequelize, Model, DataTypes, ModelStatic, Op } = require('sequelize'),
   flatten = require('flat'),
-  unflatten = flatten.unflatten;
+  unflatten = flatten.unflatten,
+  queryBuilder = require('./lib/sqlize-query-builder');
 
 module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   #pathToModelCache;
@@ -211,21 +212,38 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   merge(path, document, callback) {
     this.upsert(path, document, { merge: true }, callback);
   }
+
   upsert(path, document, options, callback) {
     if (typeof options === 'function') {
       callback = options;
       options = {};
     }
-    //TODO...
+
+    const model = this.#getModel(path);
+    const row = this.#getRow(document);
+
+    let error;
+    model
+      .upsert(row, this.#getOptions(options))
+      .catch((e) => (error = e))
+      .finally(() => callback(error));
   }
+
   remove(path, options, callback) {
     if (typeof options === 'function') {
       callback = options;
       options = {};
     }
     options = options || {};
-    //TODO...
+
+    const model = this.#getModel(path);
+    let error;
+    model
+      .destroy(this.#getOptions(options))
+      .catch((e) => (error = e))
+      .finally(() => callback(error));
   }
+
   #getOptions(path, options = {}) {
     // ugly but that is the external contracts
     const extendedOptions = options.options || {};
@@ -246,7 +264,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       },
     };
     if (options.criteria) {
-      //TODO...
+      sqlOptions.where[Op.and].push(queryBuilder.build(this.#delimiter, options.criteria));
     }
     // skip before count because we may want to get the count of leftovers after skip
     if (extendedOptions.skip) {
@@ -339,6 +357,13 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       callback = increment;
       increment = 1;
     }
-    //TODO...
+
+    const model = this.#getModel(path);
+
+    let error;
+    model
+      .increment({ [counterName]: increment })
+      .catch((e) => (error = e))
+      .finally(() => callback(error));
   }
 };
