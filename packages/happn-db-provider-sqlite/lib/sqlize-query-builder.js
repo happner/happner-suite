@@ -7,6 +7,7 @@ const opList = new Map([
   ['$lte', Op.lte],
   ['$gte', Op.gte],
   ['$eq', Op.eq],
+  ['$in', Op.in],
   ['$nin', Op.notIn],
   ['$ne', Op.ne],
   ['$like', Op.like],

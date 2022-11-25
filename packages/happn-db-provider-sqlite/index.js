@@ -89,7 +89,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     const configuredIndexes = [];
     // ensure we store all configured properties under data.
     let dataModel = Object.keys(indexes).reduce((transformed, key) => {
-      const dataKey = `${key.replace('.', this.#delimiter)}`;
+      const dataKey = `${key.replaceAll('.', this.#delimiter)}`;
       configuredIndexes.push({
         name: `${dataKey}_index`,
         fields: [dataKey],
