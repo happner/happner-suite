@@ -7,6 +7,7 @@ const opList = new Map([
   ['$lte', Op.lte],
   ['$gte', Op.gte],
   ['$eq', Op.eq],
+  ['$in', Op.in],
   ['$nin', Op.notIn],
   ['$ne', Op.ne],
   ['$like', Op.like],
@@ -47,6 +48,8 @@ class SqlizeQueryBuilder {
         this.#handleAndOr(splitKey, flatQuery[objectKey], query);
         continue;
       }
+
+      this.#handleKey(splitKey, flatQuery[objectKey], query);
     }
 
     return query;
