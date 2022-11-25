@@ -287,7 +287,7 @@ require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
         }
       });
 
-      it.only('should contain the same payload between 2 non-merging consecutive stores', function (done) {
+      it('should contain the same payload between 2 non-merging consecutive stores', function (done) {
         let object = {
           param1: 10,
           param2: 20,
