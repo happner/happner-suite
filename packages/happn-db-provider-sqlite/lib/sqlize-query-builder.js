@@ -84,12 +84,9 @@ class SqlizeQueryBuilder {
         if (!q[opList.get(op)]) {
           q[opList.get(op)] = [];
         }
-
-        query[key.join(this.#delimiter)][opList.get(op)].push(value);
+        q[opList.get(op)].push(value);
       } else {
-        query[key.join(this.#delimiter)] = {
-          [opList.get(op)]: value,
-        };
+        q[opList.get(op)] = value;
       }
     } else {
       query[key.join(this.#delimiter)] = value;

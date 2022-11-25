@@ -26,7 +26,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.remove = util.maybePromisify(this.remove);
     this.count = util.maybePromisify(this.count);
     this.findOne = util.maybePromisify(this.findOne);
-    this.#delimiter = settings.delimiter || '_';
+    this.#delimiter = settings.delimiter || '___';
     this.#hashRingSemaphore = require('happn-commons').HashRingSemaphore.create({
       slots: settings.mutateSlots || 30, // 30 parallel mutations
     });
@@ -109,6 +109,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         json: { type: DataTypes.JSON },
       }),
       indexes: configuredIndexes,
+      timestamps: true,
     };
   }
 
@@ -121,7 +122,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     let found = this.#pathToModelCache.get(path);
     if (!found) {
       for (let modelConfig of this.settings.schema) {
-        if (commons.utils.wildcardMatch(modelConfig.pattern, path) != null) {
+        if (commons.utils.wildcardMatch(modelConfig.pattern, path) === true) {
           const activeModel = this.#models[modelConfig.name];
           this.#pathToModelCache.set(path, activeModel);
           found = activeModel;
@@ -157,7 +158,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     }
     return {
       path: instance.dataValues.path,
-      created: instance.dataValues.createdAt,
+      created: instance.createdAt,
       modified: instance.dataValues.updatedAt,
       deleted: instance.dataValues.deletedAt,
       data: instance.dataValues.json,
@@ -245,8 +246,8 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     return async () => {
       const model = this.#getModel(path);
       const row = this.#getRow(document, path);
-      const result = await model.upsert(row, this.#getOptions(path, options));
-      return this.#transformDataValues(result[0]);
+      await model.upsert(row, this.#getOptions(path, options));
+      return document;
     };
   }
   upsert(path, document, options, callback) {
@@ -379,7 +380,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         (found) => {
           if (!extendedOptions.count) {
             if (found == null) {
-              findResult = null;
+              findResult = [];
               return;
             }
             const transformed = this.#transformDataValues(found);

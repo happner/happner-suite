@@ -20,12 +20,20 @@ module.exports = {
     return preparedPattern;
   },
   wildcardMatch: function (pattern, matchTo) {
+    if (Array.isArray(pattern)) {
+      for (let subPattern of pattern) {
+        if (this.wildcardMatch(subPattern)) {
+          return true;
+        }
+      }
+      return false;
+    }
     const preparedOrMatched = this.wildcardPreliminaryMatch(pattern, matchTo);
     if (typeof preparedOrMatched === 'boolean') return preparedOrMatched; //we have a match result, return it
     //try a starts with reject
     const initialSegment = preparedOrMatched.split('*').pop();
     if (initialSegment.length > 0 && matchTo.indexOf(initialSegment) === -1) return false;
-    return this.makeRe(preparedOrMatched).test(matchTo);
+    return this.makeRe(preparedOrMatched).test(matchTo) != null;
   },
   stripLeadingSlashes: function (path) {
     return path.replace(/^\//, '');
