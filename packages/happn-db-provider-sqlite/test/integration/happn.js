@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
+require('happn-commons-test').describe({ timeout: 20000, only: true }, function (test) {
   const { DataTypes } = require('sequelize');
   let async = test.commons.async;
   let mode = 'embedded';

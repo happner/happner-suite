@@ -22,7 +22,7 @@ module.exports = {
   wildcardMatch: function (pattern, matchTo) {
     if (Array.isArray(pattern)) {
       for (let subPattern of pattern) {
-        if (this.wildcardMatch(subPattern)) {
+        if (this.wildcardMatch(subPattern, matchTo)) {
           return true;
         }
       }
