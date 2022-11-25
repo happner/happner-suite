@@ -45,6 +45,9 @@ jobs:
     - run: npm run lint --package_name=happn-db-provider-nedb
     - run: npm run-script test --workspace=happn-nedb
 
+    - run: npm run lint --package_name=happn-db-provider-sqlite
+    - run: npm run test-cover --workspace=happn-db-provider-sqlite
+
     - name: Generate coverage branch
       uses: team-tenacious/monorepo-coverage@main
       continue-on-error: true

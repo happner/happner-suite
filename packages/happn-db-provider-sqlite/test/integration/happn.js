@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-require('happn-commons-test').describe({ timeout: 20000, only: true }, function (test) {
+require('happn-commons-test').describe({ timeout: 20000 }, function (test) {
   const { DataTypes } = require('sequelize');
   let async = test.commons.async;
   let mode = 'embedded';
@@ -10,12 +10,24 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
   let schema = [
     {
       name: 'test',
-      pattern: ['testing/*', '/testing/*', 'setTest/*', 'mergeTest*'],
+      pattern: ['testing/*', '/testing/*', 'setTest/*', 'mergeTest*', '/increment/*', 'series/*'],
       indexes: {
         property1: DataTypes.STRING,
         property2: DataTypes.STRING,
         property3: DataTypes.STRING,
         property4: DataTypes.STRING,
+        'increment-0': DataTypes.INTEGER,
+        'increment-1': DataTypes.INTEGER,
+        'increment-2': DataTypes.INTEGER,
+        'increment-3': DataTypes.INTEGER,
+        'increment-4': DataTypes.INTEGER,
+        'increment-5': DataTypes.INTEGER,
+        'increment-6': DataTypes.INTEGER,
+        'increment-7': DataTypes.INTEGER,
+        'increment-8': DataTypes.INTEGER,
+        'increment-9': DataTypes.INTEGER,
+        genre: DataTypes.STRING,
+        name: DataTypes.STRING,
       },
     },
   ];
@@ -34,7 +46,14 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
               {
                 name: 'sqlite',
                 provider: test.path.resolve(__dirname, '../../index'),
-                patterns: ['testing/*'],
+                patterns: [
+                  'testing/*',
+                  '/testing/*',
+                  'setTest/*',
+                  'mergeTest*',
+                  '/increment/*',
+                  'series/*',
+                ],
                 settings: {
                   schema,
                 },
@@ -59,7 +78,14 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
               {
                 name: 'sqlite',
                 provider: test.path.resolve(__dirname, '../../index'),
-                patterns: ['testing/*'],
+                patterns: [
+                  'testing/*',
+                  '/testing/*',
+                  'setTest/*',
+                  'mergeTest*',
+                  '/increment/*',
+                  'series/*',
+                ],
                 settings: {
                   schema,
                 },
@@ -361,7 +387,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      it.only('should search for a object by dates', function (callback) {
+      it('should search for a object by dates', function (callback) {
         let test_path_end = test.commons.nanoid();
 
         let complex_obj = {
@@ -394,13 +420,11 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
               };
 
               let options = {
-                // sort: {
-                //   property1: 1,
-                // },
-                // limit: 2,
+                sort: {
+                  property1: 1,
+                },
+                limit: 2,
               };
-
-              ////////////console.log('searching');
               publisherclient.get(
                 'testing/' + test_id + '/data/complex*',
                 {
@@ -432,7 +456,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should delete some test data', function (callback) {
+      it('should delete some test data', function (callback) {
         try {
           //We put the data we want to delete into the database
           publisherclient.set(
@@ -465,7 +489,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         }
       });
 
-      xit('the publisher should set new data then update the data', function (callback) {
+      it('the publisher should set new data then update the data', function (callback) {
         try {
           let test_path_end = test.commons.nanoid();
 
@@ -495,7 +519,12 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
                 },
                 function (e, updateResult) {
                   test.expect(e).to.be(null);
-                  test.expect(updateResult._meta.id === insertResult._meta.id).to.be(true);
+                  test.expect(updateResult._meta.path).to.not.be(null);
+                  test.expect(updateResult._meta.created).to.not.be(null);
+                  test.expect(updateResult._meta.path === insertResult._meta.path).to.be(true);
+                  test
+                    .expect(updateResult._meta.created === insertResult._meta.created)
+                    .to.be(true);
                   callback();
                 }
               );
@@ -506,49 +535,43 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         }
       });
 
-      xit('the listener should pick up a single published event', function (callback) {
-        try {
-          listenerclient.on(
-            'testing/' + test_id + '/data/event',
-            {
-              event_type: 'set',
-              count: 1,
-            },
-            function () {
+      it('the listener should pick up a single published event', function (callback) {
+        listenerclient.on(
+          'testing/' + test_id + '/data/event',
+          {
+            event_type: 'set',
+            count: 1,
+          },
+          function () {
+            test
+              .expect(listenerclient.state.events['/SET@testing/' + test_id + '/data/event'])
+              .to.be(undefined);
+            callback();
+          },
+          function (e) {
+            if (!e) {
               test
-                .expect(listenerclient.state.events['/SET@/testing/' + test_id + '/data/event'])
-                .to.be(undefined);
-              callback();
-            },
-            function (e) {
-              if (!e) {
-                test
-                  .expect(
-                    listenerclient.state.events['/SET@/testing/' + test_id + '/data/event'].length
-                  )
-                  .to.be(1);
-                //then make the change
-                publisherclient.set(
-                  'testing/' + test_id + '/data/event',
-                  {
-                    property1: 'property1',
-                    property2: 'property2',
-                    property3: 'property3',
-                  },
-                  null,
-                  function () {}
-                );
-              } else callback(e);
-            }
-          );
-        } catch (e) {
-          callback(e);
-        }
+                .expect(
+                  listenerclient.state.events['/SET@testing/' + test_id + '/data/event'].length
+                )
+                .to.be(1);
+              //then make the change
+              publisherclient.set(
+                'testing/' + test_id + '/data/event',
+                {
+                  property1: 'property1',
+                  property2: 'property2',
+                  property3: 'property3',
+                },
+                null,
+                function () {}
+              );
+            } else callback(e);
+          }
+        );
       });
 
-      //We are testing setting data at a specific path
-
-      xit('the publisher should set new data ', function (callback) {
+      it('the publisher should set new data ', function (callback) {
         try {
           let test_path_end = test.commons.nanoid();
 
@@ -566,15 +589,11 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
                   'testing/' + test_id + '/data/' + test_path_end,
                   null,
                   function (e, results) {
-                    ////////////////////////console.log('new data results');
-                    ////////////////////////console.log(results);
                     test.expect(results.property1 === 'property1').to.be(true);
-
                     if (mode !== 'embedded')
                       test
                         .expect(results.payload[0].created === results.payload[0].modified)
                         .to.be(true);
-
                     callback(e);
                   }
                 );
@@ -586,7 +605,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         }
       });
 
-      xit('the publisher should set new data then update the data', function (callback) {
+      it('the publisher should set new data then update the data', function (callback) {
         try {
           let test_path_end = test.commons.nanoid();
 
@@ -623,7 +642,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         }
       });
 
-      xit('the listener should pick up a single published event', function (callback) {
+      it('the listener should pick up a single published event', function (callback) {
         try {
           //first listen for the change
           listenerclient.on(
@@ -634,7 +653,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
             },
             function () {
               test
-                .expect(listenerclient.state.events['/SET@/testing/' + test_id + '/data/event'])
+                .expect(listenerclient.state.events['/SET@testing/' + test_id + '/data/event'])
                 .to.be(undefined);
               callback();
             },
@@ -642,7 +661,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
               if (!e) {
                 test
                   .expect(
-                    listenerclient.state.events['/SET@/testing/' + test_id + '/data/event'].length
+                    listenerclient.state.events['/SET@testing/' + test_id + '/data/event'].length
                   )
                   .to.be(1);
 
@@ -665,7 +684,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         }
       });
 
-      xit('should get using a wildcard', function (callback) {
+      it('should get using a wildcard', function (callback) {
         let test_path_end = test.commons.nanoid();
 
         publisherclient.set(
@@ -705,7 +724,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should get paths', function (callback) {
+      it('should get paths', function (callback) {
         let test_path_end = test.commons.nanoid();
 
         publisherclient.set(
@@ -742,8 +761,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('the listener should pick up a single delete event', function (callback) {
-        //We put the data we want to delete into the database
+      it('the listener should pick up a single delete event', function (callback) {
         publisherclient.set(
           'testing/' + test_id + '/data/delete_me',
           {
@@ -764,7 +782,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
                 //instance of this event - the event listener should have been removed
                 test
                   .expect(
-                    listenerclient.state.events['/REMOVE@/testing/' + test_id + '/data/delete_me']
+                    listenerclient.state.events['/REMOVE@testing/' + test_id + '/data/delete_me']
                   )
                   .to.be(undefined);
 
@@ -778,7 +796,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
 
                 test
                   .expect(
-                    listenerclient.state.events['/REMOVE@/testing/' + test_id + '/data/delete_me']
+                    listenerclient.state.events['/REMOVE@testing/' + test_id + '/data/delete_me']
                       .length
                   )
                   .to.be(1);
@@ -795,7 +813,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should unsubscribe from an event', function (callback) {
+      it('should unsubscribe from an event', function (callback) {
         let currentListenerId;
 
         listenerclient.on(
@@ -805,8 +823,6 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
             count: 0,
           },
           function () {
-            //we detach all listeners from the path here
-            ////console.log('ABOUT OFF PATH');
             listenerclient.offPath('testing/' + test_id + '/data/on_off_test', function (e) {
               if (e) return callback(new Error(e));
 
@@ -864,15 +880,15 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should subscribe to the catch all notification', function (callback) {
+      it('should subscribe to the catch all notification', function (callback) {
         this.timeout(10000);
         let caughtCount = 0;
 
         listenerclient.onAll(
           function (_eventData, meta) {
             if (
-              meta.action === '/REMOVE@/testing/' + test_id + '/data/catch_all' ||
-              meta.action === '/SET@/testing/' + test_id + '/data/catch_all'
+              meta.action === '/REMOVE@testing/' + test_id + '/data/catch_all' ||
+              meta.action === '/SET@testing/' + test_id + '/data/catch_all'
             )
               caughtCount++;
 
@@ -901,7 +917,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should unsubscribe from all events', function (callback) {
+      it('should unsubscribe from all events', function (callback) {
         this.timeout(10000);
 
         let onHappened = false;
@@ -953,7 +969,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('should not publish with noPublish set', function (done) {
+      it('should not publish with noPublish set', function (done) {
         let timeout;
         //first listen for the change
         listenerclient.on(
@@ -994,7 +1010,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path', function (done) {
+      it('increments a value on a path', function (done) {
         let async = require('async');
 
         let test_string = test.commons.nanoid();
@@ -1018,16 +1034,14 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
 
             listenerclient.get(test_base_url, function (e, result) {
               if (e) return done(e);
-
               test.expect(result.counter.value).to.be(10);
-
               done();
             });
           }
         );
       });
 
-      xit('the listener can call count for data', function (done) {
+      it('the listener can call count for data', function (done) {
         var test_string = test.commons.nanoid();
         var test_base_url = '/count_happn/' + test_id + '/set/string/' + test_string;
         publisherclient.set(
@@ -1047,7 +1061,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path, multiple gauges', function (done) {
+      it('increments a value on a path, multiple gauges', function (done) {
         let async = require('async');
 
         let test_string = test.commons.nanoid();
@@ -1091,7 +1105,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path, convenience method, multiple gauges', function (done) {
+      it('increments a value on a path, convenience method, multiple gauges', function (done) {
         let async = require('async');
 
         let test_string = test.commons.nanoid();
@@ -1127,7 +1141,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path, convenience method, listens on path receives event', function (done) {
+      it('increments a value on a path, convenience method, listens on path receives event', function (done) {
         let test_string = test.commons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
@@ -1149,7 +1163,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path, convenience method with custom gauge and increment, listens on path receives event', function (done) {
+      it('increments a value on a path, convenience method with custom gauge and increment, listens on path receives event', function (done) {
         let test_string = test.commons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
@@ -1171,7 +1185,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments and decrements a value on a path, convenience method with custom gauge and increment and decrement, listens on path receives event', function (done) {
+      it('increments and decrements a value on a path, convenience method with custom gauge and increment and decrement, listens on path receives event', function (done) {
         let test_string = test.commons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
@@ -1207,7 +1221,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('increments a value on a path, convenience method, no counter so defaults to 1, listens on path receives event', function (done) {
+      it('increments a value on a path, convenience method, no counter so defaults to 1, listens on path receives event', function (done) {
         let test_string = test.commons.nanoid();
         let test_base_url = '/increment/convenience/' + test_id + '/' + test_string;
 
@@ -1229,7 +1243,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         );
       });
 
-      xit('can page using skip and limit', async () => {
+      it('can page using skip and limit', async () => {
         this.timeout(5000);
 
         let totalRecords = 100;
@@ -1256,7 +1270,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
           sort: {
             '_meta.created': -1,
           },
-          limit: pageSize,
+          limit: 200,
         };
 
         let criteria = {
@@ -1268,8 +1282,8 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         for (let i = 0; i < expectedPages; i++) {
           options.skip = foundPages.length;
           let results = await listenerclient.get('series/*', {
-            criteria: criteria,
-            options: options,
+            criteria,
+            options,
           });
           foundPages = foundPages.concat(results);
         }
@@ -1280,6 +1294,7 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
             sort: {
               '_meta.created': -1,
             },
+            limit: 200,
           },
         });
 
@@ -1287,123 +1302,30 @@ require('happn-commons-test').describe({ timeout: 20000, only: true }, function 
         test.expect(allResults).to.eql(foundPages);
       });
 
-      xit('can get using criteria, $regex with params in array', function (done) {
-        publisherclient.set(
-          '/regex/test/1',
-          {
-            name: 'Loadtest_123',
-            anotherProp: 'anotherPropValue',
+      it('can search using $like criteria', async () => {
+        await publisherclient.set('series/like/1', {
+          name: 'test-a-like-comparison-1',
+        });
+        await publisherclient.set('series/like/2', {
+          name: 'test-a-like-comparison-2',
+        });
+        await publisherclient.set('series/like/3', {
+          name: 'test-a-like-comparison-3',
+        });
+
+        const found1 = await publisherclient.get('series/like/*', {
+          criteria: {
+            name: { $like: 'test-a-like-comparison-1' },
           },
-          function (e) {
-            if (e) return done(e);
+        });
+        test.expect(found1.length).to.be(1);
 
-            var options = {
-              fields: {
-                name: 1,
-              },
-            };
-
-            var criteria = {
-              name: {
-                $regex: ['.*loadtest.*', 'i'],
-              },
-            };
-
-            listenerclient.get(
-              '/regex/test/*',
-              {
-                criteria: criteria,
-                options: options,
-              },
-              function (e, result) {
-                if (e) return done(e);
-                test.expect(result[0].anotherProp).to.be(undefined);
-                test.expect(result[0].name).to.be('Loadtest_123');
-                test.expect(result.length).to.be(1);
-                done();
-              }
-            );
-          }
-        );
-      });
-
-      xit('can get using criteria, $regex as string', function (done) {
-        publisherclient.set(
-          '/regex/test/1',
-          {
-            name: 'Loadtest_123',
-            anotherProp: 'anotherPropValue',
+        const found2 = await publisherclient.get('series/like/*', {
+          criteria: {
+            name: { $like: 'test-a-like-comparison-%' },
           },
-          function (e) {
-            if (e) return done(e);
-
-            var options = {
-              fields: {
-                name: 1,
-              },
-            };
-
-            var criteria = {
-              name: {
-                $regex: '.*Loadtest.*',
-              },
-            };
-
-            listenerclient.get(
-              '/regex/test/*',
-              {
-                criteria: criteria,
-                options: options,
-              },
-              function (e, result) {
-                if (e) return done(e);
-                test.expect(result[0].anotherProp).to.be(undefined);
-                test.expect(result[0].name).to.be('Loadtest_123');
-                test.expect(result.length).to.be(1);
-                done();
-              }
-            );
-          }
-        );
-      });
-
-      xit('can get using criteria, bad $regex as boolean', function (done) {
-        publisherclient.set(
-          '/regex/test/1',
-          {
-            name: 'Loadtest_123',
-            anotherProp: 'anotherPropValue',
-          },
-          function (e) {
-            if (e) return done(e);
-
-            var options = {
-              fields: {
-                name: 1,
-              },
-            };
-
-            var criteria = {
-              name: {
-                $regex: false,
-              },
-            };
-
-            listenerclient.get(
-              '/regex/test/*',
-              {
-                criteria: criteria,
-                options: options,
-              },
-              function (e) {
-                test
-                  .expect(e.toString())
-                  .to.be('SystemError: $regex parameter value must be an Array or a string');
-                done();
-              }
-            );
-          }
-        );
+        });
+        test.expect(found2.length).to.be(3);
       });
     });
   });

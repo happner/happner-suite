@@ -35,13 +35,15 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   initialize(callback) {
     this.#pathToModelCache = new LRUCache({ max: 1e3 });
     this.persistenceOn = this.settings.filename != null;
+    const logging = this.settings.logging || false;
     if (!this.persistenceOn) {
-      this.db = new Sequelize('sqlite::memory:');
+      this.db = new Sequelize('sqlite::memory:', { logging });
     } else {
       fs.ensureDirSync(commons.path.dirname(this.settings.filename));
       this.db = new Sequelize({
         dialect: 'sqlite',
         storage: this.settings.filename,
+        logging,
       });
     }
     let modelEnsuredResult;
@@ -89,7 +91,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     const configuredIndexes = [];
     // ensure we store all configured properties under data.
     let dataModel = Object.keys(indexes).reduce((transformed, key) => {
-      const dataKey = `${key.replaceAll('.', this.#delimiter)}`;
+      const dataKey = `data${this.#delimiter}${key.replaceAll('.', this.#delimiter)}`;
       configuredIndexes.push({
         name: `${dataKey}_index`,
         fields: [dataKey],
@@ -198,7 +200,8 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
   #insert(model, row) {
     return async () => {
       const result = await model.create(row);
-      return this.#transformDataValues(result);
+      const transformed = this.#transformDataValues(result);
+      return transformed;
     };
   }
 
@@ -233,7 +236,8 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         if (!found) {
           const model = this.#getModel(path);
           const row = this.#getRow(document, path);
-          return await this.#insert(model, row)();
+          await this.#insert(model, row)();
+          return document;
         }
         let merged = commons._.merge(found, document);
         return await this.#upsert(path, merged, options)();
@@ -273,11 +277,21 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       options = {};
     }
     options = options || {};
-    const model = this.#getModel(path);
     this.#mutate(
       path,
       async () => {
-        return model.destroy(this.#getOptions(options));
+        const model = this.#getModel(path);
+        const parsedOptions = this.#getOptions(path, options, false);
+        const removed = await model.destroy(parsedOptions);
+        return {
+          data: {
+            removed,
+          },
+          _meta: {
+            timestamp: Date.now(),
+            path: path,
+          },
+        };
       },
       callback
     );
@@ -294,17 +308,24 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
               [Op.like]: path.replaceAll('*', '%'),
             },
           },
-          {
-            deleted: {
-              [Op.is]: null,
-            },
-          },
         ],
       },
     };
+
     if (options.criteria) {
       sqlOptions.where[Op.and].push(queryBuilder.build(this.#delimiter, options.criteria));
     }
+
+    if (!isQuery) {
+      return sqlOptions;
+    }
+
+    sqlOptions.where[Op.and].push({
+      deleted: {
+        [Op.is]: null,
+      },
+    });
+
     // skip before count because we may want to get the count of leftovers after skip
     if (extendedOptions.skip) {
       sqlOptions.offset = extendedOptions.skip;
@@ -315,7 +336,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       return sqlOptions;
     }
     // only ever fetch 30 by default
-    if (isQuery) sqlOptions.limit = extendedOptions.limit || 30;
+    sqlOptions.limit = extendedOptions.limit || 30;
     if (extendedOptions.sort) {
       sqlOptions.order = commons._.transform(
         extendedOptions.sort,
@@ -324,7 +345,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
           if (this.#systemColumns.includes(key)) {
             result.push([key, direction]);
           } else {
-            result.push([`${this.#delimiter}${key.replaceAll('.', this.#delimiter)}`, direction]);
+            result.push([`${key.replaceAll('.', this.#delimiter)}`, direction]);
           }
           return result;
         },
@@ -421,17 +442,13 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       callback = increment;
       increment = 1;
     }
-
-    const model = this.#getModel(path);
-    const options = this.#getOptions(path, undefined, false);
-    options.by = increment;
-
     this.#mutate(
       path,
       async () => {
+        const model = this.#getModel(path);
         const found = await this.findOne(path);
         if (!found) {
-          return await this.#insert(
+          await this.#insert(
             model,
             this.#getRow(
               {
@@ -442,12 +459,16 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
               path
             )
           )();
+          return increment;
         }
-        return await this.#upsert(path, {
-          data: {
-            [counterName]: { value: found.data[counterName].value + increment },
-          },
+        if (!found.data[counterName]) {
+          found.data[counterName] = { value: 0 };
+        }
+        found.data[counterName].value += increment;
+        await this.#upsert(path, found, {
+          merge: true,
         })();
+        return found.data[counterName].value;
       },
       callback
     );

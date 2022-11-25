@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Sqlite data provider for happn",
   "scripts": {
-    "test": "_mocha --recursive --exit silence.js test/*",
+    "test": "_mocha --recursive --exit silence.js test/integration*",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-unit": "mocha silence.js test/unit/* --recursive"
   },

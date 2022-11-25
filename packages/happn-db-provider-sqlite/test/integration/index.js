@@ -22,14 +22,14 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
             name: 'test',
             pattern: 'test/path/*',
             indexes: {
+              test: DataTypes.STRING,
               'test.data': DataTypes.STRING,
               'data.test': DataTypes.STRING,
-              'data.test1': DataTypes.STRING,
-              'data.test2': DataTypes.STRING,
-              'data.test3': DataTypes.STRING,
+              test1: DataTypes.STRING,
+              test2: DataTypes.STRING,
+              test3: DataTypes.STRING,
               testGauge: DataTypes.INTEGER,
-              'data.test.other': DataTypes.STRING,
-              'data.test.data': DataTypes.STRING,
+              'test.other': DataTypes.STRING,
             },
           },
         ],
@@ -53,6 +53,11 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     });
     it('starts up the provider', async () => {
       await getProvider();
+    });
+    it('starts up the provider, with logging', async () => {
+      await getProvider({
+        logging: true,
+      });
     });
     it('starts up the provider with a persistence filename, does some inserts, restarts the provider and checks the data is still there', async () => {
       await testPersistence();
@@ -146,7 +151,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       data: { test: 'test2' },
     });
 
-    test.expect(await sqliteProvider.count('test/path/*', {})).to.eql({ data: { value: 3 } });
+    test.expect(await sqliteProvider.count('test/path/*')).to.eql({ data: { value: 3 } });
     test.expect(await sqliteProvider.count('test/path/1', {})).to.eql({ data: { value: 1 } });
   }
 
