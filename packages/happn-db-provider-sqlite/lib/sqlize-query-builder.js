@@ -47,6 +47,7 @@ class SqlizeQueryBuilder {
         this.#handleAndOr(splitKey, flatQuery[objectKey], query);
         continue;
       }
+      this.#handleKey(splitKey, flatQuery[objectKey], query);
     }
 
     return query;

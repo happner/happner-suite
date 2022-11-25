@@ -1,6 +1,6 @@
-require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
+require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const SQLiteDataProvider = require('../..');
-  const { Sequelize } = require('sequelize');
+  const { Sequelize, DataTypes } = require('sequelize');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
   let fileId = test.newid();
   const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
@@ -22,7 +22,12 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
             name: 'test',
             pattern: 'test/path/*',
             indexes: {
-              'test.data': Sequelize.STRING,
+              'test.data': DataTypes.STRING,
+              'data.test': DataTypes.STRING,
+              'data.test1': DataTypes.STRING,
+              'data.test2': DataTypes.STRING,
+              'data.test3': DataTypes.STRING,
+              testGauge: DataTypes.INTEGER,
             },
           },
         ],
@@ -53,42 +58,23 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     it('can count without criteria', async () => {
       await testCount();
     });
-    xit('can count with criteria', async () => {
+    it('can count with criteria', async () => {
       await testCountWithCriteria();
     });
-    xit('can merge', async () => {
+    it('can merge', async () => {
       await testMerge();
     });
-    xit('can increment', async () => {
+    it.only('can increment', async () => {
       await testIncrement();
     });
   });
   async function testMerge() {
-    const sqliteProvider = await getProvider({
-      schema: [
-        {
-          name: 'test',
-          pattern: 'test/path/*',
-          model: {
-            data_test1: {
-              type: Sequelize.STRING,
-            },
-            data_test2: {
-              type: Sequelize.STRING,
-            },
-            data_test3: {
-              type: Sequelize.STRING,
-            },
-          },
-        },
-      ],
-    });
+    const sqliteProvider = await getProvider();
     await sqliteProvider.merge('test/path/1', { data: { test1: 'test1' } });
     await sqliteProvider.merge('test/path/1', { data: { test2: 'test2' } });
     await sqliteProvider.merge('test/path/1', { data: { test3: 'test3' } });
-    test
-      .expect((await sqliteProvider.findOne({ path: 'test/path/1' })).data)
-      .to.eql({ test1: 'test1', test2: 'test2', test3: 'test3' });
+    const found = await sqliteProvider.findOne('test/path/1');
+    test.expect(found.data).to.eql({ test1: 'test1', test2: 'test2', test3: 'test3' });
   }
 
   async function testIncrement(settings) {

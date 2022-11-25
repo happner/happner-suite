@@ -57,4 +57,20 @@ require('happn-commons-test').describe({ timeout: 120e3 }, function (test) {
       test5: [5, 10, 15, 20, 25],
     });
   });
+
+  it('ensures a failing lock works', async () => {
+    let performTx = async function (tx) {
+      await hashRingSemaphore.lock(tx, async () => {
+        if (tx === 'break') throw new Error('test error');
+      });
+    };
+
+    let eMessage;
+    try {
+      await performTx('break');
+    } catch (e) {
+      eMessage = e.message;
+    }
+    test.expect(eMessage).to.be('test error');
+  });
 });

@@ -25,9 +25,10 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.find = util.maybePromisify(this.find);
     this.remove = util.maybePromisify(this.remove);
     this.count = util.maybePromisify(this.count);
+    this.findOne = util.maybePromisify(this.findOne);
     this.#delimiter = settings.delimiter || '_';
     this.#hashRingSemaphore = require('happn-commons').HashRingSemaphore.create({
-      slots: settings.mutateSlots || 10, // 10 parallel mutations
+      slots: settings.mutateSlots || 30, // 30 parallel mutations
     });
   }
 
@@ -88,7 +89,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     const configuredIndexes = [];
     // ensure we store all configured properties under data.
     let dataModel = Object.keys(indexes).reduce((transformed, key) => {
-      const dataKey = `data${this.#delimiter}${key.replace('.', this.#delimiter)}`;
+      const dataKey = `${key.replace('.', this.#delimiter)}`;
       configuredIndexes.push({
         name: `${dataKey}_index`,
         fields: [dataKey],
@@ -163,9 +164,12 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     };
   }
 
-  #getRow(document) {
+  #getRow(document, path) {
     const flattened = flatten(document, { delimiter: this.#delimiter });
     flattened.json = document.data;
+    if (path) {
+      flattened.path = path;
+    }
     return flattened;
   }
 
@@ -189,6 +193,14 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       });
   }
 
+  // when merging, we need to be able to call insert directly without a further lock
+  #insert(model, row) {
+    return async () => {
+      const result = await model.create(row);
+      return this.#transformDataValues(result);
+    };
+  }
+
   insert(document, callback) {
     const model = this.#getModel(document.path);
     if (model == null) {
@@ -199,49 +211,59 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       );
     }
     const row = this.#getRow(document);
-    this.#mutate(
-      document.path,
-      async () => {
-        const result = await model.create(row);
-        return this.#transformDataValues(result);
-      },
-      callback
-    );
+    this.#mutate(document.path, this.#insert(model, row), callback);
   }
 
-  merge(path, document, callback) {
+  merge(path, document, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (!options) {
+      options = {};
+    }
+    if (path.includes('*')) {
+      return callback(new Error('merge does not support * wildcards in path'));
+    }
     this.#mutate(
       path,
       async () => {
-        const found = await this.find(path);
+        const found = await this.findOne(path);
         if (!found) {
-          return await this.upsert(path, document);
+          const model = this.#getModel(path);
+          const row = this.#getRow(document, path);
+          return await this.#insert(model, row)();
         }
-        found.data = commons._.merge(found.data, document.data);
-        return await this.upsert(path, found);
+        let merged = commons._.merge(found, document);
+        return await this.#upsert(path, merged, options)();
       },
       callback
     );
   }
-
+  // when merging, we need to be able to call upsert directly without a further lock
+  #upsert(path, document, options) {
+    return async () => {
+      const model = this.#getModel(path);
+      const row = this.#getRow(document, path);
+      const result = await model.upsert(row, this.#getOptions(path, options));
+      return this.#transformDataValues(result[0]);
+    };
+  }
   upsert(path, document, options, callback) {
     if (typeof options === 'function') {
       callback = options;
       options = {};
     }
+    if (!options) {
+      options = {};
+    }
+    if (path.includes('*')) {
+      return callback(new Error('upsert does not support * wildcards in path'));
+    }
     if (options.merge === true) {
       return this.merge(path, document, callback);
     }
-    const model = this.#getModel(path);
-    const row = this.#getRow(document);
-    this.#mutate(
-      path,
-      async () => {
-        const result = await model.upsert(row, this.#getOptions(options));
-        return this.#transformDataValues(result.dataValues);
-      },
-      callback
-    );
+    this.#mutate(path, this.#upsert(path, document, options), callback);
   }
 
   remove(path, options, callback) {
@@ -301,10 +323,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
           if (this.#systemColumns.includes(key)) {
             result.push([key, direction]);
           } else {
-            result.push([
-              `data_${this.#delimiter}${key.replaceAll('.', this.#delimiter)}`,
-              direction,
-            ]);
+            result.push([`${this.#delimiter}${key.replaceAll('.', this.#delimiter)}`, direction]);
           }
           return result;
         },
@@ -312,6 +331,27 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       );
     }
     return sqlOptions;
+  }
+
+  findOne(path, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (options == null) {
+      options = {};
+    }
+    options.limit = 1;
+    this.find(path, options, (e, result) => {
+      if (e) return callback(e);
+      if (Array.isArray(result)) {
+        if (result.length === 0) {
+          return callback(null, undefined);
+        }
+        return callback(null, result[0]);
+      }
+      return callback(null, result);
+    });
   }
 
   find(path, options, callback) {
@@ -338,6 +378,10 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       .then(
         (found) => {
           if (!extendedOptions.count) {
+            if (found == null) {
+              findResult = null;
+              return;
+            }
             const transformed = this.#transformDataValues(found);
             if (Array.isArray(transformed)) {
               findResult = transformed;
