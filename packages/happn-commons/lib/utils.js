@@ -33,7 +33,7 @@ module.exports = {
     //try a starts with reject
     const initialSegment = preparedOrMatched.split('*').pop();
     if (initialSegment.length > 0 && matchTo.indexOf(initialSegment) === -1) return false;
-    return this.makeRe(preparedOrMatched).test(matchTo) != null;
+    return this.makeRe(preparedOrMatched).test(matchTo);
   },
   stripLeadingSlashes: function (path) {
     return path.replace(/^\//, '');

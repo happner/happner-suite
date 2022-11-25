@@ -1,4 +1,4 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3, only: true }, (test) => {
   var Happner = require('../../..');
   var server;
 
