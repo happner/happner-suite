@@ -6,8 +6,8 @@ module.exports = function(ParentClass) {
     static create(happn, config) {
       return new TestAuthProvider(happn, config);
     }
-    login(...loginArgs) {
-      return 'Login called in second auth provider';
+    login(credentials, sessionId, request, callback) {
+      return callback(null, 'Login called in second auth provider');
     }
   };
 };

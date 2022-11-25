@@ -282,7 +282,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     );
   }
 
-  #getOptions(path, options = {}) {
+  #getOptions(path, options = {}, isQuery = true) {
     // ugly but that is the external contracts
     const extendedOptions = options.options || {};
     const sqlOptions = {
@@ -314,7 +314,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       return sqlOptions;
     }
     // only ever fetch 30 by default
-    sqlOptions.limit = extendedOptions.limit || 30;
+    if (isQuery) sqlOptions.limit = extendedOptions.limit || 30;
     if (extendedOptions.sort) {
       sqlOptions.order = commons._.transform(
         extendedOptions.sort,
@@ -422,11 +422,31 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     }
 
     const model = this.#getModel(path);
+    const options = this.#getOptions(path, undefined, false);
+    options.by = increment;
 
     this.#mutate(
       path,
       async () => {
-        return model.increment({ [counterName]: increment });
+        const found = await this.findOne(path);
+        if (!found) {
+          return await this.#insert(
+            model,
+            this.#getRow(
+              {
+                data: {
+                  [counterName]: { value: increment },
+                },
+              },
+              path
+            )
+          )();
+        }
+        return await this.#upsert(path, {
+          data: {
+            [counterName]: { value: found.data[counterName].value + increment },
+          },
+        })();
       },
       callback
     );

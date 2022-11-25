@@ -39,6 +39,8 @@ describe(
               function () {
                 return true;
               },
+            selfSignedCertUtil:
+              require('../../../lib/services/utils/self-signed-cert-util').create(),
           },
         },
       };
@@ -193,8 +195,8 @@ describe(
         },
       };
 
-      transportMock.createCertificate = function (keyPath, certPath, callback) {
-        return callback(new Error('test error'));
+      transportMock.createCertificate = function () {
+        throw new Error('test error');
       };
 
       transportMock.initialize(

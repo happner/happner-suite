@@ -1,6 +1,6 @@
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const SQLiteDataProvider = require('../..');
-  const { Sequelize, DataTypes } = require('sequelize');
+  const { DataTypes } = require('sequelize');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
   let fileId = test.newid();
   const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
@@ -64,7 +64,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     it('can merge', async () => {
       await testMerge();
     });
-    it.only('can increment', async () => {
+    it('can increment', async () => {
       await testIncrement();
     });
   });
@@ -83,9 +83,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     await sqliteProvider.increment('test/increment', 'testGauge', 2);
     await sqliteProvider.increment('test/increment', 'testGauge');
 
-    const found = await sqliteProvider.find('test/increment');
-
-    test.expect(found[0].data.testGauge.value).to.be(4);
+    const found = await sqliteProvider.findOne('test/increment');
+    test.expect(found.data.testGauge.value).to.be(4);
   }
 
   async function testCountWithCriteria(settings) {
