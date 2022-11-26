@@ -99,6 +99,12 @@ class SqlizeQueryBuilder {
   }
 
   #parseKey(key) {
+    if (key.length === 1) {
+      return {
+        key,
+      };
+    }
+
     if (key.at(0).startsWith('$')) {
       return {
         preop: key.at(0),

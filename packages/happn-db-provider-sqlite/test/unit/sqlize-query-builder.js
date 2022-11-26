@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 
-const opList = new Map([
+const testOpList = new Map([
   ['$eq', Op.eq],
   ['$lt', Op.lt],
   ['$gt', Op.gt],
@@ -11,11 +11,13 @@ const opList = new Map([
   ['$nin', Op.notIn],
   ['$ne', Op.ne],
   ['$like', Op.like],
+  ['$and', Op.and],
+  ['$or', Op.or],
 ]);
 
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const SqlizeQueryBuilder = require('../../lib/sqlize-query-builder');
-  xit('can transform nested ands and ors', () => {
+  it('can transform nested ands and ors', () => {
     // breaking
     const testMongoQuery = {
       $or: [
@@ -38,18 +40,18 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     };
     const transformed = SqlizeQueryBuilder.build('.', testMongoQuery);
     test.expect(transformed).to.eql({
-      [opList.get('$or')]: [
+      [testOpList.get('$or')]: [
         {
           logType: 'EDD_SIG',
         },
         {
-          [opList.get('$and')]: [
+          [testOpList.get('$and')]: [
             {
               logType: 'UNIT_UPDATE',
             },
             {
               eventName: {
-                [opList.get('$nin')]: ['ledState', 'programmed', 'detonatorError'],
+                [testOpList.get('$nin')]: ['ledState', 'programmed', 'detonatorError'],
               },
             },
           ],
