@@ -108,6 +108,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         createdAt: { type: DataTypes.DATE, field: 'created' },
         updatedAt: { type: DataTypes.DATE, field: 'modified' },
         deletedAt: { type: DataTypes.DATE, field: 'deleted' },
+        modifiedBy: { type: DataTypes.STRING },
         json: { type: DataTypes.JSON },
       }),
       indexes: configuredIndexes,
