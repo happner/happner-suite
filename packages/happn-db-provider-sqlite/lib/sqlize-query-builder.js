@@ -72,7 +72,12 @@ class SqlizeQueryBuilder {
   }
 
   #handleKey(dataKey, value, query) {
-    const { op, key } = this.#parseKey(dataKey);
+    const { preop, op, key } = this.#parseKey(dataKey);
+
+    if (preop) {
+      this.#handleAndOr(dataKey, value, query);
+      return;
+    }
 
     if (op && opList.has(op)) {
       let q = query[key.join(this.#delimiter)];
@@ -94,6 +99,13 @@ class SqlizeQueryBuilder {
   }
 
   #parseKey(key) {
+    if (key.at(0).startsWith('$')) {
+      return {
+        preop: key.at(0),
+        key: key.slice(1),
+      };
+    }
+
     if (key.at(-1).startsWith('$')) {
       return {
         op: key.at(-1),
