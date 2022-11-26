@@ -524,7 +524,8 @@ function __upsertInternal(path, setData, options, callback) {
         if (e) return callback(e);
         setData.data.gauge = setData.data.value;
         setData.data.value = gaugeValue;
-        callback(null, provider.transform(setData));
+        let transformed = provider.transform(setData);
+        callback(null, transformed);
       }
     );
   }
