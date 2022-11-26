@@ -20,7 +20,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
         schema: [
           {
             name: 'test',
-            pattern: 'test/path/*',
+            pattern: ['test/path/*', 'test/increment*'],
             indexes: {
               test: DataTypes.STRING,
               'test.data': DataTypes.STRING,
