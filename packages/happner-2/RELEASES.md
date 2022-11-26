@@ -1009,3 +1009,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - TEN-4: productionize summon (authType saved to user)
   - TEN-140: outdated pem module
   - TEN-148: document post array rest module
+
+12.5.3 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
