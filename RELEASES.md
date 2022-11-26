@@ -1,3 +1,7 @@
+2.3.0 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
+
 2.2.0 2022-11-24
 ----------------
 - TEN-140: outdated pem module

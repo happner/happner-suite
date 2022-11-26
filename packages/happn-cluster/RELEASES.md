@@ -327,3 +327,8 @@ non-release 2017-12-14
   - TEN-4: productionize summon (authType saved to user)
   - TEN-140: outdated pem module
   - TEN-148: document post array rest module
+
+12.2.4 2022-11-26
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module

@@ -11,3 +11,7 @@
 1.2.0 2022-10-29
 -----------------
   - TEN-146: preserve criteria on remove
+
+1.3.0 2022-11-26
+-----------------
+  - feat: Sqlite DB provider (added hashring semaphore)

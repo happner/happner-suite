@@ -32,4 +32,5 @@ module.exports = {
   BaseDataProvider: require('./lib/base-data-provider'),
   lruCache: require('lru-cache'),
   fastClone: require('fast-clone'),
+  HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
 };

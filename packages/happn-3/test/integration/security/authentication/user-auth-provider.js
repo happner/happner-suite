@@ -10,7 +10,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
               '../../../__fixtures/test/integration/security/authentication/workingAuth.js'
             ),
           },
-          defaultAuthProvider: 'happn',
+          defaultAuthProvider: 'test',
           allowUserChooseAuthProvider: false,
         },
       },

@@ -30,9 +30,13 @@
 -----------------
   - TEN-101: clean npm audit - removed lodash
 
-12.0.7 2022-10-29
+2.0.7 2022-10-29
 -----------------
   - TEN-129: security service tests
   - TEN-141: fatal on security generate session
   - TEN-144: rest array arguments
   - TEN-146: preserve criteria on remove
+
+2.0.8 2022-11-26
+-----------------
+  - feat: Sqlite DB provider

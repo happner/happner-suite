@@ -1037,3 +1037,6 @@
   - TEN-4: productionize summon (authType saved to user)
   - TEN-140: outdated pem module
 
+13.7.1 2022-11-26
+-----------------
+  - feat: Sqlite DB Provider
