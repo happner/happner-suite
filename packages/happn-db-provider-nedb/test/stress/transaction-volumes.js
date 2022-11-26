@@ -1,6 +1,5 @@
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
-  const SQLiteDataProvider = require('../..');
-  const { DataTypes } = require('sequelize');
+  const NedbDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
   const testFileName = `${testDirPath}${test.commons.path.sep}stress-test.db`;
   const mockLogger = {
@@ -11,37 +10,13 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   };
 
   let cachedProvider;
-  async function getProvider(settings) {
+  async function getProvider() {
     if (cachedProvider) return cachedProvider;
-    const sqliteProvider = new SQLiteDataProvider({}, mockLogger);
-    sqliteProvider.settings = test.commons._.defaultsDeep(
-      {
-        filename: testFileName,
-        schema: [
-          {
-            name: 'test',
-            pattern: [
-              'test/insert/*',
-              'test/upsert/*',
-              'test/increment-separate/*',
-              'test/increment-same/*',
-            ],
-            indexes: {
-              'test.data': DataTypes.STRING,
-              test1: DataTypes.STRING,
-              test2: DataTypes.STRING,
-              test3: DataTypes.STRING,
-              testGauge: DataTypes.INTEGER,
-            },
-          },
-        ],
-      },
-      settings
-    );
-    await sqliteProvider.initialize();
+    const nedbProvider = new NedbDataProvider({ filename: testFileName }, mockLogger);
+    await nedbProvider.initialize();
     test.log(`test file: ${testFileName}`);
-    cachedProvider = sqliteProvider;
-    return sqliteProvider;
+    cachedProvider = nedbProvider;
+    return nedbProvider;
   }
 
   context('Data operations', () => {
@@ -61,31 +36,21 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       }
       test.log(line);
     }
-    it(`hammers the provider with a ${OPERATIONS} inserts`, async () => {
-      const sqliteProvider = await getProvider();
-      const started = Date.now();
-      for (let i = 0; i < OPERATIONS; i++) {
-        await sqliteProvider.insert({ path: `test/insert/${i}`, data: { test: { data: i } } });
-        reportHeap(i);
-      }
-      const duration = Date.now() - started;
-      test.log(`completed inserts in ${duration}ms`);
-    });
     it(`hammers the provider with a ${OPERATIONS} same increments`, async () => {
-      const sqliteProvider = await getProvider();
+      const nedbProvider = await getProvider();
       const started = Date.now();
       for (let i = 0; i < OPERATIONS; i++) {
-        const increment = await sqliteProvider.increment(`test/increment-same/1`, 'testGauge', 5);
+        const increment = await nedbProvider.increment(`test/increment-same/1`, 'testGauge', 5);
         reportHeap(i, `last increment value: ${increment}`);
       }
       const duration = Date.now() - started;
       test.log(`completed increments in ${duration}ms`);
     });
     it(`hammers the provider with a ${OPERATIONS} separate increments`, async () => {
-      const sqliteProvider = await getProvider();
+      const nedbProvider = await getProvider();
       const started = Date.now();
       for (let i = 0; i < OPERATIONS; i++) {
-        const increment = await sqliteProvider.increment(
+        const increment = await nedbProvider.increment(
           `test/increment-separate/${i}`,
           'testGauge',
           5
@@ -96,11 +61,11 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       test.log(`completed increments in ${duration}ms`);
     });
     it(`hammers the provider with a ${OPERATIONS} upserts`, async () => {
-      const sqliteProvider = await getProvider();
+      const nedbProvider = await getProvider();
       const started = Date.now();
       for (let i = 0; i < OPERATIONS; i++) {
         // we repeat so half inserts and updates
-        await sqliteProvider.upsert(`test/upsert/${i % 2 === 0 ? i : i - 1}`, {
+        await nedbProvider.upsert(`test/upsert/${i % 2 === 0 ? i : i - 1}`, {
           test1: i,
           test2: i,
           test3: i,
@@ -112,11 +77,11 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     });
 
     it(`hammers the provider with a ${OPERATIONS} merged upserts`, async () => {
-      const sqliteProvider = await getProvider();
+      const nedbProvider = await getProvider();
       const started = Date.now();
       for (let i = 0; i < OPERATIONS; i++) {
         // we repeat so half inserts and updates
-        await sqliteProvider.upsert(
+        await nedbProvider.upsert(
           `test/upsert/${i % 2 === 0 ? i : i - 1}`,
           {
             test1: i,
