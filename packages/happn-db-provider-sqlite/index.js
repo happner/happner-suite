@@ -336,8 +336,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       // just return it, limiting and sorting don't matter
       return sqlOptions;
     }
-    // only ever fetch 30 by default
-    sqlOptions.limit = extendedOptions.limit || 30;
+    if (extendedOptions.limit) sqlOptions.limit = extendedOptions.limit;
     if (extendedOptions.sort) {
       sqlOptions.order = commons._.transform(
         extendedOptions.sort,
