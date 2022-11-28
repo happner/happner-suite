@@ -1,6 +1,6 @@
 module.exports = DataService;
 const commons = require('happn-commons');
-const traverse = commons.traverse,
+const traverse = require('traverse'),
   async = commons.async,
   CONSTANTS = commons.constants,
   util = commons.utils,
