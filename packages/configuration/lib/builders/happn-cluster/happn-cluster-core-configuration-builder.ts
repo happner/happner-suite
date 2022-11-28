@@ -1,26 +1,13 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const BaseBuilder = require('happn-commons/lib/base-builder');
-
-import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';
-import { HappnConfigurationBuilder } from '../happn/happn-configuration-builder';
-import { CacheConfigBuilder } from '../happn/services/cache-config-builder';
-import { ConnectConfigBuilder } from '../happn/services/connect-config-builder';
-import { DataConfigBuilder } from '../happn/services/data-config-builder';
+import BaseBuilder from 'happn-commons/lib/base-builder';
 import { HealthConfigBuilder } from '../happn/services/health-config-builder';
 import { MembershipConfigBuilder } from '../happn/services/membership-config-builder';
-import { ProtocolConfigBuilder } from '../happn/services/protocol-config-builder';
-import { PublisherConfigBuilder } from '../happn/services/publisher-config-builder';
-import { SecurityConfigBuilder } from '../happn/services/security-config-builder';
-import { SubscriptionConfigBuilder } from '../happn/services/subscription-config-builder';
-import { SystemConfigBuilder } from '../happn/services/system-config-builder';
-import { TransportConfigBuilder } from '../happn/services/transport-config-builder';
 import { OrchestratorConfigBuilder } from '../happn/services/orchestrator-config-builder';
 import { ProxyConfigBuilder } from '../happn/services/proxy-config-builder';
 import { ReplicatorConfigBuilder } from '../happn/services/replicator-config-builder';
 import { IHappnClusterConfigurationBuilder } from '../interfaces/i-happn-cluster-configuration-builder';
 
-export class HappnClusterConfigurationBuilder
-  extends HappnConfigurationBuilder
+export class HappnClusterCoreConfigurationBuilder
+  extends BaseBuilder
   implements IHappnClusterConfigurationBuilder
 {
   #healthConfigBuilder: HealthConfigBuilder;
@@ -30,32 +17,13 @@ export class HappnClusterConfigurationBuilder
   #replicatorConfigBuilder: ReplicatorConfigBuilder;
 
   constructor(
-    cacheConfigBuilder: CacheConfigBuilder,
-    connectConfigBuilder: ConnectConfigBuilder,
-    dataConfigBuilder: DataConfigBuilder,
-    protocolConfigBuilder: ProtocolConfigBuilder,
-    publisherConfigBuilder: PublisherConfigBuilder,
-    securityConfigBuilder: SecurityConfigBuilder,
-    subscriptionConfigBuilder: SubscriptionConfigBuilder,
-    systemConfigBuilder: SystemConfigBuilder,
-    transportConfigBuilder: TransportConfigBuilder,
     healthConfigBuilder: HealthConfigBuilder,
     membershipConfigBuilder: MembershipConfigBuilder,
     orchestratorConfigBuilder: OrchestratorConfigBuilder,
     proxyConfigBuilder: ProxyConfigBuilder,
     replicatorConfigBuilder: ReplicatorConfigBuilder
   ) {
-    super(
-      cacheConfigBuilder,
-      connectConfigBuilder,
-      dataConfigBuilder,
-      protocolConfigBuilder,
-      publisherConfigBuilder,
-      securityConfigBuilder,
-      subscriptionConfigBuilder,
-      systemConfigBuilder,
-      transportConfigBuilder
-    );
+    super();
     this.#healthConfigBuilder = healthConfigBuilder;
     this.#membershipConfigBuilder = membershipConfigBuilder;
     this.#orchestratorConfigBuilder = orchestratorConfigBuilder;
@@ -64,15 +32,15 @@ export class HappnClusterConfigurationBuilder
   }
 
   /*
-  HEALTH
-   */
+    HEALTH
+     */
 
-  withHealthInterval(interval: number): HappnClusterConfigurationBuilder {
+  withHealthInterval(interval: number): HappnClusterCoreConfigurationBuilder {
     this.#healthConfigBuilder.withHealthInterval(interval);
     return this;
   }
 
-  withHealthWarmupLimit(limit: number): HappnClusterConfigurationBuilder {
+  withHealthWarmupLimit(limit: number): HappnClusterCoreConfigurationBuilder {
     this.#healthConfigBuilder.withHealthWarmupLimit(limit);
     return this;
   }
@@ -81,33 +49,33 @@ export class HappnClusterConfigurationBuilder
   MEMBERSHIP
    */
 
-  withMembershipClusterName(name: string): HappnClusterConfigurationBuilder {
+  withMembershipClusterName(name: string): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipClusterName(name);
     return this;
   }
 
-  withMembershipDisseminationFactor(factor: number): HappnClusterConfigurationBuilder {
+  withMembershipDisseminationFactor(factor: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipDisseminationFactor(factor);
     return this;
   }
 
-  withMembershipHost(host: string, port: number): HappnClusterConfigurationBuilder {
+  withMembershipHost(host: string, port: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipHost(host);
     this.#membershipConfigBuilder.withMembershipPort(port);
     return this;
   }
 
-  withMembershipJoinTimeout(timeout: number): HappnClusterConfigurationBuilder {
+  withMembershipJoinTimeout(timeout: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipJoinTimeout(timeout);
     return this;
   }
 
-  withMembershipJoinType(type: string): HappnClusterConfigurationBuilder {
+  withMembershipJoinType(type: string): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipJoinType(type);
     return this;
   }
 
-  withMembershipMemberHost(host: string): HappnClusterConfigurationBuilder {
+  withMembershipMemberHost(host: string): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipMemberHost(host);
     return this;
   }
@@ -117,7 +85,7 @@ export class HappnClusterConfigurationBuilder
     pingTimeout?: number,
     requestTimeout?: number,
     requestGroupSize?: number
-  ): HappnClusterConfigurationBuilder {
+  ): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipPingInterval(interval);
     if (pingTimeout !== undefined)
       this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
@@ -128,22 +96,22 @@ export class HappnClusterConfigurationBuilder
     return this;
   }
 
-  withMembershipRandomWait(wait: number): HappnClusterConfigurationBuilder {
+  withMembershipRandomWait(wait: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipRandomWait(wait);
     return this;
   }
 
-  withMembershipIsSeed(isSeed: boolean): HappnClusterConfigurationBuilder {
+  withMembershipIsSeed(isSeed: boolean): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipIsSeed(isSeed);
     return this;
   }
 
-  withMembershipSeedWait(wait: number): HappnClusterConfigurationBuilder {
+  withMembershipSeedWait(wait: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipSeedWait(wait);
     return this;
   }
 
-  withMembershipUdpMaxDgramSize(size: number): HappnClusterConfigurationBuilder {
+  withMembershipUdpMaxDgramSize(size: number): HappnClusterCoreConfigurationBuilder {
     this.#membershipConfigBuilder.withMembershipUdpMaxDgramSize(size);
     return this;
   }
@@ -152,22 +120,22 @@ export class HappnClusterConfigurationBuilder
   ORCHESTRATOR
    */
 
-  withOrchestratorMinimumPeers(minimum: number): HappnClusterConfigurationBuilder {
+  withOrchestratorMinimumPeers(minimum: number): HappnClusterCoreConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorMinimumPeers(minimum);
     return this;
   }
 
-  withOrchestratorReplicatePath(path: string): HappnClusterConfigurationBuilder {
+  withOrchestratorReplicatePath(path: string): HappnClusterCoreConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorReplicatePath(path);
     return this;
   }
 
-  withOrchestratorStableReportInterval(interval: number): HappnClusterConfigurationBuilder {
+  withOrchestratorStableReportInterval(interval: number): HappnClusterCoreConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorStableReportInterval(interval);
     return this;
   }
 
-  withOrchestratorStabiliseTimeout(timeout: number): HappnClusterConfigurationBuilder {
+  withOrchestratorStabiliseTimeout(timeout: number): HappnClusterCoreConfigurationBuilder {
     this.#orchestratorConfigBuilder.withOrchestratorStabiliseTimeout(timeout);
     return this;
   }
@@ -176,28 +144,28 @@ export class HappnClusterConfigurationBuilder
   PROXY
    */
 
-  withProxyAllowSelfSignedCerts(allow: boolean): HappnClusterConfigurationBuilder {
+  withProxyAllowSelfSignedCerts(allow: boolean): HappnClusterCoreConfigurationBuilder {
     this.#proxyConfigBuilder.withProxyAllowSelfSignedCerts(allow);
     return this;
   }
 
-  withProxyCertPath(path: string): HappnClusterConfigurationBuilder {
+  withProxyCertPath(path: string): HappnClusterCoreConfigurationBuilder {
     this.#proxyConfigBuilder.withProxyCertPath(path);
     return this;
   }
 
-  withProxyHost(host: string, port: number): HappnClusterConfigurationBuilder {
+  withProxyHost(host: string, port: number): HappnClusterCoreConfigurationBuilder {
     this.#proxyConfigBuilder.withProxyHost(host);
     this.#proxyConfigBuilder.withProxyPort(port);
     return this;
   }
 
-  withProxyKeyPath(path: string): HappnClusterConfigurationBuilder {
+  withProxyKeyPath(path: string): HappnClusterCoreConfigurationBuilder {
     this.#proxyConfigBuilder.withProxyKeyPath(path);
     return this;
   }
 
-  withProxyTimeout(timeout: number): HappnClusterConfigurationBuilder {
+  withProxyTimeout(timeout: number): HappnClusterCoreConfigurationBuilder {
     this.#proxyConfigBuilder.withProxyTimeout(timeout);
     return this;
   }
@@ -208,23 +176,12 @@ export class HappnClusterConfigurationBuilder
 
   withReplicatorSecurityChangeSetReplicateInterval(
     interval: number
-  ): HappnClusterConfigurationBuilder {
+  ): HappnClusterCoreConfigurationBuilder {
     this.#replicatorConfigBuilder.withReplicatorSecurityChangeSetReplicateInterval(interval);
     return this;
   }
 
   build() {
-    const happnConfig = super.build();
-
-    const clusterBuilder = new BaseBuilder();
-    clusterBuilder.set(`health`, this.#healthConfigBuilder, BaseBuilder.Types.OBJECT);
-    clusterBuilder.set(`membership`, this.#membershipConfigBuilder, BaseBuilder.Types.OBJECT);
-    clusterBuilder.set(`orchestrator`, this.#orchestratorConfigBuilder, BaseBuilder.Types.OBJECT);
-    clusterBuilder.set(`proxy`, this.#proxyConfigBuilder, BaseBuilder.Types.OBJECT);
-    clusterBuilder.set(`replicator`, this.#replicatorConfigBuilder, BaseBuilder.Types.OBJECT);
-
-    const clusterConfig = clusterBuilder.build();
-
-    return { ...happnConfig, ...clusterConfig };
+    return super.build();
   }
 }

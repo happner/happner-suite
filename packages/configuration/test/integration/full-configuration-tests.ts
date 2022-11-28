@@ -2,6 +2,9 @@
 import { ConfigBuilderFactory } from '../../lib/factories/config-builder-factory';
 import { ConfigValidator } from '../../lib/validators/config-validator';
 import { expect } from 'chai';
+import { HappnerConfigurationBuilder } from '../../lib/builders/happner/happner-configuration-builder';
+import { HappnClusterConfigurationBuilder } from '../../lib/builders/happn-cluster/happn-cluster-configuration-builder';
+import { HappnConfigurationBuilder } from '../../lib/builders/happn/happn-configuration-builder';
 
 describe('full configuration tests', function () {
   it('builds a happn configuration object', () => {
@@ -20,7 +23,7 @@ describe('full configuration tests', function () {
     let testCb1 = (err, result) => {
       expect(result).to.equal('inbound-result');
     };
-    result.services.protocol.config.inboundLayers[0]('test', testCb1);
+    result.happn.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 
   it('builds a happn-cluster configuration object', () => {
@@ -37,11 +40,43 @@ describe('full configuration tests', function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
+
+  it('builds a happner configuration object', () => {
+    const happnerBuilder = ConfigBuilderFactory.getBuilder('happner');
+
+    setHappnConfigValues(happnerBuilder);
+    setHappnerConfigValues(happnerBuilder);
+
+    const result = happnerBuilder.build();
+
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateHappnConfig(result);
+
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+  });
+
+  it('builds a happner-cluster configuration object', () => {
+    const happnerClusterBuilder = ConfigBuilderFactory.getBuilder('happner-cluster');
+
+    setHappnConfigValues(happnerClusterBuilder);
+    setHappnClusterConfigValues(happnerClusterBuilder);
+    setHappnerConfigValues(happnerClusterBuilder);
+    setHappnerClusterConfigValues(happnerClusterBuilder);
+
+    const result = happnerClusterBuilder.build();
+
+    // validate
+    const validator = new ConfigValidator();
+    validator.validateHappnConfig(result);
+
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+  });
 });
 
-function setHappnConfigValues(configuration) {
+function setHappnConfigValues(builder) {
   return (
-    configuration
+    builder
       .withCacheStatisticsCheckPointAuthOverride(5, 1000)
       .withCacheStatisticsCheckPointAuthTokenOverride(5, 1000)
       .withCacheStatisticsInterval(1)
@@ -114,8 +149,8 @@ function setHappnConfigValues(configuration) {
   );
 }
 
-function setHappnClusterConfigValues(configuration) {
-  return configuration
+function setHappnClusterConfigValues(builder) {
+  return builder
     .withHealthInterval(1000)
     .withHealthWarmupLimit(50000)
     .withMembershipClusterName('membership1')
@@ -138,4 +173,32 @@ function setHappnClusterConfigValues(configuration) {
     .withProxyKeyPath('/key/path')
     .withProxyTimeout(25000)
     .withReplicatorSecurityChangeSetReplicateInterval(1000);
+}
+
+function setHappnerConfigValues(builder) {
+  return builder
+    .withName('happner test name')
+    .withDeferListen(true)
+    .withListenFirst(true)
+    .beginComponent()
+    .withDataRoute('testRoute', '/data/route')
+    .withEvent('testEvent', {})
+    .withModuleName('testModuleName')
+    .withName('testComponent')
+    .withSchemaExclusive(true)
+    .withWebRoute('webRoute', 'test')
+    .beginFunction()
+    .withAlias('function alias')
+    .withModelType('async')
+    .withName('initFunc', 'init')
+    .withParameter('paramName', 123123)
+    .endFunction()
+    .endComponent();
+}
+
+function setHappnerClusterConfigValues(builder) {
+  return builder
+    .withClusterRequestTimeout(10000)
+    .withClusterResponseTimeout(10000)
+    .withDomain('test.domain');
 }

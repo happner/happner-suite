@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
+
+import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';
 import { CacheConfigBuilder } from './services/cache-config-builder';
 import { ConnectConfigBuilder } from './services/connect-config-builder';
 import { DataConfigBuilder } from './services/data-config-builder';
@@ -12,7 +15,7 @@ import constants from '../../constants/config-constants';
 
 const ROOT = constants.HAPPN_SERVICES_ROOT;
 
-export class HappnConfigurationBuilder extends BaseBuilder {
+export class HappnConfigurationBuilder extends BaseBuilder implements IHappnConfigurationBuilder {
   #cacheConfigBuilder: CacheConfigBuilder;
   #connectConfigBuilder: ConnectConfigBuilder;
   #dataConfigBuilder: DataConfigBuilder;

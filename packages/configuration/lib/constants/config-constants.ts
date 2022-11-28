@@ -1,3 +1,3 @@
 export default {
-  HAPPN_SERVICES_ROOT: 'services',
+  HAPPN_SERVICES_ROOT: 'happn.services',
 };

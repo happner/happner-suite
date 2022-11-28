@@ -1,6 +1,10 @@
+/* eslint-disable no-case-declarations */
+import BuilderConstants from '../constants/builder-constants';
 import { HappnConfigurationBuilder } from '../builders/happn/happn-configuration-builder';
 import { HappnClusterConfigurationBuilder } from '../builders/happn-cluster/happn-cluster-configuration-builder';
-
+import { HappnClusterCoreConfigurationBuilder } from '../builders/happn-cluster/happn-cluster-core-configuration-builder';
+import { HappnerClusterConfigurationBuilder } from '../builders/happner-cluster/happner-cluster-configuration-builder';
+import { HappnerCoreConfigurationBuilder } from '../builders/happner/happner-core-configuration-builder';
 import { CacheConfigBuilder } from '../builders/happn/services/cache-config-builder';
 import { ConnectConfigBuilder } from '../builders/happn/services/connect-config-builder';
 import { DataConfigBuilder } from '../builders/happn/services/data-config-builder';
@@ -15,14 +19,11 @@ import { OrchestratorConfigBuilder } from '../builders/happn/services/orchestrat
 import { ReplicatorConfigBuilder } from '../builders/happn/services/replicator-config-builder';
 import { ProxyConfigBuilder } from '../builders/happn/services/proxy-config-builder';
 import { HealthConfigBuilder } from '../builders/happn/services/health-config-builder';
-
 import { FieldTypeValidator } from '../validators/field-type-validator';
 import { HappnerConfigurationBuilder } from '../builders/happner/happner-configuration-builder';
 import { ComponentsConfigBuilder } from '../builders/happner/components/components-config-builder';
 import { EndpointsConfigBuilder } from '../builders/happner/endpoints/endpoints-config-builder';
 import { ModulesConfigBuilder } from '../builders/happner/modules/modules-config-builder';
-
-import BuilderConstants from '../constants/builder-constants';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
@@ -73,8 +74,36 @@ export class ConfigBuilderFactory {
           new EndpointsConfigBuilder(),
           new ModulesConfigBuilder()
         );
+      case HAPPNER_CLUSTER:
+        const happnClusterCoreConfigurationBuilder = new HappnClusterCoreConfigurationBuilder(
+          new HealthConfigBuilder(),
+          new MembershipConfigBuilder(),
+          new OrchestratorConfigBuilder(),
+          new ProxyConfigBuilder(),
+          new ReplicatorConfigBuilder()
+        );
+
+        const happnerCoreConfigurationBuilder = new HappnerCoreConfigurationBuilder(
+          new ComponentsConfigBuilder(),
+          new EndpointsConfigBuilder(),
+          new ModulesConfigBuilder()
+        );
+
+        return new HappnerClusterConfigurationBuilder(
+          new CacheConfigBuilder(),
+          new ConnectConfigBuilder(),
+          new DataConfigBuilder(),
+          new ProtocolConfigBuilder(new FieldTypeValidator()),
+          new PublisherConfigBuilder(),
+          new SecurityConfigBuilder(),
+          new SubscriptionConfigBuilder(),
+          new SystemConfigBuilder(),
+          new TransportConfigBuilder(),
+          happnClusterCoreConfigurationBuilder,
+          happnerCoreConfigurationBuilder
+        );
       default:
-        return null;
+        throw new Error('Unknown configuration type');
     }
   }
 }

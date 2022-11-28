@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
+import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';
+import { IHappnerConfigurationBuilder } from '../interfaces/i-happner-configuration-builder';
 import { CacheConfigBuilder } from '../happn/services/cache-config-builder';
 import { ConnectConfigBuilder } from '../happn/services/connect-config-builder';
 import { DataConfigBuilder } from '../happn/services/data-config-builder';
@@ -9,13 +13,15 @@ import { SecurityConfigBuilder } from '../happn/services/security-config-builder
 import { SubscriptionConfigBuilder } from '../happn/services/subscription-config-builder';
 import { SystemConfigBuilder } from '../happn/services/system-config-builder';
 import { TransportConfigBuilder } from '../happn/services/transport-config-builder';
-
 import { HappnConfigurationBuilder } from '../happn/happn-configuration-builder';
 import { ComponentsConfigBuilder } from './components/components-config-builder';
 import { EndpointsConfigBuilder } from './endpoints/endpoints-config-builder';
 import { ModulesConfigBuilder } from './modules/modules-config-builder';
 
-export class HappnerConfigurationBuilder extends HappnConfigurationBuilder {
+export class HappnerConfigurationBuilder
+  extends HappnConfigurationBuilder
+  implements IHappnConfigurationBuilder, IHappnerConfigurationBuilder
+{
   #componentsConfigBuilder: ComponentsConfigBuilder;
   #endpointsConfigBuilder: EndpointsConfigBuilder;
   #modulesConfigBuilder: ModulesConfigBuilder;
@@ -51,17 +57,17 @@ export class HappnerConfigurationBuilder extends HappnConfigurationBuilder {
   }
 
   withName(name: string): HappnerConfigurationBuilder {
-    this.set('name', name, super.Types.STRING);
+    this.set('name', name, BaseBuilder.Types.STRING);
     return this;
   }
 
   withDeferListen(defer: boolean): HappnerConfigurationBuilder {
-    this.set('deferListen', defer, super.Types.BOOLEAN);
+    this.set('deferListen', defer, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
   withListenFirst(listenFirst: boolean): HappnerConfigurationBuilder {
-    this.set('listenFirst', listenFirst, super.Types.BOOLEAN);
+    this.set('listenFirst', listenFirst, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
@@ -78,6 +84,6 @@ export class HappnerConfigurationBuilder extends HappnConfigurationBuilder {
     happnerBuilder.set('components', this.#componentsConfigBuilder, BaseBuilder.Types.OBJECT);
     const happnerConfig = happnerBuilder.build();
 
-    return { happn: happnConfig, ...happnerConfig };
+    return { ...happnConfig, ...happnerConfig };
   }
 }
