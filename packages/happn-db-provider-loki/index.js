@@ -296,6 +296,26 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     );
   }
 
+  prepareAdditionalCriteria(additionalCriteria) {
+    const transformed = commons._.transform(
+      additionalCriteria,
+      (result, value, key) => {
+        if (key === '$like') {
+          result['$regex'] = value.replaceAll('%', '.*');
+        } else if (Array.isArray(value)) {
+          result[key] = value;
+        } else if (typeof value === 'object') {
+          result[key] = this.prepareAdditionalCriteria(value);
+        } else {
+          result[key] = value;
+        }
+        return result;
+      },
+      {}
+    );
+    return transformed;
+  }
+
   fsync(filename, callback) {
     return (e) => {
       if (e) {
@@ -399,7 +419,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     let pathCriteria = this.getPathCriteria(path);
 
     if (!parameters) parameters = {};
-    if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
+    if (parameters.criteria) {
+      let preparedCriteria = this.prepareAdditionalCriteria(parameters.criteria);
+      pathCriteria = this.addCriteria(pathCriteria, preparedCriteria);
+    }
     let results = this.collection.chain().find(pathCriteria);
     let options = parameters.options || {};
     if (results.count() === 0) {

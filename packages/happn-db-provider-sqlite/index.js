@@ -27,6 +27,8 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.findOne = util.maybePromisify(this.findOne);
     this.#delimiter = settings.delimiter || '___';
+    // 100MB soft heap limit
+    this.settings.heapLimit = this.settings.heapLimit || 100e6;
     this.#hashRingSemaphore = require('happn-commons').HashRingSemaphore.create({
       slots: settings.mutateSlots || 30, // 30 parallel mutations
     });
@@ -50,6 +52,15 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     let modelEnsuredError;
     this.db
       .authenticate()
+      .then(() => {
+        return this.db.query(`PRAGMA soft_heap_limit=${this.settings.heapLimit};`);
+      })
+      .then(() => {
+        return this.db.query(`PRAGMA soft_heap_limit=${this.settings.heapLimit};`);
+      })
+      .then(() => {
+        return this.db.query(`PRAGMA optimize;`);
+      })
       .then(() => {
         return this.#ensureModel();
       })
