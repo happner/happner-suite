@@ -8,8 +8,7 @@ import { ModulesConfigBuilder } from './modules/modules-config-builder';
 
 export class HappnerCoreConfigurationBuilder
   extends BaseBuilder
-  implements IHappnerConfigurationBuilder
-{
+  implements IHappnerConfigurationBuilder {
   #componentsConfigBuilder: ComponentsConfigBuilder;
   #endpointsConfigBuilder: EndpointsConfigBuilder;
   #modulesConfigBuilder: ModulesConfigBuilder;
@@ -23,6 +22,10 @@ export class HappnerCoreConfigurationBuilder
     this.#componentsConfigBuilder = componentsConfigBuilder;
     this.#endpointsConfigBuilder = endpointsConfigBuilder;
     this.#modulesConfigBuilder = modulesConfigBuilder;
+
+    this.set('endpoints', this.#endpointsConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set('modules', this.#modulesConfigBuilder, BaseBuilder.Types.OBJECT);
+    this.set('components', this.#componentsConfigBuilder, BaseBuilder.Types.OBJECT);
   }
 
   withName(name: string): HappnerCoreConfigurationBuilder {
@@ -45,10 +48,6 @@ export class HappnerCoreConfigurationBuilder
   }
 
   build() {
-    this.set('endpoints', this.#endpointsConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set('modules', this.#modulesConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set('components', this.#componentsConfigBuilder, BaseBuilder.Types.OBJECT);
-
     return super.build();
   }
 }

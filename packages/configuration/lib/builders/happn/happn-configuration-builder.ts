@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
-
+import constants from '../../constants/config-constants';
 import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';
 import { CacheConfigBuilder } from './services/cache-config-builder';
 import { ConnectConfigBuilder } from './services/connect-config-builder';
@@ -11,7 +11,6 @@ import { SecurityConfigBuilder } from './services/security-config-builder';
 import { SubscriptionConfigBuilder } from './services/subscription-config-builder';
 import { SystemConfigBuilder } from './services/system-config-builder';
 import { TransportConfigBuilder } from './services/transport-config-builder';
-import constants from '../../constants/config-constants';
 
 const ROOT = constants.HAPPN_SERVICES_ROOT;
 
@@ -47,6 +46,16 @@ export class HappnConfigurationBuilder extends BaseBuilder implements IHappnConf
     this.#subscriptionConfigBuilder = subscriptionConfigBuilder;
     this.#systemConfigBuilder = systemConfigBuilder;
     this.#transportConfigBuilder = transportConfigBuilder;
+
+    super.set(`${ROOT}.cache`, this.#cacheConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.connect`, this.#connectConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.data`, this.#dataConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.protocol`, this.#protocolConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.publisher`, this.#publisherConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.security`, this.#securityConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.subscription`, this.#subscriptionConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.system`, this.#systemConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`${ROOT}.transport`, this.#transportConfigBuilder, BaseBuilder.Types.OBJECT);
   }
 
   /*
@@ -390,16 +399,6 @@ export class HappnConfigurationBuilder extends BaseBuilder implements IHappnConf
    */
 
   build() {
-    this.set(`${ROOT}.cache`, this.#cacheConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.connect`, this.#connectConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.data`, this.#dataConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.protocol`, this.#protocolConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.publisher`, this.#publisherConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.security`, this.#securityConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.subscription`, this.#subscriptionConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.system`, this.#systemConfigBuilder, BaseBuilder.Types.OBJECT);
-    this.set(`${ROOT}.transport`, this.#transportConfigBuilder, BaseBuilder.Types.OBJECT);
-
     return super.build();
   }
 }

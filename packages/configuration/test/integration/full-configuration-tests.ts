@@ -2,9 +2,6 @@
 import { ConfigBuilderFactory } from '../../lib/factories/config-builder-factory';
 import { ConfigValidator } from '../../lib/validators/config-validator';
 import { expect } from 'chai';
-import { HappnerConfigurationBuilder } from '../../lib/builders/happner/happner-configuration-builder';
-import { HappnClusterConfigurationBuilder } from '../../lib/builders/happn-cluster/happn-cluster-configuration-builder';
-import { HappnConfigurationBuilder } from '../../lib/builders/happn/happn-configuration-builder';
 
 describe('full configuration tests', function () {
   it('builds a happn configuration object', () => {
@@ -72,6 +69,7 @@ describe('full configuration tests', function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
+
 });
 
 function setHappnConfigValues(builder) {

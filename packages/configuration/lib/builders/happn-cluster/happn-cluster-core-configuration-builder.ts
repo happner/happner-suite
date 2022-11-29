@@ -29,6 +29,12 @@ export class HappnClusterCoreConfigurationBuilder
     this.#orchestratorConfigBuilder = orchestratorConfigBuilder;
     this.#proxyConfigBuilder = proxyConfigBuilder;
     this.#replicatorConfigBuilder = replicatorConfigBuilder;
+
+    super.set(`health`, this.#healthConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`membership`, this.#membershipConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`orchestrator`, this.#orchestratorConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`proxy`, this.#proxyConfigBuilder, BaseBuilder.Types.OBJECT);
+    super.set(`replicator`, this.#replicatorConfigBuilder, BaseBuilder.Types.OBJECT);
   }
 
   /*
