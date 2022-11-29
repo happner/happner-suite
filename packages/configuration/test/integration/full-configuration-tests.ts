@@ -5,10 +5,10 @@ import { expect } from 'chai';
 
 describe('full configuration tests', function () {
   it('builds a happn configuration object', () => {
-    const configuration = ConfigBuilderFactory.getBuilder('happn');
-    setHappnConfigValues(configuration);
+    const builder = ConfigBuilderFactory.getBuilder('happn');
+    setHappnConfigValues(builder);
 
-    const result = configuration.build();
+    const result = builder.build();
 
     // validate
     const validator = new ConfigValidator();
@@ -24,27 +24,27 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happn-cluster configuration object', () => {
-    const happnClusterBuilder = ConfigBuilderFactory.getBuilder('happn-cluster');
+    const builder = ConfigBuilderFactory.getBuilder('happn-cluster');
 
-    setHappnConfigValues(happnClusterBuilder);
-    setHappnClusterConfigValues(happnClusterBuilder);
+    setHappnConfigValues(builder);
+    setHappnClusterConfigValues(builder);
 
-    const result = happnClusterBuilder.build();
+    const result = builder.build();
 
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnConfig(result);
+    validator.validateHappnClusterConfig(result);
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
 
   it('builds a happner configuration object', () => {
-    const happnerBuilder = ConfigBuilderFactory.getBuilder('happner');
+    const builder = ConfigBuilderFactory.getBuilder('happner');
 
-    setHappnConfigValues(happnerBuilder);
-    setHappnerConfigValues(happnerBuilder);
+    setHappnConfigValues(builder);
+    setHappnerConfigValues(builder);
 
-    const result = happnerBuilder.build();
+    const result = builder.build();
 
     // validate
     const validator = new ConfigValidator();
@@ -54,14 +54,14 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happner-cluster configuration object', () => {
-    const happnerClusterBuilder = ConfigBuilderFactory.getBuilder('happner-cluster');
+    const builder = ConfigBuilderFactory.getBuilder('happner-cluster');
 
-    setHappnConfigValues(happnerClusterBuilder);
-    setHappnClusterConfigValues(happnerClusterBuilder);
-    setHappnerConfigValues(happnerClusterBuilder);
-    setHappnerClusterConfigValues(happnerClusterBuilder);
+    setHappnConfigValues(builder);
+    setHappnClusterConfigValues(builder);
+    setHappnerConfigValues(builder);
+    setHappnerClusterConfigValues(builder);
 
-    const result = happnerClusterBuilder.build();
+    const result = builder.build();
 
     // validate
     const validator = new ConfigValidator();
@@ -69,7 +69,6 @@ describe('full configuration tests', function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
-
 });
 
 function setHappnConfigValues(builder) {

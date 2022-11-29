@@ -1,4 +1,5 @@
 {
+  "$id": "happn-schema.json",
   "$ref": "#/definitions/HappnSchema",
   "definitions": {
     "HappnSchema": {
@@ -60,21 +61,6 @@
         },
         "transport": {
           "$ref": "#/definitions/Transport"
-        },
-        "health": {
-          "$ref": "#/definitions/Health"
-        },
-        "membership": {
-          "$ref": "#/definitions/Membership"
-        },
-        "orchestrator": {
-          "$ref": "#/definitions/Orchestrator"
-        },
-        "proxy": {
-          "$ref": "#/definitions/Proxy"
-        },
-        "replicator": {
-          "$ref": "#/definitions/Replicator"
         }
       },
       "required": [
@@ -122,21 +108,6 @@
     },
     "Transport": {
       "$ref": "transport-schema.json"
-    },
-    "Health": {
-      "$ref": "health-schema.json"
-    },
-    "Membership": {
-      "$ref": "membership-schema.json"
-    },
-    "Orchestrator": {
-      "$ref": "orchestrator-schema.json"
-    },
-    "Proxy": {
-      "$ref": "proxy-schema.json"
-    },
-    "Replicator": {
-      "$ref": "replicator-schema.json"
     }
   }
 }

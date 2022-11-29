@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations,no-console,@typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
+
 import BuilderConstants from '../constants/builder-constants';
 import { CacheConfigBuilder } from '../builders/happn/services/cache-config-builder';
 import { ConnectConfigBuilder } from '../builders/happn/services/connect-config-builder';
@@ -24,6 +25,10 @@ import { HappnCoreBuilder } from '../builders/happn/happn-core-mixin';
 import { HappnClusterCoreBuilder } from '../builders/happn-cluster/happn-cluster-core-mixin';
 import { HappnerCoreBuilder } from '../builders/happner/happner-core-mixin';
 import { HappnerClusterCoreBuilder } from '../builders/happner-cluster/happner-cluster-core-mixin';
+import { IHappnConfigurationBuilder } from '../builders/interfaces/i-happn-configuration-builder';
+import { IHappnClusterConfigurationBuilder } from '../builders/interfaces/i-happn-cluster-configuration-builder';
+import { IHappnerConfigurationBuilder } from '../builders/interfaces/i-happner-configuration-builder';
+import { IHappnerClusterConfigurationBuilder } from '../builders/interfaces/i-happner-cluster-configuration-builder';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
@@ -40,26 +45,44 @@ const BaseClz = class BaseClz extends BaseBuilder {
 
 export class ConfigBuilderFactory {
   static getBuilder(type: string) {
-    const container = ConfigBuilderFactory.createContainer();
-
     switch (type) {
       case HAPPN:
-        const HappnMixin = HappnCoreBuilder(BaseClz);
-        return new HappnMixin(container);
+        return ConfigBuilderFactory.getHappnBuilder();
       case HAPPN_CLUSTER:
-        const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
-        return new HappnClusterMixin(container);
+        return ConfigBuilderFactory.getHappnClusterBuilder();
       case HAPPNER:
-        const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
-        return new HappnerMixin(container);
+        return ConfigBuilderFactory.getHappnerBuilder();
       case HAPPNER_CLUSTER:
-        const HappnerClusterMixin = HappnCoreBuilder(
-          HappnerCoreBuilder(HappnClusterCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
-        );
-        return new HappnerClusterMixin(container);
+        return ConfigBuilderFactory.getHappnerClusterBuilder();
       default:
         throw new Error('Unknown configuration type');
     }
+  }
+
+  static getHappnBuilder() {
+    const container = ConfigBuilderFactory.createContainer();
+    const HappnMixin = HappnCoreBuilder(BaseClz);
+    return new HappnMixin(container);
+  }
+
+  static getHappnClusterBuilder() {
+    const container = ConfigBuilderFactory.createContainer();
+    const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
+    return new HappnClusterMixin(container);
+  }
+
+  static getHappnerBuilder() {
+    const container = ConfigBuilderFactory.createContainer();
+    const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
+    return new HappnerMixin(container);
+  }
+
+  static getHappnerClusterBuilder() {
+    const container = ConfigBuilderFactory.createContainer();
+    const HappnerClusterMixin = HappnCoreBuilder(
+      HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
+    );
+    return new HappnerClusterMixin(container);
   }
 
   static createContainer() {

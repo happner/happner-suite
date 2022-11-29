@@ -1,5 +1,8 @@
-const Ajv = require('ajv');
+/* eslint-disable @typescript-eslint/no-var-requires */
+import Ajv from 'ajv';
+
 const happnSchema = require('../schemas/happn-schema.json');
+const happnClusterSchema = require('../schemas/happn-cluster-schema.json');
 const cacheSchema = require('../schemas/services/cache-schema.json');
 const connectSchema = require('../schemas/services/connect-schema.json');
 const dataSchema = require('../schemas/services/data-schema.json');
@@ -26,6 +29,7 @@ export class ConfigValidator {
   constructor() {
     this.#ajv = new Ajv({
       schemas: [
+        happnSchema,
         cacheSchema,
         connectSchema,
         dataSchema,
@@ -64,11 +68,11 @@ export class ConfigValidator {
   }
 
   validateProtocolConfig(config: any): ValidationResult {
-    let result = this.#validate(config, protocolSchema);
+    const result = this.#validate(config, protocolSchema);
 
     if (config.config.inboundLayers !== null) {
       config.config.inboundLayers.forEach((layer) => {
-        let inboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
+        const inboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
         if (!inboundResult.isValid) {
           if (result.valid) result.valid = false;
           result.errors.push(inboundResult.error);
@@ -78,7 +82,7 @@ export class ConfigValidator {
 
     if (config.config.outboundLayers !== null) {
       config.config.outboundLayers.forEach((layer) => {
-        let outboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
+        const outboundResult = this.#fieldTypeValidator.validateFunctionArgs(layer, 2);
         if (!outboundResult.isValid) {
           if (result.valid) result.valid = false;
           result.errors.push(outboundResult.error);
@@ -109,6 +113,14 @@ export class ConfigValidator {
     return this.#validate(config, transportSchema);
   }
 
+  validateHappnConfig(config: any): ValidationResult {
+    return this.#validate(config, happnSchema);
+  }
+
+  /*****************************************************
+   HAPPN-CLUSTER-SPECIFIC
+   ****************************************************/
+
   validateHealthConfig(config: any): ValidationResult {
     return this.#validate(config, healthSchema);
   }
@@ -129,8 +141,8 @@ export class ConfigValidator {
     return this.#validate(config, replicatorSchema);
   }
 
-  validateHappnConfig(config: any): ValidationResult {
-    return this.#validate(config, happnSchema);
+  validateHappnClusterConfig(config: any) {
+    return this.#validate(config, happnClusterSchema);
   }
 
   /*****************************************************

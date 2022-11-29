@@ -1,0 +1,52 @@
+{
+  "$id": "happn-cluster-schema.json",
+  "$ref": "#/definitions/HappnClusterSchema",
+  "definitions": {
+    "HappnClusterSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "happn": {
+          "$ref": "#/definitions/Happn"
+        },
+        "health": {
+          "$ref": "#/definitions/Health"
+        },
+        "membership": {
+          "$ref": "#/definitions/Membership"
+        },
+        "orchestrator": {
+          "$ref": "#/definitions/Orchestrator"
+        },
+        "proxy": {
+          "$ref": "#/definitions/Proxy"
+        },
+        "replicator": {
+          "$ref": "#/definitions/Replicator"
+        }
+      },
+      "required": [
+        "happn"
+      ],
+      "title": "HappnClusterSchema"
+    },
+    "Happn": {
+      "$ref": "happn-schema.json"
+    },
+    "Health": {
+      "$ref": "health-schema.json"
+    },
+    "Membership": {
+      "$ref": "membership-schema.json"
+    },
+    "Orchestrator": {
+      "$ref": "orchestrator-schema.json"
+    },
+    "Proxy": {
+      "$ref": "proxy-schema.json"
+    },
+    "Replicator": {
+      "$ref": "replicator-schema.json"
+    }
+  }
+}

@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "tsc --build --clean",
     "compile": "npm run clean && tsc",
-    "test": "mocha --require ts-node/register 'test/**/**/*.ts'",
+    "test": "npm run compile && mocha --require ts-node/register 'test/**/**/*'",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm run test"
   },
   "author": "Tenacious & SMC",

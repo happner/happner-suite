@@ -37,12 +37,12 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
       HEALTH
        */
 
-    withHealthInterval(interval: number) {
+    withHealthInterval(interval: number): HappnClusterBuilder {
       this.#healthConfigBuilder.withHealthInterval(interval);
       return this;
     }
 
-    withHealthWarmupLimit(limit: number) {
+    withHealthWarmupLimit(limit: number): HappnClusterBuilder {
       this.#healthConfigBuilder.withHealthWarmupLimit(limit);
       return this;
     }
@@ -51,33 +51,33 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
     MEMBERSHIP
      */
 
-    withMembershipClusterName(name: string) {
+    withMembershipClusterName(name: string): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipClusterName(name);
       return this;
     }
 
-    withMembershipDisseminationFactor(factor: number) {
+    withMembershipDisseminationFactor(factor: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipDisseminationFactor(factor);
       return this;
     }
 
-    withMembershipHost(host: string, port: number) {
+    withMembershipHost(host: string, port: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipHost(host);
       this.#membershipConfigBuilder.withMembershipPort(port);
       return this;
     }
 
-    withMembershipJoinTimeout(timeout: number) {
+    withMembershipJoinTimeout(timeout: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipJoinTimeout(timeout);
       return this;
     }
 
-    withMembershipJoinType(type: string) {
+    withMembershipJoinType(type: string): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipJoinType(type);
       return this;
     }
 
-    withMembershipMemberHost(host: string) {
+    withMembershipMemberHost(host: string): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipMemberHost(host);
       return this;
     }
@@ -87,7 +87,7 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
       pingTimeout?: number,
       requestTimeout?: number,
       requestGroupSize?: number
-    ) {
+    ): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipPingInterval(interval);
       if (pingTimeout !== undefined)
         this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
@@ -98,22 +98,22 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
       return this;
     }
 
-    withMembershipRandomWait(wait: number) {
+    withMembershipRandomWait(wait: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipRandomWait(wait);
       return this;
     }
 
-    withMembershipIsSeed(isSeed: boolean) {
+    withMembershipIsSeed(isSeed: boolean): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipIsSeed(isSeed);
       return this;
     }
 
-    withMembershipSeedWait(wait: number) {
+    withMembershipSeedWait(wait: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipSeedWait(wait);
       return this;
     }
 
-    withMembershipUdpMaxDgramSize(size: number) {
+    withMembershipUdpMaxDgramSize(size: number): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipUdpMaxDgramSize(size);
       return this;
     }
@@ -122,22 +122,22 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
     ORCHESTRATOR
      */
 
-    withOrchestratorMinimumPeers(minimum: number) {
+    withOrchestratorMinimumPeers(minimum: number): HappnClusterBuilder {
       this.#orchestratorConfigBuilder.withOrchestratorMinimumPeers(minimum);
       return this;
     }
 
-    withOrchestratorReplicatePath(path: string) {
+    withOrchestratorReplicatePath(path: string): HappnClusterBuilder {
       this.#orchestratorConfigBuilder.withOrchestratorReplicatePath(path);
       return this;
     }
 
-    withOrchestratorStableReportInterval(interval: number) {
+    withOrchestratorStableReportInterval(interval: number): HappnClusterBuilder {
       this.#orchestratorConfigBuilder.withOrchestratorStableReportInterval(interval);
       return this;
     }
 
-    withOrchestratorStabiliseTimeout(timeout: number) {
+    withOrchestratorStabiliseTimeout(timeout: number): HappnClusterBuilder {
       this.#orchestratorConfigBuilder.withOrchestratorStabiliseTimeout(timeout);
       return this;
     }
@@ -146,28 +146,28 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
     PROXY
      */
 
-    withProxyAllowSelfSignedCerts(allow: boolean) {
+    withProxyAllowSelfSignedCerts(allow: boolean): HappnClusterBuilder {
       this.#proxyConfigBuilder.withProxyAllowSelfSignedCerts(allow);
       return this;
     }
 
-    withProxyCertPath(path: string) {
+    withProxyCertPath(path: string): HappnClusterBuilder {
       this.#proxyConfigBuilder.withProxyCertPath(path);
       return this;
     }
 
-    withProxyHost(host: string, port: number) {
+    withProxyHost(host: string, port: number): HappnClusterBuilder {
       this.#proxyConfigBuilder.withProxyHost(host);
       this.#proxyConfigBuilder.withProxyPort(port);
       return this;
     }
 
-    withProxyKeyPath(path: string) {
+    withProxyKeyPath(path: string): HappnClusterBuilder {
       this.#proxyConfigBuilder.withProxyKeyPath(path);
       return this;
     }
 
-    withProxyTimeout(timeout: number) {
+    withProxyTimeout(timeout: number): HappnClusterBuilder {
       this.#proxyConfigBuilder.withProxyTimeout(timeout);
       return this;
     }
@@ -176,7 +176,7 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
     REPLICATOR
      */
 
-    withReplicatorSecurityChangeSetReplicateInterval(interval: number) {
+    withReplicatorSecurityChangeSetReplicateInterval(interval: number): HappnClusterBuilder {
       this.#replicatorConfigBuilder.withReplicatorSecurityChangeSetReplicateInterval(interval);
       return this;
     }

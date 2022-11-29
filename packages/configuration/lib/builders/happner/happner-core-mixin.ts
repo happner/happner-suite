@@ -44,5 +44,11 @@ export function HappnerCoreBuilder<TBase extends Constructor>(Base: TBase) {
     beginComponent() {
       return this.#componentsConfigBuilder.beginComponent();
     }
+    beginEndpoint(){
+      return this.#endpointsConfigBuilder.beginEndpoint();
+    }
+    beginModule() {
+      return this.#modulesConfigBuilder.beginModule();
+    }
   };
 }
