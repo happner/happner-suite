@@ -5,7 +5,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, () => {
     cluster: {
       functions: [testHapnpConfig],
       localInstance: 0,
-      remoteInstance: 1,
     },
   };
   hooks.standardHooks(config);
