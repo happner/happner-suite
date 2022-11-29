@@ -1,15 +1,7 @@
-const stopCluster = require('../_lib/stop-cluster');
-require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+const hooks = require('../_lib/helpers/hooks');
+require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   let server, client;
-
-  after('stop server', async function () {
-    if (server) await stopCluster([server]);
-  });
-
-  after('stop client', function (done) {
-    if (!client) return done();
-    client.disconnect(done);
-  });
+  hooks.standardHooks();
 
   it('starts', async function () {
     server = await test.HappnerCluster.create({
@@ -29,8 +21,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         },
       },
     });
-
+    this.servers.push(server);
     client = new test.Happner.MeshClient({});
     await client.login(); // ensures proxy (default 55000) is running
+    this.clients.push(client);
   });
 });

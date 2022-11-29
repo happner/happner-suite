@@ -1,53 +1,46 @@
 const unique = require('array-unique');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
+const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let servers, localInstance;
-
-  beforeEach('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  beforeEach('start cluster', async function () {
-    servers = await Promise.all([
-      test.HappnerCluster.create(localInstanceConfig(0)),
-      test.HappnerCluster.create(remoteInstanceConfig(1)),
-      test.HappnerCluster.create(remoteInstanceConfig(2)),
-      test.HappnerCluster.create(remoteInstanceConfig(3)),
-    ]);
-    localInstance = servers[0];
-  });
-  afterEach('stop cluster', async function () {
-    if (servers) await stopCluster(servers);
-  });
+  let config = {
+    cluster: {
+      functions: [
+        localInstanceConfig,
+        remoteInstanceConfig,
+        remoteInstanceConfig,
+        remoteInstanceConfig,
+      ],
+      localInstance: 0,
+    },
+  };
+  hooks.standardHooks(config);
 
   it('removes implementation on peer departure', async function () {
     let replies = await Promise.all([
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
     ]);
     let list = unique(replies).sort();
     test
       .expect(list)
       .to.eql([1, 2, 3].map((num) => 'MESH_' + num.toString() + ':component3:method1'));
 
-    let server = servers.pop();
+    let server = this.servers.pop();
     await server.stop({ reconnect: false });
 
-    await test.delay(200); // time for peer departure to "arrive" at localInstance
+    await test.delay(200); // time for peer departure to "arrive" at this.localInstance
 
     replies = await Promise.all([
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
     ]);
 
     list = unique(replies).sort();
@@ -56,11 +49,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   it('adds implementation on peer arrival', async function () {
     let replies = await Promise.all([
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
     ]);
     let list = unique(replies).sort();
     test
@@ -68,17 +61,17 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       .to.eql([1, 2, 3].map((num) => 'MESH_' + num.toString() + ':component3:method1').sort());
 
     let server = await test.HappnerCluster.create(remoteInstanceConfig(4));
-    servers.push(server);
-    await test.delay(3000); // time for peer arrival to "arrival" at localInstance
+    this.servers.push(server);
+    await test.delay(3e3); // time for peer arrival to "arrival" at this.localInstance
 
     replies = await Promise.all([
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
-      localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
+      this.localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1'),
     ]);
 
     list = unique(replies).sort();

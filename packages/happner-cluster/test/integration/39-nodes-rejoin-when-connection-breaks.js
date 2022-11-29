@@ -69,6 +69,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await testClient.exchange.brokerComponent.block();
     await test.delay(15000); //wait for component to stop blocking and reconnect to mesh
     let result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
-    test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+    test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
   });
 });

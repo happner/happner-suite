@@ -44,7 +44,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       component: 'remoteComponent1',
       method: 'brokeredMethod1',
     });
-    test.expect(result2).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+    test.expect(result2).to.be('MESH_1:remoteComponent:brokeredMethod1');
   });
 
   it('starts the cluster edge first, connects a light-client to the broker instance', async () => {
@@ -57,7 +57,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       component: 'remoteComponent1',
       method: 'brokeredMethod1',
     });
-    test.expect(result2).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+    test.expect(result2).to.be('MESH_1:remoteComponent:brokeredMethod1');
   });
 
   function startInternal(id, clusterMin) {

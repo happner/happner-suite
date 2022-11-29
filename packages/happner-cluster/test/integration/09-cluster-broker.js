@@ -8,9 +8,9 @@ const getSeq = require('../_lib/helpers/getSeq');
 var clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  let servers = [],
+  var servers = [],
     localInstance,
-    proxyPorts = [];
+    proxyPorts;
 
   function localInstanceConfig(seq, sync, replicate) {
     var config = baseConfig(seq, sync, true, null, null, null, null, replicate);
@@ -91,7 +91,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   beforeEach('clear mongo collection', function (done) {
     stopCluster(servers, function () {
       servers = [];
-      proxyPorts = [];
       clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
         done();
       });
@@ -105,19 +104,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   function startEdge(id, clusterMin, replicate) {
     return test.HappnerCluster.create(localInstanceConfig(id, clusterMin, replicate));
   }
-
-  async function startClusterInternalFirst(replicate) {
-    localInstance = await startInternal(0, 1, replicate);
-    servers.push(localInstance);
-    servers.push(await startEdge(1, 2, replicate));
+  async function startClusterInternalFirst(dynamic) {
+    servers.push((localInstance = await startInternal(0, 1, dynamic)));
+    servers.push(await startEdge(1, 2, dynamic));
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
-  async function startClusterEdgeFirst() {
-    servers.push(await startEdge(0, 1));
-    localInstance = await startInternal(1, 2);
-    servers.push(localInstance);
+  async function startClusterEdgeFirst(dynamic) {
+    servers.push(await startEdge(0, 1, dynamic));
+    servers.push((localInstance = await startInternal(1, 2, dynamic)));
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
@@ -143,7 +139,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         'remoteComponent1',
         'brokeredMethod1',
         null,
-        getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
+        'MESH_0:remoteComponent1:brokeredMethod1:true'
       );
     });
   });
@@ -189,7 +185,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(5e3);
+          return new Promise((resolve) => {
+            setTimeout(resolve, 5000);
+          });
         })
         .then(function () {
           return testclient.create('username', 'password', proxyPorts[1]);
@@ -200,16 +198,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return thisClient.exchange.brokerComponent.directMethod();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
           //call an injected method
           return thisClient.exchange.remoteComponent.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
           return thisClient.exchange.remoteComponent1.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
           setTimeout(done, 2000);
         })
         .catch(done);
@@ -236,7 +234,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(3e3);
+          return new Promise((resolve) => {
+            setTimeout(resolve, 3000);
+          });
         })
         .then(function () {
           return testclient.create('username', 'password', proxyPorts[1]);
@@ -247,16 +247,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return thisClient.exchange.brokerComponent.directMethod();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
           //call an injected method
           return thisClient.exchange.remoteComponent.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
           return thisClient.exchange.remoteComponent1.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
           return users.denyMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
         })
         .then(function () {
@@ -290,11 +290,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //first test our broker components methods are directly callable
           client.exchange.brokerComponent.directMethod(function (e, result) {
             test.expect(e).to.be(null);
-            test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
+            test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
             //call an injected method
             client.exchange.remoteComponent.brokeredMethod1(function (e, result) {
               test.expect(e).to.be(null);
-              test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+              test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
               setTimeout(done, 2000);
             });
           });
@@ -321,9 +321,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(function (client) {
           client.exchange.remoteComponent.brokeredMethod3('test', function (e, result) {
             test.expect(e).to.be(null);
-            test
-              .expect(result)
-              .to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod3:test');
+            test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod3:test');
             setTimeout(done, 2000);
           });
         })
@@ -349,7 +347,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return users.allowEvent(localInstance, 'username', 'remoteComponent', '/brokered/event');
         })
         .then(function () {
-          return test.delay(3e3);
+          return new Promise(function (resolve) {
+            setTimeout(resolve, 3000);
+          });
         })
         .then(function () {
           return testclient.create('username', 'password', proxyPorts[1]);
@@ -358,13 +358,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //first test our broker components methods are directly callable
           client.exchange.brokerComponent.directMethod(function (e, result) {
             test.expect(e).to.be(null);
-            test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+            test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
 
             client.event.remoteComponent.on(
               '/brokered/event',
               function (data) {
                 test.expect(data).to.eql({
-                  brokered: { event: { data: { from: getSeq.getMeshName(1) } } },
+                  brokered: { event: { data: { from: 'MESH_0'} } },
                 });
                 setTimeout(done, 2000);
               },
@@ -372,9 +372,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
                 test.expect(e).to.be(null);
                 client.exchange.remoteComponent.brokeredEventEmitMethod(function (e, result) {
                   test.expect(e).to.be(null);
-                  test
-                    .expect(result)
-                    .to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredEventEmitMethod');
+                  test.expect(result).to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
                 });
               }
             );
@@ -455,10 +453,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(3e3);
+          return new Promise(function (resolve) {
+            setTimeout(resolve, 3000);
+          });
         })
         .then(function () {
-          return testclient.create('username', 'password',proxyPorts[1]);
+          return testclient.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
           //first test our broker components methods are directly callable
@@ -481,7 +481,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(3e3);
+          return new Promise(function (resolve) {
+            setTimeout(resolve, 3000);
+          });
         })
         .then(function () {
           return testclient.create('username', 'password', proxyPorts[1]);
@@ -509,7 +511,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           );
         })
         .then(function () {
-          return test.delay(3e3);
+          return new Promise(function (resolve) {
+            setTimeout(resolve, 3000);
+          });
         })
         .then(function () {
           return testclient.create('username', 'password', proxyPorts[1]);

@@ -137,8 +137,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
       ] = 1;
       let expectedResults = {};
-      expectedResults[getSeq.getMeshName(2) + ':component3:method1'] = 1;
-      expectedResults[getSeq.getMeshName(3) + ':component3:method1'] = 1;
+      expectedResults['MESH_1:component3:method1'] = 1;
+      expectedResults['MESH_2:component3:method1'] = 1;
 
       test.expect(results).to.eql(expectedResults);
     });

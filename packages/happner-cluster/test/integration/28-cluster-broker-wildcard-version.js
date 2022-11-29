@@ -38,13 +38,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await test.delay(5e3);
     const client = await testclient.create('username', 'password', proxyPorts[0]);
     let result = await client.exchange.brokerComponent.directMethod();
-    test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
+    test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
     result = await client.exchange.remoteComponent.brokeredMethod1();
-    test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+    test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
     result = await client.exchange.remoteComponent1.declaredMethod();
-    test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:declaredMethod');
+    test.expect(result).to.be('MESH_1:remoteComponent1:declaredMethod');
     result = await client.exchange.remoteComponent1.undeclaredMethod();
-    test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:undeclaredMethod');
+    test.expect(result).to.be('MESH_1:remoteComponent1:undeclaredMethod');
     await test.delay(4e3);
   });
 
@@ -58,13 +58,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     await test.delay(5e3);
     const client = await testclient.create('username', 'password', proxyPorts[1]);
     let result = await client.exchange.brokerComponent.directMethod();
-    test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+    test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
     result = await client.exchange.remoteComponent.brokeredMethod1();
-    test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+    test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
     result = await client.exchange.remoteComponent1.declaredMethod();
-    test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:declaredMethod');
+    test.expect(result).to.be('MESH_0:remoteComponent1:declaredMethod');
     result = await client.exchange.remoteComponent1.undeclaredMethod();
-    test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:undeclaredMethod');
+    test.expect(result).to.be('MESH_0:remoteComponent1:undeclaredMethod');
     await test.delay(2000);
   });
 

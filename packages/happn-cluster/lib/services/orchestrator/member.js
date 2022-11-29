@@ -79,7 +79,8 @@ module.exports = class Member {
       let thisError = error.error || error;
       if (
         thisError.code === 'ECONNREFUSED' ||
-        thisError.toString() === 'Error: connection timed out'
+        thisError.toString() === 'Error: connection timed out' ||
+        thisError.toString().startsWith('Error: connect ECONNREFUSED')
       ) {
         // This happens when we join, get list of remotes and simultaneously
         // one of them shuts down.
@@ -89,6 +90,7 @@ module.exports = class Member {
         this.orchestrator.removeMember(this);
         return;
       }
+
       this.error = thisError;
       this.connectingTo = false;
       this.log.warn('FAILED connection to  %s', loginConfig.url);

@@ -71,15 +71,15 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return thisClient.exchange.brokerComponent.directMethod();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
           return thisClient.exchange.remoteComponent1.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
           return thisClient.exchange.remoteComponent.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
           setTimeout(done, 2000);
         })
         .catch((e) => {
@@ -119,23 +119,23 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return thisClient.exchange.brokerComponent.directMethod();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
           //call an injected method
           return thisClient.exchange.remoteComponent.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
           return thisClient.exchange.remoteComponent1.brokeredMethod1();
         })
         .then(function (result) {
-          test.expect(result).to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1');
+          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
           return testRestCall(
             thisClient.data.session.token,
             proxyPorts[1],
             'remoteComponent1',
             'brokeredMethod1',
             null,
-            getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
+            'MESH_0:remoteComponent1:brokeredMethod1:true'
           );
         })
         .then(() => {
@@ -173,11 +173,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //first test our broker components methods are directly callable
           client.exchange.brokerComponent.directMethod(function (e, result) {
             test.expect(e).to.be(null);
-            test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
+            test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
             //call an injected method
             client.exchange.remoteComponent.brokeredMethod1(function (e, result) {
               test.expect(e).to.be(null);
-              test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+              test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
               setTimeout(done, 2000);
             });
           });
@@ -204,7 +204,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             test.expect(e).to.be(null);
             test
               .expect(result)
-              .to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod3:test');
+              .to.be('MESH_1:remoteComponent:brokeredMethod3:test');
             setTimeout(done, 2000);
           });
         })
@@ -233,26 +233,26 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       const result2 = await client.exchange.remoteComponent1.brokeredMethod3();
       test
         .expect(result1)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod3:test:username');
       test
         .expect(result2)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:null:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod3:null:username');
       const result3 = await client.exchange.remoteComponent1.brokeredMethod4(1, 2);
       const result4 = await client.exchange.remoteComponent1.brokeredMethod4(2);
       const result5 = await client.exchange.remoteComponent1.brokeredMethod4(undefined, 2);
       const result6 = await client.exchange.remoteComponent1.brokeredMethod4();
       test
         .expect(result3)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:3');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:3');
       test
         .expect(result4)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
       test
         .expect(result5)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
       test
         .expect(result6)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod4:username:0');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:0');
 
       await client.disconnect();
     });
@@ -267,26 +267,26 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       const result2 = await client.exchange.remoteComponent1.brokeredMethod5();
       test
         .expect(result1)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:test:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
       test
         .expect(result2)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:undefined:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
       const result3 = await client.exchange.remoteComponent1.brokeredMethod6(1, 2);
       const result4 = await client.exchange.remoteComponent1.brokeredMethod6(2);
       const result5 = await client.exchange.remoteComponent1.brokeredMethod6(undefined, 2);
       const result6 = await client.exchange.remoteComponent1.brokeredMethod6();
       test
         .expect(result3)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:3');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
       test
         .expect(result4)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
       test
         .expect(result5)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
       test
         .expect(result6)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
     });
@@ -335,24 +335,24 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
       test
         .expect(result1)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:test:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
 
       test
         .expect(result2)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod5:undefined:username');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
 
       test
         .expect(result3)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:3');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
       test
         .expect(result4)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
       test
         .expect(result5)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:2');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
       test
         .expect(result6)
-        .to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod6:username:0');
+        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
     });
@@ -384,7 +384,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             test.expect(e).to.be(null);
             test
               .expect(result)
-              .to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod3:test:username');
+              .to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
             done();
           });
         })
@@ -422,7 +422,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(function (result) {
           test
             .expect(result)
-            .to.be(getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod3:test:username');
+            .to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
           return new Promise((resolve, reject) => {
             localInstance.stop((e) => {
               if (e) return reject(e);
@@ -515,14 +515,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           results.push(result);
           test.expect(results).to.eql([
             //round robin happening
-            getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username',
-            getSeq.getMeshName(3) + ':remoteComponent1:brokeredMethod3:test:username',
-            getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod3:test:username',
-            getSeq.getMeshName(3) + ':remoteComponent1:brokeredMethod3:test:username',
+            'MESH_1:remoteComponent1:brokeredMethod3:test:username',
+            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+            'MESH_1:remoteComponent1:brokeredMethod3:test:username',
+            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
             //now only mesh 3 is up, so it handles all method calls
-            getSeq.getMeshName(3) + ':remoteComponent1:brokeredMethod3:test:username',
-            getSeq.getMeshName(3) + ':remoteComponent1:brokeredMethod3:test:username',
-            getSeq.getMeshName(3) + ':remoteComponent1:brokeredMethod3:test:username',
+            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
           ]);
           done();
         })
@@ -537,18 +537,18 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return test.delay(5000);
         })
         .then(() => {
-          test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(4);
+          test.expect(getInjectedElements('MESH_0').length).to.be(4);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName != null)
+            .expect(getInjectedElements('MESH_0')[0].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[1].meshName != null)
+            .expect(getInjectedElements('MESH_0')[1].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[2].meshName != null)
+            .expect(getInjectedElements('MESH_0')[2].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[3].meshName != null)
+            .expect(getInjectedElements('MESH_0')[3].meshName != null)
             .to.be(true);
           return stopServer(1);
         })
@@ -557,12 +557,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         })
         .then(() => {
           //we check injected components is 1
-          test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
+          test.expect(getInjectedElements('MESH_0').length).to.be(2);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName != null)
+            .expect(getInjectedElements('MESH_0')[0].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[1].meshName != null)
+            .expect(getInjectedElements('MESH_0')[1].meshName != null)
             .to.be(true);
           return stopServer(1);
         })
@@ -571,12 +571,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         })
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
+          test.expect(getInjectedElements('MESH_0').length).to.be(2);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName == null)
+            .expect(getInjectedElements('MESH_0')[0].meshName == null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[1].meshName == null)
+            .expect(getInjectedElements('MESH_0')[1].meshName == null)
             .to.be(true);
           return startInternal(3, 2);
         })
@@ -586,12 +586,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         })
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(2);
+          test.expect(getInjectedElements('MESH_0').length).to.be(2);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName != null)
+            .expect(getInjectedElements('MESH_0')[0].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[1].meshName != null)
+            .expect(getInjectedElements('MESH_0')[1].meshName != null)
             .to.be(true);
           return startInternal(4, 3);
         })
@@ -602,12 +602,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(() => {
           //we check injected components is 2
           //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements(getSeq.getMeshName(1) + '').length).to.be(4);
+          test.expect(getInjectedElements('MESH_0').length).to.be(4);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[0].meshName != null)
+            .expect(getInjectedElements('MESH_0')[0].meshName != null)
             .to.be(true);
           test
-            .expect(getInjectedElements(getSeq.getMeshName(1) + '')[1].meshName != null)
+            .expect(getInjectedElements('MESH_0')[1].meshName != null)
             .to.be(true);
           done();
         })
@@ -642,13 +642,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //first test our broker components methods are directly callable
           client.exchange.brokerComponent.directMethod(function (e, result) {
             test.expect(e).to.be(null);
-            test.expect(result).to.be(getSeq.getMeshName(2) + ':brokerComponent:directMethod');
+            test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
 
             client.event.remoteComponent.on(
               '/brokered/event',
               function (data) {
                 test.expect(data).to.eql({
-                  brokered: { event: { data: { from: getSeq.getMeshName(1) + '' } } },
+                  brokered: { event: { data: { from: 'MESH_0' } } },
                 });
                 setTimeout(done, 2000);
               },
@@ -658,7 +658,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
                   test.expect(e).to.be(null);
                   test
                     .expect(result)
-                    .to.be(getSeq.getMeshName(1) + ':remoteComponent:brokeredEventEmitMethod');
+                    .to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
                 });
               }
             );
@@ -735,7 +735,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //first test our broker components methods are directly callable
           client.exchange.remoteComponent.brokeredMethodFail(function (e) {
             test.expect(e.toString()).to.be('Error: test error');
-            console.log('DONE');
             setTimeout(done, 2000);
           });
         })
@@ -743,7 +742,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a promise', async function () {
-      console.log('PROMISE');
       try {
         await startClusterInternalFirst();
         await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethodFail');
@@ -752,7 +750,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         await client.exchange.remoteComponent.brokeredMethodFail();
         throw new Error('TEST FAILURE');
       } catch (e) {
-        // console.log(e)
         test.expect(e.toString()).to.be('Error: test error');
       }
     });
@@ -828,7 +825,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
             'remoteComponent1',
             'brokeredMethod1',
             null,
-            getSeq.getMeshName(1) + ':remoteComponent1:brokeredMethod1:true'
+            'MESH_0:remoteComponent1:brokeredMethod1:true'
           );
         })
         .then(done);

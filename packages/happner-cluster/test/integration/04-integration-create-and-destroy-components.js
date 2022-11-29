@@ -1,21 +1,19 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
+const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let localInstance;
-
-  beforeEach('start cluster', async function () {
-    localInstance = await test.HappnerCluster.create(localInstanceConfig(0));
-  });
-
-  afterEach('stop cluster', async function () {
-    if (localInstance) await stopCluster([localInstance]);
-  });
+  let config = {
+    cluster: {
+      functions: [localInstanceConfig],
+      localInstance: 0,
+    },
+  };
+  hooks.standardHooks(config);
 
   context('_createElement', function () {
     it('does not overwrite components from cluster', async function () {
-      let componentInstance = localInstance._mesh.elements['component'].component.instance;
+      let componentInstance = this.localInstance._mesh.elements['component'].component.instance;
       let exchange = componentInstance.exchange;
 
       // both dependencies are from cluster
@@ -28,7 +26,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         __custom: true,
       });
 
-      await localInstance._createElement({
+      await this.localInstance._createElement({
         module: {
           name: 'dependency2',
           config: {
@@ -55,7 +53,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   context('_destroyElement', function () {
     it('does not remove components from cluster', async function () {
-      let componentInstance = localInstance._mesh.elements['component'].component.instance;
+      let componentInstance = this.localInstance._mesh.elements['component'].component.instance;
       let exchange = componentInstance.exchange;
 
       // both dependencies are from cluster
@@ -68,7 +66,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         __custom: true,
       });
 
-      await localInstance._destroyElement('dependency1');
+      await this.localInstance._destroyElement('dependency1');
 
       // both dependencies are STILL from cluster (not removed)
       test.expect(exchange.dependency1).to.eql({

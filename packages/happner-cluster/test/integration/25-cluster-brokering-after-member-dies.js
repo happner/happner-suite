@@ -36,7 +36,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     let proxyPort = servers[0]._mesh.happn.server.config.services.proxy.port;
     client = await testclient.create('username', 'password', proxyPort);
     let result = await client.exchange.breakingComponent.happyMethod();
-    test.expect(result).to.be(getSeq.getMeshName(2) + ':brokenComponent:happyMethod');
+    test.expect(result).to.be('MESH_1:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
     test.expect(result).to.be('I am happy!');
     try {
@@ -48,7 +48,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     child = await fork(libDir + 'test-25-sub-process.js', ['2']);
     await test.delay(8000);
     result = await client.exchange.breakingComponent.happyMethod();
-    test.expect(result).to.be(getSeq.getMeshName(3) + ':brokenComponent:happyMethod');
+    test.expect(result).to.be('MESH_2:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
     test.expect(result).to.be('I am happy!');
     child.kill('SIGKILL');

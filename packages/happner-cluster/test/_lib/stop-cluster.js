@@ -7,11 +7,11 @@ module.exports = async function (servers, done) {
     let keepAlivePath = `/SYSTEM/DEPLOYMENT/${orchestrator.deployment}/${orchestrator.serviceName}/${orchestrator.endpoint}`;
     await orchestrator.stop();
     try {
-    await dataService.remove(keepAlivePath);
-  } catch (e) {
-    console.log(e);
-  }
-  await server.stop({ reconnect: false });
+      await dataService.remove(keepAlivePath);
+    } catch (e) {
+      // console.log(e);
+    }
+    await server.stop({ reconnect: false });
     await delay(300);
   }
   if (done) return done();

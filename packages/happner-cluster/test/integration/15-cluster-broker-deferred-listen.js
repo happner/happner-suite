@@ -123,13 +123,13 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
       thisClient = await testclient.create('username', 'password', proxyPorts[0]);
       let result = await thisClient.exchange.brokerComponent.directMethod();
-      test.expect(result).to.be(getSeq.getMeshName(1) + ':brokerComponent:directMethod');
+      test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
 
       //call an injected method
       result = await thisClient.exchange.remoteComponent.brokeredMethod1();
-      test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent:brokeredMethod1');
+      test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
       result = await thisClient.exchange.remoteComponent1.brokeredMethod1();
-      test.expect(result).to.be(getSeq.getMeshName(2) + ':remoteComponent1:brokeredMethod1');
+      test.expect(result).to.be('MESH_1:remoteComponent1:brokeredMethod1');
       await users.denyMethod(edgeInstance, 'username', 'remoteComponent', 'brokeredMethod1');
       try {
         gotToFinalAttempt = true;

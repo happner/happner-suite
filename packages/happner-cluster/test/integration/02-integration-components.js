@@ -1,26 +1,19 @@
-const HappnerCluster = require('../..');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
+const hooks = require('../_lib/helpers/hooks');
 
-require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  let servers, localInstance;
-
-  before('start cluster', async function () {
-    servers = await Promise.all([
-      HappnerCluster.create(localInstanceConfig(0)),
-      HappnerCluster.create(remoteInstance1Config(1)),
-      HappnerCluster.create(remoteInstance2Config(2)),
-    ]);
-    localInstance = servers[0];
-  });
-
-  after('stop cluster', async function () {
-    if (servers) await stopCluster(servers);
-  });
+require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  let config = {
+    cluster: {
+      functions: [localInstanceConfig, remoteInstance1Config, remoteInstance2Config],
+      localInstance: 0,
+    },
+  };
+  let timing = { startCluster: 'before', stopCluster: 'after' };
+  hooks.standardHooks(config, timing);
 
   context('exchange', function () {
-    it('uses happner-client to mount all $happn components', async () => {
+    it('uses happner-client to mount all $happn components', async function () {
       // ... and apply models from each component's
       //     package.json happner dependency declaration
       // ... and round robbin second call to second remote component
@@ -30,11 +23,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       let results = {};
 
       results[
-        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
+        await this.localInstance.exchange.localComponent1.callDependency(
+          'remoteComponent3',
+          'method1'
+        )
       ] = 1;
 
       results[
-        await localInstance.exchange.localComponent1.callDependency('remoteComponent3', 'method1')
+        await this.localInstance.exchange.localComponent1.callDependency(
+          'remoteComponent3',
+          'method1'
+        )
       ] = 1;
 
       test.expect(results).to.eql({
@@ -44,7 +43,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('overwrites local components that are wrong version', async function () {
-      let result = await localInstance.exchange.localComponent1.callDependency(
+      let result = await this.localInstance.exchange.localComponent1.callDependency(
         'remoteComponent4',
         'method1'
       );
@@ -53,7 +52,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('responds with not implemented', async function () {
       try {
-        await localInstance.exchange.localComponent1.callDependency('remoteComponent0', 'method1');
+        await this.localInstance.exchange.localComponent1.callDependency(
+          'remoteComponent0',
+          'method1'
+        );
       } catch (e) {
         test.expect(e.message).to.be('Not implemented remoteComponent0:^1.0.0:method1');
       }
@@ -62,7 +64,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   context('events', function () {
     it('can subscribe cluster wide', async function () {
-      let result = await localInstance.exchange.localComponent2.listTestEvents();
+      let result = await this.localInstance.exchange.localComponent2.listTestEvents();
       test.expect(result).to.eql({
         '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_2': 1,
         '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_1': 1,
@@ -70,7 +72,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('does not receive events from incompatible component versions', async function () {
-      let result = await localInstance.exchange.localComponent2.listTestCompatibleEvents();
+      let result = await this.localInstance.exchange.localComponent2.listTestCompatibleEvents();
       test.expect(result).to.eql({
         '/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/MESH_2': 1,
       });
