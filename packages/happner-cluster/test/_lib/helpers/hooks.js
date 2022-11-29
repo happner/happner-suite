@@ -3,6 +3,7 @@ const stopCluster = require('../stop-cluster');
 const HappnerCluster = require('../../..');
 const users = require('../users');
 const client = require('../client');
+const delay = require('await-delay');
 module.exports = {
   stopClusterHook,
   clearMongoCollectionHook,
@@ -122,6 +123,7 @@ async function startCluster(config) {
     if (a._mesh.config.name < b._mesh.config.name) return -1;
     return 1;
   });
+  await test.delay(2e3)
   this.proxyPorts = this.servers.map(
     (server) => server._mesh.happn.server.config.services.proxy.port
   );
