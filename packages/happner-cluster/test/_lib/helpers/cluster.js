@@ -1,6 +1,6 @@
 const Helper = require('./helper');
 const HappnerCluster = require('../../..');
-const delay = require('await-delay')
+const delay = require('await-delay');
 module.exports = class Cluster extends Helper {
   constructor() {
     super();

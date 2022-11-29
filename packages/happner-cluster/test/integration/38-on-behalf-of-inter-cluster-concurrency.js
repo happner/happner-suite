@@ -2,7 +2,6 @@ const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 const testclient = require('../_lib/client');
 const HappnerClient = require('happner-client');
 const LightClient = require('happner-client').Light;

@@ -139,7 +139,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   async function startClusterInternalFirst(dynamic) {
     localInstance = await startInternal(0, 1, dynamic);
     await startEdge(1, 2, dynamic);
-    await test.delay(2e3)
+    await test.delay(2e3);
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
@@ -147,7 +147,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   async function startClusterHighVersionFirst(dynamic) {
     localInstance = await startInternal2(0, 1, dynamic);
     await startEdge(1, 2, dynamic);
-    await test.delay(2e3)
+    await test.delay(2e3);
     await users.add(localInstance, 'username', 'password');
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }

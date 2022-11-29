@@ -35,7 +35,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     var port = this.servers[0].config.services.proxy.config.port;
     test.expect(port).to.be(0);
     // console.log(port)
-    // let connection = net.connect(port, '127.0.0.1');
+    let connection = net.connect(port, '127.0.0.1');
 
     connection.on('connect', function () {
       connection.destroy();
@@ -49,7 +49,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
         .start()
         .then(function () {
           let port = this.servers[0].config.services.proxy.config.port;
-          expect(port).not.to.be(0);
+          test.expect(port).not.to.be(0);
           let connection = net.connect(port, '127.0.0.1');
 
           connection.on('connect', function () {

@@ -3,7 +3,6 @@ var baseConfig = require('../_lib/base-config');
 var stopCluster = require('../_lib/stop-cluster');
 var users = require('../_lib/users');
 var testclient = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 var clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {

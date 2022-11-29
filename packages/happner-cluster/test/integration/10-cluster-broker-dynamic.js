@@ -4,7 +4,6 @@ const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const testlightclient = require('../_lib/client-light');
-const getSeq = require('../_lib/helpers/getSeq');
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
@@ -202,9 +201,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(function (client) {
           client.exchange.remoteComponent.brokeredMethod3('test', function (e, result) {
             test.expect(e).to.be(null);
-            test
-              .expect(result)
-              .to.be('MESH_1:remoteComponent:brokeredMethod3:test');
+            test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod3:test');
             setTimeout(done, 2000);
           });
         })
@@ -231,28 +228,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       const client = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await client.exchange.remoteComponent1.brokeredMethod3('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod3();
-      test
-        .expect(result1)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod3:test:username');
-      test
-        .expect(result2)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod3:null:username');
+      test.expect(result1).to.be('MESH_1:remoteComponent1:brokeredMethod3:test:username');
+      test.expect(result2).to.be('MESH_1:remoteComponent1:brokeredMethod3:null:username');
       const result3 = await client.exchange.remoteComponent1.brokeredMethod4(1, 2);
       const result4 = await client.exchange.remoteComponent1.brokeredMethod4(2);
       const result5 = await client.exchange.remoteComponent1.brokeredMethod4(undefined, 2);
       const result6 = await client.exchange.remoteComponent1.brokeredMethod4();
-      test
-        .expect(result3)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:3');
-      test
-        .expect(result4)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
-      test
-        .expect(result5)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
-      test
-        .expect(result6)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod4:username:0');
+      test.expect(result3).to.be('MESH_1:remoteComponent1:brokeredMethod4:username:3');
+      test.expect(result4).to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
+      test.expect(result5).to.be('MESH_1:remoteComponent1:brokeredMethod4:username:2');
+      test.expect(result6).to.be('MESH_1:remoteComponent1:brokeredMethod4:username:0');
 
       await client.disconnect();
     });
@@ -265,28 +250,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       const client = await testclient.create('username', 'password', proxyPorts[0]);
       const result1 = await client.exchange.remoteComponent1.brokeredMethod5('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod5();
-      test
-        .expect(result1)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
-      test
-        .expect(result2)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
+      test.expect(result1).to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
+      test.expect(result2).to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
       const result3 = await client.exchange.remoteComponent1.brokeredMethod6(1, 2);
       const result4 = await client.exchange.remoteComponent1.brokeredMethod6(2);
       const result5 = await client.exchange.remoteComponent1.brokeredMethod6(undefined, 2);
       const result6 = await client.exchange.remoteComponent1.brokeredMethod6();
-      test
-        .expect(result3)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
-      test
-        .expect(result4)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
-      test
-        .expect(result5)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
-      test
-        .expect(result6)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
+      test.expect(result3).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
+      test.expect(result4).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
+      test.expect(result5).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
+      test.expect(result6).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
     });
@@ -333,26 +306,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         arguments: [],
       });
 
-      test
-        .expect(result1)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
+      test.expect(result1).to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
 
-      test
-        .expect(result2)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
+      test.expect(result2).to.be('MESH_1:remoteComponent1:brokeredMethod5:undefined:username');
 
-      test
-        .expect(result3)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
-      test
-        .expect(result4)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
-      test
-        .expect(result5)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
-      test
-        .expect(result6)
-        .to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
+      test.expect(result3).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:3');
+      test.expect(result4).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
+      test.expect(result5).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:2');
+      test.expect(result6).to.be('MESH_1:remoteComponent1:brokeredMethod6:username:0');
 
       await client.disconnect();
     });
@@ -382,9 +343,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(function (client) {
           client.exchange.remoteComponent1.brokeredMethod3('test', function (e, result) {
             test.expect(e).to.be(null);
-            test
-              .expect(result)
-              .to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
+            test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
             done();
           });
         })
@@ -420,9 +379,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return testClient.exchange.remoteComponent1.brokeredMethod3('test');
         })
         .then(function (result) {
-          test
-            .expect(result)
-            .to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
+          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
           return new Promise((resolve, reject) => {
             localInstance.stop((e) => {
               if (e) return reject(e);
@@ -538,18 +495,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         })
         .then(() => {
           test.expect(getInjectedElements('MESH_0').length).to.be(4);
-          test
-            .expect(getInjectedElements('MESH_0')[0].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[1].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[2].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[3].meshName != null)
-            .to.be(true);
+          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[2].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[3].meshName != null).to.be(true);
           return stopServer(1);
         })
         .then(() => {
@@ -558,12 +507,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(() => {
           //we check injected components is 1
           test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test
-            .expect(getInjectedElements('MESH_0')[0].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[1].meshName != null)
-            .to.be(true);
+          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
           return stopServer(1);
         })
         .then(() => {
@@ -572,12 +517,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test
-            .expect(getInjectedElements('MESH_0')[0].meshName == null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[1].meshName == null)
-            .to.be(true);
+          test.expect(getInjectedElements('MESH_0')[0].meshName == null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[1].meshName == null).to.be(true);
           return startInternal(3, 2);
         })
         .then((server) => {
@@ -587,12 +528,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         .then(() => {
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test
-            .expect(getInjectedElements('MESH_0')[0].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[1].meshName != null)
-            .to.be(true);
+          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
           return startInternal(4, 3);
         })
         .then((server) => {
@@ -603,12 +540,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           //we check injected components is 2
           //we check injected components is still 1 and injected component meshName is null
           test.expect(getInjectedElements('MESH_0').length).to.be(4);
-          test
-            .expect(getInjectedElements('MESH_0')[0].meshName != null)
-            .to.be(true);
-          test
-            .expect(getInjectedElements('MESH_0')[1].meshName != null)
-            .to.be(true);
+          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
           done();
         })
         .catch(done);
@@ -656,9 +589,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
                 test.expect(e).to.be(null);
                 client.exchange.remoteComponent.brokeredEventEmitMethod(function (e, result) {
                   test.expect(e).to.be(null);
-                  test
-                    .expect(result)
-                    .to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
+                  test.expect(result).to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
                 });
               }
             );

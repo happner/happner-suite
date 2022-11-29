@@ -3,7 +3,6 @@ const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 
 var clearMongoCollection = require('../_lib/clear-mongo-collection');
 
@@ -364,7 +363,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
               '/brokered/event',
               function (data) {
                 test.expect(data).to.eql({
-                  brokered: { event: { data: { from: 'MESH_0'} } },
+                  brokered: { event: { data: { from: 'MESH_0' } } },
                 });
                 setTimeout(done, 2000);
               },

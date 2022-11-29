@@ -8,8 +8,7 @@ HappnerCluster.create(config)
     meshInstance = instance;
     if (typeof process.send === 'function') process.send('ready');
   })
-  .catch(function (e) {
-    console.log(e);
+  .catch(function () {
     if (typeof process.send === 'function') process.send('error');
     process.exit(1);
   });

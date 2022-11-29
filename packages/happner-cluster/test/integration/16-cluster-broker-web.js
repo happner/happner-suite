@@ -4,7 +4,6 @@ const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let servers = [];
@@ -251,8 +250,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     it('starts the cluster broker, with 2 brokered internal nodes in a high availability configuration, we ensure indirect calls to the brokered component succeed and are sticky sessioned, then we stop one internal node and we ensure we are still able to access the web content on the remaining node', function (done) {
       let thisClientMesh2;
       let thisClientMesh3;
-      let edgeInstance;
-      let internalInstance1;
 
       let results = [];
 
@@ -313,23 +310,23 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
               {
                 statusCode: 200,
                 statusMessage: 'OK',
-                body: `{"ran_on":"${getSeq.getMeshName(2)}"}`,
+                body: `{"ran_on":"MESH_1"}`,
               },
               {
                 statusCode: 200,
                 statusMessage: 'OK',
-                body: `{"ran_on":"${getSeq.getMeshName(3)}"}`,
+                body: `{"ran_on":"MESH_2"}`,
               },
-              // failover to MESH_3, because MESH_2 went offline
+              // failover to MESH_2, because MESH_1 went offline
               {
                 statusCode: 200,
                 statusMessage: 'OK',
-                body: `{"ran_on":"${getSeq.getMeshName(3)}"}`,
+                body: `{"ran_on":"MESH_2"}`,
               },
               {
                 statusCode: 200,
                 statusMessage: 'OK',
-                body: `{"ran_on":"${getSeq.getMeshName(3)}"}`,
+                body: `{"ran_on":"MESH_2"}`,
               },
             ]
           );

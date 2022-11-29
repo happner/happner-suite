@@ -1,5 +1,4 @@
 const _ = require('happn-commons')._;
-const getSeq = require('./getSeq');
 module.exports = class Configuration extends require('./helper') {
   constructor() {
     super();

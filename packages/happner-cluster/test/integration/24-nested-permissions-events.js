@@ -3,7 +3,6 @@ const stopCluster = require('../_lib/stop-cluster');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const users = require('../_lib/user-permissions');
 const client = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 
 module.exports = SecuredComponent;
 function SecuredComponent() {}

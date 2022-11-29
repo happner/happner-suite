@@ -2,7 +2,6 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
-const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
@@ -28,7 +27,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     it('does a rest call', async function () {
       let axios = test.axios;
       await startClusterInternalFirst();
-      await test.delay(2e3)
+      await test.delay(2e3);
       let port = proxyPorts[1];
       let credentials = {
         username: '_ADMIN',

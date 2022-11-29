@@ -1,4 +1,3 @@
-const PORT_CONSTANTS = require('./helpers/port-constants');
 module.exports = function (
   seq,
   minPeers,

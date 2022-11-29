@@ -4,7 +4,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const clearMongoCollection = require('../_lib/clear-mongo-collection');
   const users = require('../_lib/user-permissions');
   const client = require('../_lib/client');
-  const getSeq = require('../_lib/helpers/getSeq');
   let servers, testClient, savedUsers, savedGroups, proxyPorts;
 
   function serverConfig(seq, minPeers) {

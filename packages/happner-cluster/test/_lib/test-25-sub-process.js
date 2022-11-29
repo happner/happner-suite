@@ -3,8 +3,6 @@ const libDir = require('./lib-dir');
 const HappnerCluster = require('../..');
 const users = require('./users');
 let localInstance;
-const GetSeq = require('./helpers/getSeqClass');
-let getSeq;
 
 let seq = process.argv.slice(2).map((num) => parseInt(num))[0];
 

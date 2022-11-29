@@ -121,7 +121,7 @@ async function startCluster(config) {
   this.servers = servers.sort((a, b) => {
     if (a._mesh.config.name < b._mesh.config.name) return -1;
     return 1;
-  })
+  });
   this.proxyPorts = this.servers.map(
     (server) => server._mesh.happn.server.config.services.proxy.port
   );

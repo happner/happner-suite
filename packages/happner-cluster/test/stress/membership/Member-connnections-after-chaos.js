@@ -400,13 +400,11 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
           )
           .to.be(true); // Killed nodes endpoints will still be listed as members.
       } catch (e) {
-        console.log(e);
         errored = true;
         errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(i + 1)}`));
       }
     }
     if (errored) {
-      console.log(JSON.stringify(errors, null, 2));
       throw new Error('Test failed due to peer/member mismatch (some members in unstable state)');
     }
   }

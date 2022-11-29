@@ -2,7 +2,6 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const testclient = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const { fork } = require('child_process');
 

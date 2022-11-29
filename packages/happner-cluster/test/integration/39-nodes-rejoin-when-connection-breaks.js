@@ -2,7 +2,6 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
@@ -42,9 +41,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       },
     };
     serverPromises.push(clusterHelper.start(brokerComponent));
-    let servers = await Promise.all(serverPromises);
+    await Promise.all(serverPromises);
     // await test.delay(3e3)
-    proxyPorts = await clusterHelper.getPorts()
+    proxyPorts = await clusterHelper.getPorts();
   });
 
   before('create test clients', async () => {

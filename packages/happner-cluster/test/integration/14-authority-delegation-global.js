@@ -4,7 +4,6 @@ const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   let servers, localInstance, proxyPorts;
@@ -54,7 +53,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
     servers = await Promise.all([
       localInstance,
       test.HappnerCluster.create(remoteInstanceConfig(1, 1)),
-      test.HappnerCluster.create(remoteInstanceConfig(2, 1)), 
+      test.HappnerCluster.create(remoteInstanceConfig(2, 1)),
       test.HappnerCluster.create(remoteInstanceConfig(3, 1)),
     ]);
     localInstance = servers[0];

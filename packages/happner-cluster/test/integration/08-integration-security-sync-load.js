@@ -5,7 +5,6 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   const clearMongoCollection = require('../_lib/clear-mongo-collection');
   const users = require('../_lib/users');
   const client = require('../_lib/client');
-  const getSeq = require('../_lib/helpers/getSeq');
 
   let servers = [];
   let proxyPorts;
@@ -60,9 +59,6 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
   before('connect clients', async function () {
     let port;
     let i = 0;
-    let promises = [];
-    let username;
-    console.log(typeof userlis)
     let clients = await Promise.all(
       Object.keys(userlist).map((username) => {
         port = proxyPorts[++i % servers.length];

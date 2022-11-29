@@ -2,7 +2,6 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const delay = require('await-delay');
-const getSeq = require('../_lib/helpers/getSeq');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
@@ -111,7 +110,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       test.HappnerCluster.create(remoteInstance2Config(2)),
     ]);
     localInstance = servers[0];
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   });
 
   after('stop cluster', function (done) {
@@ -182,12 +180,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       localInstance.exchange.localComponent2.listTestEvents(function (e, result) {
         if (e) return done(e);
         let expectedResults = {};
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent3/testevent/${getSeq.getMeshName(3)}`
-        ] = 1;
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent3/testevent/${getSeq.getMeshName(2)}`
-        ] = 1;
+        expectedResults[`/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_2`] = 1;
+        expectedResults[`/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_1`] = 1;
         try {
           test.expect(result).to.eql(expectedResults);
           done();
@@ -201,9 +195,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       localInstance.exchange.localComponent2.listTestCompatibleEvents(function (e, result) {
         if (e) return done(e);
         let expectedResults = {};
-        expectedResults[
-          `/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/${getSeq.getMeshName(3)}`
-        ] = 1;
+        expectedResults[`/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/MESH_2`] = 1;
         try {
           test.expect(result).to.eql(expectedResults);
           done();

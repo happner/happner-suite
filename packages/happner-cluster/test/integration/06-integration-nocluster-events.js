@@ -1,7 +1,5 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-
 const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {

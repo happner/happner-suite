@@ -1,6 +1,6 @@
 const hooks = require('../_lib/helpers/hooks');
 
-require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 20e3 }, () => {
   let config = {
     cluster: {
       functions: [testHapnpConfig],

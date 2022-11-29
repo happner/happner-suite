@@ -4,7 +4,7 @@ const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const testclient = require('../_lib/client');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
+
 require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
   let servers = [];
 
