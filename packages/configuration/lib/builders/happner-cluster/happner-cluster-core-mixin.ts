@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import { Constructor } from '../../types/mixin-types';
 import { IHappnerClusterConfigurationBuilder } from '../interfaces/i-happner-cluster-configuration-builder';

@@ -48,7 +48,7 @@ describe('full configuration tests', function () {
 
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnConfig(result);
+    validator.validateHappnerConfig(result);
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });
@@ -65,7 +65,7 @@ describe('full configuration tests', function () {
 
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnConfig(result);
+    validator.validateHappnerClusterConfig(result);
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
   });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
 export class SecurityConfigBuilder extends BaseBuilder {
@@ -66,7 +67,7 @@ export class SecurityConfigBuilder extends BaseBuilder {
   }
 
   // TODO: do we need a builder here?
-  withLookup(lookup: Object): SecurityConfigBuilder {
+  withLookup(lookup: unknown): SecurityConfigBuilder {
     this.set('config.lookup', lookup, BaseBuilder.Types.OBJECT);
     return this;
   }
@@ -111,7 +112,7 @@ export class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withAuthProvider(providerName: string, providerInstance: Object): SecurityConfigBuilder {
+  withAuthProvider(providerName: string, providerInstance: unknown): SecurityConfigBuilder {
     this.set(`config.authProviders.${providerName}`, providerInstance, BaseBuilder.Types.OBJECT);
     return this;
   }
@@ -128,7 +129,7 @@ export class SecurityConfigBuilder extends BaseBuilder {
     policyTTL: number,
     policyInactiveThreshold: number
   ): SecurityConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('name', name, BaseBuilder.Types.STRING);
     builder.set('policy.ttl', policyTTL, BaseBuilder.Types.INTEGER);
     builder.set('policy.inactivity_threshold', policyInactiveThreshold, BaseBuilder.Types.NUMERIC);

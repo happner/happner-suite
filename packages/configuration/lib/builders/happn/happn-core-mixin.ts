@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import { Constructor } from '../../types/mixin-types';
 import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';

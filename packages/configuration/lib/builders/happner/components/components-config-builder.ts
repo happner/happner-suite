@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import ComponentConstants from '../../../constants/component-constants';
 import ModuleConstants from '../../../constants/module-constants';
@@ -48,7 +49,7 @@ export class ComponentConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withEvent(name: string, value: Object): ComponentConfigBuilder {
+  withEvent(name: string, value: unknown): ComponentConfigBuilder {
     this.set(`events.${name}`, value, BaseBuilder.Types.OBJECT);
     return this;
   }

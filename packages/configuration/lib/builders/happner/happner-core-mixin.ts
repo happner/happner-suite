@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import { Constructor } from '../../types/mixin-types';
 import { IHappnerConfigurationBuilder } from '../interfaces/i-happner-configuration-builder';
@@ -44,9 +44,11 @@ export function HappnerCoreBuilder<TBase extends Constructor>(Base: TBase) {
     beginComponent() {
       return this.#componentsConfigBuilder.beginComponent();
     }
-    beginEndpoint(){
+
+    beginEndpoint() {
       return this.#endpointsConfigBuilder.beginEndpoint();
     }
+
     beginModule() {
       return this.#modulesConfigBuilder.beginModule();
     }

@@ -1,0 +1,49 @@
+{
+  "$id": "happner-schema.json",
+  "$ref": "#/definitions/HappnerSchema",
+  "definitions": {
+    "HappnerSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "deferListen": {
+          "type": "boolean"
+        },
+        "listenFirst": {
+          "type": "boolean"
+        },
+        "happn": {
+          "$ref": "#/definitions/Happn"
+        },
+        "components": {
+          "$ref": "#/definitions/Components"
+        },
+        "endpoints": {
+          "$ref": "#/definitions/Endpoints"
+        },
+        "modules": {
+          "$ref": "#/definitions/Modules"
+        }
+      },
+      "required": [
+        "happn"
+      ],
+      "title": "HappnerSchema"
+    },
+    "Happn": {
+      "$ref": "happn-schema.json"
+    },
+    "Components": {
+      "$ref": "components-schema.json"
+    },
+    "Endpoints": {
+      "$ref": "endpoints-schema.json"
+    },
+    "Modules": {
+      "$ref": "modules-schema.json"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/ban-types */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
 export class SubscriptionConfigBuilder extends BaseBuilder {

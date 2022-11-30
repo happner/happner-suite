@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
 export class CacheConfigBuilder extends BaseBuilder {
@@ -11,7 +12,7 @@ export class CacheConfigBuilder extends BaseBuilder {
   }
 
   withStatisticsCheckoutPointCacheAuthOverride(max: number, maxAge: number): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('checkpoint_cache_authorization.max', max, BaseBuilder.Types.INTEGER);
     builder.set('checkpoint_cache_authorization.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -23,7 +24,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('checkpoint_cache_authorization_token.max', max, BaseBuilder.Types.INTEGER);
     builder.set('checkpoint_cache_authorization_token.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -32,7 +33,7 @@ export class CacheConfigBuilder extends BaseBuilder {
   }
 
   withStatisticsCacheSecurityGroupsOverride(max: number, maxAge: number): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('cache_security_groups.max', max, BaseBuilder.Types.INTEGER);
     builder.set('cache_security_groups.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -41,7 +42,7 @@ export class CacheConfigBuilder extends BaseBuilder {
   }
 
   withStatisticsCacheSecurityUsersOverride(max: number, maxAge: number): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('cache_security_users.max', max, BaseBuilder.Types.INTEGER);
     builder.set('cache_security_users.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -53,7 +54,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('cache_security_group_permissions.max', max, BaseBuilder.Types.INTEGER);
     builder.set('cache_security_group_permissions.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -65,7 +66,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('cache_security_user_permissions.max', max, BaseBuilder.Types.INTEGER);
     builder.set('cache_security_user_permissions.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
@@ -74,7 +75,7 @@ export class CacheConfigBuilder extends BaseBuilder {
   }
 
   withStatisticsCacheSecurityPasswordsOverride(max: number, maxAge: number): CacheConfigBuilder {
-    let builder = new BaseBuilder();
+    const builder = new BaseBuilder();
     builder.set('cache_security_passwords.max', max, BaseBuilder.Types.INTEGER);
     builder.set('cache_security_passwords.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 

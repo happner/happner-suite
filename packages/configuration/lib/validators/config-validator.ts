@@ -2,7 +2,9 @@
 import Ajv from 'ajv';
 
 const happnSchema = require('../schemas/happn-schema.json');
+const happnerSchema = require('../schemas/happner-schema.json');
 const happnClusterSchema = require('../schemas/happn-cluster-schema.json');
+const happnerClusterSchema = require('../schemas/happner-cluster-schema.json');
 const cacheSchema = require('../schemas/services/cache-schema.json');
 const connectSchema = require('../schemas/services/connect-schema.json');
 const dataSchema = require('../schemas/services/data-schema.json');
@@ -30,6 +32,9 @@ export class ConfigValidator {
     this.#ajv = new Ajv({
       schemas: [
         happnSchema,
+        happnerSchema,
+        happnClusterSchema,
+        happnerClusterSchema,
         cacheSchema,
         connectSchema,
         dataSchema,
@@ -54,6 +59,10 @@ export class ConfigValidator {
 
     this.#fieldTypeValidator = new FieldTypeValidator();
   }
+
+  /*****************************************************
+   HAPPN-SPECIFIC
+   ****************************************************/
 
   validateCacheConfig(config: any): ValidationResult {
     return this.#validate(config, cacheSchema);
@@ -159,6 +168,18 @@ export class ConfigValidator {
 
   validateModulesConfig(config: any): ValidationResult {
     return this.#validate(config, modulesSchema);
+  }
+
+  validateHappnerConfig(config: any) {
+    return this.#validate(config, happnerSchema);
+  }
+
+  /*****************************************************
+   HAPPNER-CLUSTER-SPECIFIC
+   ****************************************************/
+
+  validateHappnerClusterConfig(config: any) {
+    return this.#validate(config, happnerClusterSchema);
   }
 
   /*

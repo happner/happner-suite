@@ -1,0 +1,79 @@
+{
+  "$id": "happner-cluster-schema.json",
+  "$ref": "#/definitions/HappnerClusterSchema",
+  "definitions": {
+    "HappnerClusterSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "deferListen": {
+          "type": "boolean"
+        },
+        "listenFirst": {
+          "type": "boolean"
+        },
+        "happn": {
+          "$ref": "#/definitions/Happn"
+        },
+        "components": {
+          "$ref": "#/definitions/Components"
+        },
+        "endpoints": {
+          "$ref": "#/definitions/Endpoints"
+        },
+        "modules": {
+          "$ref": "#/definitions/Modules"
+        },
+        "health": {
+          "$ref": "#/definitions/Health"
+        },
+        "membership": {
+          "$ref": "#/definitions/Membership"
+        },
+        "orchestrator": {
+          "$ref": "#/definitions/Orchestrator"
+        },
+        "proxy": {
+          "$ref": "#/definitions/Proxy"
+        },
+        "replicator": {
+          "$ref": "#/definitions/Replicator"
+        }
+      },
+      "required": [
+        "happn"
+      ],
+      "title": "HappnerClusterSchema"
+    },
+    "Happn": {
+      "$ref": "happn-schema.json"
+    },
+    "Components": {
+      "$ref": "components-schema.json"
+    },
+    "Endpoints": {
+      "$ref": "endpoints-schema.json"
+    },
+    "Modules": {
+      "$ref": "modules-schema.json"
+    },
+    "Health": {
+      "$ref": "health-schema.json"
+    },
+    "Membership": {
+      "$ref": "membership-schema.json"
+    },
+    "Orchestrator": {
+      "$ref": "orchestrator-schema.json"
+    },
+    "Proxy": {
+      "$ref": "proxy-schema.json"
+    },
+    "Replicator": {
+      "$ref": "replicator-schema.json"
+    }
+  }
+}

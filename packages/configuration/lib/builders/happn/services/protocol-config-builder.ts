@@ -1,6 +1,6 @@
-import { FieldTypeValidator } from '../../../validators/field-type-validator.js';
-
+/* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/ban-types */
 const BaseBuilder = require('happn-commons/lib/base-builder');
+import { FieldTypeValidator } from '../../../validators/field-type-validator.js';
 
 export class ProtocolConfigBuilder extends BaseBuilder {
   #fieldTypeValidator;
@@ -21,7 +21,7 @@ export class ProtocolConfigBuilder extends BaseBuilder {
   }
 
   withInboundLayer(layerFunc: Function): ProtocolConfigBuilder {
-    let isValid = this.#fieldTypeValidator.validateFunctionArgs(layerFunc, 2).isValid;
+    const isValid = this.#fieldTypeValidator.validateFunctionArgs(layerFunc, 2).isValid;
     if (!isValid) throw new Error('invalid inbound layer function');
     this.push('config.inboundLayers', layerFunc, BaseBuilder.Types.FUNCTION);
     return this;
@@ -29,7 +29,7 @@ export class ProtocolConfigBuilder extends BaseBuilder {
 
   //grep -r inboundLayers ./packages/*/test
   withOutboundLayer(layerFunc: Function): ProtocolConfigBuilder {
-    let isValid = this.#fieldTypeValidator.validateFunctionArgs(layerFunc, 2).isValid;
+    const isValid = this.#fieldTypeValidator.validateFunctionArgs(layerFunc, 2).isValid;
     if (!isValid) throw new Error('invalid outbound layer function');
     this.push('config.outboundLayers', layerFunc, BaseBuilder.Types.FUNCTION);
     return this;
