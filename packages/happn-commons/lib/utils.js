@@ -20,6 +20,14 @@ module.exports = {
     return preparedPattern;
   },
   wildcardMatch: function (pattern, matchTo) {
+    if (Array.isArray(pattern)) {
+      for (let subPattern of pattern) {
+        if (this.wildcardMatch(subPattern, matchTo)) {
+          return true;
+        }
+      }
+      return false;
+    }
     const preparedOrMatched = this.wildcardPreliminaryMatch(pattern, matchTo);
     if (typeof preparedOrMatched === 'boolean') return preparedOrMatched; //we have a match result, return it
     //try a starts with reject

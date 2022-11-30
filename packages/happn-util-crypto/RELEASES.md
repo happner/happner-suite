@@ -32,3 +32,13 @@
   - TEN-141: fatal on security generate session
   - TEN-144: rest array arguments
   - TEN-146: preserve criteria on remove
+
+3.0.7 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+  - TEN-148: document post array rest module
+
+3.0.8 2022-11-26
+-----------------
+  - feat: Sqlite DB provider

@@ -1,6 +1,6 @@
 {
   "name": "happner-suite",
-  "version": "2.1.1",
+  "version": "2.4.0-prerelease-1",
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
@@ -15,6 +15,7 @@
     "packages/happn-db-provider-loki",
     "packages/happn-db-provider-mongo",
     "packages/happn-db-provider-nedb",
+    "packages/happn-db-provider-sqlite",
     "packages/happn-commons",
     "packages/happn-commons-test",
     "packages/happn-logger",

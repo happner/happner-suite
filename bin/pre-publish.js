@@ -17,14 +17,35 @@ function executeGitCommand(command) {
 }
 
 console.log('fetching metadata from npm...');
+function fetchPackage(packageName) {
+  let foundPackage, errorPackage;
+  return new Promise((resolve) => {
+    require('axios').default.get(`https://registry.npmjs.org/${packageName}`).then(found => {
+      foundPackage = found;
+    }).catch(error => {
+      errorPackage = error;
+    }).finally(() => {
+      if (errorPackage) {
+        console.warn(`WARNING: failed fetching npm package: ${packageName}`);
+        return resolve(null);
+      }
+      resolve(foundPackage);
+    })
+  });
+}
 Promise.all(
-  workspacePackageNames.map((packageName) =>
-    require('axios').default.get(`https://registry.npmjs.org/${packageName}`)
+  workspacePackageNames.map((packageName) => {
+      return fetchPackage(packageName);
+    }
   )
 )
   .then((metaData) => {
     console.log('fetched data from npm');
     packagesMetaData = metaData.map((metaDataItem) => {
+      if (metaDataItem == null) {
+        console.warn('WARNING: One of the package fetches failed');
+        return null;
+      }
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
       if (!localPackage) return null;
       console.log('scanning package: ', metaDataItem.data.name);

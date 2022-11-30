@@ -1,3 +1,19 @@
+2.3.0 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
+
+2.2.0 2022-11-24
+----------------
+- TEN-140: outdated pem module
+- TEN-148: document post array rest module
+- TEN-4: productionize summon
+- happn-3: 13.7.0
+- happn-db-provider-mongo: 1.1.2
+- happn-cluster: 12.2.3
+- happner-cluster: 12.3.3
+- happner-client: 12.5.3
+- happner-2: 12.5.2
+
 2.1.1 2022-11-04
 -----------------
 - TEN-135: do not insert default mongo sort by path

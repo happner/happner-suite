@@ -383,3 +383,17 @@
 12.5.2 2022-11-05
 -----------------
   - TEN-135: mongo search does not sort by path
+
+12.5.3 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+  - TEN-148: document post array rest module
+
+12.5.4 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
+
+12.5.5 2022-11-30
+-----------------
+  - Mongo-based cluster membership - dependencies update

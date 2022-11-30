@@ -41,6 +41,11 @@ class TestHelper {
     extension = child;
     return TestHelper;
   }
+  /**
+   * @param {TestDescriberOptions} options
+   * @param {(test: TestHelper) => void} handler
+   * @returns void
+   */
   static describe(options, handler) {
     if (typeof options === 'function') {
       handler = options;
@@ -190,3 +195,11 @@ class TestHelper {
 }
 
 module.exports = TestHelper;
+
+/**
+ * @typedef {Object} TestDescriberOptions
+ * @property {number} timeout
+ * @property {number} depth
+ * @property {boolean} only
+ * @property {boolean} skip
+ */

@@ -84,6 +84,15 @@
 -----------------
 - TEN-135: do not insert default sort by path
 
-1.1.2 2022-11-08
+1.1.2 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+
+1.1.3 2022-11-26s
+-----------------
+  - feat: Sqlite DB provider
+
+1.1.4 2022-11-30
 -----------------
   - TEN-12: mongo-based membership strategy (dev dependencies changes)

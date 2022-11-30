@@ -11,6 +11,7 @@ module.exports = UtilsService;
 
 function UtilsService() {
   this.regexCaches = {};
+  this.selfSignedCertUtil = require("./self-signed-cert-util").create();
 }
 
 UtilsService.prototype.clone = function (obj, circular) {

@@ -116,24 +116,30 @@ module.exports = class AuthProvider {
 
       let errorMessage;
       if (previousSession && previousSession.type != null && this.config.lockTokenToLoginType) {
-        if (previousSession.type !== credentials.type)
+        if (previousSession.type !== credentials.type) {
           errorMessage = `token was created using the login type ${previousSession.type}, which does not match how the new token is to be created`;
+        }
       }
-      if (this.checkDisableDefaultAdminNetworkConnections(previousSession, request))
+      if (this.checkDisableDefaultAdminNetworkConnections(previousSession, request)) {
         errorMessage = 'use of _ADMIN credentials over the network is disabled';
+      }
 
       let previousPolicy = previousSession.policy[1]; //always the stateful policy
 
-      if (previousPolicy.disallowTokenLogins)
+      if (previousPolicy.disallowTokenLogins) {
         errorMessage = `logins with this token are disallowed by policy`;
+      }
 
       if (
         previousPolicy.lockTokenToOrigin &&
         previousSession.origin !== this.happn.services.system.name
-      )
+      ) {
         errorMessage = `this token is locked to a different origin by policy`;
+      }
 
-      if (errorMessage) return this.accessDenied(errorMessage, callback);
+      if (errorMessage) {
+        return this.accessDenied(errorMessage, callback);
+      }
 
       //Anything further is dealt with in the specific provider
       return this.__providerTokenLogin(credentials, previousSession, sessionId, callback);

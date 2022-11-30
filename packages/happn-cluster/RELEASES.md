@@ -294,14 +294,23 @@ non-release 2017-12-14
 -----------------
   - TEN-135: mongo search does not sort by path
 
+12.2.3 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+  - TEN-148: document post array rest module
+
+12.2.4 2022-11-26
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
 
 13.0.0 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
 
-13.0.1 2022-11-08
+13.0.1 2022-11-30
 -----------------
   - SMC-4817/TEN-12: mongo-based membership strategy - no longer removes peer/member if its info is missing from the db
-
 
 

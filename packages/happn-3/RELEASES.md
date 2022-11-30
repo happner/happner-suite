@@ -1032,3 +1032,16 @@
 -----------------
   - TEN-135: mongo search does not sort by path
 
+13.7.0 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+
+13.7.1 2022-11-26
+-----------------
+  - feat: Sqlite DB Provider
+
+13.7.2 2022-11-30
+-----------------
+  - Mongo cluster membership update (dev dependencies change)
+  - Option have OS auto-assign happn and proxy ports (primarily for testing) 

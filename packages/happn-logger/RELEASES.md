@@ -36,3 +36,7 @@
   - TEN-141: fatal on security generate session
   - TEN-144: rest array arguments
   - TEN-146: preserve criteria on remove
+
+2.2.2 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
