@@ -29,8 +29,6 @@
         }
       },
       "required": [
-        "overrides",
-        "statisticsInterval"
       ],
       "title": "CacheConfig"
     },

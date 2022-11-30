@@ -62,15 +62,6 @@
         }
       },
       "required": [
-        "cache",
-        "connect",
-        "data",
-        "protocol",
-        "publisher",
-        "security",
-        "subscription",
-        "system",
-        "transport"
       ],
       "title": "Services"
     },
