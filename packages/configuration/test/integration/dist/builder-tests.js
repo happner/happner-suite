@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires,no-console */
-const expect = require('chai');
+// const expect = require('chai');
 const { ConfigBuilderFactory, ConfigValidator } = require('../../../dist');
 
-describe('transpiled configuration tests', function() {
+describe('transpiled configuration tests', function () {
   it('creates happn config using transpiled happn-builder', () => {
     const builder = ConfigBuilderFactory.getBuilder('happn');
     const result = builder.build();
