@@ -25,10 +25,6 @@ import { HappnCoreBuilder } from '../builders/happn/happn-core-mixin';
 import { HappnClusterCoreBuilder } from '../builders/happn-cluster/happn-cluster-core-mixin';
 import { HappnerCoreBuilder } from '../builders/happner/happner-core-mixin';
 import { HappnerClusterCoreBuilder } from '../builders/happner-cluster/happner-cluster-core-mixin';
-import { IHappnConfigurationBuilder } from '../builders/interfaces/i-happn-configuration-builder';
-import { IHappnClusterConfigurationBuilder } from '../builders/interfaces/i-happn-cluster-configuration-builder';
-import { IHappnerConfigurationBuilder } from '../builders/interfaces/i-happner-configuration-builder';
-import { IHappnerClusterConfigurationBuilder } from '../builders/interfaces/i-happner-cluster-configuration-builder';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
@@ -39,7 +35,23 @@ const BaseClz = class BaseClz extends BaseBuilder {
   }
 
   build() {
-    return super.build();
+    const result = super.build();
+
+    // if the prototype chain length is 4, then this is happn configuration ONLY - the 'happn' field needs to be stripped...
+    return this.#getProtoChainLen() === 4 ? result.happn : result;
+  }
+
+  // gets the length of the prototype chain for a specific instance
+  #getProtoChainLen(len = 0, instance = this) {
+    const proto = Object.getPrototypeOf(instance);
+
+    if (proto === null) {
+      return len;
+    }
+
+    len++;
+
+    return this.#getProtoChainLen(len, proto);
   }
 };
 

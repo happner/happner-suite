@@ -108,7 +108,7 @@ export class SecurityConfigBuilder extends BaseBuilder {
   }
 
   withAdminGroupCustomData(description: string): SecurityConfigBuilder {
-    this.push(`config.adminGroup.custom_data.description`, description, BaseBuilder.Types.STRING);
+    this.set(`config.adminGroup.custom_data.description`, description, BaseBuilder.Types.STRING);
     return this;
   }
 

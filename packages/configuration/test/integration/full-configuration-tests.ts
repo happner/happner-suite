@@ -10,17 +10,18 @@ describe('full configuration tests', function () {
 
     const result = builder.build();
 
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnConfig(result);
-
-    console.log('RESULT:', JSON.stringify(result, null, 2));
+    const validationResult = validator.validateHappnConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
     // TODO - complete assertions
     let testCb1 = (err, result) => {
       expect(result).to.equal('inbound-result');
     };
-    result.happn.services.protocol.config.inboundLayers[0]('test', testCb1);
+    result.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 
   it('builds a happn-cluster configuration object', () => {
@@ -31,11 +32,12 @@ describe('full configuration tests', function () {
 
     const result = builder.build();
 
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnClusterConfig(result);
-
-    console.log('RESULT:', JSON.stringify(result, null, 2));
+    const validationResult = validator.validateHappnClusterConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner configuration object', () => {
@@ -46,11 +48,12 @@ describe('full configuration tests', function () {
 
     const result = builder.build();
 
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnerConfig(result);
-
-    console.log('RESULT:', JSON.stringify(result, null, 2));
+    const validationResult = validator.validateHappnerConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner-cluster configuration object', () => {
@@ -63,17 +66,25 @@ describe('full configuration tests', function () {
 
     const result = builder.build();
 
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
     // validate
     const validator = new ConfigValidator();
-    validator.validateHappnerClusterConfig(result);
-
-    console.log('RESULT:', JSON.stringify(result, null, 2));
+    const validationResult = validator.validateHappnerClusterConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 });
 
 function setHappnConfigValues(builder) {
   return (
     builder
+      // general
+      .withName('test happn')
+      .withHost('192.168.1.10')
+      .withPort(90)
+      .withSecure(true)
+
+      // cache
       .withCacheStatisticsCheckPointAuthOverride(5, 1000)
       .withCacheStatisticsCheckPointAuthTokenOverride(5, 1000)
       .withCacheStatisticsInterval(1)
@@ -153,6 +164,8 @@ function setHappnClusterConfigValues(builder) {
     .withMembershipClusterName('membership1')
     .withMembershipDisseminationFactor(2)
     .withMembershipHost('192.168.1.22', 4000)
+    .withMembershipMemberHost('192.168.1.25')
+    .withMembershipMemberHost('192.168.1.26')
     .withMembershipJoinTimeout(20000)
     .withMembershipJoinType('joinType')
     .withMembershipPing(1000, 5000, 1000, 2)

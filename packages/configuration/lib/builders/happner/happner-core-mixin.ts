@@ -26,11 +26,6 @@ export function HappnerCoreBuilder<TBase extends Constructor>(Base: TBase) {
       this.set('components', this.#componentsConfigBuilder, BaseBuilder.Types.OBJECT);
     }
 
-    withName(name: string) {
-      this.set('name', name, BaseBuilder.Types.STRING);
-      return this;
-    }
-
     withDeferListen(defer: boolean) {
       this.set('deferListen', defer, BaseBuilder.Types.BOOLEAN);
       return this;

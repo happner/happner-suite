@@ -6,6 +6,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "cluster": {
+          "$ref": "#/definitions/Cluster"
+        },
         "name": {
           "type": "string"
         },
@@ -47,6 +53,16 @@
         "happn"
       ],
       "title": "HappnerClusterSchema"
+    },
+    "Cluster": {
+      "properties": {
+        "requestTimeout": {
+          "type": "number"
+        },
+        "responseTimeout": {
+          "type": "number"
+        }
+      }
     },
     "Happn": {
       "$ref": "happn-schema.json"

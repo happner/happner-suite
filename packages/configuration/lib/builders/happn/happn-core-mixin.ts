@@ -13,7 +13,7 @@ import { SystemConfigBuilder } from './services/system-config-builder';
 import { TransportConfigBuilder } from './services/transport-config-builder';
 import constants from '../../constants/config-constants';
 
-const ROOT = constants.HAPPN_SERVICES_ROOT;
+const SERVICES_ROOT = constants.HAPPN_SERVICES_ROOT;
 
 export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
   return class HappnBuilder extends Base implements IHappnConfigurationBuilder {
@@ -42,15 +42,47 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       this.#systemConfigBuilder = container.systemConfigBuilder;
       this.#transportConfigBuilder = container.transportConfigBuilder;
 
-      this.set(`${ROOT}.cache`, this.#cacheConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.connect`, this.#connectConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.data`, this.#dataConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.protocol`, this.#protocolConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.publisher`, this.#publisherConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.security`, this.#securityConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.subscription`, this.#subscriptionConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.system`, this.#systemConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`${ROOT}.transport`, this.#transportConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(`${SERVICES_ROOT}.cache`, this.#cacheConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(`${SERVICES_ROOT}.connect`, this.#connectConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(`${SERVICES_ROOT}.data`, this.#dataConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(`${SERVICES_ROOT}.protocol`, this.#protocolConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(
+        `${SERVICES_ROOT}.publisher`,
+        this.#publisherConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
+      this.set(`${SERVICES_ROOT}.security`, this.#securityConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(
+        `${SERVICES_ROOT}.subscription`,
+        this.#subscriptionConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
+      this.set(`${SERVICES_ROOT}.system`, this.#systemConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(
+        `${SERVICES_ROOT}.transport`,
+        this.#transportConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
+    }
+
+    withName(name: string) {
+      this.set(`happn.name`, name, BaseBuilder.Types.STRING);
+      return this;
+    }
+
+    withHost(host: string) {
+      this.set(`happn.host`, host, BaseBuilder.Types.STRING);
+      return this;
+    }
+
+    withPort(port: number) {
+      this.set(`happn.port`, port, BaseBuilder.Types.NUMERIC);
+      return this;
+    }
+
+    withSecure(isSecure: boolean) {
+      this.set(`happn.secure`, isSecure, BaseBuilder.Types.BOOLEAN);
+      return this;
     }
 
     /*

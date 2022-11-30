@@ -6,27 +6,25 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "happn": {
-          "$ref": "#/definitions/Happn"
-        }
-      },
-      "required": [
-        "happn"
-      ],
-      "title": "HappnSchema"
-    },
-    "Happn": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "secure": {
+          "type": "boolean"
+        },
         "services": {
           "$ref": "#/definitions/Services"
         }
       },
       "required": [
-        "services"
       ],
-      "title": "Happn"
+      "title": "HappnSchema"
     },
     "Services": {
       "type": "object",
