@@ -1,13 +1,13 @@
 {
-  "$id": "system-schema.json",
-  "$ref": "#/definitions/System",
+  "$id": "log-schema.json",
+  "$ref": "#/definitions/Log",
   "definitions": {
-    "System": {
+    "Log": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "config": {
-          "$ref": "#/definitions/SystemConfig"
+          "$ref": "#/definitions/LogConfig"
         },
         "path": {
           "type": "string"
@@ -15,22 +15,19 @@
       },
       "required": [
       ],
-      "title": "System"
+      "title": "Log"
     },
-    "SystemConfig": {
+    "LogConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "secure": {
           "type": "boolean"
         }
       },
       "required": [
       ],
-      "title": "SystemConfig"
+      "title": "LogConfig"
     }
   }
 }

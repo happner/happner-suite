@@ -6,6 +6,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "path": {
+          "type": "string"
+        },
         "config": {
           "$ref": "#/definitions/CacheConfig"
         }
@@ -18,6 +21,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "secure": {
+          "type": "boolean"
+        },
         "overrides": {
           "type": "array",
           "items": {

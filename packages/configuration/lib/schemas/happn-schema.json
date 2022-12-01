@@ -51,6 +51,9 @@
         "security": {
           "$ref": "#/definitions/ServicesSecurity"
         },
+        "session": {
+          "$ref": "#/definitions/Session"
+        },
         "subscription": {
           "$ref": "#/definitions/Subscription"
         },
@@ -59,6 +62,18 @@
         },
         "transport": {
           "$ref": "#/definitions/Transport"
+        },
+        "utils": {
+          "$ref": "#/definitions/Utils"
+        },
+        "error": {
+          "$ref": "#/definitions/Error"
+        },
+        "log": {
+          "$ref": "#/definitions/Log"
+        },
+        "crypto": {
+          "$ref": "#/definitions/Crypto"
         }
       },
       "required": [
@@ -97,6 +112,18 @@
     },
     "Transport": {
       "$ref": "transport-schema.json"
+    },
+    "Utils": {
+      "$ref": "utils-schema.json"
+    },
+    "Error": {
+      "$ref": "error-schema.json"
+    },
+    "Log": {
+      "$ref": "log-schema.json"
+    },
+    "Crypto": {
+      "$ref": "crypto-schema.json"
     }
   }
 }

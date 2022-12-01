@@ -6,6 +6,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "path": {
+          "type": "string"
+        },
         "config": {
           "$ref": "#/definitions/ConnectConfig"
         }
@@ -20,6 +23,9 @@
       "properties": {
         "middleware": {
           "$ref": "#/definitions/Middleware"
+        },
+        "secure": {
+          "type": "boolean"
         }
       },
       "required": [

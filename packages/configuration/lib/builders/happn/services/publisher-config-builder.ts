@@ -6,17 +6,17 @@ export class PublisherConfigBuilder extends BaseBuilder {
     super();
   }
 
-  withAcknowledgeTimeout(acknowledge: boolean): PublisherConfigBuilder {
+  withAcknowledgeTimeout(acknowledge: number): PublisherConfigBuilder {
     this.set(
       'config.publicationOptions.acknowledgeTimeout',
       acknowledge,
-      BaseBuilder.Types.BOOLEAN
+      BaseBuilder.Types.NUMERIC
     );
     return this;
   }
 
   withTimeout(timeout: number): PublisherConfigBuilder {
-    this.set('config.timeout', timeout, BaseBuilder.Types.INTEGER);
+    this.set('config.timeout', timeout, BaseBuilder.Types.NUMERIC);
     return this;
   }
 }

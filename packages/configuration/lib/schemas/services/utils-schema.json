@@ -1,13 +1,13 @@
 {
-  "$id": "system-schema.json",
-  "$ref": "#/definitions/System",
+  "$id": "utils-schema.json",
+  "$ref": "#/definitions/Utils",
   "definitions": {
-    "System": {
+    "Utils": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "config": {
-          "$ref": "#/definitions/SystemConfig"
+          "$ref": "#/definitions/UtilsConfig"
         },
         "path": {
           "type": "string"
@@ -15,22 +15,19 @@
       },
       "required": [
       ],
-      "title": "System"
+      "title": "Utils"
     },
-    "SystemConfig": {
+    "UtilsConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "secure": {
           "type": "boolean"
         }
       },
       "required": [
       ],
-      "title": "SystemConfig"
+      "title": "UtilsConfig"
     }
   }
 }

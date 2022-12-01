@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/SubscriptionConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
@@ -19,6 +22,9 @@
       "additionalProperties": false,
       "properties": {
         "allowNestedPermissions": {
+          "type": "boolean"
+        },
+        "secure": {
           "type": "boolean"
         },
         "subscriptionTree": {
@@ -35,6 +41,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "defaultVariableDepth": {
+          "type": "number"
+        },
         "permutationCache": {
           "type": "integer"
         },
@@ -48,9 +57,6 @@
         }
       },
       "required": [
-        "permutationCache",
-        "searchCache",
-        "timeout"
       ],
       "title": "SubscriptionTree"
 

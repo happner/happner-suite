@@ -18,7 +18,7 @@ function createValidPublisherConfig() {
     config: {
       timeout: 2000,
       publicationOptions: {
-        acknowledgeTimeout: true,
+        acknowledgeTimeout: 1000,
       },
     },
   };

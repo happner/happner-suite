@@ -41,7 +41,7 @@ export interface IHappnConfigurationBuilder {
 
   withProtocolOutboundLayer(layer: Function);
 
-  withPublisherAcknowledgeTimeout(acknowledge: boolean);
+  withPublisherAcknowledgeTimeout(acknowledge: number);
 
   withPublisherTimeout(timeout: number);
 

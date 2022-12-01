@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/SecurityConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
@@ -36,6 +39,15 @@
         "authProviders": {
           "$ref": "#/definitions/AuthProviders"
         },
+        "cache_checkpoint_authorization": {
+          "$ref": "#/definitions/Cache"
+        },
+        "cookieName": {
+          "type": "string"
+        },
+        "cookieDomain": {
+          "type": "string"
+        },
         "defaultAuthProvider": {
           "type": "string"
         },
@@ -45,14 +57,14 @@
         "disableDefaultAdminNetworkConnections": {
           "type": "boolean"
         },
-        "cookieName": {
-          "type": "string"
+        "expiry_grace": {
+          "type": "number"
         },
-        "cookieDomain": {
+        "groupPermissionsPolicy": {
           "type": "string"
         },
         "httpsCookie": {
-          "type": "string"
+          "type": "boolean"
         },
         "lockTokenToLoginType": {
           "type": "boolean"
@@ -72,6 +84,9 @@
             "$ref": "#/definitions/Profile"
           }
         },
+        "secure": {
+          "type": "boolean"
+        },
         "sessionActivityTTL": {
           "type": "number"
         },
@@ -80,6 +95,18 @@
         },
         "updateSubscriptionsOnSecurityDirectoryChanged": {
           "type": "boolean"
+        },
+        "__cache_groups": {
+          "$ref": "#/definitions/Cache"
+        },
+        "__cache_groups_by_user": {
+          "$ref": "#/definitions/Cache"
+        },
+        "__cache_users": {
+          "$ref": "#/definitions/Cache"
+        },
+        "__cache_users_by_groups": {
+          "$ref": "#/definitions/Cache"
         }
       },
       "required": [
@@ -101,7 +128,7 @@
         "retryInterval": {
           "type": "integer",
           "minimum": 1000,
-          "maximum": 60000
+          "maximum": 1000000
         }
       },
       "required": [
@@ -129,6 +156,12 @@
       "properties": {
         "custom_data": {
           "$ref": "#/definitions/CustomData"
+        },
+        "name": {
+          "type": "string"
+        },
+        "permissions": {
+          "$ref": "#/definitions/Permission"
         }
       },
       "required": [
@@ -139,6 +172,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "username": {
+          "type": "string"
+        },
         "password": {
           "type": "string"
         },
@@ -162,9 +198,23 @@
         }
       },
       "required": [
-        "testProvider"
       ],
       "title": "AuthProviders"
+    },
+    "Cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "maxAge": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "Cache"
     },
     "CustomData": {
       "type": "object",
@@ -181,6 +231,23 @@
       "additionalProperties": false,
       "title": "TestProvider"
     },
+    "Permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": [
+            "string",
+            "object",
+            "integer",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+      ],
+      "title": "Permission"
+    },
     "Profile": {
       "type": "object",
       "additionalProperties": false,
@@ -196,9 +263,6 @@
         }
       },
       "required": [
-        "name",
-        "policy",
-        "session"
       ],
       "title": "Profile"
     },
@@ -216,8 +280,6 @@
         }
       },
       "required": [
-        "inactivity_threshold",
-        "ttl"
       ],
       "title": "Policy"
     },

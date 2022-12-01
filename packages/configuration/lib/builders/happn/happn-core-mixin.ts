@@ -210,7 +210,7 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
     PUBLISHER
      */
 
-    withPublisherAcknowledgeTimeout(acknowledge: boolean): HappnBuilder {
+    withPublisherAcknowledgeTimeout(acknowledge: number): HappnBuilder {
       this.#publisherConfigBuilder.withAcknowledgeTimeout(acknowledge);
       return this;
     }

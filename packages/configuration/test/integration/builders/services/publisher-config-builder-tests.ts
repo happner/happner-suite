@@ -5,7 +5,7 @@ import { expect } from 'chai';
 describe('publisher configuration builder tests', function () {
   it('builds a publisher config object', () => {
     const mockTimeout = 2000;
-    const mockAcknowledge = true;
+    const mockAcknowledge = 1000;
 
     const builder = new PublisherConfigBuilder();
     const result = builder.withTimeout(mockTimeout).withAcknowledgeTimeout(mockAcknowledge).build();

@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/DataConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [

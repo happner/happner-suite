@@ -1,13 +1,13 @@
 {
-  "$id": "system-schema.json",
-  "$ref": "#/definitions/System",
+  "$id": "crypto-schema.json",
+  "$ref": "#/definitions/Crypto",
   "definitions": {
-    "System": {
+    "Crypto": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "config": {
-          "$ref": "#/definitions/SystemConfig"
+          "$ref": "#/definitions/CryptoConfig"
         },
         "path": {
           "type": "string"
@@ -15,22 +15,19 @@
       },
       "required": [
       ],
-      "title": "System"
+      "title": "Crypto"
     },
-    "SystemConfig": {
+    "CryptoConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "secure": {
           "type": "boolean"
         }
       },
       "required": [
       ],
-      "title": "SystemConfig"
+      "title": "CryptoConfig"
     }
   }
 }

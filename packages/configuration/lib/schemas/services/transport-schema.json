@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/TransportConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
@@ -35,15 +38,12 @@
         },
         "mode": {
           "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
         }
       },
       "required": [
-        "cert",
-        "certPath",
-        "keepAliveTimeout",
-        "key",
-        "keyPath",
-        "mode"
       ],
       "title": "TransportConfig"
     }

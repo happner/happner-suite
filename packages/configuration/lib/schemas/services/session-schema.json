@@ -1,0 +1,64 @@
+{
+  "$id": "session-schema.json",
+  "$ref": "#/definitions/Session",
+  "definitions": {
+    "Session": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/SessionConfig"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Session"
+    },
+    "SessionConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secure": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "boolean"
+        },
+        "disconnectTimeout": {
+          "type": "number"
+        },
+        "activeSessionsCache": {
+          "$ref": "#/definitions/ActiveSessionsCache"
+        }
+      },
+      "required": [
+      ],
+      "title": "SessionConfig"
+    },
+    "ActiveSessionsCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "cache": {
+          "$ref": "#/definitions/Cache"
+        }
+      },
+      "required": [
+      ],
+      "title": "ActiveSessionsCache"
+    },
+    "Cache": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+      ],
+      "title": "Cache"
+    }
+  }
+}

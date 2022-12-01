@@ -1,13 +1,13 @@
 {
-  "$id": "system-schema.json",
-  "$ref": "#/definitions/System",
+  "$id": "error-schema.json",
+  "$ref": "#/definitions/Error",
   "definitions": {
-    "System": {
+    "Error": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "config": {
-          "$ref": "#/definitions/SystemConfig"
+          "$ref": "#/definitions/ErrorConfig"
         },
         "path": {
           "type": "string"
@@ -15,22 +15,19 @@
       },
       "required": [
       ],
-      "title": "System"
+      "title": "Error"
     },
-    "SystemConfig": {
+    "ErrorConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "secure": {
           "type": "boolean"
         }
       },
       "required": [
       ],
-      "title": "SystemConfig"
+      "title": "ErrorConfig"
     }
   }
 }

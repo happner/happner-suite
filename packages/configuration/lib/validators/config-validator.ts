@@ -14,6 +14,11 @@ const securitySchema = require('../schemas/services/services-security-schema.jso
 const subscriptionSchema = require('../schemas/services/subscription-schema.json');
 const systemSchema = require('../schemas/services/system-schema.json');
 const transportSchema = require('../schemas/services/transport-schema.json');
+const utilsSchema = require('../schemas/services/utils-schema.json');
+const errorSchema = require('../schemas/services/error-schema.json');
+const logSchema = require('../schemas/services/log-schema.json');
+const cryptoSchema = require('../schemas/services/crypto-schema.json');
+const sessionSchema = require('../schemas/services/session-schema.json');
 const healthSchema = require('../schemas/services/health-schema.json');
 const membershipSchema = require('../schemas/services/membership-schema.json');
 const orchestratorSchema = require('../schemas/services/orchestrator-schema.json');
@@ -44,6 +49,11 @@ export class ConfigValidator {
         subscriptionSchema,
         systemSchema,
         transportSchema,
+        utilsSchema,
+        errorSchema,
+        logSchema,
+        cryptoSchema,
+        sessionSchema,
         healthSchema,
         membershipSchema,
         orchestratorSchema,

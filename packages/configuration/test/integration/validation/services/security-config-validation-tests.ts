@@ -40,7 +40,7 @@ function createValidSecurityConfig() {
       },
       cookieName: 'testCookie',
       cookieDomain: 'cookie.domain',
-      httpsCookie: 'b654adef8979ceef21123',
+      httpsCookie: true,
       defaultAuthProvider: 'testProvider',
       defaultNonceTTL: 60000,
       disableDefaultAdminNetworkConnections: false,

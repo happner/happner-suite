@@ -116,7 +116,7 @@ function setHappnConfigValues(builder) {
       .withPublisherTimeout(5000)
 
       // publisher
-      .withPublisherAcknowledgeTimeout(true)
+      .withPublisherAcknowledgeTimeout(2000)
       .withPublisherTimeout(5000)
 
       // security
