@@ -24,6 +24,7 @@
         "allowNestedPermissions": {
           "type": "boolean"
         },
+        "filter": {},
         "secure": {
           "type": "boolean"
         },
@@ -32,8 +33,6 @@
         }
       },
       "required": [
-        "allowNestedPermissions",
-        "subscriptionTree"
       ],
       "title": "SubscriptionConfig"
     },
@@ -59,7 +58,6 @@
       "required": [
       ],
       "title": "SubscriptionTree"
-
     }
   }
 }

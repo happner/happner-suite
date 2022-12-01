@@ -85,6 +85,11 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       return this;
     }
 
+    withAllowNestedPermissions(allow: boolean) {
+      this.set(`happn.allowNestedPermissions`, allow, BaseBuilder.Types.BOOLEAN);
+      return this;
+    }
+
     /*
     CACHE
      */

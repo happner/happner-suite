@@ -21,7 +21,7 @@ export class DataConfigBuilder extends BaseBuilder {
     builder.set('isDefault', isDefault, BaseBuilder.Types.BOOLEAN);
     builder.set('settings.fsync', isFsync, BaseBuilder.Types.BOOLEAN);
     builder.set('dbfile', dbFile, BaseBuilder.Types.STRING);
-    builder.set('filename', fileName, BaseBuilder.Types.STRING);
+    builder.set('settings.filename', fileName, BaseBuilder.Types.STRING);
 
     this.push('config.datastores', builder, BaseBuilder.Types.OBJECT);
 

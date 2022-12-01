@@ -25,10 +25,8 @@
           "type": "boolean"
         },
         "overrides": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Override"
-          }
+          "type": "object",
+          "$ref": "#/definitions/Override"
         },
         "statisticsInterval": {
           "type": "integer"

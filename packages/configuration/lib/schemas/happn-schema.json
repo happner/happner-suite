@@ -6,10 +6,22 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
+        "allowNestedPermissions": {
+          "type": "boolean"
+        },
+        "deferListen": {
+          "type": "boolean"
+        },
+        "disableDefaultAdminNetworkConnections": {
+          "type": "boolean"
+        },
+        "encryptPayloads": {
+          "type": "boolean"
         },
         "host": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         },
         "port": {
@@ -96,7 +108,7 @@
       "$ref": "publisher-schema.json"
     },
     "ServicesSecurity": {
-      "$ref": "services-security-schema.json"
+      "$ref": "security-schema.json"
     },
     "Policy": {
       "$ref": "policy-schema.json"

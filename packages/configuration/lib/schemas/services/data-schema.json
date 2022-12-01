@@ -21,7 +21,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "secure": {
+        "autoUpdateDBVersion": {
           "type": "boolean"
         },
         "datastores": {
@@ -29,6 +29,15 @@
           "items": {
             "$ref": "#/definitions/Datastore"
           }
+        },
+        "filename": {
+          "type": "string"
+        },
+        "fsync": {
+          "type": "boolean"
+        },
+        "secure": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -48,19 +57,20 @@
         "isDefault": {
           "type": "boolean"
         },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "settings": {
           "$ref": "#/definitions/Settings"
         },
         "dbfile": {
           "type": "string"
-        },
-        "filename": {
-          "type": "string"
         }
       },
       "required": [
-        "name",
-        "provider"
       ],
       "title": "Datastore"
     },
@@ -68,6 +78,15 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "collection": {
+          "type": "string"
+        },
+        "database": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
         "fsync": {
           "type": "boolean"
         }

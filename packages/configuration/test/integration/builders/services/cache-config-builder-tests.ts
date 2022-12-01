@@ -62,43 +62,40 @@ describe('cache configuration builder tests', function () {
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
-    // transform array to object
-    const reduced = result.config.overrides.reduce((previousValue, currentValue) => {
-      let key = Object.keys(currentValue)[0];
-      previousValue[key] = currentValue[key];
-      return previousValue;
-    }, {});
-
-    expect(reduced.cache_security_group_permissions.max).to.equal(
+    expect(result.config.overrides.cache_security_group_permissions.max).to.equal(
       mockCacheSecurityGroupPermissionMax
     );
-    expect(reduced.cache_security_group_permissions.maxAge).to.equal(
+    expect(result.config.overrides.cache_security_group_permissions.maxAge).to.equal(
       mockCacheSecurityGroupPermissionMaxAge
     );
-    expect(reduced.cache_security_groups.max).to.equal(mockCacheSecurityGroupsMax);
-    expect(reduced.cache_security_groups.maxAge).to.equal(mockCacheSecurityGroupsMaxAge);
-    expect(reduced.cache_security_passwords.max).to.equal(mockCacheSecurityPasswordsOverrideMax);
-    expect(reduced.cache_security_passwords.maxAge).to.equal(
+    expect(result.config.overrides.cache_security_groups.max).to.equal(mockCacheSecurityGroupsMax);
+    expect(result.config.overrides.cache_security_groups.maxAge).to.equal(mockCacheSecurityGroupsMaxAge);
+    expect(result.config.overrides.cache_security_passwords.max).to.equal(
+      mockCacheSecurityPasswordsOverrideMax
+    );
+    expect(result.config.overrides.cache_security_passwords.maxAge).to.equal(
       mockCacheSecurityPasswordsOverrideMaxAge
     );
-    expect(reduced.cache_security_user_permissions.max).to.equal(
+    expect(result.config.overrides.cache_security_user_permissions.max).to.equal(
       mockCacheSecurityUserPermissionsOverrideMax
     );
-    expect(reduced.cache_security_user_permissions.maxAge).to.equal(
+    expect(result.config.overrides.cache_security_user_permissions.maxAge).to.equal(
       mockCacheSecurityUserPermissionsOverrideMaxAge
     );
-    expect(reduced.cache_security_users.max).to.equal(mockCacheSecurityUsersOverrideMax);
-    expect(reduced.cache_security_users.maxAge).to.equal(mockCacheSecurityUsersOverrideMaxAge);
-    expect(reduced.checkpoint_cache_authorization.max).to.equal(
+    expect(result.config.overrides.cache_security_users.max).to.equal(mockCacheSecurityUsersOverrideMax);
+    expect(result.config.overrides.cache_security_users.maxAge).to.equal(
+      mockCacheSecurityUsersOverrideMaxAge
+    );
+    expect(result.config.overrides.checkpoint_cache_authorization.max).to.equal(
       mockCacheCheckPointCacheAuthOverrideMax
     );
-    expect(reduced.checkpoint_cache_authorization.maxAge).to.equal(
+    expect(result.config.overrides.checkpoint_cache_authorization.maxAge).to.equal(
       mockCacheCheckPointCacheAuthOverrideMaxAge
     );
-    expect(reduced.checkpoint_cache_authorization_token.max).to.equal(
+    expect(result.config.overrides.checkpoint_cache_authorization_token.max).to.equal(
       mockCacheCheckPointCacheAuthTokenOverrideMax
     );
-    expect(reduced.checkpoint_cache_authorization_token.maxAge).to.equal(
+    expect(result.config.overrides.checkpoint_cache_authorization_token.maxAge).to.equal(
       mockCacheCheckPointCacheAuthTokenOverrideMaxAge
     );
     expect(result.config.statisticsInterval).to.equal(mockStatisticsInterval);
