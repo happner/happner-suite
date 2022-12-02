@@ -84,6 +84,9 @@
         "collection": {
           "type": "string"
         },
+        "compactInterval": {
+          "type": "number"
+        },
         "database": {
           "type": "string"
         },

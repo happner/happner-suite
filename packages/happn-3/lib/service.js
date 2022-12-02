@@ -3,7 +3,8 @@ const Logger = require('happn-logger'),
   Services = require('./services/manager'),
   commons = require('happn-commons'),
   util = commons.utils,
-  _ = commons._;
+  _ = commons._,
+  Validator = require('configuration').ConfigValidator;
 module.exports = {
   initialize: function (config, done) {
     console.warn(
@@ -33,6 +34,22 @@ module.exports = {
         config.allowNestedPermissions
       );
     }
+
+    var log = (config.Logger || Logger).createLogger('HappnServer');
+
+    // validate
+    const validationResult = new Validator().validateHappnConfig(config);
+
+    if (!validationResult.valid) {
+      const msg = `Configuration validation error: ${JSON.stringify(
+        validationResult.errors,
+        null,
+        2
+      )}`;
+      log.error(msg);
+      throw new Error(msg);
+    }
+
     var happn = {
       services: {},
       config,
@@ -40,7 +57,6 @@ module.exports = {
       __initialized: false,
     };
 
-    var log = (config.Logger || Logger).createLogger('HappnServer');
     log.context = happn.config.name;
 
     happn.log = log;

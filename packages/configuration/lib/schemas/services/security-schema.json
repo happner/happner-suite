@@ -59,6 +59,9 @@
         "allowAnonymousAccess": {
           "type": "boolean"
         },
+        "allowUserChooseAuthProvider": {
+          "type": "boolean"
+        },
         "authProviders": {
           "$ref": "#/definitions/AuthProviders"
         },
@@ -135,17 +138,13 @@
       "additionalProperties": false,
       "properties": {
         "attempts": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 20
+          "type": "integer"
         },
         "enabled": {
           "type": "boolean"
         },
         "retryInterval": {
-          "type": "integer",
-          "minimum": 1000,
-          "maximum": 1000000
+          "type": "integer"
         }
       },
       "required": [
@@ -194,9 +193,9 @@
     "AuthProviders": {
       "type": "object",
       "additionalProperties": false,
-      "properties": {
-        "testProvider": {
-          "$ref": "#/definitions/TestProvider"
+      "patternProperties": {
+        "^.*$": {
+          "$ref": "#/definitions/AuthProvider"
         }
       },
       "required": [
@@ -259,80 +258,17 @@
       "title": "Permission"
     },
     "Profile": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "policy": {
-          "$ref": "#/definitions/Policy"
-        },
-        "session": {
-          "$ref": "#/definitions/Session"
-        }
-      },
-      "required": [
-      ],
-      "title": "Profile"
+      "$ref": "profile-schema.json"
     },
-    "Policy": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "disallowTokenLogins": {
-          "type": "boolean"
-        },
-        "lockTokenToOrigin": {
-          "type": "boolean"
-        },
-        "sourceIPWhitelist": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "ttl": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "string",
-              "pattern": "\\d+ (milliseconds|seconds|minutes|hours|days|weeks|months|years)"
-            }
-          ]
-        },
-        "inactivity_threshold": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "string",
-              "pattern": "\\d+ (milliseconds|seconds|minutes|hours|days|weeks|months|years)"
-            }
-          ]
-        },
-        "usage_limit": {
-          "type": [
-            "number"
-          ]
-        }
-      },
-      "required": [
+    "AuthProvider": {
+      "type": [
+        "object",
+        "string",
+        "boolean",
+        "null"
       ],
-      "title": "Policy"
-    },
-    "Session": {
-      "type": "object",
       "additionalProperties": true,
-      "title": "Session"
-    },
-    "TestProvider": {
-      "type": "object",
-      "additionalProperties": false,
-      "title": "TestProvider"
+      "title": "Provider"
     }
   }
 }

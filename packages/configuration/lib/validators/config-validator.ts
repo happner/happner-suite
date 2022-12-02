@@ -24,9 +24,11 @@ const membershipSchema = require('../schemas/services/membership-schema.json');
 const orchestratorSchema = require('../schemas/services/orchestrator-schema.json');
 const proxySchema = require('../schemas/services/proxy-schema.json');
 const replicatorSchema = require('../schemas/services/replicator-schema.json');
+const profileSchema = require('../schemas/services/profile-schema.json');
 const componentsSchema = require('../schemas/components/components-schema.json');
 const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
 const modulesSchema = require('../schemas/modules/modules-schema.json');
+
 import { FieldTypeValidator } from './field-type-validator';
 
 export class ConfigValidator {
@@ -59,6 +61,7 @@ export class ConfigValidator {
         orchestratorSchema,
         proxySchema,
         replicatorSchema,
+        profileSchema,
         componentsSchema,
         endpointsSchema,
         modulesSchema,

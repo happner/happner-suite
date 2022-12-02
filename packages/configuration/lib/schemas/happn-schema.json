@@ -30,11 +30,20 @@
         "port": {
           "type": "number"
         },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "profile-schema.json"
+          }
+        },
         "secure": {
           "type": "boolean"
         },
         "services": {
           "$ref": "#/definitions/Services"
+        },
+        "sessionTokenSecret": {
+          "type": "string"
         }
       },
       "required": [

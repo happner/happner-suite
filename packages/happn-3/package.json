@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "body-parser": "1.19.2",
+    "configuration": "file:../configuration/dist",
     "connect": "^3.7.0",
     "connect-cookies": "^0.0.0",
     "dev-null": "^0.1.1",
