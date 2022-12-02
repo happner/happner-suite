@@ -4,7 +4,13 @@ const Logger = require('happn-logger'),
   commons = require('happn-commons'),
   util = commons.utils,
   _ = commons._;
-// Validator = require('configuration').ConfigValidator;
+
+let Validator;
+
+if (process.env.VALIDATE_CONFIG) {
+  Validator = require('../../../packages/happn-configuration/dist').ConfigValidator;
+}
+
 module.exports = {
   initialize: function (config, done) {
     console.warn(
@@ -37,20 +43,9 @@ module.exports = {
 
     var log = (config.Logger || Logger).createLogger('HappnServer');
 
-    /*
     // validate
-    const validationResult = new Validator().validateHappnConfig(config);
+    this.validateConfig(config, log);
 
-    if (!validationResult.valid) {
-      const msg = `Configuration validation error: ${JSON.stringify(
-        validationResult.errors,
-        null,
-        2
-      )}`;
-      log.error(msg);
-      throw new Error(msg);
-    }
-  */
     var happn = {
       services: {},
       config,
@@ -118,4 +113,23 @@ module.exports = {
       else done(null, happn);
     });
   }),
+  validateConfig: (config, log) => {
+    if (!process.env.VALIDATE_CONFIG) {
+      log.info('config validation not enabled, skipping...');
+      return;
+    }
+
+    log.info('config validation enabled...');
+
+    const validationResult = new Validator().validateHappnConfig(config);
+    if (!validationResult.valid) {
+      const msg = `Configuration validation error: ${JSON.stringify(
+        validationResult.errors,
+        null,
+        2
+      )}`;
+      log.error(msg);
+      throw new Error(msg);
+    }
+  },
 };
