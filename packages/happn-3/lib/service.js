@@ -3,8 +3,8 @@ const Logger = require('happn-logger'),
   Services = require('./services/manager'),
   commons = require('happn-commons'),
   util = commons.utils,
-  _ = commons._,
-  Validator = require('configuration').ConfigValidator;
+  _ = commons._;
+// Validator = require('configuration').ConfigValidator;
 module.exports = {
   initialize: function (config, done) {
     console.warn(
@@ -37,6 +37,7 @@ module.exports = {
 
     var log = (config.Logger || Logger).createLogger('HappnServer');
 
+    /*
     // validate
     const validationResult = new Validator().validateHappnConfig(config);
 
@@ -49,7 +50,7 @@ module.exports = {
       log.error(msg);
       throw new Error(msg);
     }
-
+  */
     var happn = {
       services: {},
       config,
