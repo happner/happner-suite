@@ -197,6 +197,7 @@
   };
 
   HappnClient.prototype.client = function (options) {
+    this.__connectionQueue = this.createQueue();
     options = options || {};
 
     if (options.Logger && options.Logger.createLogger) {
@@ -439,12 +440,9 @@
 
   HappnClient.prototype.__waitForConnection = function (socket, callback) {
     return () => {
-      if (this.status === STATUS.CONNECTING) {
-        this.status = STATUS.ACTIVE;
-        this.serverDisconnected = false;
-        socket.removeListener('open', this.__waitForConnection);
-        callback(null, socket);
-      }
+      this.status = STATUS.ACTIVE;
+      this.serverDisconnected = false;
+      callback(null, socket);
     };
   };
 
@@ -492,9 +490,9 @@
       socket = new Socket(this.options.url, this.options.socket);
     }
 
-    socket.on('timeout', this.__onSocketTimeout(callback));
-    socket.on('open', this.__waitForConnection(socket, callback));
-    socket.on('error', this.__onSocketError(socket, callback));
+    socket.once('timeout', this.__onSocketTimeout(callback));
+    socket.once('open', this.__waitForConnection(socket, callback));
+    socket.once('error', this.__onSocketError(socket, callback));
 
     socket.open();
   };
@@ -670,7 +668,9 @@
         login((e) => {
           if (e) {
             if ([403, 401].indexOf(e.code) > -1) return next(e); //access was denied
-            if (currentAttempt === this.options.loginRetry) return next(e);
+            if (currentAttempt === this.options.loginRetry) {
+              return next(e);
+            }
             return setTimeout(next, this.options.loginRetryInterval);
           }
           loggedIn = true;
@@ -795,19 +795,37 @@
   });
 
   HappnClient.prototype.connect = utils.maybePromisify(function (callback) {
-    this.__getConnection((e, socket) => {
-      if (e) return callback(e);
-      this.socket = socket;
-      this.socket.on('data', this.handle_publication.bind(this));
-      this.socket.on('reconnected', this.reconnect.bind(this));
-      this.socket.on('end', this.handle_end.bind(this));
-      this.socket.on('close', this.handle_end.bind(this));
-      this.socket.on('reconnect timeout', this.handle_reconnect_timeout.bind(this));
-      this.socket.on('reconnect scheduled', this.handle_reconnect_scheduled.bind(this));
-      // login is called before socket connection established...
-      // seems ok (streams must be paused till open)
-      this.login(callback);
-    });
+    let contextError, contextResult;
+    this.__connectionQueue
+      .push(() => {
+        return new Promise((resolve, reject) => {
+          this.__getConnection((e, socket) => {
+            if (e) return reject(e);
+            this.socket = socket;
+            this.socket.on('data', this.handle_publication.bind(this));
+            this.socket.on('reconnected', this.reconnect.bind(this));
+            this.socket.on('end', this.handle_end.bind(this));
+            this.socket.on('close', this.handle_end.bind(this));
+            this.socket.on('reconnect timeout', this.handle_reconnect_timeout.bind(this));
+            this.socket.on('reconnect scheduled', this.handle_reconnect_scheduled.bind(this));
+            this.login((e, result) => {
+              if (e) return reject(e);
+              resolve(result);
+            });
+          });
+        });
+      })
+      .then(
+        (result) => {
+          contextResult = result;
+        },
+        (e) => {
+          contextError = e;
+        }
+      )
+      .finally(() => {
+        callback(contextError, contextResult);
+      });
   });
 
   HappnClient.prototype.handle_end = function () {
@@ -1084,13 +1102,13 @@
     }
   });
 
-  HappnClient.prototype.remove = utils.maybePromisify(function (path, parameters, handler) {
-    if (typeof parameters === 'function') {
-      handler = parameters;
-      parameters = {};
+  HappnClient.prototype.remove = utils.maybePromisify(function (path, options, handler) {
+    if (typeof options === 'function') {
+      handler = options;
+      options = {};
     }
 
-    return this.__performDataRequest(path, 'remove', null, parameters, handler);
+    return this.__performDataRequest(path, 'remove', null, options, handler);
   });
 
   HappnClient.prototype.__updateListenerRef = function (listener, remoteRef) {
@@ -1894,23 +1912,95 @@
   };
 
   HappnClient.prototype.disconnect = utils.maybePromisify(function (options, callback) {
-    if (typeof options === 'function') {
-      callback = options;
-      options = null;
+    let contextError, contextResult;
+    this.__connectionQueue
+      .push(() => {
+        return new Promise((resolve, reject) => {
+          if (typeof options === 'function') {
+            callback = options;
+            options = null;
+          }
+
+          if (!options) options = {};
+          if (!callback) callback = function () {};
+
+          this.clearTimeouts();
+          this.__connectionCleanup(options, (e) => {
+            if (e) return reject(e);
+            this.socket = null;
+            this.state.systemMessageHandlers = [];
+            this.state.eventHandlers = {};
+            this.__initializeEventState();
+            this.status = STATUS.DISCONNECTED;
+            resolve();
+          });
+        });
+      })
+      .then(
+        (result) => {
+          contextResult = result;
+        },
+        (e) => {
+          contextError = e;
+        }
+      )
+      .finally(() => {
+        callback(contextError, contextResult);
+      });
+  });
+
+  class PromiseQueue {
+    #queued = [];
+    #draining = false;
+    #onFulfilledHandler;
+    #onRejectedHandler;
+    onFulfilled(handler) {
+      this.#onFulfilledHandler = handler;
+    }
+    onRejected(handler) {
+      this.#onRejectedHandler = handler;
+    }
+    push(promise, args = []) {
+      return new Promise((resolve, reject) => {
+        this.#queued.push({
+          args,
+          promise,
+          onFulfilled: (result) => {
+            if (this.#onFulfilledHandler) this.#onFulfilledHandler(result);
+            resolve(result);
+          },
+          onRejected: (error) => {
+            if (this.#onRejectedHandler) this.#onRejectedHandler(error);
+            reject(error);
+          },
+        });
+        this.#drain();
+      });
     }
 
-    if (!options) options = {};
-    if (!callback) callback = function () {};
+    #next() {
+      return this.#queued.shift();
+    }
 
-    this.clearTimeouts();
-    this.__connectionCleanup(options, (e) => {
-      if (e) return callback(e);
-      this.socket = null;
-      this.state.systemMessageHandlers = [];
-      this.state.eventHandlers = {};
-      this.__initializeEventState();
-      this.status = STATUS.DISCONNECTED;
-      callback();
-    });
-  });
+    async #drain() {
+      if (this.#draining) {
+        return;
+      }
+      this.#draining = true;
+      let next;
+      while ((next = this.#next())) {
+        try {
+          const result = await next.promise.apply(next.promise, next.args);
+          next.onFulfilled(result);
+        } catch (e) {
+          next.onRejected(e);
+        }
+      }
+      this.#draining = false;
+    }
+  }
+
+  HappnClient.prototype.createQueue = function () {
+    return new PromiseQueue();
+  };
 })(); // end enclosed

@@ -17,14 +17,35 @@ function executeGitCommand(command) {
 }
 
 console.log('fetching metadata from npm...');
+function fetchPackage(packageName) {
+  let foundPackage, errorPackage;
+  return new Promise((resolve) => {
+    require('axios').default.get(`https://registry.npmjs.org/${packageName}`).then(found => {
+      foundPackage = found;
+    }).catch(error => {
+      errorPackage = error;
+    }).finally(() => {
+      if (errorPackage) {
+        console.warn(`WARNING: failed fetching npm package: ${packageName}`);
+        return resolve(null);
+      }
+      resolve(foundPackage);
+    })
+  });
+}
 Promise.all(
-  workspacePackageNames.map((packageName) =>
-    require('axios').default.get(`https://registry.npmjs.org/${packageName}`)
+  workspacePackageNames.map((packageName) => {
+      return fetchPackage(packageName);
+    }
   )
 )
   .then((metaData) => {
     console.log('fetched data from npm');
     packagesMetaData = metaData.map((metaDataItem) => {
+      if (metaDataItem == null) {
+        console.warn('WARNING: One of the package fetches failed');
+        return null;
+      }
       let localPackage = workspacePackages.find((item) => item.name === metaDataItem.data.name);
       if (!localPackage) return null;
       console.log('scanning package: ', metaDataItem.data.name);
@@ -160,14 +181,14 @@ function verifyPublish(packagesMetaData, masterPackage) {
   }
 
   if (issues.length > 0) {
-    console.warn('issues:');
+    console.warn('ISSUES:');
     issues.forEach((issue) => console.warn(issue));
     if (successes.length > 0) {
-      console.info('ok:');
-      successes.forEach((success) => console.info(success.name));
+      console.info('OK:');
+      successes.forEach((success) => { console.info(`- ${success.name}: ${success.newVersion} - ${success.versionJumped ? 'new' : 'unchanged'}`) });
     }
     if (prereleases.length > 0) {
-      console.info('prereleases ready for publish:');
+      console.info('PRERELEASES READY FOR PUBLISH:');
       getPublishOrder().forEach((packageName) => {
         const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
         if (found) {
@@ -177,7 +198,7 @@ function verifyPublish(packagesMetaData, masterPackage) {
     }
     return;
   }
-  console.info('ready for publish, in the following order:');
+  console.info('READY FOR PUBLISH:');
   successes
     .sort((a, b) => a.publishOrder - b.publishOrder)
     .forEach((success) => {
@@ -310,11 +331,9 @@ function getPublishOrder() {
     'happn-commons',
     'happn-commons-test',
     'happn-nedb',
-    'redis-lru-cache',
     'tame-search',
     'happn-db-provider-loki',
     'happn-db-provider-nedb',
-    'happn-db-provider-elasticsearch',
     'happn-db-provider-mongo',
     'happn-util-crypto',
     'happn-logger',

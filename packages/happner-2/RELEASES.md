@@ -991,3 +991,25 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - TEN-132: cache key regex masking
   - TEN-138: api/client call fails when auth delegation switched on
 
+12.4.0 2022-10-12
+-----------------
+  - TEN-143: ws and primus update in happn-primus-wrapper
+  - TEN-101: removed elasticsearch support
+
+12.5.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
+
+12.5.1 2022-11-05
+-----------------
+  - TEN-135: mongo search does not sort by path
+
+12.5.2 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+  - TEN-148: document post array rest module
+
+12.5.3 2022-11-26
+-----------------
+  - feat: Sqlite DB provider

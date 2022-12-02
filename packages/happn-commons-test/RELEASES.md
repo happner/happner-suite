@@ -12,3 +12,11 @@
 1.1.0 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+1.1.1 2022-10-29
+-----------------
+  - TEN-129: security service tests
+
+1.1.2 2022-11-26
+-----------------
+  - feat: Sqlite DB provider

@@ -1,6 +1,7 @@
 describe(
   require('../../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
+    this.timeout(30e3);
     const happn = require('../../../../lib/index');
     const expect = require('expect.js');
     const path = require('path');
@@ -17,11 +18,21 @@ describe(
     afterEach(async () => {
       if (instance) await stopService(instance);
     });
+
     async function stopService(instance) {
       return new Promise((res, rej) => {
         instance.stop((e) => {
           if (e) rej(e);
           res();
+        });
+      });
+    }
+
+    function testLogin(instance, credentials, sessionId, request) {
+      return new Promise((resolve) => {
+        instance.services.security.login(credentials, sessionId, request, (e, result) => {
+          if (e) return resolve(e.message);
+          resolve(result);
         });
       });
     }
@@ -63,14 +74,19 @@ describe(
       expect(instance.services.security.authProviders.default).to.be(
         instance.services.security.authProviders.blankAuth
       );
-      //Over-ridden function
-      expect(instance.services.security.login()).to.eql('Login called in second auth provider');
-      expect(instance.services.security.login({ authType: 'blankAuth' })).to.eql(
+
+      expect(await testLogin(instance, { authType: 'default' }, undefined, {})).to.be(
         'Login called in second auth provider'
       );
-      expect(instance.services.security.login({ authType: 'default' })).to.eql(
+
+      expect(await testLogin(instance, { authType: 'blankAuth' }, undefined, {})).to.be(
         'Login called in second auth provider'
       );
+
+      expect(await testLogin(instance, { authType: 'unconfigured' }, undefined, {})).to.be(
+        'Login called in second auth provider'
+      );
+
       instance.services.security.login(
         { authType: 'happn', username: 'non', password: 'non' },
         'session',
@@ -92,7 +108,7 @@ describe(
       );
     });
 
-    it('Tests having two auth providers in config, and that the correct one can be called by adding authType at client  creation', async () => {
+    it('Tests having two auth providers in config, and that the correct one can be called by adding authType at client creation', async () => {
       instance = await getService({
         port: 55555,
         secure: true,

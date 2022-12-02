@@ -524,7 +524,8 @@ function __upsertInternal(path, setData, options, callback) {
         if (e) return callback(e);
         setData.data.gauge = setData.data.value;
         setData.data.value = gaugeValue;
-        callback(null, provider.transform(setData));
+        let transformed = provider.transform(setData);
+        callback(null, transformed);
       }
     );
   }
@@ -533,8 +534,18 @@ function __upsertInternal(path, setData, options, callback) {
 }
 
 function remove(path, options, callback) {
-  if (typeof options === 'function') callback = options;
-  this.db(path).remove(path, function (e, removed) {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  if (options == null) {
+    options = {};
+  }
+  if (options.criteria) {
+    // ensure we add the data. prefix
+    options.criteria = this.parseFields(options.criteria);
+  }
+  this.db(path).remove(path, options, function (e, removed) {
     if (e) return callback(new Error('error removing item on path ' + path, e));
     callback(null, removed);
   });

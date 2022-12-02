@@ -29,3 +29,15 @@
 1.0.6 2022-07-14
 -----------------
   - TEN-125: body-parser v1.20.0 causes memory leak
+
+1.0.7 2022-10-13
+-----------------
+  - TEN-101: happn-nedb update, clean npm audit
+
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
+
+1.1.1 2022-11-26
+-----------------
+  - feat: Sqlite DB provider

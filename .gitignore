@@ -51,6 +51,10 @@ packages/happner-cluster/test/stress/logs/*.log
 packages/happner-client/test/example.com.cert
 packages/happner-client/test/example.com.key
 
+#happn-primus-wrapper rules
+packages/happn-primus-wrapper/test/primus.save.async.js
+packages/happn-primus-wrapper/test/primus.save.sync.js
+
 temp/*
 
 # configuration compilation output

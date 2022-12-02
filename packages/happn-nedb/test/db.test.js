@@ -8,7 +8,7 @@ var should = require('chai').should(),
   model = require('../lib/model'),
   Datastore = require('../lib/datastore'),
   Persistence = require('../lib/persistence'),
-  reloadTimeUpperBound = 120; // In ms, an upper bound for the reload time used to check created and modified
+  reloadTimeUpperBound = 150; // In ms, an upper bound for the reload time used to check created and modified
 describe('Database', function() {
   var d;
 

@@ -51,8 +51,9 @@ module.exports = class HappnAuthProvider extends AuthProvider {
     return this.users.getUser(credentials.username, (e, user) => {
       if (e) return callback(e);
 
-      if (user == null)
+      if (user == null) {
         return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      }
 
       if (credentials.digest) return this.__digestLogin(user, credentials, sessionId, callback);
 
@@ -64,8 +65,9 @@ module.exports = class HappnAuthProvider extends AuthProvider {
         }
         this.matchPassword(credentials.password, hash, (e, match) => {
           if (e) return callback(e);
-          if (!match)
+          if (!match) {
             return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+          }
           return this.__loginOK(credentials, user, sessionId, callback);
         });
       });

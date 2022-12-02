@@ -1,7 +1,75 @@
+2.3.0 2022-11-26
+-----------------
+  - feat: Sqlite DB provider
+
+2.2.0 2022-11-24
+----------------
+- TEN-140: outdated pem module
+- TEN-148: document post array rest module
+- TEN-4: productionize summon
+- happn-3: 13.7.0
+- happn-db-provider-mongo: 1.1.2
+- happn-cluster: 12.2.3
+- happner-cluster: 12.3.3
+- happner-client: 12.5.3
+- happner-2: 12.5.2
+
+2.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default mongo sort by path
+- happn-3: 13.6.1
+- happn-db-provider-mongo: 1.1.1
+- happn-cluster: 12.2.2
+- happner-cluster: 12.3.2
+- happner-client: 12.5.2
+- happner-2: 12.5.1
+
+2.1.0 2022-10-29
+-----------------
+- TEN-129: security service tests
+- TEN-141: fatal on security generate session
+- TEN-144: rest array arguments
+- TEN-146: preserve criteria on remove
+- happn-commons: 1.2.0
+- happn-commons-test: 1.1.1
+- happn-3: 13.6.0
+- happn-db-provider-mongo: 1.1.0
+- happn-db-provider-nedb: 1.1.0
+- happn-db-provider-loki: 1.1.0
+- happn-cluster: 12.2.1
+- happner-cluster: 12.3.1
+- happner-client: 12.5.1
+- happner-2: 12.5.0
+- happn-nedb: 2.0.7
+- tame-search: 3.0.6
+- happn-util-crypto: 3.0.6
+- happn-logger: 12.2.1
+
+2.0.0 2022-10-12
+-----------------
+- TEN-143: ws and primus update in happn-primus-wrapper
+- TEN-101: removed elasticsearch support
+- happn-3: 13.5.0
+- happn-db-provider-mongo: 1.0.17
+- happn-db-provider-nedb: 1.0.7
+- happn-primus-wrapper: 9.0.0
+- happn-cluster: 12.2.0
+- happner-cluster: 12.3.0
+- happner-client: 12.5.0
+- happner-2: 12.4.0
+- happn-nedb: 2.0.6
+
 1.8.0 2022-10-03
 -----------------
 - TEN-132: authorization cache key regex mask
 - TEN-138: api/client call fails when auth delegation switched on
+- happn-3: 13.4.0
+- happn-cluster: 12.1.1
+- happn-db-provider-elasticsearch: 1.0.16
+- happn-db-provider-mongo: 1.0.16
+- happner-2: 12.3.0
+- happner-client: 12.4.1
+- happner-cluster: 12.2.3
 
 1.7.0 2022-09-22
 -----------------
@@ -128,3 +196,4 @@
 - happner-2: 12.1.1
 - happner-client: 12.2.0
 - happner-cluster: 12.1.1
+

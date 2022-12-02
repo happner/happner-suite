@@ -1,5 +1,6 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
   var maximumPings = 1000;
+  var mesh;
   var libFolder =
     test.commons.path.resolve(__dirname, '../../..') +
     test.commons.path.sep +
@@ -46,21 +47,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   };
 
   after(function (done) {
-    this.mesh.stop({ reconnect: false }, done);
+    mesh.stop({ reconnect: false }, done);
   });
 
   before(function (done) {
-    var _this = this;
     Mesh.create(config)
-      .then(function (mesh) {
-        _this.mesh = mesh;
+      .then(function (created) {
+        mesh = created;
         done();
       })
       .catch(done);
   });
 
   it('stores some data on component1, we look at the output from happn', function (done) {
-    this.mesh.exchange.component1.storeData(
+    mesh.exchange.component1.storeData(
       '/test/integration/data/api-data',
       { testprop1: 'testval1' },
       {},
@@ -74,22 +74,20 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   //relies on above store test!!!
   it('checks the on count on component1 must be greater than 0', function (done) {
-    this.mesh.exchange.component1.getOnCount(function (e, result) {
+    mesh.exchange.component1.getOnCount(function (e, result) {
       if (!result || result === 0) return done(new Error('result should be greater than 0'));
       done();
     });
   });
 
   it('checks that component1 can count data values', function (done) {
-    var _this = this;
-
-    _this.mesh.exchange.component1.storeData(
+    mesh.exchange.component1.storeData(
       '/test/integration/data/count-data',
       { testprop1: 'testval1' },
       {},
       function (e) {
         test.expect(e).to.not.exist;
-        _this.mesh.exchange.component1.getCount(
+        mesh.exchange.component1.getCount(
           '/test/integration/data/count-data',
           function (e, result) {
             test.expect(result.value).to.eql(1);
@@ -101,7 +99,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   it('increments a gauge using $happn.data on the test component', function (done) {
-    this.mesh.exchange.component1.incrementGauge(
+    mesh.exchange.component1.incrementGauge(
       'my/test/gauge',
       'custom_counter',
       1,
@@ -114,5 +112,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         done();
       }
     );
+  });
+
+  it('should delete multiple items filtered by criteria', async () => {
+    await mesh.exchange.component1.deleteWithOptions();
   });
 });

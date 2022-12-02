@@ -135,6 +135,7 @@ function __safeSessionData(sessionData) {
     upgradeUrl: sessionData.url,
     happnVersion: sessionData.version,
     happn: sessionData.happn,
+    authType: sessionData.authType,
   };
 
   if (sessionData.user)
@@ -193,8 +194,8 @@ function endSession(sessionId, reason) {
   );
 }
 
-function attachSession(sessionId, session) {
-  var sessionData = this.__updateSession(sessionId, session);
+function attachSession(sessionId, session, authType) {
+  var sessionData = this.__updateSession(sessionId, { ...session, authType });
   if (sessionData == null) return;
   const safeSessionData = this.__safeSessionData(sessionData);
   this.logSessionAttached(safeSessionData);

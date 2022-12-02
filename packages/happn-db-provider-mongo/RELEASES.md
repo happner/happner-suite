@@ -70,3 +70,26 @@
 1.0.16 2022-10-03
 -----------------
   - TEN-132, TEN-138: happn and happner updates
+
+1.0.17 2022-10-12
+-----------------
+  - TEN-143: ws and primus update in happn-primus-wrapper
+  - TEN-101: removed elasticsearch support
+
+1.1.0 2022-10-29
+-----------------
+  - TEN-146: preserve criteria on remove
+
+1.1.1 2022-11-04
+-----------------
+- TEN-135: do not insert default sort by path
+
+1.1.2 2022-11-24
+-----------------
+  - TEN-4: productionize summon (authType saved to user)
+  - TEN-140: outdated pem module
+
+1.1.3 2022-11-26s
+-----------------
+  - feat: Sqlite DB provider
+

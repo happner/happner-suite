@@ -1,6 +1,8 @@
 const commons = require('happn-commons');
 const BaseTestHelper = require('happn-commons-test');
 class TestHelper extends BaseTestHelper {
+  #instances = [];
+  #sessions = [];
   constructor() {
     super();
     this.__testFiles = [];
@@ -34,8 +36,22 @@ class TestHelper extends BaseTestHelper {
     return new TestHelper();
   }
 
+  /**
+   * 
+   * @param {*} options 
+   * @param {(test: TestHelper)=>void} handler 
+   * @returns 
+   */
   static describe(options, handler) {
     return BaseTestHelper.extend(TestHelper).describe(options, handler);
+  }
+
+  get sessions () {
+    return this.#sessions;
+  }
+
+  get instances () {
+    return this.#instances;
   }
 
   newTestFile(options) {
@@ -74,7 +90,7 @@ class TestHelper extends BaseTestHelper {
     return { deleted, errors, lastError };
   }
   //eslint-disable-next-line
-doRequest (path, token) {
+doRequest (path, token, toJSON) {
     return new Promise((resolve, reject) => {
       let options = {
         url: 'http://127.0.0.1:55000' + path
@@ -84,6 +100,9 @@ doRequest (path, token) {
       };
       this.request(options, function(error, response) {
         if (error) return reject(error);
+        if (toJSON) {
+          return resolve(JSON.parse(response.body));
+        }
         resolve(response);
       });
     });
@@ -134,16 +153,31 @@ doRequest (path, token) {
   }
   createInstance(config = {}) {
     return new Promise((resolve, reject) => {
-      this.happn.service.create(config, function(e, happnInst) {
+      this.happn.service.create(config, (e, happnInst) => {
         if (e) return reject(e);
+        this.#instances.push(happnInst);
         resolve(happnInst);
       });
+    });
+  }
+
+  createInstanceBefore(config = {}) {
+    before('it creates an instance', async () => {
+      return await this.createInstance(config);
+    });
+  };
+
+  createUserBefore(credentials, instanceIndex = 0) {
+    before('it creates a user', async () => {
+      if (!credentials.password) credentials.password = 'password';
+      await this.instances[instanceIndex].services.security.users.upsertUser(credentials);
     });
   }
 
   destroyInstance(instance) {
     return new Promise((resolve, reject) => {
       if (!instance) return resolve();
+      this.#instances.splice(this.#instances.indexOf(instance), 1);
       instance.stop(function(e) {
         if (e) return reject(e);
         resolve();
@@ -151,26 +185,51 @@ doRequest (path, token) {
     });
   }
 
-  createAdminWSSession() {
+  async destroyAllInstances() {
+    await Promise.all(this.#instances.map(instance => {
+      return this.destroyInstance(instance);
+    }));
+  }
+
+  destroyAllInstancesAfter() {
+    after('it destroys all test instances', async () => {
+      await this.destroyAllInstances();
+    });
+  }
+
+  createAdminWSSession(options = {}) {
     return new Promise((resolve, reject) => {
-      this.happn.client.create({ username: '_ADMIN', password: 'happn' }, function(e, session) {
+      this.happn.client.create(this._.merge({ username: '_ADMIN', password: 'happn' }, options), (e, session) => {
         if (e) return reject(e);
+        this.#sessions.push(session);
         resolve(session);
       });
     });
   }
 
+  createAdminWSSessionBefore() {
+    before('it creates an admin session', this.createAdminWSSession.bind(this));
+  }
+
   async destroySessions(sessions) {
-    for (let session of sessions) {
+    sessions = sessions || this.#sessions;
+    for (let session of sessions.slice()) {
       await this.destroySession(session);
     }
+  }
+
+  destroyAllSessionsAfter() {
+    after('it destroys all sessions', async () => {
+      await this.destroySessions();
+    });
   }
 
   destroySession(session) {
     return new Promise((resolve, reject) => {
       if (!session) return resolve();
-      session.disconnect(function(e) {
+      session.disconnect((e) => {
         if (e) return reject(e);
+        this.#sessions.splice(this.#sessions.indexOf(session), 1);
         resolve();
       });
     });

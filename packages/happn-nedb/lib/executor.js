@@ -2,13 +2,13 @@
  * Responsible for sequentially executing actions on the database
  */
 
-var async = require('async');
+var async = require('happn-commons').async;
 function Executor() {
   this.buffer = [];
   this.ready = false;
 
   // This queue will execute all commands, one-by-one in order
-  this.queue = async.queue(function(task, cb) {
+  this.queue = async.queue(function (task, cb) {
     var newArguments = [];
 
     // task.arguments is an array-like object on which adding a new field doesn't work, so we transform it into a real array
@@ -20,7 +20,7 @@ function Executor() {
     // Always tell the queue task is complete. Execute callback if any was given.
     if (typeof lastArg === 'function') {
       // Callback was supplied
-      newArguments[newArguments.length - 1] = function() {
+      newArguments[newArguments.length - 1] = function () {
         if (typeof setImmediate === 'function') {
           setImmediate(cb);
         } else {
@@ -30,12 +30,12 @@ function Executor() {
       };
     } else if (!lastArg && task.arguments.length !== 0) {
       // false/undefined/null supplied as callbback
-      newArguments[newArguments.length - 1] = function() {
+      newArguments[newArguments.length - 1] = function () {
         cb();
       };
     } else {
       // Nothing supplied as callback
-      newArguments.push(function() {
+      newArguments.push(function () {
         cb();
       });
     }
@@ -54,7 +54,7 @@ function Executor() {
  *                                                                 and the last argument cannot be false/undefined/null
  * @param {Boolean} forceQueuing Optional (defaults to false) force executor to queue task even if it is not ready
  */
-Executor.prototype.push = function(task, forceQueuing) {
+Executor.prototype.push = function (task, forceQueuing) {
   if (this.ready || forceQueuing) {
     this.queue.push(task);
   } else {
@@ -66,7 +66,7 @@ Executor.prototype.push = function(task, forceQueuing) {
  * Queue all tasks in buffer (in the same order they came in)
  * Automatically sets executor as ready
  */
-Executor.prototype.processBuffer = function() {
+Executor.prototype.processBuffer = function () {
   var i;
   this.ready = true;
   for (i = 0; i < this.buffer.length; i += 1) {
