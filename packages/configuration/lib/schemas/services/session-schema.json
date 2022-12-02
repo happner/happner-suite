@@ -21,17 +21,26 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "secure": {
-          "type": "boolean"
+        "activeSessionsCache": {
+          "$ref": "#/definitions/ActiveSessionsCache"
         },
-        "timeout": {
+        "disableSessionEventLogging": {
           "type": "boolean"
         },
         "disconnectTimeout": {
           "type": "number"
         },
-        "activeSessionsCache": {
-          "$ref": "#/definitions/ActiveSessionsCache"
+        "primusOpts": {
+          "$ref": "#/definitions/PrimusOpts"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "unconfiguredSessionCleanup": {
+          "$ref": "#/definitions/SessionCleanup"
+        },
+        "timeout": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -59,6 +68,36 @@
       "required": [
       ],
       "title": "Cache"
+    },
+    "PrimusOpts": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pingInterval": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "PrimusOpts"
+    },
+    "SessionCleanup": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "interval": {
+          "type": "number"
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "verbose": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "SessionCleanup"
     }
   }
 }

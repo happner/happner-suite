@@ -31,7 +31,10 @@
           }
         },
         "filename": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "fsync": {
           "type": "boolean"
@@ -85,7 +88,10 @@
           "type": "string"
         },
         "filename": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "fsync": {
           "type": "boolean"

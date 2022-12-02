@@ -22,7 +22,10 @@
           "type": "string"
         },
         "name": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "port": {
           "type": "number"
