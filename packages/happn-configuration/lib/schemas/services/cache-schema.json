@@ -74,11 +74,40 @@
         },
         "maxAge": {
           "type": "integer"
+        },
+        "keyTransformers": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/KeyTransformer"
+              }
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         }
       },
       "required": [
       ],
       "title": "CacheMaxValues"
+    },
+    "KeyTransformer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "regex": {
+          "type": [
+            "string",
+            "object",
+            "null"
+          ]
+        }
+      },
+      "required": [
+      ],
+      "title": "KeyTransformer"
     }
   }
 }

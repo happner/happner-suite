@@ -28,6 +28,7 @@ const profileSchema = require('../schemas/services/profile-schema.json');
 const componentsSchema = require('../schemas/components/components-schema.json');
 const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
 const modulesSchema = require('../schemas/modules/modules-schema.json');
+const middlewareSchema = require('../schemas/services/middleware-schema.json');
 
 import { FieldTypeValidator } from './field-type-validator';
 
@@ -65,6 +66,7 @@ export class ConfigValidator {
         componentsSchema,
         endpointsSchema,
         modulesSchema,
+        middlewareSchema,
       ],
       strictNumbers: false, // to handle Infinity types
       allowUnionTypes: true, // handle multiple allowed types, eg: string,object
@@ -200,16 +202,19 @@ export class ConfigValidator {
    */
 
   #validate(config: any, schema: string): ValidationResult {
-    // const result = { valid: false, errors: [] };
-    const result = new ValidationResult();
+    try {
+      const result = new ValidationResult();
+      const validate = this.#ajv.compile(schema);
+      result.valid = validate(config);
 
-    const validate = this.#ajv.compile(schema);
-    result.valid = validate(config);
-
-    if (!result.valid) {
-      result.errors = validate.errors;
+      if (!result.valid) {
+        result.errors = validate.errors;
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
-    return result;
   }
 }
 

@@ -9,6 +9,9 @@
         "config": {
           "$ref": "#/definitions/TransportConfig"
         },
+        "mode": {
+          "type": "string"
+        },
         "path": {
           "type": "string"
         }

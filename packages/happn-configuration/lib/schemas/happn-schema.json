@@ -6,8 +6,20 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "adminPassword": {
+          "type": "string"
+        },
+        "activateSessionManagement": {
+          "type": "boolean"
+        },
         "allowNestedPermissions": {
           "type": "boolean"
+        },
+        "authTokenSecret": {
+          "type": "string"
+        },
+        "defaultRoute": {
+          "type": "string"
         },
         "deferListen": {
           "type": "boolean"
@@ -18,14 +30,36 @@
         "encryptPayloads": {
           "type": "boolean"
         },
+        "filename": {
+          "type": "string"
+        },
         "host": {
           "type": "string"
+        },
+        "inboundLayers": {
+          "type": "array",
+          "items": {
+          }
+        },
+        "logSessionActivity": {
+          "type": "boolean"
+        },
+        "middleware": {
+          "$ref": "middleware-schema.json"
         },
         "name": {
           "type": [
             "string",
             "null"
           ]
+        },
+        "outboundLayers": {
+          "type": "array",
+          "items": {
+          }
+        },
+        "persist": {
+          "type": "boolean"
         },
         "port": {
           "type": "number"
@@ -44,6 +78,21 @@
         },
         "sessionTokenSecret": {
           "type": "string"
+        },
+        "setOptions": {
+          "$ref": "#/definitions/SetOptions"
+        },
+        "systemSecret": {
+          "type": "string"
+        },
+        "transport": {
+          "$ref": "#/definitions/Transport"
+        },
+        "transformMiddleware": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "required": [
@@ -63,8 +112,17 @@
         "connect": {
           "$ref": "#/definitions/Connect"
         },
+        "crypto": {
+          "$ref": "#/definitions/Crypto"
+        },
         "data": {
           "$ref": "#/definitions/Data"
+        },
+        "error": {
+          "$ref": "#/definitions/Error"
+        },
+        "log": {
+          "$ref": "#/definitions/Log"
         },
         "protocol": {
           "$ref": "#/definitions/Protocol"
@@ -89,15 +147,6 @@
         },
         "utils": {
           "$ref": "#/definitions/Utils"
-        },
-        "error": {
-          "$ref": "#/definitions/Error"
-        },
-        "log": {
-          "$ref": "#/definitions/Log"
-        },
-        "crypto": {
-          "$ref": "#/definitions/Crypto"
         }
       },
       "required": [
@@ -112,6 +161,9 @@
     },
     "Data": {
       "$ref": "data-schema.json"
+    },
+    "Middleware": {
+      "$ref": "middleware-schema.json"
     },
     "Protocol": {
       "$ref": "protocol-schema.json"
@@ -148,6 +200,19 @@
     },
     "Crypto": {
       "$ref": "crypto-schema.json"
+    },
+    "SetOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "type": "number"
+        },
+        "noStore": {
+          "type": "boolean"
+        }
+      },
+      "title": "SetOptions"
     }
   }
 }

@@ -58,6 +58,10 @@
             }
           ]
         },
+        "permissions": {
+          "type": "object",
+          "$ref": "#/definitions/Permissions"
+        },
         "usage_limit": {
           "type": [
             "number"
@@ -67,6 +71,27 @@
       "required": [
       ],
       "title": "Policy"
+    },
+    "Permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "properties": {
+            "authorized": {
+              "type": "boolean"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "title": "Permissions"
     },
     "Session": {
       "type": "object",

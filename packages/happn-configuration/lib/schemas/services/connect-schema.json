@@ -33,38 +33,7 @@
       "title": "ConnectConfig"
     },
     "Middleware": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "security": {
-          "$ref": "#/definitions/MiddlewareSecurity"
-        }
-      },
-      "required": [
-        "security"
-      ],
-      "title": "Middleware"
-    },
-    "MiddlewareSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "exclusions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "forbiddenResponsePath": {
-          "type": "string"
-        },
-        "unauthorizedResponsePath": {
-          "type": "string"
-        }
-      },
-      "required": [
-      ],
-      "title": "MiddlewareSecurity"
+      "$ref": "middleware-schema.json"
     }
   }
 }
