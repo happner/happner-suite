@@ -1,5 +1,5 @@
 const test = require('../../../__fixtures/utils/test_helper').create();
-const BaseAuthProvider = require('../../../../lib/services/security/authentication/provider-base');
+const BaseAuthProvider = require('../../../../lib/services/security/authentication/base-provider');
 
 describe(test.testName(), function () {
   this.timeout(10e3);

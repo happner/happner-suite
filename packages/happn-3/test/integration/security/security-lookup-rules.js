@@ -1,7 +1,7 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 
 describe(test.testName(__filename), function () {
-  this.timeout(120000);
+  this.timeout(120e3);
   const happn = require('../../../lib/index');
   let serviceInstance;
   let adminClient;

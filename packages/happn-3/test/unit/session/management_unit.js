@@ -135,9 +135,9 @@ describe(testHelper.testName(__filename, 3), function () {
     mockServices(function (e, happn) {
       if (e) return done(e);
 
-      expect(happn.services.security.__sessionManagementActive).to.be(true);
-      expect(happn.services.security.__cache_revoked_tokens).to.not.be(null);
-      expect(happn.services.security.__cache_session_activity).to.not.be(null);
+      expect(happn.services.security.sessionManagementActive).to.be(true);
+      expect(happn.services.security.cache_revoked_tokens).to.not.be(null);
+      expect(happn.services.security.cache_session_activity).to.not.be(null);
 
       done();
     });
@@ -176,7 +176,7 @@ describe(testHelper.testName(__filename, 3), function () {
             null,
             happn.services.security
           );
-          happn.services.security.__logSessionActivity(
+          happn.services.security.logSessionActivity(
             session.id,
             'testpath' + timeIndex,
             'testaction' + timeIndex,
@@ -221,7 +221,7 @@ describe(testHelper.testName(__filename, 3), function () {
             null,
             happn.services.security
           );
-          happn.services.security.__logSessionActivity(
+          happn.services.security.logSessionActivity(
             session.id,
             'testpath' + timeIndex,
             'testaction' + timeIndex,
@@ -256,7 +256,7 @@ describe(testHelper.testName(__filename, 3), function () {
 
       var session = mockSession(1, 'TEST_SESSION', 'TEST_USER', null, happn.services.security);
 
-      happn.services.security.__logSessionActivity(
+      happn.services.security.logSessionActivity(
         session.id,
         'testpath1',
         'testaction1',
@@ -266,7 +266,7 @@ describe(testHelper.testName(__filename, 3), function () {
         function (e) {
           if (e) return done(e);
 
-          happn.services.security.__logSessionActivity(
+          happn.services.security.logSessionActivity(
             session.id,
             'testpath2',
             'testaction2',
@@ -300,22 +300,19 @@ describe(testHelper.testName(__filename, 3), function () {
         happn.services.security.listRevokedTokens(function (e, list) {
           if (e) return done(e);
           expect(list.length).to.be(1);
-          happn.services.security.__checkRevocations(
-            session.token,
-            function (e, authorized, reason) {
-              expect(authorized).to.be(false);
-              expect(reason).to.be('token has been revoked');
+          happn.services.security.checkRevocations(session.token, function (e, authorized, reason) {
+            expect(authorized).to.be(false);
+            expect(reason).to.be('token has been revoked');
 
-              happn.services.security.restoreToken(session.token, function (e) {
+            happn.services.security.restoreToken(session.token, function (e) {
+              if (e) return done(e);
+              happn.services.security.listRevokedTokens(function (e, list) {
                 if (e) return done(e);
-                happn.services.security.listRevokedTokens(function (e, list) {
-                  if (e) return done(e);
-                  expect(list.length).to.be(0);
-                  happn.services.security.__checkRevocations(session.token, done);
-                });
+                expect(list.length).to.be(0);
+                happn.services.security.checkRevocations(session.token, done);
               });
-            }
-          );
+            });
+          });
         });
       });
     });
@@ -426,14 +423,14 @@ describe(testHelper.testName(__filename, 3), function () {
           happn.services.security.listRevokedTokens(function (e, list) {
             if (e) return done(e);
             expect(list.length).to.be(1);
-            expect(happn.services.security.__cache_revoked_tokens.size()).to.be(1);
-            happn.services.security.__loadRevokedTokens(function (e) {
+            expect(happn.services.security.cache_revoked_tokens.size()).to.be(1);
+            happn.services.security.loadRevokedTokens(function (e) {
               if (e) return done(e);
-              expect(happn.services.security.__cache_revoked_tokens.size()).to.be(1);
+              expect(happn.services.security.cache_revoked_tokens.size()).to.be(1);
               setTimeout(function () {
-                happn.services.security.__loadRevokedTokens(function (e) {
+                happn.services.security.loadRevokedTokens(function (e) {
                   if (e) return done(e);
-                  expect(happn.services.security.__cache_revoked_tokens.size()).to.be(0);
+                  expect(happn.services.security.cache_revoked_tokens.size()).to.be(0);
                   done();
                 });
               }, 5000);

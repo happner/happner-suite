@@ -28,6 +28,27 @@ UtilsService.prototype.computeiv = happnUtils.computeiv;
 UtilsService.prototype.asyncCallback = happnUtils.asyncCallback;
 UtilsService.prototype.escapeRegex = happnUtils.escapeRegex;
 UtilsService.prototype.wrapImmediate = happnUtils.wrapImmediate;
+UtilsService.prototype.getMethodNames = getMethodNames;
+UtilsService.prototype.buildBoundProxy = buildBoundProxy;
+
+function getMethodNames(obj) {
+  return Object.getOwnPropertyNames(obj).filter((item) => typeof obj[item] === "function");
+}
+
+function buildBoundProxy(propertyNames, bindTo) {
+  return propertyNames.reduce((proxy, propertyName) => {
+    if (typeof bindTo[propertyName] === "function") {
+      proxy[propertyName] = bindTo[propertyName].bind(bindTo);
+    } else {
+      try {
+        proxy[propertyName] = this.clone(bindTo[propertyName], true)
+      } catch (e) {
+        // absorb
+      }
+    }
+    return proxy;
+  }, {});
+}
 
 function ensureRegexCache(cacheKey, cacheSize, cacheAsObject) {
   cacheKey = cacheKey || "default";
@@ -227,6 +248,15 @@ UtilsService.prototype.isEmptyObject = function (obj) {
 
 UtilsService.prototype.replaceAll = function (str, search, replacement) {
   return str.replaceAll(search, replacement);
+};
+
+UtilsService.prototype.coerceArray = function (possibleArray) {
+  let first = possibleArray,
+    rest = [null];
+  if (Array.isArray(possibleArray)) {
+    [first, ...rest] = possibleArray;
+  }
+  return [first, ...rest];
 };
 
 UtilsService.prototype.getTemplatedPathCombinations = function (template, context, validator) {

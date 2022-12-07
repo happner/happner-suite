@@ -1,74 +1,79 @@
-let AuthProvider = require('./provider-base');
+let AuthProvider = require('./base-provider');
 module.exports = class HappnAuthProvider extends AuthProvider {
-  constructor(happn, config) {
-    super(happn, config);
+  constructor(securityFacade, config) {
+    // sets securityFacade, config on super, becomes available via getters as this.securityFacade, this.config
+    super(securityFacade, config);
   }
 
-  static create(happn, config) {
-    return new HappnAuthProvider(happn, config);
+  static create(securityFacade, config) {
+    return new HappnAuthProvider(securityFacade, config);
   }
 
-  async __providerTokenLogin(credentials, previousSession, sessionId, callback) {
+  async providerTokenLogin(credentials, decodedToken, sessionId, callback) {
     try {
-      let ok = await this.checkTokenUserId(previousSession);
-      if (!ok)
+      let ok = await this.securityFacade.security.checkTokenUserId(decodedToken);
+      if (!ok) {
         return this.accessDenied(
-          `token userid does not match userid for username: ${previousSession.username}`,
+          `token userid does not match userid for username: ${decodedToken.username}`,
           callback
         );
-      let [authorized, reason] = this.coerceArray(
-        await this.authorize(previousSession, null, 'login')
+      }
+
+      let [authorized, reason] = this.securityFacade.utils.coerceArray(
+        await this.securityFacade.security.authorize(decodedToken, null, 'login')
       );
 
       if (!authorized) return this.invalidCredentials(reason, callback);
-      let user = await this.users.getUser(previousSession.username);
+      let user = await this.securityFacade.users.getUser(decodedToken.username);
       if (user == null) return this.invalidCredentials('Invalid credentials', callback);
 
-      return this.__loginOK(credentials, user, sessionId, callback, {
-        session: previousSession,
+      return this.loginOK(credentials, user, sessionId, callback, {
+        session: decodedToken,
         token: credentials.token,
       });
     } catch (e) {
-      return this.invalidCredentials('Invalid credentials', callback);
+      this.securityFacade.log.error(`token login failure: ${e.message}`, e);
+      return this.systemError('token login failure', callback);
     }
   }
 
-  __digestLogin(user, credentials, sessionId, callback) {
+  #digestLogin(user, credentials, sessionId, callback) {
     if (user.publicKey !== credentials.publicKey)
-      return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
 
-    return this.verifyAuthenticationDigest(credentials, (e, valid) => {
+    return this.securityFacade.security.verifyAuthenticationDigest(credentials, (e, valid) => {
       if (e) return callback(e);
 
-      if (!valid)
-        return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      if (!valid) {
+        return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      }
 
-      return this.__loginOK(credentials, user, sessionId, callback);
+      return this.loginOK(credentials, user, sessionId, callback);
     });
   }
 
-  __providerCredsLogin(credentials, sessionId, callback) {
-    return this.users.getUser(credentials.username, (e, user) => {
+  providerCredsLogin(credentials, sessionId, callback) {
+    return this.securityFacade.users.getUser(credentials.username, (e, user) => {
       if (e) return callback(e);
 
       if (user == null) {
-        return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+        return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
       }
 
-      if (credentials.digest) return this.__digestLogin(user, credentials, sessionId, callback);
+      if (credentials.digest) return this.#digestLogin(user, credentials, sessionId, callback);
 
-      return this.users.getPasswordHash(credentials.username, (e, hash) => {
+      return this.securityFacade.users.getPasswordHash(credentials.username, (e, hash) => {
         if (e) {
           if (e.toString() === 'Error: ' + credentials.username + ' does not exist in the system')
-            return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+            return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
           return callback(e);
         }
-        this.matchPassword(credentials.password, hash, (e, match) => {
+        this.securityFacade.security.matchPassword(credentials.password, hash, (e, match) => {
           if (e) return callback(e);
           if (!match) {
-            return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
+            return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
           }
-          return this.__loginOK(credentials, user, sessionId, callback);
+          return this.loginOK(credentials, user, sessionId, callback);
         });
       });
     });
