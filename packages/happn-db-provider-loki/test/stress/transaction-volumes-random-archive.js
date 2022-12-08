@@ -1,6 +1,6 @@
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const LokiDataProvider = require('../..');
-  const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
+  const testDirPath = test.commons.path.resolve(__dirname, `../tmp/stress`);
   const testFileName = `${testDirPath}${test.commons.path.sep}stress-test.db`;
   const mockLogger = {
     info: test.sinon.stub(),
@@ -29,6 +29,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     before('delete temp file', async () => {
       test.fs.ensureDirSync(testDirPath);
       test.unlinkFiles([testFileName]);
+    });
+    after(() => {
+      test.fs.rmSync(testDirPath, { recursive: true, force: true });
     });
     const OPERATIONS = 10e3,
       REPORTHEAPMOD = 1e3;

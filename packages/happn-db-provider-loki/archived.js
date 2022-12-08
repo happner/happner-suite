@@ -15,7 +15,7 @@ module.exports = class LokiArchiveDataProvider extends commons.BaseDataProvider 
     try {
       this.db = new db();
       this.db.loadJSON(JSON.parse(data).snapshot, { retainDirtyFlags: false });
-      this.collection = this.db.collections[0];
+      this.collection = this.db.collections.find((collection) => collection.name === 'happn');
     } catch (e) {
       error = e;
     } finally {
