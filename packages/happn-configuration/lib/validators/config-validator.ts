@@ -26,17 +26,21 @@ const proxySchema = require('../schemas/services/proxy-schema.json');
 const replicatorSchema = require('../schemas/services/replicator-schema.json');
 const profileSchema = require('../schemas/services/profile-schema.json');
 const componentsSchema = require('../schemas/components/components-schema.json');
+const componentsLazySchema = require('../schemas/components/components-lazy-schema.json');
 const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
 const modulesSchema = require('../schemas/modules/modules-schema.json');
 const middlewareSchema = require('../schemas/services/middleware-schema.json');
+import BuilderType from '../constants/builder-constants';
 
 import { FieldTypeValidator } from './field-type-validator';
 
 export class ConfigValidator {
   #ajv;
   #fieldTypeValidator;
+  #log;
 
-  constructor() {
+  constructor(log) {
+    this.#log = log;
     this.#ajv = new Ajv({
       schemas: [
         happnSchema,
@@ -64,6 +68,7 @@ export class ConfigValidator {
         replicatorSchema,
         profileSchema,
         componentsSchema,
+        componentsLazySchema,
         endpointsSchema,
         modulesSchema,
         middlewareSchema,
@@ -73,6 +78,14 @@ export class ConfigValidator {
     });
 
     this.#fieldTypeValidator = new FieldTypeValidator();
+  }
+
+  get currentConfigType() {
+    return process.env.CURRENT_CONFIG_TYPE;
+  }
+
+  set currentConfigType(configType) {
+    process.env.CURRENT_CONFIG_TYPE = configType;
   }
 
   /*****************************************************
@@ -138,7 +151,7 @@ export class ConfigValidator {
   }
 
   validateHappnConfig(config: any): ValidationResult {
-    return this.#validate(config, happnSchema);
+    return this.#validate(config, happnSchema, BuilderType.HAPPN);
   }
 
   /*****************************************************
@@ -166,7 +179,7 @@ export class ConfigValidator {
   }
 
   validateHappnClusterConfig(config: any) {
-    return this.#validate(config, happnClusterSchema);
+    return this.#validate(config, happnClusterSchema, BuilderType.HAPPN_CLUSTER);
   }
 
   /*****************************************************
@@ -186,7 +199,7 @@ export class ConfigValidator {
   }
 
   validateHappnerConfig(config: any) {
-    return this.#validate(config, happnerSchema);
+    return this.#validate(config, happnerSchema, BuilderType.HAPPNER);
   }
 
   /*****************************************************
@@ -194,16 +207,32 @@ export class ConfigValidator {
    ****************************************************/
 
   validateHappnerClusterConfig(config: any) {
-    return this.#validate(config, happnerClusterSchema);
+    return this.#validate(config, happnerClusterSchema, BuilderType.HAPPNER_CLUSTER);
   }
 
   /*
   HELPERS
    */
 
-  #validate(config: any, schema: string): ValidationResult {
+  #validate(config: any, schema: string, configType?: string): ValidationResult {
     try {
       const result = new ValidationResult();
+
+      this.#log.info(`CURRENT CONFIG TYPE: ${this.currentConfigType}`);
+      this.#log.info(`REQUESTED CONFIG TYPE: ${configType}`);
+
+      if (
+        configType &&
+        this.currentConfigType !== undefined &&
+        this.currentConfigType !== configType
+      ) {
+        this.#log.info(`>>> currentValidator is already ${this.currentConfigType}; ignoring...`);
+        result.valid = true;
+        return result;
+      }
+
+      this.currentConfigType = configType;
+
       const validate = this.#ajv.compile(schema);
       result.valid = validate(config);
 
@@ -212,7 +241,7 @@ export class ConfigValidator {
       }
       return result;
     } catch (err) {
-      console.error(err);
+      this.#log.error(err);
       throw err;
     }
   }

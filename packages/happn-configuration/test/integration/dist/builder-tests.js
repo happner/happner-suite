@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires,no-console */
 // const expect = require('chai');
+import mockLogger from '../../__fixtures/logger';
+
 const { ConfigBuilderFactory, ConfigValidator } = require('../../../dist');
 
 describe('transpiled configuration tests', function () {
@@ -7,7 +9,7 @@ describe('transpiled configuration tests', function () {
     const builder = ConfigBuilderFactory.getBuilder('happn');
     const result = builder.build();
 
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -18,7 +20,7 @@ describe('transpiled configuration tests', function () {
     const builder = ConfigBuilderFactory.getHappnClusterBuilder();
     const result = builder.build();
 
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -29,7 +31,7 @@ describe('transpiled configuration tests', function () {
     const builder = ConfigBuilderFactory.getHappnerBuilder();
     const result = builder.build();
 
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -40,7 +42,7 @@ describe('transpiled configuration tests', function () {
     const builder = ConfigBuilderFactory.getHappnerClusterBuilder();
     const result = builder.build();
 
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 

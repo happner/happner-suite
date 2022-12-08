@@ -1,7 +1,9 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console,@typescript-eslint/no-var-requires */
 import { ConfigBuilderFactory } from '../../lib/factories/config-builder-factory';
 import { ConfigValidator } from '../../lib/validators/config-validator';
 import { expect } from 'chai';
+
+import mockLogger from '../__fixtures/logger';
 
 describe('full configuration tests', function () {
   it('builds a happn configuration object', () => {
@@ -13,7 +15,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -35,7 +37,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -51,7 +53,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -69,7 +71,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator();
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });

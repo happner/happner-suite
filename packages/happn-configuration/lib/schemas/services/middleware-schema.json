@@ -3,15 +3,22 @@
   "$ref": "#/definitions/Middleware",
   "definitions": {
     "Middleware": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "security": {
-          "$ref": "#/definitions/MiddlewareSecurity"
+      "type": [
+        "object",
+        "null"
+      ],
+      "if": {
+        "type": "object"
+      },
+      "then": {
+        "additionalProperties": false,
+        "properties": {
+          "security": {
+            "$ref": "#/definitions/MiddlewareSecurity"
+          }
         }
       },
       "required": [
-        "security"
       ],
       "title": "Middleware"
     },

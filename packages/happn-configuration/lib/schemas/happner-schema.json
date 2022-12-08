@@ -6,26 +6,38 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "deferListen": {
+        "authorityDelegationOn": {
           "type": "boolean"
-        },
-        "listenFirst": {
-          "type": "boolean"
-        },
-        "happn": {
-          "$ref": "#/definitions/Happn"
         },
         "components": {
           "$ref": "#/definitions/Components"
         },
+        "deferListen": {
+          "type": "boolean"
+        },
         "endpoints": {
           "$ref": "#/definitions/Endpoints"
         },
+        "happn": {
+          "$ref": "#/definitions/Happn"
+        },
+        "listenFirst": {
+          "type": "boolean"
+        },
         "modules": {
           "$ref": "#/definitions/Modules"
+        },
+        "name": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        },
+        "web": {
+          "$ref": "#/definitions/Web"
         }
       },
       "required": [
@@ -44,6 +56,24 @@
     },
     "Modules": {
       "$ref": "modules-schema.json"
+    },
+    "Web": {
+      "type": "object",
+      "properties": {
+        "middleware": {
+          "type": "array",
+          "items": {
+            "$ref": "components-lazy-schema.json"
+          }
+        },
+        "routes": {
+          "type": "object",
+          "patternProperties": {
+            "^.*$": {
+            }
+          }
+        }
+      }
     }
   }
 }

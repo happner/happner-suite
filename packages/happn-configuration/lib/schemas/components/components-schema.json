@@ -21,6 +21,9 @@
         "module": {
           "type": "string"
         },
+        "moduleName": {
+          "type": "string"
+        },
         "schema": {
           "$ref": "#/definitions/Schema"
         },
@@ -171,7 +174,6 @@
       "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
-          "type": "string"
         }
       },
       "required": [

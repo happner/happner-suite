@@ -1,14 +1,17 @@
-/* eslint-disable no-console,no-unused-vars */
+/* eslint-disable no-console,no-unused-vars,@typescript-eslint/no-var-requires */
 import { expect } from 'chai';
 import { ConfigValidator } from '../../../../lib/validators/config-validator';
 
+import mockLogger from '../../../__fixtures/logger';
+
 describe('components configuration validation tests', function () {
-  const validator = new ConfigValidator();
+  const validator = new ConfigValidator(mockLogger);
 
   it('validates full components config', () => {
     const config = createValidComponentsConfig();
     const result = validator.validateComponentsConfig(config);
 
+    console.log(JSON.stringify(result.errors, null, 2));
     expect(result.valid).to.equal(true);
   });
 });

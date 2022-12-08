@@ -24,8 +24,14 @@
         "construct": {
           "$ref": "#/definitions/Construct"
         },
+        "constructor": {
+          "$ref": "#/definitions/Instantiator"
+        },
         "create": {
           "$ref": "#/definitions/Create"
+        },
+        "instance": {
+          "type": "object"
         }
       },
       "required": [
@@ -49,24 +55,30 @@
       }
     },
     "Instantiator": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "parameters": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Parameter"
+      "if": {
+        "type": "object"
+      },
+      "then": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Parameter"
+            }
+          },
+          "type": {
+            "type": "string"
+          },
+          "callback": {
+            "$ref": "#/definitions/Callback"
           }
-        },
-        "callback": {
-          "$ref": "#/definitions/Callback"
         }
       },
-      "required": [
-      ],
       "title": "Instantiator"
     },
     "Parameter": {
