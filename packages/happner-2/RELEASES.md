@@ -1013,3 +1013,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.5.3 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+12.5.4 2022-12-08
+-----------------
+  - feat: Summon productionization

@@ -393,3 +393,7 @@
 12.5.4 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+12.5.5 2022-12-08
+-----------------
+  - feat: Summon productionization

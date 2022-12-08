@@ -93,3 +93,7 @@
 -----------------
   - feat: Sqlite DB provider
 
+1.1.4 2022-12-08
+-----------------
+  - feat: Summon productionization
+
