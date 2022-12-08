@@ -41,7 +41,7 @@ function buildBoundProxy(propertyNames, bindTo) {
       proxy[propertyName] = bindTo[propertyName].bind(bindTo);
     } else {
       try {
-        proxy[propertyName] = this.clone(bindTo[propertyName], true)
+        proxy[propertyName] = this.clone(bindTo[propertyName], true);
       } catch (e) {
         // absorb
       }

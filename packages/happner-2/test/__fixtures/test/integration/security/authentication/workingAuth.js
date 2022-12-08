@@ -1,18 +1,25 @@
 module.exports = function(ParentClass) {
   return class TestAuthProvider extends ParentClass {
-    constructor(happn, config) {
-      super(happn, config);
+    constructor(securityFacade, config) {
+      super(securityFacade, config);
     }
 
-    static create(happn, config) {
-      return new TestAuthProvider(happn, config);
+    static create(securityFacade, config) {
+      return new TestAuthProvider(securityFacade, config);
     }
-   __providerCredsLogin(credentials, sessionId, callback) {      
-      if (credentials.username === "secondTestuser@somewhere.com" && credentials.password === "secondPass") {        
+    providerCredsLogin(credentials, sessionId, callback) {      
+        if (credentials.username === "secondTestuser@somewhere.com" && credentials.password === "secondPass") {        
+          let user = {username: "secondTestuser@somewhere.com", groups: { _MESH_GST: { data: {} } }}
+          return this.loginOK(credentials, user, sessionId, callback);
+        }
+        return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      }
+    providerTokenLogin(credentials, decodedToken, sessionId, callback) {      
+      if (decodedToken.username === "secondTestuser@somewhere.com" && credentials.token != null) {        
         let user = {username: "secondTestuser@somewhere.com", groups: { _MESH_GST: { data: {} } }}
-        return this.__loginOK(credentials, user, sessionId, callback);
+        return this.loginOK(credentials, user, sessionId, callback);
       }
-      return this.__loginFailed(credentials.username, 'Invalid credentials', null, callback);
-      }
-  };
+      return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
+    }
+  }
 };
