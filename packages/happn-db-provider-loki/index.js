@@ -1,5 +1,8 @@
+const LokiArchiveDataProvider = require('./archived');
+
 const db = require('lokijs'),
   readline = require('readline'),
+  AdmZip = require('adm-zip'),
   commons = require('happn-commons'),
   constants = commons.constants,
   async = commons.async,
@@ -23,6 +26,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.findOne = util.maybePromisify(this.findOne);
     this.remove = util.maybePromisify(this.remove);
     this.count = util.maybePromisify(this.count);
+    this.archive = util.maybePromisify(this.archive);
     this.operationCount = 0;
   }
 
@@ -35,19 +39,23 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
 
     this.persistenceOn = this.settings.filename != null;
+
     if (this.persistenceOn) {
       fs.ensureDirSync(commons.path.dirname(this.settings.filename));
       let pathArray = this.settings.filename.split(pathSep);
       pathArray[pathArray.length - 1] = 'temp_' + pathArray[pathArray.length - 1];
       this.settings.tempDataFilename = pathArray.join(pathSep);
     }
+
     this.operationQueue = async.queue((operation, cb) => {
       this.processOperation(operation, cb);
     }, 1);
+
     if (!this.persistenceOn) {
       callback();
       return;
     }
+
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
     this.reconstruct((e) => {
       if (e) {
@@ -80,48 +88,61 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
   }
 
-  readDataFile(filename, callback) {
+  readDataFileInternal(filename, lineHandler, callback) {
     const reader = readline.createInterface({
       input: fs.createReadStream(filename),
       crlfDelay: Infinity,
     });
-    let lineIndex = 0;
-    let errorHappened = false;
 
+    let error = null;
     reader.on('line', (line) => {
-      if (lineIndex === 0) {
-        try {
-          this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
-        } catch (e) {
-          callback(e);
-        }
-        this.collection = this.db.collections[0];
-      } else {
-        try {
-          this.mutateDatabase(this.parsePersistedOperation(line), true);
-        } catch (e) {
-          this.logger.error(`failed reconstructing line ${line}`);
-          errorHappened = true;
-          reader.close();
-          callback(e);
-        }
+      try {
+        lineHandler(line);
+      } catch (e) {
+        error = e;
+        reader.close();
       }
-      lineIndex++;
     });
 
     reader.on('close', () => {
-      if (!errorHappened) {
-        callback(null);
-      }
+      callback(error ?? null);
     });
 
     reader.on('error', (e) => {
-      this.logger.error(`reconstruction reader error ${e.message}`);
-      if (!errorHappened) {
-        callback(e);
-      }
-      errorHappened = true;
+      if (error) return;
+      callback(e);
     });
+  }
+
+  readDataFile(filename, callback) {
+    let lineIndex = 0,
+      errorHappened = null;
+
+    this.readDataFileInternal(
+      filename,
+      (line) => {
+        if (++lineIndex === 1) {
+          try {
+            this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
+          } catch (e) {
+            callback(e);
+          }
+          this.collection = this.db.collections[0];
+        } else {
+          try {
+            this.mutateDatabase(this.parsePersistedOperation(line), true);
+          } catch (e) {
+            this.logger.error(`failed reconstructing line ${line}`);
+            throw e;
+          }
+        }
+      },
+      (error) => {
+        if (!error) return callback();
+        this.logger.error(`reader error ${error.message}`);
+        callback(errorHappened ?? error);
+      }
+    );
   }
 
   parsePersistedOperation(line) {
@@ -147,20 +168,48 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     callback();
   }
   processOperation(operation, callback) {
-    if (operation.operationType === constants.DATA_OPERATION_TYPES.SNAPSHOT) {
-      this.snapshot(callback);
-      return;
+    switch (operation.operationType) {
+      case constants.DATA_OPERATION_TYPES.SNAPSHOT:
+        this.snapshot(callback);
+        break;
+
+      case constants.DATA_OPERATION_TYPES.ARCHIVE:
+        {
+          if (!this.persistenceOn) break;
+          this.archiveInternal(callback);
+        }
+        break;
+
+      case constants.DATA_OPERATION_TYPES.LOAD_ARCHIVE:
+        {
+          if (!this.persistenceOn) break;
+          this.loadedArchiveDB = true;
+          this.loadArchiveInternal(operation.arguments[0], callback);
+        }
+        break;
+
+      case constants.DATA_OPERATION_TYPES.UNLOAD_ARCHIVE:
+        {
+          if (!this.persistenceOn) break;
+          this.unloadArchiveInternal(callback);
+        }
+        break;
+
+      default:
+        {
+          callback = this.storePlayback(operation, callback);
+          let result;
+          try {
+            result = this.mutateDatabase(operation);
+          } catch (e) {
+            this.logger.error(`failed mutating database: ${operation.arguments[0]}`, e);
+            callback(e);
+            return;
+          }
+          callback(null, result);
+        }
+        break;
     }
-    callback = this.storePlayback(operation, callback);
-    let result;
-    try {
-      result = this.mutateDatabase(operation);
-    } catch (e) {
-      this.logger.error(`failed mutating database: ${operation.arguments[0]}`, e);
-      callback(e);
-      return;
-    }
-    callback(null, result);
   }
   mutateDatabase(operation, preserveTimestamps) {
     switch (operation.operationType) {
@@ -190,6 +239,91 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         return this.removeInternal(operation.arguments[0], operation.arguments[1]);
       default:
         throw new Error(`unknown data operation type: ${operation.operationType}`);
+    }
+  }
+  archiveInternal(callback) {
+    this.snapshot((error) => {
+      if (error) return callback(error);
+
+      const sequence = this.findInternal('/_ARCHIVE/LIST/*', { count: true });
+
+      this.copyMainDataToArchive(sequence + 1, (error) => {
+        if (error) return callback(error);
+
+        const filePath = this.settings.filename.split(pathSep);
+        const archivedFileName = filePath[filePath.length - 1];
+
+        const zip = new AdmZip();
+        zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
+        zip.writeZip(`${this.settings.filename}.${sequence + 1}.zip`, (error) => {
+          fs.unlinkSync(`${this.settings.filename}.${sequence + 1}`);
+
+          if (error) {
+            return callback(error);
+          }
+
+          this.removeInternal('*', { path: { $regex: /(?!^\/_ARCHIVE)/ } });
+          this.insertInternal({
+            path: `/_ARCHIVE/LIST/${sequence + 1}`,
+            data: {
+              sequence: sequence + 1,
+              archive: `${this.settings.filename}.${sequence + 1}.zip`,
+            },
+          });
+
+          this.snapshot((error) => {
+            if (error) return callback(error);
+            callback(null, 1);
+          });
+        });
+      });
+    });
+  }
+  loadArchiveInternal(path, callback) {
+    const archiveId = path.split('/').at(3);
+    const [archiveDetails, ...archives] = this.findInternal(`/_ARCHIVE/LIST/${archiveId}`);
+
+    if (!archiveDetails) {
+      return callback(new Error('Archive ID does not exist'));
+    }
+
+    if (archives.length > 0) {
+      return callback(new Error('Only one archive can be loaded at any given time'));
+    }
+
+    const filePath = this.settings.filename.split(pathSep);
+    const archivedFileName = filePath[filePath.length - 1];
+
+    const zip = new AdmZip(archiveDetails.data.archive);
+    this.loadedArchiveDB = new LokiArchiveDataProvider();
+    this.loadedArchiveDB.initialize(
+      zip.getEntry(archivedFileName).getData().toString().trim(),
+      (error) => {
+        if (error) return callback(error);
+
+        callback();
+      }
+    );
+  }
+  unloadArchiveInternal(callback) {
+    if (!this.loadedArchiveDB) {
+      return callback(new Error('No archive is loaded'));
+    }
+
+    let calledBack = false;
+    try {
+      this.loadedArchiveDB.stop();
+      delete this.loadedArchiveDB;
+
+      try {
+        callback();
+      } finally {
+        calledBack = true;
+      }
+    } catch (e) {
+      if (!calledBack) {
+        callback(e);
+      }
     }
   }
   upsertInternal(path, upsertDocument, options, preserveTimestamps) {
@@ -241,6 +375,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   copyTempDataToMain(callback) {
     if (fs.existsSync(this.settings.filename)) fs.unlinkSync(this.settings.filename);
     fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
+  }
+
+  copyMainDataToArchive(suffix, callback) {
+    if (fs.existsSync(`${this.settings.filename}.${suffix}`))
+      fs.unlinkSync(`${this.settings.filename}.${suffix}`);
+    fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
   }
 
   storePlayback(operation, callback) {
@@ -328,6 +468,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback
     );
   }
+  archive(callback) {
+    this.operationQueue.push({ operationType: constants.DATA_OPERATION_TYPES.ARCHIVE }, callback);
+  }
   merge(path, document, callback) {
     this.upsert(path, document, { merge: true }, callback);
   }
@@ -395,12 +538,22 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }, []);
   }
   findInternal(path, parameters) {
+    let collection = this.collection;
+    if (path.startsWith('/_ARCHIVE/GET/')) {
+      if (!(this.loadedArchiveDB instanceof LokiArchiveDataProvider)) {
+        throw new Error('Cannot read from archive: no archive loaded');
+      }
+
+      collection = this.loadedArchiveDB.collection;
+      path = path.slice(14);
+    }
+
     let finalResult = [];
     let pathCriteria = this.getPathCriteria(path);
 
     if (!parameters) parameters = {};
     if (parameters.criteria) pathCriteria = this.addCriteria(pathCriteria, parameters.criteria);
-    let results = this.collection.chain().find(pathCriteria);
+    let results = collection.chain().find(pathCriteria);
     let options = parameters.options || {};
     if (results.count() === 0) {
       return options.count ? { data: { value: 0 } } : finalResult;
@@ -441,6 +594,23 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (parameters == null) {
       parameters = {};
     }
+
+    if (path.startsWith('/_ARCHIVE/LOAD/')) {
+      this.operationQueue.push(
+        { operationType: constants.DATA_OPERATION_TYPES.LOAD_ARCHIVE, arguments: [path] },
+        callback
+      );
+
+      return;
+    } else if (path.startsWith('/_ARCHIVE/UNLOAD/')) {
+      this.operationQueue.push(
+        { operationType: constants.DATA_OPERATION_TYPES.UNLOAD_ARCHIVE, arguments: [path] },
+        callback
+      );
+
+      return;
+    }
+
     let result = [];
     try {
       result = this.findInternal(path, parameters);
