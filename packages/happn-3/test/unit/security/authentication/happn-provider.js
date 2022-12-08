@@ -1,7 +1,7 @@
 const test = require('../../../__fixtures/utils/test_helper').create();
 const HappnerAuthProvider = require('../../../../lib/services/security/authentication/happn-provider');
 
-describe(test.testName(), () => {
+xdescribe(test.testName(), () => {
   let mockHappn = null;
   let mockConfig = null;
   beforeEach(() => {

@@ -31,6 +31,10 @@ UtilsService.prototype.wrapImmediate = happnUtils.wrapImmediate;
 UtilsService.prototype.getMethodNames = getMethodNames;
 UtilsService.prototype.buildBoundProxy = buildBoundProxy;
 
+UtilsService.create = function () {
+  return new UtilsService();
+};
+
 function getMethodNames(obj) {
   return Object.getOwnPropertyNames(obj).filter((item) => typeof obj[item] === "function");
 }
