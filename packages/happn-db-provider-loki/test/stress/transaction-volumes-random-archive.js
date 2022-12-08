@@ -49,7 +49,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     it('will at some point perform archivals', () => {
       for (let i = 0; i < 10; i++) {
         setTimeout(async () => {
-          console.log('>>> PERFORMING ARCHIVE');
+          test.log('>>> PERFORMING ARCHIVE');
           const lokiProvider = await getProvider();
           await lokiProvider.archive();
         }, Math.random() * 20000);
