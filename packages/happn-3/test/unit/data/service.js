@@ -61,96 +61,33 @@ describe(test.testName(__filename, 3), function () {
     });
   });
 
-  it('tests the upsert method', async () => {
+  it('tests the archive method - provider has no archive method', async () => {
+    const path = '/test/path';
+
     const dataService = await getServiceInstancePromise();
-    const callback = () => {};
+    test.sinon.stub(dataService, 'db').returns({});
+
+    try {
+      await dataService.archive(path);
+      throw new Error('Error has not been thrown by internal function!!!');
+    } catch (e) {
+      test
+        .expect(e.message)
+        .to.equal(`archive feature not available for provider on path: ${path}`);
+    }
+  });
+
+  it('tests the archive method - provider has an archive method', async () => {
+    const path = '/test/path';
+
+    const dataService = await getServiceInstancePromise();
+    const archiveStub = test.sinon.stub().callsArgWith(0, null, `mock archive ${path}`);
     test.sinon.stub(dataService, 'db').returns({
-      upsert: () => {},
-    });
-    const upsertInternalSpy = test.sinon.spy(dataService, '__upsertInternal');
-    let getOneByPath = test.sinon
-      .stub(dataService, 'getOneByPath')
-      .callsFake((_path, options, cb) => {
-        if (typeof options === 'function') {
-          cb = options;
-          options = {};
-        }
-        cb(null, { data: { test: 4, test1: 4 } });
-      });
-
-    dataService.upsert('/path/1', { test: 1 }, {}, callback);
-    dataService.upsert('/path/1', { test: 2 }, { merge: true }, callback);
-    dataService.upsert('/path/1', { test: 3 }, callback);
-
-    getOneByPath.restore();
-    test.sinon.stub(dataService, 'getOneByPath').callsFake((_path, options, cb) => {
-      if (typeof options === 'function') {
-        cb = options;
-        options = {};
-      }
-      cb(null, null);
+      archive: archiveStub,
     });
 
-    dataService.upsert('/path/1', { test: 5 }, { merge: true }, callback);
-    await test.delay(2000);
-
-    test
-      .expect(
-        upsertInternalSpy.firstCall.args.slice(0, upsertInternalSpy.firstCall.args.length - 1)
-      )
-      .to.eql([
-        '/path/1',
-        {
-          data: {
-            test: 1,
-          },
-          _meta: {
-            path: '/path/1',
-          },
-        },
-        {},
-      ]);
-
-    test.expect(upsertInternalSpy.secondCall.args[0]).to.be('/path/1');
-    test.expect(upsertInternalSpy.secondCall.args[2]).to.eql({
-      merge: true,
-      upsertType: 0,
-    });
-
-    test
-      .expect(
-        upsertInternalSpy.thirdCall.args.slice(0, upsertInternalSpy.thirdCall.args.length - 1)
-      )
-      .to.eql([
-        '/path/1',
-        {
-          data: {
-            test: 3,
-          },
-          _meta: {
-            path: '/path/1',
-          },
-        },
-        {},
-      ]);
-
-    test
-      .expect(upsertInternalSpy.lastCall.args.slice(0, upsertInternalSpy.lastCall.args.length - 1))
-      .to.eql([
-        '/path/1',
-        {
-          _meta: {
-            path: '/path/1',
-          },
-          data: {
-            test: 5,
-          },
-        },
-        {
-          merge: true,
-          upsertType: 0,
-        },
-      ]);
+    const result = await dataService.archive(path);
+    test.expect(result).to.equal(`mock archive ${path}`);
   });
 
   it('tests the _insertDataProvider method insert after default', function (done) {
