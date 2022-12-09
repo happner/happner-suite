@@ -43,6 +43,8 @@ Rest.prototype.login = function ($happn, req, res) {
 
     this.__securityService.login(
       { username: params.username, password: params.password },
+      undefined,
+      req,
       (e, session) => {
         if (e) {
           if (e.toString() === 'AccessDenied: Invalid credentials') {
