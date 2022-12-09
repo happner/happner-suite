@@ -87,25 +87,23 @@ describe(
         'Login called in second auth provider'
       );
 
-      instance.services.security.login(
-        { authType: 'happn', username: 'non', password: 'non' },
+      let error;
+      try {
+        await instance.services.security.login(
+          { authType: 'happn', username: 'non', password: 'non' },
+          'session',
+          {}
+        );
+      } catch (e) {
+        error = e;
+      }
+      expect(error.toString()).to.eql('AccessDenied: Invalid credentials');
+      let result = await instance.services.security.login(
+        { authType: 'happn', username: testUser.username, password: testUser.password },
         'session',
-        null,
-        (e, result) => {
-          expect(e.toString()).to.eql('AccessDenied: Invalid credentials');
-          expect(result).to.be(undefined);
-          //Base class function
-          instance.services.security.login(
-            { authType: 'happn', username: testUser.username, password: testUser.password },
-            'session',
-            null,
-            (e, result) => {
-              expect(e).to.be(null);
-              expect(result.user).to.eql({ ...addedTestuser, groups: {} });
-            }
-          );
-        }
+        {}
       );
+      expect(result.user).to.eql({ ...addedTestuser, groups: {} });
     });
 
     it('Tests having two auth providers in config, and that the correct one can be called by adding authType at client creation', async () => {

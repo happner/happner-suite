@@ -61,11 +61,14 @@ describe(
         'Login called in second auth provider'
       );
 
-      //Base class function
-      instance.services.security.authProviders.default.accessDenied('Error Message', async (e) => {
-        expect(e.toString()).to.be('AccessDenied: Error Message');
-        await stopService(instance);
-      });
+      let errorMessage;
+      try {
+        instance.services.security.authProviders.default.accessDenied('Error Message');
+      } catch (e) {
+        errorMessage = e.message;
+      }
+      expect(errorMessage).to.be('Error Message');
+      await stopService(instance);
     });
 
     it('Tests adding a non-happ3 auth provider (by path) in config, with happn = false', async () => {
@@ -97,11 +100,7 @@ describe(
       expect(await testLogin(instance, { authType: 'unconfigured' }, undefined, {})).to.be(
         'Login called in second auth provider'
       );
-      //Base class function
-      instance.services.security.authProviders.default.accessDenied('Error Message', async (e) => {
-        expect(e.toString()).to.be('AccessDenied: Error Message');
-        await stopService(instance);
-      });
+      await stopService(instance);
     });
   }
 );

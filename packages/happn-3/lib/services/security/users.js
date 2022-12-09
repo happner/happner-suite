@@ -20,7 +20,7 @@ SecurityUsers.prototype.__upsertUser = __upsertUser;
 SecurityUsers.prototype.__getUserNamesFromGroupLinks = __getUserNamesFromGroupLinks;
 SecurityUsers.prototype.__linkGroupsToUser = __linkGroupsToUser;
 
-SecurityUsers.prototype.getPasswordHash = getPasswordHash;
+SecurityUsers.prototype.getPasswordHash = util.maybePromisify(getPasswordHash);
 SecurityUsers.prototype.upsertUser = util.maybePromisify(upsertUser);
 SecurityUsers.prototype.upsertUserWithoutValidation = __upsertUser;
 

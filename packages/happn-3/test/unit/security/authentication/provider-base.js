@@ -160,16 +160,18 @@ describe(test.testName(), function () {
       await mockHappn.services.security.cacheService.initialize();
       mockHappn.services.security.errorService.AccessDeniedError = test.sinon.stub();
       mockHappn.services.security.errorService.AccessDeniedError.callsFake((errorMessage) => {
-        return errorMessage;
+        return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
         dummyAuthProvider,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
-      const callback = test.sinon.stub();
-      instance.accessDenied('mockErrorMessage', callback);
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly('mockErrorMessage');
+      try {
+        instance.accessDenied('mockErrorMessage');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('mockErrorMessage');
+      }
     });
   });
 
@@ -179,16 +181,18 @@ describe(test.testName(), function () {
       await mockHappn.services.security.cacheService.initialize();
       mockHappn.services.security.errorService.InvalidCredentialsError = test.sinon.stub();
       mockHappn.services.security.errorService.InvalidCredentialsError.callsFake((errorMessage) => {
-        return errorMessage;
+        return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
         dummyAuthProvider,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
-      const callback = test.sinon.stub();
-      instance.invalidCredentials('mockErrorMessage', callback);
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly('mockErrorMessage');
+      try {
+        instance.invalidCredentials('mockErrorMessage');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('mockErrorMessage');
+      }
     });
   });
 
@@ -199,7 +203,7 @@ describe(test.testName(), function () {
       await mockHappn.services.security.cacheService.initialize();
       mockHappn.services.security.errorService.InvalidCredentialsError = test.sinon.stub();
       mockHappn.services.security.errorService.InvalidCredentialsError.callsFake((errorMessage) => {
-        return errorMessage;
+        return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
         dummyAuthProvider,
@@ -212,12 +216,11 @@ describe(test.testName(), function () {
         type: null,
       };
       let eMessage;
-      await new Promise((resolve) => {
-        instance.login(credentials, 1, 'mockRequest', (e) => {
-          eMessage = e;
-          resolve();
-        });
-      });
+      try {
+        await instance.login(credentials, 1, 'mockRequest');
+      } catch (e) {
+        eMessage = e.message;
+      }
       test.chai.expect(eMessage).to.equal('Anonymous access is disabled');
     });
 

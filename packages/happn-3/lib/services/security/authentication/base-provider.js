@@ -49,29 +49,22 @@ module.exports = class AuthProvider {
     return providerClass(AuthProvider);
   }
 
-  accessDenied(errorMessage, callback) {
-    return callback(this.#securityFacade.error.AccessDeniedError(errorMessage));
+  accessDenied(errorMessage) {
+    throw this.#securityFacade.error.AccessDeniedError(errorMessage);
   }
 
-  invalidCredentials(errorMessage, callback) {
-    return callback(this.#securityFacade.error.InvalidCredentialsError(errorMessage));
+  invalidCredentials(errorMessage) {
+    throw this.#securityFacade.error.InvalidCredentialsError(errorMessage);
   }
 
-  systemError(errorMessage, callback) {
-    return callback(this.#securityFacade.error.SystemError(errorMessage));
+  systemError(errorMessage) {
+    throw this.#securityFacade.error.SystemError(errorMessage);
   }
 
-  login(credentials, sessionId, request, callback) {
-    if (typeof sessionId === 'function') {
-      callback = sessionId;
-      sessionId = null;
-    }
-
+  async login(credentials, sessionId, request) {
     if (credentials.username === '_ANONYMOUS') {
       if (!this.#config.allowAnonymousAccess) {
-        return callback(
-          this.#securityFacade.error.InvalidCredentialsError('Anonymous access is disabled')
-        );
+        throw this.#securityFacade.error.InvalidCredentialsError('Anonymous access is disabled');
       }
       credentials.password = 'anonymous';
     }
@@ -81,87 +74,81 @@ module.exports = class AuthProvider {
     if (
       !((credentials.username && (credentials.password || credentials.digest)) || credentials.token)
     ) {
-      return this.invalidCredentials('Invalid credentials', callback);
+      return this.invalidCredentials('Invalid credentials');
     }
     if (
       !this.#securityFacade.security.checkIPAddressWhitelistPolicy(credentials, sessionId, request)
     ) {
-      return this.invalidCredentials('Source address access restricted', callback);
+      return this.invalidCredentials('Source address access restricted');
     }
     if (
       this.#securityFacade.security.checkDisableDefaultAdminNetworkConnections(credentials, request)
     ) {
-      return this.accessDenied('use of _ADMIN credentials over the network is disabled', callback);
+      return this.accessDenied('use of _ADMIN credentials over the network is disabled');
     }
     if (credentials.token) {
-      return this.tokenLogin(credentials, sessionId, request, callback);
+      return this.tokenLogin(credentials, sessionId, request);
     }
 
-    this.#userCredsLogin(credentials, sessionId, callback);
+    return this.#userCredsLogin(credentials, sessionId);
   }
 
-  async tokenLogin(credentials, sessionId, request, callback) {
-    let username;
-    try {
-      let [authorized, reason] = this.#securityFacade.utils.coerceArray(
-        await this.#securityFacade.security.checkRevocations(credentials.token)
-      );
+  async tokenLogin(credentials, sessionId, request) {
+    let [authorized, reason] = this.#securityFacade.utils.coerceArray(
+      await this.#securityFacade.security.checkRevocations(credentials.token)
+    );
 
-      if (!authorized) return this.accessDenied(reason, callback);
-      let previousSession = this.#securityFacade.security.decodeToken(credentials.token);
-      if (previousSession == null) {
-        return this.invalidCredentials('Invalid credentials: invalid session token', callback);
-      }
-      username = previousSession.username;
-
-      let errorMessage;
-      if (previousSession && previousSession.type != null && this.#config.lockTokenToLoginType) {
-        if (previousSession.type !== credentials.type) {
-          errorMessage = `token was created using the login type ${previousSession.type}, which does not match how the new token is to be created`;
-        }
-      }
-      if (
-        this.#securityFacade.security.checkDisableDefaultAdminNetworkConnections(
-          previousSession,
-          request
-        )
-      ) {
-        errorMessage = 'use of _ADMIN credentials over the network is disabled';
-      }
-
-      let previousPolicy = previousSession.policy[1]; //always the stateful policy
-
-      if (previousPolicy.disallowTokenLogins) {
-        errorMessage = `logins with this token are disallowed by policy`;
-      }
-
-      if (
-        previousPolicy.lockTokenToOrigin &&
-        previousSession.origin !== this.#securityFacade.system.name
-      ) {
-        errorMessage = `this token is locked to a different origin by policy`;
-      }
-
-      if (errorMessage) {
-        return this.accessDenied(errorMessage, callback);
-      }
-
-      //Anything further is dealt with in the specific provider
-      return this.providerTokenLogin(credentials, previousSession, sessionId, callback);
-    } catch (e) {
-      return this.loginFailed(username, 'Invalid credentials', e, callback);
+    if (!authorized) return this.accessDenied(reason);
+    let previousSession = this.#securityFacade.security.decodeToken(credentials.token);
+    if (previousSession == null) {
+      return this.invalidCredentials('Invalid credentials: invalid session token');
     }
+
+    let errorMessage;
+    if (previousSession && previousSession.type != null && this.#config.lockTokenToLoginType) {
+      if (previousSession.type !== credentials.type) {
+        errorMessage = `token was created using the login type ${previousSession.type}, which does not match how the new token is to be created`;
+      }
+    }
+    if (
+      this.#securityFacade.security.checkDisableDefaultAdminNetworkConnections(
+        previousSession,
+        request
+      )
+    ) {
+      errorMessage = 'use of _ADMIN credentials over the network is disabled';
+    }
+
+    let previousPolicy = previousSession.policy[1]; //always the stateful policy
+
+    if (previousPolicy.disallowTokenLogins) {
+      errorMessage = `logins with this token are disallowed by policy`;
+    }
+
+    if (
+      previousPolicy.lockTokenToOrigin &&
+      previousSession.origin !== this.#securityFacade.system.name
+    ) {
+      errorMessage = `this token is locked to a different origin by policy`;
+    }
+
+    if (errorMessage) {
+      return this.accessDenied(errorMessage);
+    }
+
+    //Anything further is dealt with in the specific provider
+    return this.providerTokenLogin(credentials, previousSession, sessionId);
   }
 
-  providerTokenLogin(_username, _credentials, callback) {
-    return this.accessDenied('providerTokenLogin not implemented.', callback);
+  async providerTokenLogin() {
+    return this.accessDenied('providerTokenLogin not implemented.');
   }
 
-  providerCredsLogin(_credentials, _sessionId, callback) {
-    return this.accessDenied('providerCredsLogin not implemented.', callback);
+  async providerCredsLogin() {
+    return this.accessDenied('providerCredsLogin not implemented.');
   }
 
-  loginFailed(username, specificMessage, e, callback, overrideLockout) {
+  loginFailed(username, specificMessage, e, overrideLockout) {
     let message = 'Invalid credentials';
     if (specificMessage) message = specificMessage;
 
@@ -186,10 +173,10 @@ module.exports = class AuthProvider {
       });
     }
 
-    return this.invalidCredentials(message, callback);
+    return this.invalidCredentials(message);
   }
 
-  loginOK(credentials, user, sessionId, callback, tokenLogin, additionalInfo) {
+  loginOK(credentials, user, sessionId, tokenLogin, additionalInfo) {
     delete user.password;
     if (this.#locks) this.#locks.remove(user.username); //remove previous locks
     const session = this.#securityFacade.security.generateSession(
@@ -200,9 +187,9 @@ module.exports = class AuthProvider {
       additionalInfo
     );
     if (session == null) {
-      return callback(new Error('session disconnected during login'));
+      throw new Error('session disconnected during login');
     }
-    callback(null, session);
+    return session;
   }
 
   checkDisableDefaultAdminNetworkConnections(credentials, request) {
@@ -216,11 +203,11 @@ module.exports = class AuthProvider {
     );
   }
 
-  #userCredsLogin(credentials, sessionId, callback) {
+  #userCredsLogin(credentials, sessionId) {
     if (this.#checkLockedOut(credentials.username)) {
-      return this.accessDenied('Account locked out', callback);
+      return this.accessDenied('Account locked out');
     }
-    return this.providerCredsLogin(credentials, sessionId, callback);
+    return this.providerCredsLogin(credentials, sessionId);
   }
 
   #checkLockedOut(username) {

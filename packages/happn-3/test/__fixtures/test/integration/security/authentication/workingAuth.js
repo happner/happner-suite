@@ -7,19 +7,19 @@ module.exports = function(ParentClass) {
     static create(securityFacade, config) {
       return new TestAuthProvider(securityFacade, config);
     }
-    providerCredsLogin(credentials, sessionId, callback) {      
+    async providerCredsLogin(credentials, sessionId) {      
         if (credentials.username === "secondTestuser@somewhere.com" && credentials.password === "secondPass") {        
           let user = {username: "secondTestuser@somewhere.com", groups:[]}
-          return this.loginOK(credentials, user, sessionId, callback);
+          return this.loginOK(credentials, user, sessionId);
         }
-        return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
+        return this.loginFailed(credentials.username, 'Invalid credentials');
       }
-    providerTokenLogin(credentials, decodedToken, sessionId, callback) {      
+    async providerTokenLogin(credentials, decodedToken, sessionId) {      
       if (decodedToken.username === "secondTestuser@somewhere.com" && credentials.token != null) {        
         let user = {username: "secondTestuser@somewhere.com", groups:[]}
-        return this.loginOK(credentials, user, sessionId, callback);
+        return this.loginOK(credentials, user, sessionId);
       }
-      return this.loginFailed(credentials.username, 'Invalid credentials', null, callback);
+      return this.loginFailed(credentials.username, 'Invalid credentials');
     }
   }
 };

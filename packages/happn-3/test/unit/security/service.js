@@ -3343,7 +3343,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('tests processLogin - checks if authProviders.happn exists', () => {
+  it('tests processLogin - checks if authProviders.happn exists', async () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
@@ -3354,16 +3354,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockCallback = test.sinon.stub();
 
     serviceInst.authProviders = {
-      happn: { login: test.sinon.stub() },
+      happn: { login: test.sinon.stub().rejects(new Error('mockError')) },
       default: 'mockDefault',
     };
-    serviceInst.authProviders.happn.login.callsFake((_, __, ___, callback) => {
-      callback('mockError', null);
-    });
 
     serviceInst.processLogin(mockMessage, mockCallback);
-
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+    await test.delay(1e3);
+    test.chai.expect(mockCallback.lastCall.args[0].message).to.equal('mockError');
   });
 
   it('tests processAuthorizeUnsecure', () => {
