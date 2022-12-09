@@ -90,6 +90,98 @@ describe(test.testName(__filename, 3), function () {
     test.expect(result).to.equal(`mock archive ${path}`);
   });
 
+  it('tests the upsert method', async () => {
+    const dataService = await getServiceInstancePromise();
+    const callback = () => {};
+    test.sinon.stub(dataService, 'db').returns({
+      upsert: () => {},
+    });
+    const upsertInternalSpy = test.sinon.spy(dataService, '__upsertInternal');
+    let getOneByPath = test.sinon
+      .stub(dataService, 'getOneByPath')
+      .callsFake((_path, options, cb) => {
+        if (typeof options === 'function') {
+          cb = options;
+          options = {};
+        }
+        cb(null, { data: { test: 4, test1: 4 } });
+      });
+
+    dataService.upsert('/path/1', { test: 1 }, {}, callback);
+    dataService.upsert('/path/1', { test: 2 }, { merge: true }, callback);
+    dataService.upsert('/path/1', { test: 3 }, callback);
+
+    getOneByPath.restore();
+    test.sinon.stub(dataService, 'getOneByPath').callsFake((_path, options, cb) => {
+      if (typeof options === 'function') {
+        cb = options;
+        options = {};
+      }
+      cb(null, null);
+    });
+
+    dataService.upsert('/path/1', { test: 5 }, { merge: true }, callback);
+    await test.delay(2000);
+
+    test
+      .expect(
+        upsertInternalSpy.firstCall.args.slice(0, upsertInternalSpy.firstCall.args.length - 1)
+      )
+      .to.eql([
+        '/path/1',
+        {
+          data: {
+            test: 1,
+          },
+          _meta: {
+            path: '/path/1',
+          },
+        },
+        {},
+      ]);
+
+    test.expect(upsertInternalSpy.secondCall.args[0]).to.be('/path/1');
+    test.expect(upsertInternalSpy.secondCall.args[2]).to.eql({
+      merge: true,
+      upsertType: 0,
+    });
+
+    test
+      .expect(
+        upsertInternalSpy.thirdCall.args.slice(0, upsertInternalSpy.thirdCall.args.length - 1)
+      )
+      .to.eql([
+        '/path/1',
+        {
+          data: {
+            test: 3,
+          },
+          _meta: {
+            path: '/path/1',
+          },
+        },
+        {},
+      ]);
+
+    test
+      .expect(upsertInternalSpy.lastCall.args.slice(0, upsertInternalSpy.lastCall.args.length - 1))
+      .to.eql([
+        '/path/1',
+        {
+          _meta: {
+            path: '/path/1',
+          },
+          data: {
+            test: 5,
+          },
+        },
+        {
+          merge: true,
+          upsertType: 0,
+        },
+      ]);
+  });
+
   it('tests the _insertDataProvider method insert after default', function (done) {
     let dataService = new DataService();
     dataService.config = {};
