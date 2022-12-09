@@ -289,8 +289,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   loadArchiveInternal(path, callback) {
     if (!path.startsWith('/_ARCHIVE/GET')) return callback();
+    const archiveId = path.split('/').at(3);
 
-    if (this.loadedArchiveDB) {
+    if (this.loadedArchiveDB?.archiveId !== archiveId) {
       return this.unloadArchiveInternal((error) => {
         if (error) {
           return callback(error);
@@ -300,7 +301,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       });
     }
 
-    const archiveId = path.split('/').at(3);
     const [archiveDetails, ...archives] = this.findInternal(`/_ARCHIVE/LIST/${archiveId}`);
 
     if (!archiveDetails) {
@@ -315,7 +315,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     const archivedFileName = filePath[filePath.length - 1];
 
     const zip = new AdmZip(archiveDetails.data.archive);
-    this.loadedArchiveDB = new LokiArchiveDataProvider();
+    this.loadedArchiveDB = new LokiArchiveDataProvider(this.settings, this.logger, archiveId);
     this.loadedArchiveDB.initialize(
       zip.getEntry(archivedFileName).getData().toString().trim(),
       (error) => {

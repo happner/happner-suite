@@ -3,8 +3,10 @@ const db = require('lokijs'),
   util = commons.utils;
 
 module.exports = class LokiArchiveDataProvider extends commons.BaseDataProvider {
-  constructor(settings, logger) {
+  constructor(settings, logger, archiveId) {
     super(settings, logger);
+
+    this.archiveId = archiveId;
 
     this.initialize = util.maybePromisify(this.initialize);
     this.stop = util.maybePromisify(this.stop);
