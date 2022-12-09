@@ -178,7 +178,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
   getCollectionBasedOnPath(path) {
     if (path.startsWith('/_ARCHIVE/GET/')) {
-      if (!(this.loadedArchiveDB instanceof LokiArchiveDataProvider)) {
+      if (!this.loadedArchiveDB) {
         throw new Error('Cannot read from archive: no archive loaded');
       }
 
@@ -198,21 +198,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         {
           if (!this.persistenceOn) break;
           this.archiveInternal(callback);
-        }
-        break;
-
-      case constants.DATA_OPERATION_TYPES.LOAD_ARCHIVE:
-        {
-          if (!this.persistenceOn) break;
-          this.loadedArchiveDB = true;
-          this.loadArchiveInternal(operation.arguments[0], callback);
-        }
-        break;
-
-      case constants.DATA_OPERATION_TYPES.UNLOAD_ARCHIVE:
-        {
-          if (!this.persistenceOn) break;
-          this.unloadArchiveInternal(callback);
         }
         break;
 
@@ -328,7 +313,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       zip.getEntry(archivedFileName).getData().toString().trim(),
       (error) => {
         if (error) return callback(error);
-
         callback();
       }
     );
@@ -635,18 +619,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     if (path.startsWith('/_ARCHIVE/LOAD/')) {
-      this.operationQueue.push(
-        { operationType: constants.DATA_OPERATION_TYPES.LOAD_ARCHIVE, arguments: [path] },
-        callback
-      );
-
+      this.loadArchiveInternal(path, callback);
       return;
     } else if (path.startsWith('/_ARCHIVE/UNLOAD/')) {
-      this.operationQueue.push(
-        { operationType: constants.DATA_OPERATION_TYPES.UNLOAD_ARCHIVE, arguments: [path] },
-        callback
-      );
-
+      this.unloadArchiveInternal(callback);
       return;
     }
 
