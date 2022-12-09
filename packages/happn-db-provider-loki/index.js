@@ -291,7 +291,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (!path.startsWith('/_ARCHIVE/GET')) return callback();
     const archiveId = path.split('/').at(3);
 
-    if (this.loadedArchiveDB?.archiveId !== archiveId) {
+    if (this.loadedArchiveDB && this.loadedArchiveDB.archiveId !== archiveId) {
       return this.unloadArchiveInternal((error) => {
         if (error) {
           return callback(error);
