@@ -494,6 +494,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     };
   }
   insert(document, callback) {
+    if (document.path.startsWith('/_ARCHIVE/GET/')) {
+      throw new Error('Loaded archives only support read-only operations!');
+    }
+
     this.operationQueue.push(
       { operationType: constants.DATA_OPERATION_TYPES.INSERT, arguments: [document] },
       callback
@@ -506,6 +510,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.upsert(path, document, { merge: true }, callback);
   }
   upsert(path, document, options, callback) {
+    if (path.startsWith('/_ARCHIVE/GET/')) {
+      throw new Error('Loaded archives only support read-only operations!');
+    }
+
     if (typeof options === 'function') {
       callback = options;
       options = {};
@@ -536,6 +544,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     );
   }
   remove(path, options, callback) {
+    if (path.startsWith('/_ARCHIVE/GET/')) {
+      throw new Error('Loaded archives only support read-only operations!');
+    }
+
     if (typeof options === 'function') {
       callback = options;
       options = {};
@@ -678,6 +690,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     return null;
   }
   increment(path, counterName, increment, callback) {
+    if (path.startsWith('/_ARCHIVE/GET/')) {
+      throw new Error('Loaded archives only support read-only operations!');
+    }
+
     if (typeof increment === 'function') {
       callback = increment;
       increment = 1;
