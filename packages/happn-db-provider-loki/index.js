@@ -263,42 +263,48 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
   }
   archiveInternal(callback) {
-    this.snapshot((error) => {
-      if (error) return callback(error);
+    const archiveList = this.findInternal('/_ARCHIVE/LIST/*', { options: { count: true } });
+    const sequence = archiveList.data.value;
 
-      const archiveList = this.findInternal('/_ARCHIVE/LIST/*', { options: { count: true } });
-      const sequence = archiveList.data.value;
+    const filePath = this.settings.filename.split(pathSep);
+    const archivedFileName = filePath[filePath.length - 1];
 
-      this.copyMainDataToArchive(sequence + 1, (error) => {
-        if (error) return callback(error);
+    const snapshot = this.snapshot.bind(this);
 
-        const filePath = this.settings.filename.split(pathSep);
-        const archivedFileName = filePath[filePath.length - 1];
+    const copyData = (callback) => {
+      this.copyMainDataToArchive(sequence + 1, callback);
+    };
 
-        const zip = new AdmZip();
-        zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
-        zip.writeZip(`${this.settings.filename}.${sequence + 1}.zip`, (error) => {
-          fs.unlinkSync(`${this.settings.filename}.${sequence + 1}`);
+    const createZip = (callback) => {
+      const zip = new AdmZip();
+      zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
+      zip.writeZip(`${this.settings.filename}.${sequence + 1}.zip`, (error) => {
+        fs.unlinkSync(`${this.settings.filename}.${sequence + 1}`);
 
-          if (error) {
-            return callback(error);
-          }
+        if (error) {
+          return callback(error);
+        }
 
-          this.removeInternal('*', { path: { $regex: /(?!^\/_ARCHIVE)/ } });
-          this.insertInternal({
-            path: `/_ARCHIVE/LIST/${sequence + 1}`,
-            data: {
-              sequence: sequence + 1,
-              archive: `${this.settings.filename}.${sequence + 1}.zip`,
-            },
-          });
-
-          this.snapshot((error) => {
-            if (error) return callback(error);
-            callback(null, 1);
-          });
-        });
+        callback();
       });
+    };
+
+    const cleanup = (callback) => {
+      this.removeInternal('*', { path: { $regex: /(?!^\/_ARCHIVE)/ } });
+      this.insertInternal({
+        path: `/_ARCHIVE/LIST/${sequence + 1}`,
+        data: {
+          sequence: sequence + 1,
+          archive: `${this.settings.filename}.${sequence + 1}.zip`,
+        },
+      });
+
+      callback();
+    };
+
+    commons.async.series([snapshot, copyData, createZip, cleanup, snapshot], (error) => {
+      if (error) return callback(error);
+      callback(null, 1);
     });
   }
   loadArchiveInternal(path, callback) {
