@@ -293,6 +293,18 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
   }
   loadArchiveInternal(path, callback) {
+    if (!path.startsWith('/_ARCHIVE/GET')) return callback();
+
+    if (this.loadedArchiveDB) {
+      return this.unloadArchiveInternal((error) => {
+        if (error) {
+          return callback(error);
+        }
+
+        this.loadArchiveInternal(path, callback);
+      });
+    }
+
     const archiveId = path.split('/').at(3);
     const [archiveDetails, ...archives] = this.findInternal(`/_ARCHIVE/LIST/${archiveId}`);
 
@@ -569,6 +581,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     const collection = this.getCollectionBasedOnPath(path);
     if (path.startsWith('/_ARCHIVE/GET/')) {
       path = path.slice(14);
+      path = path.slice(path.indexOf('/') + 1);
     }
 
     let finalResult = [];
@@ -610,30 +623,29 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     return finalResult;
   }
   find(path, parameters, callback) {
-    if (typeof parameters === 'function') {
-      callback = parameters;
-      parameters = {};
-    }
-    if (parameters == null) {
-      parameters = {};
-    }
+    this.loadArchiveInternal(path, (error) => {
+      if (typeof parameters === 'function') {
+        callback = parameters;
+        parameters = {};
+      }
 
-    if (path.startsWith('/_ARCHIVE/LOAD/')) {
-      this.loadArchiveInternal(path, callback);
-      return;
-    } else if (path.startsWith('/_ARCHIVE/UNLOAD/')) {
-      this.unloadArchiveInternal(callback);
-      return;
-    }
+      if (parameters == null) {
+        parameters = {};
+      }
 
-    let result = [];
-    try {
-      result = this.findInternal(path, parameters);
-    } catch (e) {
-      callback(e);
-      return;
-    }
-    callback(null, result);
+      if (error) {
+        return callback(error);
+      }
+
+      let result = [];
+      try {
+        result = this.findInternal(path, parameters);
+      } catch (e) {
+        callback(e);
+        return;
+      }
+      callback(null, result);
+    });
   }
   count(path, parameters, callback) {
     if (typeof parameters === 'function') {

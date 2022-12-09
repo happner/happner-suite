@@ -69,26 +69,19 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       });
 
       it('loads the archived database to get some data', async () => {
-        await lokiProvider.find(`/_ARCHIVE/LOAD/${archiveId}`);
+        const found1 = await lokiProvider.find(`/_ARCHIVE/GET/${archiveId}/test/path/*`);
+        test.expect(found1.length).to.be(3);
 
-        const found1 = await lokiProvider.find('test/path/*');
-        test.expect(found1.length).to.be(0);
-
-        const found2 = await lokiProvider.find('/_ARCHIVE/GET/test/path/*');
-        test.expect(found2.length).to.be(3);
+        const found2 = await lokiProvider.find('test/path/*');
+        test.expect(found2.length).to.be(0);
       });
 
-      it('unloads the archived database to get current data', async () => {
-        await lokiProvider.find(`/_ARCHIVE/UNLOAD/`);
-
-        const found = await lokiProvider.find('test/path/*');
-        test.expect(found.length).to.be(0);
-
+      it('tries to load an invalid archive but falls over and dies', async () => {
         try {
-          await lokiProvider.find('/_ARCHIVE/GET/test/path/*');
-          throw new Error('No error generated!');
+          await lokiProvider.find(`/_ARCHIVE/GET/1234/test/path/*`);
+          throw new Error('Error has not been thrown by internal function!!!');
         } catch (e) {
-          test.expect(e.message).to.equal('Cannot read from archive: no archive loaded');
+          test.expect(e.message).to.equal('Archive ID does not exist');
         }
       });
     }
@@ -164,26 +157,19 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       });
 
       it('loads the archived database to get some data', async () => {
-        await lokiProvider.find(`/_ARCHIVE/LOAD/${archiveId}`);
+        const found1 = await lokiProvider.find(`/_ARCHIVE/GET/${archiveId}/test/path/*`);
+        test.expect(found1.length).to.be(7);
 
-        const found1 = await lokiProvider.find('test/path/*');
-        test.expect(found1.length).to.be(4);
-
-        const found2 = await lokiProvider.find('/_ARCHIVE/GET/test/path/*');
-        test.expect(found2.length).to.be(7);
+        const found2 = await lokiProvider.find('test/path/*');
+        test.expect(found2.length).to.be(4);
       });
 
-      it('unloads the archived database to get current data', async () => {
-        await lokiProvider.find(`/_ARCHIVE/UNLOAD/`);
-
-        const found = await lokiProvider.find('test/path/*');
-        test.expect(found.length).to.be(4);
-
+      it('tries to load an invalid archive but falls over and dies', async () => {
         try {
-          await lokiProvider.find('/_ARCHIVE/GET/test/path/*');
-          throw new Error('No error generated!');
+          await lokiProvider.find(`/_ARCHIVE/GET/1234/test/path/*`);
+          throw new Error('Error has not been thrown by internal function!!!');
         } catch (e) {
-          test.expect(e.message).to.equal('Cannot read from archive: no archive loaded');
+          test.expect(e.message).to.equal('Archive ID does not exist');
         }
       });
     }
