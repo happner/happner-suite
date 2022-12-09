@@ -227,12 +227,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           preserveTimestamps
         );
       case constants.DATA_OPERATION_TYPES.UPDATE:
-        return this.updateInternal(
-          operation.arguments[0],
-          operation.arguments[1],
-          operation.arguments[2],
-          preserveTimestamps
-        );
+        return this.updateInternal(operation.arguments[0], preserveTimestamps);
       case constants.DATA_OPERATION_TYPES.INCREMENT:
         return this.incrementInternal(
           operation.arguments[0],
@@ -351,10 +346,10 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
   }
   upsertInternal(path, upsertDocument, options, preserveTimestamps) {
-    const collection = this.getCollectionBasedOnPath(path);
     if (typeof path !== 'string') {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
+    const collection = this.getCollectionBasedOnPath(path);
     options = options || {};
 
     let document = collection.findOne({ path });
