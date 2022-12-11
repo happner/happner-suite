@@ -129,12 +129,17 @@
       let client = new MeshClient({
         host: opts.host,
         port: opts.port,
+        loginRetry: opts.loginRetry,
       });
+      let credentials = {
+        username: opts.username,
+        password: opts.password,
+      };
+      if (opts.token) {
+        credentials.token = opts.token;
+      }
       client
-        .login({
-          username: opts.username,
-          password: opts.password,
-        })
+        .login(credentials)
         .then(function () {
           resolve(client);
         })
@@ -162,7 +167,7 @@
         credentials = {};
       }
 
-      var cloneOpts = { ...this.opts };
+      const cloneOpts = { ...this.opts };
 
       [
         'username',
@@ -172,6 +177,7 @@
         'useCookie',
         'cookieEventHandler',
         'authType',
+        'loginRetry',
       ].forEach(function (key) {
         if (credentials[key]) {
           cloneOpts[key] = credentials[key];
@@ -269,6 +275,7 @@
           Logger: opts.log,
           reconnect: opts.reconnect,
           socket: opts.socket,
+          loginRetry: opts.loginRetry,
         };
         if (typeof opts.cookieEventHandler === 'function') {
           createClientOpts.cookieEventHandler = opts.cookieEventHandler;
