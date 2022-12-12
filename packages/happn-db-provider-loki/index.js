@@ -62,6 +62,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
+
+    if (!this.settings.archiveFolder) {
+      const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
+      this.settings.archiveFolder = this.settings.filename.slice(0, lastForwardSlashIdx);
+    }
+
     this.reconstruct((e) => {
       if (e) {
         this.logger.error('failed reconstructing database', e);
@@ -246,8 +252,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     const archiveList = this.findInternal('/_ARCHIVE/LIST/*', { options: { count: true } });
     const sequence = archiveList.data.value;
 
-    const filePath = this.settings.filename.split(pathSep);
-    const archivedFileName = filePath[filePath.length - 1];
+    const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
+    const archivedFileName = this.settings.filename.slice(lastForwardSlashIdx + 1);
+    const zipFileName = path.resolve(
+      this.settings.archiveFolder,
+      `${archivedFileName}.${sequence + 1}.zip`
+    );
 
     const snapshot = this.snapshot.bind(this);
 
@@ -258,7 +268,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     const createZip = (callback) => {
       const zip = new AdmZip();
       zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
-      zip.writeZip(`${this.settings.filename}.${sequence + 1}.zip`, (error) => {
+      zip.writeZip(zipFileName, (error) => {
         fs.unlinkSync(`${this.settings.filename}.${sequence + 1}`);
 
         if (error) {
@@ -275,7 +285,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         path: `/_ARCHIVE/LIST/${sequence + 1}`,
         data: {
           sequence: sequence + 1,
-          archive: `${this.settings.filename}.${sequence + 1}.zip`,
+          archive: zipFileName,
         },
       });
 

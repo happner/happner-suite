@@ -2,18 +2,18 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   const LokiDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp/archiving`);
 
-  const fileId = test.newid();
-  const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
-  const mockLogger = {
-    info: test.sinon.stub(),
-    error: test.sinon.stub(),
-    warn: test.sinon.stub(),
-    trace: test.sinon.stub(),
-  };
-
   context(
     'starts up the provider with a persistence filename, does some inserts, archives the database, ensures new database is empty, and loads the archived database to get some data',
     () => {
+      const fileId = test.newid();
+      const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
+      const mockLogger = {
+        info: test.sinon.stub(),
+        error: test.sinon.stub(),
+        warn: test.sinon.stub(),
+        trace: test.sinon.stub(),
+      };
+
       before('ensures temp dir and test file', () => {
         test.fs.ensureDirSync(testDirPath);
       });
@@ -90,6 +90,15 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   context(
     'starts up the provider with a persistence filename, does some inserts, archives the database while concurrently manipulating data, ensure there has been no data loss in new database and archived database intersection',
     () => {
+      const fileId = test.newid();
+      const testFileName = `${testDirPath}${test.commons.path.sep}${fileId}`;
+      const mockLogger = {
+        info: test.sinon.stub(),
+        error: test.sinon.stub(),
+        warn: test.sinon.stub(),
+        trace: test.sinon.stub(),
+      };
+
       before('ensures temp dir and test file', () => {
         test.fs.ensureDirSync(testDirPath);
       });
