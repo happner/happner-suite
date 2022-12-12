@@ -18,6 +18,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "home": {
+          "type": "string"
+        },
         "path": {
           "type": "string"
         },

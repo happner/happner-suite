@@ -50,6 +50,9 @@
         },
         "password": {
           "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
         }
       },
       "required": [

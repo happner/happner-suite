@@ -5,6 +5,10 @@
     "HappnerSchema": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": {
+        "^__(.+)$": {
+        }
+      },
       "properties": {
         "authorityDelegationOn": {
           "type": "boolean"
@@ -12,8 +16,14 @@
         "components": {
           "$ref": "#/definitions/Components"
         },
+        "dataLayer": {
+          "$ref": "#/definitions/DataLayer"
+        },
         "deferListen": {
           "type": "boolean"
+        },
+        "domain": {
+          "type": "string"
         },
         "endpoints": {
           "$ref": "#/definitions/Endpoints"
@@ -30,11 +40,23 @@
         "name": {
           "type": "string"
         },
+        "plugins": {
+          "$ref": "#/definitions/Plugins"
+        },
+        "port": {
+          "type": "number"
+        },
         "secure": {
           "type": "boolean"
         },
+        "util": {
+          "type": "object"
+        },
         "version": {
           "type": "string"
+        },
+        "waitingInterval": {
+          "type": "number"
         },
         "web": {
           "$ref": "#/definitions/Web"
@@ -51,11 +73,17 @@
     "Components": {
       "$ref": "components-schema.json"
     },
+    "DataLayer": {
+      "$ref": "data-lazy-schema.json"
+    },
     "Endpoints": {
       "$ref": "endpoints-schema.json"
     },
     "Modules": {
       "$ref": "modules-schema.json"
+    },
+    "Plugins": {
+      "$ref": "plugins-schema.json"
     },
     "Web": {
       "type": "object",

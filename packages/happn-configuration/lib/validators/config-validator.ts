@@ -8,6 +8,7 @@ const happnerClusterSchema = require('../schemas/happner-cluster-schema.json');
 const cacheSchema = require('../schemas/services/cache-schema.json');
 const connectSchema = require('../schemas/services/connect-schema.json');
 const dataSchema = require('../schemas/services/data-schema.json');
+const dataLazySchema = require('../schemas/services/data-lazy-schema.json');
 const protocolSchema = require('../schemas/services/protocol-schema.json');
 const publisherSchema = require('../schemas/services/publisher-schema.json');
 const securitySchema = require('../schemas/services/security-schema.json');
@@ -30,6 +31,7 @@ const componentsLazySchema = require('../schemas/components/components-lazy-sche
 const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
 const modulesSchema = require('../schemas/modules/modules-schema.json');
 const middlewareSchema = require('../schemas/services/middleware-schema.json');
+const pluginsSchema = require('../schemas/services/plugins-schema.json');
 import BuilderType from '../constants/builder-constants';
 
 import { FieldTypeValidator } from './field-type-validator';
@@ -50,6 +52,7 @@ export class ConfigValidator {
         cacheSchema,
         connectSchema,
         dataSchema,
+        dataLazySchema,
         protocolSchema,
         publisherSchema,
         securitySchema,
@@ -72,9 +75,11 @@ export class ConfigValidator {
         endpointsSchema,
         modulesSchema,
         middlewareSchema,
+        pluginsSchema,
       ],
       strictNumbers: false, // to handle Infinity types
       allowUnionTypes: true, // handle multiple allowed types, eg: string,object
+      allowMatchingProperties: true, // allow overlap between properties and patternProperties
     });
 
     this.#fieldTypeValidator = new FieldTypeValidator();

@@ -15,13 +15,47 @@
       "title": "Components"
     },
     "ComponentConfig": {
+      "$comment": "There is an overlap between patternProperties and properties. Known properties will be validated; unknown will be allowed unvalidated.",
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+        }
+      },
       "properties": {
+        "$configure": {
+        },
+        "accessLevel": {
+          "type": "string"
+        },
+        "authorityDelegationOn": {
+          "type": "boolean"
+        },
+        "home": {
+          "type": "string"
+        },
         "module": {
           "type": "string"
         },
         "moduleName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "initMethod": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "startMethod": {
+          "type": "string"
+        },
+        "stopMethod": {
+          "type": "string"
+        },
+        "shutdownMethod": {
           "type": "string"
         },
         "schema": {
@@ -136,17 +170,13 @@
           "type": "string"
         },
         "value": {
-          "type": [
-            "string",
-            "object",
-            "integer",
-            "boolean"
-          ]
         },
         "type": {
           "type": "string"
-        },
-        "required": {
+        }
+      },
+      "patternProperties": {
+        "^require(d)?$": {
           "type": "boolean"
         }
       },
