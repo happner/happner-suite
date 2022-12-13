@@ -4,49 +4,46 @@
   "definitions": {
     "HappnClusterSchema": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "happn": {
-          "$ref": "#/definitions/Happn"
+      "allOf": [
+        {
+          "$ref": "happn-schema.json"
         },
-        "health": {
-          "$ref": "#/definitions/Health"
-        },
-        "membership": {
-          "$ref": "#/definitions/Membership"
-        },
-        "orchestrator": {
-          "$ref": "#/definitions/Orchestrator"
-        },
-        "proxy": {
-          "$ref": "#/definitions/Proxy"
-        },
-        "replicator": {
-          "$ref": "#/definitions/Replicator"
+        {
+          "$ref": "#/definitions/HappnCluster"
         }
-      },
+      ],
       "required": [
-        "happn"
       ],
       "title": "HappnClusterSchema"
     },
-    "Happn": {
-      "$ref": "happn-schema.json"
+    "HappnCluster": {
+      "properties": {
+        "services": {
+          "type": "object",
+          "$comment": "Extend the happn schema services field",
+          "$ref": "#/definitions/Services"
+        }
+      }
     },
-    "Health": {
-      "$ref": "health-schema.json"
-    },
-    "Membership": {
-      "$ref": "membership-schema.json"
-    },
-    "Orchestrator": {
-      "$ref": "orchestrator-schema.json"
-    },
-    "Proxy": {
-      "$ref": "proxy-schema.json"
-    },
-    "Replicator": {
-      "$ref": "replicator-schema.json"
+    "Services": {
+      "type": "object",
+      "properties": {
+        "health": {
+          "$ref": "health-schema.json"
+        },
+        "membership": {
+          "$ref": "membership-schema.json"
+        },
+        "orchestrator": {
+          "$ref": "orchestrator-schema.json"
+        },
+        "proxy": {
+          "$ref": "proxy-schema.json"
+        },
+        "replicator": {
+          "$ref": "replicator-schema.json"
+        }
+      }
     }
   }
 }

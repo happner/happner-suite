@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import Ajv from 'ajv';
+import defaultLogger from '../log/default-logger';
 
 const happnSchema = require('../schemas/happn-schema.json');
 const happnerSchema = require('../schemas/happner-schema.json');
@@ -41,8 +42,8 @@ export class ConfigValidator {
   #fieldTypeValidator;
   #log;
 
-  constructor(log) {
-    this.#log = log;
+  constructor(log?) {
+    this.#log = log || defaultLogger;
     this.#ajv = new Ajv({
       schemas: [
         happnSchema,
@@ -83,14 +84,6 @@ export class ConfigValidator {
     });
 
     this.#fieldTypeValidator = new FieldTypeValidator();
-  }
-
-  get currentConfigType() {
-    return process.env.CURRENT_CONFIG_TYPE;
-  }
-
-  set currentConfigType(configType) {
-    process.env.CURRENT_CONFIG_TYPE = configType;
   }
 
   /*****************************************************
@@ -156,7 +149,7 @@ export class ConfigValidator {
   }
 
   validateHappnConfig(config: any): ValidationResult {
-    return this.#validate(config, happnSchema, BuilderType.HAPPN);
+    return this.#validate(config, happnSchema);
   }
 
   /*****************************************************
@@ -184,7 +177,7 @@ export class ConfigValidator {
   }
 
   validateHappnClusterConfig(config: any) {
-    return this.#validate(config, happnClusterSchema, BuilderType.HAPPN_CLUSTER);
+    return this.#validate(config, happnClusterSchema);
   }
 
   /*****************************************************
@@ -204,7 +197,7 @@ export class ConfigValidator {
   }
 
   validateHappnerConfig(config: any) {
-    return this.#validate(config, happnerSchema, BuilderType.HAPPNER);
+    return this.#validate(config, happnerSchema);
   }
 
   /*****************************************************
@@ -212,31 +205,16 @@ export class ConfigValidator {
    ****************************************************/
 
   validateHappnerClusterConfig(config: any) {
-    return this.#validate(config, happnerClusterSchema, BuilderType.HAPPNER_CLUSTER);
+    return this.#validate(config, happnerClusterSchema);
   }
 
   /*
   HELPERS
    */
 
-  #validate(config: any, schema: string, configType?: string): ValidationResult {
+  #validate(config: any, schema: string): ValidationResult {
     try {
       const result = new ValidationResult();
-
-      this.#log.info(`CURRENT CONFIG TYPE: ${this.currentConfigType}`);
-      this.#log.info(`REQUESTED CONFIG TYPE: ${configType}`);
-
-      if (
-        configType &&
-        this.currentConfigType !== undefined &&
-        this.currentConfigType !== configType
-      ) {
-        this.#log.info(`>>> currentValidator is already ${this.currentConfigType}; ignoring...`);
-        result.valid = true;
-        return result;
-      }
-
-      this.currentConfigType = configType;
 
       const validate = this.#ajv.compile(schema);
       result.valid = validate(config);

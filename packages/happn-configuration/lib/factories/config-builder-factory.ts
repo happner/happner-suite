@@ -1,4 +1,4 @@
-/* eslint-disable no-case-declarations,no-console,@typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 
 import BuilderConstants from '../constants/builder-constants';
@@ -30,28 +30,33 @@ const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
 // core class used for mixins...
 const BaseClz = class BaseClz extends BaseBuilder {
+  #baseType;
+
   constructor(...args: any[]) {
     super(...args);
+  }
+
+  set baseType(type) {
+    this.#baseType = type;
+  }
+
+  get baseType() {
+    return this.#baseType;
   }
 
   build() {
     const result = super.build();
 
-    // if the prototype chain length is 4, then this is happn configuration ONLY - the 'happn' field needs to be stripped...
-    return this.#getProtoChainLen() === 4 ? result.happn : result;
-  }
-
-  // gets the length of the prototype chain for a specific instance
-  #getProtoChainLen(len = 0, instance = this) {
-    const proto = Object.getPrototypeOf(instance);
-
-    if (proto === null) {
-      return len;
+    switch (this.baseType) {
+      case HAPPN:
+      case HAPPN_CLUSTER:
+        return result.happn;
+      case HAPPNER:
+      case HAPPNER_CLUSTER:
+        return result;
+      default:
+        throw new Error('unknown baseType');
     }
-
-    len++;
-
-    return this.#getProtoChainLen(len, proto);
   }
 };
 
@@ -74,19 +79,25 @@ export class ConfigBuilderFactory {
   static getHappnBuilder() {
     const container = ConfigBuilderFactory.createContainer();
     const HappnMixin = HappnCoreBuilder(BaseClz);
-    return new HappnMixin(container);
+    const result = new HappnMixin(container);
+    result.baseType = HAPPN;
+    return result;
   }
 
   static getHappnClusterBuilder() {
     const container = ConfigBuilderFactory.createContainer();
     const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
-    return new HappnClusterMixin(container);
+    const result = new HappnClusterMixin(container);
+    result.baseType = HAPPN_CLUSTER;
+    return result;
   }
 
   static getHappnerBuilder() {
     const container = ConfigBuilderFactory.createContainer();
     const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
-    return new HappnerMixin(container);
+    const result = new HappnerMixin(container);
+    result.baseType = HAPPNER;
+    return result;
   }
 
   static getHappnerClusterBuilder() {
@@ -94,7 +105,9 @@ export class ConfigBuilderFactory {
     const HappnerClusterMixin = HappnCoreBuilder(
       HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
     );
-    return new HappnerClusterMixin(container);
+    const result = new HappnerClusterMixin(container);
+    result.baseType = HAPPNER_CLUSTER;
+    return result;
   }
 
   static createContainer() {

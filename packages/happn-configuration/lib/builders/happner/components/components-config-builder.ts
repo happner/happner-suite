@@ -92,9 +92,15 @@ export class FunctionBuilder extends BaseBuilder {
 
   withParameter(name: string, value: any, type?: string, required?: boolean): FunctionBuilder {
     this.#checkParameterType(type);
-    if (type === PARAMETER_TYPE.CALLBACK)
-      this.push('parameters', { name, type, required }, BaseBuilder.Types.OBJECT);
-    else this.push('parameters', { name, value, type, required }, BaseBuilder.Types.OBJECT);
+
+    const obj = { name: name };
+
+    if (type) obj['type'] = type;
+    if (required) obj['required'] = required;
+
+    if (type !== PARAMETER_TYPE.CALLBACK) if (value) obj['value'] = value;
+
+    this.push('parameters', obj, BaseBuilder.Types.OBJECT);
     return this;
   }
 

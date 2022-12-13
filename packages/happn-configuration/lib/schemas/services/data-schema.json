@@ -98,6 +98,9 @@
         },
         "fsync": {
           "type": "boolean"
+        },
+        "url": {
+          "type": "string"
         }
       },
       "required": [

@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/OrchestratorConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
@@ -32,6 +35,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "secure": {
+          "type": "boolean"
         }
       },
       "required": [

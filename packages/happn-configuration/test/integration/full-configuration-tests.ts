@@ -6,6 +6,16 @@ import { expect } from 'chai';
 import mockLogger from '../__fixtures/logger';
 
 describe('full configuration tests', function () {
+  let validator;
+
+  beforeEach('setup', () => {
+    validator = new ConfigValidator(mockLogger);
+  });
+
+  afterEach('cleanup', () => {
+    process.env.CURRENT_CONFIG_TYPE = undefined;
+  });
+
   it('builds a happn configuration object', () => {
     const builder = ConfigBuilderFactory.getBuilder('happn');
     setHappnConfigValues(builder);
@@ -15,7 +25,6 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -37,7 +46,6 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -53,7 +61,6 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -71,7 +78,6 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });

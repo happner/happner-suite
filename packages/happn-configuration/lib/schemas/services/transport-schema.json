@@ -6,8 +6,14 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "certPath": {
+          "type": "string"
+        },
         "config": {
           "$ref": "#/definitions/TransportConfig"
+        },
+        "keyPath": {
+          "type": "string"
         },
         "mode": {
           "type": "string"

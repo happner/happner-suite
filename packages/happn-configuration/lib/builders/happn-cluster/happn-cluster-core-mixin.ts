@@ -6,6 +6,9 @@ import { OrchestratorConfigBuilder } from '../happn/services/orchestrator-config
 import { ProxyConfigBuilder } from '../happn/services/proxy-config-builder';
 import { ReplicatorConfigBuilder } from '../happn/services/replicator-config-builder';
 import { IHappnClusterConfigurationBuilder } from '../interfaces/i-happn-cluster-configuration-builder';
+import constants from '../../constants/config-constants';
+
+const SERVICES_ROOT = constants.HAPPN_SERVICES_ROOT;
 
 export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) {
   return class HappnClusterBuilder extends Base implements IHappnClusterConfigurationBuilder {
@@ -26,11 +29,23 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
       this.#proxyConfigBuilder = container.proxyConfigBuilder;
       this.#replicatorConfigBuilder = container.replicatorConfigBuilder;
 
-      this.set(`health`, this.#healthConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`membership`, this.#membershipConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`orchestrator`, this.#orchestratorConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`proxy`, this.#proxyConfigBuilder, BaseBuilder.Types.OBJECT);
-      this.set(`replicator`, this.#replicatorConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(`${SERVICES_ROOT}.health`, this.#healthConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(
+        `${SERVICES_ROOT}.membership`,
+        this.#membershipConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
+      this.set(
+        `${SERVICES_ROOT}.orchestrator`,
+        this.#orchestratorConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
+      this.set(`${SERVICES_ROOT}.proxy`, this.#proxyConfigBuilder, BaseBuilder.Types.OBJECT);
+      this.set(
+        `${SERVICES_ROOT}.replicator`,
+        this.#replicatorConfigBuilder,
+        BaseBuilder.Types.OBJECT
+      );
     }
 
     /*

@@ -8,6 +8,9 @@
       "properties": {
         "config": {
           "$ref": "#/definitions/ProxyConfig"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
@@ -18,23 +21,29 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "allowSelfSignedCerts": {
+          "type": "boolean"
+        },
+        "certPath": {
+          "type": "string"
+        },
+        "defer": {
+          "type": "boolean"
+        },
         "host": {
+          "type": "string"
+        },
+        "keyPath": {
           "type": "string"
         },
         "port": {
           "type": "integer"
         },
-        "allowSelfSignedCerts": {
+        "secure": {
           "type": "boolean"
         },
         "timeout": {
           "type": "integer"
-        },
-        "keyPath": {
-          "type": "string"
-        },
-        "certPath": {
-          "type": "string"
         }
       },
       "required": [
