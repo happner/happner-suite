@@ -9,6 +9,9 @@
         "config": {
           "$ref": "#/definitions/UtilsConfig"
         },
+        "logFile": {
+          "type": "object"
+        },
         "path": {
           "type": "string"
         }

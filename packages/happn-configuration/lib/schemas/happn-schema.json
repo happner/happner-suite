@@ -18,6 +18,9 @@
         "authTokenSecret": {
           "type": "string"
         },
+        "cluster": {
+          "$ref": "cluster-schema.json"
+        },
         "defaultRoute": {
           "type": "string"
         },
@@ -102,6 +105,9 @@
           "items": {
             "type": "object"
           }
+        },
+        "utils": {
+          "$ref": "utils-schema.json"
         }
       },
       "required": [

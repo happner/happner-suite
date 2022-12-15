@@ -98,7 +98,7 @@ export class FunctionBuilder extends BaseBuilder {
     if (type) obj['type'] = type;
     if (required) obj['required'] = required;
 
-    if (type !== PARAMETER_TYPE.CALLBACK) if (value) obj['value'] = value;
+    if (type !== PARAMETER_TYPE.CALLBACK && value) obj['value'] = value;
 
     this.push('parameters', obj, BaseBuilder.Types.OBJECT);
     return this;

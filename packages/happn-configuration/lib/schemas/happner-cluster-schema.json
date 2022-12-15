@@ -6,20 +6,32 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "domain": {
-          "type": "string"
+        "authorityDelegationOn": {
+          "type": "boolean"
         },
         "cluster": {
           "$ref": "#/definitions/Cluster"
         },
-        "name": {
+        "deferListen": {
+          "type": "boolean"
+        },
+        "domain": {
           "type": "string"
         },
-        "deferListen": {
+        "ignoreDependenciesOnStartup": {
           "type": "boolean"
         },
         "listenFirst": {
           "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "plugins": {
+          "$ref": "plugins-schema.json"
         },
         "happn": {
           "$ref": "#/definitions/Happn"
@@ -55,14 +67,7 @@
       "title": "HappnerClusterSchema"
     },
     "Cluster": {
-      "properties": {
-        "requestTimeout": {
-          "type": "number"
-        },
-        "responseTimeout": {
-          "type": "number"
-        }
-      }
+      "$ref": "cluster-schema.json"
     },
     "Happn": {
       "$ref": "happn-schema.json"

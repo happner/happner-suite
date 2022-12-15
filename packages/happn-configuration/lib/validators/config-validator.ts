@@ -6,33 +6,34 @@ const happnSchema = require('../schemas/happn-schema.json');
 const happnerSchema = require('../schemas/happner-schema.json');
 const happnClusterSchema = require('../schemas/happn-cluster-schema.json');
 const happnerClusterSchema = require('../schemas/happner-cluster-schema.json');
-const cacheSchema = require('../schemas/services/cache-schema.json');
-const connectSchema = require('../schemas/services/connect-schema.json');
-const dataSchema = require('../schemas/services/data-schema.json');
-const dataLazySchema = require('../schemas/services/data-lazy-schema.json');
-const protocolSchema = require('../schemas/services/protocol-schema.json');
-const publisherSchema = require('../schemas/services/publisher-schema.json');
-const securitySchema = require('../schemas/services/security-schema.json');
-const subscriptionSchema = require('../schemas/services/subscription-schema.json');
-const systemSchema = require('../schemas/services/system-schema.json');
-const transportSchema = require('../schemas/services/transport-schema.json');
-const utilsSchema = require('../schemas/services/utils-schema.json');
-const errorSchema = require('../schemas/services/error-schema.json');
-const logSchema = require('../schemas/services/log-schema.json');
-const cryptoSchema = require('../schemas/services/crypto-schema.json');
-const sessionSchema = require('../schemas/services/session-schema.json');
-const healthSchema = require('../schemas/services/health-schema.json');
-const membershipSchema = require('../schemas/services/membership-schema.json');
-const orchestratorSchema = require('../schemas/services/orchestrator-schema.json');
-const proxySchema = require('../schemas/services/proxy-schema.json');
-const replicatorSchema = require('../schemas/services/replicator-schema.json');
-const profileSchema = require('../schemas/services/profile-schema.json');
-const componentsSchema = require('../schemas/components/components-schema.json');
-const componentsLazySchema = require('../schemas/components/components-lazy-schema.json');
-const endpointsSchema = require('../schemas/endpoints/endpoints-schema.json');
-const modulesSchema = require('../schemas/modules/modules-schema.json');
-const middlewareSchema = require('../schemas/services/middleware-schema.json');
-const pluginsSchema = require('../schemas/services/plugins-schema.json');
+const cacheSchema = require('../schemas/sub-schemas/cache-schema.json');
+const connectSchema = require('../schemas/sub-schemas/connect-schema.json');
+const dataSchema = require('../schemas/sub-schemas/data-schema.json');
+const dataLazySchema = require('../schemas/sub-schemas/data-lazy-schema.json');
+const protocolSchema = require('../schemas/sub-schemas/protocol-schema.json');
+const publisherSchema = require('../schemas/sub-schemas/publisher-schema.json');
+const securitySchema = require('../schemas/sub-schemas/security-schema.json');
+const subscriptionSchema = require('../schemas/sub-schemas/subscription-schema.json');
+const systemSchema = require('../schemas/sub-schemas/system-schema.json');
+const transportSchema = require('../schemas/sub-schemas/transport-schema.json');
+const utilsSchema = require('../schemas/sub-schemas/utils-schema.json');
+const errorSchema = require('../schemas/sub-schemas/error-schema.json');
+const logSchema = require('../schemas/sub-schemas/log-schema.json');
+const cryptoSchema = require('../schemas/sub-schemas/crypto-schema.json');
+const sessionSchema = require('../schemas/sub-schemas/session-schema.json');
+const healthSchema = require('../schemas/sub-schemas/health-schema.json');
+const membershipSchema = require('../schemas/sub-schemas/membership-schema.json');
+const orchestratorSchema = require('../schemas/sub-schemas/orchestrator-schema.json');
+const proxySchema = require('../schemas/sub-schemas/proxy-schema.json');
+const replicatorSchema = require('../schemas/sub-schemas/replicator-schema.json');
+const profileSchema = require('../schemas/sub-schemas/profile-schema.json');
+const componentsSchema = require('../schemas/sub-schemas/components-schema.json');
+const componentsLazySchema = require('../schemas/sub-schemas/components-lazy-schema.json');
+const endpointsSchema = require('../schemas/sub-schemas/endpoints-schema.json');
+const modulesSchema = require('../schemas/sub-schemas/modules-schema.json');
+const middlewareSchema = require('../schemas/sub-schemas/middleware-schema.json');
+const pluginsSchema = require('../schemas/sub-schemas/plugins-schema.json');
+const clusterSchema = require('../schemas/sub-schemas/cluster-schema.json');
 import BuilderType from '../constants/builder-constants';
 
 import { FieldTypeValidator } from './field-type-validator';
@@ -77,6 +78,7 @@ export class ConfigValidator {
         modulesSchema,
         middlewareSchema,
         pluginsSchema,
+        clusterSchema,
       ],
       strictNumbers: false, // to handle Infinity types
       allowUnionTypes: true, // handle multiple allowed types, eg: string,object

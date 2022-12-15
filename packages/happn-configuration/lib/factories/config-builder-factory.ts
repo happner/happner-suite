@@ -30,24 +30,24 @@ const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
 // core class used for mixins...
 const BaseClz = class BaseClz extends BaseBuilder {
-  #baseType;
+  #builderType;
 
   constructor(...args: any[]) {
     super(...args);
   }
 
-  set baseType(type) {
-    this.#baseType = type;
+  set builderType(type) {
+    this.#builderType = type;
   }
 
-  get baseType() {
-    return this.#baseType;
+  get builderType() {
+    return this.#builderType;
   }
 
   build() {
     const result = super.build();
 
-    switch (this.baseType) {
+    switch (this.builderType) {
       case HAPPN:
       case HAPPN_CLUSTER:
         return result.happn;
@@ -80,7 +80,7 @@ export class ConfigBuilderFactory {
     const container = ConfigBuilderFactory.createContainer();
     const HappnMixin = HappnCoreBuilder(BaseClz);
     const result = new HappnMixin(container);
-    result.baseType = HAPPN;
+    result.builderType = HAPPN;
     return result;
   }
 
@@ -88,7 +88,7 @@ export class ConfigBuilderFactory {
     const container = ConfigBuilderFactory.createContainer();
     const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
     const result = new HappnClusterMixin(container);
-    result.baseType = HAPPN_CLUSTER;
+    result.builderType = HAPPN_CLUSTER;
     return result;
   }
 
@@ -96,7 +96,7 @@ export class ConfigBuilderFactory {
     const container = ConfigBuilderFactory.createContainer();
     const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
     const result = new HappnerMixin(container);
-    result.baseType = HAPPNER;
+    result.builderType = HAPPNER;
     return result;
   }
 
@@ -106,7 +106,7 @@ export class ConfigBuilderFactory {
       HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
     );
     const result = new HappnerClusterMixin(container);
-    result.baseType = HAPPNER_CLUSTER;
+    result.builderType = HAPPNER_CLUSTER;
     return result;
   }
 
