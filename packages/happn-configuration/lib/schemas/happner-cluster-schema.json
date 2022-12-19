@@ -6,8 +6,14 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "adminPassword": {
+          "type": "string"
+        },
         "authorityDelegationOn": {
           "type": "boolean"
+        },
+        "boundExchangeCacheSize": {
+          "type": "number"
         },
         "cluster": {
           "$ref": "#/definitions/Cluster"
