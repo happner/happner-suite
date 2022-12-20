@@ -3,7 +3,6 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     client: require('../_lib/client'),
     configuration: require('../_lib/helpers/configuration').create(),
     cluster: require('../_lib/helpers/cluster'),
-    getSeq: require('../_lib/helpers/getSeq'),
   };
   let client,
     username = '_ADMIN',

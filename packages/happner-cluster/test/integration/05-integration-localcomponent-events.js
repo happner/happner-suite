@@ -1,16 +1,14 @@
-const hooks = require('../_lib/helpers/hooks');
-
-require('../_lib/test-helper').describe({ timeout: 20e3 }, () => {
+require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let config = {
     cluster: {
       functions: [testHapnpConfig],
       localInstance: 0,
     },
   };
-  hooks.standardHooks(config);
+  test.hooks.standardHooks(test, config);
 
   it('can subscribe to event from local components', async function () {
-    await this.localInstance.exchange.component2.awaitEvent();
+    await test.localInstance.exchange.component2.awaitEvent();
   });
 
   function testHapnpConfig() {

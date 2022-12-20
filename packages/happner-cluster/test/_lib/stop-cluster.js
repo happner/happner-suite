@@ -12,7 +12,7 @@ module.exports = async function (servers, done) {
       // console.log(e);
     }
     await server.stop({ reconnect: false });
-    await delay(300);
   }
+  await delay(3e3);
   if (done) return done();
 };

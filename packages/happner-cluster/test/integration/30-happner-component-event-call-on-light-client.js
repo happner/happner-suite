@@ -1,44 +1,20 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const users = require('../_lib/users');
-const testclient = require('../_lib/client-light');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const testnormalclient = require('../_lib/client');
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
-  let servers = [],
-    localInstance,
-    currentClient,
-    proxyPorts;
+  let currentClient;
+  const users = test.users;
 
-  beforeEach('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  afterEach('disconnect clients', function (done) {
-    if (currentClient) {
-      currentClient.disconnect(done);
-    }
-  });
-
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, function () {
-      servers = [];
-      done();
-    });
-  });
-
-  after('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
+  test.hooks.clusterStartedSeperatelyHooks(test);
+  let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
 
   it('starts the cluster edge first, connects a normal client to the broker instance', async () => {
-    await startClusterEdgeFirst();
+    await clusterStarter.startClusterEdgeFirst();
     await test.delay(2000);
-    await setUpSecurity(localInstance);
+    await setUpSecurity(test.localInstance);
     await test.delay(2000);
-    currentClient = await testnormalclient.create('username', 'password', proxyPorts[0]);
+    test.clients.push(
+      (currentClient = await test.client.create('username', 'password', test.proxyPorts[0]))
+    );
     const result2 = await currentClient.exchange.$call({
       component: 'remoteComponent1',
       method: 'brokeredMethod1',
@@ -47,32 +23,24 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('starts the cluster edge first, connects a light-client to the broker instance', async () => {
-    await startClusterEdgeFirst();
+    await clusterStarter.startClusterEdgeFirst();
     await test.delay(2000);
-    await setUpSecurity(localInstance);
+    await setUpSecurity(test.localInstance);
     await test.delay(2000);
-    currentClient = await testclient.create('DOMAIN_NAME', 'username', 'password', proxyPorts[0]);
+    test.clients.push(
+      (currentClient = await test.lightClient.create(
+        'DOMAIN_NAME',
+        'username',
+        'password',
+        test.proxyPorts[0]
+      ))
+    );
     const result2 = await currentClient.exchange.$call({
       component: 'remoteComponent1',
       method: 'brokeredMethod1',
     });
     test.expect(result2).to.be('MESH_1:remoteComponent:brokeredMethod1');
   });
-
-  function startInternal(id, clusterMin) {
-    return test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
-  }
-
-  function startEdge(id, clusterMin) {
-    return test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
-  }
-
-  async function startClusterEdgeFirst() {
-    servers.push(await startEdge(0, 1));
-    servers.push((localInstance = await startInternal(1, 2)));
-    await users.add(localInstance, 'username', 'password');
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
-  }
 
   function localInstanceConfig(seq, sync) {
     var config = baseConfig(seq, sync, true);

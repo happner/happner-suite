@@ -1,231 +1,164 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const users = require('../_lib/users');
-const testclient = require('../_lib/client');
-const testlightclient = require('../_lib/client-light');
-
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  const servers = [];
-  let localInstance, proxyPorts;
-  beforeEach('stopCluster', (done) => {
-    if (servers.length) {
-      stopCluster(servers, function (e) {
-        servers.splice(0, servers.length);
-        proxyPorts = [];
-        if (e) return done(e);
-        done();
-      });
-    } else {
-      done();
-    }
-  });
-
-  beforeEach('clear mongo collection', function (done) {
-    this.timeout(20000);
-    try {
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
-    } catch (e) {
-      done(e);
-    }
-  });
-
-  after('stop cluster', async function () {
-    await stopCluster(servers);
-  });
-
+  test.hooks.clusterStartedSeperatelyHooks(test);
+  let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
+  let localInstance, client;
+  test.clients = [];
   //in case needed in future
-  //test.printOpenHandlesAfter(5e3);E
+  //test.printOpenHandlesAfter(5e3);
 
   context('exchange', function () {
-    it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', function (done) {
-      var thisClient;
+    it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
+      await clusterStarter.startClusterInternalFirst(true);
+      localInstance = test.servers[0];
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod1'
+      );
+      await test.delay(3e3);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+      );
 
-      startClusterInternalFirst(false)
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod1'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          thisClient = client;
-          //first test our broker components methods are directly callable
-          return thisClient.exchange.brokerComponent.directMethod();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
-          return thisClient.exchange.remoteComponent1.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
-          return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
-          setTimeout(done, 2000);
-        })
-        .catch((e) => {
-          done(e);
-        });
+      let result = await client.exchange.brokerComponent.directMethod();
+      await test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
+      result = await client.exchange.remoteComponent1.brokeredMethod1();
+      test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
+      result = await client.exchange.remoteComponent.brokeredMethod1();
+      test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
     });
 
-    it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker, check we cannot access denied methods', function (done) {
-      var thisClient;
+    it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker, check we cannot access denied methods', async function () {
+      let gotToFinalAttempt = false;
+      try {
+        await clusterStarter.startClusterInternalFirst(true);
+        localInstance = test.servers[0];
+        await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent',
+          'brokeredMethod1'
+        );
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent1',
+          'brokeredMethod1'
+        );
+        await test.delay(3e3);
+        test.clients.push(
+          (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+        );
 
-      var gotToFinalAttempt = false;
+        let result = await client.exchange.brokerComponent.directMethod();
 
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod1'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          thisClient = client;
-          //first test our broker components methods are directly callable
-          return thisClient.exchange.brokerComponent.directMethod();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
-          //call an injected method
-          return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
-          return thisClient.exchange.remoteComponent1.brokeredMethod1();
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
-          return testRestCall(
-            thisClient.data.session.token,
-            proxyPorts[1],
-            'remoteComponent1',
-            'brokeredMethod1',
-            null,
-            'MESH_0:remoteComponent1:brokeredMethod1:true'
-          );
-        })
-        .then(() => {
-          return users.denyMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          gotToFinalAttempt = true;
-          return thisClient.exchange.remoteComponent.brokeredMethod1();
-        })
-        .catch(function (e) {
-          test.expect(gotToFinalAttempt).to.be(true);
-          test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-          setTimeout(done, 2000);
-        });
+        test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
+        //call an injected method
+        result = await client.exchange.remoteComponent.brokeredMethod1();
+        test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
+        result = await client.exchange.remoteComponent1.brokeredMethod1();
+        test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod1');
+        await testRestCall(
+          client.data.session.token,
+          test.proxyPorts[1],
+          'remoteComponent1',
+          'brokeredMethod1',
+          null,
+          'MESH_0:remoteComponent1:brokeredMethod1:true'
+        );
+        await test.users.denyMethod(
+          localInstance,
+          'username',
+          'remoteComponent',
+          'brokeredMethod1'
+        );
+        gotToFinalAttempt = true;
+        result = await client.exchange.remoteComponent.brokeredMethod1();
+        throw new Error('TEST FAILURE');
+      } catch (e) {
+        test.expect(gotToFinalAttempt).to.be(true);
+        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+      }
     });
 
-    it('starts up the edge cluster node first, we than start the internal node (with brokered component), pause and then assert we are able to run the brokered method', function (done) {
-      startClusterEdgeFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          //first test our broker components methods are directly callable
-          client.exchange.brokerComponent.directMethod(function (e, result) {
-            test.expect(e).to.be(null);
-            test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
-            //call an injected method
-            client.exchange.remoteComponent.brokeredMethod1(function (e, result) {
-              test.expect(e).to.be(null);
-              test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
-              setTimeout(done, 2000);
-            });
-          });
-        })
-        .catch(done);
+    it('starts up the edge cluster node first, we than start the internal node (with brokered component), pause and then assert we are able to run the brokered method', async function () {
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
+      await test.delay(2e3);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+      let result = await client.exchange.brokerComponent.directMethod();
+      test.expect(result).to.be('MESH_0:brokerComponent:directMethod');
+      //call an injected method
+      result = await client.exchange.remoteComponent.brokeredMethod1();
+      test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod1');
     });
 
-    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument', function (done) {
-      startClusterEdgeFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          client.exchange.remoteComponent.brokeredMethod3('test', function (e, result) {
-            test.expect(e).to.be(null);
-            test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod3:test');
-            setTimeout(done, 2000);
-          });
-        })
-        .catch(done);
+    it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument', async function () {
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
+      await test.delay(3e3);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+      let result = await client.exchange.remoteComponent.brokeredMethod3('test');
+      test.expect(result).to.be('MESH_1:remoteComponent:brokeredMethod3:test');
     });
 
     async function setupPermissionsCorrectOrigin() {
-      await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod3');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod4');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod4');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod5');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod5');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod6');
-      await users.allowMethod(localInstance, 'username', 'remoteComponent1', 'brokeredMethod6');
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod3'
+      );
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod4');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod4'
+      );
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod5');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod5'
+      );
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod6');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod6'
+      );
     }
 
     it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client callback', async () => {
-      await startClusterEdgeFirst();
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
       await setupPermissionsCorrectOrigin();
       await test.delay(2e3);
 
-      const client = await testclient.create('username', 'password', proxyPorts[0]);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+
       const result1 = await client.exchange.remoteComponent1.brokeredMethod3('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod3();
       test.expect(result1).to.be('MESH_1:remoteComponent1:brokeredMethod3:test:username');
@@ -243,11 +176,15 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin normal client async', async () => {
-      await startClusterEdgeFirst();
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
       await setupPermissionsCorrectOrigin();
       await test.delay(2000);
 
-      const client = await testclient.create('username', 'password', proxyPorts[0]);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+
       const result1 = await client.exchange.remoteComponent1.brokeredMethod5('test');
       const result2 = await client.exchange.remoteComponent1.brokeredMethod5();
       test.expect(result1).to.be('MESH_1:remoteComponent1:brokeredMethod5:test:username');
@@ -265,15 +202,18 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('starts up the edge cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin light client', async () => {
-      await startClusterEdgeFirst();
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
       await setupPermissionsCorrectOrigin();
       await test.delay(2000);
 
-      let client = await testlightclient.create(
-        'DOMAIN_NAME',
-        'username',
-        'password',
-        proxyPorts[0]
+      test.clients.push(
+        (client = await test.lightClient.create(
+          'DOMAIN_NAME',
+          'username',
+          'password',
+          test.proxyPorts[0]
+        ))
       );
       const result1 = await client.exchange.$call({
         component: 'remoteComponent1',
@@ -318,339 +258,203 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       await client.disconnect();
     });
 
-    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', function (done) {
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod3'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          client.exchange.remoteComponent1.brokeredMethod3('test', function (e, result) {
-            test.expect(e).to.be(null);
-            test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
-            done();
-          });
-        })
-        .catch(done);
+    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method with an argument, with the correct origin', async function () {
+      await clusterStarter.startClusterInternalFirst(true);
+      localInstance = test.servers[0];
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod3'
+      );
+
+      await test.delay(3e3);
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+      let result = await client.exchange.remoteComponent1.brokeredMethod3('test');
+      test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
     });
 
-    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', function (done) {
-      let testClient;
-
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod3'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          testClient = client;
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
-          return new Promise((resolve, reject) => {
-            localInstance.stop((e) => {
-              if (e) return reject(e);
-              servers.splice(0, 1);
-              resolve();
-            });
-          });
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .catch(function (e) {
-          test.expect(e.message).to.be('Not implemented remoteComponent1:^2.0.0:brokeredMethod3');
-          done();
-        });
+    it('starts up the internal cluster node first, we then start the internal node (with brokered component), pause and then assert we are able to run a brokered method, we then shutdown the brokered instance, run the same method and get the correct error', async function () {
+      try {
+        await clusterStarter.startClusterInternalFirst(true);
+        localInstance = test.servers[0];
+        await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent',
+          'brokeredMethod3'
+        );
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent1',
+          'brokeredMethod3'
+        );
+        await test.delay(3e3);
+        test.clients.push(
+          (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+        );
+        let result = await client.exchange.remoteComponent1.brokeredMethod3('test');
+        test.expect(result).to.be('MESH_0:remoteComponent1:brokeredMethod3:test:username');
+        await localInstance.stop();
+        test.servers.splice(0, 1);
+        await test.delay(3e3);
+        await client.exchange.remoteComponent1.brokeredMethod3('test');
+        throw new Error('TEST FAILURE');
+      } catch (e) {
+        test.expect(e.message).to.be('Not implemented remoteComponent1:^2.0.0:brokeredMethod3');
+      }
     });
 
-    it('starts up the internal cluster node first, we then start 2 the internal nodes in a high availability configuration, pause and then assert we are able to run a brokered methods and they are load balanced, we then shutdown a brokered instance, and are able to run the same method on the remaining instance', function (done) {
-      let testClient,
-        results = [];
+    it('starts up the internal cluster node first, we then start 2 the internal nodes in a high availability configuration, pause and then assert we are able to run a brokered methods and they are load balanced, we then shutdown a brokered instance, and are able to run the same method on the remaining instance', async function () {
+      let results = [];
 
-      startClusterEdgeFirstHighAvailable()
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod3'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          testClient = client;
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(() => {
-          return new Promise((resolve, reject) => {
-            localInstance.stop((e) => {
-              if (e) return reject(e);
-              servers.splice(1, 1);
-              resolve();
-            });
-          });
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          return testClient.exchange.remoteComponent1.brokeredMethod3('test');
-        })
-        .then(function (result) {
-          results.push(result);
-          test.expect(results).to.eql([
-            //round robin happening
-            'MESH_1:remoteComponent1:brokeredMethod3:test:username',
-            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
-            'MESH_1:remoteComponent1:brokeredMethod3:test:username',
-            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
-            //now only mesh 3 is up, so it handles all method calls
-            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
-            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
-            'MESH_2:remoteComponent1:brokeredMethod3:test:username',
-          ]);
-          done();
-        })
-        .catch(done);
+      await clusterStarter.startClusterEdgeFirstHighAvailable(true);
+      localInstance = test.servers[1];
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod3');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod3'
+      );
+      await test.delay(3e3);
+
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+      );
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      await localInstance.stop();
+      test.servers.splice(1, 1);
+      await test.delay(3e3);
+
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+      results.push(await client.exchange.remoteComponent1.brokeredMethod3('test'));
+
+      test.expect(results).to.eql([
+        //round robin happening
+        'MESH_1:remoteComponent1:brokeredMethod3:test:username',
+        'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+        'MESH_1:remoteComponent1:brokeredMethod3:test:username',
+        'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+        //now only mesh 3 is up, so it handles all method calls
+        'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+        'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+        'MESH_2:remoteComponent1:brokeredMethod3:test:username',
+      ]);
     });
 
-    it('injects the correct amount of brokered elements, even when brokered cluster nodes are dropped and restarted', function (done) {
+    it('injects the correcst amount of brokered elements, even when brokered cluster nodes are dropped and restarted', async function () {
       this.timeout(60000);
+      await clusterStarter.startClusterEdgeFirstHighAvailable(true);
+      localInstance = test.servers[1];
+      await test.delay(5000);
+      test.expect(getInjectedElements('MESH_0').length).to.be(4);
+      test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[2].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[3].meshName != null).to.be(true);
+      await stopServer(test.servers[1], 1);
+      await test.delay(3e3);
+      //we check injected components is 1
+      test.expect(getInjectedElements('MESH_0').length).to.be(2);
+      test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
+      await stopServer(test.servers[1], 1);
+      await test.delay(3e3);
+      //we check injected components is still 1 and injected component meshName is null
+      test.expect(getInjectedElements('MESH_0').length).to.be(2);
+      test.expect(getInjectedElements('MESH_0')[0].meshName == null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[1].meshName == null).to.be(true);
+      await clusterStarter.startInternal(3, 2);
+      await test.delay(3e3);
 
-      startClusterEdgeFirstHighAvailable()
-        .then(() => {
-          return test.delay(5000);
-        })
-        .then(() => {
-          test.expect(getInjectedElements('MESH_0').length).to.be(4);
-          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[2].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[3].meshName != null).to.be(true);
-          return stopServer(1);
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          //we check injected components is 1
-          test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
-          return stopServer(1);
-        })
-        .then(() => {
-          return test.delay(6e3);
-        })
-        .then(() => {
-          //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test.expect(getInjectedElements('MESH_0')[0].meshName == null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[1].meshName == null).to.be(true);
-          return startInternal(3, 2);
-        })
-        .then((server) => {
-          servers.push(server);
-          return test.delay(5e3);
-        })
-        .then(() => {
-          //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements('MESH_0').length).to.be(2);
-          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
-          return startInternal(4, 3);
-        })
-        .then((server) => {
-          servers.push(server);
-          return test.delay(3e3);
-        })
-        .then(() => {
-          //we check injected components is 2
-          //we check injected components is still 1 and injected component meshName is null
-          test.expect(getInjectedElements('MESH_0').length).to.be(4);
-          test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
-          test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
-          done();
-        })
-        .catch(done);
+      //we check injected components is still 1 and injected component meshName is null
+      test.expect(getInjectedElements('MESH_0').length).to.be(2);
+      test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
+      await clusterStarter.startInternal(4, 3);
+
+      await test.delay(3e3);
+
+      //we check injected components is 2
+      //we check injected components is still 1 and injected component meshName is null
+      test.expect(getInjectedElements('MESH_0').length).to.be(4);
+      test.expect(getInjectedElements('MESH_0')[0].meshName != null).to.be(true);
+      test.expect(getInjectedElements('MESH_0')[1].meshName != null).to.be(true);
     });
   });
 
   context('events', function () {
-    it('connects a client to the local instance, and is able to access the remote component events via the broker', function (done) {
-      startClusterInternalFirst()
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent',
-            'brokeredEventEmitMethod'
-          );
-        })
-        .then(() => {
-          return users.allowEvent(localInstance, 'username', 'remoteComponent', '/brokered/event');
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          //first test our broker components methods are directly callable
-          client.exchange.brokerComponent.directMethod(function (e, result) {
-            test.expect(e).to.be(null);
-            test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
+    it('connects a client to the local instance, and is able to access the remote component events via the broker', async function () {
+      await clusterStarter.startClusterInternalFirst(true);
+      localInstance = test.servers[0];
+      await test.delay(3e3);
+      await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent',
+        'brokeredEventEmitMethod'
+      );
+      await test.users.allowEvent(localInstance, 'username', 'remoteComponent', '/brokered/event');
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+      );
+      //first test our broker components methods are directly callable
+      let result = await client.exchange.brokerComponent.directMethod();
+      test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
+      let done,
+        finished = new Promise((res) => (done = res));
+      await client.event.remoteComponent.on('/brokered/event', function (data) {
+        test.expect(data).to.eql({
+          brokered: { event: { data: { from: 'MESH_0' } } },
+        });
+        done();
+      });
 
-            client.event.remoteComponent.on(
-              '/brokered/event',
-              function (data) {
-                test.expect(data).to.eql({
-                  brokered: { event: { data: { from: 'MESH_0' } } },
-                });
-                setTimeout(done, 2000);
-              },
-              function (e) {
-                test.expect(e).to.be(null);
-                client.exchange.remoteComponent.brokeredEventEmitMethod(function (e, result) {
-                  test.expect(e).to.be(null);
-                  test.expect(result).to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
-                });
-              }
-            );
-          });
-        })
-        .catch(done);
+      result = await client.exchange.remoteComponent.brokeredEventEmitMethod();
+      test.expect(result).to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
+      return finished;
     });
   });
   context('happner-client', function () {
-    it('does a comprehensive test using the happner-client', function (done) {
-      startClusterEdgeFirst()
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod1'
-          );
-        })
-        .then(() => {
-          return users.allowWebMethod(localInstance, 'username', '/remoteComponent1/testJSON');
-        })
-        .then(() => {
-          return users.allowEvent(localInstance, 'username', 'remoteComponent1', 'test/*');
-        })
-        .then(() => {
-          return connectHappnerClient('username', 'password', proxyPorts[0]);
-        })
-        .then(function (client) {
-          return testHappnerClient(client);
-        })
-        .then(function (client) {
-          client.disconnect(done);
-        })
-        .catch(done);
+    it('does a comprehensive test using the happner-client', async function () {
+      await clusterStarter.startClusterEdgeFirst(true);
+      localInstance = test.servers[1];
+      await test.delay(3e3);
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod1'
+      );
+      await test.users.allowWebMethod(localInstance, 'username', '/remoteComponent1/testJSON');
+      await test.users.allowEvent(localInstance, 'username', 'remoteComponent1', 'test/*');
+      client = await connectHappnerClient('username', 'password', test.proxyPorts[0]);
+      await testHappnerClient(client);
+      await client.disconnect();
     });
   });
   context('errors', function () {
-    it('ensures an error is raised if we are injecting internal components with duplicate names', function (done) {
-      test.HappnerCluster.create(errorInstanceConfigDuplicateBrokered(0, 1))
-        .then(() => {
-          done(new Error('unexpected success'));
-        })
-        .catch(function (e) {
-          test
-            .expect(e.toString())
-            .to.be(
-              'Error: Duplicate attempts to broker the remoteComponent component by brokerComponent & brokerComponentDuplicate'
-            );
-          setTimeout(done, 2000);
-        });
-    });
-
     it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a callback', function (done) {
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
+      let proxyPorts;
+      clusterStarter
+        .startClusterInternalFirst(true)
+        .then((ports) => {
+          proxyPorts = ports;
+          return test.users.allowMethod(
+            test.servers[1],
             'username',
             'remoteComponent',
             'brokeredMethodFail'
@@ -660,9 +464,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           return test.delay(3e3);
         })
         .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
+          return test.client.create('username', 'password', proxyPorts[1]);
         })
         .then(function (client) {
+          test.clients.push(client);
           //first test our broker components methods are directly callable
           client.exchange.remoteComponent.brokeredMethodFail(function (e) {
             test.expect(e.toString()).to.be('Error: test error');
@@ -674,92 +479,97 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     it('ensures an error is handled and returned accordingly if we execute an internal components failing method using a promise', async function () {
       try {
-        await startClusterInternalFirst();
-        await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethodFail');
+        await clusterStarter.startClusterInternalFirst(true);
+        localInstance = test.servers[0];
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent',
+          'brokeredMethodFail'
+        );
         await test.delay(3e3);
-        let client = await testclient.create('username', 'password', proxyPorts[1]);
-        await client.exchange.remoteComponent.brokeredMethodFail();
+        test.clients.push(
+          (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+        );
+        test.clients.push(await client.exchange.remoteComponent.brokeredMethodFail());
         throw new Error('TEST FAILURE');
       } catch (e) {
         test.expect(e.toString()).to.be('Error: test error');
       }
     });
 
-    it('ensures an error is handled and returned accordingly if we execute an internal components method that times out', function (done) {
+    it('ensures an error is handled and returned accordingly if we execute an internal components method that times out', async function () {
       this.timeout(20000);
+      try {
+        await clusterStarter.startClusterInternalFirst(true);
+        localInstance = test.servers[0];
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent',
+          'brokeredMethodTimeout'
+        );
+        await test.delay(3e3);
+        test.clients.push(
+          (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+        );
 
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent',
-            'brokeredMethodTimeout'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          //first test our broker components methods are directly callable
-          return client.exchange.remoteComponent.brokeredMethodTimeout();
-        })
-        .catch(function (e) {
-          test.expect(e.message).to.be('Request timed out');
-          done();
-        });
+        //first test our broker components methods are directly callable
+        await client.exchange.remoteComponent.brokeredMethodTimeout();
+        throw new Error('TEST FAILURE');
+      } catch (e) {
+        test.expect(e.message).to.be('Request timed out');
+      }
     });
 
     it('ensures an error is handled and returned accordingly if we execute a method that does not exist on the cluster mesh yet', async function () {
       this.timeout(20000);
       try {
-        await startClusterEdgeFirst();
-        await users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
-        await users.allowMethod(localInstance, 'username', 'remoteComponent', 'brokeredMethod1');
-        let client = await testclient.create('username', 'password', proxyPorts[0]);
-        await client.exchange.remoteComponent.brokeredMethod1();
+        await clusterStarter.startClusterEdgeFirst(true, 0);
+        localInstance = test.servers[1];
+        await test.users.allowMethod(localInstance, 'username', 'brokerComponent', 'directMethod');
+        await test.users.allowMethod(
+          localInstance,
+          'username',
+          'remoteComponent1',
+          'brokeredMethod10'
+        );
+        test.clients.push(
+          (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+        );
+        await client.exchange.remoteComponent1.brokeredMethod10();
         throw new Error('TEST FAILURE');
       } catch (e) {
         test
           .expect(e.toString())
-          .to.be('Error: Not implemented remoteComponent:^2.0.0:brokeredMethod1');
+          .to.be('Error: Not implemented remoteComponent1:^2.0.0:brokeredMethod10');
       }
     });
   });
 
   context('rest', function () {
-    it('does a rest call', function (done) {
-      var thisClient;
-      startClusterInternalFirst()
-        .then(() => {
-          return users.allowMethod(
-            localInstance,
-            'username',
-            'remoteComponent1',
-            'brokeredMethod1'
-          );
-        })
-        .then(() => {
-          return test.delay(3e3);
-        })
-        .then(() => {
-          return testclient.create('username', 'password', proxyPorts[1]);
-        })
-        .then(function (client) {
-          thisClient = client;
-          return testRestCall(
-            thisClient.data.session.token,
-            proxyPorts[1],
-            'remoteComponent1',
-            'brokeredMethod1',
-            null,
-            'MESH_0:remoteComponent1:brokeredMethod1:true'
-          );
-        })
-        .then(done);
+    it('does a rest call', async function () {
+      await clusterStarter.startClusterInternalFirst(true);
+      localInstance = test.servers[0];
+      await test.users.allowMethod(
+        localInstance,
+        'username',
+        'remoteComponent1',
+        'brokeredMethod1'
+      );
+      await test.delay(3e3);
+
+      test.clients.push(
+        (client = await test.client.create('username', 'password', test.proxyPorts[1]))
+      );
+      await testRestCall(
+        client.data.session.token,
+        test.proxyPorts[1],
+        'remoteComponent1',
+        'brokeredMethod1',
+        null,
+        'MESH_0:remoteComponent1:brokeredMethod1:true'
+      );
     });
   });
 
@@ -822,7 +632,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
           api.happner.event.remoteComponent1.on('test/*', () => {
             resolve(client);
           });
-          return testWebCall(api, '/remoteComponent1/testJSON', proxyPorts[0]);
+          return testWebCall(api, '/remoteComponent1/testJSON', test.proxyPorts[0]);
         })
         .then((result) => {
           test.expect(JSON.parse(result.body)).to.eql({
@@ -861,15 +671,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   }
 
-  function stopServer(index) {
-    return servers[index].stop({ reconnect: false }).then(() => {
-      // stopping all at once causes replicator client happn logouts to timeout
-      // because happn logout attempts unsubscribe on server, and all servers
-      // are gone
-      servers.splice(index, 1);
-      return test.delay(200); // ...so pause between stops (long for travis)
-    });
-  }
   function localInstanceConfig(seq, sync, dynamic) {
     var config = baseConfig(seq, sync, true);
     config.authorityDelegationOn = true;
@@ -890,36 +691,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         stopMethod: 'stop',
       },
       brokerComponent: {
-        startMethod: 'start',
-        stopMethod: 'stop',
-      },
-    };
-    return config;
-  }
-
-  function errorInstanceConfigDuplicateBrokered(seq, sync) {
-    var config = baseConfig(seq, sync, true);
-    config.modules = {
-      localComponent: {
-        path: libDir + 'integration-09-local-component',
-      },
-      brokerComponent: {
-        path: libDir + 'integration-09-broker-component',
-      },
-      brokerComponentDuplicate: {
-        path: libDir + 'integration-09-broker-component-1',
-      },
-    };
-    config.components = {
-      localComponent: {
-        startMethod: 'start',
-        stopMethod: 'stop',
-      },
-      brokerComponent: {
-        startMethod: 'start',
-        stopMethod: 'stop',
-      },
-      brokerComponentDuplicate: {
         startMethod: 'start',
         stopMethod: 'stop',
       },
@@ -956,34 +727,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return config;
   }
 
-  async function startInternal(id, clusterMin) {
-    return test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
-  }
-
-  async function startEdge(id, clusterMin, dynamic) {
-    return test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic));
-  }
-
-  async function startClusterEdgeFirstHighAvailable(dynamic) {
-    servers.push(await startEdge(0, 1, dynamic));
-    servers.push((localInstance = await startInternal(1, 2, dynamic)));
-    servers.push(await startInternal(2, 3, dynamic));
-    await users.add(localInstance, 'username', 'password');
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
-  }
-
-  async function startClusterInternalFirst(dynamic) {
-    servers.push((localInstance = await startInternal(0, 1, dynamic)));
-    servers.push(await startEdge(1, 2, dynamic));
-    await users.add(localInstance, 'username', 'password');
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
-  }
-
-  async function startClusterEdgeFirst(dynamic) {
-    servers.push(await startEdge(0, 1, dynamic));
-    servers.push((localInstance = await startInternal(1, 2, dynamic)));
-    await users.add(localInstance, 'username', 'password');
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
+  async function stopServer(server, index) {
+    await server.stop({ reconnect: false });
+    test.servers.splice(index, 1);
   }
 
   function getInjectedElements(meshName) {

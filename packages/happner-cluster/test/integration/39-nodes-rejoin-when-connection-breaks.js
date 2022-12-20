@@ -1,13 +1,11 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const users = require('../_lib/users');
-const testclient = require('../_lib/client');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
 
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  let _AdminClient, testClient, proxyPorts;
+  let _AdminClient, client, proxyPorts;
 
   before('clear mongo collection', (done) => {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
@@ -47,17 +45,17 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   });
 
   before('create test clients', async () => {
-    _AdminClient = await testclient.create('_ADMIN', 'happn', proxyPorts[0]);
-    await users.add(_AdminClient, 'username', 'password');
-    await users.allowMethod(_AdminClient, 'username', 'brokerComponent', 'block');
-    await users.allowMethod(_AdminClient, 'username', 'remoteComponent', 'brokeredMethod1');
-    testClient = await testclient.create('username', 'password', proxyPorts[1]);
+    _AdminClient = await test.client.create('_ADMIN', 'happn', proxyPorts[0]);
+    await test.users.add(_AdminClient, 'username', 'password');
+    await test.users.allowMethod(_AdminClient, 'username', 'brokerComponent', 'block');
+    await test.users.allowMethod(_AdminClient, 'username', 'remoteComponent', 'brokeredMethod1');
+    client = await test.client.create('username', 'password', proxyPorts[1]);
   });
   after('disconnect _ADMIN client', async () => {
     await _AdminClient.disconnect();
-    await testClient.disconnect();
+    await client.disconnect();
     _AdminClient = null;
-    testClient = null;
+    client = null;
   });
 
   after('stop cluster', async () => {
@@ -65,9 +63,9 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   });
 
   it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
-    await testClient.exchange.brokerComponent.block();
+    await client.exchange.brokerComponent.block();
     await test.delay(15000); //wait for component to stop blocking and reconnect to mesh
-    let result = await testClient.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
+    let result = await client.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh
     test.expect(result).to.be('MESH_0:remoteComponent:brokeredMethod1');
   });
 });

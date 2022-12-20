@@ -1,72 +1,29 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const users = require('../_lib/users');
-const testclient = require('../_lib/client');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
-  let servers = [];
-
-  beforeEach('clear mongo collection', function (done) {
-    stopCluster(servers, function (e) {
-      if (e) return done(e);
-      servers = [];
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
-    });
-  });
+  let client;
+  test.hooks.clusterStartedSeperatelyHooks(test);
+  let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
 
   it('starts the cluster broker first, client connects and receives no further schema updates, when we flip-flop internal host', async () => {
+    await clusterStarter.startClusterEdgeFirst();
     let schemaPublicationCount = 0;
-    let edgeInstance = await startEdge(0, 1);
-    let internalInstance = await startInternal(1, 2);
+    let internalInstance = test.servers[1];
     await test.delay(5e3);
-    let proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
-    await users.add(edgeInstance, 'username', 'password');
-    const client = await testclient.create('username', 'password', proxyPorts[0]);
+    test.clients.push(
+      (client = await test.client.create('username', 'password', test.proxyPorts[0]))
+    );
     await client.data.on('/mesh/schema/description', () => {
       schemaPublicationCount++;
     });
     await internalInstance.stop({ reconnect: false });
     await test.delay(5e3);
-    servers.pop(); //chuck the stopped server away
-    await startInternal(1, 2);
+    test.servers.pop(); //chuck the stopped server away
+    await clusterStarter.startInternal(1, 2);
     await test.delay(5e3);
     test.expect(schemaPublicationCount).to.be(0);
   });
-
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, function () {
-      clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', function () {
-        done();
-      });
-    });
-  });
-
-  function startInternal(id, clusterMin) {
-    return new Promise((resolve, reject) => {
-      return test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin))
-        .then(function (instance) {
-          servers.push(instance);
-          resolve(instance);
-        })
-        .catch(reject);
-    });
-  }
-
-  function startEdge(id, clusterMin, dynamic) {
-    return new Promise((resolve, reject) => {
-      return test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic))
-        .then(function (instance) {
-          servers.push(instance);
-          resolve(instance);
-        })
-        .catch(reject);
-    });
-  }
 
   function localInstanceConfig(seq, sync, dynamic) {
     var config = baseConfig(seq, sync, true);

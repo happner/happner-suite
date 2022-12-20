@@ -1,6 +1,5 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   let config = {
@@ -10,7 +9,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     },
   };
   let timing = { startCluster: 'before', stopCluster: 'after' };
-  hooks.standardHooks(config, timing);
+  test.hooks.standardHooks(test, config, timing);
 
   context('exchange', function () {
     it('uses happner-client to mount all $happn components', async function () {
@@ -23,14 +22,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       let results = {};
 
       results[
-        await this.localInstance.exchange.localComponent1.callDependency(
+        await test.localInstance.exchange.localComponent1.callDependency(
           'remoteComponent3',
           'method1'
         )
       ] = 1;
 
       results[
-        await this.localInstance.exchange.localComponent1.callDependency(
+        await test.localInstance.exchange.localComponent1.callDependency(
           'remoteComponent3',
           'method1'
         )
@@ -43,7 +42,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     });
 
     it('overwrites local components that are wrong version', async function () {
-      let result = await this.localInstance.exchange.localComponent1.callDependency(
+      let result = await test.localInstance.exchange.localComponent1.callDependency(
         'remoteComponent4',
         'method1'
       );
@@ -52,7 +51,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
     it('responds with not implemented', async function () {
       try {
-        await this.localInstance.exchange.localComponent1.callDependency(
+        await test.localInstance.exchange.localComponent1.callDependency(
           'remoteComponent0',
           'method1'
         );
@@ -64,7 +63,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   context('events', function () {
     it('can subscribe cluster wide', async function () {
-      let result = await this.localInstance.exchange.localComponent2.listTestEvents();
+      let result = await test.localInstance.exchange.localComponent2.listTestEvents();
       test.expect(result).to.eql({
         '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_2': 1,
         '/_events/DOMAIN_NAME/remoteComponent3/testevent/MESH_1': 1,
@@ -72,7 +71,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     });
 
     it('does not receive events from incompatible component versions', async function () {
-      let result = await this.localInstance.exchange.localComponent2.listTestCompatibleEvents();
+      let result = await test.localInstance.exchange.localComponent2.listTestCompatibleEvents();
       test.expect(result).to.eql({
         '/_events/DOMAIN_NAME/remoteComponent5/testevent/v2/MESH_2': 1,
       });

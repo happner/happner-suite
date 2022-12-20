@@ -11,6 +11,13 @@ module.exports = class TestHelper extends BaseTestHelper {
     this.clearMongoCollection = require('./clear-mongo-collection');
     this.getSeq = require('./helpers/getSeq');
     this.client = require('./client');
+    this.lightClient = require('./client-light');
+
+    this.users = require('./users');
+    this.clusterStarter = require('./cluster-starter.js');
+    this.hooks = require('./hooks.js');
+    this.clients = [];
+    this.servers = [];
   }
   /**
    *
