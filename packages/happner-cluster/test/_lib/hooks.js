@@ -146,11 +146,11 @@ async function startCluster(test, config) {
       return HappnerCluster.create(configFunction(index, index + 1, config.dynamic));
     })
   );
+  await test.delay(2e3);
   test.servers = servers.sort((a, b) => {
     if (a._mesh.config.name < b._mesh.config.name) return -1;
     return 1;
   });
-  await delay(2e3);
   test.proxyPorts = test.servers.map(
     (server) => server._mesh.happn.server.config.services.proxy.port
   );
