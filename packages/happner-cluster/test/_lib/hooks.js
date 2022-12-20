@@ -2,7 +2,7 @@ const clearMongoCollection = require('./clear-mongo-collection');
 const stopCluster = require('./stop-cluster');
 const HappnerCluster = require('../..');
 const users = require('./users');
-const delay = require('await-delay');
+
 module.exports = {
   stopClusterHook,
   clearMongoCollectionHook,
