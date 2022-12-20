@@ -176,7 +176,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       //first test our broker components methods are directly callable
       let result = await client.exchange.brokerComponent.directMethod();
       test.expect(result).to.be('MESH_1:brokerComponent:directMethod');
-      let done;
+      let done,
+        finished = new Promise((res) => (done = res));
       await client.event.remoteComponent.on('/brokered/event', function (data) {
         test.expect(data).to.eql({
           brokered: { event: { data: { from: 'MESH_0' } } },
@@ -185,7 +186,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       });
       result = await client.exchange.remoteComponent.brokeredEventEmitMethod();
       test.expect(result).to.be('MESH_0:remoteComponent:brokeredEventEmitMethod');
-      await new Promise((res) => (done = res));
+      return finished;
     });
   });
 
