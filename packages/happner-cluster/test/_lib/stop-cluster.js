@@ -13,6 +13,5 @@ module.exports = async function (servers, done) {
     }
     await server.stop({ reconnect: false });
   }
-  await delay(3e3);
   if (done) return done();
 };
