@@ -1,34 +1,19 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const users = require('../_lib/users');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  let servers = [],
-    localInstance,
-    proxyPorts;
-
-  beforeEach('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  afterEach('stop cluster', function (done) {
-    stopCluster(servers, function () {
-      servers = [];
-      done();
-    });
-  });
-  after('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
+  let hooksConfig = {
+    cluster: {
+      functions: [remoteInstanceConfig, localInstanceConfig],
+    },
+  };
+  test.hooks.standardHooks(test, hooksConfig);
 
   context('rest', function () {
     it('does a rest call', async function () {
       let axios = test.axios;
-      await startClusterInternalFirst();
       await test.delay(2e3);
-      let port = proxyPorts[1];
+      let port = test.proxyPorts[1];
       let credentials = {
         username: '_ADMIN',
         password: 'ADMIN_PASSWORD',
@@ -49,87 +34,72 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
 
       //Should still have correct description after component leaves
-      await servers.pop().stop({ reconnect: false });
+      await test.servers.pop().stop({ reconnect: false });
       await test.delay(1000);
       description = (await axios.get(`http://127.0.0.1:${port}/rest/describe?happn_token=${token}`))
         .data.data;
       test.expect(description['/remoteComponent/webMethod1']).to.be.ok();
       test.expect(description['/remoteComponent2/webMethod2']).to.be.ok();
     });
-
-    function localInstanceConfig(seq, sync) {
-      var config = baseConfig(seq, sync, true);
-      config.happn.adminPassword = 'ADMIN_PASSWORD';
-      config.authorityDelegationOn = true;
-      let brokerComponentPath = libDir + 'integration-35-broker-component';
-
-      config.modules = {
-        brokerComponent: {
-          path: brokerComponentPath,
-        },
-      };
-      config.components = {
-        brokerComponent: {
-          startMethod: 'start',
-          stopMethod: 'stop',
-        },
-      };
-      return config;
-    }
-
-    function remoteInstanceConfig(seq, sync) {
-      var config = baseConfig(seq, sync, true);
-      config.happn.adminPassword = 'ADMIN_PASSWORD';
-      config.modules = {
-        remoteComponent: {
-          path: libDir + 'integration-35-remote-component',
-        },
-      };
-      config.components = {
-        remoteComponent: {
-          startMethod: 'start',
-          stopMethod: 'stop',
-        },
-      };
-      return config;
-    }
-
-    function remoteInstanceConfig2(seq, sync) {
-      var config = baseConfig(seq, sync, true);
-      config.happn.adminPassword = 'ADMIN_PASSWORD';
-      config.modules = {
-        remoteComponent2: {
-          path: libDir + 'integration-35-remote-component2',
-        },
-      };
-      config.components = {
-        remoteComponent2: {
-          startMethod: 'start',
-          stopMethod: 'stop',
-        },
-      };
-      return config;
-    }
-
-    async function startInternal(id, clusterMin) {
-      const server = await test.HappnerCluster.create(remoteInstanceConfig(id, clusterMin));
-      return server;
-    }
-
-    async function startInternal2(id, clusterMin) {
-      const server = await test.HappnerCluster.create(remoteInstanceConfig2(id, clusterMin));
-      servers.push(server);
-      return server;
-    }
-    async function startEdge(id, clusterMin) {
-      const server = await test.HappnerCluster.create(localInstanceConfig(id, clusterMin));
-      return server;
-    }
-    async function startClusterInternalFirst(dynamic) {
-      servers.push((localInstance = await startInternal(0, 1, dynamic)));
-      servers.push(await startEdge(1, 2, dynamic));
-      await users.add(localInstance, 'username', 'password');
-      proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
-    }
   });
+
+  function localInstanceConfig(seq, sync) {
+    var config = baseConfig(seq, sync, true);
+    config.happn.adminPassword = 'ADMIN_PASSWORD';
+    config.authorityDelegationOn = true;
+    let brokerComponentPath = libDir + 'integration-35-broker-component';
+
+    config.modules = {
+      brokerComponent: {
+        path: brokerComponentPath,
+      },
+    };
+    config.components = {
+      brokerComponent: {
+        startMethod: 'start',
+        stopMethod: 'stop',
+      },
+    };
+    return config;
+  }
+
+  function remoteInstanceConfig(seq, sync) {
+    var config = baseConfig(seq, sync, true);
+    config.happn.adminPassword = 'ADMIN_PASSWORD';
+    config.modules = {
+      remoteComponent: {
+        path: libDir + 'integration-35-remote-component',
+      },
+    };
+    config.components = {
+      remoteComponent: {
+        startMethod: 'start',
+        stopMethod: 'stop',
+      },
+    };
+    return config;
+  }
+
+  function remoteInstanceConfig2(seq, sync) {
+    var config = baseConfig(seq, sync, true);
+    config.happn.adminPassword = 'ADMIN_PASSWORD';
+    config.modules = {
+      remoteComponent2: {
+        path: libDir + 'integration-35-remote-component2',
+      },
+    };
+    config.components = {
+      remoteComponent2: {
+        startMethod: 'start',
+        stopMethod: 'stop',
+      },
+    };
+    return config;
+  }
+
+  async function startInternal2(id, clusterMin) {
+    const server = await test.HappnerCluster.create(remoteInstanceConfig2(id, clusterMin));
+    test.servers.push(server);
+    return server;
+  }
 });

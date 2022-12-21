@@ -1,6 +1,5 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let config = {
@@ -10,10 +9,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       remoteInstance: 1,
     },
   };
-  hooks.standardHooks(config);
+  test.hooks.standardHooks(test, config);
 
   it('gets local and global events where local', async function () {
-    let result = await this.localInstance.exchange.component1.awaitEvents();
+    let result = await test.localInstance.exchange.component1.awaitEvents();
     test.expect(result).to.eql({
       'event/global': { some: 'thing1' },
       'event/local': { some: 'thing2' },
@@ -21,7 +20,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   });
 
   it('gets only global events where remote', async function () {
-    let result = await this.remoteInstance.exchange.component2.awaitEvents();
+    let result = await test.remoteInstance.exchange.component2.awaitEvents();
     test.expect(result).to.eql({
       'event/global': { some: 'thing1' },
     });

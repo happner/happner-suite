@@ -1,8 +1,5 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const users = require('../_lib/users');
-const client = require('../_lib/client');
-const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
   let config = {
@@ -11,15 +8,15 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     },
     clients: [0, 1],
   };
-  let timing = { clearMongo: 'before', startCluster: 'before', stopCluster: 'after' };
-  hooks.standardHooks(config, timing, true);
+  let timing = { all: 'before/after' };
+  test.hooks.standardHooks(test, config, timing, true);
 
   it('handles security sync for methods', async function () {
     let results = await Promise.all([
-      client.callMethod(1, this.clients[0], 'component1', 'method1'),
-      client.callMethod(2, this.clients[0], 'component1', 'method2'),
-      client.callMethod(3, this.clients[1], 'component1', 'method1'),
-      client.callMethod(4, this.clients[1], 'component1', 'method2'),
+      test.client.callMethod(1, test.clients[0], 'component1', 'method1'),
+      test.client.callMethod(2, test.clients[0], 'component1', 'method2'),
+      test.client.callMethod(3, test.clients[1], 'component1', 'method1'),
+      test.client.callMethod(4, test.clients[1], 'component1', 'method2'),
     ]);
     test.expect(results).to.eql([
       {
@@ -52,15 +49,15 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
       },
     ]);
 
-    await users.allowMethod(this.servers[0], 'username', 'component1', 'method1');
+    await test.users.allowMethod(test.servers[0], 'username', 'component1', 'method1');
     // await sync
     await test.delay(300);
 
     results = await Promise.all([
-      client.callMethod(1, this.clients[0], 'component1', 'method1'),
-      client.callMethod(2, this.clients[0], 'component1', 'method2'),
-      client.callMethod(3, this.clients[1], 'component1', 'method1'),
-      client.callMethod(4, this.clients[1], 'component1', 'method2'),
+      test.client.callMethod(1, test.clients[0], 'component1', 'method1'),
+      test.client.callMethod(2, test.clients[0], 'component1', 'method2'),
+      test.client.callMethod(3, test.clients[1], 'component1', 'method1'),
+      test.client.callMethod(4, test.clients[1], 'component1', 'method2'),
     ]);
 
     test.expect(results).to.eql([
@@ -95,17 +92,17 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     ]);
 
     await Promise.all([
-      users.denyMethod(this.servers[0], 'username', 'component1', 'method1'),
-      users.allowMethod(this.servers[0], 'username', 'component1', 'method2'),
+      test.users.denyMethod(test.servers[0], 'username', 'component1', 'method1'),
+      test.users.allowMethod(test.servers[0], 'username', 'component1', 'method2'),
     ]);
     // await sync
     await test.delay(300);
 
     results = await Promise.all([
-      client.callMethod(1, this.clients[0], 'component1', 'method1'),
-      client.callMethod(2, this.clients[0], 'component1', 'method2'),
-      client.callMethod(3, this.clients[1], 'component1', 'method1'),
-      client.callMethod(4, this.clients[1], 'component1', 'method2'),
+      test.client.callMethod(1, test.clients[0], 'component1', 'method1'),
+      test.client.callMethod(2, test.clients[0], 'component1', 'method2'),
+      test.client.callMethod(3, test.clients[1], 'component1', 'method1'),
+      test.client.callMethod(4, test.clients[1], 'component1', 'method2'),
     ]);
 
     test.expect(results).to.eql([
@@ -150,10 +147,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     }
 
     let results = await Promise.all([
-      client.subscribe(1, this.clients[0], 'component1', 'event1', createHandler(1)),
-      client.subscribe(2, this.clients[0], 'component1', 'event2', createHandler(2)),
-      client.subscribe(3, this.clients[1], 'component1', 'event1', createHandler(3)),
-      client.subscribe(4, this.clients[1], 'component1', 'event2', createHandler(4)),
+      test.client.subscribe(1, test.clients[0], 'component1', 'event1', createHandler(1)),
+      test.client.subscribe(2, test.clients[0], 'component1', 'event2', createHandler(2)),
+      test.client.subscribe(3, test.clients[1], 'component1', 'event1', createHandler(3)),
+      test.client.subscribe(4, test.clients[1], 'component1', 'event2', createHandler(4)),
     ]);
     test.expect(results).to.eql([
       { seq: 1, error: 'unauthorized' },
@@ -163,18 +160,18 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     ]);
 
     await Promise.all([
-      users.allowEvent(this.servers[0], 'username', 'component1', 'event1'),
-      users.allowEvent(this.servers[0], 'username', 'component1', 'event2'),
+      test.users.allowEvent(test.servers[0], 'username', 'component1', 'event1'),
+      test.users.allowEvent(test.servers[0], 'username', 'component1', 'event2'),
     ]);
 
     // await sync
     await test.delay(300);
 
     results = await Promise.all([
-      client.subscribe(1, this.clients[0], 'component1', 'event1', createHandler(1)),
-      client.subscribe(2, this.clients[0], 'component1', 'event2', createHandler(2)),
-      client.subscribe(3, this.clients[1], 'component1', 'event1', createHandler(3)),
-      client.subscribe(4, this.clients[1], 'component1', 'event2', createHandler(4)),
+      test.client.subscribe(1, test.clients[0], 'component1', 'event1', createHandler(1)),
+      test.client.subscribe(2, test.clients[0], 'component1', 'event2', createHandler(2)),
+      test.client.subscribe(3, test.clients[1], 'component1', 'event1', createHandler(3)),
+      test.client.subscribe(4, test.clients[1], 'component1', 'event2', createHandler(4)),
     ]);
 
     test.expect(results).to.eql([
@@ -184,7 +181,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
       { seq: 4, result: true },
     ]);
 
-    await this.servers[0].exchange.component1.emitEvents();
+    await test.servers[0].exchange.component1.emitEvents();
 
     // await emit
     await test.delay(200);
@@ -196,13 +193,13 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
       4: 'event2',
     });
 
-    await users.denyEvent(this.servers[0], 'username', 'component1', 'event1');
+    await test.users.denyEvent(test.servers[0], 'username', 'component1', 'event1');
 
     // await sync
     await test.delay(300);
 
     events = {};
-    await this.servers[0].exchange.component1.emitEvents();
+    await test.servers[0].exchange.component1.emitEvents();
 
     // await emit
     await test.delay(200);
@@ -213,10 +210,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     });
 
     results = await Promise.all([
-      client.subscribe(1, this.clients[0], 'component1', 'event1', createHandler(1)),
-      client.subscribe(2, this.clients[0], 'component1', 'event2', createHandler(2)),
-      client.subscribe(3, this.clients[1], 'component1', 'event1', createHandler(3)),
-      client.subscribe(4, this.clients[1], 'component1', 'event2', createHandler(4)),
+      test.client.subscribe(1, test.clients[0], 'component1', 'event1', createHandler(1)),
+      test.client.subscribe(2, test.clients[0], 'component1', 'event2', createHandler(2)),
+      test.client.subscribe(3, test.clients[1], 'component1', 'event1', createHandler(3)),
+      test.client.subscribe(4, test.clients[1], 'component1', 'event2', createHandler(4)),
     ]);
 
     test.expect(results).to.eql([
@@ -248,27 +245,27 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     }
 
     it('handles sync for add user and group and link and add permission and unlink group', async function () {
-      let user = await this.servers[0].exchange.security.upsertUser({
+      let user = await test.servers[0].exchange.security.upsertUser({
         username: 'username1',
         password: 'password',
       });
-      let group = await this.servers[0].exchange.security.upsertGroup({
+      let group = await test.servers[0].exchange.security.upsertGroup({
         name: 'group1',
       });
-      await this.servers[0].exchange.security.linkGroup(group, user);
+      await test.servers[0].exchange.security.linkGroup(group, user);
 
-      await this.servers[0].exchange.security.addGroupPermissions('group1', {
+      await test.servers[0].exchange.security.addGroupPermissions('group1', {
         methods: {
           '/DOMAIN_NAME/component1/method1': { authorized: true },
         },
       });
       await test.delay(2000);
 
-      await performAction(this.proxyPorts[0], 'username1', 'component1', 'method1');
-      await this.servers[0].exchange.security.unlinkGroup(group, user);
+      await performAction(test.proxyPorts[0], 'username1', 'component1', 'method1');
+      await test.servers[0].exchange.security.unlinkGroup(group, user);
       await test.delay(400);
       try {
-        await performAction(this.proxyPorts[1], 'username1', 'component1', 'method1');
+        await performAction(test.proxyPorts[1], 'username1', 'component1', 'method1');
         throw new Error('missing AccessDeniedError');
       } catch (e) {
         test.expect(e.message).to.be('unauthorized');
@@ -277,27 +274,27 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     });
 
     it('handles sync for delete group', async function () {
-      let user = await this.servers[0].exchange.security.upsertUser({
+      let user = await test.servers[0].exchange.security.upsertUser({
         username: 'username2',
         password: 'password',
       });
-      let group = await this.servers[0].exchange.security.upsertGroup({
+      let group = await test.servers[0].exchange.security.upsertGroup({
         name: 'group2',
       });
-      await this.servers[0].exchange.security.linkGroup(group, user);
-      await this.servers[0].exchange.security.addGroupPermissions('group2', {
+      await test.servers[0].exchange.security.linkGroup(group, user);
+      await test.servers[0].exchange.security.addGroupPermissions('group2', {
         methods: {
           '/DOMAIN_NAME/component1/method1': { authorized: true },
         },
       });
       await test.delay(400);
 
-      await performAction(this.proxyPorts[1], 'username2', 'component1', 'method1');
-      await this.servers[0].exchange.security.deleteGroup(group);
+      await performAction(test.proxyPorts[1], 'username2', 'component1', 'method1');
+      await test.servers[0].exchange.security.deleteGroup(group);
       await test.delay(400);
 
       try {
-        await performAction(this.proxyPorts[1], 'username2', 'component1', 'method1');
+        await performAction(test.proxyPorts[1], 'username2', 'component1', 'method1');
         throw new Error('missing AccessDeniedError 1');
       } catch (e) {
         test.expect(e.message).to.be('unauthorized');
@@ -306,27 +303,27 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     });
 
     it('handles sync for delete user', async function () {
-      let user = await this.servers[0].exchange.security.upsertUser({
+      let user = await test.servers[0].exchange.security.upsertUser({
         username: 'username3',
         password: 'password',
       });
-      let group = await this.servers[0].exchange.security.upsertGroup({
+      let group = await test.servers[0].exchange.security.upsertGroup({
         name: 'group3',
       });
-      await this.servers[0].exchange.security.linkGroup(group, user);
-      await this.servers[0].exchange.security.addGroupPermissions('group3', {
+      await test.servers[0].exchange.security.linkGroup(group, user);
+      await test.servers[0].exchange.security.addGroupPermissions('group3', {
         methods: {
           '/DOMAIN_NAME/component1/method1': { authorized: true },
         },
       });
       await test.delay(400);
 
-      await performAction(this.proxyPorts[1], 'username3', 'component1', 'method1');
-      await this.servers[0].exchange.security.deleteUser(user);
+      await performAction(test.proxyPorts[1], 'username3', 'component1', 'method1');
+      await test.servers[0].exchange.security.deleteUser(user);
       await test.delay(400);
 
       try {
-        await performAction(this.proxyPorts[1], 'username3', 'component1', 'method1');
+        await performAction(test.proxyPorts[1], 'username3', 'component1', 'method1');
         throw new Error('missing AccessDeniedError');
       } catch (e) {
         test.expect(e.message).to.be('Invalid credentials');

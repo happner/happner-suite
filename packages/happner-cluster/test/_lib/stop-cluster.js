@@ -1,4 +1,3 @@
-const delay = require('await-delay');
 module.exports = async function (servers, done) {
   for (let server of servers) {
     //The following is done to  avoid having to wait between tests and/or having expired cluster members details remaining in DB
@@ -12,7 +11,6 @@ module.exports = async function (servers, done) {
       // console.log(e);
     }
     await server.stop({ reconnect: false });
-    await delay(300);
   }
   if (done) return done();
 };

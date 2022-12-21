@@ -1,6 +1,5 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const hooks = require('../_lib/helpers/hooks');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
   let config = {
@@ -9,11 +8,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       localInstance: 0,
     },
   };
-  hooks.standardHooks(config);
+  test.hooks.standardHooks(test, config);
 
   context('_createElement', function () {
     it('does not overwrite components from cluster', async function () {
-      let componentInstance = this.localInstance._mesh.elements['component'].component.instance;
+      let componentInstance = test.localInstance._mesh.elements['component'].component.instance;
       let exchange = componentInstance.exchange;
 
       // both dependencies are from cluster
@@ -26,7 +25,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         __custom: true,
       });
 
-      await this.localInstance._createElement({
+      await test.localInstance._createElement({
         module: {
           name: 'dependency2',
           config: {
@@ -53,7 +52,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   context('_destroyElement', function () {
     it('does not remove components from cluster', async function () {
-      let componentInstance = this.localInstance._mesh.elements['component'].component.instance;
+      let componentInstance = test.localInstance._mesh.elements['component'].component.instance;
       let exchange = componentInstance.exchange;
 
       // both dependencies are from cluster
@@ -66,7 +65,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         __custom: true,
       });
 
-      await this.localInstance._destroyElement('dependency1');
+      await test.localInstance._destroyElement('dependency1');
 
       // both dependencies are STILL from cluster (not removed)
       test.expect(exchange.dependency1).to.eql({

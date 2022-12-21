@@ -1,27 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const testclient = require('../_lib/client');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const { fork } = require('child_process');
 
 require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
-  let servers = [];
-
-  beforeEach('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, function () {
-      servers = [];
-      done();
-    });
-  });
-  after('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
+  test.hooks.clusterStartedSeperatelyHooks(test);
 
   it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
     let client;
@@ -31,9 +13,9 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     child.on('message', (msg) => {
       if (msg === 'kill') child.kill('SIGKILL');
     });
-    await test.delay(7000);
-    let proxyPort = servers[0]._mesh.happn.server.config.services.proxy.port;
-    client = await testclient.create('username', 'password', proxyPort);
+    await test.delay(5e3);
+    let proxyPort = test.servers[0]._mesh.happn.server.config.services.proxy.port;
+    test.clients.push((client = await test.client.create('username', 'password', proxyPort)));
     let result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be('MESH_1:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
@@ -43,9 +25,10 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
       throw new Error("shouldn't happen");
     } catch (e) {
       test.expect(e.message).to.be('Request timed out');
+      child.kill('SIGKILL');
     }
     child = await fork(libDir + 'test-25-sub-process.js', ['2']);
-    await test.delay(8000);
+    await test.delay(5e3);
     result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be('MESH_2:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
@@ -73,7 +56,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
 
   async function startEdge(id, clusterMin, dynamic) {
     const server = await test.HappnerCluster.create(localInstanceConfig(id, clusterMin, dynamic));
-    servers.push(server);
+    test.servers.push(server);
     return server;
   }
 });

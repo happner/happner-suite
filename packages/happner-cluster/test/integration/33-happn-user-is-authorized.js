@@ -1,59 +1,22 @@
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const users = require('../_lib/user-permissions');
-const client = require('../_lib/client');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
-  let servers, testClient, savedUser, savedGroup, proxyPorts;
+  let testClient, savedUser, savedGroup;
 
-  function serverConfig(seq, minPeers) {
-    var config = baseConfig(seq, minPeers, true);
-    config.modules = {
-      component: {
-        instance: {
-          isCombinationAuthorized: async function ($happn, $origin, combination, username) {
-            return await $happn.isAuthorized(username || $origin.username, combination);
-          },
-          method: async function ($happn, data) {
-            $happn.emit('method', { data });
-          },
-        },
-      },
-    };
-    config.components = {
-      data: {},
-      component: {},
-    };
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 500, // 2 per second
-        meshName: config.name,
-      },
-    };
-    return config;
-  }
+  let hooksConfig = {
+    cluster: {
+      functions: [serverConfig, serverConfig],
+    },
+  };
+  let timing = { all: 'before/after' };
+  test.hooks.standardHooks(test, hooksConfig, timing);
 
-  before('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  before(
-    'start cluster and create user, group and lookup table',
-    startClusterAndCreateSecurityResources
-  );
-
+  before('Create user, group and lookup table', createSecurityResources);
   before('start client', async () => {
-    testClient = await client.create('lookupUser', 'password', proxyPorts[1]); //Second server
-  });
-
-  after('stop client', async () => {
-    if (testClient) await testClient.disconnect();
-  });
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
+    test.clients.push(
+      (testClient = await test.client.create('lookupUser', 'password', test.proxyPorts[1]))
+    ); //Second server
   });
 
   it('can fetch data if lookup tables and permissions are configured correctly (Lookup table and permission upserted on server[0], client on server[1]', async () => {
@@ -80,7 +43,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       )
       .to.be(true);
 
-    await servers[0].exchange.security.deleteLookupTable('STANDARD_ABC');
+    await test.servers[0].exchange.security.deleteLookupTable('STANDARD_ABC');
     await test.delay(2000);
 
     test
@@ -113,11 +76,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       });
   });
 
-  async function startClusterAndCreateSecurityResources() {
-    servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(1, 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(2, 2)));
-    savedUser = await users.add(servers[0], 'lookupUser', 'password', null, {
+  async function createSecurityResources() {
+    savedUser = await users.add(test.servers[0], 'lookupUser', 'password', null, {
       company: 'COMPANY_ABC',
       oem: 'OEM_ABC',
     });
@@ -136,7 +96,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         },
       },
     };
-    savedGroup = await servers[0].exchange.security.addGroup(testGroup);
+    savedGroup = await test.servers[0].exchange.security.addGroup(testGroup);
     let testTable = {
       name: 'STANDARD_ABC',
       paths: [
@@ -144,20 +104,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         'device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2',
       ],
     };
-    await servers[0].exchange.security.upsertLookupTable(testTable);
-    await servers[0].exchange.security.upsertLookupPermission('LOOKUP_TABLES_GRP', {
+    await test.servers[0].exchange.security.upsertLookupTable(testTable);
+    await test.servers[0].exchange.security.upsertLookupPermission('LOOKUP_TABLES_GRP', {
       regex: '^/_data/historianStore/(.*)',
       actions: ['get'],
       table: 'STANDARD_ABC',
       path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}',
     });
-    await servers[0].exchange.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_1', {
+    await test.servers[0].exchange.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_1', {
       test: 'data',
     });
 
-    await servers[0].exchange.security.linkGroup(savedGroup, savedUser);
-    await test.delay(4000);
-    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
+    await test.servers[0].exchange.security.linkGroup(savedGroup, savedUser);
   }
 
   async function trySomething(methodToTry) {
@@ -167,5 +125,32 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     } catch (e) {
       return e.message;
     }
+  }
+
+  function serverConfig(seq, minPeers) {
+    var config = baseConfig(seq, minPeers, true);
+    config.modules = {
+      component: {
+        instance: {
+          isCombinationAuthorized: async function ($happn, $origin, combination, username) {
+            return await $happn.isAuthorized(username || $origin.username, combination);
+          },
+          method: async function ($happn, data) {
+            $happn.emit('method', { data });
+          },
+        },
+      },
+    };
+    config.components = {
+      data: {},
+      component: {},
+    };
+    config.happn.services.replicator = {
+      config: {
+        securityChangesetReplicateInterval: 500, // 2 per second
+        meshName: config.name,
+      },
+    };
+    return config;
   }
 });
