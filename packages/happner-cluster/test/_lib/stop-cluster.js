@@ -1,4 +1,3 @@
-const delay = require('await-delay');
 module.exports = async function (servers, done) {
   for (let server of servers) {
     //The following is done to  avoid having to wait between tests and/or having expired cluster members details remaining in DB
