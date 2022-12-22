@@ -25,4 +25,6 @@ coverage-web
 report.*
 .vscode
 tmp
+corrupted-eof-test
+temp_corrupted-eof-test
 
