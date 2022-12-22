@@ -50,6 +50,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.login = util.maybePromisify(this.login);
     this.matchPassword = util.maybePromisify(this.matchPassword);
     this.verifyAuthenticationDigest = util.maybePromisify(this.verifyAuthenticationDigest);
+    this.revokeToken = util.maybePromisify(this.revokeToken);
   }
 
   get sessionManagementActive() {

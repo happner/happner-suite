@@ -104,6 +104,12 @@ module.exports = class AuthProvider {
       return this.invalidCredentials('Invalid credentials: invalid session token');
     }
 
+    if (previousSession.ttl > 0) {
+      if (Date.now() - previousSession.timestamp > previousSession.ttl) {
+        return this.invalidCredentials('Invalid credentials: token timed out');
+      }
+    }
+
     let errorMessage;
     if (previousSession && previousSession.type != null && this.#config.lockTokenToLoginType) {
       if (previousSession.type !== credentials.type) {
