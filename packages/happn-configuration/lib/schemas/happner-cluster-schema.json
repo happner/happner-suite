@@ -16,7 +16,7 @@
           "type": "number"
         },
         "cluster": {
-          "$ref": "#/definitions/Cluster"
+          "$ref": "cluster-schema.json"
         },
         "deferListen": {
           "type": "boolean"
@@ -40,67 +40,37 @@
           "$ref": "plugins-schema.json"
         },
         "happn": {
-          "$ref": "#/definitions/Happn"
+          "$ref": "happn-schema.json"
         },
         "components": {
-          "$ref": "#/definitions/Components"
+          "$ref": "components-schema.json"
         },
         "endpoints": {
-          "$ref": "#/definitions/Endpoints"
+          "$ref": "endpoints-schema.json"
         },
         "modules": {
-          "$ref": "#/definitions/Modules"
+          "$ref": "modules-schema.json"
         },
         "health": {
-          "$ref": "#/definitions/Health"
+          "$ref": "health-schema.json"
         },
         "membership": {
-          "$ref": "#/definitions/Membership"
+          "$ref": "membership-schema.json"
         },
         "orchestrator": {
-          "$ref": "#/definitions/Orchestrator"
+          "$ref": "orchestrator-schema.json"
         },
         "proxy": {
-          "$ref": "#/definitions/Proxy"
+          "$ref": "proxy-schema.json"
         },
         "replicator": {
-          "$ref": "#/definitions/Replicator"
+          "$ref": "replicator-schema.json"
         }
       },
       "required": [
         "happn"
       ],
       "title": "HappnerClusterSchema"
-    },
-    "Cluster": {
-      "$ref": "cluster-schema.json"
-    },
-    "Happn": {
-      "$ref": "happn-schema.json"
-    },
-    "Components": {
-      "$ref": "components-schema.json"
-    },
-    "Endpoints": {
-      "$ref": "endpoints-schema.json"
-    },
-    "Modules": {
-      "$ref": "modules-schema.json"
-    },
-    "Health": {
-      "$ref": "health-schema.json"
-    },
-    "Membership": {
-      "$ref": "membership-schema.json"
-    },
-    "Orchestrator": {
-      "$ref": "orchestrator-schema.json"
-    },
-    "Proxy": {
-      "$ref": "proxy-schema.json"
-    },
-    "Replicator": {
-      "$ref": "replicator-schema.json"
     }
   }
 }

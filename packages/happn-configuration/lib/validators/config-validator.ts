@@ -34,7 +34,6 @@ const modulesSchema = require('../schemas/sub-schemas/modules-schema.json');
 const middlewareSchema = require('../schemas/sub-schemas/middleware-schema.json');
 const pluginsSchema = require('../schemas/sub-schemas/plugins-schema.json');
 const clusterSchema = require('../schemas/sub-schemas/cluster-schema.json');
-import BuilderType from '../constants/builder-constants';
 
 import { FieldTypeValidator } from './field-type-validator';
 

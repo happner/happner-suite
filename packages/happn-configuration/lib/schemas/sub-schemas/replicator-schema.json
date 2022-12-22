@@ -21,6 +21,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "meshName": {
+          "type": "string"
+        },
         "secure": {
           "type": "boolean"
         },

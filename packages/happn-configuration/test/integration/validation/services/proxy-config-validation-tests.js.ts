@@ -27,16 +27,6 @@ describe('proxy configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates proxy config with invalid allowSelfSignedCerts', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.allowSelfSignedCerts = 'invalid-type';
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be boolean');
-  // });
-
   /*
   certPath
    */
@@ -50,38 +40,18 @@ describe('proxy configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates proxy config with invalid certPath', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.certPath = 12123213;
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
-
   /*
   host
    */
 
-  it('invalidates proxy config with missing host', () => {
+  it('validates proxy config with missing host', () => {
     const proxyConfig = createValidProxyConfig();
     delete proxyConfig.config.host;
 
     const result = validator.validateProxyConfig(proxyConfig);
 
-    expect(result.valid).to.equal(false);
+    expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates proxy config with invalid host', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.host = 1212321;
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
 
   /*
   keyPath
@@ -96,16 +66,6 @@ describe('proxy configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates proxy config with invalid keyPath', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.keyPath = 1212321;
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
-
   /*
   port
    */
@@ -119,16 +79,6 @@ describe('proxy configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates proxy config with invalid port', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.port = 'invalid-type';
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
-
   /*
   timeout
    */
@@ -141,16 +91,6 @@ describe('proxy configuration validation tests', function () {
 
     expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates proxy config with invalid timeout', () => {
-  //   const proxyConfig = createValidProxyConfig();
-  //   proxyConfig.config.timeout = 'invalid-type';
-  //
-  //   const result = validator.validateProxyConfig(proxyConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
 });
 
 function createValidProxyConfig() {

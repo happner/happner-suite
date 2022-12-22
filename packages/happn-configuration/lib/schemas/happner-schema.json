@@ -10,14 +10,23 @@
         }
       },
       "properties": {
+        "adminPassword": {
+          "type": "string"
+        },
         "authorityDelegationOn": {
           "type": "boolean"
         },
+        "boundExchangeCacheSize": {
+          "type": "number"
+        },
+        "cluster": {
+          "$ref": "cluster-schema.json"
+        },
         "components": {
-          "$ref": "#/definitions/Components"
+          "$ref": "components-schema.json"
         },
         "dataLayer": {
-          "$ref": "#/definitions/DataLayer"
+          "$ref": "data-schema.json"
         },
         "deferListen": {
           "type": "boolean"
@@ -26,22 +35,25 @@
           "type": "string"
         },
         "endpoints": {
-          "$ref": "#/definitions/Endpoints"
+          "$ref": "endpoints-schema.json"
         },
         "happn": {
-          "$ref": "#/definitions/Happn"
+          "$ref": "happn-schema.json"
+        },
+        "ignoreDependenciesOnStartup": {
+          "type": "boolean"
         },
         "listenFirst": {
           "type": "boolean"
         },
         "modules": {
-          "$ref": "#/definitions/Modules"
+          "$ref": "modules-schema.json"
         },
         "name": {
           "type": "string"
         },
         "plugins": {
-          "$ref": "#/definitions/Plugins"
+          "$ref": "plugins-schema.json"
         },
         "port": {
           "type": "number"
@@ -66,24 +78,6 @@
         "happn"
       ],
       "title": "HappnerSchema"
-    },
-    "Happn": {
-      "$ref": "happn-schema.json"
-    },
-    "Components": {
-      "$ref": "components-schema.json"
-    },
-    "DataLayer": {
-      "$ref": "data-lazy-schema.json"
-    },
-    "Endpoints": {
-      "$ref": "endpoints-schema.json"
-    },
-    "Modules": {
-      "$ref": "modules-schema.json"
-    },
-    "Plugins": {
-      "$ref": "plugins-schema.json"
     },
     "Web": {
       "type": "object",

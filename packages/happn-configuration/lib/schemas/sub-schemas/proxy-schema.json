@@ -47,7 +47,6 @@
         }
       },
       "required": [
-        "host"
       ],
       "title": "ProxyConfig"
     }

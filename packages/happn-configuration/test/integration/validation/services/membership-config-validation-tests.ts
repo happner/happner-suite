@@ -18,22 +18,13 @@ describe('membership configuration validation tests', function () {
   clusterName
    */
 
-  it('invalidates membership config with missing clusterName', () => {
+  it('validates membership config with missing clusterName', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.clusterName;
     const result = validator.validateMembershipConfig(membershipConfig);
 
-    expect(result.valid).to.equal(false);
+    expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid clusterName', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.clusterName = 7897438247;
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
 
   /*
   disseminationFactor
@@ -47,36 +38,17 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid disseminationFactor', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.disseminationFactor = 'invalid-factor';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be number');
-  // });
-
   /*
   host
    */
 
-  it('invalidates membership config with missing host', () => {
+  it('validates membership config with missing host', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.host;
     const result = validator.validateMembershipConfig(membershipConfig);
 
-    expect(result.valid).to.equal(false);
-    expect(result.errors[0].message).to.equal("must have required property 'host'");
+    expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid host', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.host = 2893129837;
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
 
   /*
   joinType
@@ -90,15 +62,6 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid joinType', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.joinType = 3284324;
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
-
   /*
   joinTimeout
    */
@@ -111,36 +74,17 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid joinTimeout', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.joinTimeout = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
-
   /*
   hosts
    */
 
-  it('invalidates membership config with missing hosts', () => {
+  it('validates membership config with missing hosts', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.hosts;
     const result = validator.validateMembershipConfig(membershipConfig);
 
-    expect(result.valid).to.equal(false);
-    expect(result.errors[0].message).to.equal("must have required property 'hosts'");
+    expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid hosts', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.hosts[0] = 2893129837;
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be string');
-  // });
 
   /*
   pingInterval
@@ -154,15 +98,6 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid pingInterval', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.pingInterval = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
-
   /*
   pingTimeout
    */
@@ -174,15 +109,6 @@ describe('membership configuration validation tests', function () {
 
     expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid pingTimeout', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.pingTimeout = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
 
   /*
   pingReqTimeout
@@ -196,15 +122,6 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid pingReqTimeout', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.pingReqTimeout = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
-
   /*
   pingReqGroupSize
    */
@@ -217,36 +134,17 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid pingReqGroupSize', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.pingReqGroupSize = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
-
   /*
   port
    */
 
-  it('invalidates membership config with missing port', () => {
+  it('validates membership config with missing port', () => {
     const membershipConfig = createValidMembershipConfig();
     delete membershipConfig.config.port;
     const result = validator.validateMembershipConfig(membershipConfig);
 
-    expect(result.valid).to.equal(false);
-    expect(result.errors[0].message).to.equal("must have required property 'port'");
+    expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid port', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.port = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be integer');
-  // });
 
   /*
  randomWait
@@ -260,15 +158,6 @@ describe('membership configuration validation tests', function () {
     expect(result.valid).to.equal(true);
   });
 
-  // it('invalidates membership config with invalid randomWait', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.randomWait = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be number');
-  // });
-
   /*
  seed - TODO: is this required?
   */
@@ -280,15 +169,6 @@ describe('membership configuration validation tests', function () {
 
     expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid seed', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.seed = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be boolean');
-  // });
 
   /*
  udp.maxDgramSize - TODO: is this required?
@@ -309,15 +189,6 @@ describe('membership configuration validation tests', function () {
 
     expect(result.valid).to.equal(true);
   });
-
-  // it('invalidates membership config with invalid udp.maxDgramSize', () => {
-  //   const membershipConfig = createValidMembershipConfig();
-  //   membershipConfig.config.udp.maxDgramSize = 'invalid-type';
-  //   const result = validator.validateMembershipConfig(membershipConfig);
-  //
-  //   expect(result.valid).to.equal(false);
-  //   expect(result.errors[0].message).to.equal('must be number');
-  // });
 });
 
 function createValidMembershipConfig() {

@@ -76,10 +76,6 @@
         }
       },
       "required": [
-        "clusterName",
-        "port",
-        "host",
-        "hosts"
       ],
       "title": "MembershipConfig"
     },

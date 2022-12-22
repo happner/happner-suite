@@ -17,6 +17,7 @@
       "title": "HappnClusterSchema"
     },
     "HappnCluster": {
+      "type": "object",
       "properties": {
         "services": {
           "type": "object",
