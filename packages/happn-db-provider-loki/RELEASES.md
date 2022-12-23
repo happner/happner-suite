@@ -41,3 +41,12 @@
 1.1.1 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+1.1.2 2022-12-22
+-----------------
+  - fix: recovery only loads temp if fails in snapshot import
+  - fix: we release all events when reader hits a failure
+  - fix: we ignore empty strings when re-loading temp files
+
+
+  

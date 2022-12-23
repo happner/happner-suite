@@ -431,3 +431,7 @@
 12.3.4 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+12.3.5  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
