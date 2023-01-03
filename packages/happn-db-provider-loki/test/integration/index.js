@@ -11,6 +11,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
     trace: test.sinon.stub(),
+    debug: test.sinon.stub(),
   };
 
   context('Data operations', () => {
@@ -97,21 +98,34 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
         `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
         { force: true }
       );
+      test.fs.copySync(
+        `${testFixturesDir}${test.commons.path.sep}corrupted-eof`,
+        `${testFixturesDir}${test.commons.path.sep}corrupted-eof-test`,
+        { force: true }
+      );
     });
     it('can restore from good data', async () => {
       await testRestore({}, 'good-data');
     });
 
+    it('can restore from corrupt eof', async () => {
+      await testRestoreWithOps({}, 'corrupted-eof-test', 2);
+    });
+
     it('can restore from bad data if temp file is good', async () => {
-      await testRestore({}, 'corrupted-data');
+      await testRestore({}, 'corrupted-data', 2);
+    });
+
+    it('cannot restore from bad data if temp file is bad as well', async () => {
+      await testRestore({}, 'bad-snapshot', 'Unexpected end of JSON input');
     });
 
     it('can restore from good data with operations', async () => {
-      await testRestoreWithOps({}, 'good-data-with-ops');
+      await testRestoreWithOps({}, 'good-data-with-ops', 4);
     });
 
     it('can restore from good data wit bad ops if temp file is good', async () => {
-      await testRestoreWithOps({}, 'good-data-corrupt-ops');
+      await testRestoreWithOps({}, 'good-data-corrupt-ops', 2);
     });
     after('deletes files', async () => {
       await test.delay(1000);
@@ -202,15 +216,17 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   }
 
   async function testRollOverThreshold(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
-    const modifiedBy = 'test@test.com';
-    lokiProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
+    const lokiProvider = new LokiDataProvider(
+      {
+        ...{
+          filename: testFileName,
+          snapshotRollOverThreshold: 5,
+        },
+        ...settings,
       },
-      ...settings,
-    };
+      mockLogger
+    );
+    const modifiedBy = 'test@test.com';
     await lokiProvider.initialize();
     await lokiProvider.insert({
       path: 'test/path/1',
@@ -302,7 +318,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     test.expect(lokiProvider.operationCount).to.be(0);
   }
 
-  async function testRestore(settings, fileName) {
+  async function testRestore(settings, fileName, expectedError) {
     const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
@@ -311,13 +327,20 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
       },
       ...settings,
     };
-    await lokiProvider.initialize();
+    try {
+      await lokiProvider.initialize();
+    } catch (e) {
+      if (e.message === expectedError) {
+        return;
+      }
+      throw e;
+    }
     const found = await lokiProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
     test.expect(lokiProvider.operationCount).to.be(0);
   }
 
-  async function testRestoreWithOps(settings, fileName) {
+  async function testRestoreWithOps(settings, fileName, assertion) {
     const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
@@ -329,6 +352,6 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     await lokiProvider.initialize();
     const found = await lokiProvider.find('test/increment');
 
-    test.expect(found[0].data.testGauge.value).to.be(4);
+    test.expect(found[0].data.testGauge.value).to.be(assertion);
   }
 });

@@ -1,13 +1,10 @@
-2.4.0 2022-12-08
+2.4.0 2023-01-03
 -----------------
-- feat: Summon productionization
-- happn-db-provider-mongo: 1.1.4
-- happn-3: 13.8.0
-- happn-cluster: 12.2.5
-- happner-client: 12.5.5
-- happner-2: 12.5.4
-- happner-cluster: 12.3.5
-- happn-db-provider-sqlite: 1.0.1
+  - feat: auth provider enhancements
+
+2.3.1 2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
 
 2.3.0 2022-11-26
 -----------------

@@ -205,15 +205,17 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   }
 
   async function testRollOverThreshold(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
-    const modifiedBy = 'test@test.com';
-    lokiProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
+    const lokiProvider = new LokiDataProvider(
+      {
+        ...{
+          filename: testFileName,
+          snapshotRollOverThreshold: 5,
+        },
+        ...settings,
       },
-      ...settings,
-    };
+      mockLogger
+    );
+    const modifiedBy = 'test@test.com';
     await lokiProvider.initialize();
     await lokiProvider.insert({
       path: 'test/path/1',
@@ -259,14 +261,16 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   }
 
   async function testPersistence(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
-    lokiProvider.settings = {
-      ...{
-        filename: testFileName,
-        snapshotRollOverThreshold: 5,
+    const lokiProvider = new LokiDataProvider(
+      {
+        ...{
+          filename: testFileName,
+          snapshotRollOverThreshold: 5,
+        },
+        ...settings,
       },
-      ...settings,
-    };
+      mockLogger
+    );
     await lokiProvider.initialize();
     await lokiProvider.insert({ path: 'test/path/1', data: { test: 'test' } });
     await lokiProvider.insert({ path: 'test/path/2', data: { test: 'test' } });

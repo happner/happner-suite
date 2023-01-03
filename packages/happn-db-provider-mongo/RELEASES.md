@@ -93,7 +93,11 @@
 -----------------
   - feat: Sqlite DB provider
 
-1.1.4 2022-12-08
+1.1.4  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+1.1.5 2023-01-03
 -----------------
   - feat: Summon productionization
 
