@@ -75,6 +75,10 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
         fsync: true,
       });
     });
+
+    it('can find with criteria', async () => {
+      await testCriteria();
+    });
   });
   context('Reconstruction', () => {
     before('creates test files', () => {
@@ -353,5 +357,87 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     const found = await lokiProvider.find('test/increment');
 
     test.expect(found[0].data.testGauge.value).to.be(assertion);
+  }
+
+  async function testCriteria() {
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
+    await lokiProvider.initialize();
+    await lokiProvider.insert({
+      path: 'test/path/1',
+      data: { test: { data: 1, other: 'blah' } },
+    });
+    await lokiProvider.insert({
+      path: 'test/path/2',
+      data: { test: { data: 2, other: 'plah' } },
+    });
+    await lokiProvider.insert({
+      path: 'test/path/3',
+      data: { test: { data: 3, other: 'lpah' } },
+    });
+    await lokiProvider.insert({
+      path: 'test/path/4',
+      data: { test: { data: 4, other: 'hello' } },
+    });
+    await lokiProvider.insert({
+      path: 'test/path/5',
+      data: { test: { data: 5, other: 'world' } },
+    });
+
+    const found1 = await lokiProvider.find('test/path/*', {
+      criteria: {
+        'data.test.data': {
+          $eq: 1,
+        },
+      },
+    });
+
+    test.chai.expect(found1).to.have.lengthOf(1);
+    test.chai.expect(found1).to.deep.nested.property('0.path').which.equals('test/path/1');
+
+    const found2 = await lokiProvider.find('test/path/*', {
+      criteria: {
+        'data.test.data': {
+          $eq: 2,
+        },
+      },
+    });
+
+    test.chai.expect(found2).to.have.lengthOf(1);
+    test.chai.expect(found2).to.deep.nested.property('0.path').which.equals('test/path/2');
+
+    const found3 = await lokiProvider.find('test/path/*', {
+      criteria: {
+        'data.test.data': {
+          $eq: 3,
+        },
+      },
+    });
+
+    test.chai.expect(found3).to.have.lengthOf(1);
+    test.chai.expect(found3).to.deep.nested.property('0.path').which.equals('test/path/3');
+
+    const found4 = await lokiProvider.find('test/path/*', {
+      criteria: {
+        'data.test.data': {
+          $in: [1, 3],
+        },
+      },
+    });
+
+    test.chai.expect(found4).to.have.lengthOf(2);
+    test.chai.expect(found4).to.deep.nested.property('0.path').which.equals('test/path/1');
+    test.chai.expect(found4).to.deep.nested.property('1.path').which.equals('test/path/3');
+
+    const found5 = await lokiProvider.find('test/path/*', {
+      criteria: {
+        'data.test.other': {
+          $like: '%la%',
+        },
+      },
+    });
+
+    test.chai.expect(found5).to.have.lengthOf(2);
+    test.chai.expect(found5).to.deep.nested.property('0.path').which.equals('test/path/1');
+    test.chai.expect(found5).to.deep.nested.property('1.path').which.equals('test/path/2');
   }
 });

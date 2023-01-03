@@ -9,3 +9,4 @@
 1.0.2 2023-01-03
 -----------------
   - feat: Summon productionization
+  - fix: nested ands and ors
