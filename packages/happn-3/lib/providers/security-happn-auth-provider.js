@@ -1,5 +1,5 @@
-let AuthProvider = require('./base-provider');
-module.exports = class HappnAuthProvider extends AuthProvider {
+let SecurityBaseAuthProvider = require('./security-base-auth-provider');
+module.exports = class HappnAuthProvider extends SecurityBaseAuthProvider {
   constructor(securityFacade, config) {
     // sets securityFacade, config on super, becomes available via getters as this.securityFacade, this.config
     super(securityFacade, config);

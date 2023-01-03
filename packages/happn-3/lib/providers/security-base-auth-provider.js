@@ -1,4 +1,5 @@
-module.exports = class AuthProvider {
+const SecurityAuthProviderFactory = require('../factories/security-auth-provider-factory');
+module.exports = class SecurityBaseAuthProvider {
   #securityFacade;
   #config;
   #locks;
@@ -34,19 +35,28 @@ module.exports = class AuthProvider {
     return this.#locks;
   }
 
-  static create(providerPath, securityFacade, config) {
-    let providerFactory = AuthProvider.#resolveProvider(providerPath);
-    return providerFactory.create(securityFacade, config);
-  }
-
-  static #resolveProvider(providerPath) {
+  static create(providerPathOrInstance, securityFacade, config) {
+    // we attach an instance directly to the config
+    if (providerPathOrInstance instanceof SecurityBaseAuthProvider) {
+      return providerPathOrInstance;
+    }
+    // we attach a factory directly to the config
+    if (providerPathOrInstance instanceof SecurityAuthProviderFactory) {
+      return providerPathOrInstance.create(securityFacade, config);
+    }
+    // we are using a filepath
     let providerClass;
     try {
-      providerClass = require(providerPath);
+      providerClass = require(providerPathOrInstance);
     } catch (e) {
-      throw new Error(`failed to resolve auth provider on path: ${providerPath}`);
+      throw new Error(`failed to resolve auth provider on path: ${providerPathOrInstance}`);
     }
-    return providerClass(AuthProvider);
+    const providerInst = new providerClass(securityFacade, config);
+    // we are using a filepath that points to a factory
+    if (providerInst instanceof SecurityAuthProviderFactory) {
+      return providerInst.create(securityFacade, config);
+    }
+    return providerInst;
   }
 
   accessDenied(errorMessage) {

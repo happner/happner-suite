@@ -4,7 +4,7 @@ const jwt = require('jwt-simple'),
   util = commons.utils,
   nodeUtil = require('util'),
   async = commons.async,
-  BaseAuthProvider = require('./authentication/base-provider'),
+  BaseAuthProvider = require('../../providers/security-base-auth-provider'),
   SecurityFacadeFactory = require('../../factories/security-facade-factory'),
   path = require('path'),
   CONSTANTS = require('../..').constants,
@@ -506,7 +506,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.authProviders = {};
     this.authProviders.happn = require(path.resolve(
       __dirname,
-      `./authentication/happn-provider.js`
+      `../../providers/security-happn-auth-provider`
     )).create(SecurityFacadeFactory.createNewFacade(this), config);
     let defaultAuthProvider = config.defaultAuthProvider || 'happn';
 
@@ -523,6 +523,27 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       );
     });
     this.authProviders.default = this.authProviders[defaultAuthProvider];
+    return this.#startAuthProviders();
+  }
+
+  async #startAuthProviders() {
+    for (const authProviderKey in this.authProviders) {
+      const authProvider = this.authProviders[authProviderKey];
+      if (typeof authProvider.start === 'function' && authProviderKey !== 'default') {
+        this.log.info(`starting auth provider: ${authProviderKey}`);
+        await authProvider.start();
+      }
+    }
+  }
+
+  async #stopAuthProviders() {
+    for (const authProviderKey in this.authProviders) {
+      const authProvider = this.authProviders[authProviderKey];
+      if (typeof authProvider.stop === 'function' && authProviderKey !== 'default') {
+        this.log.info(`stopping auth provider: ${authProviderKey}`);
+        await authProvider.stop();
+      }
+    }
   }
 
   activateSessionActivity(callback) {
@@ -671,8 +692,9 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       }
     }
 
-    if (ttl === 0)
+    if (ttl === 0) {
       this.log.warn('revoking a token without a ttl means it stays in the revocation list forever');
+    }
 
     const timestamp = Date.now();
 
@@ -1205,25 +1227,26 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return jwt.encode(packed, this.config.sessionTokenSecret);
   }
 
-  generateSession(user, sessionId, credentials, tokenLogin, additionalInfo) {
+  generateSession(user, sessionId, credentials, tokenLogin, additionalInfo = {}) {
     let session = this.generateEmptySession(sessionId);
     session.httpsCookie = this.config.httpsCookie;
     session.info = credentials.info;
-    if (tokenLogin) session.type = tokenLogin.session.type;
-    else session.type = 1; //stateful
     session.user = user;
     session.timestamp = Date.now();
-    if (tokenLogin) session.parentId = tokenLogin.session.id;
-    else session.parentId = session.id;
     session.origin = this.happn.services.system.name;
+
+    if (tokenLogin) {
+      session.type = tokenLogin.session.type;
+      session.parentId = tokenLogin.session.id;
+    } else {
+      session.type = 1; //stateful
+      session.parentId = session.id;
+    }
 
     this.profileSession(session); //session ttl, activity threshold and user effective permissions are set here
 
     session.permissionSetKey = this.generatePermissionSetKey(session.user, session);
-
-    additionalInfo = additionalInfo || {};
-    if (tokenLogin) session.token = tokenLogin.token;
-    else session.token = this.generateToken({ ...session, ...additionalInfo }, credentials.type);
+    session.token = this.generateToken({ ...session, ...additionalInfo }, credentials.type);
 
     // It is not possible for the login (websocket call) to assign the session token (cookie) server side,
     // so the cookie is therefore created in the browser upon login success.
@@ -1243,7 +1266,9 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         session.cookieName = `${this.config.cookieName}_https`;
       }
     }
-    if (this.config.cookieDomain) session.cookieDomain = this.config.cookieDomain;
+    if (this.config.cookieDomain) {
+      session.cookieDomain = this.config.cookieDomain;
+    }
     return session;
   }
 
@@ -1462,7 +1487,16 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     if (this.cache_security_authentication_nonce) this.cache_security_authentication_nonce.stop();
 
     this.checkpoint.stop();
-    callback();
+    this.#stopAuthProviders()
+      .then(
+        () => {
+          this.log.info(`stopped auth providers`);
+        },
+        (e) => {
+          this.log.warn(`error stopping auth providers: ${e.message}`);
+        }
+      )
+      .finally(callback);
   }
 
   validateName(name, validationType) {
