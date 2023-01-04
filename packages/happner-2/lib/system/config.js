@@ -1,17 +1,20 @@
-let clone = require('happn-commons')._.cloneDeep;
+let commons = require('happn-commons');
 
 module.exports = Config;
 
 function Config() {}
 
-// we deep copy the configuration, then process various shortform leaves
-// the deep copy ensures that configs passed in do not come out with new properties
-
+// we clone the configuration, to ensure that configs passed in do not come out with new properties
 Config.prototype.process = function (mesh, config, callback) {
   this.log = mesh.log.createLogger('Config');
   this.log.$$TRACE('process()');
-
-  var clonedConfig = clone(config);
+  const clonedConfig = commons._.cloneDeepWith(config, (value) => {
+    if (value instanceof commons.directives.NotCloneable) {
+      return value;
+    }
+    return commons._.clone(value);
+  });
+  // re-attach modules
   clonedConfig.modules = config.modules;
 
   // process shortform endpoints
