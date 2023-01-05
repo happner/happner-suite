@@ -179,7 +179,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       if (e) {
         return callback(e);
       }
-      return callback(null, authProvider);
+      return callback(null, authProvider, credentials);
     });
   }
 
@@ -626,12 +626,37 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.cache_session_activity.sync(callback);
   }
 
-  checkRevocations(token, callback) {
-    if (!this.cache_revoked_tokens) return callback(null, true);
-    this.cache_revoked_tokens.get(token, (e, item) => {
-      if (e) return callback(e);
-      if (item == null) return callback(null, true);
-      callback(null, false, `token has been revoked`);
+  checkRevocations(session, callback) {
+    this.#matchAuthProvider(session, (e, authProvider, credentials) => {
+      if (e) {
+        return callback(e);
+      }
+      if (typeof authProvider.instance.providerCheckRevocations === 'function') {
+        let revocationCheckError, revocationCheckResult;
+        return authProvider.instance
+          .providerCheckRevocations(credentials)
+          .then((result) => {
+            revocationCheckResult = result;
+          })
+          .catch((e) => {
+            revocationCheckError = e;
+          })
+          .finally(() => {
+            if (revocationCheckError) {
+              return callback(revocationCheckError);
+            }
+            if (revocationCheckResult === true) {
+              return callback(null, false, `token has been revoked`);
+            }
+            callback(null, true);
+          });
+      }
+      if (!this.cache_revoked_tokens) return callback(null, true);
+      this.cache_revoked_tokens.get(session.token, (e, item) => {
+        if (e) return callback(e);
+        if (item == null) return callback(null, true);
+        callback(null, false, `token has been revoked`);
+      });
     });
   }
 
@@ -656,31 +681,42 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return token;
   }
 
-  revokeToken(token, reason, callback) {
-    if (typeof reason === 'function') {
-      callback = reason;
-      reason = 'SYSTEM';
-    }
+  #emitTokenRevoked(token, decoded, reason, timestamp, ttl, customRevocation, callback) {
+    return (e) => {
+      if (!e) {
+        this.dataChanged(
+          CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+          {
+            token,
+            session: decoded,
+            reason,
+            timestamp,
+            ttl,
+            customRevocation,
+          },
+          `token for session with id ${decoded.id}  and origin ${
+            decoded.parentId ? decoded.parentId : decoded.id
+          } revoked`
+        );
+      }
+      callback(e);
+    };
+  }
 
-    if (token == null || token === undefined) return callback(new Error('token not defined'));
-
-    let decoded = this.decodeToken(token);
-
-    if (decoded == null) return callback(new Error('invalid token'));
-
+  #getPolicyTTL(decoded) {
     let ttl = 0;
 
     if (decoded.info && decoded.info._browser) {
-      //browser logins can only be used for stateful sessions
+      // browser logins can only be used for stateful sessions
       ttl = decoded.policy[1].ttl;
     } else if (this.config.lockTokenToLoginType && decoded.type != null) {
       // we are checking if the token contains a type - to have backward compatibility
       // with old machine to machine tokens
       ttl = decoded.policy[decoded.type].ttl;
     } else {
-      //tokens are interchangeable between login types
-      //if both policy types have a ttl, we set the ttl
-      //of the revocation to the biggest one
+      // tokens are interchangeable between login types
+      // if both policy types have a ttl, we set the ttl
+      // of the revocation to the biggest one
       if (
         decoded.policy[0].ttl &&
         decoded.policy[0].ttl !== Infinity &&
@@ -691,39 +727,71 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         else ttl = decoded.policy[1].ttl;
       }
     }
+    return ttl;
+  }
 
-    if (ttl === 0) {
-      this.log.warn('revoking a token without a ttl means it stays in the revocation list forever');
+  revokeToken(token, reason, callback) {
+    if (typeof reason === 'function') {
+      callback = reason;
+      reason = 'SYSTEM';
     }
 
-    const timestamp = Date.now();
+    if (token == null || token === undefined) {
+      return callback(new Error('token not defined'));
+    }
+    let decoded = this.decodeToken(token);
+    if (decoded == null) {
+      return callback(new Error('invalid token'));
+    }
+    this.#matchAuthProvider(decoded, (e, authProvider) => {
+      if (e) {
+        return callback(e);
+      }
+      const timestamp = Date.now();
+      const ttl = this.#getPolicyTTL(decoded);
+      const customRevocation = typeof authProvider.instance.providerRevokeToken === 'function';
 
-    this.cache_revoked_tokens.set(
-      token,
-      {
+      const emitAndCallback = this.#emitTokenRevoked(
+        token,
+        decoded,
         reason,
         timestamp,
         ttl,
-      },
-      { ttl },
-      (e) => {
-        if (!e)
-          this.dataChanged(
-            CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-            {
-              token,
-              session: decoded,
-              reason,
-              timestamp,
-              ttl,
-            },
-            `token for session with id ${decoded.id}  and origin ${
-              decoded.parentId ? decoded.parentId : decoded.id
-            } revoked`
-          );
-        callback(e);
+        customRevocation, // replicate set to true means other cluster nodes must update their cache_revoked_tokens, false means they will not update their caches
+        callback
+      );
+
+      if (customRevocation) {
+        let revokeError;
+        // the authProvider has its own revocation logic
+        return authProvider.instance
+          .providerRevokeToken(decoded, reason)
+          .catch((e) => {
+            revokeError = e;
+          })
+          .finally(() => {
+            emitAndCallback(revokeError);
+          });
       }
-    );
+
+      // use standard revocation logic
+      if (ttl === 0) {
+        this.log.warn(
+          'revoking a token without a ttl means it stays in the revocation list forever'
+        );
+      }
+
+      this.cache_revoked_tokens.set(
+        token,
+        {
+          reason,
+          timestamp,
+          ttl,
+        },
+        { ttl },
+        emitAndCallback
+      );
+    });
   }
 
   restoreToken(token, callback) {
@@ -910,8 +978,12 @@ module.exports = class SecurityService extends require('events').EventEmitter {
           }
         );
 
-        //cache does not need to be updated, just resolve
-        if (!changedData.replicated) return resolve(effectedSessions);
+        // cache does not need to be updated, just resolve
+        // this is because we either handle the revocation logic in a non standard auth provider (changedData.replicate === false)
+        // or the TOKEN_REVOKED event was not emitted by a remote cluster member
+        if (!changedData.replicated || changedData.customRevocation === true) {
+          return resolve(effectedSessions);
+        }
 
         //means we are getting a replication from elsewhere in the cluster
         return this.cache_revoked_tokens.set(
@@ -1360,10 +1432,9 @@ module.exports = class SecurityService extends require('events').EventEmitter {
           if (e) this.log.warn('unable to log session activity: ' + e.toString());
         });
     };
-    this.checkRevocations(session.token, (e, authorized, reason) => {
+    this.checkRevocations(session, (e, authorized, reason) => {
       if (e) return callback(e);
       if (!authorized) return completeCall(null, false, reason);
-
       this.checkpoint._authorizeSession(
         session,
         path,

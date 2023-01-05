@@ -105,7 +105,7 @@ module.exports = class SecurityBaseAuthProvider {
 
   async tokenLogin(credentials, sessionId, request) {
     let [authorized, reason] = this.#securityFacade.utils.coerceArray(
-      await this.#securityFacade.security.checkRevocations(credentials.token)
+      await this.#securityFacade.security.checkRevocations(credentials)
     );
 
     if (!authorized) return this.accessDenied(reason);
