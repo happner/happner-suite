@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 2.4.0 2023-01-03
 -----------------
   - feat: auth provider enhancements
 
 2.3.1 2022-12-22
+=======
+2.3.1  2022-12-22
+>>>>>>> develop
 -----------------
   - feat: loki provider disaster recovery enhancements
 
