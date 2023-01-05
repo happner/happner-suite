@@ -36,4 +36,7 @@ module.exports = {
   lruCache: require('lru-cache'),
   fastClone: require('fast-clone'),
   HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
+  flat: require('flat'),
 };
+// must be declared after we have attached other deps
+module.exports.clone = require('./lib/clone');

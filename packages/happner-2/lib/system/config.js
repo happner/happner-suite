@@ -8,12 +8,7 @@ function Config() {}
 Config.prototype.process = function (mesh, config, callback) {
   this.log = mesh.log.createLogger('Config');
   this.log.$$TRACE('process()');
-  const clonedConfig = commons._.cloneDeepWith(config, (value) => {
-    if (value instanceof commons.directives.NotCloneable) {
-      return value;
-    }
-    return commons._.clone(value);
-  });
+  const clonedConfig = commons.clone(config);
   // re-attach modules
   clonedConfig.modules = config.modules;
 
