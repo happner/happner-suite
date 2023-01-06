@@ -21,6 +21,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     mockLogger = {
       error: test.sinon.stub(),
       warn: test.sinon.stub(),
+      info: test.sinon.stub(),
+      debug: test.sinon.stub(),
     };
 
     mockFs();
@@ -550,7 +552,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const mockCallback = test.sinon.stub();
 
       lokiDataProvider.initialize(test.sinon.stub());
-      lokiDataProvider.count('mockFileName', {}, mockCallback);
+      lokiDataProvider.count('mockFileName', mockCallback);
 
       test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, { data: { value: 0 } });
     });
