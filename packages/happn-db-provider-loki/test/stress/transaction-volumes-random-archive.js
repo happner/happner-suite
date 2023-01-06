@@ -1,4 +1,5 @@
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
+  let finished = false;
   const LokiDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp/stress`);
   const testFileName = `${testDirPath}${test.commons.path.sep}stress-test.db`;
@@ -32,6 +33,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     });
     after(() => {
       test.fs.rmSync(testDirPath, { recursive: true, force: true });
+      finished = true;
     });
     const OPERATIONS = 10e3,
       REPORTHEAPMOD = 1e3;
@@ -49,6 +51,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     it('will at some point perform archivals', () => {
       for (let i = 0; i < 10; i++) {
         setTimeout(async () => {
+          if (finished) return;
           test.log('>>> PERFORMING ARCHIVE');
           const lokiProvider = await getProvider();
           await lokiProvider.archive();
