@@ -143,6 +143,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           this.archiveCollection = this.db.collections.find(
             (collection) => collection.name === 'archives'
           );
+
+          this.archiveCollection ??= this.db.addCollection('archives', {
+            indices: ['sequence'],
+            unique: ['sequence'],
+          });
         } else {
           try {
             this.mutateDatabase(this.parsePersistedOperation(line), true);
