@@ -1,5 +1,5 @@
 const test = require('../../../__fixtures/utils/test_helper').create();
-const BaseAuthProvider = require('../../../../lib/services/security/authentication/base-provider');
+const BaseAuthProvider = require('../../../../lib/providers/security-base-auth-provider');
 const SecurityFacadeFactory = require('../../../../lib/factories/security-facade-factory');
 const utilsService = require('../../../../lib/services/utils/service').create();
 const cryptoService = require('../../../../lib/services/crypto/service').create();

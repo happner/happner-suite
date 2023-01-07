@@ -1,10 +1,12 @@
+const { isContext } = require('node:vm');
+
 require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, function (test) {
   const happn = require('../../../lib/index');
   const Logger = require('happn-logger');
   let CheckPoint = require('../../../lib/services/security/checkpoint');
   const Groups = require('../../../lib/services/security/groups');
   const Users = require('../../../lib/services/security/users');
-  const HappnerProvider = require('../../../lib/services/security/authentication/happn-provider');
+  const HappnerProvider = require('../../../lib/providers/security-happn-auth-provider');
   const util = test.commons.nodeUtils;
   const _ = test.commons._;
   const sift = test.commons.sift.default;
@@ -4549,433 +4551,463 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       .to.have.been.calledWithExactly(test.sinon.match.func);
   });
 
-  it('tests revokeToken - checks if token is null and returns callback with new Error', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
+  context('token management', () => {
+    it('tests revokeToken - checks if token is null and returns callback with new Error', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      const mockToken = null;
+      const mockReason = test.sinon.stub();
+      const mockCallback = test.sinon.stub();
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai
+        .expect(mockReason)
+        .to.have.been.calledWithExactly(
+          test.sinon.match
+            .instanceOf(Error)
+            .and(test.sinon.match.has('message', 'token not defined'))
+        );
     });
-    const mockToken = null;
-    const mockReason = test.sinon.stub();
-    const mockCallback = test.sinon.stub();
 
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+    it('tests revokeToken - checks if decoded is null and returns callback with new Error', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
 
-    test.chai
-      .expect(mockReason)
-      .to.have.been.calledWithExactly(
-        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'token not defined'))
+      serviceInst.config = {
+        sessionTokenSecret: true,
+      };
+
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpacked = test.sinon.stub(require('jsonpack'), 'unpack').returns(null);
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai.expect(decode).to.have.been.calledWithExactly('mockToken', true);
+      test.chai.expect(unpacked).to.have.been.calledWithExactly('test decode');
+      test.chai
+        .expect(mockCallback)
+        .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
+      test.chai.expect(mockCallback.args[0][0].message).to.equal('invalid token');
+
+      decode.restore();
+      unpacked.restore();
+    });
+
+    it('tests revokeToken - checks if ttl is 0 , calls set method and calls callback if error exists', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+
+      serviceInst.config = {
+        sessionTokenSecret: true,
+      };
+
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon
+        .stub(require('jsonpack'), 'unpack')
+        .returns({ info: { _browser: 'mock_browser' }, policy: [{ ttl: 0 }, { ttl: 0 }] });
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback('mockError');
+      });
+      serviceInst.log = {
+        warn: test.sinon.stub(),
+      };
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai
+        .expect(serviceInst.log.warn)
+        .to.have.been.calledWithExactly(
+          'revoking a token without a ttl means it stays in the revocation list forever'
+        );
+      test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 0,
+        },
+        { ttl: 0 },
+        test.sinon.match.func
       );
-  });
-
-  it('tests revokeToken - checks if decoded is null and returns callback with new Error', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
     });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
 
-    serviceInst.config = {
-      sessionTokenSecret: true,
-    };
+    it('tests revokeToken - calls set method and calls this.dataChanged if error is falsy and decoded.parentId is truthy', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+      const CONSTANTS = require('../../../lib/index').constants;
 
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpacked = test.sinon.stub(require('jsonpack'), 'unpack').returns(null);
+      serviceInst.config = {
+        sessionTokenSecret: true,
+      };
 
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
+        info: { _browser: 'mock_browser' },
+        policy: [{ ttl: 0 }, { ttl: 1 }],
+        parentId: 1,
+        id: 1,
+      });
 
-    test.chai.expect(decode).to.have.been.calledWithExactly('mockToken', true);
-    test.chai.expect(unpacked).to.have.been.calledWithExactly('test decode');
-    test.chai
-      .expect(mockCallback)
-      .to.have.been.calledWithExactly(test.sinon.match.instanceOf(Error));
-    test.chai.expect(mockCallback.args[0][0].message).to.equal('invalid token');
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback(null);
+      });
 
-    decode.restore();
-    unpacked.restore();
-  });
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+      test.sinon.stub(serviceInst, 'dataChanged').resolves();
 
-  it('tests revokeToken - checks if ttl is 0 , calls set method and calls callback if error exists', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
 
-    serviceInst.config = {
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon
-      .stub(require('jsonpack'), 'unpack')
-      .returns({ info: { _browser: 'mock_browser' }, policy: [{ ttl: 0 }, { ttl: 0 }] });
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback('mockError');
-    });
-    serviceInst.log = {
-      warn: test.sinon.stub(),
-    };
-
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
-
-    test.chai
-      .expect(serviceInst.log.warn)
-      .to.have.been.calledWithExactly(
-        'revoking a token without a ttl means it stays in the revocation list forever'
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 1,
+        },
+        { ttl: 1 },
+        test.sinon.match.func
       );
-    test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockError');
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 0,
-      },
-      { ttl: 0 },
-      test.sinon.match.func
-    );
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
-  });
-
-  it('tests revokeToken - calls set method and calls this.dataChanged if error is falsy and decoded.parentId is truthy', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
-    const CONSTANTS = require('../../../lib/index').constants;
-
-    serviceInst.config = {
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
-      info: { _browser: 'mock_browser' },
-      policy: [{ ttl: 0 }, { ttl: 1 }],
-      parentId: 1,
-      id: 1,
-    });
-
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback(null);
-    });
-
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-    test.sinon.stub(serviceInst, 'dataChanged').resolves();
-
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
-
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 1,
-      },
-      { ttl: 1 },
-      test.sinon.match.func
-    );
-    test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
-      CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      {
-        token: 'mockToken',
-        session: {
-          info: { _browser: 'mock_browser' },
-          policy: [{ ttl: 0 }, { ttl: 1 }],
-          parentId: 1,
-          id: 1,
+      test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        {
+          customRevocation: false,
+          token: 'mockToken',
+          session: {
+            info: { _browser: 'mock_browser' },
+            policy: [{ ttl: 0 }, { ttl: 1 }],
+            parentId: 1,
+            id: 1,
+          },
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 1,
         },
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 1,
-      },
-      'token for session with id 1  and origin 1 revoked'
-    );
-
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
-  });
-
-  it('tests revokeToken - checks if decoded.type is not equal to null ,calls set method, calls this.dataChanged if error is falsy and checks if decoded.parentId is falsy', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
-    const CONSTANTS = require('../../../lib/index').constants;
-
-    serviceInst.config = {
-      lockTokenToLoginType: {},
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
-      info: {},
-      policy: [{ ttl: 0 }, { ttl: 1 }],
-      id: 1,
-      type: 0,
-    });
-
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback(null);
-    });
-    serviceInst.log = {
-      warn: test.sinon.stub(),
-    };
-
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-    test.sinon.stub(serviceInst, 'dataChanged').resolves();
-
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
-
-    test.chai
-      .expect(serviceInst.log.warn)
-      .to.have.been.calledWithExactly(
-        'revoking a token without a ttl means it stays in the revocation list forever'
+        'token for session with id 1  and origin 1 revoked'
       );
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 0,
-      },
-      { ttl: 0 },
-      test.sinon.match.func
-    );
-    test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
-      CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      {
-        token: 'mockToken',
-        session: {
-          info: {},
-          policy: [{ ttl: 0 }, { ttl: 1 }],
-          id: 1,
-          type: 0,
+
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
+    });
+
+    it('tests revokeToken - checks if decoded.type is not equal to null ,calls set method, calls this.dataChanged if error is falsy and checks if decoded.parentId is falsy', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+      const CONSTANTS = require('../../../lib/index').constants;
+
+      serviceInst.config = {
+        lockTokenToLoginType: {},
+        sessionTokenSecret: true,
+      };
+
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
+        info: {},
+        policy: [{ ttl: 0 }, { ttl: 1 }],
+        id: 1,
+        type: 0,
+      });
+
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback(null);
+      });
+      serviceInst.log = {
+        warn: test.sinon.stub(),
+      };
+
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+      test.sinon.stub(serviceInst, 'dataChanged').resolves();
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai
+        .expect(serviceInst.log.warn)
+        .to.have.been.calledWithExactly(
+          'revoking a token without a ttl means it stays in the revocation list forever'
+        );
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 0,
         },
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 0,
-      },
-      'token for session with id 1  and origin 1 revoked'
-    );
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
-  });
-
-  it('tests revokeToken - checks if decoded.policy[0].ttl decoded.policy[1].ttl is truthy. Checks if decoded.policy[0] is greater and equal to decoded.policy[1] ', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
-    const CONSTANTS = require('../../../lib/index').constants;
-
-    serviceInst.config = {
-      lockTokenToLoginType: {},
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
-      info: {},
-      policy: [{ ttl: 1 }, { ttl: 1 }],
-      id: 1,
-    });
-
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback(null);
-    });
-
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-    test.sinon.stub(serviceInst, 'dataChanged').resolves();
-
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
-
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 1,
-      },
-      { ttl: 1 },
-      test.sinon.match.func
-    );
-    test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
-      CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      {
-        token: 'mockToken',
-        session: {
-          info: {},
-          policy: [{ ttl: 1 }, { ttl: 1 }],
-          id: 1,
+        { ttl: 0 },
+        test.sinon.match.func
+      );
+      test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        {
+          customRevocation: false,
+          token: 'mockToken',
+          session: {
+            info: {},
+            policy: [{ ttl: 0 }, { ttl: 1 }],
+            id: 1,
+            type: 0,
+          },
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 0,
         },
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 1,
-      },
-      'token for session with id 1  and origin 1 revoked'
-    );
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
-  });
-
-  it('tests revokeToken - checks if decoded.policy[0].ttl and decoded.policy[1].ttl is truthy and not equal to Infinity and sets ttl equal to decoded.policy[1].ttl', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
-    const CONSTANTS = require('../../../lib/index').constants;
-
-    serviceInst.config = {
-      lockTokenToLoginType: {},
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
-      info: {},
-      policy: [{ ttl: 1 }, { ttl: 2 }],
-      id: 1,
+        'token for session with id 1  and origin 1 revoked'
+      );
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
     });
 
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback(null);
-    });
+    it('tests revokeToken - checks if decoded.policy[0].ttl decoded.policy[1].ttl is truthy. Checks if decoded.policy[0] is greater and equal to decoded.policy[1] ', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+      const CONSTANTS = require('../../../lib/index').constants;
 
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-    test.sinon.stub(serviceInst, 'dataChanged').resolves();
+      serviceInst.config = {
+        lockTokenToLoginType: {},
+        sessionTokenSecret: true,
+      };
 
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
+        info: {},
+        policy: [{ ttl: 1 }, { ttl: 1 }],
+        id: 1,
+      });
 
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 2,
-      },
-      { ttl: 2 },
-      test.sinon.match.func
-    );
-    test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
-      CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      {
-        token: 'mockToken',
-        session: {
-          info: {},
-          policy: [{ ttl: 1 }, { ttl: 2 }],
-          id: 1,
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback(null);
+      });
+
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+      test.sinon.stub(serviceInst, 'dataChanged').resolves();
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 1,
         },
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 2,
-      },
-      'token for session with id 1  and origin 1 revoked'
-    );
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
-  });
-
-  it('tests revokeToken -decoded.policy[0].ttl and decoded.policy[1].ttl equal to Infinity', () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockToken = 'mockToken';
-    const mockReason = 'mockReason';
-    const mockCallback = test.sinon.stub();
-    const CONSTANTS = require('../../../lib/index').constants;
-
-    serviceInst.config = {
-      lockTokenToLoginType: {},
-      sessionTokenSecret: true,
-    };
-
-    const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
-    const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
-      info: {},
-      policy: [{ ttl: Infinity }, { ttl: Infinity }],
-      id: 1,
-    });
-
-    serviceInst.cache_revoked_tokens = {
-      set: test.sinon.stub(),
-    };
-    serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
-      callback(null);
-    });
-
-    const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
-    test.sinon.stub(serviceInst, 'dataChanged').resolves();
-
-    serviceInst.revokeToken(mockToken, mockReason, mockCallback);
-
-    test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
-      'mockToken',
-      {
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 0,
-      },
-      { ttl: 0 },
-      test.sinon.match.func
-    );
-    test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
-      CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      {
-        token: 'mockToken',
-        session: {
-          info: {},
-          policy: [{ ttl: Infinity }, { ttl: Infinity }],
-          id: 1,
+        { ttl: 1 },
+        test.sinon.match.func
+      );
+      test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        {
+          customRevocation: false,
+          token: 'mockToken',
+          session: {
+            info: {},
+            policy: [{ ttl: 1 }, { ttl: 1 }],
+            id: 1,
+          },
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 1,
         },
-        reason: 'mockReason',
-        timestamp: 18000,
-        ttl: 0,
-      },
-      'token for session with id 1  and origin 1 revoked'
-    );
-    stubDateNow.restore();
-    decode.restore();
-    unpack.restore();
+        'token for session with id 1  and origin 1 revoked'
+      );
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
+    });
+
+    it('tests revokeToken - checks if decoded.policy[0].ttl and decoded.policy[1].ttl is truthy and not equal to Infinity and sets ttl equal to decoded.policy[1].ttl', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+      const CONSTANTS = require('../../../lib/index').constants;
+
+      serviceInst.config = {
+        lockTokenToLoginType: {},
+        sessionTokenSecret: true,
+      };
+
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
+        info: {},
+        policy: [{ ttl: 1 }, { ttl: 2 }],
+        id: 1,
+      });
+
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback(null);
+      });
+
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+      test.sinon.stub(serviceInst, 'dataChanged').resolves();
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 2,
+        },
+        { ttl: 2 },
+        test.sinon.match.func
+      );
+      test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        {
+          customRevocation: false,
+          token: 'mockToken',
+          session: {
+            info: {},
+            policy: [{ ttl: 1 }, { ttl: 2 }],
+            id: 1,
+          },
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 2,
+        },
+        'token for session with id 1  and origin 1 revoked'
+      );
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
+    });
+
+    it('tests revokeToken -decoded.policy[0].ttl and decoded.policy[1].ttl equal to Infinity', () => {
+      const serviceInst = new SecurityService({
+        logger: Logger,
+      });
+      serviceInst.authProviders = {
+        default: 'mockDefault',
+      };
+      const mockToken = 'mockToken';
+      const mockReason = 'mockReason';
+      const mockCallback = test.sinon.stub();
+      const CONSTANTS = require('../../../lib/index').constants;
+
+      serviceInst.config = {
+        lockTokenToLoginType: {},
+        sessionTokenSecret: true,
+      };
+
+      const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
+      const unpack = test.sinon.stub(require('jsonpack'), 'unpack').returns({
+        info: {},
+        policy: [{ ttl: Infinity }, { ttl: Infinity }],
+        id: 1,
+      });
+
+      serviceInst.cache_revoked_tokens = {
+        set: test.sinon.stub(),
+      };
+      serviceInst.cache_revoked_tokens.set.callsFake((_, __, ___, callback) => {
+        callback(null);
+      });
+
+      const stubDateNow = test.sinon.stub(Date, 'now').returns(18000);
+      test.sinon.stub(serviceInst, 'dataChanged').resolves();
+
+      serviceInst.revokeToken(mockToken, mockReason, mockCallback);
+
+      test.chai.expect(serviceInst.cache_revoked_tokens.set).to.have.been.calledWithExactly(
+        'mockToken',
+        {
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 0,
+        },
+        { ttl: 0 },
+        test.sinon.match.func
+      );
+      test.chai.expect(serviceInst.dataChanged).to.have.been.calledWithExactly(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        {
+          customRevocation: false,
+          token: 'mockToken',
+          session: {
+            info: {},
+            policy: [{ ttl: Infinity }, { ttl: Infinity }],
+            id: 1,
+          },
+          reason: 'mockReason',
+          timestamp: 18000,
+          ttl: 0,
+        },
+        'token for session with id 1  and origin 1 revoked'
+      );
+      stubDateNow.restore();
+      decode.restore();
+      unpack.restore();
+    });
   });
 
   it('tests getCookieName ', () => {
     const serviceInst = new SecurityService({
       logger: Logger,
     });
+    serviceInst.authProviders = {
+      default: 'mockDefault',
+    };
     const mockHeaders = {};
     const mockConnectionData = {};
     const mockOptions = { cookieName: 'mockCookieName' };

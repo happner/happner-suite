@@ -1,25 +1,22 @@
-const commons = require('..');
-module.exports = function (obj) {
+const _ = require('..')._;
+module.exports = function (obj, ignoreList) {
   if (obj == null) {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return commons._.cloneDeep(obj);
+    return _.cloneDeep(obj);
   }
   if (typeof obj !== 'object') {
     return obj;
   }
-  return Object.keys(commons.flat(obj))
-    .map((key) => {
-      return [key, commons._.get(obj, key)];
-    })
-    .reduce((cloned, keyVal) => {
-      return commons._.set(
-        cloned,
-        keyVal[0],
-        keyVal[1] instanceof commons.directives.NotCloneable
-          ? keyVal[1]
-          : commons._.cloneDeep(keyVal[1])
-      );
-    }, {});
+  if (!Array.isArray(ignoreList) || ignoreList.length === 0) {
+    return _.cloneDeep(obj);
+  }
+  return ignoreList.reduce((cloned, ignoreListItemPath) => {
+    const val = _.get(obj, ignoreListItemPath);
+    if (val != null) {
+      return _.set(cloned, ignoreListItemPath, val);
+    }
+    return cloned;
+  }, _.cloneDeep(_.omit(obj, ignoreList)));
 };

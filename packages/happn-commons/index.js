@@ -17,9 +17,6 @@ module.exports = {
       return fs.readFileSync(utilsPath, 'utf8').replace('module.exports = ', '');
     },
   },
-  directives: {
-    NotCloneable: require('./lib/directives/not-clonable'),
-  },
   fs,
   _,
   async: libAsync,
