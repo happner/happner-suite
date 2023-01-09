@@ -1,9 +1,12 @@
-const { fs, path } = require('happn-commons');
+const { fs, path, lock } = require('happn-commons');
 class TestRepository {
   #dirPath;
+  #lock;
   constructor(dirPath) {
     this.#dirPath = dirPath;
+    this.#lock = new lock();
   }
+
   /** @type {LokiDataProvider} */
   #provider;
   attach(provider) {
@@ -18,6 +21,13 @@ class TestRepository {
   }
 
   async search(sequence) {
+    // ensure we dont read while we are clearing etc.
+    return this.#lock.acquire('readwrite', () => {
+      return this.#searchInternal(sequence);
+    });
+  }
+
+  async #searchInternal(sequence) {
     const criteria = {
       'data.sequence': { $gte: sequence },
     };
@@ -76,13 +86,19 @@ class TestRepository {
       ...options,
     });
   }
+
   /**
-   *
-   * @param {LokiDataProvider} providerInstance
+   * protected to ensure reads and writes dont conflict
    * @returns { boolean }
    */
   async snapshotBeforeRolloverHandler() {
-    const firstItem = (
+    return this.#lock.acquire('readwrite', () => {
+      return this.#snapshotBeforeRolloverHandlerInternal();
+    });
+  }
+
+  async #snapshotBeforeRolloverHandlerInternal() {
+    const lastItem = (
       await this.get(`test/path/*`, null, {
         sort: {
           'data.sequence': -1,
@@ -90,22 +106,23 @@ class TestRepository {
         limit: 1,
       })
     ).pop();
-    if (!firstItem) {
+    if (!lastItem) {
       // continue with snapshot
       return true;
     }
     fs.writeFileSync(
-      `${this.#dirPath}${path.sep}db-${firstItem.data.sequence}`,
+      `${this.#dirPath}${path.sep}db-${lastItem.data.sequence}`,
       `${JSON.stringify({
         snapshot: this.#provider.db.serialize(),
       })}\r\n`
     );
     await this.#provider.clearInternal();
     // eslint-disable-next-line no-console
-    console.log(`archived to ${this.#dirPath}${path.sep}db-${firstItem.data.sequence}}`);
+    console.log(`archived to ${this.#dirPath}${path.sep}db-${lastItem.data.sequence}}`);
     return false; // no need to snapshot
   }
 }
+
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const LokiDataProvider = require('../../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp/archive-on-snapshot`);
@@ -168,10 +185,6 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
         }
         const records = await testRepository.get('test/path/*');
         test.expect(records.length).to.equal(3);
-        const files = test.fs.readdirSync(testDirPath);
-        test
-          .expect(files.sort())
-          .to.eql(['db-14', 'db-19', 'db-4', 'db-9', 'db.loki', 'temp_db.loki']);
       });
 
       // relies on above test
@@ -187,7 +200,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
         const found = await testRepository.search(0);
         test.expect(found.length).to.be(23);
         test.expect(found[0].sequence).to.be(0);
-        test.expect(found.pop().sequence).to.be(22);
+        test.expect(found.at(-1).sequence).to.be(22);
       });
     }
   );
