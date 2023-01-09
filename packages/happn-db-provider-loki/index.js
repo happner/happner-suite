@@ -13,6 +13,7 @@ const db = require('lokijs'),
   pathSep = commons.path.sep;
 
 module.exports = class LokiDataProvider extends commons.BaseDataProvider {
+  #plugin;
   constructor(settings, logger) {
     super(settings, logger);
 
@@ -28,6 +29,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.archive = util.maybePromisify(this.archive);
     this.operationCount = 0;
+    // attach our plugin
+    if (settings?.plugin) {
+      this.#plugin = settings.plugin;
+      settings.plugin.attach(this);
+    }
   }
 
   initialize(callback) {
@@ -78,12 +84,162 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
   }
 
+  //#region external mutate interface
+
+  increment(path, counterName, increment, callback) {
+    this.#checkIfReadonly(path);
+
+    if (typeof increment === 'function') {
+      callback = increment;
+      increment = 1;
+    }
+
+    this.operationQueue.push(
+      {
+        operationType: constants.DATA_OPERATION_TYPES.INCREMENT,
+        arguments: [path, counterName, increment],
+      },
+      callback
+    );
+  }
+
+  remove(path, options, callback) {
+    this.#checkIfReadonly(path);
+
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    this.operationQueue.push(
+      { operationType: constants.DATA_OPERATION_TYPES.REMOVE, arguments: [path, options.criteria] },
+      callback
+    );
+  }
+
+  insert(document, callback) {
+    if (!document.path) {
+      return callback(new Error('path not specified for insert'));
+    }
+    this.#checkIfReadonly(document.path);
+    this.operationQueue.push(
+      { operationType: constants.DATA_OPERATION_TYPES.INSERT, arguments: [document] },
+      callback
+    );
+  }
+
+  archive(callback) {
+    this.#checkIfReadonly();
+    this.operationQueue.push({ operationType: constants.DATA_OPERATION_TYPES.ARCHIVE }, callback);
+  }
+
+  merge(path, document, callback) {
+    this.#checkIfReadonly(path);
+    this.upsert(path, document, { merge: true }, callback);
+  }
+
+  upsert(path, document, options, callback) {
+    this.#checkIfReadonly(path);
+
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+
+    if (!this.persistenceOn) {
+      let responseNoQueue;
+      try {
+        responseNoQueue = this.upsertInternal(path, document, options);
+      } catch (e) {
+        return callback(e);
+      }
+      return callback(null, this.transform(responseNoQueue.result));
+    }
+
+    this.operationQueue.push(
+      {
+        operationType: constants.DATA_OPERATION_TYPES.UPSERT,
+        arguments: [path, document, options],
+      },
+      (e, response) => {
+        if (e) {
+          callback(e);
+          return;
+        }
+        callback(null, this.transform(response.result));
+      }
+    );
+  }
+
+  //#endregion
+
+  //#region query external interface
+
+  find(path, parameters, callback) {
+    this.loadArchiveInternal(path, (error) => {
+      if (typeof parameters === 'function') {
+        callback = parameters;
+        parameters = {};
+      }
+
+      if (parameters == null) {
+        parameters = {};
+      }
+
+      if (error) {
+        return callback(error);
+      }
+
+      let result = [];
+      try {
+        result = this.findInternal(path, parameters);
+      } catch (e) {
+        callback(e);
+        return;
+      }
+      callback(null, result);
+    });
+  }
+
+  count(path, parameters, callback) {
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
+    parameters.options = parameters.options || {};
+    parameters.options.count = true;
+    this.find(path, parameters, callback);
+  }
+
+  findOne(criteria, fields, callback) {
+    if (typeof fields === 'function') {
+      callback = fields;
+      fields = null;
+    }
+    let result = null;
+    try {
+      result = this.findOneInternal(criteria, fields);
+    } catch (e) {
+      callback(e);
+      return;
+    }
+    callback(null, result);
+  }
+
+  //#endregion
+
   reconstruct(callback) {
     if (!fs.existsSync(this.settings.filename)) {
       return this.snapshot(callback);
     }
     this.readDataFile(this.settings.filename, (error1, lastLineNumber) => {
-      if (!error1) return this.snapshot(callback);
+      if (!error1) {
+        if (this.settings.readOnly) {
+          // dont snapshot, just allow reads
+          return callback();
+        }
+        return this.snapshot(callback);
+      }
       if (lastLineNumber > 1) {
         // means the file is broken due to an issue other than an incomplete snapshot, throw the error
         return callback(error1);
@@ -178,6 +334,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       return null;
     }
   }
+
   stop(callback) {
     if (this.snapshotTimeout) {
       clearTimeout(this.snapshotTimeout);
@@ -188,6 +345,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     callback();
   }
+
   getCollectionBasedOnPath(path) {
     if (path.startsWith('/_ARCHIVE/GET/')) {
       if (!this.loadedArchiveDB) {
@@ -200,6 +358,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (path.startsWith('/_ARCHIVE/')) return this.archiveCollection;
     return this.collection;
   }
+
   processOperation(operation, callback) {
     switch (operation.operationType) {
       case constants.DATA_OPERATION_TYPES.SNAPSHOT:
@@ -229,6 +388,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         break;
     }
   }
+
   mutateDatabase(operation, preserveTimestamps) {
     switch (operation.operationType) {
       case constants.DATA_OPERATION_TYPES.UPSERT:
@@ -254,6 +414,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         throw new Error(`unknown data operation type: ${operation.operationType}`);
     }
   }
+
   archiveInternal(callback) {
     const archiveList = this.findInternal('/_ARCHIVE/LIST/*', { options: { count: true } });
     const sequence = archiveList.data.value;
@@ -303,6 +464,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       callback(null, 1);
     });
   }
+
   loadArchiveInternal(path, callback) {
     if (!path.startsWith('/_ARCHIVE/GET')) return callback();
     const archiveId = path.split('/').at(3);
@@ -340,6 +502,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       }
     );
   }
+
   unloadArchiveInternal(callback) {
     if (!this.loadedArchiveDB) {
       return callback(new Error('No archive is loaded'));
@@ -361,6 +524,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       }
     }
   }
+
   upsertInternal(path, upsertDocument, options, preserveTimestamps) {
     if (typeof path !== 'string') {
       throw new Error('argument [path] at position 0 is null or not a string');
@@ -389,6 +553,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     return { result, document, created };
   }
+
   insertInternal(document, preserveTimestamps) {
     const collection = this.getCollectionBasedOnPath(document.path);
     const now = Date.now();
@@ -396,18 +561,53 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     document.modified = preserveTimestamps && document.modified ? document.modified : now;
     return collection.insert(document);
   }
+
   updateInternal(document, preserveTimestamps) {
     const collection = this.getCollectionBasedOnPath(document.path);
     const now = Date.now();
     document.modified = preserveTimestamps && document.modified ? document.modified : now;
     return collection.update(document);
   }
-  snapshot(callback) {
-    this.operationCount = 0;
-    this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
-      if (e) return callback(e);
-      this.copyTempDataToMain(callback);
+
+  clearInternal() {
+    return new Promise((resolve, reject) => {
+      this.removeInternal('*'); // clear everything
+      this.operationCount = 0;
+      return this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
+        if (e) return reject(e);
+        this.copyTempDataToMain((e) => {
+          if (e) return reject(e);
+          resolve();
+        });
+      });
     });
+  }
+
+  snapshot(callback) {
+    if (typeof this.#plugin?.snapshotBeforeRolloverHandler === 'function') {
+      let handlerContinueResult, handlerErrorResult;
+      return this.#plugin
+        .snapshotBeforeRolloverHandler()
+        .then(
+          (handlerContinue) => {
+            handlerContinueResult = handlerContinue;
+          },
+          (handlerError) => {
+            handlerErrorResult = handlerError;
+          }
+        )
+        .finally(() => {
+          if (handlerErrorResult) {
+            return callback(handlerErrorResult);
+          }
+          if (handlerContinueResult) {
+            // returned true - continue snapshotting
+            return this.#completeSnapshot(callback);
+          }
+          callback();
+        });
+    }
+    this.#completeSnapshot(callback);
   }
 
   copyTempDataToMain(callback) {
@@ -502,71 +702,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       });
     };
   }
-  insert(document, callback) {
-    if (document.path.startsWith('/_ARCHIVE/GET/')) {
-      throw new Error('Loaded archives only support read-only operations!');
-    }
 
-    this.operationQueue.push(
-      { operationType: constants.DATA_OPERATION_TYPES.INSERT, arguments: [document] },
-      callback
-    );
-  }
-  archive(callback) {
-    this.operationQueue.push({ operationType: constants.DATA_OPERATION_TYPES.ARCHIVE }, callback);
-  }
-  merge(path, document, callback) {
-    this.upsert(path, document, { merge: true }, callback);
-  }
-  upsert(path, document, options, callback) {
-    if (path.startsWith('/_ARCHIVE/GET/')) {
-      throw new Error('Loaded archives only support read-only operations!');
-    }
-
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
-
-    if (!this.persistenceOn) {
-      let responseNoQueue;
-      try {
-        responseNoQueue = this.upsertInternal(path, document, options);
-      } catch (e) {
-        return callback(e);
-      }
-      return callback(null, this.transform(responseNoQueue.result));
-    }
-
-    this.operationQueue.push(
-      {
-        operationType: constants.DATA_OPERATION_TYPES.UPSERT,
-        arguments: [path, document, options],
-      },
-      (e, response) => {
-        if (e) {
-          callback(e);
-          return;
-        }
-        callback(null, this.transform(response.result));
-      }
-    );
-  }
-  remove(path, options, callback) {
-    if (path.startsWith('/_ARCHIVE/GET/')) {
-      throw new Error('Loaded archives only support read-only operations!');
-    }
-
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
-    options = options || {};
-    this.operationQueue.push(
-      { operationType: constants.DATA_OPERATION_TYPES.REMOVE, arguments: [path, options.criteria] },
-      callback
-    );
-  }
   removeInternal(path, criteria) {
     const collection = this.getCollectionBasedOnPath(path);
     const toRemove = collection.chain().find(this.getPathCriteria(path, undefined, criteria));
@@ -584,12 +720,14 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       },
     };
   }
+
   transformSortOptions(mongoSortOptions) {
     return Object.keys(mongoSortOptions).reduce((lokiSortOptions, fieldName) => {
       lokiSortOptions.push([fieldName, mongoSortOptions[fieldName] === -1]);
       return lokiSortOptions;
     }, []);
   }
+
   findInternal(path, parameters) {
     const collection = this.getCollectionBasedOnPath(path);
     if (path.startsWith('/_ARCHIVE/GET/')) {
@@ -635,54 +773,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     return finalResult;
   }
-  find(path, parameters, callback) {
-    this.loadArchiveInternal(path, (error) => {
-      if (typeof parameters === 'function') {
-        callback = parameters;
-        parameters = {};
-      }
 
-      if (parameters == null) {
-        parameters = {};
-      }
-
-      if (error) {
-        return callback(error);
-      }
-
-      let result = [];
-      try {
-        result = this.findInternal(path, parameters);
-      } catch (e) {
-        callback(e);
-        return;
-      }
-      callback(null, result);
-    });
-  }
-  count(path, parameters, callback) {
-    if (typeof parameters === 'function') {
-      callback = parameters;
-      parameters = {};
-    }
-    parameters.options = parameters.options || {};
-    parameters.options.count = true;
-    this.find(path, parameters, callback);
-  }
-  findOne(criteria, fields, callback) {
-    if (typeof fields === 'function') {
-      callback = fields;
-      fields = null;
-    }
-    let result = null;
-    try {
-      result = this.findOneInternal(criteria, fields);
-    } catch (e) {
-      callback(e);
-      return;
-    }
-    callback(null, result);
-  }
   findOneInternal(criteria, fields) {
     let results = this.findInternal('*', { criteria, fields });
     if (results.length > 0) {
@@ -690,24 +781,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
     return null;
   }
-  increment(path, counterName, increment, callback) {
-    if (path.startsWith('/_ARCHIVE/GET/')) {
-      throw new Error('Loaded archives only support read-only operations!');
-    }
 
-    if (typeof increment === 'function') {
-      callback = increment;
-      increment = 1;
-    }
-
-    this.operationQueue.push(
-      {
-        operationType: constants.DATA_OPERATION_TYPES.INCREMENT,
-        arguments: [path, counterName, increment],
-      },
-      callback
-    );
-  }
   incrementInternal(path, counterName, increment) {
     let recordToIncrement = this.findOneInternal({ path }) || {
       data: { [counterName]: { value: 0 } },
@@ -718,5 +792,22 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     recordToIncrement.data[counterName].value += increment;
     this.upsertInternal(path, recordToIncrement);
     return recordToIncrement.data[counterName].value;
+  }
+
+  #completeSnapshot(callback) {
+    this.operationCount = 0;
+    this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
+      if (e) return callback(e);
+      this.copyTempDataToMain(callback);
+    });
+  }
+
+  #checkIfReadonly(path) {
+    if (this.settings.readOnly) {
+      throw new Error('Database is read-only!');
+    }
+    if (path && path.startsWith('/_ARCHIVE/GET/')) {
+      throw new Error('Loaded archives only support read-only operations!');
+    }
   }
 };

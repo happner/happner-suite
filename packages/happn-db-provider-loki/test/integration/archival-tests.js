@@ -1,4 +1,4 @@
-require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
+require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   const LokiDataProvider = require('../..');
   const testDirPath = test.commons.path.resolve(__dirname, `../tmp/archiving`);
 

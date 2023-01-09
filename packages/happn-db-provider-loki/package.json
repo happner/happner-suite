@@ -3,7 +3,7 @@
   "version": "1.1.2",
   "description": "Loki data provider for happn",
   "scripts": {
-    "test": "_mocha --recursive --exit silence.js test/unit/* test/integration/*",
+    "test": "_mocha --recursive --exit silence.js test/unit/* test/integration/* test/prototypes/*",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-unit": "mocha silence.js test/unit/* --recursive"
   },
