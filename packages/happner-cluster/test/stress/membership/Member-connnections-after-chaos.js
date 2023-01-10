@@ -2,7 +2,6 @@ const libDir = require('../../_lib/lib-dir');
 const baseConfig = require('../../_lib/base-config');
 const users = require('../../_lib/users');
 const testclient = require('../../_lib/client');
-const getSeq = require('../../_lib/helpers/getSeq');
 const clusterHelper = require('../../_lib/helpers/multiProcessClusterManager').create();
 const clearMongoCollection = require('../../_lib/clear-mongo-collection');
 
@@ -346,13 +345,9 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
         errored = true;
         let dupes = findDuplicates(connected).map((dupe) => dupe.split('_')[1]);
         if (dupes.length) {
-          errors.push(
-            new Error(`Duplicate connections at ${getSeq.getMeshName(index + 1)}: ${dupes}`)
-          );
+          errors.push(new Error(`Duplicate connections at MESH_${index}: ${dupes}`));
         } else {
-          errors.push(
-            new Error(`Insufficients connections at ${getSeq.getMeshName(index + 1)}: ${dupes}`)
-          );
+          errors.push(new Error(`Insufficients connections at MESH_${index}: ${dupes}`));
         }
       }
     }
@@ -366,7 +361,7 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
   async function testNewSubscriptions(indices) {
     indices = indices || Array.from(Array(clusterSize).keys());
     let clients = indices.map((index) => testClients[index]);
-    let meshNames = indices.map((index) => getSeq.getMeshName(index + 1));
+    let meshNames = indices.map((index) => `MESH_${index}`);
 
     for (let client of clients) {
       await client.exchange.testComponent.subscribeSecondEvent();
@@ -401,7 +396,7 @@ require('../../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
           .to.be(true); // Killed nodes endpoints will still be listed as members.
       } catch (e) {
         errored = true;
-        errors.push(new Error(`Member/peer mismatch at ${getSeq.getMeshName(i + 1)}`));
+        errors.push(new Error(`Member/peer mismatch at MESH_${i}`));
       }
     }
     if (errored) {

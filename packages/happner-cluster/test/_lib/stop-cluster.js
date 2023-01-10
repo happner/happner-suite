@@ -7,9 +7,7 @@ module.exports = async function (servers, done) {
     await orchestrator.stop();
     try {
       await dataService.remove(keepAlivePath);
-    } catch (e) {
-      // console.log(e);
-    }
+    } catch (e) {}
     await server.stop({ reconnect: false });
   }
   if (done) return done();
