@@ -461,7 +461,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     commons.async.series([snapshot, copyData, createZip, cleanup, snapshot], (error) => {
       if (error) return callback(error);
-      callback(null, 1);
+      callback(null, sequence + 1);
     });
   }
 
