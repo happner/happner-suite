@@ -7,6 +7,7 @@ module.exports = async function (servers, done) {
     await orchestrator.stop();
     try {
       await dataService.remove(keepAlivePath);
+      // eslint-disable-next-line no-empty
     } catch (e) {}
     await server.stop({ reconnect: false });
   }

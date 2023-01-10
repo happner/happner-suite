@@ -1,4 +1,3 @@
-const baseConfig = require('../../_lib/base-config');
 const stopCluster = require('../../_lib/stop-cluster');
 const clearMongoCollection = require('../../_lib/clear-mongo-collection');
 const _ = require('lodash');
