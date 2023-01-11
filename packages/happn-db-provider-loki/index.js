@@ -88,7 +88,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   //#region external mutate interface
 
   increment(path, counterName, increment, callback) {
-    this.#checkIfReadonly(path);
+    this.#checkIfReadonly();
 
     if (typeof increment === 'function') {
       callback = increment;
@@ -105,7 +105,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   remove(path, options, callback) {
-    this.#checkIfReadonly(path);
+    this.#checkIfReadonly(options);
 
     if (typeof options === 'function') {
       callback = options;
@@ -122,7 +122,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (!document.path) {
       return callback(new Error('path not specified for insert'));
     }
-    this.#checkIfReadonly(document.path);
+    this.#checkIfReadonly();
     this.operationQueue.push(
       { operationType: constants.DATA_OPERATION_TYPES.INSERT, arguments: [document] },
       callback
@@ -135,12 +135,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   merge(path, document, callback) {
-    this.#checkIfReadonly(path);
+    this.#checkIfReadonly();
     this.upsert(path, document, { merge: true }, callback);
   }
 
   upsert(path, document, options, callback) {
-    this.#checkIfReadonly(path);
+    this.#checkIfReadonly(options);
 
     if (typeof options === 'function') {
       callback = options;
@@ -177,16 +177,16 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   //#region query external interface
 
   find(path, parameters, callback) {
-    this.loadArchiveInternal(path, (error) => {
-      if (typeof parameters === 'function') {
-        callback = parameters;
-        parameters = {};
-      }
+    if (typeof parameters === 'function') {
+      callback = parameters;
+      parameters = {};
+    }
 
-      if (parameters == null) {
-        parameters = {};
-      }
+    if (parameters == null) {
+      parameters = {};
+    }
 
+    this.loadArchiveInternal(parameters, (error) => {
       if (error) {
         return callback(error);
       }
@@ -344,8 +344,8 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     callback();
   }
 
-  getCollectionBasedOnPath(path) {
-    if (path.startsWith('/_ARCHIVE/GET/')) {
+  getCollectionBasedOnParameters(parameters) {
+    if (parameters?.archiveId) {
       if (!this.loadedArchiveDB) {
         throw new Error('Cannot read from archive: no archive loaded');
       }
@@ -353,7 +353,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       return this.loadedArchiveDB.collection;
     }
 
-    if (path.startsWith('/_ARCHIVE/')) return this.archiveCollection;
+    if (parameters?.queryArchiveCollection === true) return this.archiveCollection;
     return this.collection;
   }
 
@@ -414,27 +414,27 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   archiveInternal(callback) {
-    const archiveList = this.findInternal('/_ARCHIVE/LIST/*', { options: { count: true } });
-    const sequence = archiveList.data.value;
+    const archiveCount = this.archiveCollection.count();
+    const sequence = archiveCount + 1;
 
     const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
     const archivedFileName = this.settings.filename.slice(lastForwardSlashIdx + 1);
     const zipFileName = path.resolve(
       this.settings.archiveFolder,
-      `${archivedFileName}.${sequence + 1}.zip`
+      `${archivedFileName}.${sequence}.zip`
     );
 
     const snapshot = this.snapshot.bind(this);
 
     const copyData = (callback) => {
-      this.copyMainDataToArchive(sequence + 1, callback);
+      this.copyMainDataToArchive(sequence, callback);
     };
 
     const createZip = (callback) => {
       const zip = new AdmZip();
       zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
       zip.writeZip(zipFileName, (error) => {
-        fs.unlinkSync(`${this.settings.filename}.${sequence + 1}`);
+        fs.unlinkSync(`${this.settings.filename}.${sequence}`);
 
         if (error) {
           return callback(error);
@@ -445,11 +445,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     };
 
     const cleanup = (callback) => {
-      this.removeInternal('*', { path: { $regex: /(?!^\/_ARCHIVE)/ } });
-      this.insertInternal({
-        path: `/_ARCHIVE/LIST/${sequence + 1}`,
+      this.collection.clear();
+      this.archiveCollection.insert({
+        id: sequence,
         data: {
-          sequence: sequence + 1,
+          sequence: sequence,
           archive: zipFileName,
         },
       });
@@ -459,13 +459,13 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
     commons.async.series([snapshot, copyData, createZip, cleanup, snapshot], (error) => {
       if (error) return callback(error);
-      callback(null, sequence + 1);
+      callback(null, sequence);
     });
   }
 
-  loadArchiveInternal(path, callback) {
-    if (!path.startsWith('/_ARCHIVE/GET')) return callback();
-    const archiveId = path.split('/').at(3);
+  loadArchiveInternal(parameters, callback) {
+    const archiveId = parameters?.archiveId;
+    if (!archiveId) return callback();
 
     if (this.loadedArchiveDB && this.loadedArchiveDB.archiveId !== archiveId) {
       return this.unloadArchiveInternal((error) => {
@@ -473,11 +473,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           return callback(error);
         }
 
-        this.loadArchiveInternal(path, callback);
+        this.loadArchiveInternal(parameters, callback);
       });
     }
 
-    const [archiveDetails, ...archives] = this.findInternal(`/_ARCHIVE/LIST/${archiveId}`);
+    const [archiveDetails, ...archives] = this.archiveCollection.find({ id: archiveId });
 
     if (!archiveDetails) {
       return callback(new Error('Archive ID does not exist'));
@@ -527,10 +527,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (typeof path !== 'string') {
       throw new Error('argument [path] at position 0 is null or not a string');
     }
-    const collection = this.getCollectionBasedOnPath(path);
     options = options || {};
 
-    let document = collection.findOne({ path });
+    let document = this.collection.findOne({ path });
     let result,
       created,
       meta = upsertDocument._meta || {};
@@ -553,18 +552,16 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   insertInternal(document, preserveTimestamps) {
-    const collection = this.getCollectionBasedOnPath(document.path);
     const now = Date.now();
     document.created = preserveTimestamps && document.created ? document.created : now;
     document.modified = preserveTimestamps && document.modified ? document.modified : now;
-    return collection.insert(document);
+    return this.collection.insert(document);
   }
 
   updateInternal(document, preserveTimestamps) {
-    const collection = this.getCollectionBasedOnPath(document.path);
     const now = Date.now();
     document.modified = preserveTimestamps && document.modified ? document.modified : now;
-    return collection.update(document);
+    return this.collection.update(document);
   }
 
   clearInternal() {
@@ -710,8 +707,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   removeInternal(path, criteria) {
-    const collection = this.getCollectionBasedOnPath(path);
-    const toRemove = collection.chain().find(this.getPathCriteria(path, undefined, criteria));
+    const toRemove = this.collection.chain().find(this.getPathCriteria(path, undefined, criteria));
     const removed = toRemove.count();
     if (removed > 0) {
       toRemove.remove();
@@ -735,11 +731,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   findInternal(path, parameters) {
-    const collection = this.getCollectionBasedOnPath(path);
-    if (path.startsWith('/_ARCHIVE/GET/')) {
-      path = path.slice(14);
-      path = path.slice(path.indexOf('/') + 1);
-    }
+    const collection = this.getCollectionBasedOnParameters(parameters);
 
     let finalResult = [];
     let pathCriteria = this.getPathCriteria(path);
@@ -808,11 +800,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
   }
 
-  #checkIfReadonly(path) {
+  #checkIfReadonly(parameters) {
     if (this.settings.readOnly) {
       throw new Error('Database is read-only!');
     }
-    if (path && path.startsWith('/_ARCHIVE/GET/')) {
+    if (parameters?.archiveId) {
       throw new Error('Loaded archives only support read-only operations!');
     }
   }
