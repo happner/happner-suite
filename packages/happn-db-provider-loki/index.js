@@ -14,6 +14,7 @@ const db = require('lokijs'),
 
 module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   #plugin;
+  #fileStream;
   constructor(settings, logger) {
     super(settings, logger);
 
@@ -339,10 +340,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (this.snapshotTimeout) {
       clearTimeout(this.snapshotTimeout);
     }
-    if (this.fileStream) {
-      this.fileStream.end();
-      this.fileStream = null;
-    }
+    this.#destroyFileStream();
     callback();
   }
 
@@ -648,12 +646,19 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   getFileStream(filename) {
-    if (this.fileStream == null) {
+    if (this.#fileStream == null) {
       let realPath = fs.realpathSync(filename);
       fs.ensureDirSync(path.dirname(realPath));
-      this.fileStream = fs.createWriteStream(realPath, { flags: 'a' });
+      this.#fileStream = fs.createWriteStream(realPath, { flags: 'a' });
     }
-    return this.fileStream;
+    return this.#fileStream;
+  }
+
+  #destroyFileStream() {
+    if (this.#fileStream) {
+      this.#fileStream.end();
+      this.#fileStream = null;
+    }
   }
 
   appendOperationData(operationData, callback) {
@@ -666,6 +671,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   persistSnapshotData(snapshotData, callback) {
+    this.#destroyFileStream();
     fs.writeFile(
       this.settings.tempDataFilename,
       `${JSON.stringify(snapshotData)}\r\n`,
