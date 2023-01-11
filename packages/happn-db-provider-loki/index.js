@@ -345,7 +345,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   getCollectionBasedOnParameters(parameters) {
-    if (parameters?.archiveId) {
+    if (parameters?.options?.archiveId) {
       if (!this.loadedArchiveDB) {
         throw new Error('Cannot read from archive: no archive loaded');
       }
@@ -353,7 +353,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       return this.loadedArchiveDB.collection;
     }
 
-    if (parameters?.queryArchiveCollection === true) return this.archiveCollection;
+    if (parameters?.options?.queryArchiveCollection === true) return this.archiveCollection;
     return this.collection;
   }
 
@@ -464,7 +464,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   loadArchiveInternal(parameters, callback) {
-    const archiveId = parameters?.archiveId;
+    const archiveId = parameters?.options?.archiveId;
     if (!archiveId) return callback();
 
     if (this.loadedArchiveDB && this.loadedArchiveDB.archiveId !== archiveId) {

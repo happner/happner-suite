@@ -45,7 +45,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('ensure the database has correct database pre-archive', async () => {
-        const archiveLog = await lokiProvider.find('*', { queryArchiveCollection: true });
+        const archiveLog = await lokiProvider.find('*', {
+          options: { queryArchiveCollection: true },
+        });
         test.expect(archiveLog.length).to.be(0);
 
         const found = await lokiProvider.find('test/path/*');
@@ -58,7 +60,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('ensure the database has correct database post-archive', async () => {
-        const archiveList = await lokiProvider.find('*', { queryArchiveCollection: true });
+        const archiveList = await lokiProvider.find('*', {
+          options: { queryArchiveCollection: true },
+        });
         test.expect(archiveList.length).to.be(1);
 
         const found = await lokiProvider.find('test/path/*');
@@ -66,7 +70,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('loads the archived database to get some data', async () => {
-        const found1 = await lokiProvider.find('test/path/*', { archiveId: archiveId });
+        const found1 = await lokiProvider.find('test/path/*', {
+          options: { archiveId: archiveId },
+        });
         test.expect(found1.length).to.be(3);
 
         const found2 = await lokiProvider.find('test/path/*');
@@ -75,7 +81,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
 
       it('tries to load an invalid archive but falls over and dies', async () => {
         try {
-          await lokiProvider.find('test/path/*', { archiveId: 1234 });
+          await lokiProvider.find('test/path/*', { options: { archiveId: 1234 } });
           throw new Error('Error has not been thrown by internal function!!!');
         } catch (e) {
           test.expect(e.message).to.equal('Archive ID does not exist');
@@ -127,7 +133,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('ensure the database has correct database pre-archive', async () => {
-        const archiveLog = await lokiProvider.find('*', { queryArchiveCollection: true });
+        const archiveLog = await lokiProvider.find('*', {
+          options: { queryArchiveCollection: true },
+        });
         test.expect(archiveLog.length).to.be(0);
 
         const found = await lokiProvider.find('test/path/*');
@@ -154,7 +162,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('ensure the database has correct database post-archive', async () => {
-        const archiveList = await lokiProvider.find('*', { queryArchiveCollection: true });
+        const archiveList = await lokiProvider.find('*', {
+          options: { queryArchiveCollection: true },
+        });
         test.expect(archiveList.length).to.be(2);
 
         const found = await lokiProvider.find('test/path/*');
@@ -162,10 +172,14 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       });
 
       it('loads the archived database to get some data', async () => {
-        const found1 = await lokiProvider.find('test/path/*', { archiveId: archiveId[0] });
+        const found1 = await lokiProvider.find('test/path/*', {
+          options: { archiveId: archiveId[0] },
+        });
         test.expect(found1.length).to.be(6);
 
-        const found2 = await lokiProvider.find('test/path/*', { archiveId: archiveId[1] });
+        const found2 = await lokiProvider.find('test/path/*', {
+          options: { archiveId: archiveId[1] },
+        });
         test.expect(found2.length).to.be(2);
 
         const found3 = await lokiProvider.find('test/path/*');
@@ -174,7 +188,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
 
       it('tries to load an invalid archive but falls over and dies', async () => {
         try {
-          await lokiProvider.find('test/path/*', { archiveId: 1234 });
+          await lokiProvider.find('test/path/*', { options: { archiveId: 1234 } });
           throw new Error('Error has not been thrown by internal function!!!');
         } catch (e) {
           test.expect(e.message).to.equal('Archive ID does not exist');
