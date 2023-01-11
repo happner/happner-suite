@@ -172,7 +172,7 @@ function archive(path, callback) {
     return callback(new Error(`archive feature not available for provider on path: ${path}`));
   }
 
-  provider.archive(callback);
+  return provider.archive(callback);
 }
 
 function get(path, parameters, callback) {
