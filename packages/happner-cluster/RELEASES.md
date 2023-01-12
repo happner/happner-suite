@@ -432,6 +432,10 @@
 -----------------
   - feat: Sqlite DB provider
 
+12.3.5  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+  
 12.4.0 2022-11-30
 -----------------
   - happn-cluster membership updated to mongo-based system

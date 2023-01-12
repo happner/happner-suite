@@ -1041,7 +1041,11 @@
 -----------------
   - feat: Sqlite DB Provider
 
-13.7.2 2022-11-30
+13.7.2  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+13.7.3 2022-01-12
 -----------------
   - Mongo cluster membership update (dev dependencies change)
   - Option have OS auto-assign happn and proxy ports (primarily for testing) 
