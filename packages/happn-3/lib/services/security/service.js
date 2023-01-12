@@ -1318,7 +1318,10 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.profileSession(session); //session ttl, activity threshold and user effective permissions are set here
 
     session.permissionSetKey = this.generatePermissionSetKey(session.user, session);
-    session.token = this.generateToken({ ...session, ...additionalInfo }, credentials.type);
+
+    session.token = tokenLogin
+      ? tokenLogin.token
+      : this.generateToken({ ...session, ...additionalInfo }, credentials.type);
 
     // It is not possible for the login (websocket call) to assign the session token (cookie) server side,
     // so the cookie is therefore created in the browser upon login success.
