@@ -305,6 +305,10 @@ non-release 2017-12-14
   - TEN-4: productionize summon (authType saved to user)
   - TEN-140: outdated pem module
 
+12.2.5  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
 13.0.0 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
@@ -312,5 +316,4 @@ non-release 2017-12-14
 13.0.1 2022-11-30
 -----------------
   - SMC-4817/TEN-12: mongo-based membership strategy - no longer removes peer/member if its info is missing from the db
-
 

@@ -93,6 +93,10 @@
 -----------------
   - feat: Sqlite DB provider
 
-1.1.4 2022-11-30
+1.1.4  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+1.1.5 2022-11-30
 -----------------
   - TEN-12: mongo-based membership strategy (dev dependencies changes)

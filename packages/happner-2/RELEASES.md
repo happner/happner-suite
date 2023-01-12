@@ -1014,6 +1014,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - feat: Sqlite DB provider
 
-12.5.4 2022-11-30
+12.5.4  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+12.5.5 2022-11-30
 -----------------
   - Mongo-based cluster membership - dependencies update

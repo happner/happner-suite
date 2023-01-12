@@ -63,19 +63,22 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (!fs.existsSync(this.settings.filename)) {
       return this.snapshot(callback);
     }
-    this.readDataFile(this.settings.filename, (error1) => {
+    this.readDataFile(this.settings.filename, (error1, lastLineNumber) => {
       if (!error1) return this.snapshot(callback);
+      if (lastLineNumber !== 0) {
+        // means the file is broken due to an issue other than an incomplete snapshot, throw the error
+        return callback(error1);
+      }
+      // this is because the snapshot was big and may have not been copied completely before the system was powered down
       this.logger.warn(
-        `Could not resconstruct loki db from ${
-          this.settings.filename
-        }, attempting to reconstruct from temp file. ${error1.toString()}`
+        `Attempting to reconstruct from temp file: ${this.settings.tempDataFilename}`
       );
       this.readDataFile(this.settings.tempDataFilename, (error2) => {
         if (!error2) return this.snapshot(callback);
         this.logger.error(
-          `Could not rescpnstruct loki db from file or temp file. Error on tempfile: ${error2.toString()}`
+          `Could not reconstruct loki db from file or temp file: ${error2.toString()}`
         );
-        callback(error1); //Rather callback with the error on the main file (?)
+        callback(error1); // rather callback with the error on the main file
       });
     });
   }
@@ -87,24 +90,31 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     });
     let lineIndex = 0;
     let errorHappened = false;
-
     reader.on('line', (line) => {
-      if (lineIndex === 0) {
-        try {
+      try {
+        if (lineIndex === 0) {
+          this.logger.info('loading snapshot...');
           this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
-        } catch (e) {
-          callback(e);
+          this.collection = this.db.collections[0];
+          this.logger.info('loaded snapshot...');
+        } else {
+          this.logger.info('parsing line at index: ', lineIndex);
+          const parsedOperation = this.parsePersistedOperation(line);
+          if (parsedOperation == null) {
+            // skip empties
+            this.logger.warn(`line at index ${lineIndex} is empty or corrupt, skipping`);
+          } else {
+            this.mutateDatabase(parsedOperation, true);
+          }
         }
-        this.collection = this.db.collections[0];
-      } else {
-        try {
-          this.mutateDatabase(this.parsePersistedOperation(line), true);
-        } catch (e) {
-          this.logger.error(`failed reconstructing line ${line}`);
-          errorHappened = true;
-          reader.close();
-          callback(e);
-        }
+      } catch (e) {
+        this.logger.error(
+          `failed reconstructing line at index ${lineIndex}: ${lineIndex > 0 ? line : '[snapshot]'}`
+        );
+        errorHappened = true;
+        reader.close();
+        reader.removeAllListeners();
+        return callback(e, lineIndex);
       }
       lineIndex++;
     });
@@ -125,16 +135,23 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   parsePersistedOperation(line) {
-    let operation = JSON.parse(line).operation;
-    if (operation.operationType === constants.DATA_OPERATION_TYPES.INSERT) {
-      delete operation.arguments[0].$loki;
-      delete operation.arguments[0].meta;
+    try {
+      let operation = JSON.parse(line).operation;
+      if (operation.operationType === constants.DATA_OPERATION_TYPES.INSERT) {
+        delete operation.arguments[0].$loki;
+        delete operation.arguments[0].meta;
+      }
+      if (operation.operationType === constants.DATA_OPERATION_TYPES.UPSERT) {
+        if (operation.arguments[1]._meta) {
+          delete operation.arguments[1]._meta.$loki;
+          delete operation.arguments[1]._meta.meta;
+        }
+      }
+      return operation;
+    } catch (e) {
+      this.logger.warn(`failed parsing operation: ${e.message}`);
+      return null;
     }
-    if (operation.operationType === constants.DATA_OPERATION_TYPES.UPSERT) {
-      delete operation.arguments[1]._meta.$loki;
-      delete operation.arguments[1]._meta.meta;
-    }
-    return operation;
   }
   stop(callback) {
     if (this.snapshotTimeout) {
@@ -239,7 +256,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   copyTempDataToMain(callback) {
-    if (fs.existsSync(this.settings.filename)) fs.unlinkSync(this.settings.filename);
+    if (fs.existsSync(this.settings.filename)) {
+      fs.unlinkSync(this.settings.filename);
+    }
     fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
   }
 

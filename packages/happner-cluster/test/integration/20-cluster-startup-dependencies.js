@@ -6,7 +6,7 @@ const helpers = {
   cluster: require('../_lib/helpers/cluster'),
 };
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
+
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   beforeEach('clear mongo collection', function (done) {
     clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
@@ -80,16 +80,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
     //check everything started
     values.sort();
-    test
-      .expect(values)
-      .to.eql([
-        getSeq.getMeshName(1),
-        getSeq.getMeshName(2),
-        getSeq.getMeshName(3),
-        getSeq.getMeshName(4),
-        getSeq.getMeshName(5),
-        getSeq.getMeshName(6),
-      ]);
+    test.expect(values).to.eql(['MESH_0', 'MESH_1', 'MESH_2', 'MESH_3', 'MESH_4', 'MESH_5']);
     await helpers.client.destroy(client);
     await cluster.destroy();
   });
@@ -126,7 +117,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       return item.value;
     });
     values.sort();
-    test.expect(values).to.eql([getSeq.getMeshName(1), getSeq.getMeshName(2)]);
+    test.expect(values).to.eql(['MESH_0', 'MESH_1']);
 
     test.expect(cluster.instances.length).to.be(2); // 2 and 3 have not started up yet, because of missing dependencies.
     // with auto-assigned ports, they won't have a proxy port yet.
