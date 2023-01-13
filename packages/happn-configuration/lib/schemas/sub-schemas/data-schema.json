@@ -11,6 +11,9 @@
         },
         "path": {
           "type": "string"
+        },
+        "setOptions": {
+          "$ref": "#/definitions/SetOptions"
         }
       },
       "required": [
@@ -106,6 +109,18 @@
       "required": [
       ],
       "title": "Settings"
+    },
+    "SetOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "SetOptions"
     }
   }
 }

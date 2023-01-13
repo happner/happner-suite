@@ -5,7 +5,7 @@ import { ConfigValidator } from '../../../../lib/validators/config-validator';
 import mockLogger from '../../../__fixtures/logger';
 
 describe('components configuration validation tests', function () {
-  const validator = new ConfigValidator(mockLogger);
+  const validator = new ConfigValidator(null, mockLogger);
 
   it('validates full components config', () => {
     const config = createValidComponentsConfig();

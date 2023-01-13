@@ -1,40 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import Ajv from 'ajv';
 import defaultLogger from '../log/default-logger';
-
-const happnSchema = require('../schemas/happn-schema.json');
-const happnerSchema = require('../schemas/happner-schema.json');
-const happnClusterSchema = require('../schemas/happn-cluster-schema.json');
-const happnerClusterSchema = require('../schemas/happner-cluster-schema.json');
-const cacheSchema = require('../schemas/sub-schemas/cache-schema.json');
-const connectSchema = require('../schemas/sub-schemas/connect-schema.json');
-const dataSchema = require('../schemas/sub-schemas/data-schema.json');
-const dataLazySchema = require('../schemas/sub-schemas/data-lazy-schema.json');
-const protocolSchema = require('../schemas/sub-schemas/protocol-schema.json');
-const publisherSchema = require('../schemas/sub-schemas/publisher-schema.json');
-const securitySchema = require('../schemas/sub-schemas/security-schema.json');
-const subscriptionSchema = require('../schemas/sub-schemas/subscription-schema.json');
-const systemSchema = require('../schemas/sub-schemas/system-schema.json');
-const transportSchema = require('../schemas/sub-schemas/transport-schema.json');
-const utilsSchema = require('../schemas/sub-schemas/utils-schema.json');
-const errorSchema = require('../schemas/sub-schemas/error-schema.json');
-const logSchema = require('../schemas/sub-schemas/log-schema.json');
-const cryptoSchema = require('../schemas/sub-schemas/crypto-schema.json');
-const sessionSchema = require('../schemas/sub-schemas/session-schema.json');
-const healthSchema = require('../schemas/sub-schemas/health-schema.json');
-const membershipSchema = require('../schemas/sub-schemas/membership-schema.json');
-const orchestratorSchema = require('../schemas/sub-schemas/orchestrator-schema.json');
-const proxySchema = require('../schemas/sub-schemas/proxy-schema.json');
-const replicatorSchema = require('../schemas/sub-schemas/replicator-schema.json');
-const profileSchema = require('../schemas/sub-schemas/profile-schema.json');
-const componentsSchema = require('../schemas/sub-schemas/components-schema.json');
-const componentsLazySchema = require('../schemas/sub-schemas/components-lazy-schema.json');
-const endpointsSchema = require('../schemas/sub-schemas/endpoints-schema.json');
-const modulesSchema = require('../schemas/sub-schemas/modules-schema.json');
-const middlewareSchema = require('../schemas/sub-schemas/middleware-schema.json');
-const pluginsSchema = require('../schemas/sub-schemas/plugins-schema.json');
-const clusterSchema = require('../schemas/sub-schemas/cluster-schema.json');
-
+import { SchemaFactory } from '../factories/schema-factory';
 import { FieldTypeValidator } from './field-type-validator';
 
 export class ConfigValidator {
@@ -42,42 +9,77 @@ export class ConfigValidator {
   #fieldTypeValidator;
   #log;
 
-  constructor(log?) {
+  #happnSchema;
+  #happnerSchema;
+  #happnClusterSchema;
+  #happnerClusterSchema;
+  #cacheSchema;
+  #connectSchema;
+  #dataSchema;
+  #dataLazySchema;
+  #protocolSchema;
+  #publisherSchema;
+  #securitySchema;
+  #subscriptionSchema;
+  #systemSchema;
+  #transportSchema;
+  #utilsSchema;
+  #errorSchema;
+  #logSchema;
+  #cryptoSchema;
+  #sessionSchema;
+  #healthSchema;
+  #membershipSchema;
+  #orchestratorSchema;
+  #proxySchema;
+  #replicatorSchema;
+  #profileSchema;
+  #componentsSchema;
+  #componentsLazySchema;
+  #endpointsSchema;
+  #modulesSchema;
+  #middlewareSchema;
+  #pluginsSchema;
+  #clusterSchema;
+
+  constructor(targetVersion, log?) {
     this.#log = log || defaultLogger;
+    this.#fetchSchemas(targetVersion);
+
     this.#ajv = new Ajv({
       schemas: [
-        happnSchema,
-        happnerSchema,
-        happnClusterSchema,
-        happnerClusterSchema,
-        cacheSchema,
-        connectSchema,
-        dataSchema,
-        dataLazySchema,
-        protocolSchema,
-        publisherSchema,
-        securitySchema,
-        subscriptionSchema,
-        systemSchema,
-        transportSchema,
-        utilsSchema,
-        errorSchema,
-        logSchema,
-        cryptoSchema,
-        sessionSchema,
-        healthSchema,
-        membershipSchema,
-        orchestratorSchema,
-        proxySchema,
-        replicatorSchema,
-        profileSchema,
-        componentsSchema,
-        componentsLazySchema,
-        endpointsSchema,
-        modulesSchema,
-        middlewareSchema,
-        pluginsSchema,
-        clusterSchema,
+        this.#happnSchema,
+        this.#happnerSchema,
+        this.#happnClusterSchema,
+        this.#happnerClusterSchema,
+        this.#cacheSchema,
+        this.#connectSchema,
+        this.#dataSchema,
+        this.#dataLazySchema,
+        this.#protocolSchema,
+        this.#publisherSchema,
+        this.#securitySchema,
+        this.#subscriptionSchema,
+        this.#systemSchema,
+        this.#transportSchema,
+        this.#utilsSchema,
+        this.#errorSchema,
+        this.#logSchema,
+        this.#cryptoSchema,
+        this.#sessionSchema,
+        this.#healthSchema,
+        this.#membershipSchema,
+        this.#orchestratorSchema,
+        this.#proxySchema,
+        this.#replicatorSchema,
+        this.#profileSchema,
+        this.#componentsSchema,
+        this.#componentsLazySchema,
+        this.#endpointsSchema,
+        this.#modulesSchema,
+        this.#middlewareSchema,
+        this.#pluginsSchema,
+        this.#clusterSchema,
       ],
       strictNumbers: false, // to handle Infinity types
       allowUnionTypes: true, // handle multiple allowed types, eg: string,object
@@ -87,24 +89,61 @@ export class ConfigValidator {
     this.#fieldTypeValidator = new FieldTypeValidator();
   }
 
+  #fetchSchemas(targetVersion) {
+    const schemaFactory = new SchemaFactory(targetVersion);
+
+    this.#happnSchema = schemaFactory.getSchema('happn');
+    this.#happnerSchema = schemaFactory.getSchema('happner');
+    this.#happnClusterSchema = schemaFactory.getSchema('happn-cluster');
+    this.#happnerClusterSchema = schemaFactory.getSchema('happner-cluster');
+    this.#cacheSchema = schemaFactory.getSchema('cache');
+    this.#connectSchema = schemaFactory.getSchema('connect');
+    this.#dataSchema = schemaFactory.getSchema('data');
+    this.#dataLazySchema = schemaFactory.getSchema('data-lazy');
+    this.#protocolSchema = schemaFactory.getSchema('protocol');
+    this.#publisherSchema = schemaFactory.getSchema('publisher');
+    this.#securitySchema = schemaFactory.getSchema('security');
+    this.#subscriptionSchema = schemaFactory.getSchema('subscription');
+    this.#systemSchema = schemaFactory.getSchema('system');
+    this.#transportSchema = schemaFactory.getSchema('transport');
+    this.#utilsSchema = schemaFactory.getSchema('utils');
+    this.#errorSchema = schemaFactory.getSchema('error');
+    this.#logSchema = schemaFactory.getSchema('log');
+    this.#cryptoSchema = schemaFactory.getSchema('crypto');
+    this.#sessionSchema = schemaFactory.getSchema('session');
+    this.#healthSchema = schemaFactory.getSchema('health');
+    this.#membershipSchema = schemaFactory.getSchema('membership');
+    this.#orchestratorSchema = schemaFactory.getSchema('orchestrator');
+    this.#proxySchema = schemaFactory.getSchema('proxy');
+    this.#replicatorSchema = schemaFactory.getSchema('replicator');
+    this.#profileSchema = schemaFactory.getSchema('profile');
+    this.#componentsSchema = schemaFactory.getSchema('components');
+    this.#componentsLazySchema = schemaFactory.getSchema('components-lazy');
+    this.#endpointsSchema = schemaFactory.getSchema('endpoints');
+    this.#modulesSchema = schemaFactory.getSchema('modules');
+    this.#middlewareSchema = schemaFactory.getSchema('middleware');
+    this.#pluginsSchema = schemaFactory.getSchema('plugins');
+    this.#clusterSchema = schemaFactory.getSchema('cluster');
+  }
+
   /*****************************************************
    HAPPN-SPECIFIC
    ****************************************************/
 
   validateCacheConfig(config: any): ValidationResult {
-    return this.#validate(config, cacheSchema);
+    return this.#validate(config, this.#cacheSchema);
   }
 
   validateConnectConfig(config: any): ValidationResult {
-    return this.#validate(config, connectSchema);
+    return this.#validate(config, this.#connectSchema);
   }
 
   validateDataConfig(config: any): ValidationResult {
-    return this.#validate(config, dataSchema);
+    return this.#validate(config, this.#dataSchema);
   }
 
   validateProtocolConfig(config: any): ValidationResult {
-    const result = this.#validate(config, protocolSchema);
+    const result = this.#validate(config, this.#protocolSchema);
 
     if (config.config.inboundLayers !== null) {
       config.config.inboundLayers.forEach((layer) => {
@@ -130,27 +169,27 @@ export class ConfigValidator {
   }
 
   validatePublisherConfig(config: any): ValidationResult {
-    return this.#validate(config, publisherSchema);
+    return this.#validate(config, this.#publisherSchema);
   }
 
   validateSecurityConfig(config: any): ValidationResult {
-    return this.#validate(config, securitySchema);
+    return this.#validate(config, this.#securitySchema);
   }
 
   validateSubscriptionConfig(config: any): ValidationResult {
-    return this.#validate(config, subscriptionSchema);
+    return this.#validate(config, this.#subscriptionSchema);
   }
 
   validateSystemConfig(config: any): ValidationResult {
-    return this.#validate(config, systemSchema);
+    return this.#validate(config, this.#systemSchema);
   }
 
   validateTransportConfig(config: any): ValidationResult {
-    return this.#validate(config, transportSchema);
+    return this.#validate(config, this.#transportSchema);
   }
 
   validateHappnConfig(config: any): ValidationResult {
-    return this.#validate(config, happnSchema);
+    return this.#validate(config, this.#happnSchema);
   }
 
   /*****************************************************
@@ -158,27 +197,27 @@ export class ConfigValidator {
    ****************************************************/
 
   validateHealthConfig(config: any): ValidationResult {
-    return this.#validate(config, healthSchema);
+    return this.#validate(config, this.#healthSchema);
   }
 
   validateMembershipConfig(config: any): ValidationResult {
-    return this.#validate(config, membershipSchema);
+    return this.#validate(config, this.#membershipSchema);
   }
 
   validateOrchestratorConfig(config: any): ValidationResult {
-    return this.#validate(config, orchestratorSchema);
+    return this.#validate(config, this.#orchestratorSchema);
   }
 
   validateProxyConfig(config: any): ValidationResult {
-    return this.#validate(config, proxySchema);
+    return this.#validate(config, this.#proxySchema);
   }
 
   validateReplicatorConfig(config: any): ValidationResult {
-    return this.#validate(config, replicatorSchema);
+    return this.#validate(config, this.#replicatorSchema);
   }
 
   validateHappnClusterConfig(config: any) {
-    return this.#validate(config, happnClusterSchema);
+    return this.#validate(config, this.#happnClusterSchema);
   }
 
   /*****************************************************
@@ -186,19 +225,19 @@ export class ConfigValidator {
    ****************************************************/
 
   validateComponentsConfig(config: any): ValidationResult {
-    return this.#validate(config, componentsSchema);
+    return this.#validate(config, this.#componentsSchema);
   }
 
   validateEndpointsConfig(config: any): ValidationResult {
-    return this.#validate(config, endpointsSchema);
+    return this.#validate(config, this.#endpointsSchema);
   }
 
   validateModulesConfig(config: any): ValidationResult {
-    return this.#validate(config, modulesSchema);
+    return this.#validate(config, this.#modulesSchema);
   }
 
   validateHappnerConfig(config: any) {
-    return this.#validate(config, happnerSchema);
+    return this.#validate(config, this.#happnerSchema);
   }
 
   /*****************************************************
@@ -206,7 +245,7 @@ export class ConfigValidator {
    ****************************************************/
 
   validateHappnerClusterConfig(config: any) {
-    return this.#validate(config, happnerClusterSchema);
+    return this.#validate(config, this.#happnerClusterSchema);
   }
 
   /*
