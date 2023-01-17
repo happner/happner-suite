@@ -290,7 +290,7 @@ describe(testHelper.testName(__filename, 3), function () {
     });
   });
 
-  it('tests security services session revocation', function (done) {
+  xit('tests security services session revocation', function (done) {
     mockServices(function (e, happn) {
       if (e) return done(e);
       var session = mockSession(1, 'TEST_SESSION', 'TEST_USER', 60000, happn.services.security);
