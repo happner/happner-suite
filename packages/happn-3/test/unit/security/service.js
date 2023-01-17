@@ -1,5 +1,3 @@
-const { isContext } = require('node:vm');
-
 require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, function (test) {
   const happn = require('../../../lib/index');
   const Logger = require('happn-logger');

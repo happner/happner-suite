@@ -187,64 +187,72 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     let credentials = message.request.data;
     let sessionId = null;
     if (message.session) sessionId = message.session.id;
-    this.#matchAuthProvider(credentials, (e, authProvider) => {
-      if (e) return callback(e);
-      let loginError, loginSession;
-      authProvider.instance
-        .login(credentials, sessionId, message.request)
-        .then(
-          (session) => {
-            loginSession = session;
-          },
-          (e) => {
-            loginError = e;
-          }
-        )
-        .finally(() => {
-          if (loginError) {
-            return callback(loginError);
-          }
-          let attachedSession = this.happn.services.session.attachSession(
-            sessionId,
-            loginSession,
-            authProvider.authType
-          );
-          if (!attachedSession) {
-            return callback(
-              new Error('session with id ' + sessionId + ' dropped while logging in')
+    this.#matchAuthProvider(
+      credentials,
+      (e, authProvider) => {
+        if (e) return callback(e);
+        let loginError, loginSession;
+        authProvider.instance
+          .login(credentials, sessionId, message.request)
+          .then(
+            (session) => {
+              loginSession = session;
+            },
+            (e) => {
+              loginError = e;
+            }
+          )
+          .finally(() => {
+            if (loginError) {
+              return callback(loginError);
+            }
+            let attachedSession = this.happn.services.session.attachSession(
+              sessionId,
+              loginSession,
+              authProvider.authType
             );
-          }
-          let decoupledSession = this.happn.services.utils.clone(attachedSession);
-          delete decoupledSession.user.groups; //needlessly large list of security groups passed back, groups are necessary on server side though
-          message.response = {
-            data: decoupledSession,
-          };
-          callback(null, message);
-        });
-    });
+            if (!attachedSession) {
+              return callback(
+                new Error('session with id ' + sessionId + ' dropped while logging in')
+              );
+            }
+            let decoupledSession = this.happn.services.utils.clone(attachedSession);
+            delete decoupledSession.user.groups; //needlessly large list of security groups passed back, groups are necessary on server side though
+            message.response = {
+              data: decoupledSession,
+            };
+            callback(null, message);
+          });
+      },
+      this?.config?.allowUserChooseAuthProvider !== false
+    );
   }
 
   login(credentials, sessionId, request, callback) {
-    this.#matchAuthProvider(credentials, (e, authProvider) => {
-      if (e) return callback(e);
-      let loginSession, loginError;
-      return authProvider.instance
-        .login(credentials, sessionId, request)
-        .then(
-          (session) => {
-            loginSession = session;
-          },
-          (e) => {
-            loginError = e;
-          }
-        )
-        .finally(() => {
-          if (loginError) {
-            return callback(loginError);
-          }
-          callback(null, loginSession);
-        });
-    });
+    this.#matchAuthProvider(
+      credentials,
+      (e, authProvider) => {
+        if (e) return callback(e);
+        let loginSession, loginError;
+        return authProvider.instance
+          .login(credentials, sessionId, request)
+          .then(
+            (session) => {
+              loginSession = session;
+            },
+            (e) => {
+              loginError = e;
+            }
+          )
+          .finally(() => {
+            if (loginError) {
+              return callback(loginError);
+            }
+            callback(null, loginSession);
+          });
+      },
+      this?.config?.allowUserChooseAuthProvider !== false
+    );
   }
 
   processAuthorizeUnsecure(message, callback) {
@@ -654,7 +662,9 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       if (!this.cache_revoked_tokens) return callback(null, true);
       this.cache_revoked_tokens.get(session.token, (e, item) => {
         if (e) return callback(e);
-        if (item == null) return callback(null, true);
+        if (item == null) {
+          return callback(null, true);
+        }
         callback(null, false, `token has been revoked`);
       });
     });
