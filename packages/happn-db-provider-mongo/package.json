@@ -25,7 +25,7 @@
     "byline": "^5.0.0",
     "gulp": "^3.9.0",
     "happn-3": "13.9.0-prerelease-1",
-    "happn-commons-test": "1.1.2"
+    "happn-commons-test": "1.2.0"
   },
   "readmeFilename": "README.md"
 }

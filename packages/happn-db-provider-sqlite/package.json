@@ -18,7 +18,7 @@
     "sqlite3": "^5.1.2"
   },
   "devDependencies": {
-    "happn-commons-test": "1.1.2",
-    "happn-3": "13.8.0-prerelease-4"
+    "happn-commons-test": "1.2.0",
+    "happn-3": "13.9.0-prerelease-1"
   }
 }
