@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const LokiDataProvider = require('../..');
 const test = require('happn-commons-test').create();
 const testDirPath = test.commons.path.resolve(__dirname, `../tmp`);
