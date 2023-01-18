@@ -1,14 +1,15 @@
-<<<<<<< HEAD
-2.4.0 2023-01-03
+2.5.0 2023-01-18
 -----------------
   - feat: auth provider enhancements
 
-2.3.1 2022-12-22
-=======
+2.4.0  2023-01-11
+-----------------
+  - feat: loki archiving and plugins
+
 2.3.1  2022-12-22
->>>>>>> develop
 -----------------
   - feat: loki provider disaster recovery enhancements
+
 
 2.3.0 2022-11-26
 -----------------

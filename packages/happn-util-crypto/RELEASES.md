@@ -42,3 +42,9 @@
 3.0.8 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+3.0.9 2023-01-11
+-----------------
+  - feat: loki archiving
+  - feat: loki plugins
+  

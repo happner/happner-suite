@@ -97,7 +97,10 @@
 -----------------
   - feat: loki provider disaster recovery enhancements
 
-1.1.5 2023-01-03
+1.1.5  2022-01-11
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+1.1.6 2023-01-18
 -----------------
   - feat: Summon productionization
-

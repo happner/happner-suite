@@ -81,65 +81,76 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     });
   });
   context('Reconstruction', () => {
+    const testFiles = [];
+    const basePath = `${testFixturesDir}${test.commons.path.sep}test-data-files${test.commons.path.sep}`;
+    function copyFile(fileName) {
+      test.fs.copySync(`${basePath}${fileName}`, `${basePath}${fileName}-test`, {
+        force: true,
+      });
+      testFiles.push(`${basePath}${fileName}-test`);
+    }
     before('creates test files', () => {
-      test.fs.copySync(
-        `${testFixturesDir}${test.commons.path.sep}bad-data`,
-        `${testFixturesDir}${test.commons.path.sep}corrupted-data`,
-        { force: true }
-      );
-      test.fs.copySync(
-        `${testFixturesDir}${test.commons.path.sep}good-data`,
-        `${testFixturesDir}${test.commons.path.sep}temp_corrupted-data`,
-        { force: true }
-      );
-      test.fs.copySync(
-        `${testFixturesDir}${test.commons.path.sep}good-data-bad-ops`,
-        `${testFixturesDir}${test.commons.path.sep}good-data-corrupt-ops`,
-        { force: true }
-      );
-      test.fs.copySync(
-        `${testFixturesDir}${test.commons.path.sep}good-data-with-ops`,
-        `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
-        { force: true }
-      );
-      test.fs.copySync(
-        `${testFixturesDir}${test.commons.path.sep}corrupted-eof`,
-        `${testFixturesDir}${test.commons.path.sep}corrupted-eof-test`,
-        { force: true }
-      );
-    });
-    it('can restore from good data', async () => {
-      await testRestore({}, 'good-data');
+      copyFile(`corrupted-eof`);
+      copyFile(`good-data`);
+      copyFile(`good-data-bad-ops`);
+      copyFile(`good-data-with-ops`);
+      copyFile(`good-snapshot`);
+      copyFile(`temp_good-snapshot`);
+      testFiles.push(`${basePath}temp_corrupted-eof-test`);
+      testFiles.push(`${basePath}temp_good-data-bad-ops-test`);
+      testFiles.push(`${basePath}temp_good-data-test`);
+      testFiles.push(`${basePath}temp_good-data-with-ops-test`);
     });
 
     it('can restore from corrupt eof', async () => {
-      await testRestoreWithOps({}, 'corrupted-eof-test', 2);
+      await testRestore({}, 'corrupted-eof-test', 2);
     });
 
-    it('can restore from bad data if temp file is good', async () => {
-      await testRestore({}, 'corrupted-data', 2);
+    it('can restore from good data', async () => {
+      await testRestore({}, 'good-data-test', 2);
+    });
+
+    it('can restore from good data with some bad ops', async () => {
+      await testRestore({}, 'good-data-bad-ops-test', 2);
+    });
+
+    it('can restore from good data with ops', async () => {
+      await testRestore({}, 'good-data-with-ops-test', 2);
     });
 
     it('cannot restore from bad data if temp file is bad as well', async () => {
-      await testRestore({}, 'bad-snapshot', 'Unexpected end of JSON input');
+      await testRestore({}, 'bad-snapshot', null, 'Unexpected end of JSON input');
     });
 
-    it('can restore from good data with operations', async () => {
-      await testRestoreWithOps({}, 'good-data-with-ops', 4);
+    it('can recover from good data snapshot', async () => {
+      await testRestore({}, 'good-snapshot-test', 2);
     });
 
-    it('can restore from good data wit bad ops if temp file is good', async () => {
-      await testRestoreWithOps({}, 'good-data-corrupt-ops', 2);
-    });
     after('deletes files', async () => {
       await test.delay(1000);
-      test.unlinkFiles([
-        `${testFixturesDir}${test.commons.path.sep}corrupted-data`,
-        `${testFixturesDir}${test.commons.path.sep}temp_corrupted-data`,
-        `${testFixturesDir}${test.commons.path.sep}good-data-corrupt-ops`,
-        `${testFixturesDir}${test.commons.path.sep}temp_good-data-corrupt-ops`,
-      ]);
+      test.unlinkFiles(testFiles);
     });
+
+    async function testRestore(settings, fileName, assertion, expectedError) {
+      const lokiProvider = new LokiDataProvider(null, mockLogger);
+      lokiProvider.settings = {
+        ...{
+          filename: `${basePath}${fileName}`,
+          snapshotRollOverThreshold: 5,
+        },
+        ...settings,
+      };
+      try {
+        await lokiProvider.initialize();
+      } catch (e) {
+        if (e.message === expectedError) {
+          return;
+        }
+        throw e;
+      }
+      const found = await lokiProvider.find('test/increment');
+      test.expect(found[0].data.testGauge.value).to.be(assertion);
+    }
   });
   async function testMerge(settings) {
     const lokiProvider = new LokiDataProvider(mockLogger);
@@ -320,124 +331,5 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     found = await lokiProvider.find('test/path/*');
     test.expect(found.length).to.be(3);
     test.expect(lokiProvider.operationCount).to.be(0);
-  }
-
-  async function testRestore(settings, fileName, expectedError) {
-    const lokiProvider = new LokiDataProvider(null, mockLogger);
-    lokiProvider.settings = {
-      ...{
-        filename: `${testFixturesDir}${test.commons.path.sep}${fileName}`,
-        snapshotRollOverThreshold: 5,
-      },
-      ...settings,
-    };
-    try {
-      await lokiProvider.initialize();
-    } catch (e) {
-      if (e.message === expectedError) {
-        return;
-      }
-      throw e;
-    }
-    const found = await lokiProvider.find('test/path/*');
-    test.expect(found.length).to.be(3);
-    test.expect(lokiProvider.operationCount).to.be(0);
-  }
-
-  async function testRestoreWithOps(settings, fileName, assertion) {
-    const lokiProvider = new LokiDataProvider(null, mockLogger);
-    lokiProvider.settings = {
-      ...{
-        filename: `${testFixturesDir}${test.commons.path.sep}${fileName}`,
-        snapshotRollOverThreshold: 5,
-      },
-      ...settings,
-    };
-    await lokiProvider.initialize();
-    const found = await lokiProvider.find('test/increment');
-
-    test.expect(found[0].data.testGauge.value).to.be(assertion);
-  }
-
-  async function testCriteria() {
-    const lokiProvider = new LokiDataProvider(null, mockLogger);
-    await lokiProvider.initialize();
-    await lokiProvider.insert({
-      path: 'test/path/1',
-      data: { test: { data: 1, other: 'blah' } },
-    });
-    await lokiProvider.insert({
-      path: 'test/path/2',
-      data: { test: { data: 2, other: 'plah' } },
-    });
-    await lokiProvider.insert({
-      path: 'test/path/3',
-      data: { test: { data: 3, other: 'lpah' } },
-    });
-    await lokiProvider.insert({
-      path: 'test/path/4',
-      data: { test: { data: 4, other: 'hello' } },
-    });
-    await lokiProvider.insert({
-      path: 'test/path/5',
-      data: { test: { data: 5, other: 'world' } },
-    });
-
-    const found1 = await lokiProvider.find('test/path/*', {
-      criteria: {
-        'data.test.data': {
-          $eq: 1,
-        },
-      },
-    });
-
-    test.chai.expect(found1).to.have.lengthOf(1);
-    test.chai.expect(found1).to.deep.nested.property('0.path').which.equals('test/path/1');
-
-    const found2 = await lokiProvider.find('test/path/*', {
-      criteria: {
-        'data.test.data': {
-          $eq: 2,
-        },
-      },
-    });
-
-    test.chai.expect(found2).to.have.lengthOf(1);
-    test.chai.expect(found2).to.deep.nested.property('0.path').which.equals('test/path/2');
-
-    const found3 = await lokiProvider.find('test/path/*', {
-      criteria: {
-        'data.test.data': {
-          $eq: 3,
-        },
-      },
-    });
-
-    test.chai.expect(found3).to.have.lengthOf(1);
-    test.chai.expect(found3).to.deep.nested.property('0.path').which.equals('test/path/3');
-
-    const found4 = await lokiProvider.find('test/path/*', {
-      criteria: {
-        'data.test.data': {
-          $in: [1, 3],
-        },
-      },
-    });
-
-    test.chai.expect(found4).to.have.lengthOf(2);
-    test.chai.expect(found4).to.deep.nested.property('0.path').which.equals('test/path/1');
-    test.chai.expect(found4).to.deep.nested.property('1.path').which.equals('test/path/3');
-
-    const found5 = await lokiProvider.find('test/path/*', {
-      criteria: {
-        'data.test.other': {
-          $like: '%la%',
-        },
-      },
-    });
-
-    test.chai.expect(found5).to.have.lengthOf(2);
-    test.chai.expect(found5).to.deep.nested.property('0.path').which.equals('test/path/1');
-    test.chai.expect(found5).to.deep.nested.property('1.path').which.equals('test/path/2');
   }
 });
