@@ -61,7 +61,7 @@ const BaseClz = class BaseClz extends BaseBuilder {
 };
 
 export class ConfigBuilderFactory {
-  static getBuilder(type: string) {
+  static getBuilder(type: string, version: string) {
     switch (type) {
       case HAPPN:
         return ConfigBuilderFactory.getHappnBuilder();
@@ -70,7 +70,7 @@ export class ConfigBuilderFactory {
       case HAPPNER:
         return ConfigBuilderFactory.getHappnerBuilder();
       case HAPPNER_CLUSTER:
-        return ConfigBuilderFactory.getHappnerClusterBuilder();
+        return ConfigBuilderFactory.getHappnerClusterBuilder(version);
       default:
         throw new Error('Unknown configuration type');
     }
