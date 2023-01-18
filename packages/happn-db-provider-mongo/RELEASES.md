@@ -97,3 +97,8 @@
 -----------------
   - feat: loki provider disaster recovery enhancements
 
+1.1.5  2022-01-11
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+
