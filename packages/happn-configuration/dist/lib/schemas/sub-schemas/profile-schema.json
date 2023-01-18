@@ -1,0 +1,100 @@
+{
+    "$id": "profile-schema.json",
+    "$ref": "#/definitions/Profile",
+    "definitions": {
+        "Profile": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "policy": {
+                    "$ref": "#/definitions/Policy"
+                },
+                "session": {
+                    "$ref": "#/definitions/Session"
+                }
+            },
+            "required": [],
+            "title": "Profile"
+        },
+        "Policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "disallowTokenLogins": {
+                    "type": "boolean"
+                },
+                "lockTokenToOrigin": {
+                    "type": "boolean"
+                },
+                "sourceIPWhitelist": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ttl": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "\\d+ (milliseconds|seconds|minutes|hours|days|weeks|months|years)"
+                        }
+                    ]
+                },
+                "inactivity_threshold": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "\\d+ (milliseconds|seconds|minutes|hours|days|weeks|months|years)"
+                        }
+                    ]
+                },
+                "permissions": {
+                    "type": "object",
+                    "$ref": "#/definitions/Permissions"
+                },
+                "usage_limit": {
+                    "type": [
+                        "number"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Policy"
+        },
+        "Permissions": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "authorized": {
+                            "type": "boolean"
+                        },
+                        "actions": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "title": "Permissions"
+        },
+        "Session": {
+            "type": "object",
+            "additionalProperties": true,
+            "title": "Session"
+        }
+    }
+}

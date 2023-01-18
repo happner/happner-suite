@@ -1,0 +1,21 @@
+{
+    "$id": "cluster-schema.json",
+    "$ref": "#/definitions/ClusterSchema",
+    "definitions": {
+        "ClusterSchema": {
+            "type": "object",
+            "properties": {
+                "requestTimeout": {
+                    "type": [
+                        "number",
+                        "boolean"
+                    ]
+                },
+                "responseTimeout": {
+                    "type": "number"
+                }
+            },
+            "title": "ClusterSchema"
+        }
+    }
+}

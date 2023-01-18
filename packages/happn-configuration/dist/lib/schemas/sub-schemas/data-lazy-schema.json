@@ -1,0 +1,28 @@
+{
+    "$id": "data-lazy-schema.json",
+    "$ref": "#/definitions/Data",
+    "definitions": {
+        "Data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "setOptions": {
+                    "$ref": "#/definitions/SetOptions"
+                }
+            },
+            "required": [],
+            "title": "Data"
+        },
+        "SetOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "timeout": {
+                    "type": "number"
+                }
+            },
+            "required": [],
+            "title": "SetOptions"
+        }
+    }
+}
