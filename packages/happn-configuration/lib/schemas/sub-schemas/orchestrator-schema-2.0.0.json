@@ -1,5 +1,5 @@
 {
-  "$id": "orchestrator-schema.json",
+  "$id": "orchestrator-schema-2.0.0.json",
   "$ref": "#/definitions/Orchestrator",
   "definitions": {
     "Orchestrator": {

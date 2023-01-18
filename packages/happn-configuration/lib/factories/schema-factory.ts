@@ -22,14 +22,14 @@ export class SchemaFactory {
       name === Constants.HAPPNER_CLUSTER
     ) {
       schemaNonVersionedPath = `${schemaRootPath}/${name}-schema.json`;
-      schemaVersionedPath = `${schemaRootPath}/${this.#version}/${name}-schema.json`;
+      schemaVersionedPath = `${schemaRootPath}/${name}-schema-${this.#version}.json`;
     } else {
       schemaNonVersionedPath = `${schemaRootPath}/sub-schemas/${name}-schema.json`;
-      schemaVersionedPath = `${schemaRootPath}/sub-schemas/${this.#version}/${name}-schema.json`;
+      schemaVersionedPath = `${schemaRootPath}/sub-schemas/${name}-schema-${this.#version}.json`;
     }
 
-    return existsSync(`${schemaNonVersionedPath}`)
-      ? JSON.parse(readFileSync(schemaNonVersionedPath).toString())
-      : JSON.parse(readFileSync(schemaVersionedPath).toString());
+    return existsSync(`${schemaVersionedPath}`)
+      ? JSON.parse(readFileSync(schemaVersionedPath).toString())
+      : JSON.parse(readFileSync(schemaNonVersionedPath).toString());
   }
 }

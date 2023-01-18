@@ -1,0 +1,34 @@
+{
+    "$id": "utils-schema.json",
+    "$ref": "#/definitions/Utils",
+    "definitions": {
+        "Utils": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/UtilsConfig"
+                },
+                "logFile": {
+                    "type": "object"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "Utils"
+        },
+        "UtilsConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "secure": {
+                    "type": "boolean"
+                }
+            },
+            "required": [],
+            "title": "UtilsConfig"
+        }
+    }
+}

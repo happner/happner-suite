@@ -1,5 +1,5 @@
 {
-  "$id": "happn-cluster-schema.json",
+  "$id": "happn-cluster-schema-2.0.0.json",
   "$ref": "#/definitions/HappnClusterSchema",
   "definitions": {
     "HappnClusterSchema": {
@@ -33,7 +33,7 @@
           "$ref": "health-schema.json"
         },
         "orchestrator": {
-          "$ref": "orchestrator-schema.json"
+          "$ref": "orchestrator-schema-2.0.0.json"
         },
         "proxy": {
           "$ref": "proxy-schema.json"

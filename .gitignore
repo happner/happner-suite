@@ -58,6 +58,6 @@ packages/happn-primus-wrapper/test/primus.save.sync.js
 temp/*
 
 # configuration compilation output
-/packages/happn-configuration/dist/index.js
-/packages/happn-configuration/dist/lib
-!/packages/happn-configuration/dist/package.json
+#/packages/happn-configuration/dist/index.js
+#/packages/happn-configuration/dist/lib
+#!/packages/happn-configuration/dist/package.json
