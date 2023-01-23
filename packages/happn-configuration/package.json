@@ -2,7 +2,7 @@
   "name": "happn-configuration",
   "version": "0.0.1",
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "clean": "tsc --build --clean",
     "compile": "npm run clean && tsc",
