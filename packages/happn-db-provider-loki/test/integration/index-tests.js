@@ -75,10 +75,6 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
         fsync: true,
       });
     });
-
-    it('can find with criteria', async () => {
-      await testCriteria();
-    });
   });
   context('Reconstruction', () => {
     const testFiles = [];

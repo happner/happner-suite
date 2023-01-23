@@ -3805,7 +3805,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         accountLockout: { enabled: false },
         updateSubscriptionsOnSecurityDirectoryChanged: true,
         disableDefaultAdminNetworkConnections: true,
-        updateSubscriptionsOnSecurityDirectoryChanged: true,
         defaultNonceTTL: 60000,
         logSessionActivity: false,
         sessionActivityTTL: 60000,
@@ -7919,6 +7918,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const mockCallback = test.sinon.stub();
     const stopStub = test.sinon.stub();
     await initializer({}, mockHappn, true);
+    test.sinon.stub(serviceInstance.checkpoint, 'stop');
 
     serviceInstance.happn.services.cache.create.returns({
       sync: test.sinon.stub().callsFake((cb) => cb()),

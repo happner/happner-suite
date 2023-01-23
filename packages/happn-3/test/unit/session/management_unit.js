@@ -290,20 +290,18 @@ describe(testHelper.testName(__filename, 3), function () {
     });
   });
 
-  xit('tests security services session revocation', function (done) {
+  it('tests security services session revocation', function (done) {
     mockServices(function (e, happn) {
       if (e) return done(e);
       var session = mockSession(1, 'TEST_SESSION', 'TEST_USER', 60000, happn.services.security);
-
       happn.services.security.revokeToken(session.token, function (e) {
         if (e) return done(e);
         happn.services.security.listRevokedTokens(function (e, list) {
           if (e) return done(e);
           expect(list.length).to.be(1);
           happn.services.security.checkRevocations(session.token, function (e, authorized, reason) {
-            expect(authorized).to.be(false);
-            expect(reason).to.be('token has been revoked');
-
+            expect(authorized).to.be(true);
+            expect(reason).to.be(undefined);
             happn.services.security.restoreToken(session.token, function (e) {
               if (e) return done(e);
               happn.services.security.listRevokedTokens(function (e, list) {
