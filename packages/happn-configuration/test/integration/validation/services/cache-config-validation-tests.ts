@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('cache configuration validation tests', function() {
 
-  const validator = new ConfigValidator(mockLogger);
+  const validator = new ConfigValidator('1.0.0', mockLogger);
 
   it('validates full cache config', () => {
     const config = createValidCacheConfig();

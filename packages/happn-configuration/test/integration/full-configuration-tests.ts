@@ -6,17 +6,12 @@ import { expect } from 'chai';
 import mockLogger from '../__fixtures/logger';
 
 describe('full configuration tests', function () {
-  let validator;
-
-  beforeEach('setup', () => {
-    validator = new ConfigValidator(mockLogger);
-  });
-
   afterEach('cleanup', () => {
     process.env.CURRENT_CONFIG_TYPE = undefined;
   });
 
   it('builds a happn configuration object', () => {
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const builder = ConfigBuilderFactory.getBuilder('happn');
     setHappnConfigValues(builder);
 
@@ -36,6 +31,7 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happn-cluster configuration object', () => {
+    const validator = new ConfigValidator('2.0.0', mockLogger);
     const builder = ConfigBuilderFactory.getBuilder('happn-cluster');
 
     setHappnConfigValues(builder);
@@ -51,6 +47,7 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happner configuration object', () => {
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const builder = ConfigBuilderFactory.getBuilder('happner');
 
     setHappnConfigValues(builder);
@@ -66,6 +63,7 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happner-cluster configuration object', () => {
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const builder = ConfigBuilderFactory.getBuilder('happner-cluster');
 
     setHappnConfigValues(builder);

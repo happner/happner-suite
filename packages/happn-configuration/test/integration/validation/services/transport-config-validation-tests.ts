@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('transport configuration validation tests', function () {
   it('validates full system config', () => {
-    const validator = new ConfigValidator(mockLogger);
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const config = createValidSubscriptionConfig();
 
     const result = validator.validateTransportConfig(config);

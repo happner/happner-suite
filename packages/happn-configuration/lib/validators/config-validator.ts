@@ -90,6 +90,7 @@ export class ConfigValidator {
   }
 
   #fetchSchemas(targetVersion) {
+    if (targetVersion === null) targetVersion = '1.0.0';
     const schemaFactory = new SchemaFactory(targetVersion);
 
     this.#happnSchema = schemaFactory.getSchema('happn');

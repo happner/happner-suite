@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('subscription configuration validation tests', function () {
   it('validates full subscription config', () => {
-    const validator = new ConfigValidator(mockLogger);
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const config = createValidSubscriptionConfig();
 
     const result = validator.validateSubscriptionConfig(config);

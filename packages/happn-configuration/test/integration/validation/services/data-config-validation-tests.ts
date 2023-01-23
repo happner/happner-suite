@@ -5,7 +5,7 @@ import { ConfigValidator } from '../../../../lib/validators/config-validator';
 import mockLogger from '../../../__fixtures/logger';
 
 describe('data configuration validation tests', function () {
-  const validator = new ConfigValidator(mockLogger);
+  const validator = new ConfigValidator('1.0.0', mockLogger);
 
   it('validates full data config', () => {
     const config = createValidDataConfig();
