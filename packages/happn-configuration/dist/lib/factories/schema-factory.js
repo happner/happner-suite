@@ -38,7 +38,7 @@ class SchemaFactory {
         else {
             schemaPath = __classPrivateFieldGet(this, _SchemaFactory_instances, "m", _SchemaFactory_findClosestMatch).call(this, `${schemaRootPath}/sub-schemas`, name, __classPrivateFieldGet(this, _SchemaFactory_version, "f"));
         }
-        console.log(`found schema path: ${schemaPath}`);
+        // console.log(`found schema path: ${schemaPath}`);
         return JSON.parse((0, fs_1.readFileSync)(schemaPath).toString());
     }
 }
