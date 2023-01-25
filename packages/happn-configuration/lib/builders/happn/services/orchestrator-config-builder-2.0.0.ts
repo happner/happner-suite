@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
-const OrchestratorConfigBuilderV1 = require('./orchestrator-config-builder');
+import { OrchestratorConfigBuilder as OrchestratorConfigBuilderV1 } from './orchestrator-config-builder';
 interface ClusterConfig {
   [key: string]: number;
 }

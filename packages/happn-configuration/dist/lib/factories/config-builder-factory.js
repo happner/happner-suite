@@ -1,4 +1,36 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -18,25 +50,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConfigBuilderFactory = void 0;
 /* eslint-disable @typescript-eslint/no-var-requires */
 const BaseBuilder = require('happn-commons/lib/base-builder');
+const fs = require('happn-commons').fs;
+const path = require('path');
 const builder_constants_1 = __importDefault(require("../constants/builder-constants"));
-const cache_config_builder_1 = require("../builders/happn/services/cache-config-builder");
-const connect_config_builder_1 = require("../builders/happn/services/connect-config-builder");
-const data_config_builder_1 = require("../builders/happn/services/data-config-builder");
-const publisher_config_builder_1 = require("../builders/happn/services/publisher-config-builder");
-const protocol_config_builder_1 = require("../builders/happn/services/protocol-config-builder");
-const security_config_builder_1 = require("../builders/happn/services/security-config-builder");
-const subscription_config_builder_1 = require("../builders/happn/services/subscription-config-builder");
-const system_config_builder_1 = require("../builders/happn/services/system-config-builder");
-const transport_config_builder_1 = require("../builders/happn/services/transport-config-builder");
-const membership_config_builder_1 = require("../builders/happn/services/membership-config-builder");
-const orchestrator_config_builder_1 = require("../builders/happn/services/orchestrator-config-builder");
-const replicator_config_builder_1 = require("../builders/happn/services/replicator-config-builder");
-const proxy_config_builder_1 = require("../builders/happn/services/proxy-config-builder");
-const health_config_builder_1 = require("../builders/happn/services/health-config-builder");
 const field_type_validator_1 = require("../validators/field-type-validator");
-const components_config_builder_1 = require("../builders/happner/components/components-config-builder");
-const endpoints_config_builder_1 = require("../builders/happner/endpoints/endpoints-config-builder");
-const modules_config_builder_1 = require("../builders/happner/modules/modules-config-builder");
 // mixin specific imports
 const happn_core_mixin_1 = require("../builders/happn/happn-core-mixin");
 const happn_cluster_core_mixin_1 = require("../builders/happn-cluster/happn-cluster-core-mixin");
@@ -72,68 +89,112 @@ const BaseClz = (_a = class BaseClz extends BaseBuilder {
     _BaseClz_builderType = new WeakMap(),
     _a);
 class ConfigBuilderFactory {
-    static getBuilder(type) {
-        switch (type) {
-            case HAPPN:
-                return ConfigBuilderFactory.getHappnBuilder();
-            case HAPPN_CLUSTER:
-                return ConfigBuilderFactory.getHappnClusterBuilder();
-            case HAPPNER:
-                return ConfigBuilderFactory.getHappnerBuilder();
-            case HAPPNER_CLUSTER:
-                return ConfigBuilderFactory.getHappnerClusterBuilder();
-            default:
-                throw new Error('Unknown configuration type');
-        }
+    static getBuilder(type, version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            switch (type) {
+                case HAPPN:
+                    return ConfigBuilderFactory.getHappnBuilder(version);
+                case HAPPN_CLUSTER:
+                    return ConfigBuilderFactory.getHappnClusterBuilder(version);
+                case HAPPNER:
+                    return ConfigBuilderFactory.getHappnerBuilder(version);
+                case HAPPNER_CLUSTER:
+                    return ConfigBuilderFactory.getHappnerClusterBuilder(version);
+                default:
+                    throw new Error('Unknown configuration type');
+            }
+        });
     }
-    static getHappnBuilder() {
-        const container = ConfigBuilderFactory.createContainer();
-        const HappnMixin = (0, happn_core_mixin_1.HappnCoreBuilder)(BaseClz);
-        const result = new HappnMixin(container);
-        result.builderType = HAPPN;
-        return result;
+    static getHappnBuilder(version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const container = yield ConfigBuilderFactory.createContainer(version);
+            const HappnMixin = (0, happn_core_mixin_1.HappnCoreBuilder)(BaseClz);
+            const result = new HappnMixin(container);
+            result.builderType = HAPPN;
+            return result;
+        });
     }
-    static getHappnClusterBuilder() {
-        const container = ConfigBuilderFactory.createContainer();
-        const HappnClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)(BaseClz));
-        const result = new HappnClusterMixin(container);
-        result.builderType = HAPPN_CLUSTER;
-        return result;
+    static getHappnClusterBuilder(version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const container = yield ConfigBuilderFactory.createContainer(version);
+            const HappnClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)(BaseClz));
+            const result = new HappnClusterMixin(container);
+            result.builderType = HAPPN_CLUSTER;
+            return result;
+        });
     }
-    static getHappnerBuilder() {
-        const container = ConfigBuilderFactory.createContainer();
-        const HappnerMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)(BaseClz));
-        const result = new HappnerMixin(container);
-        result.builderType = HAPPNER;
-        return result;
+    static getHappnerBuilder(version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const container = yield ConfigBuilderFactory.createContainer(version);
+            const HappnerMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)(BaseClz));
+            const result = new HappnerMixin(container);
+            result.builderType = HAPPNER;
+            return result;
+        });
     }
-    static getHappnerClusterBuilder() {
-        const container = ConfigBuilderFactory.createContainer();
-        const HappnerClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)((0, happner_cluster_core_mixin_1.HappnerClusterCoreBuilder)(BaseClz))));
-        const result = new HappnerClusterMixin(container);
-        result.builderType = HAPPNER_CLUSTER;
-        return result;
+    static getHappnerClusterBuilder(version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const container = yield ConfigBuilderFactory.createContainer(version);
+            const HappnerClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)((0, happner_cluster_core_mixin_1.HappnerClusterCoreBuilder)(BaseClz))));
+            const result = new HappnerClusterMixin(container);
+            result.builderType = HAPPNER_CLUSTER;
+            return result;
+        });
     }
-    static createContainer() {
-        return {
-            cacheConfigBuilder: new cache_config_builder_1.CacheConfigBuilder(),
-            componentsConfigBuilder: new components_config_builder_1.ComponentsConfigBuilder(),
-            connectConfigBuilder: new connect_config_builder_1.ConnectConfigBuilder(),
-            dataConfigBuilder: new data_config_builder_1.DataConfigBuilder(),
-            endpointsConfigBuilder: new endpoints_config_builder_1.EndpointsConfigBuilder(),
-            membershipConfigBuilder: new membership_config_builder_1.MembershipConfigBuilder(),
-            modulesConfigBuilder: new modules_config_builder_1.ModulesConfigBuilder(),
-            orchestratorConfigBuilder: new orchestrator_config_builder_1.OrchestratorConfigBuilder(),
-            protocolConfigBuilder: new protocol_config_builder_1.ProtocolConfigBuilder(new field_type_validator_1.FieldTypeValidator()),
-            proxyConfigBuilder: new proxy_config_builder_1.ProxyConfigBuilder(),
-            publisherConfigBuilder: new publisher_config_builder_1.PublisherConfigBuilder(),
-            replicatorConfigBuilder: new replicator_config_builder_1.ReplicatorConfigBuilder(),
-            securityConfigBuilder: new security_config_builder_1.SecurityConfigBuilder(),
-            subscriptionConfigBuilder: new subscription_config_builder_1.SubscriptionConfigBuilder(),
-            systemConfigBuilder: new system_config_builder_1.SystemConfigBuilder(),
-            transportConfigBuilder: new transport_config_builder_1.TransportConfigBuilder(),
-            healthConfigBuilder: new health_config_builder_1.HealthConfigBuilder(),
-        };
+    static createContainer(version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return {
+                cacheConfigBuilder: yield this.getSubconfigBuilder('cache-config-builder', '../builders/happn/services', version),
+                componentsConfigBuilder: yield this.getSubconfigBuilder('components-config-builder', '../builders/happn/components', version),
+                connectConfigBuilder: yield this.getSubconfigBuilder('connect-config-builder', '../builders/happn/services', version),
+                dataConfigBuilder: yield this.getSubconfigBuilder('data-config-builder', '../builders/happn/services', version),
+                endpointsConfigBuilder: yield this.getSubconfigBuilder('endpoints-config-builder', '../builders/happn/endpoints', version),
+                membershipConfigBuilder: yield this.getSubconfigBuilder('membership-config-builder', '../builders/happn/services', version),
+                modulesConfigBuilder: yield this.getSubconfigBuilder('modules-config-builder', '../builders/happn/modules', version),
+                orchestratorConfigBuilder: yield this.getSubconfigBuilder('orchestrator-config-builder', '../builders/happn/services', version),
+                protocolConfigBuilder: yield this.getSubconfigBuilder('protocol-config-builder', '../builders/happn/services', version, new field_type_validator_1.FieldTypeValidator()),
+                proxyConfigBuilder: yield this.getSubconfigBuilder('proxy-config-builder', '../builders/happn/services', version),
+                publisherConfigBuilder: yield this.getSubconfigBuilder('publisher-config-builder', '../builders/happn/services', version),
+                replicatorConfigBuilder: yield this.getSubconfigBuilder('replicator-config-builder', '../builders/happn/services', version),
+                securityConfigBuilder: yield this.getSubconfigBuilder('security-config-builder', '../builders/happn/services', version),
+                subscriptionConfigBuilder: yield this.getSubconfigBuilder('subscription-config-builder', '../builders/happn/services', version),
+                systemConfigBuilder: yield this.getSubconfigBuilder('system-config-builder', '../builders/happn/services', version),
+                transportConfigBuilder: yield this.getSubconfigBuilder('transport-config-builder', '../builders/happn/services', version),
+                healthConfigBuilder: yield this.getSubconfigBuilder('health-config-builder', '../builders/happn/services', version),
+            };
+        });
+    }
+    static getSubconfigBuilder(moduleName, rootPath, version, ...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const FallbackProto = yield this.importCorrectBuilder(moduleName, rootPath, null);
+            const Proto = yield this.importCorrectBuilder(moduleName, rootPath, version);
+            return new Proto(...args) || new FallbackProto(...args);
+        });
+    }
+    static importCorrectBuilder(moduleName, rootPath, version) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            let modulePath;
+            if (!version) {
+                modulePath = path.resolve(__dirname, rootPath).concat(moduleName).concat('.ts');
+                console.log(modulePath);
+                if (!fs.existsSync(modulePath))
+                    throw new Error(`Bulder for ${moduleName} not found`);
+                return yield (_a = modulePath, Promise.resolve().then(() => __importStar(require(_a))));
+            }
+            modulePath = path.resolve(__dirname, rootPath).concat(moduleName).concat(version).concat('.ts');
+            if (fs.existsSync(modulePath)) {
+                return yield (_b = modulePath, Promise.resolve().then(() => __importStar(require(_b))));
+            }
+            const semanticSegments = version.split('.');
+            if (parseInt(semanticSegments[0]) - 1 <= 1) {
+                return this.importCorrectBuilder(moduleName, rootPath, null);
+            }
+            //Major version would be reduced to 1, so we find the plain version
+            semanticSegments[0] = (parseInt(semanticSegments[0]) - 1).toString();
+            const newVersion = semanticSegments.join('.');
+            return this.importCorrectBuilder(moduleName, rootPath, newVersion);
+        });
     }
 }
 exports.ConfigBuilderFactory = ConfigBuilderFactory;

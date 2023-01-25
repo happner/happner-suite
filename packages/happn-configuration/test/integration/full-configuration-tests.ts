@@ -9,7 +9,7 @@ describe('full configuration tests', function () {
   let validator;
 
   beforeEach('setup', () => {
-    validator = new ConfigValidator(mockLogger);
+    validator = new ConfigValidator(null, mockLogger);
   });
 
   afterEach('cleanup', () => {
@@ -35,8 +35,24 @@ describe('full configuration tests', function () {
     result.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 
-  it('builds a happn-cluster configuration object', () => {
-    const builder = ConfigBuilderFactory.getBuilder('happn-cluster');
+  it('builds a happn-cluster configuration object', async () => {
+    const builder = await ConfigBuilderFactory.getBuilder('happn-cluster', null);
+
+    setHappnConfigValues(builder);
+    setHappnClusterConfigValues(builder);
+
+    const result = builder.build();
+
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
+    // validate
+    const validationResult = validator.validateHappnClusterConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
+  });
+
+  it('builds a happn-cluster configuration object, version 2.0.0', async () => {
+    validator = new ConfigValidator('2.0.0', mockLogger);
+    const builder = await ConfigBuilderFactory.getBuilder('happn-cluster', '2.0.0');
 
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
@@ -52,6 +68,21 @@ describe('full configuration tests', function () {
 
   it('builds a happner configuration object', () => {
     const builder = ConfigBuilderFactory.getBuilder('happner');
+
+    setHappnConfigValues(builder);
+    setHappnerConfigValues(builder);
+
+    const result = builder.build();
+
+    console.log('RESULT:', JSON.stringify(result, null, 2));
+
+    // validate
+    const validationResult = validator.validateHappnerConfig(result);
+    if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
+  });
+
+  it('builds a happner configuration object, version 2.0.0', () => {
+    const builder = ConfigBuilderFactory.getBuilder('happner', '2.0.0');
 
     setHappnConfigValues(builder);
     setHappnerConfigValues(builder);
