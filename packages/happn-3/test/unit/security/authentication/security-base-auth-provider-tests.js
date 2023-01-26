@@ -6,17 +6,26 @@ const cryptoService = require('../../../../lib/services/crypto/service').create(
 const cacheService = require('../../../../lib/services/cache/service').create();
 const errorService = require('../../../../lib/services/error/service').create();
 const systemService = require('../../../../lib/services/system/service').create();
+
 describe(test.testName(), function () {
   this.timeout(10e3);
 
-  const dummyAuthProvider = test.path.resolve(
+  const mockAuthProviderPath = test.path.resolve(
     __dirname,
     '../../../__fixtures/test/integration/security/authentication/workingAuth.js'
   );
 
+  const mockAuthProviderFactoryPath = test.path.resolve(
+    __dirname,
+    '../../../__fixtures/test/integration/security/authentication/workingAuth-factory.js'
+  );
+
+  const mockAuthProviderFactory =
+    require('../../../__fixtures/test/integration/security/authentication/workingAuth-factory').create();
+
   let mockHappn = null;
   let mockConfig = null;
-  beforeEach(() => {
+  beforeEach(async () => {
     mockHappn = {
       services: {
         crypto: cryptoService,
@@ -47,7 +56,8 @@ describe(test.testName(), function () {
           decodeToken: test.sinon.stub(),
           checkTokenUserId: test.sinon.stub(),
           checkRevocations: test.sinon.stub(),
-          checkIPAddressWhitelistPolicy: test.sinon.stub(),
+          checkIPAddressWhitelistPolicy: test.sinon.stub().returns(true),
+          checkDisableDefaultAdminNetworkConnections: test.sinon.stub().returns(false),
           verifyAuthenticationDigest: test.sinon.stub(),
           matchPassword: test.sinon.stub(),
           happn: mockHappn,
@@ -70,6 +80,8 @@ describe(test.testName(), function () {
       lockTokenToLoginType: null,
       disableDefaultAdminNetworkConnections: null,
     };
+    mockHappn.services.security.cacheService.happn = mockHappn;
+    await mockHappn.services.security.cacheService.initialize();
   });
 
   afterEach(() => {
@@ -82,7 +94,7 @@ describe(test.testName(), function () {
       mockHappn.services.security.cacheService.happn = mockHappn;
       await mockHappn.services.security.cacheService.initialize();
       const instance = BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
@@ -97,7 +109,7 @@ describe(test.testName(), function () {
       // test with 1st variation
       let config = {};
       BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         config
       );
@@ -118,7 +130,7 @@ describe(test.testName(), function () {
       };
 
       BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         config
       );
@@ -139,7 +151,7 @@ describe(test.testName(), function () {
       };
 
       BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         config
       );
@@ -150,6 +162,53 @@ describe(test.testName(), function () {
           attempts: 4,
           retryInterval: 60 * 1000 * 10,
         },
+      });
+    });
+
+    it('can create an instance, various configs, with options', async () => {
+      let config = {},
+        mockOptions = { test: 1 };
+
+      let testAuthProviderFromPath = BaseAuthProvider.create(
+        { provider: mockAuthProviderPath, options: mockOptions },
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        config
+      );
+      test.chai.expect(testAuthProviderFromPath.options).to.eql({
+        test: 2,
+      });
+
+      // check the defaults did not mutate options inputted
+      test.chai.expect(mockOptions).to.eql({
+        test: 1,
+      });
+
+      let testAuthProviderFromFactory = BaseAuthProvider.create(
+        { provider: mockAuthProviderFactory, options: mockOptions },
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        config
+      );
+
+      test.chai.expect(testAuthProviderFromFactory.options).to.eql({
+        test: 2,
+      });
+      // check the defaults did not mutate options inputted
+      test.chai.expect(mockOptions).to.eql({
+        test: 1,
+      });
+
+      let testAuthProviderFromFactoryPath = BaseAuthProvider.create(
+        { provider: mockAuthProviderFactoryPath, options: mockOptions },
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        config
+      );
+
+      test.chai.expect(testAuthProviderFromFactoryPath.options).to.eql({
+        test: 2,
+      });
+      // check the defaults did not mutate options inputted
+      test.chai.expect(mockOptions).to.eql({
+        test: 1,
       });
     });
   });
@@ -163,7 +222,7 @@ describe(test.testName(), function () {
         return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
@@ -184,7 +243,7 @@ describe(test.testName(), function () {
         return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
@@ -206,7 +265,7 @@ describe(test.testName(), function () {
         return new Error(errorMessage);
       });
       const instance = BaseAuthProvider.create(
-        dummyAuthProvider,
+        mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
         mockConfig
       );
@@ -224,29 +283,27 @@ describe(test.testName(), function () {
       test.chai.expect(eMessage).to.equal('Anonymous access is disabled');
     });
 
-    xit('calls callback with error, credentials.username equal to _ANONYMOUS, checkIPAddressWhitelistPolicy returns false', () => {
+    it('calls callback with error, credentials.username equal to _ANONYMOUS, checkIPAddressWhitelistPolicy returns false', async () => {
       mockConfig.allowAnonymousAccess = true;
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      mockHappn.services.security.checkIPAddressWhitelistPolicy = test.sinon.stub().returns(false);
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: '_ANONYMOUS',
         password: 'password',
         type: null,
       };
+      try {
+        await instance.login(credentials, 1, 'mockRequest');
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('Source address access restricted');
+      }
 
-      mockHappn.services.security.checkIPAddressWhitelistPolicy.returns(false);
-      mockHappn.services.error.InvalidCredentialsError.callsFake((errorMessage) => {
-        return errorMessage;
-      });
-
-      instance.login(credentials, 1, 'mockRequest', callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly('Source address access restricted');
       test.chai
         .expect(mockHappn.services.security.checkIPAddressWhitelistPolicy)
         .to.have.been.calledOnceWithExactly(credentials, 1, 'mockRequest');
+
       test.chai.expect(credentials.password).to.equal('anonymous');
     });
 

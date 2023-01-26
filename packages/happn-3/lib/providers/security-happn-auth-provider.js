@@ -1,12 +1,12 @@
 let SecurityBaseAuthProvider = require('./security-base-auth-provider');
 module.exports = class HappnAuthProvider extends SecurityBaseAuthProvider {
-  constructor(securityFacade, config) {
+  constructor(securityFacade, happnConfig, providerOptions) {
     // sets securityFacade, config on super, becomes available via getters as this.securityFacade, this.config
-    super(securityFacade, config);
+    super(securityFacade, happnConfig, providerOptions);
   }
 
-  static create(securityFacade, config) {
-    return new HappnAuthProvider(securityFacade, config);
+  static create(securityFacade, happnConfig, providerOptions) {
+    return new HappnAuthProvider(securityFacade, happnConfig, providerOptions);
   }
 
   async providerTokenLogin(credentials, decodedToken, sessionId) {

@@ -1,11 +1,15 @@
 const SecurityAuthProviderFactory = require('../factories/security-auth-provider-factory');
+const commons = require('happn-commons');
 module.exports = class SecurityBaseAuthProvider {
   #securityFacade;
   #config;
+  #options;
   #locks;
-  constructor(securityFacade, config) {
+  constructor(securityFacade, happnConfig, providerOptions) {
     this.#securityFacade = securityFacade;
-    this.#config = config || {};
+    this.#config = happnConfig || {};
+    this.#options = this.defaults(commons._.clone(providerOptions || {}));
+
     if (!this.#config.accountLockout) {
       this.#config.accountLockout = {};
     }
@@ -31,19 +35,28 @@ module.exports = class SecurityBaseAuthProvider {
     return this.#config;
   }
 
+  get options() {
+    return this.#options;
+  }
+
   get locks() {
     return this.#locks;
   }
 
-  static create(providerPathOrInstance, securityFacade, config) {
+  static create(providerConfig, securityFacade, happnConfig) {
+    const providerPathOrInstance =
+      providerConfig.provider != null ? providerConfig.provider : providerConfig;
+
     // we attach an instance directly to the config
     if (providerPathOrInstance instanceof SecurityBaseAuthProvider) {
       return providerPathOrInstance;
     }
+    const options = providerConfig.options || {};
     // we attach a factory directly to the config
     if (providerPathOrInstance instanceof SecurityAuthProviderFactory) {
-      return providerPathOrInstance.create(securityFacade, config);
+      return providerPathOrInstance.create(securityFacade, happnConfig, options);
     }
+
     // we are using a filepath
     let providerClass;
     try {
@@ -51,10 +64,10 @@ module.exports = class SecurityBaseAuthProvider {
     } catch (e) {
       throw new Error(`failed to resolve auth provider on path: ${providerPathOrInstance}`);
     }
-    const providerInst = new providerClass(securityFacade, config);
+    const providerInst = new providerClass(securityFacade, happnConfig, options);
     // we are using a filepath that points to a factory
     if (providerInst instanceof SecurityAuthProviderFactory) {
-      return providerInst.create(securityFacade, config);
+      return providerInst.create(securityFacade, happnConfig, options);
     }
     return providerInst;
   }
@@ -231,5 +244,9 @@ module.exports = class SecurityBaseAuthProvider {
       return false;
     let existingLock = this.#locks.get(username);
     return existingLock != null && existingLock.attempts >= this.#config.accountLockout.attempts;
+  }
+
+  defaults(options) {
+    return options;
   }
 };

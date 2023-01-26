@@ -1,8 +1,8 @@
 module.exports = class SecurityAuthProviderFactory {
-  create(securityFacade, config) {
-    if (typeof this.createInternal !== 'function') {
-      throw new Error(`Auth provider factory must implement the createInternal method`);
+  create(securityFacade, happnConfig, options) {
+    if (typeof this.createAuthProvider !== 'function') {
+      throw new Error(`Auth provider factory must implement the createAuthProvider method`);
     }
-    return this.createInternal(securityFacade, config);
+    return this.createAuthProvider(securityFacade, happnConfig, options);
   }
 };

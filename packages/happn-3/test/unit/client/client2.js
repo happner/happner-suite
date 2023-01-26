@@ -224,29 +224,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     done();
   });
 
-  xit('tests the __initializeConnectivity function.', function (done) {
-    happnClient = mockHappnClient();
-    var opts = happnClient.__prepareConnectionOptions({}, {});
-    //TODO Mock socket function?
-    happnClient.__initializeConnectivity(opts, function (err, data) {
-      //eslint-disable-next-line no-console
-      console.log(data);
-      //eslint-disable-next-line no-console
-      console.log(err);
-      //TODO::: Can't Timing out
-      done();
-    });
-  });
-
-  xit('tests the __connectSocket function.', function (done) {
-    happnClient = mockHappnClient();
-
-    happnClient.__connectSocket(function () {
-      //TODO::: This test passes, but causes the client and test framework to hang
-      done();
-    });
-  });
-
   it('tests the __initializeState function', function (done) {
     happnClient = mockHappnClient();
     happnClient.__initializeState();
@@ -352,10 +329,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     });
   });
 
-  xit('tests the getScript function when called from a browser', function () {
-    //TODO::: Not sure how to test this!
-  });
-
   it('tests the getResources function returns a callback.', function (done) {
     happnClient = mockHappnClient();
 
@@ -364,18 +337,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
     });
   });
 
-  xit('tests the stop function.', function (done) {
-    happnClient = mockHappnClient();
-
-    happnClient.stop(function () {
-      //TODO::: Can't test: Socket issues
-      done();
-    });
-  });
-
   it('tests the __ensureCryptoLibrary function returns a callback.', function (done) {
     happnClient = mockHappnClient();
-
     happnClient.__ensureCryptoLibrary(function () {
       done();
     });
@@ -447,25 +410,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
       test.expect(e.toString()).to.eql('Error: system request failed');
       done();
     });
-  });
-
-  xit('tests the __signNonce function.', function (done) {
-    //TODO::: NEEDS A 32-bit buffer for nonce???
-    happnClient = mockHappnClient();
-
-    happnClient.__prepareInstanceOptions({
-      keyPair: {
-        privateKey: 'pqPVklZ9kdANfeEZhNFYYznGKKh/cz3qI7JUfVEJRwg=',
-        publicKey: 'AwKAM+xrypUPLMMKgQBJ6oSpg2+9szVLlL5u7yjM8XlG',
-      },
-    });
-
-    happnClient.__ensureCryptoLibrary();
-
-    const a = happnClient.__signNonce(':::32 Bit buffer???');
-    //eslint-disable-next-line no-console
-    console.log(a);
-    done();
   });
 
   it('tests the __prepareLogin function will calback login paramaters if not digest.', function (done) {
