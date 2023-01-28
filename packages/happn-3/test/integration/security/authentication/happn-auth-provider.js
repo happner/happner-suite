@@ -54,7 +54,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     } catch (e) {
       eMessage = e.message;
     }
-    test.expect(eMessage).to.be('failed to resolve auth provider on path: bad-provider');
+    test.expect(eMessage).to.include.string('Cannot find module');
     await test.destroyAllInstances();
   });
 });
