@@ -62,7 +62,10 @@ module.exports = class SecurityBaseAuthProvider {
     try {
       providerClass = require(providerPathOrInstance);
     } catch (e) {
-      throw new Error(`failed to resolve auth provider on path: ${providerPathOrInstance}`);
+      securityFacade.log.error(
+        `failed to resolve or instantiate auth provider on path: ${providerPathOrInstance}`
+      );
+      throw e;
     }
     const providerInst = new providerClass(securityFacade, happnConfig, options);
     // we are using a filepath that points to a factory
