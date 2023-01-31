@@ -34,6 +34,7 @@ DataService.prototype.upsert = util.maybePromisify(upsert);
 DataService.prototype.remove = util.maybePromisify(remove);
 DataService.prototype.get = util.maybePromisify(get);
 DataService.prototype.count = util.maybePromisify(count);
+DataService.prototype.archive = util.maybePromisify(archive);
 DataService.prototype.processGet = processGet;
 DataService.prototype.processCount = processCount;
 DataService.prototype.processRemove = processRemove;
@@ -163,6 +164,15 @@ function upsert(path, data, options, callback) {
   }
 
   this.__upsertInternal(path, setData, options, callback);
+}
+
+function archive(path, callback) {
+  const provider = this.db(path);
+  if (!this.__providerHasFeature(provider, 'archive')) {
+    return callback(new Error(`archive feature not available for provider on path: ${path}`));
+  }
+
+  return provider.archive(callback);
 }
 
 function get(path, parameters, callback) {

@@ -21,6 +21,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     mockLogger = {
       error: test.sinon.stub(),
       warn: test.sinon.stub(),
+      info: test.sinon.stub(),
+      debug: test.sinon.stub(),
     };
 
     mockFs();
@@ -43,16 +45,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const mockPush = test.sinon.stub();
       const mockAsyncQueue = test.sinon.stub(commons.async, 'queue');
 
-      const mockOperation = {
-        operationType: constants.DATA_OPERATION_TYPES.UPSERT,
-        arguments: [
-          'mockPath',
-          { data: 'mockData', _meta: { path: null } },
-          { merge: 'mockMerge' },
-        ],
-      };
-
-      test.sinon.stub(db.prototype, 'addCollection').returns({
+      const mockCollection = {
+        name: 'happn',
         findOne: test.sinon.stub().returns({
           path: 'mockFileName',
           data: 'mockData',
@@ -62,7 +56,18 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
           $loki: 1,
         }),
         update: test.sinon.stub(),
-      });
+      };
+
+      const mockOperation = {
+        operationType: constants.DATA_OPERATION_TYPES.UPSERT,
+        arguments: [
+          'mockPath',
+          { data: 'mockData', _meta: { path: null } },
+          { merge: 'mockMerge' },
+        ],
+      };
+
+      test.sinon.stub(db.prototype, 'addCollection').returns(mockCollection);
 
       mockAsyncQueue
         .withArgs(test.sinon.match.func, 1)
@@ -75,23 +80,15 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       test.sinon.stub(db.prototype, 'loadJSON').returns({});
 
       lokiDataProvider.initialize((e) => {
-        test.expect(e).to.be(undefined);
-        done();
+        try {
+          test.expect(e).to.be(undefined);
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
 
-      lokiDataProvider.db.collections = [
-        {
-          findOne: test.sinon.stub().returns({
-            path: 'mockFileName',
-            data: 'mockData',
-            created: 1646298724155,
-            modified: 1646298724155,
-            meta: { revision: 0, created: 1646298724156, version: 0 },
-            $loki: 1,
-          }),
-          update: test.sinon.stub(),
-        },
-      ];
+      lokiDataProvider.db.collections = [mockCollection];
     });
 
     it('initialize method returns persistenceOn is equal to null or undefined', (done) => {
@@ -156,12 +153,15 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       ];
 
       await asyncInit;
-      await lokiDataProvider.insert({}, mockCallback);
+      await lokiDataProvider.insert({ path: 'mockFileName' }, mockCallback);
 
       test.chai
         .expect(mockPush)
         .to.have.been.calledWithExactly(
-          { operationType: constants.DATA_OPERATION_TYPES.INSERT, arguments: [{}] },
+          {
+            operationType: constants.DATA_OPERATION_TYPES.INSERT,
+            arguments: [{ path: 'mockFileName' }],
+          },
           test.sinon.match.func
         )
         .and.has.callCount(1);
@@ -350,6 +350,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
           {
             created: null,
             modified: null,
+            path: 'mockFileName',
           },
           'mockCounterName',
           0,
@@ -363,6 +364,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       test.chai.expect(result).to.have.returned;
       test.chai.expect(result).to.haveOwnProperty('created');
       test.chai.expect(result).to.haveOwnProperty('modified');
+      test.chai.expect(result).to.haveOwnProperty('path');
       test.chai.expect(result).to.haveOwnProperty('meta');
     });
 
@@ -419,7 +421,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockOperation = {
         operationType: constants.DATA_OPERATION_TYPES.UPDATE,
-        arguments: [{}, { data: 'mockData', _meta: { path: null } }, { merge: 'mockMerge' }],
+        arguments: [{ path: 'mockPath' }],
       };
 
       lokiDataProvider.collection = {
@@ -550,7 +552,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const mockCallback = test.sinon.stub();
 
       lokiDataProvider.initialize(test.sinon.stub());
-      lokiDataProvider.count('mockFileName', {}, mockCallback);
+      lokiDataProvider.count('mockFileName', mockCallback);
 
       test.chai.expect(mockCallback).to.have.been.calledWithExactly(null, { data: { value: 0 } });
     });
@@ -1352,7 +1354,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       test.chai.expect(mockCallback).to.have.been.calledWith(test.sinon.match.instanceOf(Error));
     });
 
-    it('reconstruct calles logger.error with reconstruction reader error', (done) => {
+    it('reconstruct calls logger.error with reconstruction reader error', (done) => {
       mockFs({
         mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
         temp_mockFileName: mockFs.load(path.resolve(__dirname, '../mocks/mockFileName')),
@@ -1371,9 +1373,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       mockOn.withArgs('error', test.sinon.match.func).callsArgWith(1, { message: 'mockMessage' });
 
       lokiDataProvider.initialize(test.sinon.stub());
-      test.chai
-        .expect(mockLogger.error)
-        .to.have.been.calledWith(`reconstruction reader error ${'mockMessage'}`);
+      test.chai.expect(mockLogger.error).to.have.been.calledWith(`failed reconstructing database`);
       done();
     });
 
@@ -1397,9 +1397,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
 
       lokiDataProvider.initialize(mockCallback);
 
-      test.chai
-        .expect(mockLogger.error)
-        .to.have.been.calledWithExactly(`reconstruction reader error ${'mockMessage'}`);
+      test.chai.expect(mockLogger.error).to.have.been.calledWith(`failed reconstructing database`);
       test.chai.expect(mockCallback).to.have.been.calledWithExactly({ message: 'mockMessage' });
     });
 

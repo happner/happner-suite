@@ -1040,3 +1040,11 @@
 13.7.1 2022-11-26
 -----------------
   - feat: Sqlite DB Provider
+
+13.7.2 2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+13.8.0 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 

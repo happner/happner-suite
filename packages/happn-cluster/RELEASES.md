@@ -332,3 +332,12 @@ non-release 2017-12-14
 -----------------
   - TEN-4: productionize summon (authType saved to user)
   - TEN-140: outdated pem module
+
+12.2.5  2022-12-22
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+12.2.6 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 
+

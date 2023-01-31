@@ -33,5 +33,6 @@ module.exports = {
   lruCache: require('lru-cache'),
   fastClone: require('fast-clone'),
   HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
+  lock: require('async-lock'),
   validateConfig: require('./lib/configuration').validateConfig,
 };
