@@ -283,7 +283,7 @@ describe(test.testName(), function () {
       test.chai.expect(eMessage).to.equal('Anonymous access is disabled');
     });
 
-    it('calls callback with error, credentials.username equal to _ANONYMOUS, checkIPAddressWhitelistPolicy returns false', async () => {
+    it('login fails, credentials.username equal to _ANONYMOUS, checkIPAddressWhitelistPolicy returns false', async () => {
       mockConfig.allowAnonymousAccess = true;
       mockHappn.services.security.checkIPAddressWhitelistPolicy = test.sinon.stub().returns(false);
       const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
@@ -307,11 +307,11 @@ describe(test.testName(), function () {
       test.chai.expect(credentials.password).to.equal('anonymous');
     });
 
-    xit('calls callback with error if username is null', () => {
+    it('login fails if username is null', async () => {
       mockConfig.allowAnonymousAccess = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -323,17 +323,22 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      instance.login(credentials, 1, 'mockRequest', callback);
-
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly('Invalid credentials');
+      try {
+        await instance.login(credentials, 1, 'mockRequest');
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('Invalid credentials');
+      }
     });
 
-    xit('access denied, calls callback with error, using _ADMIN over the network', () => {
+    it('access denied, using _ADMIN over the network', async () => {
       mockConfig.allowAnonymousAccess = true;
       mockConfig.disableDefaultAdminNetworkConnections = true;
-
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      mockHappn.services.security.checkDisableDefaultAdminNetworkConnections = () => {
+        return true;
+      };
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: '_ADMIN',
         password: null,
@@ -354,25 +359,23 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      instance.login(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(
-          'use of _ADMIN credentials over the network is disabled'
-        );
+      try {
+        await instance.login(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai
+          .expect(e.message)
+          .to.equal('use of _ADMIN credentials over the network is disabled');
+      }
       test.chai
         .expect(mockHappn.services.security.checkIPAddressWhitelistPolicy)
         .to.have.been.calledOnceWithExactly(credentials, 1, request);
     });
 
-    xit('calls callback with error, credentials.token is truthy, authorized is null', async () => {
-      mockConfig.allowAnonymousAccess = true;
+    it('calls callback with error, credentials.token is truthy, authorized is null', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
-
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
-      const sessionId = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -389,34 +392,28 @@ describe(test.testName(), function () {
       };
 
       mockHappn.services.security.checkIPAddressWhitelistPolicy.returns(true);
-      mockHappn.services.security.__checkRevocations.resolves([null, 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves([null, 'mockReason']);
       mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
         return errorMessage;
       });
 
-      instance.login(credentials, sessionId, request, callback);
-
-      await require('node:timers/promises').setTimeout(50);
-
-      test.chai.expect(sessionId).to.have.been.calledOnceWithExactly('mockReason');
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly('mockReason');
+      try {
+        await instance.login(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('mockReason');
+      }
     });
 
-    xit('accessDenied, calls callback with error, too many attempts', async () => {
-      mockConfig.allowAnonymousAccess = true;
-      mockConfig.disableDefaultAdminNetworkConnections = true;
-
+    it('accessDenied, calls callback with error, too many attempts', async () => {
       const get = test.sinon.stub();
-      mockHappn.services.cache.getOrCreate.returns({
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns({
         get: get.returns({
           attempts: 4,
         }),
       });
-
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -437,18 +434,17 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      instance.login(credentials, 1, request, callback);
-
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly('Account locked out');
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly('Account locked out');
-      test.chai.expect(get).to.have.been.calledOnceWithExactly('mockUsername');
+      try {
+        await instance.login(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('Account locked out');
+      }
     });
   });
 
   context('tokenLogin', async () => {
-    xit('accessDenied, calls callback with error, previousSession equal to null', async () => {
+    it('accessDenied, calls callback with error, previousSession equal to null', async () => {
       mockConfig.allowAnonymousAccess = true;
       mockConfig.disableDefaultAdminNetworkConnections = true;
 
@@ -459,8 +455,8 @@ describe(test.testName(), function () {
         }),
       });
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -476,30 +472,25 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns(null);
       mockHappn.services.error.InvalidCredentialsError.callsFake((errorMessage) => {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly('Invalid credentials: invalid session token');
-      test.chai
-        .expect(mockHappn.services.error.InvalidCredentialsError)
-        .to.have.been.calledOnceWithExactly('Invalid credentials: invalid session token');
-      test.chai
-        .expect(mockHappn.services.security.__checkRevocations)
-        .to.have.been.calledOnceWithExactly(credentials.token);
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal('Invalid credentials: invalid session token');
+      }
     });
 
-    xit('accessDenied, calls callback with error, previousSession.type is not equal to credentials.type', async () => {
+    it('accessDenied, calls callback with error, previousSession.type is not equal to credentials.type', async () => {
       mockConfig.lockTokenToLoginType = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -515,7 +506,7 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
         username: 'mockUsername',
         type: 'mockType',
@@ -531,26 +522,25 @@ describe(test.testName(), function () {
       mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
         return errorMessage;
       });
-
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(
-          `token was created using the login type ${'mockType'}, which does not match how the new token is to be created`
-        );
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(
-          `token was created using the login type ${'mockType'}, which does not match how the new token is to be created`
-        );
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai
+          .expect(e.message)
+          .to.equal(
+            `token was created using the login type mockType, which does not match how the new token is to be created`
+          );
+      }
     });
 
-    xit('accessDenied, calls callback with error, checkDisableDefaultAdminNetworkConnections returns true', async () => {
+    it('accessDenied, calls callback with error, checkDisableDefaultAdminNetworkConnections returns true', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
-
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      mockHappn.services.security.checkDisableDefaultAdminNetworkConnections = () => {
+        return true;
+      };
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -566,7 +556,7 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
         username: '_ADMIN',
         type: 'mockType',
@@ -579,29 +569,27 @@ describe(test.testName(), function () {
           },
         ],
       });
+
       mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(
-          `use of _ADMIN credentials over the network is disabled`
-        );
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(
-          `use of _ADMIN credentials over the network is disabled`
-        );
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai
+          .expect(e.message)
+          .to.equal(`use of _ADMIN credentials over the network is disabled`);
+      }
     });
 
-    xit('accessDenied, calls callback with error, disallowTokenLogins is true', async () => {
+    it('accessDenied, calls callback with error, disallowTokenLogins is true', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -617,7 +605,7 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
         username: '_ADMIN',
         type: 'mockType',
@@ -634,21 +622,19 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(`logins with this token are disallowed by policy`);
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(`logins with this token are disallowed by policy`);
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal(`logins with this token are disallowed by policy`);
+      }
     });
 
-    xit('accessDenied, calls callback with error, previousPolicy.lockTokenToOrigin is truthy and previousSession.origin is equal to system.name', async () => {
+    it('accessDenied, calls callback with error, previousPolicy.lockTokenToOrigin is truthy and previousSession.origin is equal to system.name', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -664,7 +650,7 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
         username: '_ADMIN',
         type: 'mockType',
@@ -681,22 +667,23 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(`this token is locked to a different origin by policy`);
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(`this token is locked to a different origin by policy`);
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai
+          .expect(e.message)
+          .to.equal(`this token is locked to a different origin by policy`);
+      }
     });
 
-    it.skip('calls __providerTokenLogin, calls callback with error message', async () => {
+    it('calls providerTokenLogin, calls callback with error message', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = false;
       mockConfig.lockTokenToLoginType = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -712,7 +699,7 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
         username: '_ADMIN',
         type: 'mockType',
@@ -729,29 +716,28 @@ describe(test.testName(), function () {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(`__providerTokenLogin not implemented.`);
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(`__providerTokenLogin not implemented.`);
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.message).to.equal(`providerTokenLogin not implemented.`);
+      }
     });
 
-    xit('calls __providerTokenLogin, calls callback with error message', async () => {
+    it('calls providerTokenLogin, calls callback with error message', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = false;
 
       const get = test.sinon.stub().returns(null);
       const set = test.sinon.stub();
 
-      mockHappn.services.cache.getOrCreate.returns({
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns({
         get,
         set,
       });
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -767,89 +753,28 @@ describe(test.testName(), function () {
         },
       };
 
-      mockHappn.services.security.__checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.throws(new Error('test error'));
       mockHappn.services.error.InvalidCredentialsError.callsFake((errorMessage) => {
         return errorMessage;
       });
 
-      await instance.tokenLogin(credentials, 1, request, callback);
-
-      test.chai.expect(set).to.have.been.calledWithExactly(
-        undefined,
-        { attempts: 1 },
-        {
-          ttl: mockConfig.accountLockout.retryInterval,
-        }
-      );
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(`Invalid credentials: test error`);
-      test.chai
-        .expect(mockHappn.services.error.InvalidCredentialsError)
-        .to.have.been.calledOnceWithExactly(`Invalid credentials: test error`);
-    });
-  });
-
-  context('userCredsLogin', () => {
-    xit('accessDenied, calls callback with error message, account locked out', async () => {
-      const get = test.sinon.stub().returns({
-        attempts: 4,
-      });
-
-      mockHappn.services.cache.getOrCreate.returns({
-        get,
-      });
-
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
-      const credentials = {
-        username: 'mockUsername',
-        password: null,
-        type: 1,
-        token: null,
-        digest: 1,
-      };
-
-      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
-        return errorMessage;
-      });
-
-      instance.userCredsLogin(credentials, 1, callback);
-
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly(`Account locked out`);
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(`Account locked out`);
-    });
-
-    xit('calls __providerCredsLogin if this.__checkLockedOut returns false', async () => {
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
-      const credentials = {
-        username: null,
-      };
-
-      mockHappn.services.error.AccessDeniedError.callsFake((errorMessage) => {
-        return errorMessage;
-      });
-
-      instance.userCredsLogin(credentials, 1, callback);
-
-      test.chai
-        .expect(callback)
-        .to.have.been.calledOnceWithExactly(`__providerCredsLogin not implemented.`);
-      test.chai
-        .expect(mockHappn.services.error.AccessDeniedError)
-        .to.have.been.calledOnceWithExactly(`__providerCredsLogin not implemented.`);
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+        throw new Error('should have failed');
+      } catch (e) {
+        test.chai.expect(e.toString()).to.equal(`Error: test error`);
+      }
     });
   });
 
   context('checkDisableDefaultAdminNetworkConnections', () => {
-    xit('returns true', async () => {
+    it('returns true', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: '_ADMIN',
       };
@@ -862,14 +787,14 @@ describe(test.testName(), function () {
       };
 
       const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
-
       test.chai.expect(result).to.be.true;
     });
 
-    xit('returns false', async () => {
+    it('returns false', async () => {
       mockConfig.disableDefaultAdminNetworkConnections = true;
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
         username: 'mockUsername',
       };
@@ -882,20 +807,20 @@ describe(test.testName(), function () {
       };
 
       const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
-
       test.chai.expect(result).to.be.false;
     });
   });
 
-  context('__loginOK', () => {
-    xit('with this.locks', async () => {
+  context('loginOK', () => {
+    it('with this.locks', async () => {
       const remove = test.sinon.stub();
-      mockHappn.services.cache.getOrCreate.returns({
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns({
         remove,
       });
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -906,33 +831,32 @@ describe(test.testName(), function () {
 
       mockHappn.services.security.generateSession.returns('mockSession');
 
-      instance.__loginOK(
+      instance.loginOK(
         credentials,
         { password: 'mockPassword', username: 'username' },
-        1,
-        callback,
+        'mockSessionId',
         'mockTokenLogin',
         'mockAdditionalInfo'
       );
 
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, 'mockSession');
       test.chai.expect(remove).to.have.been.calledOnceWithExactly('username');
       test.chai
         .expect(mockHappn.services.security.generateSession)
         .to.have.been.calledOnceWithExactly(
           { username: 'username' },
-          1,
+          'mockSessionId',
           credentials,
           'mockTokenLogin',
           'mockAdditionalInfo'
         );
     });
 
-    xit('without this.locks', async () => {
-      mockHappn.services.cache.getOrCreate.returns(null);
+    it('without this.locks', async () => {
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns(null);
 
-      const instance = new BaseAuthProvider(mockHappn, mockConfig);
-      const callback = test.sinon.stub();
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
       const credentials = {
         username: 'mockUsername',
         password: null,
@@ -940,21 +864,19 @@ describe(test.testName(), function () {
 
       mockHappn.services.security.generateSession.returns('mockSession');
 
-      instance.__loginOK(
+      instance.loginOK(
         credentials,
         { password: 'mockPassword', username: 'username' },
-        1,
-        callback,
+        'mockSessionId',
         'mockTokenLogin',
         'mockAdditionalInfo'
       );
 
-      test.chai.expect(callback).to.have.been.calledOnceWithExactly(null, 'mockSession');
       test.chai
         .expect(mockHappn.services.security.generateSession)
         .to.have.been.calledOnceWithExactly(
           { username: 'username' },
-          1,
+          'mockSessionId',
           credentials,
           'mockTokenLogin',
           'mockAdditionalInfo'

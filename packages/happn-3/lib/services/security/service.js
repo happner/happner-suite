@@ -1386,10 +1386,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return (
       credentials.username === '_ADMIN' &&
       this.config.disableDefaultAdminNetworkConnections === true &&
-      request &&
-      request.data &&
-      request.data.info &&
-      request.data.info._local === false
+      request?.data?.info?._local === false // request origin over a socket, not in process
     );
   }
 
