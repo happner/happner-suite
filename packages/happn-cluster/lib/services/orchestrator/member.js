@@ -91,14 +91,17 @@ function Member(parameters) {
 }
 
 Member.prototype.removeMembership = function () {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member removeMembership');
   this.member = false; // swim detected faulty
 };
 
 Member.prototype.addMembership = function () {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member addMembership');
   this.member = true; // swim detected join
 };
 
 Member.prototype.stop = require('util').promisify(function (callback) {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member stop');
   if (this.client == null || this.client.status === 2) return callback(); //dont try disconnect again
 
   return this.client.disconnect((e) => {
@@ -109,6 +112,7 @@ Member.prototype.stop = require('util').promisify(function (callback) {
 });
 
 Member.prototype.__onHappnDisconnect = function () {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member happn disconnect');
   this.log.$$TRACE('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
   this.log.$$TRACE('arguments', arguments);
 
@@ -128,6 +132,7 @@ Member.prototype.__onHappnDisconnect = function () {
 };
 
 Member.prototype.__onHappnReconnect = function () {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member happn reconnect');
   this.log.$$TRACE('reconnected to (->) %s/%s', this.clusterName, this.name);
   if (this.connectedTo) return;
   this.connectedTo = true;
@@ -136,6 +141,7 @@ Member.prototype.__onHappnReconnect = function () {
 
 Member.prototype.__subscribe = function (path) {
   var _this = this;
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member subscribe replicate');
   return new Promise(function (resolve, reject) {
     _this.client.on(path, null, _this.__createReplicationEventHandler(), function (error) {
       if (error) {
@@ -148,6 +154,7 @@ Member.prototype.__subscribe = function (path) {
 };
 
 Member.prototype.__createReplicationEventHandler = function () {
+  this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member create replication event handler');
   var _this = this;
   var subscription = this.orchestrator.happn.services.subscription;
   var publisher = this.orchestrator.happn.services.publisher;
@@ -276,6 +283,8 @@ Member.prototype.connect = function (member) {
 
   var config = _this.orchestrator.getLoginConfig();
 
+  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator member connect ${member.url}`);
+
   _this.log.debug('connect to (->) %s', member.url);
   _this.log.debug('as %s', _this.name);
 
@@ -348,12 +357,17 @@ Member.prototype.connect = function (member) {
   });
 
   Member.prototype.__subscribeToReplicate = async function () {
+    this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member subscribe to replicate');
     for (let replicatePath of this.orchestrator.config.replicate) {
       try {
         await this.__subscribe(replicatePath);
       } catch (e) {
         this.error = e;
         this.orchestrator.__stateUpdate();
+        this.log.info(
+          `[CLUSTER_MEMBERSHIP]: orchestrator member subscribe to replicate failed: ${e.message}`
+        );
+        // TODO: do we not throw and die here?
         return;
       }
     }
