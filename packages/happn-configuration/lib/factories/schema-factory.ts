@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 import Constants from '../constants/builder-constants';
 import { VersionUtil } from '../utils/version-util';
 

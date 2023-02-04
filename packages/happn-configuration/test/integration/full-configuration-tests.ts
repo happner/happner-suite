@@ -10,9 +10,9 @@ describe('full configuration tests', function () {
     process.env.CURRENT_CONFIG_TYPE = undefined;
   });
 
-  it('builds a happn configuration object', () => {
+  it('builds a happn configuration object', async () => {
     const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = ConfigBuilderFactory.getBuilder('happn');
+    const builder = await ConfigBuilderFactory.getBuilder('happn', '1.0.0');
     setHappnConfigValues(builder);
 
     const result = builder.build();
@@ -30,9 +30,9 @@ describe('full configuration tests', function () {
     result.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 
-  it('builds a happn-cluster configuration object', () => {
+  it('builds a happn-cluster configuration object', async () => {
     const validator = new ConfigValidator('2.0.0', mockLogger);
-    const builder = ConfigBuilderFactory.getBuilder('happn-cluster');
+    const builder = await ConfigBuilderFactory.getBuilder('happn-cluster', '1.0.0');
 
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
@@ -46,9 +46,9 @@ describe('full configuration tests', function () {
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
-  it('builds a happner configuration object', () => {
+  it('builds a happner configuration object', async () => {
     const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = ConfigBuilderFactory.getBuilder('happner');
+    const builder = await ConfigBuilderFactory.getBuilder('happner', '1.0.0');
 
     setHappnConfigValues(builder);
     setHappnerConfigValues(builder);
@@ -62,9 +62,9 @@ describe('full configuration tests', function () {
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
-  it('builds a happner-cluster configuration object', () => {
+  it('builds a happner-cluster configuration object', async () => {
     const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = ConfigBuilderFactory.getBuilder('happner-cluster');
+    const builder = await ConfigBuilderFactory.getBuilder('happner-cluster', '1.0.0');
 
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);

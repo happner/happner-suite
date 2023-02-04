@@ -1,30 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const BaseBuilder = require('happn-commons/lib/base-builder');
-
+import { VersionUtil } from '../utils/version-util';
 import BuilderConstants from '../constants/builder-constants';
-import { CacheConfigBuilder } from '../builders/happn/services/cache-config-builder';
-import { ConnectConfigBuilder } from '../builders/happn/services/connect-config-builder';
-import { DataConfigBuilder } from '../builders/happn/services/data-config-builder';
-import { PublisherConfigBuilder } from '../builders/happn/services/publisher-config-builder';
-import { ProtocolConfigBuilder } from '../builders/happn/services/protocol-config-builder';
-import { SecurityConfigBuilder } from '../builders/happn/services/security-config-builder';
-import { SubscriptionConfigBuilder } from '../builders/happn/services/subscription-config-builder';
-import { SystemConfigBuilder } from '../builders/happn/services/system-config-builder';
-import { TransportConfigBuilder } from '../builders/happn/services/transport-config-builder';
-import { MembershipConfigBuilder } from '../builders/happn/services/membership-config-builder';
-import { OrchestratorConfigBuilder } from '../builders/happn/services/orchestrator-config-builder';
-import { ReplicatorConfigBuilder } from '../builders/happn/services/replicator-config-builder';
-import { ProxyConfigBuilder } from '../builders/happn/services/proxy-config-builder';
-import { HealthConfigBuilder } from '../builders/happn/services/health-config-builder';
 import { FieldTypeValidator } from '../validators/field-type-validator';
-import { ComponentsConfigBuilder } from '../builders/happner/components/components-config-builder';
-import { EndpointsConfigBuilder } from '../builders/happner/endpoints/endpoints-config-builder';
-import { ModulesConfigBuilder } from '../builders/happner/modules/modules-config-builder';
+
 // mixin specific imports
 import { HappnCoreBuilder } from '../builders/happn/happn-core-mixin';
 import { HappnClusterCoreBuilder } from '../builders/happn-cluster/happn-cluster-core-mixin';
 import { HappnerCoreBuilder } from '../builders/happner/happner-core-mixin';
 import { HappnerClusterCoreBuilder } from '../builders/happner-cluster/happner-cluster-core-mixin';
+import { join } from 'path';
+
+import BaseBuilder from 'happn-commons/lib/base-builder';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
@@ -61,47 +47,47 @@ const BaseClz = class BaseClz extends BaseBuilder {
 };
 
 export class ConfigBuilderFactory {
-  static getBuilder(type: string) {
+  static async getBuilder(type: string, version: string) {
     switch (type) {
       case HAPPN:
-        return ConfigBuilderFactory.getHappnBuilder();
+        return await ConfigBuilderFactory.getHappnBuilder(version);
       case HAPPN_CLUSTER:
-        return ConfigBuilderFactory.getHappnClusterBuilder();
+        return await ConfigBuilderFactory.getHappnClusterBuilder(version);
       case HAPPNER:
-        return ConfigBuilderFactory.getHappnerBuilder();
+        return await ConfigBuilderFactory.getHappnerBuilder(version);
       case HAPPNER_CLUSTER:
-        return ConfigBuilderFactory.getHappnerClusterBuilder();
+        return await ConfigBuilderFactory.getHappnerClusterBuilder(version);
       default:
         throw new Error('Unknown configuration type');
     }
   }
 
-  static getHappnBuilder() {
-    const container = ConfigBuilderFactory.createContainer();
+  static async getHappnBuilder(version: string) {
+    const container = await ConfigBuilderFactory.createContainer(version);
     const HappnMixin = HappnCoreBuilder(BaseClz);
     const result = new HappnMixin(container);
     result.builderType = HAPPN;
     return result;
   }
 
-  static getHappnClusterBuilder() {
-    const container = ConfigBuilderFactory.createContainer();
+  static async getHappnClusterBuilder(version: string) {
+    const container = await ConfigBuilderFactory.createContainer(version);
     const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
     const result = new HappnClusterMixin(container);
     result.builderType = HAPPN_CLUSTER;
     return result;
   }
 
-  static getHappnerBuilder() {
-    const container = ConfigBuilderFactory.createContainer();
+  static async getHappnerBuilder(version: string) {
+    const container = await ConfigBuilderFactory.createContainer(version);
     const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
     const result = new HappnerMixin(container);
     result.builderType = HAPPNER;
     return result;
   }
 
-  static getHappnerClusterBuilder() {
-    const container = ConfigBuilderFactory.createContainer();
+  static async getHappnerClusterBuilder(version: string) {
+    const container = await ConfigBuilderFactory.createContainer(version);
     const HappnerClusterMixin = HappnCoreBuilder(
       HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
     );
@@ -110,25 +96,107 @@ export class ConfigBuilderFactory {
     return result;
   }
 
-  static createContainer() {
+  static async createContainer(version: string) {
     return {
-      cacheConfigBuilder: new CacheConfigBuilder(),
-      componentsConfigBuilder: new ComponentsConfigBuilder(),
-      connectConfigBuilder: new ConnectConfigBuilder(),
-      dataConfigBuilder: new DataConfigBuilder(),
-      endpointsConfigBuilder: new EndpointsConfigBuilder(),
-      membershipConfigBuilder: new MembershipConfigBuilder(),
-      modulesConfigBuilder: new ModulesConfigBuilder(),
-      orchestratorConfigBuilder: new OrchestratorConfigBuilder(),
-      protocolConfigBuilder: new ProtocolConfigBuilder(new FieldTypeValidator()),
-      proxyConfigBuilder: new ProxyConfigBuilder(),
-      publisherConfigBuilder: new PublisherConfigBuilder(),
-      replicatorConfigBuilder: new ReplicatorConfigBuilder(),
-      securityConfigBuilder: new SecurityConfigBuilder(),
-      subscriptionConfigBuilder: new SubscriptionConfigBuilder(),
-      systemConfigBuilder: new SystemConfigBuilder(),
-      transportConfigBuilder: new TransportConfigBuilder(),
-      healthConfigBuilder: new HealthConfigBuilder(),
+      cacheConfigBuilder: await this.getSubconfigBuilder(
+        'cache-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      componentsConfigBuilder: await this.getSubconfigBuilder(
+        'components-config-builder',
+        join(__dirname, '..', 'builders/happner/components'),
+        version
+      ),
+      connectConfigBuilder: await this.getSubconfigBuilder(
+        'connect-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      dataConfigBuilder: await this.getSubconfigBuilder(
+        'data-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      endpointsConfigBuilder: await this.getSubconfigBuilder(
+        'endpoints-config-builder',
+        join(__dirname, '..', 'builders/happner/endpoints'),
+        version
+      ),
+      membershipConfigBuilder: await this.getSubconfigBuilder(
+        'membership-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      modulesConfigBuilder: await this.getSubconfigBuilder(
+        'modules-config-builder',
+        join(__dirname, '..', 'builders/happner/modules'),
+        version
+      ),
+      orchestratorConfigBuilder: await this.getSubconfigBuilder(
+        'orchestrator-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      protocolConfigBuilder: await this.getSubconfigBuilder(
+        'protocol-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version,
+        new FieldTypeValidator()
+      ),
+      proxyConfigBuilder: await this.getSubconfigBuilder(
+        'proxy-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      publisherConfigBuilder: await this.getSubconfigBuilder(
+        'publisher-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      replicatorConfigBuilder: await this.getSubconfigBuilder(
+        'replicator-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      securityConfigBuilder: await this.getSubconfigBuilder(
+        'security-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      subscriptionConfigBuilder: await this.getSubconfigBuilder(
+        'subscription-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      systemConfigBuilder: await this.getSubconfigBuilder(
+        'system-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      transportConfigBuilder: await this.getSubconfigBuilder(
+        'transport-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
+      healthConfigBuilder: await this.getSubconfigBuilder(
+        'health-config-builder',
+        join(__dirname, '..', 'builders/happn/services'),
+        version
+      ),
     };
+  }
+
+  static async getSubconfigBuilder(
+    moduleName: string,
+    rootPath: string,
+    version: string,
+    ...args: any[]
+  ) {
+    const versionUtil = new VersionUtil();
+    const modulePath = versionUtil.findClosestVersionedFileMatch(rootPath, moduleName, version);
+    const Module = await import(modulePath);
+    const Clz = Module[Object.keys(Module)[0]];
+    return new Clz(...args);
   }
 }

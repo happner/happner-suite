@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires,no-console */
 // const expect = require('chai');
-import mockLogger from '../../__fixtures/logger';
-
+const mockLogger = require('../../__fixtures/logger');
 const { ConfigBuilderFactory, ConfigValidator } = require('../../../dist');
 
 describe('transpiled configuration tests', function () {
-  it('creates happn config using transpiled happn-builder', () => {
-    const builder = ConfigBuilderFactory.getBuilder('happn');
+  it('creates happn config using transpiled happn-builder', async () => {
+    const builder = await ConfigBuilderFactory.getBuilder('happn', '1.0.0');
     const result = builder.build();
 
     const validator = new ConfigValidator('1.0.0', mockLogger);
@@ -16,8 +15,8 @@ describe('transpiled configuration tests', function () {
     console.log('HAPPN: ', JSON.stringify(result, null, 2));
   });
 
-  it('creates happn-cluster config using transpiled happn-cluster-builder', () => {
-    const builder = ConfigBuilderFactory.getHappnClusterBuilder();
+  it('creates happn-cluster config using transpiled happn-cluster-builder', async () => {
+    const builder = await ConfigBuilderFactory.getHappnClusterBuilder('1.0.0');
     const result = builder.build();
 
     const validator = new ConfigValidator('1.0.0', mockLogger);
@@ -27,8 +26,8 @@ describe('transpiled configuration tests', function () {
     console.log('HAPPN-CLUSTER: ', JSON.stringify(result, null, 2));
   });
 
-  it('creates happner config using transpiled happner-builder', () => {
-    const builder = ConfigBuilderFactory.getHappnerBuilder();
+  it('creates happner config using transpiled happner-builder', async () => {
+    const builder = await ConfigBuilderFactory.getHappnerBuilder('1.0.0');
     const result = builder.build();
 
     const validator = new ConfigValidator('1.0.0', mockLogger);
@@ -38,8 +37,8 @@ describe('transpiled configuration tests', function () {
     console.log('HAPPNER: ', JSON.stringify(result, null, 2));
   });
 
-  it('creates happner-cluster config using transpiled happner-cluster-builder', () => {
-    const builder = ConfigBuilderFactory.getHappnerClusterBuilder();
+  it('creates happner-cluster config using transpiled happner-cluster-builder', async () => {
+    const builder = await ConfigBuilderFactory.getHappnerClusterBuilder('1.0.0');
     const result = builder.build();
 
     const validator = new ConfigValidator('1.0.0', mockLogger);
