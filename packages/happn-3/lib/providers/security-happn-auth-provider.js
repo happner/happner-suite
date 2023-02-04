@@ -42,22 +42,16 @@ module.exports = class HappnAuthProvider extends SecurityBaseAuthProvider {
   }
 
   async providerCredsLogin(credentials, sessionId) {
-    try {
-      const user = await this.securityFacade.users.getUser(credentials.username);
-      if (user == null) {
-        return this.loginFailed(credentials.username, 'Invalid credentials');
-      }
-      if (credentials.digest) return this.#digestLogin(user, credentials, sessionId);
-      const hash = await this.securityFacade.users.getPasswordHash(credentials.username);
-      // eslint-disable-next-line eqeqeq
-      if (!(await this.securityFacade.security.matchPassword(credentials.password, hash))) {
-        return this.loginFailed(credentials.username, 'Invalid credentials');
-      }
-      return this.loginOK(credentials, user, sessionId);
-    } catch (e) {
-      if (e.toString() === 'Error: ' + credentials.username + ' does not exist in the system')
-        return this.loginFailed(credentials.username, 'Invalid credentials');
-      throw e;
+    const user = await this.securityFacade.users.getUser(credentials.username);
+    if (user == null) {
+      return this.loginFailed(credentials.username, 'Invalid credentials');
     }
+    if (credentials.digest) return this.#digestLogin(user, credentials, sessionId);
+    const hash = await this.securityFacade.users.getPasswordHash(credentials.username);
+    // eslint-disable-next-line eqeqeq
+    if (!(await this.securityFacade.security.matchPassword(credentials.password, hash))) {
+      return this.loginFailed(credentials.username, 'Invalid credentials');
+    }
+    return this.loginOK(credentials, user, sessionId);
   }
 };

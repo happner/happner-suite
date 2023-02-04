@@ -116,7 +116,11 @@ module.exports = class SecurityBaseAuthProvider {
       return this.tokenLogin(credentials, sessionId, request);
     }
 
-    return this.#userCredsLogin(credentials, sessionId);
+    if (this.#checkLockedOut(credentials.username)) {
+      return this.accessDenied('Account locked out');
+    }
+
+    return this.providerCredsLogin(credentials, sessionId);
   }
 
   async tokenLogin(credentials, sessionId, request) {
@@ -136,48 +140,45 @@ module.exports = class SecurityBaseAuthProvider {
       }
     }
 
-    let errorMessage;
     if (previousSession && previousSession.type != null && this.#config.lockTokenToLoginType) {
       if (previousSession.type !== credentials.type) {
-        errorMessage = `token was created using the login type ${previousSession.type}, which does not match how the new token is to be created`;
+        return this.accessDenied(
+          `token was created using the login type ${previousSession.type}, which does not match how the new token is to be created`
+        );
       }
     }
+
     if (
       this.#securityFacade.security.checkDisableDefaultAdminNetworkConnections(
         previousSession,
         request
       )
     ) {
-      errorMessage = 'use of _ADMIN credentials over the network is disabled';
+      return this.accessDenied('use of _ADMIN credentials over the network is disabled');
     }
 
     let previousPolicy = previousSession.policy[1]; //always the stateful policy
 
     if (previousPolicy.disallowTokenLogins) {
-      errorMessage = `logins with this token are disallowed by policy`;
+      return this.accessDenied(`logins with this token are disallowed by policy`);
     }
 
     if (
       previousPolicy.lockTokenToOrigin &&
       previousSession.origin !== this.#securityFacade.system.name
     ) {
-      errorMessage = `this token is locked to a different origin by policy`;
+      return this.accessDenied(`this token is locked to a different origin by policy`);
     }
 
-    if (errorMessage) {
-      return this.accessDenied(errorMessage);
-    }
-
-    //Anything further is dealt with in the specific provider
     return this.providerTokenLogin(credentials, previousSession, sessionId);
   }
 
   async providerTokenLogin() {
-    return this.accessDenied('providerTokenLogin not implemented.');
+    return this.systemError('providerTokenLogin not implemented.');
   }
 
   async providerCredsLogin() {
-    return this.accessDenied('providerCredsLogin not implemented.');
+    return this.systemError('providerCredsLogin not implemented.');
   }
 
   loginFailed(username, specificMessage, e, overrideLockout) {
@@ -222,24 +223,6 @@ module.exports = class SecurityBaseAuthProvider {
       throw new Error('session disconnected during login');
     }
     return session;
-  }
-
-  checkDisableDefaultAdminNetworkConnections(credentials, request) {
-    return (
-      credentials.username === '_ADMIN' &&
-      this.#config.disableDefaultAdminNetworkConnections === true &&
-      request &&
-      request.data &&
-      request.data.info &&
-      request.data.info._local === false
-    );
-  }
-
-  #userCredsLogin(credentials, sessionId) {
-    if (this.#checkLockedOut(credentials.username)) {
-      return this.accessDenied('Account locked out');
-    }
-    return this.providerCredsLogin(credentials, sessionId);
   }
 
   #checkLockedOut(username) {

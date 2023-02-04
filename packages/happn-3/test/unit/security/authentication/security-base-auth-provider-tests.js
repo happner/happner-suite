@@ -658,7 +658,6 @@ describe(test.testName(), function () {
         policy: [
           'item1',
           {
-            disallowTokenLogins: true,
             lockTokenToOrigin: true,
           },
         ],
@@ -765,49 +764,6 @@ describe(test.testName(), function () {
       } catch (e) {
         test.chai.expect(e.toString()).to.equal(`Error: test error`);
       }
-    });
-  });
-
-  context('checkDisableDefaultAdminNetworkConnections', () => {
-    it('returns true', async () => {
-      mockConfig.disableDefaultAdminNetworkConnections = true;
-
-      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
-      const instance = new BaseAuthProvider(securityFacade, mockConfig);
-
-      const credentials = {
-        username: '_ADMIN',
-      };
-      const request = {
-        data: {
-          info: {
-            _local: false,
-          },
-        },
-      };
-
-      const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
-      test.chai.expect(result).to.be.true;
-    });
-
-    it('returns false', async () => {
-      mockConfig.disableDefaultAdminNetworkConnections = true;
-
-      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
-      const instance = new BaseAuthProvider(securityFacade, mockConfig);
-      const credentials = {
-        username: 'mockUsername',
-      };
-      const request = {
-        data: {
-          info: {
-            _local: false,
-          },
-        },
-      };
-
-      const result = instance.checkDisableDefaultAdminNetworkConnections(credentials, request);
-      test.chai.expect(result).to.be.false;
     });
   });
 
