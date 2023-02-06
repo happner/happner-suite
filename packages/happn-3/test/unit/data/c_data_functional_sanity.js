@@ -261,20 +261,6 @@ describe(test.testName(__filename, 3), function () {
     );
   });
 
-  xit('gets data with $not', async () => {
-    let testPath = `${testId}/not`;
-    serviceInstance.upsert(`${testPath}/ok`, { ok: 'ok' });
-    serviceInstance.upsert(`${testPath}/_notok_`, { ok: 'not' });
-    let result = await serviceInstance.find(`${testId}/*`, {
-      criteria: {
-        path: {
-          $not: { $regex: new RegExp('.*_notok_.*') },
-        },
-      },
-    });
-    test.expect(result.length === 1).to.be(true);
-  });
-
   it('does a sort and limit', function (done) {
     let itemCount = 100;
     let randomItems = [];

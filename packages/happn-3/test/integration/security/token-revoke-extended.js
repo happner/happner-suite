@@ -296,13 +296,13 @@ describe(
               function (e) {
                 if (e) return done(e);
                 setTimeout(function () {
-                  serviceInstance.services.security.__cache_revoked_tokens.get(
+                  serviceInstance.services.security.cache_revoked_tokens.get(
                     sessionToken,
                     function (e, cachedToken) {
                       expect(cachedToken.reason).to.equal('CLIENT');
 
                       setTimeout(function () {
-                        serviceInstance.services.security.__cache_revoked_tokens.get(
+                        serviceInstance.services.security.cache_revoked_tokens.get(
                           sessionToken,
                           function (e, cachedToken) {
                             expect(cachedToken).to.be(null);

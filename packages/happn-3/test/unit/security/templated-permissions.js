@@ -103,21 +103,6 @@ describe(
       });
     };
 
-    // took this out, cannot see how listening on a template path is a hole to security
-    xit('should ensure replacement permissions fail the utility checkPath', function (done) {
-      var utils = require('happn-commons').utils;
-
-      try {
-        utils.checkPath('/gauge/{{username}}/*');
-      } catch (e) {
-        expect(e.toString()).to.be(
-          'Error: Bad path, can only contain characters a-z A-Z 0-9 / & + = : @ % * ( ) _ -, ie: factory1@I&J(western-cape)/plant1:conveyer_2/stats=true/capacity=10%/*'
-        );
-        return done();
-      }
-      done(new Error('unexpected success...'));
-    });
-
     it('tests the __createPermissionSet method does permissions replacements, using a mocked identity with templated permissions', function (done) {
       initializeCheckpoint(function (e, checkpoint) {
         if (e) return done(e);

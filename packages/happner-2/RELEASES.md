@@ -1021,3 +1021,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.5.5 2023-01-11
 -----------------
   - feat: loki archiving and plugins tests
+
+12.6.0 2023-01-18
+-----------------
+  - feat: Summon productionization

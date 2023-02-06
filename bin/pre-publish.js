@@ -335,6 +335,7 @@ function getPublishOrder() {
     'happn-db-provider-loki',
     'happn-db-provider-nedb',
     'happn-db-provider-mongo',
+    'happn-db-provider-sqlite',
     'happn-util-crypto',
     'happn-logger',
     'happn-3',

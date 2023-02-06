@@ -1,88 +1,9 @@
 const commons = require('happn-commons');
 const async = commons.async;
 const util = commons.utils;
-function ServiceManager() {}
-
-ServiceManager.prototype.initialize = function (config, happn, callback) {
-  this.happn = happn;
-
-  if (!config.services) config.services = {};
-  if (!config.services.system) config.services.system = {};
-  if (!config.services.system.config) config.services.system.config = {};
-  if (config.name) config.services.system.config.name = config.name;
-
-  var loadService = function (serviceName, serviceLoaded) {
-    happn.log.$$TRACE('loadService( ' + serviceName);
-
-    if (!config.services[serviceName]) config.services[serviceName] = {};
-    if (!config.services[serviceName].path)
-      config.services[serviceName].path = './' + serviceName + '/service.js';
-    if (!config.services[serviceName].config) config.services[serviceName].config = {};
-
-    var ServiceDefinition, serviceInstance, serviceConfig;
-
-    serviceConfig = config.services[serviceName];
-
-    function doServiceLoaded(e) {
-      if (e) {
-        happn.log.error('Failed to instantiate service: ' + serviceName, e);
-        return serviceLoaded(e);
-      }
-      happn.log.debug(serviceName + ' service loaded.');
-      _this.__loaded.push(serviceName);
-      serviceLoaded();
-    }
-
-    if (!serviceConfig.instance) {
-      try {
-        ServiceDefinition = require(serviceConfig.path);
-        serviceInstance = new ServiceDefinition({
-          logger: happn.log,
-        });
-      } catch (e) {
-        return doServiceLoaded(e);
-      }
-    } else serviceInstance = serviceConfig.instance;
-
-    serviceInstance.happn = happn;
-
-    happn.services[serviceName] = serviceInstance;
-
-    if (!serviceConfig.config) serviceConfig.config = {};
-
-    if (config.secure) serviceConfig.config.secure = true;
-
-    serviceInstance.__happnerSettings = serviceConfig;
-
-    doServiceLoaded();
-  };
-
-  var _this = this;
-
-  var initializeServices = function (e, serviceNames) {
-    if (e) return callback(e);
-
-    async.eachSeries(
-      serviceNames,
-      function (serviceName, serviceInstanceCB) {
-        var serviceInstance = _this.happn.services[serviceName];
-
-        if (typeof serviceInstance.initialize === 'function') {
-          happn.log.debug(`${serviceName} service initializing`);
-          return serviceInstance.initialize(
-            serviceInstance.__happnerSettings.config,
-            serviceInstanceCB
-          );
-        }
-        serviceInstanceCB();
-      },
-      callback
-    );
-  };
-
-  _this.__loaded = [];
-
-  var systemServices = [
+module.exports = class ServiceManager {
+  #loaded = [];
+  #systemServices = [
     'utils',
     'error',
     'log',
@@ -98,56 +19,115 @@ ServiceManager.prototype.initialize = function (config, happn, callback) {
     'subscription',
     'publisher',
   ];
+  constructor() {
+    this.stop = util.maybePromisify(this.stop);
+    this.initialize = util.maybePromisify(this.initialize);
+  }
+  initialize(config, happn, callback) {
+    this.happn = happn;
 
-  //these are supplementary services defiend in app-land, will always start after system services
-  var appServices = [];
+    if (!config.services) config.services = {};
+    if (!config.services.system) config.services.system = {};
+    if (!config.services.system.config) config.services.system.config = {};
+    if (config.name) config.services.system.config.name = config.name;
 
-  Object.keys(config.services).forEach(function (serviceName) {
-    if (systemServices.indexOf(serviceName) === -1) appServices.push(serviceName);
-  });
-
-  async.eachSeries(systemServices, loadService, function (e) {
-    if (e) return callback(e);
-
-    async.eachSeries(appServices, loadService, function (e) {
-      initializeServices(e, _this.__loaded); //so that circular dependancies can be met
+    //these are supplementary services defined in app-land, will always start after system services
+    const appServices = Object.keys(config.services).filter((serviceName) => {
+      return !this.#systemServices.includes(serviceName);
     });
-  });
+
+    async.eachSeries(this.#systemServices, this.#loadService(happn, config), (e) => {
+      if (e) return callback(e);
+      async.eachSeries(appServices, this.#loadService(happn, config), (e) => {
+        if (e) return callback(e);
+        this.#initializeServices(happn, this.#loaded, callback); //so that circular dependancies can be met
+      });
+    });
+  }
+
+  stop(options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+
+    if (options.kill) {
+      setTimeout(() => {
+        this.happn.services.log.error('failed to stop happn, force true');
+        process.exit(options.exitCode || 1);
+      }, options.wait || 10e3);
+    }
+
+    //we stop everything in reverse, that way primus (session service) is able to say goodbye properly before transport service
+    async.eachSeries(
+      this.#loaded.reverse(),
+      (serviceName, stopServiceCB) => {
+        const serviceInstance = this.happn.services[serviceName];
+        if (serviceInstance.stop) serviceInstance.stop(options, stopServiceCB);
+        else stopServiceCB();
+      },
+      callback
+    );
+  }
+  #loadService(happn, config) {
+    return (serviceName, serviceLoaded) => {
+      happn.log.$$TRACE('loadService( ' + serviceName);
+
+      if (!config.services[serviceName]) config.services[serviceName] = {};
+      if (!config.services[serviceName].path)
+        config.services[serviceName].path = './' + serviceName + '/service.js';
+      if (!config.services[serviceName].config) config.services[serviceName].config = {};
+
+      var ServiceDefinition, serviceInstance, serviceConfig;
+
+      serviceConfig = config.services[serviceName];
+
+      const doServiceLoaded = (e) => {
+        if (e) {
+          happn.log.error('Failed to instantiate service: ' + serviceName, e);
+          return serviceLoaded(e);
+        }
+        happn.log.debug(serviceName + ' service loaded.');
+        this.#loaded.push(serviceName);
+        serviceLoaded();
+      };
+
+      if (!serviceConfig.instance) {
+        try {
+          ServiceDefinition = require(serviceConfig.path);
+          serviceInstance = new ServiceDefinition({
+            logger: happn.log,
+          });
+        } catch (e) {
+          return doServiceLoaded(e);
+        }
+      } else serviceInstance = serviceConfig.instance;
+
+      serviceInstance.happn = happn;
+      happn.services[serviceName] = serviceInstance;
+      if (!serviceConfig.config) serviceConfig.config = {};
+      if (config.secure) serviceConfig.config.secure = true;
+      serviceInstance.__happnerSettings = serviceConfig;
+
+      doServiceLoaded();
+    };
+  }
+  #initializeServices(happn, serviceNames, callback) {
+    async.eachSeries(
+      serviceNames,
+      (serviceName, serviceInstanceCB) => {
+        var serviceInstance = this.happn.services[serviceName];
+
+        if (typeof serviceInstance.initialize === 'function') {
+          happn.log.debug(`${serviceName} service initializing`);
+          return serviceInstance.initialize(
+            serviceInstance.__happnerSettings.config,
+            serviceInstanceCB
+          );
+        }
+        serviceInstanceCB();
+      },
+      callback
+    );
+  }
 };
-
-ServiceManager.prototype.stop = util.maybePromisify(function (options, callback) {
-  var _this = this;
-
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-
-  if (options.kill && !options.wait) options.wait = 10000;
-
-  var kill = function () {
-    process.exit(options.exitCode || 1);
-  };
-
-  if (options.kill) {
-    setTimeout(function () {
-      _this.happn.services.log.error('failed to stop happn, force true');
-      kill();
-    }, options.wait);
-  }
-
-  //we stop everything in reverse, that way primus (session service) is able to say goodbye properly before transport service
-  async.eachSeries(
-    _this.__loaded.reverse(),
-
-    function (serviceName, stopServiceCB) {
-      var serviceInstance = _this.happn.services[serviceName];
-
-      if (serviceInstance.stop) serviceInstance.stop(options, stopServiceCB);
-      else stopServiceCB();
-    },
-    callback
-  );
-});
-
-module.exports = ServiceManager;

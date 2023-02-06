@@ -52,3 +52,8 @@
 -----------------
   - feat: loki archiving
   - feat: loki plugins
+
+1.2.1 2023-01-18
+-----------------
+  - TEN-4: summon productionization
+

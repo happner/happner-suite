@@ -53,7 +53,7 @@ describe(test.testName(__filename, 3), function () {
       loginMethod.call(mock);
       test.sinon.assert.calledWith(
         mock.__securityService.login,
-        { username: 'username', password: 'password' },
+        { username: 'username', password: 'password', token: undefined },
         test.sinon.match.any
       );
     });
@@ -63,9 +63,9 @@ describe(test.testName(__filename, 3), function () {
       const restModule = new RestModule();
       const loginMethod = restModule.login;
       const mock = {
-        __parseBody: (req, res, $happn, callback) => callback(body),
+        __parseBody: (_, __, ___, callback) => callback(body),
         __securityService: {
-          login: test.sinon.stub().callsArgWith(1, 'not what is test.expected'),
+          login: test.sinon.stub().callsArgWith(3, 'not what is test.expected'),
         },
         __respond: test.sinon.stub(),
       };
