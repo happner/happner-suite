@@ -41,6 +41,7 @@ Membership.prototype.stop = function (options, callback) {
 
 Membership.prototype.onUpdate = function (config) {
   return (member) => {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: membership onUpdate ${member.host}`);
     if (member.host === this.swimAddress) return;
     if (member.meta.cluster !== config.clusterName) return;
     if (member.state === 0) return this.addMember(member, true);
@@ -71,6 +72,7 @@ Membership.prototype.onSwimBootStrapDone = function (config, callback) {
 };
 
 Membership.prototype.removeMember = function (member) {
+  this.log.info(`[CLUSTER_MEMBERSHIP]: membership removeMember ${member.host}`);
   if (!this.members[member.host]) return;
   delete this.members[member.host];
   this.log.$$TRACE('has %d other members (%s left)', Object.keys(this.members).length, member.host);
@@ -80,6 +82,7 @@ Membership.prototype.removeMember = function (member) {
 };
 
 Membership.prototype.addMember = function (member, update) {
+  this.log.info(`[CLUSTER_MEMBERSHIP]: membership addMember ${member.host}`);
   if (update === true) {
     this.emit('update', {
       memberId: member.host,

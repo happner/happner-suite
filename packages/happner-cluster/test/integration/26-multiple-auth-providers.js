@@ -72,8 +72,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   it('we should fail to log in using second auth with testUser (happn3 auth user)', async () => {
     try {
-      // eslint-disable-next-line no-unused-vars
-      let listenerClient = await client.create(testUser.username, testUser.password, 55002); //Should default to 'second' authProvider
+      await client.create(testUser.username, testUser.password, 55002); //Should default to 'second' authProvider
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');

@@ -2,6 +2,10 @@ const CONSTANTS = require('../../../').constants;
 
 module.exports = ErrorService;
 
+ErrorService.create = function () {
+  return new ErrorService();
+};
+
 function AccessDenied(message, reason) {
   this.name = 'AccessDenied';
   this.code = CONSTANTS.ERROR_TYPE.ACCESS_DENIED;

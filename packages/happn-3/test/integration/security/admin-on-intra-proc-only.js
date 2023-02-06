@@ -1,6 +1,7 @@
 describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
+    this.timeout(120e3);
     var happn = require('../../../lib/index');
     var happn_client = happn.client;
 

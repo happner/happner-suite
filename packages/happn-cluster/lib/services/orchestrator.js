@@ -310,7 +310,7 @@ Orchestrator.prototype.removePeer = function (member) {
   delete this.peers[member.name];
   if (member.self) delete this.peers.__self;
   this.emit('peer/remove', member.name, member);
-
+  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removePeer ${member.name}`);
   if (this.stableAwaitingMinimumPeers) {
     this.log.info(
       'cluster size %d/%d (%s left)',
@@ -325,6 +325,7 @@ Orchestrator.prototype.removePeer = function (member) {
 
 Orchestrator.prototype.removeMember = function (member) {
   this.log.$$TRACE('remove member %s', member.name);
+  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removeMember ${member.name}`);
   var _this = this;
   member
     .stop()
@@ -340,6 +341,7 @@ Orchestrator.prototype.removeMember = function (member) {
 };
 
 Orchestrator.prototype.__onConnectionFrom = function (data) {
+  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
   if (!data.info) return;
   if (!data.info.clusterName) return;
 
@@ -401,6 +403,7 @@ Orchestrator.prototype.__onConnectionFrom = function (data) {
 };
 
 Orchestrator.prototype.__onDisconnectionFrom = function (data) {
+  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
   if (!data.info) return;
   if (!data.info.clusterName) return;
 
@@ -417,6 +420,9 @@ Orchestrator.prototype.__onDisconnectionFrom = function (data) {
 };
 
 Orchestrator.prototype.__onMembershipAddMember = function (info) {
+  this.log.info(
+    `[CLUSTER_MEMBERSHIP]: orchestrator __onMembershipAddMember ${JSON.stringify(info)}`
+  );
   var member = this.members[info.memberId];
   if (member) return member.addMembership(info);
 
@@ -428,6 +434,9 @@ Orchestrator.prototype.__onMembershipAddMember = function (info) {
 };
 
 Orchestrator.prototype.__onMembershipRemoveMember = function (info) {
+  this.log.info(
+    `[CLUSTER_MEMBERSHIP]: orchestrator __onMembershipRemoveMember ${JSON.stringify(info)}`
+  );
   var member = this.members[info.memberId];
   if (!member) return;
 

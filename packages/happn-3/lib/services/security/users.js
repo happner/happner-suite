@@ -16,29 +16,33 @@ function SecurityUsers(opts) {
 SecurityUsers.prototype.initialize = util.maybePromisify(initialize);
 SecurityUsers.prototype.clearCaches = clearCaches;
 SecurityUsers.prototype.__validate = __validate;
-SecurityUsers.prototype.getPasswordHash = getPasswordHash;
-
-SecurityUsers.prototype.upsertUser = util.maybePromisify(upsertUser);
 SecurityUsers.prototype.__upsertUser = __upsertUser;
+SecurityUsers.prototype.__getUserNamesFromGroupLinks = __getUserNamesFromGroupLinks;
+SecurityUsers.prototype.__linkGroupsToUser = __linkGroupsToUser;
+
+SecurityUsers.prototype.getPasswordHash = util.maybePromisify(getPasswordHash);
+SecurityUsers.prototype.upsertUser = util.maybePromisify(upsertUser);
+SecurityUsers.prototype.upsertUserWithoutValidation = __upsertUser;
+
 SecurityUsers.prototype.deleteUser = deleteUser;
 SecurityUsers.prototype.getUser = util.maybePromisify(getUser);
 SecurityUsers.prototype.getUserNoGroups = nodeUtil.callbackify(getUserNoGroups);
-SecurityUsers.prototype.listUsers = util.maybePromisify(listUsers);
 
+SecurityUsers.prototype.listUsers = util.maybePromisify(listUsers);
 SecurityUsers.prototype.listUserNamesByGroup = listUserNamesByGroup;
 SecurityUsers.prototype.listUsersByGroup = util.maybePromisify(listUsersByGroup);
-SecurityUsers.prototype.__getUserNamesFromGroupLinks = __getUserNamesFromGroupLinks;
-SecurityUsers.prototype.prepareUserName = prepareUserName;
-SecurityUsers.prototype.clearGroupUsersFromCache = clearGroupUsersFromCache;
-SecurityUsers.prototype.__linkGroupsToUser = __linkGroupsToUser;
+
 SecurityUsers.prototype.getGroupMemberships = getGroupMemberships;
 SecurityUsers.prototype.listPermissions = listPermissions;
 SecurityUsers.prototype.attachPermissions = attachPermissions;
 SecurityUsers.prototype.removePermission = removePermission;
 SecurityUsers.prototype.upsertPermission = upsertPermission;
-SecurityUsers.prototype.validateDeleteUser = validateDeleteUser;
 SecurityUsers.prototype.upsertPermissions = util.maybePromisify(upsertPermissions);
 SecurityUsers.prototype.userBelongsToGroups = util.maybePromisify(userBelongsToGroups);
+
+SecurityUsers.prototype.prepareUserName = prepareUserName;
+SecurityUsers.prototype.clearGroupUsersFromCache = clearGroupUsersFromCache;
+SecurityUsers.prototype.validateDeleteUser = validateDeleteUser;
 
 /**
  * Clones the passed in user, and generates a hash of the users password to be pushed into the data store.

@@ -43,14 +43,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
     const token = JSON.parse(result.body).data;
     test.expect(token != null).to.be(true);
     await revokeToken(server, token);
-    let revocation = await server.services.security.__cache_revoked_tokens.get(token);
+    let revocation = await server.services.security.cache_revoked_tokens.get(token);
     delete revocation.timestamp;
     test.expect(revocation).to.eql({
       reason: 'test reason',
       ttl: 2000,
     });
     await test.delay(3000);
-    let revocationCheckedAgain = await server.services.security.__cache_revoked_tokens.get(token);
+    let revocationCheckedAgain = await server.services.security.cache_revoked_tokens.get(token);
     test.expect(revocationCheckedAgain).to.eql(null);
     stopServer(server);
   });
@@ -135,7 +135,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, funct
       await test.delay(4e3);
       // restart the server - there should be a timed out revocation in the db
       server = await getServer(test.commons._.merge(serverConfig, fileConfig));
-      let revocationCheckedAgain = await server.services.security.__cache_revoked_tokens.get(token);
+      let revocationCheckedAgain = await server.services.security.cache_revoked_tokens.get(token);
       test.expect(revocationCheckedAgain).to.eql(null);
       stopServer(server);
     } finally {

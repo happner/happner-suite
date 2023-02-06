@@ -79,7 +79,9 @@ function processInboundStack(message, protocol, callback) {
     return callback(e);
   }
 
-  if (!this.config.allowNestedPermissions) return this.__processSinglePath(transformed, callback);
+  if (!this.config.allowNestedPermissions) {
+    return this.__processSinglePath(transformed, callback);
+  }
 
   if (
     transformed.request &&
@@ -87,7 +89,7 @@ function processInboundStack(message, protocol, callback) {
     transformed.request.path.indexOf('**') > -1 &&
     (transformed.request.action === 'on' || transformed.request.action === 'get')
   ) {
-    this.happn.services.security.getRelevantPaths(transformed, (e, relevantPaths) => {
+    return this.happn.services.security.getRelevantPaths(transformed, (e, relevantPaths) => {
       if (e) return callback(e);
 
       if (relevantPaths.allowed.length === 0) {
@@ -133,14 +135,14 @@ function processInboundStack(message, protocol, callback) {
         }
       );
     });
-  } else {
-    return this.__processSinglePath(transformed, callback);
   }
+  this.__processSinglePath(transformed, callback);
 }
 
 function __processSinglePath(transformed, callback) {
   this.happn.services.security.processAuthorize(transformed, (e, authorized) => {
     if (e) return callback(e);
+
     if (authorized.request.action === 'set') {
       return this.happn.services.data.processStore(authorized, (e, publication) => {
         if (e) return callback(e);
@@ -198,8 +200,9 @@ function __processSinglePath(transformed, callback) {
       });
     }
 
-    if (authorized.request.action === 'describe')
+    if (authorized.request.action === 'describe') {
       return callback(null, this.happn.services.system.processMessage(authorized));
+    }
 
     if (authorized.request.action === 'configure-session') {
       this.happn.services.session.processConfigureSession(authorized);
@@ -207,11 +210,12 @@ function __processSinglePath(transformed, callback) {
     }
 
     if (authorized.request.action === 'login') {
-      if (this.config.secure)
+      if (this.config.secure) {
         return this.happn.services.security.processLogin(authorized, (e, result) => {
           if (e) return callback(e);
           callback(null, result);
         });
+      }
 
       return this.happn.services.security.processUnsecureLogin(authorized, (e, result) => {
         if (e) return callback(e);

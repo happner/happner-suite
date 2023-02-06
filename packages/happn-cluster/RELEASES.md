@@ -341,3 +341,7 @@ non-release 2017-12-14
 -----------------
   - feat: loki archiving and plugins 
 
+12.3.0 2023-01-18
+-----------------
+  - feat: Summon productionization
+  - fix: SQLite nested ands and ors

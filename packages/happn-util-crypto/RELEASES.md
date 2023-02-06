@@ -47,4 +47,8 @@
 -----------------
   - feat: loki archiving
   - feat: loki plugins
+
+3.0.10 2023-01-18
+-----------------
+  - feat: commons update
   

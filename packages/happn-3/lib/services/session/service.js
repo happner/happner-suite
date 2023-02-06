@@ -148,12 +148,12 @@ function __safeSessionData(sessionData) {
 }
 
 function initializeCaches(callback) {
-  if (!this.config.activeSessionsCache)
+  if (!this.config.activeSessionsCache) {
     this.config.activeSessionsCache = {
       type: 'static',
     };
-
-  this.__activeSessions = this.happn.services.cache.create(
+  }
+  this.activeSessions = this.happn.services.cache.create(
     'service_session_active_sessions',
     this.config.activeSessionsCache
   );
@@ -200,7 +200,7 @@ function attachSession(sessionId, session, authType) {
   const safeSessionData = this.__safeSessionData(sessionData);
   this.logSessionAttached(safeSessionData);
   this.emit('authentic', safeSessionData);
-  this.__activeSessions.set(sessionId, sessionData);
+  this.activeSessions.set(sessionId, sessionData);
   this.__attachSessionExpired(session);
   return sessionData;
 }
@@ -523,7 +523,7 @@ function finalizeDisconnect(client, callback) {
     delete this.__sessions[client.sessionId];
     this.__detachSessionExpired(client.sessionId);
     this.happn.services.subscription.clearSessionSubscriptions(client.sessionId);
-    this.__activeSessions.remove(client.sessionId);
+    this.activeSessions.remove(client.sessionId);
     const safeSessionData = this.__safeSessionData(sessionData);
     this.logSessionDetached(safeSessionData);
     this.emit('disconnect', safeSessionData); //emit the disconnected event

@@ -804,10 +804,9 @@ describe(test.testName(__filename, 3), function () {
     await serviceInstance.services.security.users.deleteUser({
       username: currentClient.session.user.username,
     });
-    await test.delay(2000);
     serviceInstance.services.subscription.config.allowNestedPermissions = true;
     await test.nodeUtils
-      .promisify(serviceInstance.services.security.__dataChangedInternal)
+      .promisify(serviceInstance.services.security.dataChanged)
       .bind(serviceInstance.services.security)(
       CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER,
       {

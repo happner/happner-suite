@@ -3,6 +3,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   let server;
   const dbFileName = test.newTempFilename('loki');
   test.tryDeleteTestFilesAfter([dbFileName]);
+
   let testUser = {
     username: 'happnTestuser@somewhere.com',
     password: 'password',
@@ -11,6 +12,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   let testUser2 = {
     username: 'secondTestuser@somewhere.com',
     password: 'secondPass',
+    authType: 'second',
   };
 
   before('start server', async function () {
@@ -41,8 +43,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     });
   });
 
-  before('adds happn authProvider testUser', (done) => {
-    server.exchange.security.addUser(testUser, done);
+  before('adds happn authProvider testUsers', async () => {
+    await server.exchange.security.addUser(testUser);
   });
 
   after('stop server', async function () {
@@ -76,9 +78,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
 
   it('logs in correctly using second auth provider', async () => {
     let client = new test.Mesh.MeshClient();
-    await client.login({
-      ...testUser2, //uses default, i.e. 'second' authProvider
-    });
+    // eslint-disable-next-line no-useless-catch
+    try {
+      await client.login({
+        ...testUser2, //uses default, i.e. 'second' authProvider
+      });
+    } catch (e) {
+      throw e;
+    }
   });
 
   it('fails to log in when using second auth provider for happn3 type user', async () => {
@@ -87,7 +94,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       await client.login({
         ...testUser, //uses default, i.e. 'second' authProvider
       });
-      throw new Error('SHOULD HAVE THROWN');
+      throw new Error('Should have thrown');
     } catch (error) {
       test.expect(error.toString()).to.eql('AccessDenied: Invalid credentials');
     }
