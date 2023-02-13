@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
 const Logger = require('happn-logger'),
   Services = require('./services/manager'),
-  packager = require('./packager'),
   commons = require('happn-commons');
 
-const { utils: util, _, constants } = commons;
+const { utils: util, _ } = commons;
 
 module.exports = {
   initialize: function (config, done) {
@@ -35,10 +34,6 @@ module.exports = {
         config.allowNestedPermissions
       );
     }
-
-    // if (packager.validationVersion) {
-    // commons.validateConfig(config, constants.CONFIG_TYPE.HAPPN, packager.version);
-    // }
 
     var log = (config.Logger || Logger).createLogger('HappnServer');
 
