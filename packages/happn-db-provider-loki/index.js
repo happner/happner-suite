@@ -679,6 +679,26 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     );
   }
 
+  prepareAdditionalCriteria(additionalCriteria) {
+    const transformed = commons._.transform(
+      additionalCriteria,
+      (result, value, key) => {
+        if (key === '$like') {
+          result['$regex'] = value.replaceAll('%', '.*');
+        } else if (Array.isArray(value)) {
+          result[key] = value;
+        } else if (typeof value === 'object') {
+          result[key] = this.prepareAdditionalCriteria(value);
+        } else {
+          result[key] = value;
+        }
+        return result;
+      },
+      {}
+    );
+    return transformed;
+  }
+
   fsync(filename, callback) {
     return (e) => {
       if (e) {

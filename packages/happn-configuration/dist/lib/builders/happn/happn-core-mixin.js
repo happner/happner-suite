@@ -53,6 +53,9 @@ function HappnCoreBuilder(Base) {
                 this.set(`${SERVICES_ROOT}.system`, __classPrivateFieldGet(this, _HappnBuilder_systemConfigBuilder, "f"), BaseBuilder.Types.OBJECT);
                 this.set(`${SERVICES_ROOT}.transport`, __classPrivateFieldGet(this, _HappnBuilder_transportConfigBuilder, "f"), BaseBuilder.Types.OBJECT);
             }
+            build() {
+                return super.build();
+            }
             withName(name) {
                 this.set(`happn.name`, name, BaseBuilder.Types.STRING);
                 return this;
@@ -204,13 +207,13 @@ function HappnCoreBuilder(Base) {
                 __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withAdminPublicKey(publicKey);
                 return this;
             }
-            withSecurityAdminGroupCustomData(description) {
-                __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withAdminGroupCustomData(description);
-                return this;
-            }
             // repeatable using same key and different path
             withSecurityAdminGroupPermission(permissionKey, actionPath) {
                 __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withAdminGroupPermission(permissionKey, actionPath);
+                return this;
+            }
+            withSecurityAdminGroupCustomData(fieldName, fieldValue) {
+                __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withAdminGroupCustomData(fieldName, fieldValue);
                 return this;
             }
             withSecurityAllowAnonymousAccess(allowAnonymous) {

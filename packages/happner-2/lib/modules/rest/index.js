@@ -30,7 +30,7 @@ Rest.prototype.login = function ($happn, req, res) {
       );
     }
 
-    if (!params.password) {
+    if (!params.password && !params.token) {
       return this.__respond(
         $happn,
         'Failure parsing request body',
@@ -42,10 +42,15 @@ Rest.prototype.login = function ($happn, req, res) {
     }
 
     this.__securityService.login(
-      { username: params.username, password: params.password },
+      { username: params.username, password: params.password, token: params.token },
+      undefined,
+      req,
       (e, session) => {
         if (e) {
-          if (e.toString() === 'AccessDenied: Invalid credentials') {
+          if (
+            e.toString().toLowerCase().includes('invalid credentials') ||
+            [401, 403].includes(e.code)
+          ) {
             return this.__respond($happn, 'Failure logging in', null, e, res, 401);
           }
           return this.__respond($happn, 'Failure logging in', null, e, res);

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
-export interface IHappnConfigurationBuilder {
+import { ICoreBuilder } from './i-core-builder';
+
+export interface IHappnConfigurationBuilder extends ICoreBuilder {
   withCacheStatisticsCheckPointAuthOverride(max: number, maxAge: number);
 
   withCacheStatisticsCheckPointAuthTokenOverride(max: number, maxAge: number);
@@ -57,7 +59,7 @@ export interface IHappnConfigurationBuilder {
 
   withSecurityAdminPublicKey(publicKey: string);
 
-  withSecurityAdminGroupCustomData(description: string);
+  withSecurityAdminGroupCustomData(fieldName: string, fieldValue: string);
 
   withSecurityAdminGroupPermission(permissionKey: string, actionPath: string);
 

@@ -65,6 +65,10 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       );
     }
 
+    build() {
+      return super.build();
+    }
+
     withName(name: string) {
       this.set(`happn.name`, name, BaseBuilder.Types.STRING);
       return this;
@@ -259,14 +263,14 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       return this;
     }
 
-    withSecurityAdminGroupCustomData(description: string): HappnBuilder {
-      this.#securityConfigBuilder.withAdminGroupCustomData(description);
-      return this;
-    }
-
     // repeatable using same key and different path
     withSecurityAdminGroupPermission(permissionKey: string, actionPath: string): HappnBuilder {
       this.#securityConfigBuilder.withAdminGroupPermission(permissionKey, actionPath);
+      return this;
+    }
+
+    withSecurityAdminGroupCustomData(fieldName: string, fieldValue: string): HappnBuilder {
+      this.#securityConfigBuilder.withAdminGroupCustomData(fieldName, fieldValue);
       return this;
     }
 

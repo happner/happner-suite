@@ -1,9 +1,23 @@
 "use strict";
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _VersionUtil_instances, _VersionUtil_findClosestKeyMatch;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VersionUtil = void 0;
 const fs_1 = require("fs");
 const compare_versions_1 = require("compare-versions");
 class VersionUtil {
+    constructor() {
+        _VersionUtil_instances.add(this);
+    }
+    findClosestModuleMatch(moduleVersions, version) {
+        const keys = Object.keys(moduleVersions);
+        const found = __classPrivateFieldGet(this, _VersionUtil_instances, "m", _VersionUtil_findClosestKeyMatch).call(this, keys, version);
+        return moduleVersions[found];
+    }
     findClosestVersionedFileMatch(rootPath, filePrefix, version) {
         const fileList = (0, fs_1.readdirSync)(rootPath);
         const foundFile = this.matchFile(fileList, filePrefix, version);
@@ -23,22 +37,25 @@ class VersionUtil {
             }
         });
         const keys = Object.keys(matched);
-        const found = keys
-            .sort((a, b) => {
-            // sort latest to oldest
-            if ((0, compare_versions_1.compare)(a, b, '>'))
-                return -1; // greater than
-            if ((0, compare_versions_1.compare)(a, b, '<'))
-                return 1; // less than
-            return 0; // equal
-        })
-            .find((item) => {
-            // find the closest match (equal to or less than requested version)
-            if ((0, compare_versions_1.compare)(item, version, '<=')) {
-                return item;
-            }
-        });
+        const found = __classPrivateFieldGet(this, _VersionUtil_instances, "m", _VersionUtil_findClosestKeyMatch).call(this, keys, version);
         return matched[found];
     }
 }
 exports.VersionUtil = VersionUtil;
+_VersionUtil_instances = new WeakSet(), _VersionUtil_findClosestKeyMatch = function _VersionUtil_findClosestKeyMatch(keys, version) {
+    return keys
+        .sort((a, b) => {
+        // sort latest to oldest
+        if ((0, compare_versions_1.compare)(a, b, '>'))
+            return -1; // greater than
+        if ((0, compare_versions_1.compare)(a, b, '<'))
+            return 1; // less than
+        return 0; // equal
+    })
+        .find((item) => {
+        // find the closest match (equal to or less than requested version)
+        if ((0, compare_versions_1.compare)(item, version, '<=')) {
+            return item;
+        }
+    });
+};

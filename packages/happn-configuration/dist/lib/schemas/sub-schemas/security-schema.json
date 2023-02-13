@@ -86,7 +86,7 @@
                     "type": "string"
                 },
                 "httpsCookie": {
-                    "type": "boolean"
+                    "type": "string"
                 },
                 "keyPair": {
                     "$ref": "#/definitions/KeyPair"
@@ -212,9 +212,14 @@
         },
         "CustomData": {
             "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
+            "patternProperties": {
+                "^.*$": {
+                    "type": [
+                        "string",
+                        "object",
+                        "integer",
+                        "boolean"
+                    ]
                 }
             },
             "additionalProperties": false,
@@ -242,7 +247,8 @@
                         "string",
                         "object",
                         "integer",
-                        "boolean"
+                        "boolean",
+                        "array"
                     ]
                 }
             },

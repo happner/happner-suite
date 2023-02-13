@@ -2,6 +2,12 @@ import { readdirSync } from 'fs';
 import { compare } from 'compare-versions';
 
 export class VersionUtil {
+  findClosestModuleMatch(moduleVersions, version) {
+    const keys = Object.keys(moduleVersions);
+    const found = this.#findClosestKeyMatch(keys, version);
+    return moduleVersions[found];
+  }
+
   findClosestVersionedFileMatch(rootPath, filePrefix, version) {
     const fileList = readdirSync(rootPath);
     const foundFile = this.matchFile(fileList, filePrefix, version);
@@ -22,8 +28,12 @@ export class VersionUtil {
     });
 
     const keys = Object.keys(matched);
+    const found = this.#findClosestKeyMatch(keys, version);
+    return matched[found];
+  }
 
-    const found = keys
+  #findClosestKeyMatch(keys, version) {
+    return keys
       .sort((a, b) => {
         // sort latest to oldest
         if (compare(a, b, '>')) return -1; // greater than
@@ -36,7 +46,5 @@ export class VersionUtil {
           return item;
         }
       });
-
-    return matched[found];
   }
 }

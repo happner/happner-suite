@@ -1,202 +1,214 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { VersionUtil } from '../utils/version-util';
 import BuilderConstants from '../constants/builder-constants';
 import { FieldTypeValidator } from '../validators/field-type-validator';
+import { CoreBuilder } from '../builders/core-builder';
+import {
+  VersionedHappnClusterBuilder,
+  VersionedHappnBuilder,
+  VersionedHappnerBuilder,
+  VersionedHappnerClusterBuilder,
+} from '../types/version-types';
 
-// mixin specific imports
-import { HappnCoreBuilder } from '../builders/happn/happn-core-mixin';
-import { HappnClusterCoreBuilder } from '../builders/happn-cluster/happn-cluster-core-mixin';
-import { HappnerCoreBuilder } from '../builders/happner/happner-core-mixin';
-import { HappnerClusterCoreBuilder } from '../builders/happner-cluster/happner-cluster-core-mixin';
-import { join } from 'path';
-
-import BaseBuilder from 'happn-commons/lib/base-builder';
+import VersionConstants from '../constants/version-constants';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
-// core class used for mixins...
-const BaseClz = class BaseClz extends BaseBuilder {
-  #builderType;
-
-  constructor(...args: any[]) {
-    super(...args);
-  }
-
-  set builderType(type) {
-    this.#builderType = type;
-  }
-
-  get builderType() {
-    return this.#builderType;
-  }
-
-  build() {
-    const result = super.build();
-
-    switch (this.builderType) {
-      case HAPPN:
-      case HAPPN_CLUSTER:
-        return result.happn;
-      case HAPPNER:
-      case HAPPNER_CLUSTER:
-        return result;
-      default:
-        throw new Error('unknown baseType');
-    }
-  }
-};
-
 export class ConfigBuilderFactory {
-  static async getBuilder(type: string, version: string) {
-    switch (type) {
-      case HAPPN:
-        return await ConfigBuilderFactory.getHappnBuilder(version);
-      case HAPPN_CLUSTER:
-        return await ConfigBuilderFactory.getHappnClusterBuilder(version);
-      case HAPPNER:
-        return await ConfigBuilderFactory.getHappnerBuilder(version);
-      case HAPPNER_CLUSTER:
-        return await ConfigBuilderFactory.getHappnerClusterBuilder(version);
-      default:
-        throw new Error('Unknown configuration type');
-    }
+  #versionUtil;
+  #happnVersion;
+  #happnClusterVersion;
+  #happnerVersion;
+  #happnerClusterVersion;
+
+  constructor(versionContext) {
+    this.#versionUtil = new VersionUtil();
+    this.#happnVersion = versionContext.happn ?? '1.0.0';
+    this.#happnClusterVersion = versionContext.happnCluster ?? '1.0.0';
+    this.#happnerVersion = versionContext.happner ?? '1.0.0';
+    this.#happnerClusterVersion = versionContext.happnerCluster ?? '1.0.0';
   }
 
-  static async getHappnBuilder(version: string) {
-    const container = await ConfigBuilderFactory.createContainer(version);
-    const HappnMixin = HappnCoreBuilder(BaseClz);
+  // see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
+
+  getHappnBuilder<T extends string>(version?: T): VersionedHappnBuilder<T> {
+    const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#happnVersion
+    );
+
+    const container = this.createChildBuildersContainer();
+    const HappnMixin = HappnCoreBuilder(CoreBuilder);
     const result = new HappnMixin(container);
     result.builderType = HAPPN;
+
     return result;
   }
 
-  static async getHappnClusterBuilder(version: string) {
-    const container = await ConfigBuilderFactory.createContainer(version);
-    const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(BaseClz));
+  getHappnClusterBuilder<T extends string>(version?: T): VersionedHappnClusterBuilder<T> {
+    const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#happnVersion
+    );
+
+    const HappnClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnClusterCore,
+      this.#happnClusterVersion
+    );
+
+    const container = this.createChildBuildersContainer();
+
+    // create a mixin and instantiate
+    const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(CoreBuilder));
     const result = new HappnClusterMixin(container);
+
     result.builderType = HAPPN_CLUSTER;
     return result;
   }
 
-  static async getHappnerBuilder(version: string) {
-    const container = await ConfigBuilderFactory.createContainer(version);
-    const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(BaseClz));
+  getHappnerBuilder<T extends string>(version?: T): VersionedHappnerBuilder<T> {
+    const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#happnVersion
+    );
+
+    const HappnerCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnerCore,
+      this.#happnerVersion
+    );
+
+    const container = this.createChildBuildersContainer();
+
+    // create a mixin and instantiate
+    const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(CoreBuilder));
     const result = new HappnerMixin(container);
+
     result.builderType = HAPPNER;
     return result;
   }
 
-  static async getHappnerClusterBuilder(version: string) {
-    const container = await ConfigBuilderFactory.createContainer(version);
+  getHappnerClusterBuilder<T extends string>(version?: T): VersionedHappnerClusterBuilder<T> {
+    const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#happnVersion
+    );
+
+    const HappnClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnClusterCore,
+      this.#happnClusterVersion
+    );
+
+    const HappnerCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnerCore,
+      this.#happnerVersion
+    );
+
+    const HappnerClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
+      VersionConstants.VERSION_THRESHOLDS.HappnerClusterCore,
+      this.#happnerClusterVersion
+    );
+
+    const container = this.createChildBuildersContainer();
+
+    // create a mixin and instantiate
     const HappnerClusterMixin = HappnCoreBuilder(
-      HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(BaseClz)))
+      HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(CoreBuilder)))
     );
     const result = new HappnerClusterMixin(container);
+
     result.builderType = HAPPNER_CLUSTER;
     return result;
   }
 
-  static async createContainer(version: string) {
+  createChildBuildersContainer() {
     return {
-      cacheConfigBuilder: await this.getSubconfigBuilder(
-        'cache-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      componentsConfigBuilder: await this.getSubconfigBuilder(
-        'components-config-builder',
-        join(__dirname, '..', 'builders/happner/components'),
-        version
-      ),
-      connectConfigBuilder: await this.getSubconfigBuilder(
-        'connect-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      dataConfigBuilder: await this.getSubconfigBuilder(
-        'data-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      endpointsConfigBuilder: await this.getSubconfigBuilder(
-        'endpoints-config-builder',
-        join(__dirname, '..', 'builders/happner/endpoints'),
-        version
-      ),
-      membershipConfigBuilder: await this.getSubconfigBuilder(
-        'membership-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      modulesConfigBuilder: await this.getSubconfigBuilder(
-        'modules-config-builder',
-        join(__dirname, '..', 'builders/happner/modules'),
-        version
-      ),
-      orchestratorConfigBuilder: await this.getSubconfigBuilder(
-        'orchestrator-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      protocolConfigBuilder: await this.getSubconfigBuilder(
-        'protocol-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version,
-        new FieldTypeValidator()
-      ),
-      proxyConfigBuilder: await this.getSubconfigBuilder(
-        'proxy-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      publisherConfigBuilder: await this.getSubconfigBuilder(
-        'publisher-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      replicatorConfigBuilder: await this.getSubconfigBuilder(
-        'replicator-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      securityConfigBuilder: await this.getSubconfigBuilder(
-        'security-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      subscriptionConfigBuilder: await this.getSubconfigBuilder(
-        'subscription-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      systemConfigBuilder: await this.getSubconfigBuilder(
-        'system-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      transportConfigBuilder: await this.getSubconfigBuilder(
-        'transport-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
-      healthConfigBuilder: await this.getSubconfigBuilder(
-        'health-config-builder',
-        join(__dirname, '..', 'builders/happn/services'),
-        version
-      ),
+      // HAPPN
+      cacheConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.CacheConfig,
+        this.#happnVersion
+      ))(),
+      connectConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ConnectConfig,
+        this.#happnVersion
+      ))(),
+      dataConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.DataConfig,
+        this.#happnVersion
+      ))(),
+      protocolConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ProtocolConfig,
+        this.#happnVersion
+      ))(new FieldTypeValidator()),
+      publisherConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.PublisherConfig,
+        this.#happnVersion
+      ))(),
+      securityConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.SecurityConfig,
+        this.#happnVersion
+      ))(),
+      subscriptionConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.SubscriptionConfig,
+        this.#happnVersion
+      ))(),
+      systemConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.SystemConfig,
+        this.#happnVersion
+      ))(),
+      transportConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.TransportConfig,
+        this.#happnVersion
+      ))(),
+      // HAPPN_CLUSTER
+      healthConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.HealthConfig,
+        this.#happnClusterVersion
+      ))(),
+      membershipConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.MembershipConfig,
+        this.#happnClusterVersion
+      ))(),
+      orchestratorConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.OrchestratorConfig,
+        this.#happnClusterVersion
+      ))(),
+      proxyConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ProxyConfig,
+        this.#happnClusterVersion
+      ))(),
+      replicatorConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ReplicatorConfig,
+        this.#happnClusterVersion
+      ))(),
+      // HAPPNER
+      componentsConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ComponentsConfig,
+        this.#happnerVersion
+      ))(),
+      endpointsConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.EndpointsConfig,
+        this.#happnerVersion
+      ))(),
+      modulesConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
+        VersionConstants.VERSION_THRESHOLDS.ModulesConfig,
+        this.#happnerVersion
+      ))(),
     };
   }
 
-  static async getSubconfigBuilder(
-    moduleName: string,
-    rootPath: string,
-    version: string,
-    ...args: any[]
-  ) {
-    const versionUtil = new VersionUtil();
-    const modulePath = versionUtil.findClosestVersionedFileMatch(rootPath, moduleName, version);
-    const Module = await import(modulePath);
-    const Clz = Module[Object.keys(Module)[0]];
-    return new Clz(...args);
-  }
+  // async getBuilderClassByClosestVersion(moduleName: string, rootPath: string, version: string) {
+  //   const versionUtil = new VersionUtil();
+  //   const modulePath = versionUtil.findClosestVersionedFileMatch(rootPath, moduleName, version);
+  //   const Module = await import(modulePath);
+  //   return Module[Object.keys(Module)[0]];
+  // }
+  //
+  // async getBuilderInstanceByClosestVersion(
+  //   moduleName: string,
+  //   rootPath: string,
+  //   version: string,
+  //   ...args: any[]
+  // ) {
+  //   const Clz = await this.getBuilderClassByClosestVersion(moduleName, rootPath, version);
+  //   return new Clz(...args);
+  // }
 }

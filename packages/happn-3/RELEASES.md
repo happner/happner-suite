@@ -1048,3 +1048,8 @@
 13.8.0 2023-01-11
 -----------------
   - feat: loki archiving and plugins 
+
+13.9.0 2023-01-18
+-----------------
+  - feat: Summon productionization
+

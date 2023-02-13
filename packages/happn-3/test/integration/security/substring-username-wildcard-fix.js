@@ -76,9 +76,6 @@ describe(
     });
 
     it('checks to see that only the correct user is fetched, negative test', function (done) {
-      //NB NB - if ths test fails it is probably because the getUser function relies on a heavily changes user service
-      // just skip it in futire
-
       serviceInstance.services.security.users.__oldGetUser =
         serviceInstance.services.security.users.getUser;
 

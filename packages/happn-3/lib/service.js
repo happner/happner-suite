@@ -36,9 +36,9 @@ module.exports = {
       );
     }
 
-    if (packager.validationVersion) {
-      commons.validateConfig(config, constants.CONFIG_TYPE.HAPPN, packager.validationVersion);
-    }
+    // if (packager.validationVersion) {
+    // commons.validateConfig(config, constants.CONFIG_TYPE.HAPPN, packager.version);
+    // }
 
     var log = (config.Logger || Logger).createLogger('HappnServer');
 

@@ -10,3 +10,9 @@
 -----------------
   - feat: loki archiving
   - feat: loki plugins
+
+1.0.3 2023-01-18
+-----------------
+  - feat: Summon productionization
+  - fix: nested ands and ors
+

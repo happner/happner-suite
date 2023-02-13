@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import { Constructor } from '../../types/mixin-types';
-import { IHappnerConfigurationBuilder } from '../interfaces/i-happner-configuration-builder';
 import { ComponentsConfigBuilder } from './components/components-config-builder';
 import { EndpointsConfigBuilder } from './endpoints/endpoints-config-builder';
 import { ModulesConfigBuilder } from './modules/modules-config-builder';
 
 export function HappnerCoreBuilder<TBase extends Constructor>(Base: TBase) {
-  return class HappnerConfigurationBuilder extends Base implements IHappnerConfigurationBuilder {
+  return class HappnerConfigurationBuilder extends Base {
     #componentsConfigBuilder: ComponentsConfigBuilder;
     #endpointsConfigBuilder: EndpointsConfigBuilder;
     #modulesConfigBuilder: ModulesConfigBuilder;

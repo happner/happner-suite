@@ -81,12 +81,9 @@ function HappnClusterCoreBuilder(Base) {
             }
             withMembershipPing(interval, pingTimeout, requestTimeout, requestGroupSize) {
                 __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingInterval(interval);
-                if (pingTimeout !== undefined)
-                    __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingTimeout(pingTimeout);
-                if (requestTimeout !== undefined)
-                    __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqTimeout(requestTimeout);
-                if (requestGroupSize !== undefined)
-                    __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqGroupSize(requestGroupSize);
+                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingTimeout(pingTimeout);
+                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqTimeout(requestTimeout);
+                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqGroupSize(requestGroupSize);
                 return this;
             }
             withMembershipRandomWait(wait) {

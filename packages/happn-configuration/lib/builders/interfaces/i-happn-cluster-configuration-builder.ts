@@ -1,4 +1,9 @@
-export interface IHappnClusterConfigurationBuilder {
+import { ICoreBuilder } from './i-core-builder';
+import { IHappnConfigurationBuilder } from './i-happn-configuration-builder';
+
+export interface IHappnClusterConfigurationBuilder
+  extends ICoreBuilder,
+    IHappnConfigurationBuilder {
   withHealthInterval(interval: number);
 
   withHealthWarmupLimit(limit: number);

@@ -36,3 +36,5 @@ module.exports = {
   lock: require('async-lock'),
   validateConfig: require('./lib/configuration').validateConfig,
 };
+// must be declared after we have attached other deps
+module.exports.clone = require('./lib/clone');

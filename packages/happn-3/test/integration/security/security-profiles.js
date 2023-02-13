@@ -154,7 +154,7 @@ describe(tests.testName(__filename, 3), function () {
       },
     };
 
-    happnInstance1.services.security.__profileSession(session);
+    happnInstance1.services.security.profileSession(session);
 
     tests.expect(session.policy[0].ttl).to.be(7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -172,7 +172,7 @@ describe(tests.testName(__filename, 3), function () {
       type: 1,
     };
 
-    happnInstance1.services.security.__profileSession(session);
+    happnInstance1.services.security.profileSession(session);
 
     tests.expect(session.policy[1].ttl).to.be(0); // never
 
@@ -186,7 +186,7 @@ describe(tests.testName(__filename, 3), function () {
       type: 0,
     };
 
-    happnInstance1.services.security.__profileSession(session);
+    happnInstance1.services.security.profileSession(session);
     tests.expect(session.policy[1].ttl).to.be(0); // never
     tests.expect(session.policy[1].inactivity_threshold).to.be(Infinity); // never
     done();
@@ -199,7 +199,7 @@ describe(tests.testName(__filename, 3), function () {
         username: 'TEST-ALLOWED-IP',
       },
     };
-    happnInstance1.services.security.__profileSession(session);
+    happnInstance1.services.security.profileSession(session);
     tests
       .expect(session.policy[1].sourceIPWhitelist)
       .to.eql(['127.0.0.1', 'localhost', '::ffff:127.0.0.1', '::ffff:localhost']); // never
@@ -213,7 +213,7 @@ describe(tests.testName(__filename, 3), function () {
         username: 'TEST-ALLOWED-IP',
       },
     };
-    happnInstance1.services.security.__profileSession(session);
+    happnInstance1.services.security.profileSession(session);
     tests
       .expect(session.policy[1].sourceIPWhitelist)
       .to.eql(['127.0.0.1', 'localhost', '::ffff:127.0.0.1', '::ffff:localhost']); // never
@@ -277,7 +277,7 @@ describe(tests.testName(__filename, 3), function () {
   });
 
   function checkLocks(username) {
-    return happnInstance1.services.security.authProviders.default.__locks.get(username);
+    return happnInstance1.services.security.authProviders.default.locks.get(username);
   }
 
   async function startProxyService() {

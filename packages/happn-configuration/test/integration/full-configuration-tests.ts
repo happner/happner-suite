@@ -6,65 +6,69 @@ import { expect } from 'chai';
 import mockLogger from '../__fixtures/logger';
 
 describe('full configuration tests', function () {
-  afterEach('cleanup', () => {
-    process.env.CURRENT_CONFIG_TYPE = undefined;
-  });
-
-  it('builds a happn configuration object', async () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = await ConfigBuilderFactory.getBuilder('happn', '1.0.0');
+  it('builds a happn configuration object with no version ', async () => {
+    const versionContext = { happn: '1.0.0' };
+    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builder = builderFactory.getHappnBuilder<'10.0.0'>();
     setHappnConfigValues(builder);
-
     const result = builder.build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const validationResult = validator.validateHappnConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
     // TODO - complete assertions
-    let testCb1 = (err, result) => {
+    const testCb1 = (err, result) => {
       expect(result).to.equal('inbound-result');
     };
     result.services.protocol.config.inboundLayers[0]('test', testCb1);
   });
 
   it('builds a happn-cluster configuration object', async () => {
-    const validator = new ConfigValidator('2.0.0', mockLogger);
-    const builder = await ConfigBuilderFactory.getBuilder('happn-cluster', '1.0.0');
-
+    const versionContext = { happn: '1.0.0', happnCluster: '5.0.0' };
+    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builder = builderFactory.getHappnClusterBuilder<'5.0.0'>();
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
-
     const result = builder.build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
+    const validator = new ConfigValidator('2.0.0', mockLogger);
     const validationResult = validator.validateHappnClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner configuration object', async () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = await ConfigBuilderFactory.getBuilder('happner', '1.0.0');
-
+    const versionContext = { happn: '1.0.0', happner: '12.0.0' };
+    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builder = builderFactory.getHappnerBuilder<'12.0.0'>();
     setHappnConfigValues(builder);
-    setHappnerConfigValues(builder);
 
+    setHappnerConfigValues(builder);
     const result = builder.build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const validationResult = validator.validateHappnerConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner-cluster configuration object', async () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
-    const builder = await ConfigBuilderFactory.getBuilder('happner-cluster', '1.0.0');
+    const versionContext = {
+      happn: '1.0.0',
+      happnCluster: '2.0.0',
+      happner: '12.0.0',
+      happnerCluster: '11.0.0',
+    };
+    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builder = builderFactory.getHappnerClusterBuilder<'12.0.0'>();
 
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
@@ -76,6 +80,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
+    const validator = new ConfigValidator('1.0.0', mockLogger);
     const validationResult = validator.validateHappnerClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -89,6 +94,7 @@ function setHappnConfigValues(builder) {
       .withHost('192.168.1.10')
       .withPort(90)
       .withSecure(true)
+      .withAllowNestedPermissions(true)
 
       // cache
       .withCacheStatisticsCheckPointAuthOverride(5, 1000)
@@ -132,14 +138,18 @@ function setHappnConfigValues(builder) {
       .withSecurityActivateSessionManagement(true)
       .withSecurityAdminPassword('adminPassword')
       .withSecurityAdminPublicKey('401be6df11a34')
-      .withSecurityAdminGroupCustomData('custom admin group data')
+      .withSecurityAdminGroupPermission('permissionKey', 'permissionAction')
+      .withSecurityAdminGroupCustomData('customField', 'customValue')
       .withSecurityAllowAnonymousAccess(false)
       .withSecurityAuthProvider('testProvider', new (class TestClass {})())
+      .withSecurityCookie('testCookie', 'test.com', 'asiojdhipsuadfauisdfipafy')
       .withSecurityLockTokenToLoginType(true)
       .withSecurityLockTokenToUserId(true)
       .withSecurityLogSessionActivity(true)
       .withSecurityPbkdf2Iterations(5)
       .withSecurityProfile('testProfile', 'testKey', 1, 50000, 10000)
+      .withSessionActivityTTL(5000)
+      .withSessionTokenSecret('superSecretPassword')
 
       // subscription
       .withSubscriptionAllowNestedPermissions(true)

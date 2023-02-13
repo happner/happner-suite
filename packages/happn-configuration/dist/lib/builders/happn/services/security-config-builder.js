@@ -82,8 +82,14 @@ class SecurityConfigBuilder extends BaseBuilder {
         this.set('config.adminUser.publicKey', publicKey, BaseBuilder.Types.STRING);
         return this;
     }
-    withAdminGroupCustomData(description) {
-        this.set(`config.adminGroup.custom_data.description`, description, BaseBuilder.Types.STRING);
+    withAdminGroupCustomData(fieldName, fieldValue) {
+        this.set(`config.adminGroup.custom_data.${fieldName}`, fieldValue, BaseBuilder.Types.STRING);
+        return this;
+    }
+    withAdminGroupPermission(permissionKey, actionPath) {
+        const builder = new BaseBuilder();
+        builder.push('actions', actionPath);
+        this.set(`config.adminGroup.permissions.${permissionKey}`, builder, BaseBuilder.Types.OBJECT);
         return this;
     }
     withAuthProvider(providerName, providerInstance) {

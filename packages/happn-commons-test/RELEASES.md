@@ -24,3 +24,7 @@
 1.2.0 2023-01-11
 -----------------
   - feat: heap dumping changes
+
+1.2.1 2023-01-18
+-----------------
+  - feat: commons update

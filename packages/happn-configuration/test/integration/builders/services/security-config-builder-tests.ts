@@ -8,7 +8,8 @@ describe('security configuration builder tests', function () {
     const mockAccountLockoutAttempts = 5;
     const mockAccountLockoutEnabled = true;
     const mockAccountLockoutRetryInterval = 2000;
-    const mockAdminGroupCustomData = 'admin group custom description';
+    const mockAdminGroupCustomKey = 'customKey';
+    const mockAdminGroupCustomValue = 'customValue';
     const mockAdminPassword = 'password123';
     const mockAdminPublicKey = 'publicKey3445';
     const mockAllowAnonymousAccess = false;
@@ -45,7 +46,7 @@ describe('security configuration builder tests', function () {
       .withAccountLockoutRetryInterval(mockAccountLockoutRetryInterval)
       .withAdminPassword(mockAdminPassword)
       .withAdminPublicKey(mockAdminPublicKey)
-      .withAdminGroupCustomData(mockAdminGroupCustomData)
+      .withAdminGroupCustomData(mockAdminGroupCustomKey, mockAdminGroupCustomValue)
       .withAllowAnonymousAccess(mockAllowAnonymousAccess)
       .withAuthProvider(mockAuthProvider1Name, mockAuthProvider1Instance)
       .withDefaultAuthProvider(mockDefaultAuthProvider)

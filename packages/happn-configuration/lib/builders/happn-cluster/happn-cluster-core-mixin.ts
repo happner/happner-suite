@@ -5,13 +5,12 @@ import { MembershipConfigBuilder } from '../happn/services/membership-config-bui
 import { OrchestratorConfigBuilder } from '../happn/services/orchestrator-config-builder';
 import { ProxyConfigBuilder } from '../happn/services/proxy-config-builder';
 import { ReplicatorConfigBuilder } from '../happn/services/replicator-config-builder';
-import { IHappnClusterConfigurationBuilder } from '../interfaces/i-happn-cluster-configuration-builder';
 import constants from '../../constants/config-constants';
 
 const SERVICES_ROOT = constants.HAPPN_SERVICES_ROOT;
 
 export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) {
-  return class HappnClusterBuilder extends Base implements IHappnClusterConfigurationBuilder {
+  return class HappnClusterBuilder extends Base {
     #healthConfigBuilder: HealthConfigBuilder;
     #membershipConfigBuilder: MembershipConfigBuilder;
     #orchestratorConfigBuilder: OrchestratorConfigBuilder;
@@ -104,12 +103,9 @@ export function HappnClusterCoreBuilder<TBase extends Constructor>(Base: TBase) 
       requestGroupSize?: number
     ): HappnClusterBuilder {
       this.#membershipConfigBuilder.withMembershipPingInterval(interval);
-      if (pingTimeout !== undefined)
-        this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
-      if (requestTimeout !== undefined)
-        this.#membershipConfigBuilder.withMembershipPingReqTimeout(requestTimeout);
-      if (requestGroupSize !== undefined)
-        this.#membershipConfigBuilder.withMembershipPingReqGroupSize(requestGroupSize);
+      this.#membershipConfigBuilder.withMembershipPingTimeout(pingTimeout);
+      this.#membershipConfigBuilder.withMembershipPingReqTimeout(requestTimeout);
+      this.#membershipConfigBuilder.withMembershipPingReqGroupSize(requestGroupSize);
       return this;
     }
 

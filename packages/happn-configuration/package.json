@@ -7,7 +7,7 @@
     "clean": "tsc --build --clean",
     "compile": "npm run clean && tsc",
     "test": "npm run compile && ts-mocha 'test/**/*'",
-    "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm run test"
+    "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html --exclude=test/** --exclude=dist/** npm run test"
   },
   "author": "Tenacious & SMC",
   "license": "ISC",

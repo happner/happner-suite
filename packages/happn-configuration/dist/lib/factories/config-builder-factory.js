@@ -1,36 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -45,134 +13,94 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _BaseClz_builderType, _a;
+var _ConfigBuilderFactory_versionUtil, _ConfigBuilderFactory_happnVersion, _ConfigBuilderFactory_happnClusterVersion, _ConfigBuilderFactory_happnerVersion, _ConfigBuilderFactory_happnerClusterVersion;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConfigBuilderFactory = void 0;
-/* eslint-disable @typescript-eslint/no-var-requires */
 const version_util_1 = require("../utils/version-util");
 const builder_constants_1 = __importDefault(require("../constants/builder-constants"));
 const field_type_validator_1 = require("../validators/field-type-validator");
-// mixin specific imports
-const happn_core_mixin_1 = require("../builders/happn/happn-core-mixin");
-const happn_cluster_core_mixin_1 = require("../builders/happn-cluster/happn-cluster-core-mixin");
-const happner_core_mixin_1 = require("../builders/happner/happner-core-mixin");
-const happner_cluster_core_mixin_1 = require("../builders/happner-cluster/happner-cluster-core-mixin");
-const path_1 = require("path");
-const base_builder_1 = __importDefault(require("happn-commons/lib/base-builder"));
+const core_builder_1 = require("../builders/core-builder");
+const version_constants_1 = __importDefault(require("../constants/version-constants"));
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = builder_constants_1.default;
-// core class used for mixins...
-const BaseClz = (_a = class BaseClz extends base_builder_1.default {
-        constructor(...args) {
-            super(...args);
-            _BaseClz_builderType.set(this, void 0);
-        }
-        set builderType(type) {
-            __classPrivateFieldSet(this, _BaseClz_builderType, type, "f");
-        }
-        get builderType() {
-            return __classPrivateFieldGet(this, _BaseClz_builderType, "f");
-        }
-        build() {
-            const result = super.build();
-            switch (this.builderType) {
-                case HAPPN:
-                case HAPPN_CLUSTER:
-                    return result.happn;
-                case HAPPNER:
-                case HAPPNER_CLUSTER:
-                    return result;
-                default:
-                    throw new Error('unknown baseType');
-            }
-        }
-    },
-    _BaseClz_builderType = new WeakMap(),
-    _a);
 class ConfigBuilderFactory {
-    static getBuilder(type, version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            switch (type) {
-                case HAPPN:
-                    return yield ConfigBuilderFactory.getHappnBuilder(version);
-                case HAPPN_CLUSTER:
-                    return yield ConfigBuilderFactory.getHappnClusterBuilder(version);
-                case HAPPNER:
-                    return yield ConfigBuilderFactory.getHappnerBuilder(version);
-                case HAPPNER_CLUSTER:
-                    return yield ConfigBuilderFactory.getHappnerClusterBuilder(version);
-                default:
-                    throw new Error('Unknown configuration type');
-            }
-        });
+    constructor(versionContext) {
+        var _a, _b, _c, _d;
+        _ConfigBuilderFactory_versionUtil.set(this, void 0);
+        _ConfigBuilderFactory_happnVersion.set(this, void 0);
+        _ConfigBuilderFactory_happnClusterVersion.set(this, void 0);
+        _ConfigBuilderFactory_happnerVersion.set(this, void 0);
+        _ConfigBuilderFactory_happnerClusterVersion.set(this, void 0);
+        __classPrivateFieldSet(this, _ConfigBuilderFactory_versionUtil, new version_util_1.VersionUtil(), "f");
+        __classPrivateFieldSet(this, _ConfigBuilderFactory_happnVersion, (_a = versionContext.happn) !== null && _a !== void 0 ? _a : '1.0.0', "f");
+        __classPrivateFieldSet(this, _ConfigBuilderFactory_happnClusterVersion, (_b = versionContext.happnCluster) !== null && _b !== void 0 ? _b : '1.0.0', "f");
+        __classPrivateFieldSet(this, _ConfigBuilderFactory_happnerVersion, (_c = versionContext.happner) !== null && _c !== void 0 ? _c : '1.0.0', "f");
+        __classPrivateFieldSet(this, _ConfigBuilderFactory_happnerClusterVersion, (_d = versionContext.happnerCluster) !== null && _d !== void 0 ? _d : '1.0.0', "f");
     }
-    static getHappnBuilder(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const container = yield ConfigBuilderFactory.createContainer(version);
-            const HappnMixin = (0, happn_core_mixin_1.HappnCoreBuilder)(BaseClz);
-            const result = new HappnMixin(container);
-            result.builderType = HAPPN;
-            return result;
-        });
+    // see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
+    getHappnBuilder(version) {
+        const HappnCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f"));
+        const container = this.createChildBuildersContainer();
+        const HappnMixin = HappnCoreBuilder(core_builder_1.CoreBuilder);
+        const result = new HappnMixin(container);
+        result.builderType = HAPPN;
+        return result;
     }
-    static getHappnClusterBuilder(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const container = yield ConfigBuilderFactory.createContainer(version);
-            const HappnClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)(BaseClz));
-            const result = new HappnClusterMixin(container);
-            result.builderType = HAPPN_CLUSTER;
-            return result;
-        });
+    getHappnClusterBuilder(version) {
+        const HappnCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f"));
+        const HappnClusterCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnClusterCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f"));
+        const container = this.createChildBuildersContainer();
+        // create a mixin and instantiate
+        const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(core_builder_1.CoreBuilder));
+        const result = new HappnClusterMixin(container);
+        result.builderType = HAPPN_CLUSTER;
+        return result;
     }
-    static getHappnerBuilder(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const container = yield ConfigBuilderFactory.createContainer(version);
-            const HappnerMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)(BaseClz));
-            const result = new HappnerMixin(container);
-            result.builderType = HAPPNER;
-            return result;
-        });
+    getHappnerBuilder(version) {
+        const HappnCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f"));
+        const HappnerCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnerCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerVersion, "f"));
+        const container = this.createChildBuildersContainer();
+        // create a mixin and instantiate
+        const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(core_builder_1.CoreBuilder));
+        const result = new HappnerMixin(container);
+        result.builderType = HAPPNER;
+        return result;
     }
-    static getHappnerClusterBuilder(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const container = yield ConfigBuilderFactory.createContainer(version);
-            const HappnerClusterMixin = (0, happn_core_mixin_1.HappnCoreBuilder)((0, happn_cluster_core_mixin_1.HappnClusterCoreBuilder)((0, happner_core_mixin_1.HappnerCoreBuilder)((0, happner_cluster_core_mixin_1.HappnerClusterCoreBuilder)(BaseClz))));
-            const result = new HappnerClusterMixin(container);
-            result.builderType = HAPPNER_CLUSTER;
-            return result;
-        });
+    getHappnerClusterBuilder(version) {
+        const HappnCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f"));
+        const HappnClusterCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnClusterCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f"));
+        const HappnerCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnerCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerVersion, "f"));
+        const HappnerClusterCoreBuilder = __classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HappnerClusterCore, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerClusterVersion, "f"));
+        const container = this.createChildBuildersContainer();
+        // create a mixin and instantiate
+        const HappnerClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(core_builder_1.CoreBuilder))));
+        const result = new HappnerClusterMixin(container);
+        result.builderType = HAPPNER_CLUSTER;
+        return result;
     }
-    static createContainer(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return {
-                cacheConfigBuilder: yield this.getSubconfigBuilder('cache-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                componentsConfigBuilder: yield this.getSubconfigBuilder('components-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happner/components'), version),
-                connectConfigBuilder: yield this.getSubconfigBuilder('connect-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                dataConfigBuilder: yield this.getSubconfigBuilder('data-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                endpointsConfigBuilder: yield this.getSubconfigBuilder('endpoints-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happner/endpoints'), version),
-                membershipConfigBuilder: yield this.getSubconfigBuilder('membership-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                modulesConfigBuilder: yield this.getSubconfigBuilder('modules-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happner/modules'), version),
-                orchestratorConfigBuilder: yield this.getSubconfigBuilder('orchestrator-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                protocolConfigBuilder: yield this.getSubconfigBuilder('protocol-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version, new field_type_validator_1.FieldTypeValidator()),
-                proxyConfigBuilder: yield this.getSubconfigBuilder('proxy-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                publisherConfigBuilder: yield this.getSubconfigBuilder('publisher-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                replicatorConfigBuilder: yield this.getSubconfigBuilder('replicator-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                securityConfigBuilder: yield this.getSubconfigBuilder('security-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                subscriptionConfigBuilder: yield this.getSubconfigBuilder('subscription-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                systemConfigBuilder: yield this.getSubconfigBuilder('system-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                transportConfigBuilder: yield this.getSubconfigBuilder('transport-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-                healthConfigBuilder: yield this.getSubconfigBuilder('health-config-builder', (0, path_1.join)(__dirname, '..', 'builders/happn/services'), version),
-            };
-        });
-    }
-    static getSubconfigBuilder(moduleName, rootPath, version, ...args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const versionUtil = new version_util_1.VersionUtil();
-            const modulePath = versionUtil.findClosestVersionedFileMatch(rootPath, moduleName, version);
-            const Module = yield (_a = modulePath, Promise.resolve().then(() => __importStar(require(_a))));
-            const Clz = Module[Object.keys(Module)[0]];
-            return new Clz(...args);
-        });
+    createChildBuildersContainer() {
+        return {
+            // HAPPN
+            cacheConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.CacheConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            connectConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ConnectConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            dataConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.DataConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            protocolConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ProtocolConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(new field_type_validator_1.FieldTypeValidator()),
+            publisherConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.PublisherConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            securityConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.SecurityConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            subscriptionConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.SubscriptionConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            systemConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.SystemConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            transportConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.TransportConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnVersion, "f")))(),
+            // HAPPN_CLUSTER
+            healthConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.HealthConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f")))(),
+            membershipConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.MembershipConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f")))(),
+            orchestratorConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.OrchestratorConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f")))(),
+            proxyConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ProxyConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f")))(),
+            replicatorConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ReplicatorConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnClusterVersion, "f")))(),
+            // HAPPNER
+            componentsConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ComponentsConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerVersion, "f")))(),
+            endpointsConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.EndpointsConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerVersion, "f")))(),
+            modulesConfigBuilder: new (__classPrivateFieldGet(this, _ConfigBuilderFactory_versionUtil, "f").findClosestModuleMatch(version_constants_1.default.VERSION_THRESHOLDS.ModulesConfig, __classPrivateFieldGet(this, _ConfigBuilderFactory_happnerVersion, "f")))(),
+        };
     }
 }
 exports.ConfigBuilderFactory = ConfigBuilderFactory;
+_ConfigBuilderFactory_versionUtil = new WeakMap(), _ConfigBuilderFactory_happnVersion = new WeakMap(), _ConfigBuilderFactory_happnClusterVersion = new WeakMap(), _ConfigBuilderFactory_happnerVersion = new WeakMap(), _ConfigBuilderFactory_happnerClusterVersion = new WeakMap();
