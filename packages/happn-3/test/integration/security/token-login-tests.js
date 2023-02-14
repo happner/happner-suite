@@ -58,7 +58,7 @@ module.exports = function (serviceConfig1, serviceConfig2) {
 
               getClient(
                 {
-                  token: token,
+                  token,
                   port: 10000,
                 },
                 function (e, tokenInstance) {
@@ -521,7 +521,6 @@ module.exports = function (serviceConfig1, serviceConfig2) {
 
           if (operations === 'SETREMOVE') {
             clearTimeout(timeout);
-
             callback();
           }
         },

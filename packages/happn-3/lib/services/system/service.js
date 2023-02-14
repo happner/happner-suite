@@ -6,7 +6,15 @@ const commons = require('happn-commons'),
   CONSTANTS = commons.constants;
 
 function SystemService(opts) {
-  this.log = opts.logger.createLogger('System');
+  if (opts && opts.logger) {
+    this.log = opts.logger.createLogger('System');
+  } else {
+    let logger = require('happn-logger');
+    logger.configure({
+      logLevel: 'info',
+    });
+    this.log = logger.createLogger('Cache');
+  }
   this.log.$$TRACE('construct(%j)', opts);
 
   Object.defineProperty(this, 'package', {
@@ -15,6 +23,10 @@ function SystemService(opts) {
 
   this.resetStats();
 }
+
+SystemService.create = function (opts) {
+  return new SystemService(opts);
+};
 
 SystemService.prototype.resetStats = function () {
   this.__stats = {

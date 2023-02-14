@@ -32,14 +32,11 @@ module.exports = class ComponentInstance {
     return this.#info;
   }
   get mesh() {
-    this.#log.warn('Use of $happn.mesh.* is deprecated. Use $happn.*');
+    this.log.warn('Use of $happn.mesh.* is deprecated. Use $happn.*');
     return this;
   }
   get module() {
     return this.#module;
-  }
-  get log() {
-    return this.#log;
   }
   get localEventEmitter() {
     return this.#localEventEmitter;
@@ -89,8 +86,8 @@ module.exports = class ComponentInstance {
       }, // address, options
     };
 
-    this.#log = mesh._mesh.log.createLogger(this.name);
-    this.#log.trace('create instance');
+    this.log = mesh._mesh.log.createLogger(this.name);
+    this.log.trace('create instance');
 
     this.#authorizer = require('./authorizer').create(
       mesh._mesh.happn.server.services.security,
@@ -154,7 +151,7 @@ module.exports = class ComponentInstance {
   }
 
   #getCallbackProxy(methodName, callback, origin) {
-    const callbackProxyContext = Object.assign({ wasCalled: false, log: this.#log }, this);
+    const callbackProxyContext = Object.assign({ wasCalled: false, log: this.log }, this);
     const callbackProxy = function () {
       if (this.wasCalled) {
         return this.log.error(
@@ -207,9 +204,9 @@ module.exports = class ComponentInstance {
           );
         }
 
-        this.#log.trace('operate( %s', methodName);
-        this.#log.trace('parameters ', parameters);
-        this.#log.trace('methodSchema ', methodSchema);
+        this.log.trace('operate( %s', methodName);
+        this.log.trace('parameters ', parameters);
+        this.log.trace('methodSchema ', methodSchema);
         let result,
           syncError = null;
 
@@ -274,7 +271,7 @@ module.exports = class ComponentInstance {
 
         if (utilities.isPromise(returnObject)) {
           if (callbackIndex > -1 && utilities.isPromise(returnObject)) {
-            this.#log.warn(
+            this.log.warn(
               `method [${this.name}.${methodName}] has been configured as a promise with a callback`
             );
           } else {
@@ -294,13 +291,13 @@ module.exports = class ComponentInstance {
 
   #callBackWithWarningAndError(category, message, callback) {
     const error = new Error(message);
-    this.#log.warn(`${category}:${message}`);
+    this.log.warn(`${category}:${message}`);
     this.#callbackOrThrowError(error, callback);
   }
 
   #attach(config, mesh, callback) {
     //attach module to the transport layer
-    this.#log.trace('_attach()');
+    this.log.trace('_attach()');
     this.emit = (key, data, options, callback) => {
       if (typeof options === 'function') {
         callback = options;
@@ -368,19 +365,19 @@ module.exports = class ComponentInstance {
           }
         });
       } catch (e) {
-        this.#log.error('Failure to attach web methods', e);
+        this.log.error('Failure to attach web methods', e);
         return callback(e);
       }
     }
     const subscribeMask = this.#getSubscribeMask();
-    this.#log.trace('data.on( ' + subscribeMask);
+    this.log.trace('data.on( ' + subscribeMask);
     mesh.data.on(
       subscribeMask,
       {
         event_type: 'set',
       },
       (publication, meta) => {
-        this.#log.trace('received request at %s', subscribeMask);
+        this.log.trace('received request at %s', subscribeMask);
         let message = publication;
         let method = meta.path.split('/').pop();
         const args = Array.isArray(message.args) ? message.args.slice(0, message.args.length) : [];
@@ -402,7 +399,7 @@ module.exports = class ComponentInstance {
                 serializedError[key] = e[key];
               });
 
-              this.#log.trace('operate( reply( ERROR %s', message.callbackAddress);
+              this.log.trace('operate( reply( ERROR %s', message.callbackAddress);
 
               return this.#reply(
                 message.callbackAddress,
@@ -439,7 +436,7 @@ module.exports = class ComponentInstance {
             }
 
             // Populate response to the callback address
-            this.#log.trace('operate( reply( RESULT %s', message.callbackAddress);
+            this.log.trace('operate( reply( RESULT %s', message.callbackAddress);
 
             var options = this.#createSetOptions(publication.origin.id, this.info.happn.options);
             this.#reply(message.callbackAddress, message.callbackPeer, response, options, mesh);
@@ -475,28 +472,28 @@ module.exports = class ComponentInstance {
 
   on(event, handler) {
     try {
-      this.#log.trace('component on called', event);
+      this.log.trace('component on called', event);
       return this.#localEventEmitter.on(event, handler);
     } catch (e) {
-      this.#log.trace('component on error', e);
+      this.log.trace('component on error', e);
     }
   }
 
   offEvent(event, handler) {
     try {
-      this.#log.trace('component offEvent called', event);
+      this.log.trace('component offEvent called', event);
       return this.#localEventEmitter.off(event, handler);
     } catch (e) {
-      this.#log.trace('component offEvent error', e);
+      this.log.trace('component offEvent error', e);
     }
   }
 
   emitEvent(event, data) {
     try {
-      this.#log.trace('component emitEvent called', event);
+      this.log.trace('component emitEvent called', event);
       return this.#localEventEmitter.emit(event, data);
     } catch (e) {
-      this.#log.trace('component emitEvent error', e);
+      this.log.trace('component emitEvent error', e);
     }
   }
 
@@ -700,7 +697,7 @@ module.exports = class ComponentInstance {
   }
 
   #discardMessage(reason, message) {
-    this.#log.warn('message discarded: %s', reason, message);
+    this.log.warn('message discarded: %s', reason, message);
   }
 
   #getWebOrigin(mesh, params) {
@@ -749,7 +746,7 @@ module.exports = class ComponentInstance {
     connect.use(meshRoutePath, serve);
     connect.use(componentRoutePath, serve);
 
-    this.#log.trace(`attached web route for component ${this.name}: ${meshRoutePath}`);
+    this.log.trace(`attached web route for component ${this.name}: ${meshRoutePath}`);
 
     // tag for detatch() to be able to remove middleware when removing component
     serve.__tag = this.name;
@@ -778,7 +775,7 @@ module.exports = class ComponentInstance {
         client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
       } catch (e) {
         // no peer at callback (race conditions on servers stopping and starting) dead end...
-        this.#log.warn(`Failure on callback, missing peer: ${callbackPeer}`, e);
+        this.log.warn(`Failure on callback, missing peer: ${callbackPeer}`, e);
         return;
       }
     }
@@ -786,14 +783,14 @@ module.exports = class ComponentInstance {
       if (e) {
         var logMessage = 'Failure to set callback data on address ' + callbackAddress;
         if (e.message && e.message === 'client is disconnected')
-          return this.#log.warn(logMessage + ':client is disconnected');
-        this.#log.error(logMessage, e);
+          return this.log.warn(logMessage + ':client is disconnected');
+        this.log.error(logMessage, e);
       }
     });
   }
 
   detatch(mesh, callback) {
-    this.#log.trace('detatch() removing component from mesh');
+    this.log.trace('detatch() removing component from mesh');
     const connect = mesh.happn.server.connect;
     // Remove this component's middleware from the connect stack.
     var toRemove = connect.stack
@@ -812,16 +809,16 @@ module.exports = class ComponentInstance {
       .reverse();
 
     toRemove.forEach((i) => {
-      this.#log.trace('removing mware at %s', connect.stack[i].route);
+      this.log.trace('removing mware at %s', connect.stack[i].route);
       connect.stack.splice(i, 1);
     });
     const subscribeMask = this.#getSubscribeMask();
     // Remove this component's request listener from the happn
-    this.#log.trace('removing request listener %s', subscribeMask);
+    this.log.trace('removing request listener %s', subscribeMask);
 
     mesh.data.offPath(subscribeMask, (e) => {
       if (e) {
-        this.#log.warn(
+        this.log.warn(
           `half detatched, failed to remove request listener: ${subscribeMask}, error: ${e.message}`
         );
       }

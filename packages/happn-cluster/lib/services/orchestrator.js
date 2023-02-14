@@ -239,6 +239,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   addPeer(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator addPeer ${member.name}`);
     if (member.peer === member.listedAsPeer) return;
     member.listedAsPeer = true;
     if (member.endpoint !== this.endpoint) {
@@ -248,6 +249,7 @@ module.exports = class Orchestrator extends EventEmitter {
   }
 
   removePeer(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removePeer ${member.name}`);
     if (!member.listedAsPeer) return;
     member.listedAsPeer = false;
     if (member.endpoint !== this.endpoint) {
@@ -258,6 +260,7 @@ module.exports = class Orchestrator extends EventEmitter {
     }
   }
   removeMember(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removeMember ${member.name}`);
     member.connectedTo = false;
     member.connectingTo = false;
     if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);

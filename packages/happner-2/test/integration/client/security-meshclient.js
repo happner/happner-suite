@@ -355,7 +355,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
             key: 'value',
             meshName: 'Server',
             originUser: 'username',
-          }.should.eql(result));
+          }).should.eql(result);
           done();
         })
         .catch(done);

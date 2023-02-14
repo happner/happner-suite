@@ -256,38 +256,30 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (test
       );
     });
 
-    it('changes a custom property on the user - which should update the session, checks we are no longer able to access the path the permission relates to, but are able to access based on the new property', function (done) {
+    it('changes a custom property on the user - which should update the session, checks we are no longer able to access the path the permission relates to, but are able to access based on the new property', async () => {
       testUser.custom_data.custom_field2 = 'custom_field2_changed';
-      serviceInstance.services.security.users.upsertUser(testUser, function (e) {
-        if (e) return done(e);
-        testClient.on(
-          '/custom/custom_field2_changed',
-          function (data) {
-            test.expect(data.test).to.be('data');
-            testClient.set(
-              '/custom/custom_field2_value',
-              {
-                test: 'data',
-              },
-              function (e) {
-                test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-                done();
-              }
-            );
+      await serviceInstance.services.security.users.upsertUser(testUser);
+      let resolve;
+      let waiter = new Promise((res) => {
+        resolve = res;
+      });
+      await testClient.on('/custom/custom_field2_changed', function (data) {
+        test.expect(data.test).to.be('data');
+        testClient.set(
+          '/custom/custom_field2_value',
+          {
+            test: 'data',
           },
-          function () {
-            testClient.set(
-              '/custom/custom_field2_changed',
-              {
-                test: 'data',
-              },
-              function (e) {
-                if (e) return done(e);
-              }
-            );
+          function (e) {
+            test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+            resolve();
           }
         );
       });
+      await testClient.set('/custom/custom_field2_changed', {
+        test: 'data',
+      });
+      await waiter;
     });
 
     it('removes a custom property from the user - which should update the session, checks we are no longer able to access the path the combination of permission and property value relate to', function (done) {

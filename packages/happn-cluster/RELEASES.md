@@ -309,11 +309,15 @@ non-release 2017-12-14
 -----------------
   - feat: loki provider disaster recovery enhancements
 
+12.2.6 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 
+
+12.3.0 2023-01-18
+-----------------
+  - feat: Summon productionization
+  - fix: SQLite nested ands and ors
+
 13.0.0 2022-06-01
 -----------------
   - SMC-4817: mongo-based membership strategy
-
-13.0.1 2022-11-30
------------------
-  - SMC-4817/TEN-12: mongo-based membership strategy - no longer removes peer/member if its info is missing from the db
-

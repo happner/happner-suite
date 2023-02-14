@@ -171,7 +171,7 @@ describe(
               })
               .catch(function (e) {
                 expect(e.toString()).to.be('AccessDenied: Invalid credentials');
-                const lock = server1.services.security.authProviders.happn.__locks.get(
+                const lock = server1.services.security.authProviders.happn.locks.get(
                   testUser2.username
                 );
                 expect(lock.attempts).to.be(2);
@@ -179,7 +179,7 @@ describe(
               });
           },
           function (itemCB) {
-            const lock = server1.services.security.authProviders.happn.__locks.get(
+            const lock = server1.services.security.authProviders.happn.locks.get(
               testUser2.username
             );
             expect(lock).to.be(null);

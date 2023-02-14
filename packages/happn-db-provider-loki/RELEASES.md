@@ -48,5 +48,12 @@
   - fix: we release all events when reader hits a failure
   - fix: we ignore empty strings when re-loading temp files
 
+1.2.0 2023-01-11
+-----------------
+  - feat: loki archiving
+  - feat: loki plugins
 
-  
+1.2.1 2023-01-18
+-----------------
+  - TEN-4: summon productionization
+

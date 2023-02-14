@@ -54,9 +54,7 @@ function write(message, type, data, area, severity, callback) {
   }
 
   if (!this.__logs[area]) this.__logs[area] = Logger.createLogger(area);
-
   if (!this.__stats[area]) this.__stats[area] = {};
-
   if (!this.__stats[area][type]) this.__stats[area][type] = 1;
   else this.__stats[area][type]++;
 

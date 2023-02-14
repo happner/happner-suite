@@ -143,6 +143,7 @@ module.exports = class Member {
   }
 
   async __subscribe(path) {
+    this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member subscribe');
     if (!path) return;
     try {
       await this.client.on(path, null, this.__createReplicationEventHandler());
@@ -152,6 +153,7 @@ module.exports = class Member {
     }
   }
   async stopClient() {
+    this.log.info('[CLUSTER_MEMBERSHIP]: orchestrator member stop client');
     if (this.client) {
       await this.client.disconnect({ reconnect: false });
       await this.client.stop();
@@ -166,7 +168,7 @@ module.exports = class Member {
   }
 
   __onHappnDisconnect() {
-    this.log.debug('disconnected/reconnecting to (->) %s/%s', this.clusterName, this.name);
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator member onHappnDisconnect ${this.name}`);
     if (!this.connectedTo) return;
     this.connectedTo = false;
     this.orchestrator.__stateUpdate(this);
@@ -174,7 +176,7 @@ module.exports = class Member {
   }
 
   __onHappnReconnect() {
-    this.log.debug('reconnected to (->) %s/%s', this.clusterName, this.name);
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator member onHappnDisconnect ${this.name}`);
     if (this.connectedTo) return;
     this.connectedTo = true;
     this.orchestrator.__stateUpdate(this);
