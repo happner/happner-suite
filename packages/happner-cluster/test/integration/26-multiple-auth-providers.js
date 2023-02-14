@@ -47,12 +47,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   it('we should fail to log in using happn3 auth with testUser2 (second auth user)', async () => {
     try {
-      await test.client.create(
-        testUser2.username,
-        testUser2.password,
-        test.proxyPorts[1],
-        'happn'
-      );
+      await test.client.create(testUser2.username, testUser2.password, test.proxyPorts[1], 'happn');
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
