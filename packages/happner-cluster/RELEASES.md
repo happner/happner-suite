@@ -435,8 +435,17 @@
 12.3.5  2022-12-22
 -----------------
   - feat: loki provider disaster recovery enhancements
-  
-12.4.0 2022-11-30
+
+12.3.6 2023-01-11
+-----------------
+  - feat: loki archiving and plugins
+
+12.4.0 2023-01-03
+-----------------
+  - feat: Summon productionization
+
+12.5.0 2022-11-30
 -----------------
   - happn-cluster membership updated to mongo-based system
   - tests now use ports auto-assigned by OS
+

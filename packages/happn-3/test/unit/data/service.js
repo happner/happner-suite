@@ -61,6 +61,35 @@ describe(test.testName(__filename, 3), function () {
     });
   });
 
+  it('tests the archive method - provider has no archive method', async () => {
+    const path = '/test/path';
+
+    const dataService = await getServiceInstancePromise();
+    test.sinon.stub(dataService, 'db').returns({});
+
+    try {
+      await dataService.archive(path);
+      throw new Error('Error has not been thrown by internal function!!!');
+    } catch (e) {
+      test
+        .expect(e.message)
+        .to.equal(`archive feature not available for provider on path: ${path}`);
+    }
+  });
+
+  it('tests the archive method - provider has an archive method', async () => {
+    const path = '/test/path';
+
+    const dataService = await getServiceInstancePromise();
+    const archiveStub = test.sinon.stub().callsArgWith(0, null, `mock archive ${path}`);
+    test.sinon.stub(dataService, 'db').returns({
+      archive: archiveStub,
+    });
+
+    const result = await dataService.archive(path);
+    test.expect(result).to.equal(`mock archive ${path}`);
+  });
+
   it('tests the upsert method', async () => {
     const dataService = await getServiceInstancePromise();
     const callback = () => {};

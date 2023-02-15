@@ -1041,11 +1041,20 @@
 -----------------
   - feat: Sqlite DB Provider
 
-13.7.2  2022-12-22
+13.7.2 2022-12-22
 -----------------
   - feat: loki provider disaster recovery enhancements
 
-13.7.3 2022-01-12
+13.8.0 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 
+
+13.9.0 2023-01-18
+-----------------
+  - feat: Summon productionization
+
+13.10.0 2022-01-12
 -----------------
   - Mongo cluster membership update (dev dependencies change)
   - Option have OS auto-assign happn and proxy ports (primarily for testing) 
+

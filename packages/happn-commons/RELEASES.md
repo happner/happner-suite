@@ -15,3 +15,11 @@
 1.3.0 2022-11-26
 -----------------
   - feat: Sqlite DB provider (added hashring semaphore)
+
+1.4.0 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 
+
+1.5.0 2023-01-18
+-----------------
+  - feat: clone functionality

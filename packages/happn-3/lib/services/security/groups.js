@@ -13,9 +13,12 @@ function SecurityGroups(opts) {
 const PermissionManager = require('./permissions');
 SecurityGroups.prototype.initialize = util.maybePromisify(initialize);
 SecurityGroups.prototype.clearCaches = clearCaches;
+
+SecurityGroups.prototype.__attachPermissionsAll = nodeUtil.callbackify(__attachPermissionsAll);
+SecurityGroups.prototype.__upsertGroup = __upsertGroup;
 SecurityGroups.prototype.__validate = __validate;
 
-SecurityGroups.prototype.__upsertGroup = __upsertGroup;
+SecurityGroups.prototype.upsertGroupWithoutValidation = __upsertGroup;
 
 SecurityGroups.prototype.upsertGroup = util.maybePromisify(upsertGroup);
 SecurityGroups.prototype.deleteGroup = util.maybePromisify(deleteGroup);
@@ -26,8 +29,6 @@ SecurityGroups.prototype.linkGroup = util.maybePromisify(linkGroup);
 SecurityGroups.prototype.unlinkGroup = util.maybePromisify(unlinkGroup);
 
 SecurityGroups.prototype.listPermissions = listPermissions;
-SecurityGroups.prototype.__attachPermissionsAll = nodeUtil.callbackify(__attachPermissionsAll);
-
 SecurityGroups.prototype.upsertPermission = upsertPermission;
 SecurityGroups.prototype.removePermission = removePermission;
 

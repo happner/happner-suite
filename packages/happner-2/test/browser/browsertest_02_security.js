@@ -135,7 +135,7 @@ describe('browsertest_02_security', function () {
             key: 'value',
             meshName: 'Server',
             originUser: 'username',
-          }.should.eql(result));
+          }).should.eql(result);
           done();
         })
         .catch(done);

@@ -394,10 +394,18 @@
 -----------------
   - feat: Sqlite DB provider
 
-12.5.5  2022-12-22
+12.5.5 2022-12-22
 -----------------
   - feat: loki provider disaster recovery enhancements
 
-12.5.6 2022-11-30
+12.5.6 2023-01-11
+-----------------
+  - feat: loki archiving and plugins 
+
+12.5.7 2023-01-18
+-----------------
+  - feat: Summon productionization
+
+12.6.0 2023-02-15
 -----------------
   - Mongo-based cluster membership - dependencies update

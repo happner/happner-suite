@@ -27,6 +27,8 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.findOne = util.maybePromisify(this.findOne);
     this.#delimiter = settings.delimiter || '___';
+    // 100MB soft heap limit
+    this.settings.heapLimit = this.settings.heapLimit || 100e6;
     this.#hashRingSemaphore = require('happn-commons').HashRingSemaphore.create({
       slots: settings.mutateSlots || 30, // 30 parallel mutations
     });
@@ -50,6 +52,15 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
     let modelEnsuredError;
     this.db
       .authenticate()
+      .then(() => {
+        return this.db.query(`PRAGMA soft_heap_limit=${this.settings.heapLimit};`);
+      })
+      .then(() => {
+        return this.db.query(`PRAGMA soft_heap_limit=${this.settings.heapLimit};`);
+      })
+      .then(() => {
+        return this.db.query(`PRAGMA optimize;`);
+      })
       .then(() => {
         return this.#ensureModel();
       })
@@ -108,6 +119,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
         createdAt: { type: DataTypes.DATE, field: 'created' },
         updatedAt: { type: DataTypes.DATE, field: 'modified' },
         deletedAt: { type: DataTypes.DATE, field: 'deleted' },
+        modifiedBy: { type: DataTypes.STRING },
         json: { type: DataTypes.JSON },
       }),
       indexes: configuredIndexes,
@@ -335,8 +347,7 @@ module.exports = class SQLiteDataProvider extends commons.BaseDataProvider {
       // just return it, limiting and sorting don't matter
       return sqlOptions;
     }
-    // only ever fetch 30 by default
-    sqlOptions.limit = extendedOptions.limit || 30;
+    if (extendedOptions.limit) sqlOptions.limit = extendedOptions.limit;
     if (extendedOptions.sort) {
       sqlOptions.order = commons._.transform(
         extendedOptions.sort,

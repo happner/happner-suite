@@ -20,3 +20,11 @@
 1.1.2 2022-11-26
 -----------------
   - feat: Sqlite DB provider
+
+1.2.0 2023-01-11
+-----------------
+  - feat: heap dumping changes
+
+1.2.1 2023-01-18
+-----------------
+  - feat: commons update

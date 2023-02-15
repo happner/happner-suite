@@ -6,6 +6,17 @@
 -----------------
   - feat: loki provider disaster recovery enhancements
 
-1.0.2 2022-11-30
+1.0.2 2023-01-11
+-----------------
+  - feat: loki archiving
+  - feat: loki plugins
+
+1.0.3 2023-01-18
+-----------------
+  - feat: Summon productionization
+  - fix: nested ands and ors
+
+1.0.4 2023-02-14
 -----------------
 - Mongo membership (dependencies update)
+

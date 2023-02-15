@@ -354,12 +354,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
     };
 
-    mock$Happn._mesh.happn.server.services.security.login = function (opts, callback) {
-      try {
-        callback(null, { token: 'test' });
-      } catch (e) {
-        callback(e);
-      }
+    mock$Happn._mesh.happn.server.services.security.login = function (
+      _credentials,
+      _sessionId,
+      _request,
+      callback
+    ) {
+      callback(null, { token: 'test' });
     };
 
     restModule.initialize(mock$Happn, function (e) {

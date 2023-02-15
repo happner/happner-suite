@@ -36,6 +36,10 @@ function CryptoService(opts) {
   this.log.$$TRACE('construct(%j)', opts);
 }
 
+CryptoService.create = function (opts) {
+  return new CryptoService(opts);
+};
+
 function initialize(config, callback) {
   this.config = config;
 

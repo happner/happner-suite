@@ -4,8 +4,9 @@
 
 var Mongo = require('./mongo');
 const Util = require('util');
-var mongoUrl = 'mongodb://127.0.0.1:27017';
-var mongoCollection = 'happn-cluster';
+const mongoUrl = 'mongodb://127.0.0.1:27017';
+const mongoCollection = 'happn-cluster';
+const path = require('path');
 module.exports.clearMongoCollection = function (callback, mongoCollectionArg, mongoUrlArg) {
   Mongo.clearCollection(mongoUrlArg || mongoUrl, mongoCollectionArg || mongoCollection, callback);
 };
@@ -102,8 +103,8 @@ module.exports.createMemberConfigs = Util.promisify(function (
     }
 
     if (proxySecure) {
-      config.services.proxy.config.certPath = 'test/keys/proxy.com.cert';
-      config.services.proxy.config.keyPath = 'test/keys/proxy.com.key';
+      config.services.proxy.config.certPath = path.resolve(__dirname, '../keys/proxy.com.cert');
+      config.services.proxy.config.keyPath = path.resolve(__dirname, '../keys/proxy.com.key');
     }
 
     ammendConfig(config);

@@ -206,6 +206,14 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       path: 'test/path/3',
       data: { test: { data: 3, other: 'lpah' } },
     });
+    await sqliteProvider.insert({
+      path: 'test/path/4',
+      data: { test: { data: 4, other: 'hello' } },
+    });
+    await sqliteProvider.insert({
+      path: 'test/path/5',
+      data: { test: { data: 5, other: 'world' } },
+    });
 
     const found1 = await sqliteProvider.find('test/path/*', {
       criteria: {
@@ -320,8 +328,60 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       },
     });
 
-    test.chai.expect(found7).to.have.lengthOf(2);
+    test.chai.expect(found7).to.have.lengthOf(4);
     test.chai.expect(found7).to.deep.nested.property('0.path').which.equals('test/path/1');
     test.chai.expect(found7).to.deep.nested.property('1.path').which.equals('test/path/3');
+
+    const found8 = await sqliteProvider.find('test/path/*', {
+      criteria: {
+        $and: [
+          {
+            data: {
+              test: {
+                other: {
+                  $nin: ['blah'],
+                },
+              },
+            },
+          },
+          {
+            data: {
+              test: {
+                other: {
+                  $like: '%l%',
+                },
+              },
+            },
+          },
+          {
+            $or: [
+              {
+                data: {
+                  test: {
+                    other: {
+                      $in: ['hello', 'world'],
+                    },
+                  },
+                },
+              },
+              {
+                data: {
+                  test: {
+                    data: {
+                      $lt: 3,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    test.chai.expect(found8).to.have.lengthOf(3);
+    test.chai.expect(found8).to.deep.nested.property('0.path').which.equals('test/path/4');
+    test.chai.expect(found8).to.deep.nested.property('1.path').which.equals('test/path/5');
+    test.chai.expect(found8).to.deep.nested.property('2.path').which.equals('test/path/2');
   }
 });

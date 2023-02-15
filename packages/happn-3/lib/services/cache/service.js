@@ -24,6 +24,10 @@ module.exports = class CacheService extends require('events').EventEmitter {
     this.#caches = {};
   }
 
+  static create(opts) {
+    return new CacheService(opts);
+  }
+
   initialize(config, callback) {
     try {
       if (typeof config === 'function') {

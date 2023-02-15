@@ -97,6 +97,9 @@ module.exports = {
     UPSERT: 'UPSERT',
     UPDATE: 'UPDATE',
     REMOVE: 'REMOVE',
+    ARCHIVE: 'ARCHIVE',
+    LOAD_ARCHIVE: 'LOAD_ARCHIVE',
+    UNLOAD_ARCHIVE: 'UNLOAD_ARCHIVE',
   },
   CACHE_TYPES: {
     PERSIST: 'persist',

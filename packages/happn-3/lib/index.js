@@ -8,4 +8,10 @@ module.exports = {
   package: packager,
   protocol: packager.protocol,
   version: packager.version,
+  factories: {
+    SecurityAuthProviderFactory: require('./factories/security-auth-provider-factory'),
+  },
+  providers: {
+    SecurityBaseAuthProvider: require('./providers/security-base-auth-provider'),
+  },
 };

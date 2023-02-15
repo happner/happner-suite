@@ -47,13 +47,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   it('we should fail to log in using happn3 auth with testUser2 (second auth user)', async () => {
     try {
-      // eslint-disable-next-line no-unused-vars
-      let listenerClient = await test.client.create(
-        testUser2.username,
-        testUser2.password,
-        test.proxyPorts[1],
-        'happn'
-      );
+      await test.client.create(testUser2.username, testUser2.password, test.proxyPorts[1], 'happn');
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
@@ -62,12 +56,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   it('we should fail to log in using second auth with testUser (happn3 auth user)', async () => {
     try {
-      // eslint-disable-next-line no-unused-vars
-      let listenerClient = await test.client.create(
-        testUser.username,
-        testUser.password,
-        test.proxyPorts[1]
-      ); //Should default to 'second' authProvider
+      await test.client.create(testUser.username, testUser.password, test.proxyPorts[1]); //Should default to 'second' authProvider
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');

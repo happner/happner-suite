@@ -25,6 +25,5 @@ coverage-web
 report.*
 .vscode
 tmp
-corrupted-eof-test
-temp_corrupted-eof-test
+test/__fixtures/test-data-files/*test
 

@@ -58,6 +58,9 @@ Brokerage.prototype.__handlePeerArrived = function (peer) {
       return injectedComponent.component.name === peer.componentName;
     })
     .forEach((changedComponent) => {
+      this.logger.info(
+        `[CLUSTER_MEMBERSHIP]: handlePeerArrived happner-cluster ${peer.componentName}`
+      );
       this.__updateInjectedComponent(changedComponent, peer);
     });
 };
@@ -68,6 +71,9 @@ Brokerage.prototype.__handlePeerDeparted = function (peer) {
       return injectedComponent.meshName === peer.meshName;
     })
     .forEach((changedComponent) => {
+      this.logger.info(
+        `[CLUSTER_MEMBERSHIP]: handlePeerDeparted happner-cluster ${changedComponent.component.name}`
+      );
       changedComponent.module.instance.disconnect();
       const changedComponentIndex = this.__injectedElements.indexOf(changedComponent);
 
@@ -88,6 +94,9 @@ Brokerage.prototype.__handlePeerDeparted = function (peer) {
 };
 
 Brokerage.prototype.__updateInjectedComponent = function (changedComponent, whatChanged) {
+  this.logger.info(
+    `[CLUSTER_MEMBERSHIP]: updateInjectedComponent happner-cluster ${changedComponent.component.name}`
+  );
   let newModel = {};
   newModel[changedComponent.component.name] = { ...whatChanged.description };
   newModel[changedComponent.component.name].version = whatChanged.version;

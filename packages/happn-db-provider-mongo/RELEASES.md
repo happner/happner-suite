@@ -97,6 +97,15 @@
 -----------------
   - feat: loki provider disaster recovery enhancements
 
-1.1.5 2022-11-30
+1.1.5  2022-01-11
+-----------------
+  - feat: loki provider disaster recovery enhancements
+
+1.1.6 2023-01-18
+-----------------
+  - feat: Summon productionization
+
+1.1.7 2023-02-14
 -----------------
   - TEN-12: mongo-based membership strategy (dev dependencies changes)
+
