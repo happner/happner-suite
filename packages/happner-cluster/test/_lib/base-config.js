@@ -23,7 +23,7 @@ module.exports = function (
     console.log(`LOG FILE: ${logFile}`);
   }
 
-  return {
+  const result = {
     name: 'MESH_' + seq,
     domain: 'DOMAIN_NAME',
     port: PORT_CONSTANTS.HAPPN_BASE + seq,
@@ -39,9 +39,7 @@ module.exports = function (
       },
       services: {
         cache: {
-          config: {
-            statisticsInterval: cacheStatisticsInterval,
-          },
+          config: {},
         },
         security: {
           config: {
@@ -77,4 +75,9 @@ module.exports = function (
       },
     },
   };
+
+  if (cacheStatisticsInterval)
+    result.happn.services.cache.config.statisticsInterval = cacheStatisticsInterval;
+
+  return result;
 };
