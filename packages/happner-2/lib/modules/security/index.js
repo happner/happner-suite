@@ -978,6 +978,11 @@ Security.prototype.listUsersByGroup = function (groupName, options) {
 };
 
 Security.prototype.getUser = function ($happn, userName, options, callback) {
+  if (typeof userName === 'function') {
+    callback = userName;
+    return callback(new Error('getUser method expects a userName argument'));
+  }
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
