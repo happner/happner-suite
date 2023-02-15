@@ -38,7 +38,7 @@ module.exports = {
     var log = (config.Logger || Logger).createLogger('HappnServer');
 
     // config validation
-    commons.validateConfig(config, 'HAPPN', true);
+    commons.validateConfig(config, 'HAPPN');
 
     var happn = {
       services: {},
