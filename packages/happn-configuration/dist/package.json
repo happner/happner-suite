@@ -2,8 +2,8 @@
   "name": "happn-configuration",
   "version": "0.0.1",
   "description": "happner-3, happn-cluster, happner & happner-cluster configuration utilities",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "author": "Tenacious & SMC",
   "license": "ISC",
   "dependencies": {
