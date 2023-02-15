@@ -4,7 +4,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _VersionUtil_instances, _VersionUtil_findClosestKeyMatch;
+var _VersionUtil_instances, _VersionUtil_findClosestKeyMatch, _VersionUtil_sortKeys;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VersionUtil = void 0;
 const fs_1 = require("fs");
@@ -12,6 +12,10 @@ const compare_versions_1 = require("compare-versions");
 class VersionUtil {
     constructor() {
         _VersionUtil_instances.add(this);
+    }
+    findMaxModuleVersion(moduleVersions) {
+        const keys = Object.keys(moduleVersions);
+        return __classPrivateFieldGet(this, _VersionUtil_instances, "m", _VersionUtil_sortKeys).call(this, keys)[0];
     }
     findClosestModuleMatch(moduleVersions, version) {
         const keys = Object.keys(moduleVersions);
@@ -43,19 +47,19 @@ class VersionUtil {
 }
 exports.VersionUtil = VersionUtil;
 _VersionUtil_instances = new WeakSet(), _VersionUtil_findClosestKeyMatch = function _VersionUtil_findClosestKeyMatch(keys, version) {
-    return keys
-        .sort((a, b) => {
+    return __classPrivateFieldGet(this, _VersionUtil_instances, "m", _VersionUtil_sortKeys).call(this, keys).find((item) => {
+        // find the closest match (equal to or less than requested version)
+        if ((0, compare_versions_1.compare)(item, version, '<=')) {
+            return item;
+        }
+    });
+}, _VersionUtil_sortKeys = function _VersionUtil_sortKeys(keys) {
+    return keys.sort((a, b) => {
         // sort latest to oldest
         if ((0, compare_versions_1.compare)(a, b, '>'))
             return -1; // greater than
         if ((0, compare_versions_1.compare)(a, b, '<'))
             return 1; // less than
         return 0; // equal
-    })
-        .find((item) => {
-        // find the closest match (equal to or less than requested version)
-        if ((0, compare_versions_1.compare)(item, version, '<=')) {
-            return item;
-        }
     });
 };

@@ -7,190 +7,232 @@ import {
   VersionedHappnBuilder,
   VersionedHappnerBuilder,
   VersionedHappnerClusterBuilder,
+  VersionContext,
 } from '../types/version-types';
-
-import VersionConstants from '../constants/version-constants';
+import versionMap from '../maps/version-map';
 
 const { HAPPN, HAPPN_CLUSTER, HAPPNER, HAPPNER_CLUSTER } = BuilderConstants;
 
 export class ConfigBuilderFactory {
+  #versionMap;
   #versionUtil;
+  #versionContext;
   #happnVersion;
   #happnClusterVersion;
   #happnerVersion;
   #happnerClusterVersion;
 
-  constructor(versionContext) {
-    this.#versionUtil = new VersionUtil();
-    this.#happnVersion = versionContext.happn ?? '1.0.0';
-    this.#happnClusterVersion = versionContext.happnCluster ?? '1.0.0';
-    this.#happnerVersion = versionContext.happner ?? '1.0.0';
-    this.#happnerClusterVersion = versionContext.happnerCluster ?? '1.0.0';
+  constructor(
+    versionMap: Map<string, object>,
+    versionUtil: VersionUtil,
+    versionContext: VersionContext
+  ) {
+    this.#versionMap = versionMap;
+    this.#versionUtil = versionUtil;
+    this.#versionContext = versionContext;
+
+    this.#happnVersion =
+      this.#versionContext.happn ??
+      this.#versionUtil.findMaxModuleVersion(this.#versionMap.get('HappnCore'));
+    this.#happnClusterVersion =
+      this.#versionContext.happnCluster ??
+      this.#versionUtil.findMaxModuleVersion(this.#versionMap.get('HappnClusterCore'));
+    this.#happnerVersion =
+      this.#versionContext.happner ??
+      this.#versionUtil.findMaxModuleVersion(this.#versionMap.get('HappnerCore'));
+    this.#happnerClusterVersion =
+      this.#versionContext.happnerCluster ??
+      this.#versionUtil.findMaxModuleVersion(this.#versionMap.get('HappnerClusterCore'));
   }
 
-  // see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
+  static create(versionContext) {
+    return new ConfigBuilderFactory(versionMap, new VersionUtil(), versionContext);
+  }
 
-  getHappnBuilder<T extends string>(version?: T): VersionedHappnBuilder<T> {
+  getHappnBuilder<T extends string>(): VersionedHappnBuilder<T> {
     const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#versionMap.get('HappnCore'),
       this.#happnVersion
     );
 
     const container = this.createChildBuildersContainer();
+
+    // create a mixin and instantiate
     const HappnMixin = HappnCoreBuilder(CoreBuilder);
     const result = new HappnMixin(container);
     result.builderType = HAPPN;
 
-    return result;
+    return result as VersionedHappnBuilder<T>;
   }
 
-  getHappnClusterBuilder<T extends string>(version?: T): VersionedHappnClusterBuilder<T> {
+  getHappnClusterBuilder<T extends string>(): VersionedHappnClusterBuilder<T> {
     const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#versionMap.get('HappnCore'),
       this.#happnVersion
     );
 
     const HappnClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnClusterCore,
+      this.#versionMap.get('HappnClusterCore'),
       this.#happnClusterVersion
     );
 
     const container = this.createChildBuildersContainer();
 
     // create a mixin and instantiate
-    const HappnClusterMixin = HappnCoreBuilder(HappnClusterCoreBuilder(CoreBuilder));
+    const HappnClusterMixin = HappnClusterCoreBuilder(HappnCoreBuilder(CoreBuilder));
     const result = new HappnClusterMixin(container);
-
     result.builderType = HAPPN_CLUSTER;
-    return result;
+    return result as unknown as VersionedHappnClusterBuilder<T>;
   }
 
-  getHappnerBuilder<T extends string>(version?: T): VersionedHappnerBuilder<T> {
+  getHappnerBuilder<T extends string>(): VersionedHappnerBuilder<T> {
     const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#versionMap.get('HappnCore'),
       this.#happnVersion
     );
 
     const HappnerCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnerCore,
+      this.#versionMap.get('HappnerCore'),
       this.#happnerVersion
     );
 
     const container = this.createChildBuildersContainer();
 
     // create a mixin and instantiate
-    const HappnerMixin = HappnCoreBuilder(HappnerCoreBuilder(CoreBuilder));
+    const HappnerMixin = HappnerCoreBuilder(HappnCoreBuilder(CoreBuilder));
     const result = new HappnerMixin(container);
 
     result.builderType = HAPPNER;
-    return result;
+    return result as VersionedHappnerBuilder<T>;
   }
 
-  getHappnerClusterBuilder<T extends string>(version?: T): VersionedHappnerClusterBuilder<T> {
+  getHappnerClusterBuilder<T extends string>(): VersionedHappnerClusterBuilder<T> {
     const HappnCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnCore,
+      this.#versionMap.get('HappnCore'),
       this.#happnVersion
     );
 
     const HappnClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnClusterCore,
+      this.#versionMap.get('HappnClusterCore'),
       this.#happnClusterVersion
     );
 
     const HappnerCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnerCore,
+      this.#versionMap.get('HappnerCore'),
       this.#happnerVersion
     );
 
     const HappnerClusterCoreBuilder = this.#versionUtil.findClosestModuleMatch(
-      VersionConstants.VERSION_THRESHOLDS.HappnerClusterCore,
+      this.#versionMap.get('HappnerClusterCore'),
       this.#happnerClusterVersion
     );
 
     const container = this.createChildBuildersContainer();
 
     // create a mixin and instantiate
-    const HappnerClusterMixin = HappnCoreBuilder(
-      HappnClusterCoreBuilder(HappnerCoreBuilder(HappnerClusterCoreBuilder(CoreBuilder)))
+    const HappnerClusterMixin = HappnerClusterCoreBuilder(
+      HappnClusterCoreBuilder(HappnerCoreBuilder(HappnCoreBuilder(CoreBuilder)))
     );
     const result = new HappnerClusterMixin(container);
 
     result.builderType = HAPPNER_CLUSTER;
-    return result;
+    return result as VersionedHappnerClusterBuilder<T>;
   }
 
   createChildBuildersContainer() {
+    const happnVersion = this.#happnVersion;
+    const happnClusterVersion = this.#happnClusterVersion;
+    const happnerVersion = this.#happnerVersion;
+
+    const cacheConfigVersions = this.#versionMap.get('CacheConfig');
+    const connectConfigVersions = this.#versionMap.get('ConnectConfig');
+    const dataConfigVersions = this.#versionMap.get('DataConfig');
+    const protocolConfigVersions = this.#versionMap.get('ProtocolConfig');
+    const publisherConfigVersions = this.#versionMap.get('PublisherConfig');
+    const securityConfigVersions = this.#versionMap.get('SecurityConfig');
+    const subscriptionConfigVersions = this.#versionMap.get('SubscriptionConfig');
+    const systemConfigVersions = this.#versionMap.get('SystemConfig');
+    const transportConfigVersions = this.#versionMap.get('TransportConfig');
+    const healthConfigVersions = this.#versionMap.get('HealthConfig');
+    const membershipConfigVersions = this.#versionMap.get('MembershipConfig');
+    const orchestratorConfigVersions = this.#versionMap.get('OrchestratorConfig');
+    const proxyConfigVersions = this.#versionMap.get('ProxyConfig');
+    const replicatorConfigVersions = this.#versionMap.get('ReplicatorConfig');
+    const componentsConfigVersions = this.#versionMap.get('ComponentsConfig');
+    const endpointsConfigVersions = this.#versionMap.get('EndpointsConfig');
+    const modulesConfigVersions = this.#versionMap.get('ModulesConfig');
+
     return {
       // HAPPN
       cacheConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.CacheConfig,
-        this.#happnVersion
+        cacheConfigVersions,
+        happnVersion
       ))(),
       connectConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ConnectConfig,
-        this.#happnVersion
+        connectConfigVersions,
+        happnVersion
       ))(),
       dataConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.DataConfig,
-        this.#happnVersion
+        dataConfigVersions,
+        happnVersion
       ))(),
       protocolConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ProtocolConfig,
-        this.#happnVersion
+        protocolConfigVersions,
+        happnVersion
       ))(new FieldTypeValidator()),
       publisherConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.PublisherConfig,
-        this.#happnVersion
+        publisherConfigVersions,
+        happnVersion
       ))(),
       securityConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.SecurityConfig,
-        this.#happnVersion
+        securityConfigVersions,
+        happnVersion
       ))(),
       subscriptionConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.SubscriptionConfig,
-        this.#happnVersion
+        subscriptionConfigVersions,
+        happnVersion
       ))(),
       systemConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.SystemConfig,
-        this.#happnVersion
+        systemConfigVersions,
+        happnVersion
       ))(),
       transportConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.TransportConfig,
-        this.#happnVersion
+        transportConfigVersions,
+        happnVersion
       ))(),
       // HAPPN_CLUSTER
       healthConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.HealthConfig,
-        this.#happnClusterVersion
+        healthConfigVersions,
+        happnClusterVersion
       ))(),
       membershipConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.MembershipConfig,
-        this.#happnClusterVersion
+        membershipConfigVersions,
+        happnClusterVersion
       ))(),
       orchestratorConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.OrchestratorConfig,
-        this.#happnClusterVersion
+        orchestratorConfigVersions,
+        happnClusterVersion
       ))(),
       proxyConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ProxyConfig,
-        this.#happnClusterVersion
+        proxyConfigVersions,
+        happnClusterVersion
       ))(),
       replicatorConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ReplicatorConfig,
-        this.#happnClusterVersion
+        replicatorConfigVersions,
+        happnClusterVersion
       ))(),
       // HAPPNER
       componentsConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ComponentsConfig,
-        this.#happnerVersion
+        componentsConfigVersions,
+        happnerVersion
       ))(),
       endpointsConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.EndpointsConfig,
-        this.#happnerVersion
+        endpointsConfigVersions,
+        happnerVersion
       ))(),
       modulesConfigBuilder: new (this.#versionUtil.findClosestModuleMatch(
-        VersionConstants.VERSION_THRESHOLDS.ModulesConfig,
-        this.#happnerVersion
+        modulesConfigVersions,
+        happnerVersion
       ))(),
     };
   }

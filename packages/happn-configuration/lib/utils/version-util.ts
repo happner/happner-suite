@@ -2,6 +2,11 @@ import { readdirSync } from 'fs';
 import { compare } from 'compare-versions';
 
 export class VersionUtil {
+  findMaxModuleVersion(moduleVersions): string {
+    const keys = Object.keys(moduleVersions);
+    return this.#sortKeys(keys)[0];
+  }
+
   findClosestModuleMatch(moduleVersions, version) {
     const keys = Object.keys(moduleVersions);
     const found = this.#findClosestKeyMatch(keys, version);
@@ -33,18 +38,20 @@ export class VersionUtil {
   }
 
   #findClosestKeyMatch(keys, version) {
-    return keys
-      .sort((a, b) => {
-        // sort latest to oldest
-        if (compare(a, b, '>')) return -1; // greater than
-        if (compare(a, b, '<')) return 1; // less than
-        return 0; // equal
-      })
-      .find((item) => {
-        // find the closest match (equal to or less than requested version)
-        if (compare(item, version, '<=')) {
-          return item;
-        }
-      });
+    return this.#sortKeys(keys).find((item) => {
+      // find the closest match (equal to or less than requested version)
+      if (compare(item, version, '<=')) {
+        return item;
+      }
+    });
+  }
+
+  #sortKeys(keys) {
+    return keys.sort((a, b) => {
+      // sort latest to oldest
+      if (compare(a, b, '>')) return -1; // greater than
+      if (compare(a, b, '<')) return 1; // less than
+      return 0; // equal
+    });
   }
 }

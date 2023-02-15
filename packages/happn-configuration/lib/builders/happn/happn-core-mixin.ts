@@ -16,7 +16,7 @@ import constants from '../../constants/config-constants';
 const SERVICES_ROOT = constants.HAPPN_SERVICES_ROOT;
 
 export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
-  return class HappnBuilder extends Base implements IHappnConfigurationBuilder {
+  return class HappnBuilder extends Base {
     #cacheConfigBuilder: CacheConfigBuilder;
     #connectConfigBuilder: ConnectConfigBuilder;
     #dataConfigBuilder: DataConfigBuilder;

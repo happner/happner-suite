@@ -6,7 +6,7 @@ const { ConfigBuilderFactory, ConfigValidator } = require('../../../dist');
 describe('transpiled configuration tests', function () {
   it('creates happn config using transpiled happn-builder', async () => {
     const context = { happn: '1.0.0' };
-    const builderFactory = new ConfigBuilderFactory(context);
+    const builderFactory = ConfigBuilderFactory.create(context);
     const builder = builderFactory.getHappnBuilder();
     const result = builder.build();
 
@@ -19,7 +19,7 @@ describe('transpiled configuration tests', function () {
 
   it('creates happn-cluster config using transpiled happn-cluster-builder', async () => {
     const context = { happn: '1.0.0', happnCluster: '2.0.0' };
-    const builderFactory = new ConfigBuilderFactory(context);
+    const builderFactory = ConfigBuilderFactory.create(context);
     const builder = builderFactory.getHappnClusterBuilder();
     const result = builder.build();
 
@@ -32,7 +32,7 @@ describe('transpiled configuration tests', function () {
 
   it('creates happner config using transpiled happner-builder', async () => {
     const context = { happn: '1.0.0', happner: '2.0.0' };
-    const builderFactory = new ConfigBuilderFactory(context);
+    const builderFactory = ConfigBuilderFactory.create(context);
     const builder = builderFactory.getHappnerBuilder();
     const result = builder.build();
 
@@ -50,7 +50,7 @@ describe('transpiled configuration tests', function () {
       happner: '12.0.0',
       happnerCluster: '11.0.0',
     };
-    const builderFactory = new ConfigBuilderFactory(context);
+    const builderFactory = ConfigBuilderFactory.create(context);
     const builder = builderFactory.getHappnerClusterBuilder();
     const result = builder.build();
 

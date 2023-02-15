@@ -4,6 +4,13 @@ import { IHappnConfigurationBuilder } from '../builders/interfaces/i-happn-confi
 import { IHappnerConfigurationBuilder } from '../builders/interfaces/i-happner-configuration-builder';
 import { IHappnerClusterConfigurationBuilder } from '../builders/interfaces/i-happner-cluster-configuration-builder';
 
+export type VersionContext = {
+  happn: string;
+  happnCluster: string;
+  happner: string;
+  happnerCluster: string;
+};
+
 export type VersionedHappnBuilder<T extends string> = T extends
   | `1.${string}.${string}`
   | `2.${string}.${string}`

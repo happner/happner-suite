@@ -8,7 +8,7 @@ import mockLogger from '../__fixtures/logger';
 describe('full configuration tests', function () {
   it('builds a happn configuration object with no version ', async () => {
     const versionContext = { happn: '1.0.0' };
-    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builderFactory = ConfigBuilderFactory.create(versionContext);
     const builder = builderFactory.getHappnBuilder<'10.0.0'>();
     setHappnConfigValues(builder);
     const result = builder.build();
@@ -29,8 +29,8 @@ describe('full configuration tests', function () {
 
   it('builds a happn-cluster configuration object', async () => {
     const versionContext = { happn: '1.0.0', happnCluster: '5.0.0' };
-    const builderFactory = new ConfigBuilderFactory(versionContext);
-    const builder = builderFactory.getHappnClusterBuilder<'5.0.0'>();
+    const builderFactory = ConfigBuilderFactory.create(versionContext);
+    const builder = builderFactory.getHappnClusterBuilder<'15.0.0'>();
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
     const result = builder.build();
@@ -45,7 +45,7 @@ describe('full configuration tests', function () {
 
   it('builds a happner configuration object', async () => {
     const versionContext = { happn: '1.0.0', happner: '12.0.0' };
-    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builderFactory = ConfigBuilderFactory.create(versionContext);
     const builder = builderFactory.getHappnerBuilder<'12.0.0'>();
     setHappnConfigValues(builder);
 
@@ -67,7 +67,7 @@ describe('full configuration tests', function () {
       happner: '12.0.0',
       happnerCluster: '11.0.0',
     };
-    const builderFactory = new ConfigBuilderFactory(versionContext);
+    const builderFactory = ConfigBuilderFactory.create(versionContext);
     const builder = builderFactory.getHappnerClusterBuilder<'12.0.0'>();
 
     setHappnConfigValues(builder);
