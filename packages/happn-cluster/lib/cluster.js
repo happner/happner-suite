@@ -3,7 +3,7 @@ var Happn = require('happn-3');
 var dface = require('dface');
 var path = require('path');
 var defaultName = require('./utils/default-name');
-const pkg = require('../package.json');
+const commons = require('happn-commons');
 
 module.exports.create = require('util').promisify(function (config, callback) {
   var happn, cursor;
@@ -82,10 +82,7 @@ module.exports.create = require('util').promisify(function (config, callback) {
   cursor.config = cursor.config || {};
 
   // config validation
-  if (pkg.validation?.schemaVersion) {
-    const { validateConfig, constants } = require('happn-commons');
-    validateConfig(config, constants.CONFIG_TYPE.HAPPN_CLUSTER, pkg.validation.schemaVersion);
-  }
+  commons.validateConfig(config, 'HAPPN-CLUSTER');
 
   Happn.service
     .create(config)

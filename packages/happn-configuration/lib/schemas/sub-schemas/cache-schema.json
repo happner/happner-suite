@@ -27,8 +27,10 @@
         "overrides": {
           "type": "object",
           "$ref": "#/definitions/Override"
-        },
-        "statisticsInterval": {
+        }
+      },
+      "patternProperties": {
+        "statisticsInterval(s)?": {
           "type": "integer"
         }
       },

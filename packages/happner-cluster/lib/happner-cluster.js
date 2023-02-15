@@ -3,7 +3,6 @@ let HappnCluster = require('happn-cluster');
 let ClusterPlugin = require('./cluster-plugin');
 let filterEventVersions = require('./filter-event-versions');
 let localDb = require('./local-db');
-const pkg = require('../package.json');
 const commons = require('happn-commons');
 
 module.exports.create = require('util').promisify(function (config, callback) {
@@ -69,11 +68,8 @@ module.exports.create = require('util').promisify(function (config, callback) {
     localDb.addConfig(config);
   }
 
-  // config validation - schemaVersion contained in package.json
-  if (pkg.validation?.schemaVersion) {
-    const { validateConfig, constants } = commons;
-    validateConfig(config, constants.CONFIG_TYPE.HAPPNER_CLUSTER, pkg.validation.schemaVersion);
-  }
+  // config validation
+  commons.validateConfig(config, 'HAPPNER-CLUSTER');
 
   Happner.create(config)
 
