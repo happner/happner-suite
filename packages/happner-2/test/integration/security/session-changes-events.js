@@ -34,7 +34,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   // test.printOpenHandlesAfter(5e3);
 
   after(async () => {
-    await testClient.disconnect();
     await adminClient.disconnect();
     await mesh.stop({ reconnect: false });
   });
