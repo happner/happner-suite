@@ -1,0 +1,126 @@
+{
+  "$id": "data-schema.json",
+  "$ref": "#/definitions/Data",
+  "definitions": {
+    "Data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/DataConfig"
+        },
+        "path": {
+          "type": "string"
+        },
+        "setOptions": {
+          "$ref": "#/definitions/SetOptions"
+        }
+      },
+      "required": [
+      ],
+      "title": "Data"
+    },
+    "DataConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoUpdateDBVersion": {
+          "type": "boolean"
+        },
+        "datastores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Datastore"
+          }
+        },
+        "filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fsync": {
+          "type": "boolean"
+        },
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "DataConfig"
+    },
+    "Datastore": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "settings": {
+          "$ref": "#/definitions/Settings"
+        },
+        "dbfile": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Datastore"
+    },
+    "Settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collection": {
+          "type": "string"
+        },
+        "compactInterval": {
+          "type": "number"
+        },
+        "database": {
+          "type": "string"
+        },
+        "filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fsync": {
+          "type": "boolean"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Settings"
+    },
+    "SetOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "SetOptions"
+    }
+  }
+}

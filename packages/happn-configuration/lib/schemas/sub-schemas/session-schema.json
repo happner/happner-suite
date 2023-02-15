@@ -1,0 +1,103 @@
+{
+  "$id": "session-schema.json",
+  "$ref": "#/definitions/Session",
+  "definitions": {
+    "Session": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/SessionConfig"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Session"
+    },
+    "SessionConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activeSessionsCache": {
+          "$ref": "#/definitions/ActiveSessionsCache"
+        },
+        "disableSessionEventLogging": {
+          "type": "boolean"
+        },
+        "disconnectTimeout": {
+          "type": "number"
+        },
+        "primusOpts": {
+          "$ref": "#/definitions/PrimusOpts"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "unconfiguredSessionCleanup": {
+          "$ref": "#/definitions/SessionCleanup"
+        },
+        "timeout": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "SessionConfig"
+    },
+    "ActiveSessionsCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "cache": {
+          "$ref": "#/definitions/Cache"
+        }
+      },
+      "required": [
+      ],
+      "title": "ActiveSessionsCache"
+    },
+    "Cache": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+      ],
+      "title": "Cache"
+    },
+    "PrimusOpts": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pingInterval": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "PrimusOpts"
+    },
+    "SessionCleanup": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "interval": {
+          "type": "number"
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "verbose": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "SessionCleanup"
+    }
+  }
+}

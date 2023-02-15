@@ -1,0 +1,78 @@
+{
+  "$id": "endpoints-schema.json",
+  "$ref": "#/definitions/Endpoints",
+  "definitions": {
+    "Endpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "$ref": "#/definitions/EndpointConfig"
+        }
+      },
+      "required": [
+      ],
+      "title": "Endpoints"
+    },
+    "EndpointConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/Endpoint"
+        },
+        "reconnect": {
+          "$ref": "#/definitions/Reconnect"
+        }
+      },
+      "required": [
+      ],
+      "title": "EndpointConfig"
+    },
+    "Endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowSelfSignedCerts": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "url": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "Endpoint"
+    },
+    "Reconnect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "retries": {
+          "type": "number"
+        }
+      },
+      "required": [
+      ],
+      "title": "Reconnect"
+    }
+  }
+}

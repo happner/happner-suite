@@ -1,0 +1,37 @@
+{
+    "$id": "health-schema.json",
+    "$ref": "#/definitions/Health",
+    "definitions": {
+        "Health": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/HealthConfig"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "Health"
+        },
+        "HealthConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "secure": {
+                    "type": "boolean"
+                },
+                "warmupLimit": {
+                    "type": "integer"
+                },
+                "healthInterval": {
+                    "type": "integer"
+                }
+            },
+            "required": [],
+            "title": "HealthConfig"
+        }
+    }
+}

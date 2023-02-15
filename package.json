@@ -12,6 +12,7 @@
   "workspaces": [
     "packages/demos",
     "packages/happn-3",
+    "packages/happn-configuration",
     "packages/happn-db-provider-loki",
     "packages/happn-db-provider-mongo",
     "packages/happn-db-provider-nedb",

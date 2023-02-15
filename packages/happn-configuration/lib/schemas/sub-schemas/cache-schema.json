@@ -1,0 +1,113 @@
+{
+  "$id": "cache-schema.json",
+  "$ref": "#/definitions/Cache",
+  "definitions": {
+    "Cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/CacheConfig"
+        }
+      },
+      "required": [
+      ],
+      "title": "Cache"
+    },
+    "CacheConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secure": {
+          "type": "boolean"
+        },
+        "overrides": {
+          "type": "object",
+          "$ref": "#/definitions/Override"
+        },
+        "statisticsInterval": {
+          "type": "integer"
+        }
+      },
+      "required": [
+      ],
+      "title": "CacheConfig"
+    },
+    "Override": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_cache_authorization": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "checkpoint_cache_authorization_token": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_group_permissions": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_groups": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_passwords": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_user_permissions": {
+          "$ref": "#/definitions/CacheMaxValues"
+        },
+        "cache_security_users": {
+          "$ref": "#/definitions/CacheMaxValues"
+        }
+      },
+      "required": [],
+      "title": "Override"
+    },
+    "CacheMaxValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "integer"
+        },
+        "maxAge": {
+          "type": "integer"
+        },
+        "keyTransformers": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/KeyTransformer"
+              }
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "required": [
+      ],
+      "title": "CacheMaxValues"
+    },
+    "KeyTransformer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "regex": {
+          "type": [
+            "string",
+            "object",
+            "null"
+          ]
+        }
+      },
+      "required": [
+      ],
+      "title": "KeyTransformer"
+    }
+  }
+}

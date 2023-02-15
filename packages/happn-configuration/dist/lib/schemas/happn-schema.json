@@ -1,0 +1,233 @@
+{
+    "$id": "happn-schema.json",
+    "$ref": "#/definitions/HappnSchema",
+    "definitions": {
+        "HappnSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "adminPassword": {
+                    "type": "string"
+                },
+                "activateSessionManagement": {
+                    "type": "boolean"
+                },
+                "allowNestedPermissions": {
+                    "type": "boolean"
+                },
+                "authTokenSecret": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "$ref": "cluster-schema.json"
+                },
+                "defaultRoute": {
+                    "type": "string"
+                },
+                "deferListen": {
+                    "type": "boolean"
+                },
+                "disableDefaultAdminNetworkConnections": {
+                    "type": "boolean"
+                },
+                "encryptPayloads": {
+                    "type": "boolean"
+                },
+                "filename": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "inboundLayers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "logSessionActivity": {
+                    "type": "boolean"
+                },
+                "middleware": {
+                    "$ref": "middleware-schema.json"
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "outboundLayers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "persist": {
+                    "type": "boolean"
+                },
+                "port": {
+                    "type": "number"
+                },
+                "profiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "profile-schema.json"
+                    }
+                },
+                "secure": {
+                    "type": "boolean"
+                },
+                "services": {
+                    "$ref": "#/definitions/Services"
+                },
+                "sessionTokenSecret": {
+                    "type": "string"
+                },
+                "setOptions": {
+                    "$ref": "#/definitions/SetOptions"
+                },
+                "systemSecret": {
+                    "type": "string"
+                },
+                "transport": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "if": {
+                        "type": "object"
+                    },
+                    "then": {
+                        "$ref": "#/definitions/Transport"
+                    }
+                },
+                "transformMiddleware": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "utils": {
+                    "$ref": "utils-schema.json"
+                }
+            },
+            "required": [],
+            "title": "HappnSchema"
+        },
+        "Services": {
+            "type": "object",
+            "additionalProperties": false,
+            "$comment": "We allow additional properties here to facilitate extension by the happn-cluster schema",
+            "patternProperties": {
+                "^.*$": {}
+            },
+            "properties": {
+                "secure": {
+                    "type": "boolean"
+                },
+                "cache": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "connect": {
+                    "$ref": "#/definitions/Connect"
+                },
+                "crypto": {
+                    "$ref": "#/definitions/Crypto"
+                },
+                "data": {
+                    "$ref": "#/definitions/Data"
+                },
+                "error": {
+                    "$ref": "#/definitions/Error"
+                },
+                "log": {
+                    "$ref": "#/definitions/Log"
+                },
+                "protocol": {
+                    "$ref": "#/definitions/Protocol"
+                },
+                "publisher": {
+                    "$ref": "#/definitions/Publisher"
+                },
+                "security": {
+                    "$ref": "#/definitions/ServicesSecurity"
+                },
+                "session": {
+                    "$ref": "#/definitions/Session"
+                },
+                "subscription": {
+                    "$ref": "#/definitions/Subscription"
+                },
+                "system": {
+                    "$ref": "#/definitions/System"
+                },
+                "transport": {
+                    "$ref": "#/definitions/Transport"
+                },
+                "utils": {
+                    "$ref": "#/definitions/Utils"
+                }
+            },
+            "required": [],
+            "title": "Services"
+        },
+        "Cache": {
+            "$ref": "cache-schema.json"
+        },
+        "Connect": {
+            "$ref": "connect-schema.json"
+        },
+        "Data": {
+            "$ref": "data-schema.json"
+        },
+        "Middleware": {
+            "$ref": "middleware-schema.json"
+        },
+        "Protocol": {
+            "$ref": "protocol-schema.json"
+        },
+        "Publisher": {
+            "$ref": "publisher-schema.json"
+        },
+        "ServicesSecurity": {
+            "$ref": "security-schema.json"
+        },
+        "Policy": {
+            "$ref": "policy-schema.json"
+        },
+        "Session": {
+            "$ref": "session-schema.json"
+        },
+        "Subscription": {
+            "$ref": "subscription-schema.json"
+        },
+        "System": {
+            "$ref": "system-schema.json"
+        },
+        "Transport": {
+            "$ref": "transport-schema.json"
+        },
+        "Utils": {
+            "$ref": "utils-schema.json"
+        },
+        "Error": {
+            "$ref": "error-schema.json"
+        },
+        "Log": {
+            "$ref": "log-schema.json"
+        },
+        "Crypto": {
+            "$ref": "crypto-schema.json"
+        },
+        "SetOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "timeout": {
+                    "type": "number"
+                },
+                "noStore": {
+                    "type": "boolean"
+                }
+            },
+            "title": "SetOptions"
+        }
+    }
+}

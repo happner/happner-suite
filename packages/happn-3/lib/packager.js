@@ -11,6 +11,7 @@ module.exports = {
   package: happnPackage,
   protocol: happnPackage.protocol,
   version: happnPackage.version,
+  validationVersion: happnPackage.validation?.schemaVersion ?? null,
   __cachedBrowserClient: null,
   __createBrowserClient: async function (options) {
     var protocol = happnPackage.protocol;

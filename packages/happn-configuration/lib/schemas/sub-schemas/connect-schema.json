@@ -1,0 +1,39 @@
+{
+  "$id": "connect-schema.json",
+  "$ref": "#/definitions/Connect",
+  "definitions": {
+    "Connect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/ConnectConfig"
+        }
+      },
+      "required": [
+      ],
+      "title": "Connect"
+    },
+    "ConnectConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "middleware": {
+          "$ref": "#/definitions/Middleware"
+        },
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "ConnectConfig"
+    },
+    "Middleware": {
+      "$ref": "middleware-schema.json"
+    }
+  }
+}

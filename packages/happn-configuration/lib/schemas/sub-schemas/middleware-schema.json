@@ -1,0 +1,47 @@
+{
+  "$id": "middleware-schema.json",
+  "$ref": "#/definitions/Middleware",
+  "definitions": {
+    "Middleware": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "if": {
+        "type": "object"
+      },
+      "then": {
+        "additionalProperties": false,
+        "properties": {
+          "security": {
+            "$ref": "#/definitions/MiddlewareSecurity"
+          }
+        }
+      },
+      "required": [
+      ],
+      "title": "Middleware"
+    },
+    "MiddlewareSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbiddenResponsePath": {
+          "type": "string"
+        },
+        "unauthorizedResponsePath": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "MiddlewareSecurity"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+    "$id": "subscription-schema.json",
+    "$ref": "#/definitions/Subscription",
+    "definitions": {
+        "Subscription": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/SubscriptionConfig"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "Subscription"
+        },
+        "SubscriptionConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "allowNestedPermissions": {
+                    "type": "boolean"
+                },
+                "filter": {},
+                "secure": {
+                    "type": "boolean"
+                },
+                "subscriptionTree": {
+                    "$ref": "#/definitions/SubscriptionTree"
+                }
+            },
+            "required": [],
+            "title": "SubscriptionConfig"
+        },
+        "SubscriptionTree": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "defaultVariableDepth": {
+                    "type": "number"
+                },
+                "permutationCache": {
+                    "type": "integer"
+                },
+                "searchCache": {
+                    "type": "integer"
+                },
+                "timeout": {
+                    "type": "integer"
+                },
+                "filter": {}
+            },
+            "required": [],
+            "title": "SubscriptionTree"
+        }
+    }
+}

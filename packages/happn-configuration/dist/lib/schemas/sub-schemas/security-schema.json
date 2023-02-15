@@ -1,0 +1,272 @@
+{
+    "$id": "security-schema.json",
+    "$ref": "#/definitions/ServicesSecurity",
+    "definitions": {
+        "ServicesSecurity": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/SecurityConfig"
+                },
+                "disableDefaultAdminNetworkConnections": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "ServicesSecurity"
+        },
+        "SecurityConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^(__)?cache_checkpoint_authorization$": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "^(__)?cache_groups$": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "^(__)?cache_groups_by_user$": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "^(__)?cache_permissions$": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "^(__)?cache_users$": {
+                    "$ref": "#/definitions/Cache"
+                },
+                "^(__)?cache_users_by_groups$": {
+                    "$ref": "#/definitions/Cache"
+                }
+            },
+            "properties": {
+                "accountLockout": {
+                    "$ref": "#/definitions/AccountLockout"
+                },
+                "activateSessionManagement": {
+                    "type": "boolean"
+                },
+                "adminGroup": {
+                    "$ref": "#/definitions/AdminGroup"
+                },
+                "adminUser": {
+                    "$ref": "#/definitions/AdminUser"
+                },
+                "allowAnonymousAccess": {
+                    "type": "boolean"
+                },
+                "allowUserChooseAuthProvider": {
+                    "type": "boolean"
+                },
+                "authProviders": {
+                    "$ref": "#/definitions/AuthProviders"
+                },
+                "cookieName": {
+                    "type": "string"
+                },
+                "cookieDomain": {
+                    "type": "string"
+                },
+                "defaultAuthProvider": {
+                    "type": "string"
+                },
+                "defaultNonceTTL": {
+                    "type": "number"
+                },
+                "disableDefaultAdminNetworkConnections": {
+                    "type": "boolean"
+                },
+                "expiry_grace": {
+                    "type": "number"
+                },
+                "groupPermissionsPolicy": {
+                    "type": "string"
+                },
+                "httpsCookie": {
+                    "type": "string"
+                },
+                "keyPair": {
+                    "$ref": "#/definitions/KeyPair"
+                },
+                "lockTokenToLoginType": {
+                    "type": "boolean"
+                },
+                "lockTokenToUserId": {
+                    "type": "boolean"
+                },
+                "logSessionActivity": {
+                    "type": "boolean"
+                },
+                "persistPermissions": {
+                    "type": "boolean"
+                },
+                "pbkdf2Iterations": {
+                    "type": "integer"
+                },
+                "profiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Profile"
+                    }
+                },
+                "secure": {
+                    "type": "boolean"
+                },
+                "sessionActivityTTL": {
+                    "type": "number"
+                },
+                "sessionTokenSecret": {
+                    "type": "string"
+                },
+                "updateSubscriptionsOnSecurityDirectoryChanged": {
+                    "type": "boolean"
+                },
+                "usernamesCaseInsensitive": {
+                    "type": "boolean"
+                }
+            },
+            "required": [],
+            "title": "SecurityConfig"
+        },
+        "AccountLockout": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "attempts": {
+                    "type": "integer"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "retryInterval": {
+                    "type": "integer"
+                }
+            },
+            "required": [],
+            "title": "AccountLockout"
+        },
+        "AdminGroup": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "custom_data": {
+                    "$ref": "#/definitions/CustomData"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "$ref": "#/definitions/Permission"
+                }
+            },
+            "required": [],
+            "title": "AdminGroup"
+        },
+        "AdminUser": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "custom_data": {
+                    "$ref": "#/definitions/CustomData"
+                },
+                "publicKey": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "AdminUser"
+        },
+        "AuthProviders": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "$ref": "#/definitions/AuthProvider"
+                }
+            },
+            "required": [],
+            "title": "AuthProviders"
+        },
+        "Cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "max": {
+                    "type": "number"
+                },
+                "maxAge": {
+                    "type": "number"
+                }
+            },
+            "required": [],
+            "title": "Cache"
+        },
+        "CustomData": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": [
+                        "string",
+                        "object",
+                        "integer",
+                        "boolean"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "title": "CustomData"
+        },
+        "KeyPair": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "privateKey": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                }
+            },
+            "title": "KeyPair"
+        },
+        "Permission": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "type": [
+                        "string",
+                        "object",
+                        "integer",
+                        "boolean",
+                        "array"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Permission"
+        },
+        "Profile": {
+            "$ref": "profile-schema.json"
+        },
+        "AuthProvider": {
+            "type": [
+                "object",
+                "string",
+                "boolean",
+                "null"
+            ],
+            "additionalProperties": true,
+            "title": "Provider"
+        }
+    }
+}

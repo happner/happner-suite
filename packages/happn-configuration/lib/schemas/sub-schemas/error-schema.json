@@ -1,0 +1,33 @@
+{
+  "$id": "error-schema.json",
+  "$ref": "#/definitions/Error",
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ErrorConfig"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Error"
+    },
+    "ErrorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "ErrorConfig"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+    "$id": "log-schema.json",
+    "$ref": "#/definitions/Log",
+    "definitions": {
+        "Log": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/LogConfig"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "Log"
+        },
+        "LogConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "secure": {
+                    "type": "boolean"
+                }
+            },
+            "required": [],
+            "title": "LogConfig"
+        }
+    }
+}

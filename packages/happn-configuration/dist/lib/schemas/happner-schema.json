@@ -1,0 +1,99 @@
+{
+    "$id": "happner-schema.json",
+    "$ref": "#/definitions/HappnerSchema",
+    "definitions": {
+        "HappnerSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^__(.+)$": {}
+            },
+            "properties": {
+                "adminPassword": {
+                    "type": "string"
+                },
+                "authorityDelegationOn": {
+                    "type": "boolean"
+                },
+                "boundExchangeCacheSize": {
+                    "type": "number"
+                },
+                "cluster": {
+                    "$ref": "cluster-schema.json"
+                },
+                "components": {
+                    "$ref": "components-schema.json"
+                },
+                "dataLayer": {
+                    "$ref": "data-schema.json"
+                },
+                "deferListen": {
+                    "type": "boolean"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "endpoints": {
+                    "$ref": "endpoints-schema.json"
+                },
+                "happn": {
+                    "$ref": "happn-schema.json"
+                },
+                "ignoreDependenciesOnStartup": {
+                    "type": "boolean"
+                },
+                "listenFirst": {
+                    "type": "boolean"
+                },
+                "modules": {
+                    "$ref": "modules-schema.json"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plugins": {
+                    "$ref": "plugins-schema.json"
+                },
+                "port": {
+                    "type": "number"
+                },
+                "secure": {
+                    "type": "boolean"
+                },
+                "util": {
+                    "type": "object"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "waitingInterval": {
+                    "type": "number"
+                },
+                "web": {
+                    "$ref": "#/definitions/Web"
+                }
+            },
+            "required": [
+                "happn"
+            ],
+            "title": "HappnerSchema"
+        },
+        "Web": {
+            "type": "object",
+            "properties": {
+                "middleware": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "components-lazy-schema.json"
+                    }
+                },
+                "routes": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^.*$": {}
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "$id": "plugins-schema.json",
+    "$ref": "#/definitions/Plugins",
+    "definitions": {
+        "Plugins": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Plugin"
+            },
+            "title": "Plugins"
+        },
+        "Plugin": {
+            "$comment": "Plugins are functions - can't be represented using JSON, so allow all",
+            "title": "Plugin"
+        }
+    }
+}
