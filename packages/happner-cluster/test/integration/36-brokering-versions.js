@@ -43,7 +43,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(version)
       .to.eql({ mesh: 'MESH_0', version: '3.4.5', component: 'remoteComponent2' });
     await clusterStarter.startInternal(2, 2);
-    await test.delay(1000);
+    await test.delay(2e3);
     version = await thisClient.exchange.remoteComponent.getVersion();
     let version2 = await thisClient.exchange.remoteComponent.getVersion(); //To test that it doesn't round robin to a lower version component
     test

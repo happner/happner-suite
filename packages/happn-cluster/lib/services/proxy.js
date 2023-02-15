@@ -48,11 +48,11 @@ Proxy.prototype.start = async function () {
   };
 
   port = typeof this.config.port !== 'undefined' ? this.config.port : defaultPort();
-  if (this.config.port === 0) {
-    port = await this.happn.services.utils.getFreePort();
-    this.config.port = port;
-    this.happn.config.services.proxy.port = port;
-  }
+  // if (this.config.port === 0) {
+  //   port = await this.happn.services.utils.getFreePort();
+  //   this.config.port = port;
+  //   this.happn.config.services.proxy.port = port;
+  // }
   host = dface(this.config.host);
 
   var protocol = this.happn.services.transport.config.mode;
@@ -102,6 +102,12 @@ Proxy.prototype.start = async function () {
 
     self.__proxyServer.on('error', self.__onProxyErrorListener);
     self.__proxyServer._server.on('error', self.__onServerErrorListener);
+    if (self.config.port === 0) {
+      let proxyPort = self.__proxyServer._server.address().port;
+      self.config.port = proxyPort;
+      self.happn.config.services.proxy.port = proxyPort;
+    }
+    // console.log('ADDRESS: ', self.__proxyServer._server.address());
     done();
   };
   this.__proxyServer.listen(port, host); // need to listen() first, it creates the internal _server (odd)

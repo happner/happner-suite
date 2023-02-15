@@ -162,7 +162,7 @@ module.exports = class TransportService extends require('events').EventEmitter {
 
             this.happn.__listening = true;
             this.happn.log.info(`happn version ${version} listening at ${address}:${port}`);
-
+            this.happn.config.port = port;
             if (this.happn.__done) {
               this.happn.__done(null, this.happn); // <--- good, created a this.happn
               this.happn.__done = null; //we only want this to be called once per call to listen
