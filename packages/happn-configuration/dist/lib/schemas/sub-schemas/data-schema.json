@@ -105,6 +105,12 @@
                 "fsync": {
                     "type": "boolean"
                 },
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SchemaItem"
+                    }
+                },
                 "url": {
                     "type": "string"
                 }
@@ -142,6 +148,26 @@
             },
             "required": [],
             "title": "Index"
+        },
+        "SchemaItem": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "pattern": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "indexes": {
+                    "type": "object"
+                }
+            },
+            "required": [],
+            "title": "SetOptions"
         }
     }
 }
