@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HappnerClusterCoreBuilder = exports.ModulesConfigBuilder = exports.EndpointsConfigBuilder = exports.ComponentsConfigBuilder = exports.HappnerCoreBuilder = exports.HappnClusterCoreBuilderV2 = exports.HappnClusterCoreBuilder = exports.TransportConfigBuilder = exports.SystemConfigBuilder = exports.SubscriptionConfigBuilder = exports.SecurityConfigBuilder = exports.ReplicatorConfigBuilder = exports.PublisherConfigBuilder = exports.ProxyConfigBuilder = exports.ProtocolConfigBuilder = exports.OrchestratorConfigBuilderV2 = exports.OrchestratorConfigBuilder = exports.MembershipConfigBuilder = exports.HealthConfigBuilder = exports.DataConfigBuilder = exports.ConnectConfigBuilder = exports.CacheConfigBuilder = exports.HappnCoreBuilder = void 0;
+exports.HappnerClusterCoreBuilder = exports.ModulesConfigBuilder = exports.EndpointsConfigBuilder = exports.ComponentsConfigBuilder = exports.HappnerCoreBuilder = exports.HappnClusterCoreBuilder = exports.TransportConfigBuilder = exports.SystemConfigBuilder = exports.SubscriptionConfigBuilder = exports.SecurityConfigBuilder = exports.ReplicatorConfigBuilder = exports.PublisherConfigBuilder = exports.ProxyConfigBuilder = exports.ProtocolConfigBuilder = exports.OrchestratorConfigBuilder = exports.MembershipConfigBuilder = exports.HealthConfigBuilder = exports.DataConfigBuilder = exports.ConnectConfigBuilder = exports.CacheConfigBuilder = exports.HappnCoreBuilder = void 0;
 // HAPPN
 var happn_core_mixin_1 = require("./happn/happn-core-mixin");
 Object.defineProperty(exports, "HappnCoreBuilder", { enumerable: true, get: function () { return happn_core_mixin_1.HappnCoreBuilder; } });
@@ -16,8 +16,6 @@ var membership_config_builder_1 = require("./happn/services/membership-config-bu
 Object.defineProperty(exports, "MembershipConfigBuilder", { enumerable: true, get: function () { return membership_config_builder_1.MembershipConfigBuilder; } });
 var orchestrator_config_builder_1 = require("./happn/services/orchestrator-config-builder");
 Object.defineProperty(exports, "OrchestratorConfigBuilder", { enumerable: true, get: function () { return orchestrator_config_builder_1.OrchestratorConfigBuilder; } });
-var orchestrator_config_builder_2_0_0_1 = require("./happn/services/orchestrator-config-builder-2.0.0");
-Object.defineProperty(exports, "OrchestratorConfigBuilderV2", { enumerable: true, get: function () { return orchestrator_config_builder_2_0_0_1.OrchestratorConfigBuilderV2; } });
 var protocol_config_builder_1 = require("./happn/services/protocol-config-builder");
 Object.defineProperty(exports, "ProtocolConfigBuilder", { enumerable: true, get: function () { return protocol_config_builder_1.ProtocolConfigBuilder; } });
 var proxy_config_builder_1 = require("./happn/services/proxy-config-builder");
@@ -37,8 +35,6 @@ Object.defineProperty(exports, "TransportConfigBuilder", { enumerable: true, get
 // HAPPN-CLUSTER
 var happn_cluster_core_mixin_1 = require("./happn-cluster/happn-cluster-core-mixin");
 Object.defineProperty(exports, "HappnClusterCoreBuilder", { enumerable: true, get: function () { return happn_cluster_core_mixin_1.HappnClusterCoreBuilder; } });
-var happn_cluster_core_mixin_v2_1 = require("./happn-cluster/happn-cluster-core-mixin-v2");
-Object.defineProperty(exports, "HappnClusterCoreBuilderV2", { enumerable: true, get: function () { return happn_cluster_core_mixin_v2_1.HappnClusterCoreBuilderV2; } });
 // HAPPNER
 var happner_core_mixin_1 = require("./happner/happner-core-mixin");
 Object.defineProperty(exports, "HappnerCoreBuilder", { enumerable: true, get: function () { return happner_core_mixin_1.HappnerCoreBuilder; } });

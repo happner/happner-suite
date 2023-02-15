@@ -5,7 +5,7 @@ import { ConfigValidator } from '../../../../lib/validators/config-validator';
 import mockLogger from '../../../__fixtures/logger';
 
 describe('health configuration validation tests', function () {
-  const validator = new ConfigValidator('1.0.0', mockLogger);
+  const validator = new ConfigValidator(mockLogger);
 
   it('validates full health config', () => {
     const healthConfig = createValidHealthConfig();

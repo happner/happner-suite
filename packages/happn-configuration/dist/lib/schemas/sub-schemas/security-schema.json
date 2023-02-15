@@ -86,7 +86,7 @@
                     "type": "string"
                 },
                 "httpsCookie": {
-                    "type": "string"
+                    "type": "boolean"
                 },
                 "keyPair": {
                     "$ref": "#/definitions/KeyPair"

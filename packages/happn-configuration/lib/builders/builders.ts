@@ -6,7 +6,6 @@ export { DataConfigBuilder } from './happn/services/data-config-builder';
 export { HealthConfigBuilder } from './happn/services/health-config-builder';
 export { MembershipConfigBuilder } from './happn/services/membership-config-builder';
 export { OrchestratorConfigBuilder } from './happn/services/orchestrator-config-builder';
-export { OrchestratorConfigBuilderV2 } from './happn/services/orchestrator-config-builder-2.0.0';
 export { ProtocolConfigBuilder } from './happn/services/protocol-config-builder';
 export { ProxyConfigBuilder } from './happn/services/proxy-config-builder';
 export { PublisherConfigBuilder } from './happn/services/publisher-config-builder';
@@ -18,7 +17,6 @@ export { TransportConfigBuilder } from './happn/services/transport-config-builde
 
 // HAPPN-CLUSTER
 export { HappnClusterCoreBuilder } from './happn-cluster/happn-cluster-core-mixin';
-export { HappnClusterCoreBuilderV2 } from './happn-cluster/happn-cluster-core-mixin-v2';
 
 // HAPPNER
 export { HappnerCoreBuilder } from './happner/happner-core-mixin';

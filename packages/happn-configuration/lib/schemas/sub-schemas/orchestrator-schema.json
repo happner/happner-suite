@@ -21,6 +21,18 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "cluster": {
+          "$ref": "#/definitions/Cluster"
+        },
+        "deployment": {
+          "type": "string"
+        },
+        "serviceName": {
+          "type": "string"
+        },
         "stableReportInterval": {
           "type": "integer"
         },
@@ -38,11 +50,44 @@
         },
         "secure": {
           "type": "boolean"
+        },
+        "timing": {
+          "$ref": "#/definitions/Timing"
         }
       },
       "required": [
       ],
       "title": "OrchestratorConfig"
+    },
+    "Cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": "number"
+        }
+      }
+    },
+    "Timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "memberRefresh": {
+          "type": "number"
+        },
+        "keepAlive": {
+          "type": "number"
+        },
+        "keepAliveThreshold": {
+          "type": "number"
+        },
+        "healthReport": {
+          "type": "number"
+        },
+        "stabiliseTimeout": {
+          "type": "number"
+        }
+      }
     }
   }
 }

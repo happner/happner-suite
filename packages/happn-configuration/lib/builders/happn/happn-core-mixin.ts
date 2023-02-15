@@ -284,8 +284,8 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       return this;
     }
 
-    withSecurityCookie(name: string, domain: string, cookie: string): HappnBuilder {
-      this.#securityConfigBuilder.withHttpsCookie(name, domain, cookie);
+    withSecurityCookie(name: string, domain: string): HappnBuilder {
+      this.#securityConfigBuilder.withHttpsCookie(name, domain, true);
       return this;
     }
 

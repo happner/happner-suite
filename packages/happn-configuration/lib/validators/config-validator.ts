@@ -42,9 +42,9 @@ export class ConfigValidator {
   #pluginsSchema;
   #clusterSchema;
 
-  constructor(targetVersion, log?) {
+  constructor(log?) {
     this.#log = log || defaultLogger;
-    this.#fetchSchemas(targetVersion);
+    this.#fetchSchemas();
 
     this.#ajv = new Ajv({
       schemas: [
@@ -89,9 +89,8 @@ export class ConfigValidator {
     this.#fieldTypeValidator = new FieldTypeValidator();
   }
 
-  #fetchSchemas(targetVersion) {
-    if (targetVersion === null) targetVersion = '1.0.0';
-    const schemaFactory = new SchemaFactory(targetVersion);
+  #fetchSchemas() {
+    const schemaFactory = new SchemaFactory();
 
     this.#happnSchema = schemaFactory.getSchema('happn');
     this.#happnerSchema = schemaFactory.getSchema('happner');

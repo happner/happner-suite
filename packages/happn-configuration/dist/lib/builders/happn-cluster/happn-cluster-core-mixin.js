@@ -19,23 +19,20 @@ const base_builder_1 = __importDefault(require("happn-commons/lib/base-builder")
 const config_constants_1 = __importDefault(require("../../constants/config-constants"));
 const SERVICES_ROOT = config_constants_1.default.HAPPN_SERVICES_ROOT;
 function HappnClusterCoreBuilder(Base) {
-    var _HappnClusterBuilder_healthConfigBuilder, _HappnClusterBuilder_membershipConfigBuilder, _HappnClusterBuilder_orchestratorConfigBuilder, _HappnClusterBuilder_proxyConfigBuilder, _HappnClusterBuilder_replicatorConfigBuilder, _a;
+    var _HappnClusterBuilder_healthConfigBuilder, _HappnClusterBuilder_orchestratorConfigBuilder, _HappnClusterBuilder_proxyConfigBuilder, _HappnClusterBuilder_replicatorConfigBuilder, _a;
     return _a = class HappnClusterBuilder extends Base {
             constructor(...args) {
                 super(...args);
                 _HappnClusterBuilder_healthConfigBuilder.set(this, void 0);
-                _HappnClusterBuilder_membershipConfigBuilder.set(this, void 0);
                 _HappnClusterBuilder_orchestratorConfigBuilder.set(this, void 0);
                 _HappnClusterBuilder_proxyConfigBuilder.set(this, void 0);
                 _HappnClusterBuilder_replicatorConfigBuilder.set(this, void 0);
                 const container = args[0];
                 __classPrivateFieldSet(this, _HappnClusterBuilder_healthConfigBuilder, container.healthConfigBuilder, "f");
-                __classPrivateFieldSet(this, _HappnClusterBuilder_membershipConfigBuilder, container.membershipConfigBuilder, "f");
                 __classPrivateFieldSet(this, _HappnClusterBuilder_orchestratorConfigBuilder, container.orchestratorConfigBuilder, "f");
                 __classPrivateFieldSet(this, _HappnClusterBuilder_proxyConfigBuilder, container.proxyConfigBuilder, "f");
                 __classPrivateFieldSet(this, _HappnClusterBuilder_replicatorConfigBuilder, container.replicatorConfigBuilder, "f");
                 this.set(`${SERVICES_ROOT}.health`, __classPrivateFieldGet(this, _HappnClusterBuilder_healthConfigBuilder, "f"), base_builder_1.default.Types.OBJECT);
-                this.set(`${SERVICES_ROOT}.membership`, __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f"), base_builder_1.default.Types.OBJECT);
                 this.set(`${SERVICES_ROOT}.orchestrator`, __classPrivateFieldGet(this, _HappnClusterBuilder_orchestratorConfigBuilder, "f"), base_builder_1.default.Types.OBJECT);
                 this.set(`${SERVICES_ROOT}.proxy`, __classPrivateFieldGet(this, _HappnClusterBuilder_proxyConfigBuilder, "f"), base_builder_1.default.Types.OBJECT);
                 this.set(`${SERVICES_ROOT}.replicator`, __classPrivateFieldGet(this, _HappnClusterBuilder_replicatorConfigBuilder, "f"), base_builder_1.default.Types.OBJECT);
@@ -49,57 +46,6 @@ function HappnClusterCoreBuilder(Base) {
             }
             withHealthWarmupLimit(limit) {
                 __classPrivateFieldGet(this, _HappnClusterBuilder_healthConfigBuilder, "f").withHealthWarmupLimit(limit);
-                return this;
-            }
-            /*
-            MEMBERSHIP
-             */
-            withMembershipClusterName(name) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipClusterName(name);
-                return this;
-            }
-            withMembershipDisseminationFactor(factor) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipDisseminationFactor(factor);
-                return this;
-            }
-            withMembershipHost(host, port) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipHost(host);
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPort(port);
-                return this;
-            }
-            withMembershipJoinTimeout(timeout) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipJoinTimeout(timeout);
-                return this;
-            }
-            withMembershipJoinType(type) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipJoinType(type);
-                return this;
-            }
-            withMembershipMemberHost(host) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipMemberHost(host);
-                return this;
-            }
-            withMembershipPing(interval, pingTimeout, requestTimeout, requestGroupSize) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingInterval(interval);
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingTimeout(pingTimeout);
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqTimeout(requestTimeout);
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipPingReqGroupSize(requestGroupSize);
-                return this;
-            }
-            withMembershipRandomWait(wait) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipRandomWait(wait);
-                return this;
-            }
-            withMembershipIsSeed(isSeed) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipIsSeed(isSeed);
-                return this;
-            }
-            withMembershipSeedWait(wait) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipSeedWait(wait);
-                return this;
-            }
-            withMembershipUdpMaxDgramSize(size) {
-                __classPrivateFieldGet(this, _HappnClusterBuilder_membershipConfigBuilder, "f").withMembershipUdpMaxDgramSize(size);
                 return this;
             }
             /*
@@ -154,7 +100,6 @@ function HappnClusterCoreBuilder(Base) {
             }
         },
         _HappnClusterBuilder_healthConfigBuilder = new WeakMap(),
-        _HappnClusterBuilder_membershipConfigBuilder = new WeakMap(),
         _HappnClusterBuilder_orchestratorConfigBuilder = new WeakMap(),
         _HappnClusterBuilder_proxyConfigBuilder = new WeakMap(),
         _HappnClusterBuilder_replicatorConfigBuilder = new WeakMap(),

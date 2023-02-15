@@ -5,7 +5,7 @@ import { ConfigValidator } from '../../../../lib/validators/config-validator';
 import mockLogger from '../../../__fixtures/logger';
 
 describe('replicator configuration validation tests', function () {
-  const validator = new ConfigValidator('1.0.0', mockLogger);
+  const validator = new ConfigValidator(mockLogger);
 
   it('validates full replicator config', () => {
     const proxyConfig = createValidReplicatorConfig();

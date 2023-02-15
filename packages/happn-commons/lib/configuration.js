@@ -6,20 +6,13 @@ const {
 const { CONFIG_TYPE } = require('./constants');
 
 module.exports = class Configuration {
-  /***
-   * Get a configuration builder
-   * @param builderType This can be one of the following: HAPPN / HAPPN-CLUSTER / HAPPNER / HAPPNER-CLUSTER
-   * @param pkgContext An object containing framework versions, eg:
-   *  { happn: '1.2.3', happnCluster: '2.3.4', happner: '2.1.0', happnCluster: '4.2.1' }
-   * @returns A builder instance, dependent on the builderType
-   */
-  static getBuilder(builderType, pkgContext) {
+  static getBuilder(builderType) {
     if (builderType === undefined || builderType === null)
       throw new Error(
         "invalid builderType; valid options are 'HAPPN', 'HAPPNER', 'HAPPN-CLUSTER' or 'HAPPNER-CLUSTER'"
       );
 
-    const factory = new BuilderFactory(pkgContext);
+    const factory = BuilderFactory.create();
 
     switch (builderType) {
       case CONFIG_TYPE.HAPPN:
@@ -35,8 +28,8 @@ module.exports = class Configuration {
     }
   }
 
-  static validateConfig(config, configType, targetVersion = '1.0.0', displayConfig = false) {
-    const validator = new Validator(targetVersion);
+  static validateConfig(config, configType, displayConfig = false) {
+    const validator = new Validator();
     let validationResult, errMsg;
 
     if (configType === undefined || configType === null)

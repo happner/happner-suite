@@ -54,10 +54,10 @@ export class SecurityConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withHttpsCookie(name: string, domain: string, cookie: string): SecurityConfigBuilder {
+  withHttpsCookie(name: string, domain: string, cookie: boolean): SecurityConfigBuilder {
     this.set('config.cookieName', name, BaseBuilder.Types.STRING);
     this.set('config.cookieDomain', domain, BaseBuilder.Types.STRING);
-    this.set('config.httpsCookie', cookie, BaseBuilder.Types.STRING);
+    this.set('config.httpsCookie', cookie, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 

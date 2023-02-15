@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('security configuration validation tests', function () {
   it('validates full security config', () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const config = createValidSecurityConfig();
 
     const result = validator.validateSecurityConfig(config);
@@ -42,7 +42,7 @@ function createValidSecurityConfig() {
       },
       cookieName: 'testCookie',
       cookieDomain: 'cookie.domain',
-      httpsCookie: 'sjdhaoiusdauoisdfoasfdgouia',
+      httpsCookie: true,
       defaultAuthProvider: 'testProvider',
       defaultNonceTTL: 60000,
       disableDefaultAdminNetworkConnections: false,

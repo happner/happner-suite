@@ -22,7 +22,7 @@ const default_logger_1 = __importDefault(require("../log/default-logger"));
 const schema_factory_1 = require("../factories/schema-factory");
 const field_type_validator_1 = require("./field-type-validator");
 class ConfigValidator {
-    constructor(targetVersion, log) {
+    constructor(log) {
         _ConfigValidator_instances.add(this);
         _ConfigValidator_ajv.set(this, void 0);
         _ConfigValidator_fieldTypeValidator.set(this, void 0);
@@ -60,7 +60,7 @@ class ConfigValidator {
         _ConfigValidator_pluginsSchema.set(this, void 0);
         _ConfigValidator_clusterSchema.set(this, void 0);
         __classPrivateFieldSet(this, _ConfigValidator_log, log || default_logger_1.default, "f");
-        __classPrivateFieldGet(this, _ConfigValidator_instances, "m", _ConfigValidator_fetchSchemas).call(this, targetVersion);
+        __classPrivateFieldGet(this, _ConfigValidator_instances, "m", _ConfigValidator_fetchSchemas).call(this);
         __classPrivateFieldSet(this, _ConfigValidator_ajv, new ajv_1.default({
             schemas: [
                 __classPrivateFieldGet(this, _ConfigValidator_happnSchema, "f"),
@@ -200,10 +200,8 @@ class ConfigValidator {
     }
 }
 exports.ConfigValidator = ConfigValidator;
-_ConfigValidator_ajv = new WeakMap(), _ConfigValidator_fieldTypeValidator = new WeakMap(), _ConfigValidator_log = new WeakMap(), _ConfigValidator_happnSchema = new WeakMap(), _ConfigValidator_happnerSchema = new WeakMap(), _ConfigValidator_happnClusterSchema = new WeakMap(), _ConfigValidator_happnerClusterSchema = new WeakMap(), _ConfigValidator_cacheSchema = new WeakMap(), _ConfigValidator_connectSchema = new WeakMap(), _ConfigValidator_dataSchema = new WeakMap(), _ConfigValidator_dataLazySchema = new WeakMap(), _ConfigValidator_protocolSchema = new WeakMap(), _ConfigValidator_publisherSchema = new WeakMap(), _ConfigValidator_securitySchema = new WeakMap(), _ConfigValidator_subscriptionSchema = new WeakMap(), _ConfigValidator_systemSchema = new WeakMap(), _ConfigValidator_transportSchema = new WeakMap(), _ConfigValidator_utilsSchema = new WeakMap(), _ConfigValidator_errorSchema = new WeakMap(), _ConfigValidator_logSchema = new WeakMap(), _ConfigValidator_cryptoSchema = new WeakMap(), _ConfigValidator_sessionSchema = new WeakMap(), _ConfigValidator_healthSchema = new WeakMap(), _ConfigValidator_membershipSchema = new WeakMap(), _ConfigValidator_orchestratorSchema = new WeakMap(), _ConfigValidator_proxySchema = new WeakMap(), _ConfigValidator_replicatorSchema = new WeakMap(), _ConfigValidator_profileSchema = new WeakMap(), _ConfigValidator_componentsSchema = new WeakMap(), _ConfigValidator_componentsLazySchema = new WeakMap(), _ConfigValidator_endpointsSchema = new WeakMap(), _ConfigValidator_modulesSchema = new WeakMap(), _ConfigValidator_middlewareSchema = new WeakMap(), _ConfigValidator_pluginsSchema = new WeakMap(), _ConfigValidator_clusterSchema = new WeakMap(), _ConfigValidator_instances = new WeakSet(), _ConfigValidator_fetchSchemas = function _ConfigValidator_fetchSchemas(targetVersion) {
-    if (targetVersion === null)
-        targetVersion = '1.0.0';
-    const schemaFactory = new schema_factory_1.SchemaFactory(targetVersion);
+_ConfigValidator_ajv = new WeakMap(), _ConfigValidator_fieldTypeValidator = new WeakMap(), _ConfigValidator_log = new WeakMap(), _ConfigValidator_happnSchema = new WeakMap(), _ConfigValidator_happnerSchema = new WeakMap(), _ConfigValidator_happnClusterSchema = new WeakMap(), _ConfigValidator_happnerClusterSchema = new WeakMap(), _ConfigValidator_cacheSchema = new WeakMap(), _ConfigValidator_connectSchema = new WeakMap(), _ConfigValidator_dataSchema = new WeakMap(), _ConfigValidator_dataLazySchema = new WeakMap(), _ConfigValidator_protocolSchema = new WeakMap(), _ConfigValidator_publisherSchema = new WeakMap(), _ConfigValidator_securitySchema = new WeakMap(), _ConfigValidator_subscriptionSchema = new WeakMap(), _ConfigValidator_systemSchema = new WeakMap(), _ConfigValidator_transportSchema = new WeakMap(), _ConfigValidator_utilsSchema = new WeakMap(), _ConfigValidator_errorSchema = new WeakMap(), _ConfigValidator_logSchema = new WeakMap(), _ConfigValidator_cryptoSchema = new WeakMap(), _ConfigValidator_sessionSchema = new WeakMap(), _ConfigValidator_healthSchema = new WeakMap(), _ConfigValidator_membershipSchema = new WeakMap(), _ConfigValidator_orchestratorSchema = new WeakMap(), _ConfigValidator_proxySchema = new WeakMap(), _ConfigValidator_replicatorSchema = new WeakMap(), _ConfigValidator_profileSchema = new WeakMap(), _ConfigValidator_componentsSchema = new WeakMap(), _ConfigValidator_componentsLazySchema = new WeakMap(), _ConfigValidator_endpointsSchema = new WeakMap(), _ConfigValidator_modulesSchema = new WeakMap(), _ConfigValidator_middlewareSchema = new WeakMap(), _ConfigValidator_pluginsSchema = new WeakMap(), _ConfigValidator_clusterSchema = new WeakMap(), _ConfigValidator_instances = new WeakSet(), _ConfigValidator_fetchSchemas = function _ConfigValidator_fetchSchemas() {
+    const schemaFactory = new schema_factory_1.SchemaFactory();
     __classPrivateFieldSet(this, _ConfigValidator_happnSchema, schemaFactory.getSchema('happn'), "f");
     __classPrivateFieldSet(this, _ConfigValidator_happnerSchema, schemaFactory.getSchema('happner'), "f");
     __classPrivateFieldSet(this, _ConfigValidator_happnClusterSchema, schemaFactory.getSchema('happn-cluster'), "f");

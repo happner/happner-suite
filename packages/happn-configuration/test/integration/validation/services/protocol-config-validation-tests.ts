@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('protocol configuration validation tests', function () {
   it('validates full protocol config', () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const protocolConfig = createValidProtocolConfig();
 
     const result = validator.validateProtocolConfig(protocolConfig);
@@ -15,7 +15,7 @@ describe('protocol configuration validation tests', function () {
   });
 
   it('validates protocol config with valid inbound layer function', () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const protocolConfig = createValidProtocolConfig();
 
     const inboundFunc = (arg1, cb) => {};
@@ -27,7 +27,7 @@ describe('protocol configuration validation tests', function () {
   });
 
   it('invalidates protocol config with invalid inbound layer function', () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const protocolConfig = createValidProtocolConfig();
 
     // single arg

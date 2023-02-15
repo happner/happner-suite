@@ -32,9 +32,6 @@
         "health": {
           "$ref": "health-schema.json"
         },
-        "membership": {
-          "$ref": "membership-schema.json"
-        },
         "orchestrator": {
           "$ref": "orchestrator-schema.json"
         },

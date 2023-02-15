@@ -42,7 +42,7 @@ class SecurityConfigBuilder extends BaseBuilder {
     withHttpsCookie(name, domain, cookie) {
         this.set('config.cookieName', name, BaseBuilder.Types.STRING);
         this.set('config.cookieDomain', domain, BaseBuilder.Types.STRING);
-        this.set('config.httpsCookie', cookie, BaseBuilder.Types.STRING);
+        this.set('config.httpsCookie', cookie, BaseBuilder.Types.BOOLEAN);
         return this;
     }
     withAllowAnonymousAccess(allow) {

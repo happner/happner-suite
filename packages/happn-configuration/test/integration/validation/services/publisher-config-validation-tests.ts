@@ -6,7 +6,7 @@ import mockLogger from '../../../__fixtures/logger';
 
 describe('publisher configuration validation tests', function () {
   it('validates full publisher config', () => {
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const config = createValidPublisherConfig();
 
     const result = validator.validatePublisherConfig(config);

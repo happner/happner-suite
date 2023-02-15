@@ -22,6 +22,14 @@ class VersionUtil {
         const found = __classPrivateFieldGet(this, _VersionUtil_instances, "m", _VersionUtil_findClosestKeyMatch).call(this, keys, version);
         return moduleVersions[found];
     }
+    findUnversionedFileMatch(rootPath, filePrefix) {
+        const matchExpr = `^${filePrefix}.(json|ts|js){1}$`;
+        const fileList = (0, fs_1.readdirSync)(rootPath);
+        const result = fileList.find((fileName) => {
+            return fileName.match(matchExpr);
+        });
+        return result ? `${rootPath}/${result}` : null;
+    }
     findClosestVersionedFileMatch(rootPath, filePrefix, version) {
         const fileList = (0, fs_1.readdirSync)(rootPath);
         const foundFile = this.matchFile(fileList, filePrefix, version);

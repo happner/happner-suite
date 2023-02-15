@@ -224,8 +224,8 @@ function HappnCoreBuilder(Base) {
                 __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withAuthProvider(name, instance);
                 return this;
             }
-            withSecurityCookie(name, domain, cookie) {
-                __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withHttpsCookie(name, domain, cookie);
+            withSecurityCookie(name, domain) {
+                __classPrivateFieldGet(this, _HappnBuilder_securityConfigBuilder, "f").withHttpsCookie(name, domain, true);
                 return this;
             }
             withSecurityLogSessionActivity(shouldLog) {

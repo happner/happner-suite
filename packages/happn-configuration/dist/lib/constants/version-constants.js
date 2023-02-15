@@ -9,7 +9,7 @@ Modules are matched based on the highest version match to the incoming framework
 exports.default = {
     VERSION_THRESHOLDS: {
         HappnCore: { '1.0.0': builders_1.HappnCoreBuilder },
-        HappnClusterCore: { '1.0.0': builders_1.HappnClusterCoreBuilder, '12.0.0': builders_1.HappnClusterCoreBuilderV2 },
+        HappnClusterCore: { '1.0.0': builders_1.HappnClusterCoreBuilder, '12.0.0': builders_1.HappnClusterCoreBuilder },
         HappnerCore: { '1.0.0': builders_1.HappnerCoreBuilder },
         HappnerClusterCore: { '1.0.0': builders_1.HappnerClusterCoreBuilder },
         DataConfig: { '1.0.0': builders_1.DataConfigBuilder },
@@ -30,7 +30,7 @@ exports.default = {
         HealthConfig: { '1.0.0': builders_1.HealthConfigBuilder },
         OrchestratorConfig: {
             '1.0.0': builders_1.OrchestratorConfigBuilder,
-            '12.0.0': builders_1.OrchestratorConfigBuilderV2,
+            '12.0.0': builders_1.OrchestratorConfigBuilder,
         },
     },
 };

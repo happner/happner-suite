@@ -7,16 +7,15 @@ import mockLogger from '../__fixtures/logger';
 
 describe('full configuration tests', function () {
   it('builds a happn configuration object with no version ', async () => {
-    const versionContext = { happn: '1.0.0' };
-    const builderFactory = ConfigBuilderFactory.create(versionContext);
-    const builder = builderFactory.getHappnBuilder<'10.0.0'>();
+    const builderFactory = ConfigBuilderFactory.create();
+    const builder = builderFactory.getHappnBuilder();
     setHappnConfigValues(builder);
     const result = builder.build();
 
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
 
@@ -28,9 +27,8 @@ describe('full configuration tests', function () {
   });
 
   it('builds a happn-cluster configuration object', async () => {
-    const versionContext = { happn: '1.0.0', happnCluster: '5.0.0' };
-    const builderFactory = ConfigBuilderFactory.create(versionContext);
-    const builder = builderFactory.getHappnClusterBuilder<'15.0.0'>();
+    const builderFactory = ConfigBuilderFactory.create();
+    const builder = builderFactory.getHappnClusterBuilder();
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
     const result = builder.build();
@@ -38,15 +36,14 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator('2.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner configuration object', async () => {
-    const versionContext = { happn: '1.0.0', happner: '12.0.0' };
-    const builderFactory = ConfigBuilderFactory.create(versionContext);
-    const builder = builderFactory.getHappnerBuilder<'12.0.0'>();
+    const builderFactory = ConfigBuilderFactory.create();
+    const builder = builderFactory.getHappnerBuilder();
     setHappnConfigValues(builder);
 
     setHappnerConfigValues(builder);
@@ -55,20 +52,14 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
 
   it('builds a happner-cluster configuration object', async () => {
-    const versionContext = {
-      happn: '1.0.0',
-      happnCluster: '2.0.0',
-      happner: '12.0.0',
-      happnerCluster: '11.0.0',
-    };
-    const builderFactory = ConfigBuilderFactory.create(versionContext);
-    const builder = builderFactory.getHappnerClusterBuilder<'12.0.0'>();
+    const builderFactory = ConfigBuilderFactory.create();
+    const builder = builderFactory.getHappnerClusterBuilder();
 
     setHappnConfigValues(builder);
     setHappnClusterConfigValues(builder);
@@ -80,7 +71,7 @@ describe('full configuration tests', function () {
     console.log('RESULT:', JSON.stringify(result, null, 2));
 
     // validate
-    const validator = new ConfigValidator('1.0.0', mockLogger);
+    const validator = new ConfigValidator(mockLogger);
     const validationResult = validator.validateHappnerClusterConfig(result);
     if (!validationResult.valid) throw new Error(JSON.stringify(validationResult.errors, null, 2));
   });
@@ -142,7 +133,7 @@ function setHappnConfigValues(builder) {
       .withSecurityAdminGroupCustomData('customField', 'customValue')
       .withSecurityAllowAnonymousAccess(false)
       .withSecurityAuthProvider('testProvider', new (class TestClass {})())
-      .withSecurityCookie('testCookie', 'test.com', 'asiojdhipsuadfauisdfipafy')
+      .withSecurityCookie('testCookie', 'test.com')
       .withSecurityLockTokenToLoginType(true)
       .withSecurityLockTokenToUserId(true)
       .withSecurityLogSessionActivity(true)
@@ -177,18 +168,6 @@ function setHappnClusterConfigValues(builder) {
   return builder
     .withHealthInterval(1000)
     .withHealthWarmupLimit(50000)
-    .withMembershipClusterName('membership1')
-    .withMembershipDisseminationFactor(2)
-    .withMembershipHost('192.168.1.22', 4000)
-    .withMembershipMemberHost('192.168.1.25')
-    .withMembershipMemberHost('192.168.1.26')
-    .withMembershipJoinTimeout(20000)
-    .withMembershipJoinType('joinType')
-    .withMembershipPing(1000, 5000, 1000, 2)
-    .withMembershipRandomWait(5)
-    .withMembershipIsSeed(true)
-    .withMembershipSeedWait(1234)
-    .withMembershipUdpMaxDgramSize(1000)
     .withOrchestratorMinimumPeers(3)
     .withOrchestratorReplicatePath('/replicate/path')
     .withOrchestratorStableReportInterval(10000)

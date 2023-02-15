@@ -1,39 +1,15 @@
 import { ICoreBuilder } from './i-core-builder';
 import { IHappnConfigurationBuilder } from './i-happn-configuration-builder';
 
+/***
+ * No membership in this version
+ */
 export interface IHappnClusterConfigurationBuilder
   extends ICoreBuilder,
     IHappnConfigurationBuilder {
   withHealthInterval(interval: number);
 
   withHealthWarmupLimit(limit: number);
-
-  withMembershipClusterName(name: string);
-
-  withMembershipDisseminationFactor(factor: number);
-
-  withMembershipHost(host: string, port: number);
-
-  withMembershipJoinTimeout(timeout: number);
-
-  withMembershipJoinType(type: string);
-
-  withMembershipMemberHost(host: string);
-
-  withMembershipPing(
-    interval: number,
-    pingTimeout?: number,
-    requestTimeout?: number,
-    requestGroupSize?: number
-  );
-
-  withMembershipRandomWait(wait: number);
-
-  withMembershipIsSeed(isSeed: boolean);
-
-  withMembershipSeedWait(wait: number);
-
-  withMembershipUdpMaxDgramSize(size: number);
 
   withOrchestratorMinimumPeers(minimum: number);
 
