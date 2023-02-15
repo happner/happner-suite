@@ -72,6 +72,9 @@
                 },
                 "dbfile": {
                     "type": "string"
+                },
+                "collection": {
+                    "type": "string"
                 }
             },
             "required": [],
@@ -96,6 +99,9 @@
                         "null"
                     ]
                 },
+                "index": {
+                    "$ref": "#/definitions/Index"
+                },
                 "fsync": {
                     "type": "boolean"
                 },
@@ -116,6 +122,26 @@
             },
             "required": [],
             "title": "SetOptions"
+        },
+        "Index": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "fields": {
+                            "type": "object"
+                        },
+                        "options": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "required": [],
+            "title": "Index"
         }
     }
 }
