@@ -45,8 +45,6 @@ var Internals = require('./system/shared/internals'),
   util = require('util'),
   _ = commons._;
 
-const pkg = require('../package.json');
-
 module.exports = Mesh;
 module.exports.Happn = Happn.service;
 module.exports.MeshClient = MeshClient;
@@ -629,11 +627,8 @@ Mesh.prototype.initialize = util.promisify(function (config, callback) {
     config.deferListen = false;
   }
 
-  // config validation - schemaVersion contained in package.json
-  if (pkg.validation?.schemaVersion) {
-    const { validateConfig, constants } = commons;
-    validateConfig(config, constants.CONFIG_TYPE.HAPPNER, pkg.validation.schemaVersion);
-  }
+  // config validation
+  commons.validateConfig(config, 'HAPPNER');
 
   _this.__initialize(config, callback);
 });
