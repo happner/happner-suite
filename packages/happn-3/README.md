@@ -2097,7 +2097,7 @@ service.create(serviceConfig, function(e, happnInst) {
 
 PRIMUS OPTIONS
 ---------------------
-*primusOpts in the configuration can be adjusted to control how the websockets connection behaves, [see primus documentation here](https://github.com/primus/primus#getting-started):*
+*primusOpts in the configuration can be adjusted to control how websocket connections are served, [see primus documentation here](https://github.com/primus/primus#getting-started):*
 ```javascript
 const serviceConfig = {
   services: {
