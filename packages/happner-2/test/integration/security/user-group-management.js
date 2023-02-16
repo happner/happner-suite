@@ -135,6 +135,15 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     }
   });
 
+  it('test getting a group with no params', async () => {
+    try {
+      await adminClient.exchange.security.getGroup();
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.message).to.be('getGroup method expects a groupName argument');
+    }
+  });
+
   it('test updating an undefined user', function (done) {
     adminClient.exchange.security.updateUser(undefined, function (e) {
       test.expect(e.message).to.be('user is null or not an object');
