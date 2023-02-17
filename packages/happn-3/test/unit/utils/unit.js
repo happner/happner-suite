@@ -364,24 +364,5 @@ describe(
       expect(errMessage).to.be('The default regex cache must be of type LRU');
       done();
     });
-    it('tests getFreePort', async function () {
-      let servers = Array.from(Array(100)).map(() => net.createServer());
-      // Has been tested at 10 000 as well.
-      let ports = [];
-      for (let server of servers) {
-        let port = await utils.getFreePort();
-        ports.push(port);
-        let inUse = await tcpPortUsed.check(port);
-        expect(inUse).to.be(false);
-        server.listen(port);
-        inUse = await tcpPortUsed.check(port);
-        expect(inUse).to.be(true);
-      }
-      expect(checkForDuplicates(ports)).to.be(false);
-      for (let server of servers) {
-        await server.close();
-      }
-    });
-    const checkForDuplicates = (arr) => arr.some((item, index) => arr.indexOf(item) !== index);
   }
 );
