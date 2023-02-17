@@ -520,6 +520,14 @@ module.exports = class ComponentInstance {
       origin.type,
       (e, originSession) => {
         if (e) return callback(e);
+        if (!originSession) {
+          return callback(
+            this.#mesh._mesh.happn.server.services.error.InvalidCredentialsError(
+              'invalid credentials',
+              'request on behalf of non-existent user: ' + origin.username
+            )
+          );
+        }
         this.#mesh._mesh.happn.server.services.security.authorize(
           originSession,
           permissionPath,
