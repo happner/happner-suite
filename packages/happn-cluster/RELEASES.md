@@ -345,3 +345,7 @@ non-release 2017-12-14
 -----------------
   - feat: Summon productionization
   - fix: SQLite nested ands and ors
+
+12.3.1 2023-02-17
+-----------------
+  - happn-3 update

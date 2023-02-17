@@ -1025,3 +1025,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.6.0 2023-01-18
 -----------------
   - feat: Summon productionization
+
+12.7.0 2023-02-17
+-----------------
+  - feat: allow "as" for rest call to exchange when using a params array
+  - fix: prevent fatal when using "as" for a user that does not exist
+  - feat: removed file watching in packager
+  
