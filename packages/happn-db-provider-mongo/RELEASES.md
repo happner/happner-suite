@@ -105,3 +105,6 @@
 -----------------
   - feat: Summon productionization
 
+1.1.7 2023-02-17
+-----------------
+  - happn-3 update

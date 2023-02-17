@@ -1053,3 +1053,6 @@
 -----------------
   - feat: Summon productionization
 
+13.9.1 2023-02-17
+-----------------
+  - doc: added documentation regarding primus opts

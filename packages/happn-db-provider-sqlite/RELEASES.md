@@ -16,3 +16,6 @@
   - feat: Summon productionization
   - fix: nested ands and ors
 
+1.0.4 2023-02-17
+-----------------
+  - happn-3 update

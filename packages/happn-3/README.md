@@ -2095,17 +2095,19 @@ service.create(serviceConfig, function(e, happnInst) {
 });
 ```
 
-WEBSOCKET COMPRESSION
+PRIMUS OPTIONS
 ---------------------
-*primusOpts in the configuration can be adjusted to allow for per-message deflate compression for messages larger than 1024 bytes, clients will automatically compress messages when they reconnect*
-
+*primusOpts in the configuration can be adjusted to control how websocket connections are served, [see primus documentation here](https://github.com/primus/primus#getting-started):*
 ```javascript
 const serviceConfig = {
   services: {
     session: {
       config: {
         primusOpts:{
-          compression: true
+          // some common options:
+          compression: true, // use compression
+          maxLength: 100000, // 100kb max payload size in bytes
+          pingInterval: 2000, // socket ping interval
         }
       }
     }
