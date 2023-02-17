@@ -108,6 +108,11 @@ module.exports = class Orchestrator extends EventEmitter {
       this.loginConfig.password = this.adminUser.password;
     }
     var localLoginConfig = clone(this.loginConfig);
+    /**
+  remove clusterName for localLogin (to self) so that
+  in happner-cluster our self connection receives replicated events
+  ie. not filtered out by happn when noCluster is set
+  **/
     delete localLoginConfig.info.clusterName;
     this.localClient = await this.happn.services.session.localClient(localLoginConfig);
     this.startIntervals();
@@ -144,9 +149,7 @@ module.exports = class Orchestrator extends EventEmitter {
 
   async stop(opts, cb) {
     if (typeof opts === 'function') cb = opts;
-    for (let interval of Object.values(this.intervals)) {
-      clearInterval(interval);
-    }
+    Object.values(this.intervals).forEach(clearInterval);
     this.stopped = true;
     if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
     await Promise.all(Object.values(this.registry).map((service) => service.stop()));
@@ -178,7 +181,6 @@ module.exports = class Orchestrator extends EventEmitter {
     let endpoints = await this.fetchEndpoints();
     for (let [name, service] of Object.entries(this.registry)) {
       service.setEndpoints(endpoints[name] || []);
-      // await service.cleanupMembers();
     }
   }
 
