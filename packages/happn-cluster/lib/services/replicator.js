@@ -59,27 +59,20 @@ Replicator.prototype.stop = function (options, callback) {
   callback();
 };
 
-Replicator.prototype.start = util.promisify(function (callback) {
+Replicator.prototype.start = async function () {
   property(this, 'localClient', this.happn.services.orchestrator.localClient);
   this.securityChangesetReplicate();
-  this.localClient.on(
-    '/__REPLICATE',
-    (data) => {
-      var topic = data.topic;
-      var payload = data.payload;
-      var origin = data.origin;
-      var isLocal = origin === this.happn.name;
+  await this.localClient.on('/__REPLICATE', (data) => {
+    var topic = data.topic;
+    var payload = data.payload;
+    var origin = data.origin;
+    var isLocal = origin === this.happn.name;
 
-      if (topic === '/security/dataChanged')
-        return this.emitSecurityDataChanged(payload, isLocal, origin);
-      this.emit(topic, payload, isLocal, origin);
-    },
-    function (err) {
-      if (err) return callback(err);
-      callback();
-    }
-  );
-});
+    if (topic === '/security/dataChanged')
+      return this.emitSecurityDataChanged(payload, isLocal, origin);
+    this.emit(topic, payload, isLocal, origin);
+  });
+};
 
 Replicator.prototype.failSecurityChangesetReplicate = function (e, endingProcess) {
   const errorMessage = `unable to replicate security data: ${e.message}`;
@@ -174,7 +167,8 @@ Replicator.prototype.emitSecurityDataChanged = function (payload, isLocal, origi
 };
 
 Replicator.prototype.__defaults = function (callback) {
-  if (!this.config.securityChangesetReplicateInterval)
-    this.config.securityChangesetReplicateInterval = 3000;
+  if (!this.config.securityChangesetReplicateInterval) {
+    this.config.securityChangesetReplicateInterval = 3e3;
+  }
   callback();
 };

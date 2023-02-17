@@ -20,7 +20,7 @@ module.exports = function (config) {
   if (config.port) {
     name += '_' + config.port;
   } else {
-    name += '_55000';
+    name += '_DEFAULT';
   }
   return name;
 };

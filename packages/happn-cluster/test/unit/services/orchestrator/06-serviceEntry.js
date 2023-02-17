@@ -1,4 +1,4 @@
-const ServiceEntry = require('../../../../lib/services/orchestrator/serviceEntry');
+const ServiceEntry = require('../../../../lib/services/orchestrator/service-entry');
 const Member = require('../../../../lib/services/orchestrator/member');
 const orchestrator = require('../../../mocks/test-unit/mock-orchestrator');
 require('../../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
