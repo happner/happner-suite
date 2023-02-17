@@ -1,8 +1,7 @@
 var expect = require('expect.js');
 var Utils = require('../../../lib/services/utils/service');
-const net = require('net');
 var utils = new Utils();
-const tcpPortUsed = require('happn-tcp-port-used');
+
 describe(
   require('../../__fixtures/utils/test_helper').create().testName(__filename, 3),
   function () {
