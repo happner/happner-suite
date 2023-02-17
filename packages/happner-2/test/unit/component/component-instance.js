@@ -663,8 +663,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .stub(ComponentInstanceBoundFactory.prototype, 'originBindingNecessary')
       .returns(true);
 
+    mesh._mesh.happn.server.services.security.getOnBehalfOfSession = test.sinon
+      .stub()
+      .callsFake((_, __, ___, callback) => {
+        callback(null, {});
+      });
+
     mesh._mesh.happn.server.services.security.authorize.callsFake((_, __, ___, callback) => {
-      callback('mockError', null);
+      callback('mockError', {});
     });
 
     componentInstance.initialize('mockName', mesh, module, config, mockCallback1);

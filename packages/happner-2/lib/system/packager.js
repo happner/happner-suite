@@ -1,9 +1,3 @@
-// TODO: This is expensive... minifies and gzips a set of scripts !! at every startup...
-//       to provide single /client/api script to browser.
-//       Better if this was cached to disk (when in production mode)
-
-const utils = require('happn-commons/lib/utils');
-
 // BUG: more than one meshnode in same process and packager does not apply
 // post-start changes to script package into all mesh nodes.
 
@@ -17,6 +11,7 @@ module.exports = Packager;
 
 const commons = require('happn-commons'),
   fs = commons.fs,
+  utils = commons.utils,
   zlib = require('zlib'),
   md5 = require('md5'),
   { minify } = require('terser'),
@@ -32,17 +27,10 @@ const commons = require('happn-commons'),
   semver = require('happner-semver');
 
 function Packager(mesh) {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    this.mesh = mesh;
-    this.log = mesh.log.createLogger('Packager');
-    mesh.tools.packages = this.packages = {};
-    this.merged = {}; // final product, merges scripts
-    this.__fileWatchers = [];
-    this.__watchedFiles = {};
-  } catch (e) {
-    throw e; // caught in mesh.js
-  }
+  this.mesh = mesh;
+  this.log = mesh.log.createLogger('Packager');
+  mesh.tools.packages = this.packages = {};
+  this.merged = {}; // final product, merges scripts
 }
 
 Packager.prototype.ensureCacheDirectory = function () {
@@ -110,83 +98,67 @@ Packager.prototype.initializeScripts = function (callback) {
       (result) => {
         this.scripts = [
           {
-            watch: false,
             min: false,
             file: normalize(this.mesh._mesh.happn.server.services.session.script),
           },
-          { watch: false, min: false, file: result },
+          { min: false, file: result },
           {
-            watch: false,
             min: false,
             file: normalize([__dirname, 'shared', 'logger.js'].join(sep)),
           },
           {
-            watch: true,
             min: false,
             file: normalize([__dirname, 'shared', 'promisify.js'].join(sep)),
           },
           {
-            watch: true,
             min: false,
             file: normalize([__dirname, 'shared', 'mesh-error.js'].join(sep)),
           },
           {
-            watch: true,
             min: false,
             file: normalize([__dirname, 'shared', 'messenger.js'].join(sep)),
           },
           {
-            watch: true,
             min: false,
             file: normalize([__dirname, 'shared', 'internals.js'].join(sep)),
           },
           {
-            watch: true,
             min: false,
             file: normalize([__dirname, 'shared', 'mesh-client.js'].join(sep)),
           },
-          { watch: true, min: false, file: require.resolve('happner-semver') },
+          { min: false, file: require.resolve('happner-semver') },
           {
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'builders', 'request-builder.js'].join(sep),
           },
           {
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'providers', 'connection-provider.js'].join(sep),
           },
           {
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'providers', 'implementors-provider.js'].join(sep),
           },
           {
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'providers', 'operations-provider.js'].join(sep),
           },
           {
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'happner-client.js'].join(sep),
           },
-          // With watch = true When not running NODE_ENV=production the package is re-assembled
-          // when the file changes.
         ];
 
         //backwards compatible with older versions of happner-client
         let happnerClientVersion = require(happnerClientPath + sep + 'package.json').version;
         if (semver.coercedSatisfies(happnerClientVersion, '>=11.3.0')) {
           this.scripts.push({
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'providers', 'light-implementors-provider.js'].join(
               sep
             ),
           });
           this.scripts.push({
-            watch: true,
             min: false,
             file: [happnerClientPath, 'lib', 'light-client.js'].join(sep),
           });
@@ -256,13 +228,7 @@ Packager.prototype.initialize = function (callback) {
           });
         })
 
-        // TODO: Watch where necessary...
-        //   In non production mode, it would
-        //   be ideal if changes to the component scripts
-        //   were detected, averting the need to restart the
-        //   server to get the updated script to the browser.
-
-        // Minifi if production
+        // Minify if production or script.min is true
         .then(() => {
           return Promise.all(
             this.scripts.map((script) => {
@@ -275,40 +241,10 @@ Packager.prototype.initialize = function (callback) {
           );
         })
 
-        // Set watchers and minified code
+        // Set minified code
         .then((minified) => {
           this.scripts.forEach((script, scriptIndex) => {
             script.code = minified[scriptIndex].code;
-
-            if (!script.watch) return;
-            if (process.env.NODE_ENV === 'production') return;
-            this.log.$$TRACE('(non-production) watching %s', script.file);
-
-            if (this.__watchedFiles[script.file]) {
-              return;
-            }
-
-            this.__watchedFiles[script.file] = 1; // prevent too many listeners on file
-            // for systems that run many mesh nodes
-            // in one process
-            this.__fileWatchers.push(
-              fs.watch(script.file, { interval: 1000 }, (curr, prev) => {
-                if (prev.mtime > curr.mtime) return;
-                this.log.warn('changed %s', script.file);
-
-                this.readFile(script.file)
-                  .then((buf) => {
-                    script.buf = buf;
-                    return this.assemble();
-                  })
-                  .then(() => {
-                    this.log.warn('reload done');
-                  })
-                  .catch((e) => {
-                    this.log.error('reload failed', e);
-                  });
-              })
-            );
           });
         })
 
@@ -327,14 +263,7 @@ Packager.prototype.initialize = function (callback) {
 };
 
 Packager.prototype.stop = function () {
-  if (!this.__fileWatchers) return;
-
-  this.__fileWatchers.forEach(function (watcher) {
-    watcher.close();
-  });
-
-  this.__fileWatchers = [];
-  this.__watchedFiles = {};
+  // future use
 };
 
 Packager.prototype.assemble = function () {

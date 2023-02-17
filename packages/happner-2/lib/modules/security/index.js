@@ -978,6 +978,11 @@ Security.prototype.listUsersByGroup = function (groupName, options) {
 };
 
 Security.prototype.getUser = function ($happn, userName, options, callback) {
+  if (typeof userName === 'function') {
+    callback = userName;
+    return callback(new Error('getUser method expects a userName argument'));
+  }
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
@@ -994,6 +999,10 @@ Security.prototype.getUser = function ($happn, userName, options, callback) {
 };
 
 Security.prototype.getGroup = function ($happn, groupName, callback) {
+  if (typeof groupName === 'function') {
+    callback = groupName;
+    return callback(new Error('getGroup method expects a groupName argument'));
+  }
   this.__validateRequest('getGroup', arguments, (e) => {
     if (e) return callback(e);
     this.__securityService.users.getGroup(groupName, {}, (e, group) => {

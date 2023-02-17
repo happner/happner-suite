@@ -24,6 +24,40 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       )
       .to.eql('origin:testUser:1:2');
   });
+  it('can do an http-rpc with as, array of arguments, delegated via the ADMIN user', async () => {
+    const token = adminUser.token;
+    test
+      .expect(
+        await testHttpRpc(
+          {
+            component: 'test',
+            method: 'doOnBehalfOfAllowed',
+            arguments: [1, 2],
+            as: 'testUser',
+          },
+          token
+        )
+      )
+      .to.eql('origin:testUser:1:2');
+  });
+  it('fails to do an http-rpc with as, as user does not exist', async () => {
+    const token = adminUser.token;
+    try {
+      await testHttpRpc(
+        {
+          component: 'test',
+          method: 'doOnBehalfOfAllowed',
+          arguments: [1, 2],
+          as: 'nonExistent',
+        },
+        token
+      );
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.message).to.equal('invalid credentials');
+      test.expect(e.code).to.equal(401);
+    }
+  });
   it('can do an http-rpc with as, delegated via a delegate user', async () => {
     const testDelegateUser = await connectTestUser(9);
     const token = testDelegateUser.token;
@@ -415,7 +449,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
         )
         .on('complete', function (result) {
           if (result.error) {
-            return reject(new Error(result.error.message));
+            const resultError = new Error(result.error.message);
+            resultError.code = result.error.code;
+            return reject(resultError);
           }
           resolve(result.data);
         })
