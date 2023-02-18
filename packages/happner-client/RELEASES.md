@@ -406,6 +406,10 @@
 -----------------
   - feat: Summon productionization
 
-12.6.0 2023-02-15
+12.5.8 2023-02-17
+-----------------
+  - happn-3 update
+
+12.5.9 2023-02-15
 -----------------
   - Mongo-based cluster membership - dependencies update

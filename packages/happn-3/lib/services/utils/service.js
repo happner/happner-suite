@@ -287,4 +287,3 @@ UtilsService.prototype.getTemplatedPathCombinations = function (template, contex
 
   return templates;
 };
-

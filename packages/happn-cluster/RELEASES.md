@@ -318,6 +318,10 @@ non-release 2017-12-14
   - feat: Summon productionization
   - fix: SQLite nested ands and ors
 
-13.0.0 2022-06-01
+12.3.1 2023-02-17
 -----------------
-  - SMC-4817: mongo-based membership strategy
+  - happn-3 update
+
+13.0.0 2023-02-18
+-----------------
+  - Mongo-based cluster membership - dependencies update

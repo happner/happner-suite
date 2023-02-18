@@ -444,7 +444,11 @@
 -----------------
   - feat: Summon productionization
 
-12.5.0 2022-11-30
+12.4.1 2023-02-17
+-----------------
+  - happn-3 update
+
+13.0.0 2022-11-30
 -----------------
   - happn-cluster membership updated to mongo-based system
   - tests now use ports auto-assigned by OS

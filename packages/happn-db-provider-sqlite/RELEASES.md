@@ -16,7 +16,10 @@
   - feat: Summon productionization
   - fix: nested ands and ors
 
-1.0.4 2023-02-14
+1.0.4 2023-02-17
 -----------------
-- Mongo membership (dependencies update)
+  - happn-3 update
 
+1.0.5 2023-02-18
+-----------------
+  - Mongo-based cluster membership - dependencies update

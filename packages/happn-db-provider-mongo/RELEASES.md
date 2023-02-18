@@ -105,7 +105,10 @@
 -----------------
   - feat: Summon productionization
 
-1.1.7 2023-02-14
+1.1.7 2023-02-17
 -----------------
-  - TEN-12: mongo-based membership strategy (dev dependencies changes)
+  - happn-3 update
 
+1.1.8 2023-02-18
+-----------------
+  - Mongo-based cluster membership - dependencies update

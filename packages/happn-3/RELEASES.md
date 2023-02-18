@@ -1053,8 +1053,10 @@
 -----------------
   - feat: Summon productionization
 
-13.10.0 2022-01-12
+13.9.1 2023-02-17
 -----------------
-  - Mongo cluster membership update (dev dependencies change)
-  - Option have OS auto-assign happn and proxy ports (primarily for testing) 
+  - doc: added documentation regarding primus opts
 
+13.9.2 2023-02-18
+-----------------
+  - Mongo-based cluster membership - dependencies update
