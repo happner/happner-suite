@@ -23,7 +23,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   var port;
 
   before(function () {
-    var address = this.servers[0].services.proxy.__proxyServer._server.address();
+    var address = this.servers[0].services.proxy.server.address();
     port = address.port;
   });
 
