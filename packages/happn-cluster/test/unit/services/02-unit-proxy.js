@@ -5,8 +5,11 @@ var assert = require('assert');
 var Proxy = require('../../../lib/services/proxy');
 var MockHappn = require('../../mocks/mock-happn');
 var mockOpts = require('../../mocks/mock-opts');
+const ProxyStatuses = require('../../../lib/constants/proxy-states');
 
 require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+  // test.printOpenHandlesAfter(5e3);
+
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';
@@ -29,21 +32,23 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
 
   it('can initialize the proxy', function (done) {
     var proxy = new Proxy(mockOpts);
-
     proxy.initialize(this.__config, done);
   });
 
   it('can start and stop the proxy', function (done) {
     var proxy = new Proxy(mockOpts);
 
+    test.expect(proxy.status).to.equal(ProxyStatuses.UNINITIALIZED);
     proxy.initialize(this.__config, function (err) {
       if (err) return done(err);
 
       proxy
         .start()
         .then(function () {
+          test.expect(proxy.status).to.equal(ProxyStatuses.STARTED);
           proxy.stop(function (err) {
             if (err) done(err);
+            test.expect(proxy.status).to.equal(ProxyStatuses.STOPPED);
             done();
           });
         })
@@ -62,7 +67,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       proxy
         .start()
         .then(function () {
-          var address = proxy.__proxyServer._server.address();
+          var address = proxy.server.address();
           test.expect(address.port).to.equal(8015);
           test.expect(address.address).to.equal('127.0.0.1');
           proxy.stop(done);
@@ -131,14 +136,9 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
               });
 
               res.on('end', function () {
-                // console.log(result);
                 assert.equal(result, EXPECTED);
-
-                proxy.stop(function (err) {
-                  if (err) return done(err);
-
-                  return done();
-                });
+                proxy.stop(done);
+                proxiedServer.close();
               });
             })
             .end();
