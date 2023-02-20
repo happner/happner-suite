@@ -11,15 +11,15 @@ import { TransportConfigBuilder } from './services/transport-config-builder';
 export declare function HappnCoreBuilder<TBase extends Constructor>(Base: TBase): {
     new (...args: any[]): {
         [x: string]: any;
-        "__#3@#cacheConfigBuilder": CacheConfigBuilder;
-        "__#3@#connectConfigBuilder": ConnectConfigBuilder;
-        "__#3@#dataConfigBuilder": DataConfigBuilder;
-        "__#3@#protocolConfigBuilder": ProtocolConfigBuilder;
-        "__#3@#publisherConfigBuilder": PublisherConfigBuilder;
-        "__#3@#securityConfigBuilder": SecurityConfigBuilder;
-        "__#3@#subscriptionConfigBuilder": SubscriptionConfigBuilder;
-        "__#3@#systemConfigBuilder": SystemConfigBuilder;
-        "__#3@#transportConfigBuilder": TransportConfigBuilder;
+        "__#2@#cacheConfigBuilder": CacheConfigBuilder;
+        "__#2@#connectConfigBuilder": ConnectConfigBuilder;
+        "__#2@#dataConfigBuilder": DataConfigBuilder;
+        "__#2@#protocolConfigBuilder": ProtocolConfigBuilder;
+        "__#2@#publisherConfigBuilder": PublisherConfigBuilder;
+        "__#2@#securityConfigBuilder": SecurityConfigBuilder;
+        "__#2@#subscriptionConfigBuilder": SubscriptionConfigBuilder;
+        "__#2@#systemConfigBuilder": SystemConfigBuilder;
+        "__#2@#transportConfigBuilder": TransportConfigBuilder;
         build(): any;
         withName(name: string): any;
         withHost(host: string): any;

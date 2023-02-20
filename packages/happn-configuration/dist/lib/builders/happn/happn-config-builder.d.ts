@@ -9,7 +9,7 @@ export declare function HappnCoreBuilder<TBase extends Constructor>(Base: TBase)
          * @param container
          * @private
          */
-        "__#13@#initialiseChildBuilders"(container: any): void;
+        "__#14@#initialiseChildBuilders"(container: any): void;
         withName(name: string): any;
         withHost(host: string): any;
         withPort(port: number): any;

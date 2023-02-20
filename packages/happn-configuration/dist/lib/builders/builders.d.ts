@@ -1,3 +1,4 @@
+export { CoreBuilder } from './core-builder';
 export { HappnCoreBuilder } from './happn/happn-core-mixin';
 export { CacheConfigBuilder } from './happn/services/cache-config-builder';
 export { ConnectConfigBuilder } from './happn/services/connect-config-builder';

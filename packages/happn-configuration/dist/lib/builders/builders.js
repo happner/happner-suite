@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HappnerClusterCoreBuilder = exports.ModulesConfigBuilder = exports.EndpointsConfigBuilder = exports.ComponentsConfigBuilder = exports.HappnerCoreBuilder = exports.HappnClusterCoreBuilder = exports.TransportConfigBuilder = exports.SystemConfigBuilder = exports.SubscriptionConfigBuilder = exports.SecurityConfigBuilder = exports.ReplicatorConfigBuilder = exports.PublisherConfigBuilder = exports.ProxyConfigBuilder = exports.ProtocolConfigBuilder = exports.OrchestratorConfigBuilder = exports.MembershipConfigBuilder = exports.HealthConfigBuilder = exports.DataConfigBuilder = exports.ConnectConfigBuilder = exports.CacheConfigBuilder = exports.HappnCoreBuilder = void 0;
+exports.HappnerClusterCoreBuilder = exports.ModulesConfigBuilder = exports.EndpointsConfigBuilder = exports.ComponentsConfigBuilder = exports.HappnerCoreBuilder = exports.HappnClusterCoreBuilder = exports.TransportConfigBuilder = exports.SystemConfigBuilder = exports.SubscriptionConfigBuilder = exports.SecurityConfigBuilder = exports.ReplicatorConfigBuilder = exports.PublisherConfigBuilder = exports.ProxyConfigBuilder = exports.ProtocolConfigBuilder = exports.OrchestratorConfigBuilder = exports.MembershipConfigBuilder = exports.HealthConfigBuilder = exports.DataConfigBuilder = exports.ConnectConfigBuilder = exports.CacheConfigBuilder = exports.HappnCoreBuilder = exports.CoreBuilder = void 0;
+var core_builder_1 = require("./core-builder");
+Object.defineProperty(exports, "CoreBuilder", { enumerable: true, get: function () { return core_builder_1.CoreBuilder; } });
 // HAPPN
 var happn_core_mixin_1 = require("./happn/happn-core-mixin");
 Object.defineProperty(exports, "HappnCoreBuilder", { enumerable: true, get: function () { return happn_core_mixin_1.HappnCoreBuilder; } });
