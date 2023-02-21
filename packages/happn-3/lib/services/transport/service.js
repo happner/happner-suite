@@ -235,16 +235,14 @@ module.exports = class TransportService extends require('events').EventEmitter {
     });
   }
 
-  #checkFreePort(options) {
-    return new Promise((resolve) => {
-      if (options.port === 0) resolve();
-      return resolve(
-        tcpPortUsed.waitUntilFree(
-          options.port,
-          options.portAvailablePingInterval,
-          options.portAvailablePingTimeout
-        )
-      );
-    });
+  async #checkFreePort(options) {
+    if (options.port === 0) {
+      return;
+    }
+    return tcpPortUsed.waitUntilFree(
+      options.port,
+      options.portAvailablePingInterval,
+      options.portAvailablePingTimeout
+    );
   }
 };
