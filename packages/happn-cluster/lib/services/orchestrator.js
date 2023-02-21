@@ -107,7 +107,7 @@ module.exports = class Orchestrator extends EventEmitter {
       this.loginConfig.username = this.adminUser.username;
       this.loginConfig.password = this.adminUser.password;
     }
-    var localLoginConfig = clone(this.loginConfig);
+    let localLoginConfig = clone(this.loginConfig);
     /**
   remove clusterName for localLogin (to self) so that
   in happner-cluster our self connection receives replicated events
