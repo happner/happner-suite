@@ -978,8 +978,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         let revokedSession = this.getEffectedSession(changedData.session, true);
         effectedSessions.push(revokedSession);
         //disconnect the revoked session and its descendents
-        this.sessionService.disconnectSessions(
-          changedData.session.parentId,
+        this.sessionService.disconnectSessionsWithToken(
+          changedData.token,
           {
             reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
           },

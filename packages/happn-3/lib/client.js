@@ -1911,6 +1911,17 @@
     this.__endAndDestroySocket(this.socket, callback);
   };
 
+  HappnClient.prototype.logout = function () {
+    return new Promise((resolve, reject) => {
+      this.disconnect({ revokeToken: true }, (e) => {
+        if (e) {
+          return reject(e);
+        }
+        resolve();
+      });
+    });
+  };
+
   HappnClient.prototype.disconnect = utils.maybePromisify(function (options, callback) {
     let contextError, contextResult;
     this.__connectionQueue

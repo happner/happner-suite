@@ -122,19 +122,28 @@ function _process(req, res, next) {
 
     var session = this.happn.services.security.sessionFromRequest(req);
     if (!session) return this.__respondUnauthorized(req, res, 'invalid token format or null token');
+
     var url = require('url');
     path = '/@HTTP' + url.parse(req.url).pathname;
     session.type = 0; //stateless session
 
     this.happn.services.security.checkTokenUserId(session, (e, ok) => {
       if (e) return next(e);
-      if (!ok)
+      if (!ok) {
         return this.__respondUnauthorized(
           req,
           res,
           `token userid does not match userid for username: ${session.username}`
         );
-
+      }
+      if (path === '/@HTTP/auth/logout') {
+        return this.happn.services.security.revokeToken(session.token, 'by user request', (e) => {
+          if (e) {
+            return next(e);
+          }
+          this.__respond('logout successful', session.token, null, res);
+        });
+      }
       this.happn.services.security.authorize(
         session,
         path,
