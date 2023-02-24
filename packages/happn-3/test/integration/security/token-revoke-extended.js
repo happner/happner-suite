@@ -8,6 +8,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
         services: {
           security: {
             config: {
+              allowLogoutOverHttp: true,
               profiles: [
                 {
                   name: 'test-session',
@@ -164,7 +165,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     test.expect(result.response.statusCode).to.equal(403);
     try {
       await doEventRoundTripTokenPromise(sessionToken);
-      throw new Error('untest.expected success');
+      throw new Error('unexpected success');
     } catch (e) {
       test.expect(e.message).to.be(`token has been revoked`);
     }
@@ -186,9 +187,31 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     test.expect(result.response.statusCode).to.equal(403);
     try {
       await doEventRoundTripTokenPromise(sessionToken);
-      throw new Error('untest.expected success');
+      throw new Error('unexpected success');
     } catch (e) {
       test.expect(e.message).to.be(`token has been revoked`);
+    }
+  });
+
+  it('logs in with the ws user - we then test a call to a web-method, fail to logout because allowLogoutOverHttp is false', async () => {
+    serviceInstance.services.security.config.allowLogoutOverHttp = false;
+    testClient = await happn.client.create({
+      config: {
+        username: testUser1.username,
+        password: 'TEST PWD',
+      },
+      secure: true,
+    });
+    const sessionToken = testClient.session.token;
+    await testClient.disconnect();
+    let result = await doRequestPromise('/TEST/WEB/ROUTE', sessionToken, false);
+    test.expect(result.response.statusCode).to.equal(200);
+    try {
+      await doRequestLogoutPromise(sessionToken);
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.message).to.be(`unsuccessful logout: 403`);
+      serviceInstance.services.security.config.allowLogoutOverHttp = true;
     }
   });
 

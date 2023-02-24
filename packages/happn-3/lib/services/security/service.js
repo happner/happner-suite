@@ -89,8 +89,11 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
     if (typeof config.pbkdf2Iterations !== 'number') config.pbkdf2Iterations = 10000;
 
-    //token is always locked to login type
+    // token is always locked to login type
     if (config.lockTokenToLoginType == null) config.lockTokenToLoginType = true;
+
+    // rest logouts disabled by default
+    if (config.allowLogoutOverHttp == null) config.allowLogoutOverHttp = false;
 
     this.config = config;
     this.config.cookieName = this.config.cookieName || 'happn_token';

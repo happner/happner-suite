@@ -137,6 +137,9 @@ function _process(req, res, next) {
         );
       }
       if (path === '/@HTTP/auth/logout') {
+        if (!this.happn.services.security.config.allowLogoutOverHttp) {
+          return this.__respondForbidden(req, res, 'logouts over http are not allowed');
+        }
         return this.happn.services.security.revokeToken(session.token, 'by user request', (e) => {
           if (e) {
             return next(e);
