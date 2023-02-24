@@ -149,6 +149,18 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       });
   });
 
+  it('ensures logout disconnects child sessions with same token', async () => {
+    const myClient = await happn.client.create({ username: '_ADMIN', password: 'happn' });
+    const myOtherClient = await happn.client.create({
+      username: '_ADMIN',
+      token: myClient.session.token,
+    });
+    test.expect(myOtherClient.status).to.equal(1); // connected
+    await myClient.logout();
+    await test.delay(4e3);
+    test.expect(myOtherClient.status).to.equal(2); // disconnected
+  });
+
   it('logs in with the ws user - we then test a call to a web-method, then logout, we try and reuse the token and ensure that it fails', async () => {
     testClient = await happn.client.create({
       config: {

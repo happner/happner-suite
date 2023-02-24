@@ -70,7 +70,7 @@ Using node:
 
 ```javascript
 var happn = require('happn-3');
-var my_client_instance; //this will be your client instance
+var myClient; //this will be your client instance
 
 /**
 example options are :
@@ -163,7 +163,7 @@ SET
 //the noPublish parameter means this data change wont be published to other subscribers, it is false by default
 //there are a bunch other parameters - like noStore (the json isnt persisted, but the message is published)
 
-my_client_instance.set('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, {noPublish:true}, function(e, result){
+myClient.set('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, {noPublish:true}, function(e, result){
 
 	//your result object has a special _meta property that contains its actual _id, path, created and modified dates
 	//so you get back {property1:'property1',property2:'property2',property3:'property3', _meta:{path:'e2e_test1/testsubscribe/data/', created:20151011893020}}
@@ -182,7 +182,7 @@ PUBLISH
 
 ```javascript
 
-my_client_instance.publish('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, function(e, result){
+myClient.publish('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, function(e, result){
 
 	//your result does not contain the changed data, but it still has the _meta property:
   result = {
@@ -207,12 +207,12 @@ INCREMENT
 ```javascript
 
   //listen on a path
-  myclient.on('my/increment/guage', function(data){
+  myClient.on('my/increment/guage', function(data){
 
     //NB; the data on the event will look like this
     //{guage:'counter', value:1}
 
-    myclient.get('my/increment/guage', function(e, gotIncrementedData){
+    myClient.get('my/increment/guage', function(e, gotIncrementedData){
 
       expect(gotIncrementedData[data.value].value).to.be(1);
     });
@@ -222,7 +222,7 @@ INCREMENT
     if (e) throw e;
 
     //increment convenience method
-    myclient.increment('my/increment/guage', 1, function(e){
+    myClient.increment('my/increment/guage', 1, function(e){
 
       if (e) throw e;
     });
@@ -235,14 +235,14 @@ INCREMENT
 
   async.timesSeries(10, function (time, timeCB) {
 
-    myclient.increment('my/guage', function (e) {
+    myClient.increment('my/guage', function (e) {
 
       timeCB(e);
     });
 
   }, function (e) {
 
-    myclient.get('my/guage', function (e, result) {
+    myClient.get('my/guage', function (e, result) {
 
       expect(result['counter-0'].value).to.be(10);
 
@@ -256,14 +256,14 @@ INCREMENT
 
   async.timesSeries(10, function (time, timeCB) {
 
-    myclient.increment('my/dashboard', 'counter-' + time, 1, function (e) {
+    myClient.increment('my/dashboard', 'counter-' + time, 1, function (e) {
 
       timeCB(e);
     });
 
   }, function (e) {
 
-    myclient.get('my/dashboard', function (e, result) {
+    myClient.get('my/dashboard', function (e, result) {
 
       expect(result['counter-0'].value).to.be(1);
       expect(result['counter-1'].value).to.be(1);
@@ -286,7 +286,7 @@ INCREMENT
   var incrementCount = 0;
 
   //listening on the event
-  myclient.on('my/test/guage', function (data) {
+  myClient.on('my/test/guage', function (data) {
 
     incrementCount++;
 
@@ -302,15 +302,15 @@ INCREMENT
 
   }, function (e) {
 
-    myclient.increment('my/test/guage', 'custom', 3, function (e) {
+    myClient.increment('my/test/guage', 'custom', 3, function (e) {
 
-      myclient.get('my/test/guage', function (e, result) {
+      myClient.get('my/test/guage', function (e, result) {
 
           expect(result['custom'].value).to.be(1);
 
-          myclient.increment('my/test/guage', 'custom', -2, function (e) {
+          myClient.increment('my/test/guage', 'custom', -2, function (e) {
 
-             myclient.get('my/dashboard', function (e, result) {
+             myClient.get('my/dashboard', function (e, result) {
 
                   expect(result['custom'].value).to.be(1);
              });
@@ -326,7 +326,7 @@ GET
 *Gets the data living at the specified branch*
 
 ```javascript
-my_client_instance.get('e2e_test1/testsubscribe/data',
+myClient.get('e2e_test1/testsubscribe/data',
 	null, //options
 	function(e, results){
 	//results is your data, if you used a wildcard in your path, you get back an array
@@ -337,7 +337,7 @@ my_client_instance.get('e2e_test1/testsubscribe/data',
 *You can also use wildcards, gets all items with the path starting e2e_test1/testsubscribe/data*
 
 ```javascript
-my_client_instance.get('e2e_test1/testsubscribe/data*',
+myClient.get('e2e_test1/testsubscribe/data*',
 	null,
 	function(e, results){
 	//results is your data
@@ -349,7 +349,7 @@ my_client_instance.get('e2e_test1/testsubscribe/data*',
 *You can also just get paths, without data*
 
 ```javascript
-my_client_instance.getPaths('e2e_test1/testwildcard/*', function(e, results){
+myClient.getPaths('e2e_test1/testwildcard/*', function(e, results){
 ```
 
 SEARCH
@@ -490,7 +490,7 @@ DELETE / REMOVE
 *deletes the data living at the specified branch*
 
 ```javascript
-	my_client_instance.remove('/e2e_test1/testsubscribe/data/delete_me', null, function(e, result){
+	myClient.remove('/e2e_test1/testsubscribe/data/delete_me', null, function(e, result){
 	if (!e)
 		//your item was deleted, result.payload is an object that lists the amount of objects deleted
 ```
@@ -507,7 +507,7 @@ As of version 8.0.0 the wildcard is a whole word, and the / is used to denote pa
 
 Specific listener:
 ```javascript
-my_client_instance.on('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
+myClient.on('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
 					{event_type:'remove', // either set, remove or all - defaults to all
 					 count:0},// how many times you want your handler to handle for before it is removed - default is 0 (infinity)
 					function(//your listener event handler
@@ -520,7 +520,7 @@ my_client_instance.on('/e2e_test1/testsubscribe/data/delete_me', //the path you 
 						//passes in an error if you were unable to register your listener
           });
 //this is now promise based as of v11.5.0
-const handle = await my_client_instance.on('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
+const handle = await myClient.on('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
 					{event_type:'remove', // either set, remove or all - defaults to all
 					 count:0},// how many times you want your handler to handle for before it is removed - default is 0 (infinity)
 					function(//your listener event handler
@@ -528,12 +528,12 @@ const handle = await my_client_instance.on('/e2e_test1/testsubscribe/data/delete
             meta){ //the meta data - path, modified,created _id etc.
             //event happened
           });
-await my_client_instance.off(handle); //unsubscribe
+await myClient.off(handle); //unsubscribe
 ```
 
 Catch all listener:
 ```javascript
-my_client_instance.onAll(function(//your listener event handler
+myClient.onAll(function(//your listener event handler
 						message, //the actual object data being set or removed
 						meta){ 
               //the meta data - path, modified,created _id, also tells you what type of operation happened - ie. GET, SET etc.
@@ -542,7 +542,7 @@ my_client_instance.onAll(function(//your listener event handler
 						//passes in an error if you were unable to register your listener
           });
 //this is now promise based as of v11.5.0
-const handle = await my_client_instance.onAll(function(//your listener event handler
+const handle = await myClient.onAll(function(//your listener event handler
   message, //the actual object data being set or removed
   meta){ //the meta data - path, modified,created _id, also tells you what type of operation happened - ie. GET, SET etc.
 });
@@ -550,14 +550,14 @@ const handle = await my_client_instance.onAll(function(//your listener event han
 
 Once listener:
 ```javascript
-const handle = await my_client_instance.once('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
+const handle = await myClient.once('/e2e_test1/testsubscribe/data/delete_me', //the path you are listening on
 					{ event_type:'*' }, // either set, remove or all - defaults to all
 					function(//your listener event handler
 						message, //the actual object data being set or removed
             meta){ //the meta data - path, modified,created _id etc.
             //event happened
           });
-await my_client_instance.off(handle); //unsubscribe, these will auto-expire after they have received a single message
+await myClient.off(handle); //unsubscribe, these will auto-expire after they have received a single message
 ```
 
 EVENT DATA
@@ -690,7 +690,7 @@ TARGETING EVENTS
 *sets and removes can be targeted for a specific client session, if you have access to a client session id, or need to do a return-ticket post, you can add the session id's you want your event data to go to to the targetClients option*
 
 ```
-var mySessionId = my_client_instance.sesson.id;
+var mySessionId = myClient.sesson.id;
 
 //only publish to myself:
 
@@ -698,11 +698,11 @@ other_client_instance.on('for/my/eyes/only', function(data){
 //should NOT receive this
 });
 
-my_client_instance.on('for/my/eyes/only', function(data){
+myClient.on('for/my/eyes/only', function(data){
 //should receive this
 });
 
-my_client_instance.set('for/my/eyes/only', {property1:'property1'}, {targetClients:[mySessionId]}, function(e, result){
+myClient.set('for/my/eyes/only', {property1:'property1'}, {targetClients:[mySessionId]}, function(e, result){
   ...
 });
 
@@ -731,7 +731,7 @@ MERGE SUBSCRIPTIONS
 
 ```javascript
 
- my_client_instance.on('/merge/only/path', {
+ myClient.on('/merge/only/path', {
         event_type: 'set',
         merge: true
       }, function (message) {
@@ -740,7 +740,7 @@ MERGE SUBSCRIPTIONS
         console.log('subscription happened');
       });
 
-my_client_instance.set('/merge/only/path',
+myClient.set('/merge/only/path',
                       {some:"data"},
                       {merge:true},
                       function (e) {
@@ -755,47 +755,45 @@ VARIABLE DEPTH SUBSCRIPTIONS
 
 ```javascript
 
-var happn = require('../../../lib/index');
-var happn_client = happn.client;
-
+const happn = require('happn-3');
 //NB the default variable depth is 5, you can set it when initialising the client like so:
-myclient = await happn_client.create({config:{username:'_ADMIN', password:'happn', defaultVariableDepth:10}});
+const myClient = await  happn.client.create({config:{username:'_ADMIN', password:'happn', defaultVariableDepth:10}});
 
 var handler = function(data){
 
 };
 
-myclient.on('/test/path/**', { depth:4 }, handler, function(e, variableDepthHandle){
+myClient.on('/test/path/**', { depth:4 }, handler, function(e, variableDepthHandle){
 
   //you can unsubscribe as per normal
-  // ie: myclient.off(variableDepthHandle)
+  // ie: myClient.off(variableDepthHandle)
 });
 
 //is the same as
-myclient.on('/test/path/*', handler, function(e){
+myClient.on('/test/path/*', handler, function(e){
 
 });
-myclient.on('/test/path/*/*', handler, function(e){
+myClient.on('/test/path/*/*', handler, function(e){
 
 });
-myclient.on('/test/path/*/*/*', handler, function(e){
+myClient.on('/test/path/*/*/*', handler, function(e){
 
 });
-myclient.on('/test/path/*/*/*/*', handler, function(e){
+myClient.on('/test/path/*/*/*/*', handler, function(e){
 
 });
 
 //NB: up to a depth of 4, so the event will not fire for a larger depth, ie: /test/path/1/2/3/4/5
 //NB: this functionality also works with initialCallback and initialEmit
 
-myclient.on('/test/path/**', {
+myClient.on('/test/path/**', {
   "event_type": "set",
   "initialEmit": true
 }, function (message, meta) {
   //items will be immediately emitted up to the depth specified
 });
 
-myclient.on('/test/path/**', {
+myClient.on('/test/path/**', {
   "event_type": "set",
   "initialCallback": true
 }, function (message) {
@@ -816,7 +814,7 @@ MERGING
 
 ```javascript
 
-my_client_instance.set('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, {merge:true}, function(e, result){
+myClient.set('e2e_test1/testsubscribe/data/', {property1:'property1',property2:'property2',property3:'property3'}, {merge:true}, function(e, result){
 
 });
 
@@ -830,7 +828,7 @@ SESSION AND CONNECTION EVENTS:
 ```javascript
 
 // session-ended event is emitted if the session is disconnected from the server side
-my_client_instance.onEvent('session-ended', (evt) => {
+myClient.onEvent('session-ended', (evt) => {
   //evt.reason could be:
   //inactivity-threshold - the client has been inactive for a period exceeding what the session is profiled for (see profiles)
   //session-revoked - the client session has been revoked on the server side
@@ -838,17 +836,16 @@ my_client_instance.onEvent('session-ended', (evt) => {
 });
 
 // reconnect-scheduled event is emitted if the connection with the server has been interrupted
-my_client_instance.onEvent('reconnect-scheduled', (evt) => {
+myClient.onEvent('reconnect-scheduled', (evt) => {
 
 });
 
 // reconnect-successful event is emitted if the connection with the server has been restored
-my_client_instance.onEvent('reconnect-successful', (evt) => {
+myClient.onEvent('reconnect-successful', (evt) => {
 
 });
 
 ```
-
 After version 11.6.0, by default some basic session info is logged whenever a client attached or detaches in the format, as stringified JSON:
 
 ```json
@@ -877,6 +874,28 @@ let myService = await Happn.service.create({
     }
   }
 });
+```
+
+CLIENT DISCONNECTION AND LOGOUT
+-------------------------------
+*the happn client can disconnect using a plain disconnect() method (Promise) - or you can disconnect with options, one of which is revokeToken:true, this will disconnect the client and revoke the access token for the client - all other clients created with the same token will be disconnected as well, there is a convenience logout() method that is in effect the same as disconnect({ revokeToken: true })*
+
+```javascript
+const happn = require('happn-3');
+const myClient = await  happn.client.create({ username:'_ADMIN', password:'happn'});
+const myOtherClient = await  happn.client.create({ username:'_ADMIN', token: myClient.session.token });
+
+// plain disconnect
+await myClient.disconnect();
+
+// the following methods will revoke the token and cause myOtherClient to be automatically disconnected:
+
+// disconnect with revokeToken:true option
+await myClient.disconnect({ revokeToken: true });
+
+// logout convenience method, also revokes the token
+await myClient.logout();
+
 ```
 
 SECURITY
