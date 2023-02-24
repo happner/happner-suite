@@ -1593,7 +1593,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  //issue:::
   it('should create a user with a public key, then fail login to a using a signature - bad public key', function (done) {
     this.timeout(20000);
 
@@ -5249,25 +5248,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         protocol: 'mockProtocol',
         parentId: 1,
       },
+      token: 'token',
     };
 
     serviceInst.errorService = {
       handleSystem: test.sinon.stub(),
     };
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback('mockError');
     });
 
     const result = serviceInst.resetSessionPermissions(mockWhatHappnd, mockChangedData);
 
-    test.chai.expect(serviceInst.sessionService.disconnectSessions).to.have.been.calledWithExactly(
-      1,
-      {
-        reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      },
-      test.sinon.match.func
-    );
+    test.chai
+      .expect(serviceInst.sessionService.disconnectSessionsWithToken)
+      .to.have.been.calledWithExactly(
+        'token',
+        {
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        },
+        test.sinon.match.func
+      );
     test.chai
       .expect(serviceInst.errorService.handleSystem)
       .to.have.been.calledWithExactly('mockError', 'SecurityService');
@@ -5302,22 +5304,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         protocol: 'mockProtocol',
         parentId: 1,
       },
+      token: 'token',
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 
     const result = serviceInst.resetSessionPermissions(mockWhatHappnd, mockChangedData);
 
-    test.chai.expect(serviceInst.sessionService.disconnectSessions).to.have.been.calledWithExactly(
-      1,
-      {
-        reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      },
-      test.sinon.match.func
-    );
+    test.chai
+      .expect(serviceInst.sessionService.disconnectSessionsWithToken)
+      .to.have.been.calledWithExactly(
+        'token',
+        {
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        },
+        test.sinon.match.func
+      );
     await test.chai.expect(result).to.eventually.eql([
       {
         id: 1,
@@ -5356,8 +5361,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       ttl: true,
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 
@@ -5420,8 +5425,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       ttl: true,
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 
