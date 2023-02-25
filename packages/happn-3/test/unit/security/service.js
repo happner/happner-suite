@@ -3752,7 +3752,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(spyDataChanged).to.have.callCount(1);
   });
 
-  it('tests #initializeCheckPoint - promise is rejected.', async () => {
+  it('tests #initializeCheckPoint - promise is rejected', async () => {
     initializer(
       { disableDefaultAdminNetworkConnections: false, sessionTokenSecret: 'mockToken' },
       mockHappn,
@@ -3783,6 +3783,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3820,6 +3821,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3893,6 +3895,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
