@@ -1,12 +1,9 @@
-require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test) => {
+require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test) => {
   const path = require('path');
-  const util = require('util');
-  const request = util.promisify(require('request'), { multiArgs: true });
   const Mesh = test.Mesh;
   const test_id = test.newid();
   const dbFileName =
     '.' + path.sep + 'temp' + path.sep + 'b1-permission-remove-vs-prohibit' + test_id + '.nedb';
-  const fs = test.commons.fs;
   let mesh;
 
   let config = {
@@ -56,9 +53,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
   });
 
   let adminClient = new Mesh.MeshClient({ secure: true, test: 'adminClient' });
-  let testUserClient = new Mesh.MeshClient({ secure: true, test: 'testUserClient' });
-  //NB in browser is: new MeshClient();
-  //in node is: require('happner').MeshClient;
 
   before('logs in with the admin user', function (done) {
     // Credentials for the login method
@@ -230,7 +224,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
   it('upsert a user with permissions, and tests removing permissions from the user', async () => {
     let testUpsertUser = {
-      username: 'TEST_USER_PERMISSIONS_3',
+      username: 'REMOVE_USER',
       password: 'TEST PWD',
       custom_data: {
         something: 'useful',
@@ -249,12 +243,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     await adminClient.exchange.security.addUser(testUpsertUser);
     await testUpsertClient.login(testUpsertUser);
 
-    await adminClient.exchange.security.addUserPermissions(
-      'TEST_USER_PERMISSIONS_3',
-      addPermissions
-    );
+    await adminClient.exchange.security.addUserPermissions('REMOVE_USER', addPermissions);
 
-    let user = await adminClient.exchange.security.getUser('TEST_USER_PERMISSIONS_3');
+    let user = await adminClient.exchange.security.getUser('REMOVE_USER');
     test.expect(user.permissions).to.eql({
       methods: {
         'meshname/component/method2': { authorized: true },
@@ -276,12 +267,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       },
       data: {},
     });
-    await adminClient.exchange.security.removeUserPermissions(
-      'TEST_USER_PERMISSIONS_3',
-      removePermissions
-    );
+    await adminClient.exchange.security.removeUserPermissions('REMOVE_USER', removePermissions);
 
-    user = await adminClient.exchange.security.getUser('TEST_USER_PERMISSIONS_3');
+    user = await adminClient.exchange.security.getUser('REMOVE_USER');
     test.expect(user.permissions).to.eql({
       methods: {
         'meshname/component/method2': { authorized: true },
