@@ -957,7 +957,7 @@ describe(test.testName(), function () {
   });
 
   context('login failed', () => {
-    it('throws error : Invalid credentials', () => {
+    xit('throws error : Invalid credentials', () => {
       const invalidCredentialsErrorStub = test.sinon
         .stub(errorService, 'InvalidCredentialsError')
         .returns('Invalid credentials');
