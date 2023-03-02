@@ -342,7 +342,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       .catch(done);
   });
 
-  it.only('tests token revocation via logout', async () => {
+  it('tests token revocation via logout', async () => {
     testAdminClient = await test.Mesh.MeshClient.create({
       port: 10e3,
       username: '_ADMIN',
