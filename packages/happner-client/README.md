@@ -48,6 +48,34 @@ client.connect(null, {username: '_ADMIN', password: 'happn'}, function (e) {
 })
 ```
 
+### Create and connect
+*the simpler way: (v12.6 onwards)*
+```javascript
+const client = await HappnerClient.create({
+  host: 'localhost',
+  port: 55000,
+  username: '_ADMIN',
+  password: 'xxx'
+});
+```
+
+### Login with token and logout
+*it is  possible to connect with another clients token, the call to .logout() will invalidate your connection token, and disconnect all clients that have used it to login with:*
+```javascript
+const connectionOptions = {
+  host: 'localhost',
+  port: 55000,
+  username: '_ADMIN',
+};
+const client = await HappnerClient.create({ ...connectionOptions, password: 'xxx' });
+let token = client.dataClient().session.token;
+let otherClient = await HappnerClient.create({ ...connectionOptions, token });
+test.expect(otherClient.dataClient().status).to.be(1); // status 1 is connected
+await client.logout();
+await test.delay(2e3); // wait a second
+test.expect(otherClient.dataClient().status).to.be(2); // status 2 is disconnected
+```
+
 ### Events
 
 ```javascript

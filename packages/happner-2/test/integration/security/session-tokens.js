@@ -341,4 +341,22 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       })
       .catch(done);
   });
+
+  it.only('tests token revocation via logout', async () => {
+    testAdminClient = await test.Mesh.MeshClient.create({
+      port: 10e3,
+      username: '_ADMIN',
+      password: ADMIN_PASSWORD,
+    });
+    let token = testAdminClient.data.session.token;
+    let testAdminClient2 = await test.Mesh.MeshClient.create({
+      port: 10e3,
+      username: '_ADMIN',
+      token,
+    });
+    test.expect(testAdminClient2.data.status).to.be(1);
+    await testAdminClient.logout();
+    await test.delay(2e3);
+    test.expect(testAdminClient2.data.status).to.be(2);
+  });
 });
