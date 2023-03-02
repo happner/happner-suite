@@ -65,7 +65,6 @@ describe(test.name(__filename, 3), function () {
         const connectionOptions = {
           username: '_ADMIN',
           domain: DOMAIN,
-          secure: mode === 'secure',
         };
         const testAdminClient = await LightClient.create({ ...connectionOptions, password: 'xxx' });
         let token = testAdminClient.dataClient().session.token;

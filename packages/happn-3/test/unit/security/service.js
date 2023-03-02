@@ -271,6 +271,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     mockHappn = {
       config: {
         disableDefaultAdminNetworkConnections: true,
+        secure: true,
       },
       services: {
         cache: {
@@ -4226,6 +4227,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       const mockToken = null;
       const mockReason = test.sinon.stub();
       const mockCallback = test.sinon.stub();
@@ -4245,6 +4247,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       const mockToken = 'mockToken';
       const mockReason = 'mockReason';
       const mockCallback = test.sinon.stub();
@@ -4273,6 +4276,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4327,6 +4331,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4396,6 +4401,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4473,6 +4479,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4540,6 +4547,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4607,6 +4615,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };

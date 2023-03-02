@@ -258,9 +258,10 @@ Assuming served from [happner-2](https://github.com/happner/happner-2) packaged 
 ```javascript
 
 const connectionOptions = {
+  host: 'localhost',
+  port: 55000,
   username: '_ADMIN',
-  domain: DOMAIN,
-  secure: mode === 'secure',
+  domain: DOMAIN, // the domain of the cluster or the name of the happner mesh you are connecting to
 };
 
 const myClient = await LightClient.create({ ...connectionOptions, password: 'xxx' });
@@ -278,22 +279,27 @@ const onEventId = await myClient.event.$on({ component: 'remoteComponent', path:
   doSomethingWith(eventData);
 });
 
-// listen for an event once only
-const onceEventId = await myClient.event.$once({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
+// unlisten by event handle
+await myClient.event.$off(onEventId)
+
+// or unlisten by component and path
+await myClient.event.$offPath({ component: 'remoteComponent', path: 'remoteEvents/*' })
+
+// listen for an event once only, does equivalent of $off after the event is handled
+await myClient.event.$once({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
   // our handler does something with the event data
   doSomethingWith(eventData);
 });
-
-// unlisten for both events
-await myClient.event.$off(onEventId);
-await myClient.event.$off(onceEventId);
-
+// grab our session token
 let token = myClient.dataClient().session.token;
+// create a new session off the token
 let myOtherClient = await LightClient.create({ ...connectionOptions, token });
 // myOtherClient.dataClient().status === 1 - connected
 
-await testAdminClient.logout();
-await test.delay(2e3); // however you choose to wait a bit
-// myOtherClient.dataClient().status === 2 - child myOtherClient disconnected, as it authenticated via parent myClient's token
+// parent client logout
+await myClient.logout();
+// possible need for delay...then:
+
+// myOtherClient.dataClient().status === 2 - child myOtherClient disconnected, as it was authenticated via parent myClient's token
 
 ```
