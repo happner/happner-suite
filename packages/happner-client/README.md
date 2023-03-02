@@ -251,3 +251,49 @@ Assuming served from [happner-2](https://github.com/happner/happner-2) packaged 
 </body>
 </html>
 ```
+
+# happn-client lite
+*this version of the client does not require the construction of the expected API, the calls are transactional with a the same payload structure*
+###  connect, login with a token, call a method, listen to an event and finally logout
+```javascript
+
+const connectionOptions = {
+  username: '_ADMIN',
+  domain: DOMAIN,
+  secure: mode === 'secure',
+};
+
+const myClient = await LightClient.create({ ...connectionOptions, password: 'xxx' });
+
+// call a remote method like so, will throw a not implemented error if the remote component or method does not exist:
+const result  = await myClient.exchange.$call({
+  component: 'remoteComponent',
+  method: 'remoteMethod',
+  arguments: ['arg1', 'arg2'],
+});
+
+// listen for an event every time it happens
+const onEventId = await myClient.event.$on({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
+  // our handler does something with the event data
+  doSomethingWith(eventData);
+});
+
+// listen for an event once only
+const onceEventId = await myClient.event.$once({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
+  // our handler does something with the event data
+  doSomethingWith(eventData);
+});
+
+// unlisten for both events
+await myClient.event.$off(onEventId);
+await myClient.event.$off(onceEventId);
+
+let token = myClient.dataClient().session.token;
+let myOtherClient = await LightClient.create({ ...connectionOptions, token });
+// myOtherClient.dataClient().status === 1 - connected
+
+await testAdminClient.logout();
+await test.delay(2e3); // however you choose to wait a bit
+// myOtherClient.dataClient().status === 2 - child myOtherClient disconnected, as it authenticated via parent myClient's token
+
+```

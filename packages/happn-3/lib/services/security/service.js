@@ -748,8 +748,12 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       callback = reason;
       reason = 'SYSTEM';
     }
-
-    if (token == null || token === undefined) {
+    if (!this.happn.config.secure) {
+      return callback(
+        new Error('attempt to logout or revoke token for unsecured session, use disconnect')
+      );
+    }
+    if (token == null) {
       return callback(new Error('token not defined'));
     }
     let decoded = this.decodeToken(token);
