@@ -11,7 +11,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withStatisticsCheckoutPointCacheAuthOverride(max: number, maxAge: number): CacheConfigBuilder {
+  withCheckoutPointCacheAuthOverride(max: number, maxAge: number): CacheConfigBuilder {
     this.set('config.overrides.checkpoint_cache_authorization.max', max, BaseBuilder.Types.INTEGER);
     this.set(
       'config.overrides.checkpoint_cache_authorization.maxAge',
@@ -22,7 +22,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withStatisticsCheckoutPointCacheAuthTokenOverride(
+  withCheckoutPointCacheAuthTokenOverride(
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
@@ -40,21 +40,21 @@ export class CacheConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withStatisticsCacheSecurityGroupsOverride(max: number, maxAge: number): CacheConfigBuilder {
+  withCacheSecurityGroupsOverride(max: number, maxAge: number): CacheConfigBuilder {
     this.set('config.overrides.cache_security_groups.max', max, BaseBuilder.Types.INTEGER);
     this.set('config.overrides.cache_security_groups.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
     return this;
   }
 
-  withStatisticsCacheSecurityUsersOverride(max: number, maxAge: number): CacheConfigBuilder {
+  withCacheSecurityUsersOverride(max: number, maxAge: number): CacheConfigBuilder {
     this.set('config.overrides.cache_security_users.max', max, BaseBuilder.Types.INTEGER);
     this.set('config.overrides.cache_security_users.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 
     return this;
   }
 
-  withStatisticsCacheSecurityGroupPermissionsOverride(
+  withCacheSecurityGroupPermissionsOverride(
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
@@ -72,7 +72,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withStatisticsCacheSecurityUserPermissionsOverride(
+  withCacheSecurityUserPermissionsOverride(
     max: number,
     maxAge: number
   ): CacheConfigBuilder {
@@ -90,7 +90,7 @@ export class CacheConfigBuilder extends BaseBuilder {
     return this;
   }
 
-  withStatisticsCacheSecurityPasswordsOverride(max: number, maxAge: number): CacheConfigBuilder {
+  withCacheSecurityPasswordsOverride(max: number, maxAge: number): CacheConfigBuilder {
     this.set('config.overrides.cache_security_passwords.max', max, BaseBuilder.Types.INTEGER);
     this.set('config.overrides.cache_security_passwords.maxAge', maxAge, BaseBuilder.Types.INTEGER);
 

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any */
 const BaseBuilder = require('happn-commons/lib/base-builder');
 import { Constructor } from '../../types/mixin-types';
-import { IHappnConfigurationBuilder } from '../interfaces/i-happn-configuration-builder';
 import { CacheConfigBuilder } from './services/cache-config-builder';
 import { ConnectConfigBuilder } from './services/connect-config-builder';
 import { DataConfigBuilder } from './services/data-config-builder';
@@ -98,13 +97,13 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
     CACHE
      */
 
-    withCacheStatisticsCheckPointAuthOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCheckoutPointCacheAuthOverride(max, maxAge);
+    withCacheCheckPointAuthOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCheckoutPointCacheAuthOverride(max, maxAge);
       return this;
     }
 
-    withCacheStatisticsCheckPointAuthTokenOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCheckoutPointCacheAuthTokenOverride(max, maxAge);
+    withCacheCheckPointAuthTokenOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCheckoutPointCacheAuthTokenOverride(max, maxAge);
       return this;
     }
 
@@ -113,28 +112,28 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       return this;
     }
 
-    withCacheStatisticsSecurityGroupPermissionsOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCacheSecurityGroupPermissionsOverride(max, maxAge);
+    withCacheSecurityGroupPermissionsOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCacheSecurityGroupPermissionsOverride(max, maxAge);
       return this;
     }
 
-    withCacheStatisticsSecurityGroupsOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCacheSecurityGroupsOverride(max, maxAge);
+    withCacheSecurityGroupsOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCacheSecurityGroupsOverride(max, maxAge);
       return this;
     }
 
-    withCacheStatisticsSecurityPasswordsOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCacheSecurityPasswordsOverride(max, maxAge);
+    withCacheSecurityPasswordsOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCacheSecurityPasswordsOverride(max, maxAge);
       return this;
     }
 
-    withCacheStatisticsSecurityUserPermissionsOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCacheSecurityUserPermissionsOverride(max, maxAge);
+    withCacheSecurityUserPermissionsOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCacheSecurityUserPermissionsOverride(max, maxAge);
       return this;
     }
 
-    withCacheStatisticsSecurityUsersOverride(max: number, maxAge: number): HappnBuilder {
-      this.#cacheConfigBuilder.withStatisticsCacheSecurityUsersOverride(max, maxAge);
+    withCacheSecurityUsersOverride(max: number, maxAge: number): HappnBuilder {
+      this.#cacheConfigBuilder.withCacheSecurityUsersOverride(max, maxAge);
       return this;
     }
 

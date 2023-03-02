@@ -26,14 +26,14 @@ export declare function HappnCoreBuilder<TBase extends Constructor>(Base: TBase)
         withPort(port: number): any;
         withSecure(isSecure: boolean): any;
         withAllowNestedPermissions(allow: boolean): any;
-        withCacheStatisticsCheckPointAuthOverride(max: number, maxAge: number): any;
-        withCacheStatisticsCheckPointAuthTokenOverride(max: number, maxAge: number): any;
+        withCacheCheckPointAuthOverride(max: number, maxAge: number): any;
+        withCacheCheckPointAuthTokenOverride(max: number, maxAge: number): any;
         withCacheStatisticsInterval(interval: number): any;
-        withCacheStatisticsSecurityGroupPermissionsOverride(max: number, maxAge: number): any;
-        withCacheStatisticsSecurityGroupsOverride(max: number, maxAge: number): any;
-        withCacheStatisticsSecurityPasswordsOverride(max: number, maxAge: number): any;
-        withCacheStatisticsSecurityUserPermissionsOverride(max: number, maxAge: number): any;
-        withCacheStatisticsSecurityUsersOverride(max: number, maxAge: number): any;
+        withCacheSecurityGroupPermissionsOverride(max: number, maxAge: number): any;
+        withCacheSecurityGroupsOverride(max: number, maxAge: number): any;
+        withCacheSecurityPasswordsOverride(max: number, maxAge: number): any;
+        withCacheSecurityUserPermissionsOverride(max: number, maxAge: number): any;
+        withCacheSecurityUsersOverride(max: number, maxAge: number): any;
         /***
          * Can be invoked multiple times to add more than 1 exclusion
          * @param exclusion

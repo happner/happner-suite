@@ -29,31 +29,31 @@ describe('cache configuration builder tests', function () {
 
     const builder = new CacheConfigBuilder();
     const result = builder
-      .withStatisticsCacheSecurityGroupPermissionsOverride(
+      .withCacheSecurityGroupPermissionsOverride(
         mockCacheSecurityGroupPermissionMax,
         mockCacheSecurityGroupPermissionMaxAge
       )
-      .withStatisticsCacheSecurityGroupsOverride(
+      .withCacheSecurityGroupsOverride(
         mockCacheSecurityGroupsMax,
         mockCacheSecurityGroupsMaxAge
       )
-      .withStatisticsCacheSecurityPasswordsOverride(
+      .withCacheSecurityPasswordsOverride(
         mockCacheSecurityPasswordsOverrideMax,
         mockCacheSecurityPasswordsOverrideMaxAge
       )
-      .withStatisticsCacheSecurityUserPermissionsOverride(
+      .withCacheSecurityUserPermissionsOverride(
         mockCacheSecurityUserPermissionsOverrideMax,
         mockCacheSecurityUserPermissionsOverrideMaxAge
       )
-      .withStatisticsCacheSecurityUsersOverride(
+      .withCacheSecurityUsersOverride(
         mockCacheSecurityUsersOverrideMax,
         mockCacheSecurityUsersOverrideMaxAge
       )
-      .withStatisticsCheckoutPointCacheAuthOverride(
+      .withCheckoutPointCacheAuthOverride(
         mockCacheCheckPointCacheAuthOverrideMax,
         mockCacheCheckPointCacheAuthOverrideMaxAge
       )
-      .withStatisticsCheckoutPointCacheAuthTokenOverride(
+      .withCheckoutPointCacheAuthTokenOverride(
         mockCacheCheckPointCacheAuthTokenOverrideMax,
         mockCacheCheckPointCacheAuthTokenOverrideMaxAge
       )

@@ -79,36 +79,36 @@ function HappnCoreBuilder(Base) {
             /*
             CACHE
              */
-            withCacheStatisticsCheckPointAuthOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCheckoutPointCacheAuthOverride(max, maxAge);
+            withCacheCheckPointAuthOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCheckoutPointCacheAuthOverride(max, maxAge);
                 return this;
             }
-            withCacheStatisticsCheckPointAuthTokenOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCheckoutPointCacheAuthTokenOverride(max, maxAge);
+            withCacheCheckPointAuthTokenOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCheckoutPointCacheAuthTokenOverride(max, maxAge);
                 return this;
             }
             withCacheStatisticsInterval(interval) {
                 __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsInterval(interval);
                 return this;
             }
-            withCacheStatisticsSecurityGroupPermissionsOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCacheSecurityGroupPermissionsOverride(max, maxAge);
+            withCacheSecurityGroupPermissionsOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCacheSecurityGroupPermissionsOverride(max, maxAge);
                 return this;
             }
-            withCacheStatisticsSecurityGroupsOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCacheSecurityGroupsOverride(max, maxAge);
+            withCacheSecurityGroupsOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCacheSecurityGroupsOverride(max, maxAge);
                 return this;
             }
-            withCacheStatisticsSecurityPasswordsOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCacheSecurityPasswordsOverride(max, maxAge);
+            withCacheSecurityPasswordsOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCacheSecurityPasswordsOverride(max, maxAge);
                 return this;
             }
-            withCacheStatisticsSecurityUserPermissionsOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCacheSecurityUserPermissionsOverride(max, maxAge);
+            withCacheSecurityUserPermissionsOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCacheSecurityUserPermissionsOverride(max, maxAge);
                 return this;
             }
-            withCacheStatisticsSecurityUsersOverride(max, maxAge) {
-                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withStatisticsCacheSecurityUsersOverride(max, maxAge);
+            withCacheSecurityUsersOverride(max, maxAge) {
+                __classPrivateFieldGet(this, _HappnBuilder_cacheConfigBuilder, "f").withCacheSecurityUsersOverride(max, maxAge);
                 return this;
             }
             /*

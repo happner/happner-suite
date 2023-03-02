@@ -88,14 +88,14 @@ function setHappnConfigValues(builder) {
       .withAllowNestedPermissions(true)
 
       // cache
-      .withCacheStatisticsCheckPointAuthOverride(5, 1000)
-      .withCacheStatisticsCheckPointAuthTokenOverride(5, 1000)
+      .withCacheCheckPointAuthOverride(5, 1000)
+      .withCacheCheckPointAuthTokenOverride(5, 1000)
       .withCacheStatisticsInterval(1)
-      .withCacheStatisticsSecurityGroupPermissionsOverride(10, 2000)
-      .withCacheStatisticsSecurityGroupsOverride(10, 2000)
-      .withCacheStatisticsSecurityPasswordsOverride(15, 20000)
-      .withCacheStatisticsSecurityUserPermissionsOverride(15, 20000)
-      .withCacheStatisticsSecurityUsersOverride(15, 20000)
+      .withCacheSecurityGroupPermissionsOverride(10, 2000)
+      .withCacheSecurityGroupsOverride(10, 2000)
+      .withCacheSecurityPasswordsOverride(15, 20000)
+      .withCacheSecurityUserPermissionsOverride(15, 20000)
+      .withCacheSecurityUsersOverride(15, 20000)
 
       // connect
       .withConnectSecurityExclusion('/test/exclusion')

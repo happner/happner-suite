@@ -11,37 +11,37 @@ class CacheConfigBuilder extends BaseBuilder {
         this.set(`config.statisticsInterval`, interval, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCheckoutPointCacheAuthOverride(max, maxAge) {
+    withCheckoutPointCacheAuthOverride(max, maxAge) {
         this.set('config.overrides.checkpoint_cache_authorization.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.checkpoint_cache_authorization.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCheckoutPointCacheAuthTokenOverride(max, maxAge) {
+    withCheckoutPointCacheAuthTokenOverride(max, maxAge) {
         this.set('config.overrides.checkpoint_cache_authorization_token.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.checkpoint_cache_authorization_token.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCacheSecurityGroupsOverride(max, maxAge) {
+    withCacheSecurityGroupsOverride(max, maxAge) {
         this.set('config.overrides.cache_security_groups.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.cache_security_groups.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCacheSecurityUsersOverride(max, maxAge) {
+    withCacheSecurityUsersOverride(max, maxAge) {
         this.set('config.overrides.cache_security_users.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.cache_security_users.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCacheSecurityGroupPermissionsOverride(max, maxAge) {
+    withCacheSecurityGroupPermissionsOverride(max, maxAge) {
         this.set('config.overrides.cache_security_group_permissions.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.cache_security_group_permissions.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCacheSecurityUserPermissionsOverride(max, maxAge) {
+    withCacheSecurityUserPermissionsOverride(max, maxAge) {
         this.set('config.overrides.cache_security_user_permissions.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.cache_security_user_permissions.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
     }
-    withStatisticsCacheSecurityPasswordsOverride(max, maxAge) {
+    withCacheSecurityPasswordsOverride(max, maxAge) {
         this.set('config.overrides.cache_security_passwords.max', max, BaseBuilder.Types.INTEGER);
         this.set('config.overrides.cache_security_passwords.maxAge', maxAge, BaseBuilder.Types.INTEGER);
         return this;
