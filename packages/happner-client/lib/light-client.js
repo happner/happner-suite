@@ -70,11 +70,54 @@
     this.__responseTimeout =
       typeof opts.responseTimeout === 'number' ? opts.responseTimeout : 120 * 1000;
 
+    this.on('disconnected', () => {
+      this.__stop();
+    });
+    this.on('reconnected', () => {
+      this.__start();
+    });
+
     this.exchange = { $call: this.__exchangeCall.bind(this) };
     this.event = this.__mountEvent({});
   }
 
   inherits(LightHappnerClient, EventEmitter);
+
+  LightHappnerClient.create = async function (options) {
+    const instance = new LightHappnerClient(options);
+    return await instance.connect(
+      {
+        host: options.host,
+        port: options.port,
+      },
+      {
+        protocol: options.protocol,
+        username: options.username,
+        password: options.password,
+        token: options.token,
+        allowSelfSignedCerts: options.allowSelfSignedCerts,
+      }
+    );
+  };
+
+  LightHappnerClient.prototype.__start = function () {
+    if (!this.__stopped) {
+      return;
+    }
+    this.__operations.start();
+    this.__stopped = false;
+  };
+
+  LightHappnerClient.prototype.__stop = function (stopImplementors) {
+    if (this.__stopped) {
+      return;
+    }
+    this.__operations.stop();
+    if (stopImplementors) {
+      this.__implementors.stop();
+    }
+    this.__stopped = true;
+  };
 
   LightHappnerClient.prototype.onConnected = async function () {
     //do nothing
@@ -84,15 +127,21 @@
     this.__connection.connect(connection, options, (e) => {
       if (e) return callback(e);
       this.__implementors.sessionId = this.__connection.client.session.id;
-      callback();
+      callback(null, this);
     });
   });
 
-  LightHappnerClient.prototype.disconnect = Promisify(function (callback) {
-    this.__connection.disconnect(callback);
-    // TODO: call clear
-    this.__operations.stop();
-    this.__implementors.stop();
+  LightHappnerClient.prototype.logout = Promisify(function (callback) {
+    return this.disconnect({ revokeToken: true }, callback);
+  });
+
+  LightHappnerClient.prototype.disconnect = Promisify(function (opts, callback) {
+    if (typeof opts === 'function') {
+      callback = opts;
+      opts = null;
+    }
+    this.__connection.disconnect(opts, callback);
+    this.__stop(true); // stop operations provider and implementors provider
   });
 
   LightHappnerClient.prototype.dataClient = function () {

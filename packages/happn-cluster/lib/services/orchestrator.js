@@ -341,9 +341,12 @@ Orchestrator.prototype.removeMember = function (member) {
 };
 
 Orchestrator.prototype.__onConnectionFrom = function (data) {
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
   if (!data.info) return;
   if (!data.info.clusterName) return;
+
+  this.log.info(
+    `[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom: ${data.info.clusterName}/${data.info.name}`
+  );
 
   if (this.secure) {
     if (data.user.username !== this.adminUser.username) {
@@ -403,11 +406,12 @@ Orchestrator.prototype.__onConnectionFrom = function (data) {
 };
 
 Orchestrator.prototype.__onDisconnectionFrom = function (data) {
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
   if (!data.info) return;
   if (!data.info.clusterName) return;
 
-  this.log.$$TRACE('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
+  this.log.info(
+    `[CLUSTER_MEMBERSHIP]: orchestrator __onDisconnectionFrom: ${data.info.clusterName}/${data.info.name}`
+  );
 
   if (data.info.clusterName !== this.membership.config.clusterName) return;
 
