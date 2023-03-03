@@ -23,15 +23,18 @@
     this.lastSeq = 0;
     this.awaitingResponses = {};
     this.requestBuilder = new RequestBuilder();
-
-    this.pruneResponseSubscriptionsInterval = setInterval(
-      this.pruneResponseSubscriptions.bind(this),
-      60 * 1000
-    );
+    this.start();
   }
 
   OperationsProvider.prototype.stop = function () {
     clearInterval(this.pruneResponseSubscriptionsInterval);
+  };
+
+  OperationsProvider.prototype.start = function () {
+    this.pruneResponseSubscriptionsInterval = setInterval(
+      this.pruneResponseSubscriptions.bind(this),
+      60e3
+    );
   };
 
   OperationsProvider.prototype.connected = function (callback) {
@@ -318,7 +321,6 @@
 
   OperationsProvider.prototype.pruneResponseSubscriptions = function () {
     var _this = this;
-
     if (!this.implementors.sessionId || this.implementors.sessionId.length < 1) return;
     if (!this.connection.connected) return;
 

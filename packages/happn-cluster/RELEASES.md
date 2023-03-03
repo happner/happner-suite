@@ -349,3 +349,8 @@ non-release 2017-12-14
 12.3.1 2023-02-17
 -----------------
   - happn-3 update
+
+12.3.2 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix

@@ -448,3 +448,8 @@
 -----------------
   - happn-3 update
 
+12.4.2 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix
+
