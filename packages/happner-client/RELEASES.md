@@ -410,6 +410,11 @@
 -----------------
   - happn-3 update
 
-12.5.9 2023-02-15
+12.6.0 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix
+
+12.6.1 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update

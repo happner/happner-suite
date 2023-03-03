@@ -100,6 +100,10 @@ Replicator.prototype.securityChangesetReplicate = function (endingProcess) {
 
 Replicator.prototype.getChangedKey = function (whatHappnd, changedData) {
   switch (whatHappnd) {
+    case SD_EVENTS.TOKEN_REVOKED:
+      return changedData;
+    case SD_EVENTS.TOKEN_RESTORED:
+      return changedData;
     case SD_EVENTS.LINK_GROUP:
       return changedData._meta.path.split('/').pop();
     case SD_EVENTS.UNLINK_GROUP:
@@ -145,6 +149,8 @@ Replicator.prototype.unpackBywhatHappnd = function (payload, whatHappnd) {
 
 Replicator.prototype.unbatchSecurityUpdate = function (payload) {
   let unbatched = [];
+  unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.TOKEN_REVOKED));
+  unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.TOKEN_RESTORED));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.LINK_GROUP));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.UNLINK_GROUP));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.UPSERT_GROUP));
