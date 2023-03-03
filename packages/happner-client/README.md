@@ -256,6 +256,30 @@ Assuming served from [happner-2](https://github.com/happner/happner-2) packaged 
 *this version of the client does not require the construction of the expected API, the calls are transactional with a the same payload structure*
 ###  connect, login with a token, call a method, listen to an event and finally logout
 ```javascript
+const LightClient = require('happner-client').Light;
+const Happner = require('happner-2');
+const DOMAIN = 'DOMAIN_NAME';
+
+const serverInstance = await Happner.create({
+  domain: DOMAIN,
+  happn: {
+    secure: true,
+    adminPassword: 'xxx',
+  },
+  modules: {
+    remoteComponent: {
+      instance: {
+        remoteMethod: async (arg1, arg2, $happn) => {
+          $happn.emit(`remoteEvents/1`, { arg1, arg2 });
+          return `${arg1}/${arg2}`;
+        },
+      },
+    },
+  },
+  components: {
+    remoteComponent: {},
+  },
+});
 
 const connectionOptions = {
   host: 'localhost',
@@ -267,39 +291,66 @@ const connectionOptions = {
 const myClient = await LightClient.create({ ...connectionOptions, password: 'xxx' });
 
 // call a remote method like so, will throw a not implemented error if the remote component or method does not exist:
-const result  = await myClient.exchange.$call({
+const result = await myClient.exchange.$call({
   component: 'remoteComponent',
   method: 'remoteMethod',
   arguments: ['arg1', 'arg2'],
 });
 
+// eslint-disable-next-line no-console
+console.log(result);
+
 // listen for an event every time it happens
-const onEventId = await myClient.event.$on({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
-  // our handler does something with the event data
-  doSomethingWith(eventData);
-});
+const onEventId = await myClient.event.$on(
+  { component: 'remoteComponent', path: 'remoteEvents/*' },
+  function (eventData) {
+    // our handler does something with the event data
+    // eslint-disable-next-line no-console
+    console.log('$on:' + JSON.stringify(eventData));
+  }
+);
 
 // unlisten by event handle
-await myClient.event.$off(onEventId)
+await myClient.event.$off(onEventId);
 
 // or unlisten by component and path
-await myClient.event.$offPath({ component: 'remoteComponent', path: 'remoteEvents/*' })
+await myClient.event.$offPath({ component: 'remoteComponent', path: 'remoteEvents/*' });
 
 // listen for an event once only, does equivalent of $off after the event is handled
-await myClient.event.$once({ component: 'remoteComponent', path: 'remoteEvents/*' }, function (eventData) {
-  // our handler does something with the event data
-  doSomethingWith(eventData);
+await myClient.event.$once(
+  { component: 'remoteComponent', path: 'remoteEvents/*' },
+  function (eventData) {
+    // our handler does something with the event data
+    // eslint-disable-next-line no-console
+    console.log('$once:' + JSON.stringify(eventData));
+  }
+);
+
+// call again for our once to kick in
+await myClient.exchange.$call({
+  component: 'remoteComponent',
+  method: 'remoteMethod',
+  arguments: ['arg1', 'arg2'],
 });
+
+// call yet again - ensure once only fired once
+await myClient.exchange.$call({
+  component: 'remoteComponent',
+  method: 'remoteMethod',
+  arguments: ['arg1', 'arg2'],
+});
+
 // grab our session token
 let token = myClient.dataClient().session.token;
 // create a new session off the token
 let myOtherClient = await LightClient.create({ ...connectionOptions, token });
-// myOtherClient.dataClient().status === 1 - connected
+// eslint-disable-next-line no-console
+console.log(`status === 1: ${myOtherClient.dataClient().status === 1}`);
 
 // parent client logout
 await myClient.logout();
 // possible need for delay...then:
-
-// myOtherClient.dataClient().status === 2 - child myOtherClient disconnected, as it was authenticated via parent myClient's token
-
+// eslint-disable-next-line no-console
+console.log(`status === 2: ${myOtherClient.dataClient().status === 2}`); // child myOtherClient disconnected, as it was authenticated via parent myClient's token
+serverInstance.stop();
 ```
