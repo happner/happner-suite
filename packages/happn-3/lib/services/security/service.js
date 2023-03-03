@@ -792,7 +792,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
       // use standard revocation logic
       if (ttl === 0) {
-        // means we wouold have an ever growing revocation list
+        // means we would have an ever growing revocation list
         let message =
           'revoking a token without a ttl means it stays in the revocation list forever';
         // dont allow revocations that live forever in revocation list forever
