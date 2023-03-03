@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-sqlite",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Sqlite data provider for happn",
   "scripts": {
     "test": "_mocha --recursive --exit silence.js test/integration*",
@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "happn-commons-test": "1.2.1",
-    "happn-3": "13.9.1"
+    "happn-3": "13.10.0"
   }
 }
