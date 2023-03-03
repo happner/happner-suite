@@ -78,6 +78,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     //1 minute
     else config.defaultNonceTTL = this.happn.services.utils.toMilliseconds(config.defaultNonceTTL);
 
+    if (config.allowTTL0Revocations == null) config.allowTTL0Revocations = true;
+
     if (!config.logSessionActivity) config.logSessionActivity = false;
 
     if (!config.sessionActivityTTL) config.sessionActivityTTL = 60000 * 60 * 24;
@@ -718,7 +720,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
   #getPolicyTTL(decoded) {
     let ttl = 0;
-
     if (decoded.info && decoded.info._browser) {
       // browser logins can only be used for stateful sessions
       ttl = decoded.policy[1].ttl;
@@ -740,7 +741,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         else ttl = decoded.policy[1].ttl;
       }
     }
-    return ttl;
+    return ttl || 0; // Infinity turns to null over the wire, 0 can be 0
   }
 
   revokeToken(token, reason, callback) {
@@ -749,9 +750,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       reason = 'SYSTEM';
     }
     if (!this.happn.config.secure) {
-      return callback(
-        new Error('attempt to logout or revoke token for unsecured session, use disconnect')
-      );
+      return callback();
     }
     if (token == null) {
       return callback(new Error('token not defined'));
@@ -793,9 +792,15 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
       // use standard revocation logic
       if (ttl === 0) {
-        this.log.warn(
-          'revoking a token without a ttl means it stays in the revocation list forever'
-        );
+        // means we wouold have an ever growing revocation list
+        let message =
+          'revoking a token without a ttl means it stays in the revocation list forever';
+        // dont allow revocations that live forever in revocation list forever
+        if (!this.config.allowTTL0Revocations) {
+          return callback(new Error(message));
+        }
+        // just warn for now
+        this.log.warn(message);
       }
 
       this.cache_revoked_tokens.set(
@@ -1283,6 +1288,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     //we dont want to mess around with the actual sessions type
     //it is an unknown at this point
     let decoupledSession = this.happn.services.utils.clone(session);
+
     this.cache_profiles.forEach((profile) => {
       let filter = profile.session;
       [0, 1].forEach((sessionType) => {

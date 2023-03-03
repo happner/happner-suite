@@ -3785,6 +3785,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         httpsCookie: null,
         cookieDomain: null,
         allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3823,6 +3824,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         httpsCookie: null,
         cookieDomain: null,
         allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3897,6 +3899,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         httpsCookie: null,
         cookieDomain: null,
         allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -4286,6 +4289,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
       serviceInst.config = {
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
@@ -4413,6 +4417,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       serviceInst.config = {
         lockTokenToLoginType: {},
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
@@ -4627,6 +4632,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       serviceInst.config = {
         lockTokenToLoginType: {},
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
