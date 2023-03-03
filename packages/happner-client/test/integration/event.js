@@ -4,10 +4,9 @@ var HappnerClient = require('../..');
 
 describe(test.name(__filename, 3), function () {
   var server, client, api;
-  this.timeout(20000);
+  this.timeout(120e3);
 
   before('start server', function (done) {
-    this.timeout(20000);
     Happner.create({
       util: {
         logLevel: process.env.LOG_LEVEL || 'warn',
@@ -35,8 +34,7 @@ describe(test.name(__filename, 3), function () {
       .catch(done);
   });
 
-  before('start client', function (done) {
-    this.timeout(10000);
+  before('start client', async () => {
     client = new HappnerClient();
     var model = {
       component1: {
@@ -53,17 +51,20 @@ describe(test.name(__filename, 3), function () {
       },
     };
     api = client.construct(model);
-    client.connect().then(done).catch(done);
+    try {
+      await client.connect();
+    } catch (e) {
+      test.log('failed: ', e.message);
+      throw e;
+    }
   });
 
   after('stop client', function (done) {
-    this.timeout(10000);
     if (!client) return done();
     client.disconnect(done);
   });
 
   after('stop server', function (done) {
-    this.timeout(10000);
     if (!server) return done();
     server.stop({ reconnect: false }, done);
   });

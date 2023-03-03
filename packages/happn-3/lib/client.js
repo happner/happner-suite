@@ -1887,15 +1887,19 @@
       }
     }
 
-    if (options.revokeToken || options.revokeSession)
-      return this.revokeToken((e) => {
-        if (e) {
-          this.log.warn(
-            '__connectionCleanup failed in client, revoke-token failed: ' + e.toString()
-          );
-        }
-        this.__endAndDestroySocket(this.socket, callback);
+    if (options.revokeToken || options.revokeSession) {
+      return this.revokeToken((revokeError) => {
+        this.__endAndDestroySocket(this.socket, (endAndDestroyError) => {
+          if (endAndDestroyError) {
+            return callback(endAndDestroyError);
+          }
+          if (revokeError) {
+            return callback(revokeError);
+          }
+          callback();
+        });
       });
+    }
 
     if (options.disconnectChildSessions) {
       return this.__performSystemRequest('disconnect-child-sessions', null, null, (e) => {
@@ -1909,6 +1913,17 @@
       });
     }
     this.__endAndDestroySocket(this.socket, callback);
+  };
+
+  HappnClient.prototype.logout = function () {
+    return new Promise((resolve, reject) => {
+      this.disconnect({ revokeToken: true }, (e) => {
+        if (e) {
+          return reject(e);
+        }
+        resolve();
+      });
+    });
   };
 
   HappnClient.prototype.disconnect = utils.maybePromisify(function (options, callback) {

@@ -43,6 +43,7 @@
     /* hostname, port, secret, callback */
     EventEmitter.call(this);
     MeshClient.prototype.login = maybePromisify(login);
+    MeshClient.prototype.logout = maybePromisify(logout);
     MeshClient.prototype.disconnect = maybePromisify(disconnect);
 
     var log;
@@ -193,6 +194,10 @@
         callback();
       });
     }, 0);
+  }
+
+  function logout(cb) {
+    return this.disconnect({ revokeToken: true }, cb);
   }
 
   function disconnect(opts, cb) {

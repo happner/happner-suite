@@ -90,7 +90,7 @@
     } catch (e) {
       callback(e);
     }
-    callback();
+    callback(null, this.happnerClient);
   };
 
   ConnectionProvider.prototype.getDescription = async function () {
@@ -100,8 +100,11 @@
     return await this.client.get('/mesh/schema/description');
   };
 
-  ConnectionProvider.prototype.disconnect = function (callback) {
-    var _this = this;
+  ConnectionProvider.prototype.disconnect = function (opts, callback) {
+    if (typeof opts === 'function') {
+      callback = opts;
+      opts = null;
+    }
     if (!this.client) return callback();
 
     if (this.__onConnectionEnded) {
@@ -116,8 +119,8 @@
       this.client.offEvent(this.__onReconnectScheduled);
     }
 
-    this.client.disconnect(function (e) {
-      _this.client = undefined;
+    this.client.disconnect(opts, (e) => {
+      this.client = undefined;
       callback(e);
     });
   };
