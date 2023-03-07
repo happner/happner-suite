@@ -1,7 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 describe(test.testName(__filename, 3), function () {
   this.timeout(20000);
-  var expect = require('expect.js');
   var testId = require('shortid').generate();
 
   it('specific cache, sets data, ensures when we get a value back it is cloned by default', function () {
