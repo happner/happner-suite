@@ -1,10 +1,7 @@
-const { createContext } = require('happn-logger/lib/logger');
 const CacheBase = require('../../../lib/services/cache/cache-base');
 const test = require('../../__fixtures/utils/test_helper').create();
 
 describe(test.testName(), () => {
-  beforeEach(() => {});
-  afterEach(() => {});
   context('Constructor', () => {
     it('creates new instance', () => {
       const instance = new CacheBase('mockName', {});
