@@ -12,6 +12,8 @@ describe('security configuration builder tests', function () {
     const mockAdminGroupCustomValue = 'customValue';
     const mockAdminPassword = 'password123';
     const mockAdminPublicKey = 'publicKey3445';
+    const mockAllowLogoutOverHttp = true;
+    const mockAllowTTL0Revocations = false;
     const mockAllowAnonymousAccess = false;
     const mockAuthProvider1Name = 'testProvider';
     const mockAuthProvider1Instance = createTestAuthProvider();
@@ -47,6 +49,8 @@ describe('security configuration builder tests', function () {
       .withAdminPassword(mockAdminPassword)
       .withAdminPublicKey(mockAdminPublicKey)
       .withAdminGroupCustomData(mockAdminGroupCustomKey, mockAdminGroupCustomValue)
+      .withAllowLogoutOverHttp(mockAllowLogoutOverHttp)
+      .withAllowTTL0Revocations(mockAllowTTL0Revocations)
       .withAllowAnonymousAccess(mockAllowAnonymousAccess)
       .withAuthProvider(mockAuthProvider1Name, mockAuthProvider1Instance)
       .withDefaultAuthProvider(mockDefaultAuthProvider)
@@ -79,6 +83,8 @@ describe('security configuration builder tests', function () {
     expect(result.config.adminUser.password).to.equal(mockAdminPassword);
     expect(result.config.adminUser.publicKey).to.equal(mockAdminPublicKey);
     expect(result.config.allowAnonymousAccess).to.equal(mockAllowAnonymousAccess);
+    expect(result.config.allowLogoutOverHttp).to.equal(mockAllowLogoutOverHttp);
+    expect(result.config.allowTTL0Revocations).to.equal(mockAllowTTL0Revocations);
     expect(result.config.authProviders[mockAuthProvider1Name]).to.equal(mockAuthProvider1Instance);
     expect(result.config.authProviders[mockAuthProvider1Name].testFunc()).to.equal(
       'test func called'

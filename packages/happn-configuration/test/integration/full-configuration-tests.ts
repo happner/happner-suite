@@ -131,6 +131,8 @@ function setHappnConfigValues(builder) {
       .withSecurityAdminPublicKey('401be6df11a34')
       .withSecurityAdminGroupPermission('permissionKey', 'permissionAction')
       .withSecurityAdminGroupCustomData('customField', 'customValue')
+      .withSecurityAllowLogoutOverHttp(true)
+      .withSecurityAllowTTL0Revocations(true)
       .withSecurityAllowAnonymousAccess(false)
       .withSecurityAuthProvider('testProvider', new (class TestClass {})())
       .withSecurityCookie('testCookie', 'test.com')

@@ -278,6 +278,16 @@ export function HappnCoreBuilder<TBase extends Constructor>(Base: TBase) {
       return this;
     }
 
+    withSecurityAllowLogoutOverHttp(allow: boolean) {
+      this.#securityConfigBuilder.withAllowLogoutOverHttp(allow);
+      return this;
+    }
+
+    withSecurityAllowTTL0Revocations(allow: boolean) {
+      this.#securityConfigBuilder.withAllowTTL0Revocations(allow);
+      return this;
+    }
+
     withSecurityAuthProvider(name: string, instance: any): HappnBuilder {
       this.#securityConfigBuilder.withAuthProvider(name, instance);
       return this;

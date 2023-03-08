@@ -6,6 +6,21 @@ export class SecurityConfigBuilder extends BaseBuilder {
     super();
   }
 
+  withAllowAnonymousAccess(allow: boolean): SecurityConfigBuilder {
+    this.set('config.allowAnonymousAccess', allow, BaseBuilder.Types.BOOLEAN);
+    return this;
+  }
+
+  withAllowLogoutOverHttp(allow: boolean): SecurityConfigBuilder {
+    this.set('config.allowLogoutOverHttp', allow, BaseBuilder.Types.BOOLEAN);
+    return this;
+  }
+
+  withAllowTTL0Revocations(allow: boolean): SecurityConfigBuilder {
+    this.set('config.allowTTL0Revocations', allow, BaseBuilder.Types.BOOLEAN);
+    return this;
+  }
+
   withUpdateSubscriptionsOnSecurityDirectoryChanged(shouldUpdate: boolean): SecurityConfigBuilder {
     this.set(
       'config.updateSubscriptionsOnSecurityDirectoryChanged',
@@ -58,11 +73,6 @@ export class SecurityConfigBuilder extends BaseBuilder {
     this.set('config.cookieName', name, BaseBuilder.Types.STRING);
     this.set('config.cookieDomain', domain, BaseBuilder.Types.STRING);
     this.set('config.httpsCookie', cookie, BaseBuilder.Types.BOOLEAN);
-    return this;
-  }
-
-  withAllowAnonymousAccess(allow: boolean): SecurityConfigBuilder {
-    this.set('config.allowAnonymousAccess', allow, BaseBuilder.Types.BOOLEAN);
     return this;
   }
 
