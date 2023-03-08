@@ -3,6 +3,7 @@ var Happner = require('happner-2');
 var HappnerClient = require('../..');
 
 describe(test.name(__filename, 3), function () {
+  this.timeout(120e3);
   var server, client, api;
 
   var startServer1 = function (done) {

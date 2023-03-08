@@ -341,6 +341,11 @@ Rest.prototype.__mapMethodArguments = function (
     return body.concat([__callback]);
   }
 
+  // if body.parameters is an array of arguments, they have already been intentionally mapped by the user
+  if (Array.isArray(body.parameters)) {
+    return body.parameters.concat([__callback]);
+  }
+
   let callbackFound = false;
   if (!body.parameters) body.parameters = {};
 

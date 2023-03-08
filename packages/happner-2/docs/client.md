@@ -287,22 +287,23 @@ client.event.$on({
 ### Disconnection and tokens
 *The client can willfully disconnect from the server, with an option for revoking the current session token*
 ```javascript
-
-var MeshClient = require('happner-2').MeshClient;
-
-var client = new Happner.MeshClient({secure: true, port: 15000});
-
-client.login({username:'_ADMIN', password:'happn'})
-.then(function(){
-  //we now have a token we could use for web requests:
-  var token = client.token;
-
-  //now we can disconnect, and revoke the token so it can never be used again:
-  //NB, NB: disconnect is not a promise - use a callback
-  client.disconnect({revokeSession:true}, function(e){
-    if (!e) console.log('disconnection went fine, we have revoked the token ' + token);
-  });
+const parentClient = await test.Mesh.MeshClient.create({
+  port: 12358,
+  username: 'username',
+  password: 'password',
 });
+const parentToken = parentClient.data.session.token;
+let childClient = await test.Mesh.MeshClient.create({
+  port: 12358,
+  username: 'username',
+  token: parentToken,
+});
+// childClient: status 1 is connected
+expect(childClient.data.status).to.be(1);
+// logout convenience function, same as disconnect({ revokeToken: true }) logs all sessions with this token out, and revokes the token
+await parentClient.logout();
+// childClient: status 2 is disconnected, this is because we logged in with parentClient's token which was revoked
+expect(childClient.data.status).to.be(2);
 ```
 
 ### testing the browser client

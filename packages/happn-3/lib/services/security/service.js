@@ -78,6 +78,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     //1 minute
     else config.defaultNonceTTL = this.happn.services.utils.toMilliseconds(config.defaultNonceTTL);
 
+    if (config.allowTTL0Revocations == null) config.allowTTL0Revocations = true;
+
     if (!config.logSessionActivity) config.logSessionActivity = false;
 
     if (!config.sessionActivityTTL) config.sessionActivityTTL = 60000 * 60 * 24;
@@ -89,8 +91,11 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
     if (typeof config.pbkdf2Iterations !== 'number') config.pbkdf2Iterations = 10000;
 
-    //token is always locked to login type
+    // token is always locked to login type
     if (config.lockTokenToLoginType == null) config.lockTokenToLoginType = true;
+
+    // rest logouts disabled by default
+    if (config.allowLogoutOverHttp == null) config.allowLogoutOverHttp = false;
 
     this.config = config;
     this.config.cookieName = this.config.cookieName || 'happn_token';
@@ -715,7 +720,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
   #getPolicyTTL(decoded) {
     let ttl = 0;
-
     if (decoded.info && decoded.info._browser) {
       // browser logins can only be used for stateful sessions
       ttl = decoded.policy[1].ttl;
@@ -737,7 +741,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         else ttl = decoded.policy[1].ttl;
       }
     }
-    return ttl;
+    return ttl || 0; // Infinity turns to null over the wire, 0 can be 0
   }
 
   revokeToken(token, reason, callback) {
@@ -745,8 +749,10 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       callback = reason;
       reason = 'SYSTEM';
     }
-
-    if (token == null || token === undefined) {
+    if (!this.happn.config.secure) {
+      return callback();
+    }
+    if (token == null) {
       return callback(new Error('token not defined'));
     }
     let decoded = this.decodeToken(token);
@@ -786,9 +792,15 @@ module.exports = class SecurityService extends require('events').EventEmitter {
 
       // use standard revocation logic
       if (ttl === 0) {
-        this.log.warn(
-          'revoking a token without a ttl means it stays in the revocation list forever'
-        );
+        // means we would have an ever growing revocation list
+        let message =
+          'revoking a token without a ttl means it stays in the revocation list forever';
+        // dont allow revocations that live forever in revocation list forever
+        if (!this.config.allowTTL0Revocations) {
+          return callback(new Error(message));
+        }
+        // just warn for now
+        this.log.warn(message);
       }
 
       this.cache_revoked_tokens.set(
@@ -978,8 +990,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         let revokedSession = this.getEffectedSession(changedData.session, true);
         effectedSessions.push(revokedSession);
         //disconnect the revoked session and its descendents
-        this.sessionService.disconnectSessions(
-          changedData.session.parentId,
+        this.sessionService.disconnectSessionsWithToken(
+          changedData.token,
           {
             reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
           },
@@ -1276,6 +1288,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     //we dont want to mess around with the actual sessions type
     //it is an unknown at this point
     let decoupledSession = this.happn.services.utils.clone(session);
+
     this.cache_profiles.forEach((profile) => {
       let filter = profile.session;
       [0, 1].forEach((sessionType) => {

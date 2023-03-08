@@ -271,6 +271,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     mockHappn = {
       config: {
         disableDefaultAdminNetworkConnections: true,
+        secure: true,
       },
       services: {
         cache: {
@@ -1593,7 +1594,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  //issue:::
   it('should create a user with a public key, then fail login to a using a signature - bad public key', function (done) {
     this.timeout(20000);
 
@@ -3753,7 +3753,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai.expect(spyDataChanged).to.have.callCount(1);
   });
 
-  it('tests #initializeCheckPoint - promise is rejected.', async () => {
+  it('tests #initializeCheckPoint - promise is rejected', async () => {
     initializer(
       { disableDefaultAdminNetworkConnections: false, sessionTokenSecret: 'mockToken' },
       mockHappn,
@@ -3784,6 +3784,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3821,6 +3823,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -3894,6 +3898,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         allowUserChooseAuthProvider: undefined,
         httpsCookie: null,
         cookieDomain: null,
+        allowLogoutOverHttp: false,
+        allowTTL0Revocations: true,
       },
       test.sinon.match.instanceOf(Object),
       test.sinon.match.func
@@ -4224,6 +4230,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       const mockToken = null;
       const mockReason = test.sinon.stub();
       const mockCallback = test.sinon.stub();
@@ -4243,6 +4250,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       const mockToken = 'mockToken';
       const mockReason = 'mockReason';
       const mockCallback = test.sinon.stub();
@@ -4271,6 +4279,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4280,6 +4289,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
       serviceInst.config = {
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
@@ -4325,6 +4335,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4394,6 +4405,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4405,6 +4417,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       serviceInst.config = {
         lockTokenToLoginType: {},
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
@@ -4471,6 +4484,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4538,6 +4552,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4605,6 +4620,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       const serviceInst = new SecurityService({
         logger: Logger,
       });
+      serviceInst.happn = mockHappn;
       serviceInst.authProviders = {
         default: 'mockDefault',
       };
@@ -4616,6 +4632,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       serviceInst.config = {
         lockTokenToLoginType: {},
         sessionTokenSecret: true,
+        allowTTL0Revocations: true,
       };
 
       const decode = test.sinon.stub(require('jwt-simple'), 'decode').returns('test decode');
@@ -5249,25 +5266,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         protocol: 'mockProtocol',
         parentId: 1,
       },
+      token: 'token',
     };
 
     serviceInst.errorService = {
       handleSystem: test.sinon.stub(),
     };
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback('mockError');
     });
 
     const result = serviceInst.resetSessionPermissions(mockWhatHappnd, mockChangedData);
 
-    test.chai.expect(serviceInst.sessionService.disconnectSessions).to.have.been.calledWithExactly(
-      1,
-      {
-        reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      },
-      test.sinon.match.func
-    );
+    test.chai
+      .expect(serviceInst.sessionService.disconnectSessionsWithToken)
+      .to.have.been.calledWithExactly(
+        'token',
+        {
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        },
+        test.sinon.match.func
+      );
     test.chai
       .expect(serviceInst.errorService.handleSystem)
       .to.have.been.calledWithExactly('mockError', 'SecurityService');
@@ -5302,22 +5322,25 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
         protocol: 'mockProtocol',
         parentId: 1,
       },
+      token: 'token',
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 
     const result = serviceInst.resetSessionPermissions(mockWhatHappnd, mockChangedData);
 
-    test.chai.expect(serviceInst.sessionService.disconnectSessions).to.have.been.calledWithExactly(
-      1,
-      {
-        reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
-      },
-      test.sinon.match.func
-    );
+    test.chai
+      .expect(serviceInst.sessionService.disconnectSessionsWithToken)
+      .to.have.been.calledWithExactly(
+        'token',
+        {
+          reason: CONSTANTS.SECURITY_DIRECTORY_EVENTS.TOKEN_REVOKED,
+        },
+        test.sinon.match.func
+      );
     await test.chai.expect(result).to.eventually.eql([
       {
         id: 1,
@@ -5356,8 +5379,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       ttl: true,
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 
@@ -5420,8 +5443,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
       ttl: true,
     };
 
-    serviceInst.sessionService = { disconnectSessions: test.sinon.stub() };
-    serviceInst.sessionService.disconnectSessions.callsFake((_, __, callback) => {
+    serviceInst.sessionService = { disconnectSessionsWithToken: test.sinon.stub() };
+    serviceInst.sessionService.disconnectSessionsWithToken.callsFake((_, __, callback) => {
       callback(null);
     });
 

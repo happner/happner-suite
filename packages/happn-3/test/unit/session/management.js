@@ -49,7 +49,9 @@ describe(testHelper.testName(__filename, 3), function () {
   var mockServices = function (sessionManagementActive, callback) {
     var happn = {
       services: {},
-      config: {},
+      config: {
+        secure: true,
+      },
     };
 
     if (typeof sessionManagementActive === 'function') {

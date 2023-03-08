@@ -58,6 +58,23 @@ describe(test.name(__filename, 3), function () {
         server.stop({ reconnect: false }, done);
       });
 
+      it('can connect, login with a token and logout', async () => {
+        if (mode !== 'secure') {
+          return;
+        }
+        const connectionOptions = {
+          username: '_ADMIN',
+          domain: DOMAIN,
+        };
+        const testAdminClient = await LightClient.create({ ...connectionOptions, password: 'xxx' });
+        let token = testAdminClient.dataClient().session.token;
+        let testAdminClient2 = await LightClient.create({ ...connectionOptions, token });
+        test.expect(testAdminClient2.dataClient().status).to.be(1);
+        await testAdminClient.logout();
+        await test.delay(4e3);
+        test.expect(testAdminClient2.dataClient().status).to.be(2);
+      });
+
       context('callbacks', function () {
         it('can call a function which returns one argument', function (done) {
           client.exchange.$call(

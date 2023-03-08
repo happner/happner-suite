@@ -1053,3 +1053,11 @@
 -----------------
   - feat: Summon productionization
 
+13.9.1 2023-02-17
+-----------------
+  - doc: added documentation regarding primus opts
+
+13.10.0 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix

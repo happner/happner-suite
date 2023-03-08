@@ -67,23 +67,71 @@
     this.__responseTimeout =
       typeof opts.responseTimeout === 'number' ? opts.responseTimeout : 120 * 1000;
     this.__opts = opts;
+    this.on('disconnected', () => {
+      this.__stop();
+    });
+    this.on('reconnected', () => {
+      this.__start();
+    });
   }
 
   inherits(HappnerClient, EventEmitter);
+
+  HappnerClient.create = async function (options) {
+    const instance = new HappnerClient();
+    return await instance.connect(
+      {
+        host: options.host,
+        port: options.port,
+      },
+      {
+        protocol: options.protocol,
+        username: options.username,
+        password: options.password,
+        token: options.token,
+        allowSelfSignedCerts: options.allowSelfSignedCerts,
+      }
+    );
+  };
+
+  HappnerClient.prototype.__stop = function (stopImplementors) {
+    if (this.__stopped) {
+      return;
+    }
+    this.__operations.stop();
+    if (stopImplementors) {
+      this.__implementors.stop();
+    }
+    this.__stopped = true;
+  };
+
+  HappnerClient.prototype.__start = function () {
+    if (!this.__stopped) {
+      return;
+    }
+    this.__operations.start();
+    this.__stopped = false;
+  };
 
   HappnerClient.prototype.connect = Promisify(function (connection, options, callback) {
     this.__connection.connect(connection, options, callback);
   });
 
-  HappnerClient.prototype.disconnect = Promisify(function (callback) {
-    this.__connection.disconnect(callback);
-    // TODO: call clear
-    this.__operations.stop();
-    this.__implementors.stop();
+  HappnerClient.prototype.logout = Promisify(function (callback) {
+    return this.disconnect({ revokeToken: true }, callback);
+  });
+
+  HappnerClient.prototype.disconnect = Promisify(function (opts, callback) {
+    if (typeof opts === 'function') {
+      callback = opts;
+      opts = null;
+    }
+    this.__connection.disconnect(opts, callback);
+    this.__stop(true); // stop operations provider and implementors provider
   });
 
   HappnerClient.prototype.dataClient = function () {
-    return this.__connection.client;
+    return this?.__connection?.client;
   };
 
   HappnerClient.prototype.mount = function (orchestrator) {

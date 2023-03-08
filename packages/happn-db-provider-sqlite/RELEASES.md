@@ -16,3 +16,11 @@
   - feat: Summon productionization
   - fix: nested ands and ors
 
+1.0.4 2023-02-17
+-----------------
+  - happn-3 update
+
+1.0.5 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix
