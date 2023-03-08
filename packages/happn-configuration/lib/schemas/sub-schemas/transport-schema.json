@@ -1,0 +1,60 @@
+{
+  "$id": "transport-schema.json",
+  "$ref": "#/definitions/Transport",
+  "definitions": {
+    "Transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "certPath": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/TransportConfig"
+        },
+        "keyPath": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Transport"
+    },
+    "TransportConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cert": {
+          "type": "string"
+        },
+        "certPath": {
+          "type": "string"
+        },
+        "keepAliveTimeout": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string"
+        },
+        "keyPath": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "TransportConfig"
+    }
+  }
+}

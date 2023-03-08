@@ -1,11 +1,11 @@
 {
   "name": "happn-cluster",
-  "version": "12.3.2",
+  "version": "13.0.0-prerelease-7",
   "description": "extends happn with cluster ability",
   "main": "index.js",
   "scripts": {
-    "test": "_mocha silence.js test/test-func/* test/test-unit/* --recursive --exit",
-    "test-unit": "mocha test/test-unit/* --recursive",
+    "test": "_mocha silence.js test/integration/* test/unit/* --recursive --exit",
+    "test-unit": "mocha test/unit/* --recursive",
     "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm test"
   },
   "repository": {
@@ -36,13 +36,11 @@
     "request": "^2.81.0"
   },
   "dependencies": {
-    "bluebird": "^3.7.2",
     "clone": "^1.0.2",
     "dface": "1.0.1",
-    "happn-3": "13.10.0",
+    "happn-3": "13.10.1-prerelease-1",
     "happn-commons": "1.5.0",
-    "happn-db-provider-mongo": "1.1.8",
-    "happn-swim": "^1.0.3",
+    "happn-db-provider-mongo": "1.1.9-prerelease-1",
     "http-proxy": "^1.18.1",
     "mongodb": "^4.1.4"
   }

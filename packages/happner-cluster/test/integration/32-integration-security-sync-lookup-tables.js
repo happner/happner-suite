@@ -1,37 +1,20 @@
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const baseConfig = require('../_lib/base-config');
-  const stopCluster = require('../_lib/stop-cluster');
-  const clearMongoCollection = require('../_lib/clear-mongo-collection');
   const users = require('../_lib/user-permissions');
-  const client = require('../_lib/client');
-  const getSeq = require('../_lib/helpers/getSeq');
-  let servers, testClient, savedUsers, savedGroups;
+  let testClient, savedUsers, savedGroups;
+  let hooksConfig = {
+    cluster: {
+      functions: [serverConfig, serverConfig],
+      localInstance: 0,
+    },
+  };
+  let timing = { all: 'before/after' };
+  test.hooks.standardHooks(test, hooksConfig, timing);
 
-  function serverConfig(seq, minPeers) {
-    var config = baseConfig(seq, minPeers, true);
-    config.modules = {};
-    config.components = {
-      data: {},
-    };
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 100, // 10 per second
-      },
-    };
-    return config;
-  }
-
-  before('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  before('start cluster', async () => {
-    servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
+  before('setup security users and groups', async () => {
     savedUsers = await Promise.all(
       ['lookupUser1', 'lookupUser2', 'lookupUser3'].map((userName) =>
-        users.add(servers[0], userName, 'password', null, {
+        users.add(test.servers[0], userName, 'password', null, {
           company: 'COMPANY_ABC',
           oem: 'OEM_ABC',
         })
@@ -46,24 +29,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     );
 
     savedGroups = await Promise.all(
-      testGroups.map((testGroup) => servers[0].exchange.security.addGroup(testGroup))
+      testGroups.map((testGroup) => test.servers[0].exchange.security.addGroup(testGroup))
     );
-    await test.delay(1000);
-  });
-
-  before('start client', async () => {});
-
-  afterEach('stop client', async () => {
-    if (testClient) await testClient.disconnect();
-  });
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
   });
 
   it('can fetch data if lookup tables and permissions are configured correctly, tests removing and adding paths to table (Lookup table and permission upserted on server[0], client on server[1]', async () => {
-    testClient = await client.create(savedUsers[0].username, 'password', getSeq.getPort(2)); //Second server
+    test.clients.push(
+      (testClient = await test.client.create(
+        savedUsers[0].username,
+        'password',
+        test.proxyPorts[1]
+      ))
+    ); //Second server
     let testTable1 = {
       name: 'STANDARD_ABC1',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1'],
@@ -75,14 +52,17 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}',
     };
 
-    await servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_1', {
+    await test.servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_1', {
       test: 'data',
     });
-    await servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
+    await test.servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
       test: 'data2',
     });
-    await servers[0].exchange.security.upsertLookupTable(testTable1);
-    await servers[0].exchange.security.upsertLookupPermission('LOOKUP_TABLES_GRP1', permission1);
+    await test.servers[0].exchange.security.upsertLookupTable(testTable1);
+    await test.servers[0].exchange.security.upsertLookupPermission(
+      'LOOKUP_TABLES_GRP1',
+      permission1
+    );
     try {
       await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
       throw new Error('Test Error : Should not be authorized');
@@ -90,13 +70,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
 
-    await servers[0].exchange.security.linkGroup(savedGroups[0], savedUsers[0]);
+    await test.servers[0].exchange.security.linkGroup(savedGroups[0], savedUsers[0]);
     await test.delay(1000);
 
     let data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
     test.expect(data).to.be.ok();
 
-    await servers[0].exchange.security.removeLookupPath(
+    await test.servers[0].exchange.security.removeLookupPath(
       'STANDARD_ABC1',
       'device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1'
     );
@@ -109,7 +89,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
 
-    await servers[0].exchange.security.insertLookupPath(
+    await test.servers[0].exchange.security.insertLookupPath(
       'STANDARD_ABC1',
       'device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'
     );
@@ -119,7 +99,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('tests removing a permission, makes sure we can only access data when properly configured', async () => {
-    testClient = await client.create(savedUsers[1].username, 'password', getSeq.getPort(2)); //Second server
+    test.clients.push(
+      (testClient = await test.client.create(
+        savedUsers[1].username,
+        'password',
+        test.proxyPorts[1]
+      ))
+    ); //Second server
     let testTable = {
       name: 'STANDARD_ABC2',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'],
@@ -131,10 +117,10 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}',
     };
 
-    await servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
+    await test.servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
       test: 'data2',
     });
-    await servers[0].exchange.security.upsertLookupTable(testTable);
+    await test.servers[0].exchange.security.upsertLookupTable(testTable);
     let data;
     try {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
@@ -142,15 +128,21 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
-    await servers[0].exchange.security.upsertLookupPermission('LOOKUP_TABLES_GRP2', permission1);
+    await test.servers[0].exchange.security.upsertLookupPermission(
+      'LOOKUP_TABLES_GRP2',
+      permission1
+    );
 
-    await servers[0].exchange.security.linkGroup(savedGroups[1], savedUsers[1]);
+    await test.servers[0].exchange.security.linkGroup(savedGroups[1], savedUsers[1]);
     await test.delay(1000);
 
     data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
     test.expect(data).to.be.ok();
 
-    await servers[0].exchange.security.removeLookupPermission('LOOKUP_TABLES_GRP2', permission1);
+    await test.servers[0].exchange.security.removeLookupPermission(
+      'LOOKUP_TABLES_GRP2',
+      permission1
+    );
     await test.delay(1000);
     try {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
@@ -161,7 +153,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   });
 
   it('tests unlinking a table from a group, makes sure we can only access data when properly configured', async () => {
-    testClient = await client.create(savedUsers[2].username, 'password', getSeq.getPort(2)); //Second server
+    test.clients.push(
+      (testClient = await test.client.create(
+        savedUsers[2].username,
+        'password',
+        test.proxyPorts[1]
+      ))
+    ); //Second server
     let testTable = {
       name: 'STANDARD_ABC3',
       paths: ['device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'],
@@ -173,10 +171,10 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       path: '/device/{{user.custom_data.oem}}/{{user.custom_data.company}}/{{$1}}',
     };
 
-    await servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
+    await test.servers[0]._mesh.data.set('/_data/historianStore/SPECIAL_DEVICE_ID_2', {
       test: 'data2',
     });
-    await servers[0].exchange.security.upsertLookupTable(testTable);
+    await test.servers[0].exchange.security.upsertLookupTable(testTable);
 
     let data;
     try {
@@ -185,15 +183,21 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
-    await servers[0].exchange.security.upsertLookupPermission('LOOKUP_TABLES_GRP3', permission1);
+    await test.servers[0].exchange.security.upsertLookupPermission(
+      'LOOKUP_TABLES_GRP3',
+      permission1
+    );
 
-    await servers[0].exchange.security.linkGroup(savedGroups[2], savedUsers[2]);
+    await test.servers[0].exchange.security.linkGroup(savedGroups[2], savedUsers[2]);
     await test.delay(1000);
 
     data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
     test.expect(data).to.be.ok();
 
-    await servers[0].exchange.security.unlinkLookupTable('LOOKUP_TABLES_GRP3', 'STANDARD_ABC3');
+    await test.servers[0].exchange.security.unlinkLookupTable(
+      'LOOKUP_TABLES_GRP3',
+      'STANDARD_ABC3'
+    );
     await test.delay(1000);
     try {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
@@ -202,4 +206,18 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       test.expect(e.toString()).to.be('AccessDenied: unauthorized');
     }
   });
+
+  function serverConfig(seq, minPeers) {
+    var config = baseConfig(seq, minPeers, true);
+    config.modules = {};
+    config.components = {
+      data: {},
+    };
+    config.happn.services.replicator = {
+      config: {
+        securityChangesetReplicateInterval: 100, // 10 per second
+      },
+    };
+    return config;
+  }
 });

@@ -1,0 +1,76 @@
+{
+  "$id": "happner-cluster-schema.json",
+  "$ref": "#/definitions/HappnerClusterSchema",
+  "definitions": {
+    "HappnerClusterSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "adminPassword": {
+          "type": "string"
+        },
+        "authorityDelegationOn": {
+          "type": "boolean"
+        },
+        "boundExchangeCacheSize": {
+          "type": "number"
+        },
+        "cluster": {
+          "$ref": "cluster-schema.json"
+        },
+        "deferListen": {
+          "type": "boolean"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "ignoreDependenciesOnStartup": {
+          "type": "boolean"
+        },
+        "listenFirst": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "port": {
+          "type": "number"
+        },
+        "plugins": {
+          "$ref": "plugins-schema.json"
+        },
+        "happn": {
+          "$ref": "happn-schema.json"
+        },
+        "components": {
+          "$ref": "components-schema.json"
+        },
+        "endpoints": {
+          "$ref": "endpoints-schema.json"
+        },
+        "modules": {
+          "$ref": "modules-schema.json"
+        },
+        "health": {
+          "$ref": "health-schema.json"
+        },
+        "membership": {
+          "$ref": "membership-schema.json"
+        },
+        "orchestrator": {
+          "$ref": "orchestrator-schema.json"
+        },
+        "proxy": {
+          "$ref": "proxy-schema.json"
+        },
+        "replicator": {
+          "$ref": "replicator-schema.json"
+        }
+      },
+      "required": [
+        "happn"
+      ],
+      "title": "HappnerClusterSchema"
+    }
+  }
+}

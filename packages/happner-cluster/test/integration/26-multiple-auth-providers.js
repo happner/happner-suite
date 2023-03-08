@@ -1,21 +1,14 @@
 const multiAuthConfig = require('../_lib/multi-auth-provider-config.js');
-const stopCluster = require('../_lib/stop-cluster');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const users = require('../_lib/users');
-const client = require('../_lib/client');
+
 require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
-  let servers;
-
-  function serverConfig(seq, minPeers) {
-    var config = multiAuthConfig(seq, minPeers, true);
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
-      },
-    };
-    return config;
-  }
-
+  let hooksConfig = {
+    cluster: {
+      functions: [serverConfig, serverConfig],
+      localInstance: 0,
+    },
+  };
+  let timing = { all: 'before/after' };
+  test.hooks.standardHooks(test, hooksConfig, timing);
   let testUser = {
     username: 'happnTestuser@somewhere.com',
     password: 'password',
@@ -26,44 +19,35 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
     password: 'secondPass',
   };
 
-  before('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  before('start cluster', async () => {
-    servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(1, 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(2, 2)));
-    await users.add(servers[0], testUser.username, testUser.password);
+  before('add happn test user', async () => {
+    await test.users.add(test.servers[0], testUser.username, testUser.password);
     await test.delay(5000);
   });
 
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
-  });
-
   it('we should be able to log in using happn3 auth with testUser', async () => {
-    let listenerClient = await client.create(testUser.username, testUser.password, 55002, 'happn');
+    let listenerClient = await test.client.create(
+      testUser.username,
+      testUser.password,
+      test.proxyPorts[1],
+      'happn'
+    );
     test.expect(listenerClient).to.be.ok();
     await listenerClient.disconnect();
   });
 
   it('we should be able to log in using second auth with testUser2', async () => {
-    let listenerClient = await client.create(testUser2.username, testUser2.password, 55002); //Should default to 'second' authProvider
+    let listenerClient = await test.client.create(
+      testUser2.username,
+      testUser2.password,
+      test.proxyPorts[1]
+    ); //Should default to 'second' authProvider
     test.expect(listenerClient).to.be.ok();
     await listenerClient.disconnect();
   });
 
   it('we should fail to log in using happn3 auth with testUser2 (second auth user)', async () => {
     try {
-      // eslint-disable-next-line no-unused-vars
-      let listenerClient = await client.create(
-        testUser2.username,
-        testUser2.password,
-        55002,
-        'happn'
-      );
+      await test.client.create(testUser2.username, testUser2.password, test.proxyPorts[1], 'happn');
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
@@ -72,10 +56,20 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   it('we should fail to log in using second auth with testUser (happn3 auth user)', async () => {
     try {
-      await client.create(testUser.username, testUser.password, 55002); //Should default to 'second' authProvider
+      await test.client.create(testUser.username, testUser.password, test.proxyPorts[1]); //Should default to 'second' authProvider
       throw new Error("Shouldn't get here");
     } catch (e) {
       test.expect(e.toString()).to.be('AccessDenied: Invalid credentials');
     }
   });
+
+  function serverConfig(seq, minPeers) {
+    var config = multiAuthConfig(seq, minPeers, true);
+    config.happn.services.replicator = {
+      config: {
+        securityChangesetReplicateInterval: 10, // 100 per second
+      },
+    };
+    return config;
+  }
 });

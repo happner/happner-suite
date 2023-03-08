@@ -627,6 +627,9 @@ Mesh.prototype.initialize = util.promisify(function (config, callback) {
     config.deferListen = false;
   }
 
+  // config validation
+  commons.validateConfig(config, 'HAPPNER');
+
   _this.__initialize(config, callback);
 });
 

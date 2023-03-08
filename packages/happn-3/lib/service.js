@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 const Logger = require('happn-logger'),
   Services = require('./services/manager'),
-  commons = require('happn-commons'),
-  util = commons.utils,
-  _ = commons._;
+  commons = require('happn-commons');
+
+const { utils: util, _ } = commons;
+
 module.exports = {
   initialize: function (config, done) {
     console.warn(
@@ -33,6 +34,12 @@ module.exports = {
         config.allowNestedPermissions
       );
     }
+
+    var log = (config.Logger || Logger).createLogger('HappnServer');
+
+    // config validation
+    commons.validateConfig(config, 'HAPPN');
+
     var happn = {
       services: {},
       config,
@@ -40,7 +47,6 @@ module.exports = {
       __initialized: false,
     };
 
-    var log = (config.Logger || Logger).createLogger('HappnServer');
     log.context = happn.config.name;
 
     happn.log = log;
@@ -97,6 +103,7 @@ module.exports = {
       }
 
       happn.__initialized = true;
+
       if (!config.deferListen) happn.listen(happn.config.host, happn.config.port, done);
       else done(null, happn);
     });

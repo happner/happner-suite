@@ -1,0 +1,47 @@
+{
+  "$id": "happn-cluster-schema.json",
+  "$ref": "#/definitions/HappnClusterSchema",
+  "definitions": {
+    "HappnClusterSchema": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "happn-schema.json"
+        },
+        {
+          "$ref": "#/definitions/HappnCluster"
+        }
+      ],
+      "required": [
+      ],
+      "title": "HappnClusterSchema"
+    },
+    "HappnCluster": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "object",
+          "$comment": "Extend the happn schema services field",
+          "$ref": "#/definitions/Services"
+        }
+      }
+    },
+    "Services": {
+      "type": "object",
+      "properties": {
+        "health": {
+          "$ref": "health-schema.json"
+        },
+        "orchestrator": {
+          "$ref": "orchestrator-schema.json"
+        },
+        "proxy": {
+          "$ref": "proxy-schema.json"
+        },
+        "replicator": {
+          "$ref": "replicator-schema.json"
+        }
+      }
+    }
+  }
+}

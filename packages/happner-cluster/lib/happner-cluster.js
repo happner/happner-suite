@@ -3,6 +3,7 @@ let HappnCluster = require('happn-cluster');
 let ClusterPlugin = require('./cluster-plugin');
 let filterEventVersions = require('./filter-event-versions');
 let localDb = require('./local-db');
+const commons = require('happn-commons');
 
 module.exports.create = require('util').promisify(function (config, callback) {
   var happner, cursor;
@@ -57,7 +58,7 @@ module.exports.create = require('util').promisify(function (config, callback) {
   cursor = config.happn.services.subscription;
   cursor.config = cursor.config || {};
   cursor.config.filter = filterEventVersions;
-
+  if (!config.happn.port) config.happn.port = config.port;
   config.plugins = config.plugins || [];
   config.cluster = config.cluster || {};
 
@@ -66,6 +67,9 @@ module.exports.create = require('util').promisify(function (config, callback) {
   if (!localDb.gotConfig(config)) {
     localDb.addConfig(config);
   }
+
+  // config validation
+  commons.validateConfig(config, 'HAPPNER-CLUSTER');
 
   Happner.create(config)
 

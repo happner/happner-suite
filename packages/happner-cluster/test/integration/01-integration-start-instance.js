@@ -1,20 +1,9 @@
-require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
-  var server, client;
+require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  let server, client;
+  test.hooks.standardHooks(test);
 
-  after('stop server', function (done) {
-    if (!server) return done();
-    server.stop({ reconnect: false }, done);
-  });
-
-  after('stop client', function (done) {
-    if (!client) return done();
-    client.disconnect(done);
-  });
-
-  it('starts', function (done) {
-    this.timeout(20000);
-
-    test.HappnerCluster.create({
+  it('starts', async function () {
+    server = await test.HappnerCluster.create({
       domain: 'DOMAIN_NAME',
       happn: {
         secure: false,
@@ -28,29 +17,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
               autoUpdateDBVersion: true,
             },
           },
-          membership: {
-            config: {
-              seed: true,
-              hosts: ['127.0.0.1:55000'],
-            },
-          },
         },
       },
-    })
-
-      .then(function (_server) {
-        server = _server;
-      })
-
-      .then(function () {
-        client = new test.Happner.MeshClient({});
-        return client.login(); // ensures proxy (default 55000) is running
-      })
-
-      .then(function () {
-        done();
-      })
-
-      .catch(done);
+    });
+    test.servers.push(server);
+    test.clients.push((client = new test.Happner.MeshClient({})));
+    await client.login(); // ensures proxy (default 55000) is running
   });
 });

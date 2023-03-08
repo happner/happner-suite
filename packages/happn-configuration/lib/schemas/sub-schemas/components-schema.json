@@ -1,0 +1,214 @@
+{
+  "$id": "components-schema.json",
+  "$ref": "#/definitions/Components",
+  "definitions": {
+    "Components": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "$ref": "#/definitions/ComponentConfig"
+        }
+      },
+      "required": [
+      ],
+      "title": "Components"
+    },
+    "ComponentConfig": {
+      "$comment": "There is an overlap between patternProperties and properties. Known properties will be validated; unknown will be allowed unvalidated.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+        }
+      },
+      "properties": {
+        "$configure": {
+        },
+        "accessLevel": {
+          "type": "string"
+        },
+        "authorityDelegationOn": {
+          "type": "boolean"
+        },
+        "home": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "moduleName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "initMethod": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "startMethod": {
+          "type": "string"
+        },
+        "stopMethod": {
+          "type": "string"
+        },
+        "shutdownMethod": {
+          "type": "string"
+        },
+        "schema": {
+          "$ref": "#/definitions/Schema"
+        },
+        "web": {
+          "$ref": "#/definitions/Web"
+        },
+        "data": {
+          "$ref": "#/definitions/Data"
+        },
+        "events": {
+          "$ref": "#/definitions/Events"
+        }
+      },
+      "required": [
+      ],
+      "title": "Component"
+    },
+    "Schema": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "exclusive": {
+          "type": "boolean"
+        },
+        "methods": {
+          "$ref": "#/definitions/Methods"
+        }
+      },
+      "required": [
+      ],
+      "title": "Schema"
+    },
+    "Web": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "routes": {
+          "$ref": "#/definitions/Route"
+        }
+      },
+      "required": [
+      ],
+      "title": "Web"
+    },
+    "Data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "routes": {
+          "$ref": "#/definitions/Route"
+        }
+      },
+      "required": [
+      ],
+      "title": "Data"
+    },
+    "Events": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": "object"
+        }
+      },
+      "required": [
+      ],
+      "title": "Events"
+    },
+    "Methods": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "$ref": "#/definitions/Method"
+        }
+      },
+      "required": [
+      ],
+      "title": "Methods"
+    },
+    "Method": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "alias": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Parameter"
+          }
+        },
+        "callback": {
+          "$ref": "#/definitions/Callback"
+        }
+      },
+      "required": [
+      ],
+      "title": "Method"
+    },
+    "Parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^require(d)?$": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "Parameter"
+    },
+    "Callback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Parameter"
+          }
+        }
+      },
+      "required": [
+      ],
+      "title": "Callback"
+    },
+    "Route": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+        }
+      },
+      "required": [
+      ],
+      "title": "Route"
+    }
+  }
+}

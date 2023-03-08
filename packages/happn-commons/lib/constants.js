@@ -106,4 +106,10 @@ module.exports = {
     STATIC: 'static',
     LRU: 'lru',
   },
+  CONFIG_TYPE: {
+    HAPPN: 'HAPPN',
+    HAPPN_CLUSTER: 'HAPPN-CLUSTER',
+    HAPPNER: 'HAPPNER',
+    HAPPNER_CLUSTER: 'HAPPNER-CLUSTER'
+  }
 };

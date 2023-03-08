@@ -1,0 +1,39 @@
+{
+  "$id": "replicator-schema.json",
+  "$ref": "#/definitions/Replicator",
+  "definitions": {
+    "Replicator": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/ReplicatorConfig"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Replicator"
+    },
+    "ReplicatorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meshName": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "securityChangesetReplicateInterval": {
+          "type": "integer"
+        }
+      },
+      "required": [
+      ],
+      "title": "ReplicatorConfig"
+    }
+  }
+}

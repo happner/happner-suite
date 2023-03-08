@@ -1,0 +1,33 @@
+{
+  "$id": "crypto-schema.json",
+  "$ref": "#/definitions/Crypto",
+  "definitions": {
+    "Crypto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/CryptoConfig"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+      ],
+      "title": "Crypto"
+    },
+    "CryptoConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secure": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "CryptoConfig"
+    }
+  }
+}

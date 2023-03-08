@@ -1,0 +1,34 @@
+{
+    "$id": "components-lazy-schema.json",
+    "$ref": "#/definitions/Component",
+    "definitions": {
+        "Component": {
+            "if": {
+                "type": "object"
+            },
+            "then": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "component": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "methods": {
+                        "$ref": "#/definitions/Methods"
+                    }
+                }
+            },
+            "title": "Component"
+        },
+        "Methods": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "title": "Methods"
+        }
+    }
+}

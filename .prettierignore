@@ -1,2 +1,3 @@
 lib/startup/*
 test/stress/*
+/packages/happn-configuration/dist/

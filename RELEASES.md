@@ -1,3 +1,8 @@
+3.0.0 2023-03-04
+-----------------
+  - happn-cluster membership updated to mongo-based system
+  - tests now use ports auto-assigned by OS
+
 2.7.0 2023-03-03
 -----------------
   - feat: token revocation and logout
@@ -110,6 +115,10 @@
 - happner-client: 12.4.0
 - happner-cluster: 12.2.2
 - redis-lru-cache: 1.0.15
+
+1.7.0 2022-09-14
+----------------
+- TEN-119: ease of configuration
 
 1.6.0 2022-09-01
 -----------------

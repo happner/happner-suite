@@ -15,6 +15,7 @@
     "fast-clone": "^1.5.13",
     "flat": "^5.0.2",
     "fs-extra": "^10.0.0",
+    "happn-configuration": "file:../happn-configuration/dist",
     "happn-sillyname": "^0.1.1",
     "happner-hyperid": "^2.0.0",
     "hashring": "^3.2.0",

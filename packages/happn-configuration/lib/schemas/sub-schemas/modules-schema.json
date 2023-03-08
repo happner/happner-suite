@@ -1,0 +1,132 @@
+{
+  "$id": "modules-schema.json",
+  "$ref": "#/definitions/Modules",
+  "definitions": {
+    "Modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "$ref": "#/definitions/ModuleConfig"
+        }
+      },
+      "required": [
+      ],
+      "title": "Modules"
+    },
+    "ModuleConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accessLevel": {
+          "type": "string"
+        },
+        "home": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "construct": {
+          "$ref": "#/definitions/Construct"
+        },
+        "constructor": {
+          "$ref": "#/definitions/Instantiator"
+        },
+        "create": {
+          "$ref": "#/definitions/Create"
+        },
+        "instance": {
+          "type": "object"
+        }
+      },
+      "required": [
+      ],
+      "title": "ModuleConfig"
+    },
+    "Construct": {
+      "type": "object",
+      "properties": {
+        "construct": {
+          "$ref": "#/definitions/Instantiator"
+        }
+      }
+    },
+    "Create": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "$ref": "#/definitions/Instantiator"
+        }
+      }
+    },
+    "Instantiator": {
+      "if": {
+        "type": "object"
+      },
+      "then": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Parameter"
+            }
+          },
+          "type": {
+            "type": "string"
+          },
+          "callback": {
+            "$ref": "#/definitions/Callback"
+          }
+        }
+      },
+      "title": "Instantiator"
+    },
+    "Parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "string",
+            "object",
+            "integer",
+            "boolean"
+          ]
+        },
+        "type": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+      ],
+      "title": "Parameter"
+    },
+    "Callback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Parameter"
+          }
+        }
+      },
+      "required": [
+      ],
+      "title": "Callback"
+    }
+  }
+}

@@ -144,37 +144,31 @@ module.exports = class TransportService extends require('events').EventEmitter {
       );
     }, 1000);
 
-    tcpPortUsed
-      .waitUntilFree(
-        options.port,
-        options.portAvailablePingInterval,
-        options.portAvailablePingTimeout
-      )
-      .then(
-        () => {
-          clearInterval(waitingForPortMessageInterval);
-          this.happn.log.debug('port available, about to listen');
-          this.happn.server.listen(options.port, options.host, (e) => {
-            if (e) return this.happn.__done(e);
+    this.#checkFreePort(options).then(
+      () => {
+        clearInterval(waitingForPortMessageInterval);
+        this.happn.log.debug('port available, about to listen');
+        this.happn.server.listen(options.port, options.host, (e) => {
+          if (e) return this.happn.__done(e);
 
-            this.happn.__info = this.happn.server.address();
-            const { address, port } = this.happn.__info;
+          this.happn.__info = this.happn.server.address();
+          const { address, port } = this.happn.__info;
 
-            this.happn.__listening = true;
-            this.happn.log.info(`happn version ${version} listening at ${address}:${port}`);
-
-            if (this.happn.__done) {
-              this.happn.__done(null, this.happn); // <--- good, created a this.happn
-              this.happn.__done = null; //we only want this to be called once per call to listen
-            }
-          });
-        },
-        (e) => {
-          this.happn.log.error(`port ${options.port} not available: ${e.message}`);
-          clearInterval(waitingForPortMessageInterval);
-          this.happn.__done(e);
-        }
-      );
+          this.happn.__listening = true;
+          this.happn.log.info(`happn version ${version} listening at ${address}:${port}`);
+          this.happn.config.port = port;
+          if (this.happn.__done) {
+            this.happn.__done(null, this.happn); // <--- good, created a this.happn
+            this.happn.__done = null; //we only want this to be called once per call to listen
+          }
+        });
+      },
+      (e) => {
+        this.happn.log.error(`port ${options.port} not available: ${e.message}`);
+        clearInterval(waitingForPortMessageInterval);
+        this.happn.__done(e);
+      }
+    );
   }
 
   stop(_options, callback) {
@@ -239,5 +233,16 @@ module.exports = class TransportService extends require('events').EventEmitter {
 
       callback();
     });
+  }
+
+  async #checkFreePort(options) {
+    if (options.port === 0) {
+      return;
+    }
+    return tcpPortUsed.waitUntilFree(
+      options.port,
+      options.portAvailablePingInterval,
+      options.portAvailablePingTimeout
+    );
   }
 };

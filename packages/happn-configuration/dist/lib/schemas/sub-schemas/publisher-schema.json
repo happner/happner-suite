@@ -1,0 +1,48 @@
+{
+    "$id": "publisher-schema.json",
+    "$ref": "#/definitions/Publisher",
+    "definitions": {
+        "Publisher": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/PublisherConfig"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "Publisher"
+        },
+        "PublisherConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "publicationOptions": {
+                    "$ref": "#/definitions/PublicationOptions"
+                },
+                "secure": {
+                    "type": "boolean"
+                },
+                "timeout": {
+                    "type": "integer"
+                }
+            },
+            "required": [],
+            "title": "PublisherConfig"
+        },
+        "PublicationOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "acknowledgeTimeout": {
+                    "type": "number"
+                }
+            },
+            "required": [],
+            "title": "PublicationOptions"
+        }
+    }
+}
