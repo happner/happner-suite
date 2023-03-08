@@ -113,3 +113,7 @@
 -----------------
   - feat: token revocation and logout
   - fix: token revocation cluster fix
+
+1.1.9 2023-03-04
+-----------------
+  - Mongo-based cluster membership - dependencies update

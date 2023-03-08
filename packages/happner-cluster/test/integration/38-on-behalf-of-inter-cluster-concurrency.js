@@ -2,7 +2,6 @@ const baseConfig = require('../_lib/base-config');
 const stopCluster = require('../_lib/stop-cluster');
 const users = require('../_lib/users');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 const testclient = require('../_lib/client');
 const HappnerClient = require('happner-client');
 const LightClient = require('happner-client').Light;
@@ -19,7 +18,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     testUserNames = [],
     script = [],
     CONCURRENT_REQUESTS_COUNT = 20,
-    CONCURRENT_BATCHES_COUNT = 1;
+    CONCURRENT_BATCHES_COUNT = 1,
+    proxyPorts;
 
   before('clear mongo', clearMongo);
   before('start cluster', startCluster);
@@ -259,28 +259,20 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     });
   }
 
-  function startCluster(done) {
+  async function startCluster() {
     this.timeout(20000);
-    test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
-      localInstance = local;
-    });
-
-    setTimeout(() => {
-      Promise.all([
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      ])
-        .then(function (_servers) {
-          servers = _servers;
-          //localInstance = servers[0];
-          return users.add(servers[0], 'username', 'password');
-        })
-        .then(function () {
-          setTimeout(done, 5e3);
-        })
-        .catch(done);
-    }, 2000);
+    let local = test.HappnerCluster.create(localInstanceConfig(0, 1));
+    await test.delay(2e3);
+    servers = await Promise.all([
+      local,
+      test.HappnerCluster.create(remoteInstanceConfig(1, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(2, 1)),
+      test.HappnerCluster.create(remoteInstanceConfig(3, 1)),
+    ]);
+    localInstance = servers[0];
+    await users.add(servers[1], 'username', 'password');
+    await test.delay(5e3);
+    proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
   }
 
   async function createHappnerClientAndAPI(opts, port) {
@@ -321,14 +313,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   }
 
   async function connectAdminUsers() {
-    adminUser = await new testclient.create('_ADMIN', 'happn', getSeq.getPort(1));
+    adminUser = await new testclient.create('_ADMIN', 'happn', proxyPorts[0]);
     [adminUserHappnerClient, adminUserHappnerClientAPI] = await createHappnerClientAndAPI(
       {
         discoverMethods: true,
       },
-      getSeq.getPort(1)
+      proxyPorts[0]
     );
-    adminUserLightClient = await createLightClient({ domain: 'DOMAIN_NAME' }, getSeq.getPort(1));
+    adminUserLightClient = await createLightClient({ domain: 'DOMAIN_NAME' }, proxyPorts[0]);
   }
   async function disconnectAdminUsers() {
     if (adminUser) await adminUser.disconnect();
@@ -435,9 +427,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return new Promise((resolve, reject) => {
       restClient
         .postJson(
-          `http://127.0.0.1:${getSeq.getPort(
-            1
-          )}/rest/method/${componentName}/${methodName}?happn_token=` + token,
+          `http://127.0.0.1:${proxyPorts[0]}/rest/method/${componentName}/${methodName}?happn_token=` +
+            token,
           operation
         )
         .on('complete', function (result) {

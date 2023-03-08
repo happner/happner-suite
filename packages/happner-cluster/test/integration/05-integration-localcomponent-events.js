@@ -1,23 +1,21 @@
-const getSeq = require('../_lib/helpers/getSeq');
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let server;
-  getSeq.getFirst();
-  before('start server', function (done) {
-    this.timeout(20000);
-    test.HappnerCluster.create({
+  let config = {
+    cluster: {
+      functions: [testHapnpConfig],
+      localInstance: 0,
+    },
+  };
+  test.hooks.standardHooks(test, config);
+
+  it('can subscribe to event from local components', async function () {
+    await test.localInstance.exchange.component2.awaitEvent();
+  });
+
+  function testHapnpConfig() {
+    return {
       name: 'NODE-01',
       domain: 'DOMAIN_NAME',
-      port: getSeq.getPort(1),
-      happn: {
-        services: {
-          membership: {
-            config: {
-              seed: true,
-              hosts: ['127.0.0.1:' + getSeq.getSwimPort(1).toString()],
-            },
-          },
-        },
-      },
+      port: 0,
       modules: {
         component1: {
           instance: {
@@ -59,23 +57,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
         component2: {},
       },
-    })
-      .then(function (_server) {
-        server = _server;
-        done();
-      })
-      .catch(done);
-  });
-
-  after('stop server', function (done) {
-    if (!server) return done();
-    server.stop({ reconnect: false }, done);
-  });
-
-  it('can subscribe to event from local components', function (done) {
-    server.exchange.component2.awaitEvent(function (e) {
-      if (e) return done(e);
-      done();
-    });
-  });
+    };
+  }
 });

@@ -58,7 +58,13 @@
                 "allowAnonymousAccess": {
                     "type": "boolean"
                 },
+                "allowLogoutOverHttp": {
+                    "type": "boolean"
+                },
                 "allowUserChooseAuthProvider": {
+                    "type": "boolean"
+                },
+                "allowTTL0Revocations": {
                     "type": "boolean"
                 },
                 "authProviders": {

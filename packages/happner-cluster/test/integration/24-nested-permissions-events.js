@@ -1,9 +1,5 @@
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
 const users = require('../_lib/user-permissions');
-const client = require('../_lib/client');
-const getSeq = require('../_lib/helpers/getSeq');
 
 module.exports = SecuredComponent;
 function SecuredComponent() {}
@@ -29,61 +25,25 @@ SecuredComponent.prototype.fireEvent = function ($happn, eventName, callback) {
 };
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let servers, client1, client2, remoteServer;
+  let remoteServer;
+  let hooksConfig = {
+    cluster: {
+      functions: [serverConfig, serverConfig],
+    },
+    clients: [0, 1],
+  };
+  let timing = { all: 'before/after' };
+  test.hooks.standardHooks(test, hooksConfig, timing, true);
 
-  function serverConfig(seq, minPeers) {
-    var config = baseConfig(seq, minPeers, true);
-    config.happn.allowNestedPermissions = true;
-    config.adminPassword = 'test';
-    config.modules = {
-      SecuredComponent: {
-        path: __filename,
-      },
-    };
-    config.components = {
-      SecuredComponent: {
-        moduleName: 'SecuredComponent',
-        schema: {
-          exclusive: false,
-          methods: {},
-        },
-      },
-    };
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
-      },
-    };
-    return config;
-  }
-
-  before('clear mongo collection', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', done);
-  });
-
-  before('start cluster', async () => {
-    servers = [];
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getFirst(), 1)));
-    servers.push(await test.HappnerCluster.create(serverConfig(getSeq.getNext(), 2)));
-    remoteServer = servers[0];
+  before('set permissions', async () => {
+    remoteServer = test.servers[0];
     for (let user of Object.keys(permissions)) {
-      await users.add(servers[0], user, 'password', permissions[user]);
+      await users.add(test.servers[0], user, 'password', permissions[user]);
     }
-    await test.delay(5000);
-  });
-
-  after('stop clients', async () => {
-    if (client1) await client1.disconnect();
-    if (client2) await client2.disconnect();
-  });
-
-  after('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers, done);
   });
 
   it("we add a test user that has permissions to access some of the ProtectedComponent events, subscribe on a nested-path ('**'), we test that this works", async () => {
-    let listenerClient = await client.create('test1User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test1User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
@@ -96,11 +56,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
     await test.delay(1000);
     test.expect(receivedEvents).to.eql(['event-2a', 'event-3a']);
-    await client.destroy(listenerClient);
+    await test.client.destroy(listenerClient);
   });
 
   it('we add a test user that has permissions to access some of the ProtectedComponent events, including events  on sub/paths, subscribe on **, we test that this works', async () => {
-    let listenerClient = await client.create('test2User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test2User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
     await listenerClient.event.SecuredComponent.on('**', (message) => {
       receivedEvents.push(message.value);
@@ -117,11 +77,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     }
     await test.delay(1000);
     test.expect(receivedEvents).to.eql(['event-2b', 'event-3b', 'sub-path/sub-event-2b']);
-    await client.destroy(listenerClient);
+    await test.client.destroy(listenerClient);
   });
 
   it('we add a test user that has permissions to access some of the ProtectedComponent events, including a permission on sub-path/* we test that this works', async () => {
-    let listenerClient = await client.create('test3User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test3User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
     await listenerClient.event.SecuredComponent.on('**', (message) => {
       receivedEvents.push(message.value);
@@ -140,11 +100,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     test
       .expect(receivedEvents)
       .to.eql(['event-2d', 'event-3d', 'sub-path/sub-event-1d', 'sub-path/sub-event-2d']);
-    await client.destroy(listenerClient);
+    await test.client.destroy(listenerClient);
   });
 
   it("subscription on '**' will be unauthorized if we have no permissions to any subpaths", async () => {
-    let listenerClient = await client.create('test4User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test4User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
     let errorCaught = false;
     try {
@@ -155,13 +115,13 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       test.expect(e.toString()).to.eql('AccessDenied: unauthorized');
       errorCaught = true;
     } finally {
-      await client.destroy(listenerClient);
+      await test.client.destroy(listenerClient);
       test.expect(errorCaught).to.be(true);
     }
   });
 
   it("adding and then removing permissions with subscription on '**'", async () => {
-    let listenerClient = await client.create('test5User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test5User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
@@ -219,11 +179,11 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     }
     await test.delay(1000);
     test.expect(receivedEvents).to.eql([]);
-    await client.destroy(listenerClient);
+    await test.client.destroy(listenerClient);
   });
 
   it("Removing then adding permissions with subscription on '**'", async () => {
-    let listenerClient = await client.create('test6User', 'password', getSeq.getPort(2));
+    let listenerClient = await test.client.create('test6User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
@@ -348,4 +308,30 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       },
     },
   };
+
+  function serverConfig(seq, minPeers) {
+    var config = baseConfig(seq, minPeers, true);
+    config.happn.allowNestedPermissions = true;
+    config.adminPassword = 'test';
+    config.modules = {
+      SecuredComponent: {
+        path: __filename,
+      },
+    };
+    config.components = {
+      SecuredComponent: {
+        moduleName: 'SecuredComponent',
+        schema: {
+          exclusive: false,
+          methods: {},
+        },
+      },
+    };
+    config.happn.services.replicator = {
+      config: {
+        securityChangesetReplicateInterval: 10, // 100 per second
+      },
+    };
+    return config;
+  }
 });

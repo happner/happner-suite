@@ -1,14 +1,180 @@
-const Promise = require('bluebird');
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
-const stopCluster = require('../_lib/stop-cluster');
-const users = require('../_lib/users');
-const testclient = require('../_lib/client');
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
-const getSeq = require('../_lib/helpers/getSeq');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
-  let servers, localInstance;
+  let hooksConfig = {
+    cluster: {
+      functions: [
+        localInstanceConfig,
+        remoteInstanceConfig,
+        remoteInstanceConfig,
+        remoteInstanceConfig,
+      ],
+      localInstance: 0,
+    },
+    clients: [0],
+  };
+  test.hooks.standardHooks(test, hooksConfig, {}, true);
+
+  it('ensures a happner client without the correct permissions is unable to execute a remote components method', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    try {
+      await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+        'remoteComponent2',
+        'method1'
+      );
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+    }
+  });
+
+  it('ensures a happner client without the correct permissions is able to execute a remote components method - asAdmin', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+      'remoteComponent2',
+      'method1',
+      true
+    );
+  });
+
+  it('ensures a happner client without the correct permissions is unable to execute a remote components method, 2 levels deep', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    await test.users.allowMethod(test.localInstance, 'username', 'remoteComponent2', 'method2');
+
+    try {
+      await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+        'remoteComponent2',
+        'method2'
+      );
+
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+    }
+  });
+
+  it('ensures a happner client without the correct permissions is able to execute a remote components method, 2 levels deep - asAdmin', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    await test.users.allowMethod(test.localInstance, 'username', 'remoteComponent2', 'method2');
+    await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+      'remoteComponent2',
+      'method2',
+      true
+    );
+  });
+
+  it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteEvent'
+    );
+    try {
+      await test.clients[0].exchange.localComponent1.localMethodToRemoteEvent();
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+    }
+  });
+
+  it('ensures a happner client without the correct permissions is able to subscribe to a remote components event - asAdmin', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteEvent'
+    );
+    await test.clients[0].exchange.localComponent1.localMethodToRemoteEvent(true);
+  });
+
+  it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event, 2 levels deep', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    await test.users.allowMethod(test.localInstance, 'username', 'remoteComponent2', 'method3');
+    try {
+      await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+        'remoteComponent2',
+        'method3'
+      );
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+    }
+  });
+
+  it('ensures a happner client without the correct permissions is able to subscribe to a remote components event, 2 levels deep - asAdmin', async function () {
+    this.timeout(4000);
+
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToRemoteMethod'
+    );
+    await test.users.allowMethod(test.localInstance, 'username', 'remoteComponent2', 'method3');
+    await test.clients[0].exchange.localComponent1.localMethodToRemoteMethod(
+      'remoteComponent2',
+      'method3',
+      true
+    );
+  });
+
+  it('ensures a happner client without the correct permissions is unable to modify a remote components data', async function () {
+    this.timeout(6000);
+    await test.users.allowMethod(
+      test.localInstance,
+      'username',
+      'localComponent1',
+      'localMethodToData'
+    );
+    try {
+      await test.clients[0].exchange.localComponent1.localMethodToData();
+
+      throw new Error('unexpected success');
+    } catch (e) {
+      test.expect(e.toString()).to.be('AccessDenied: unauthorized');
+    }
+  });
 
   function localInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
@@ -41,262 +207,4 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     };
     return config;
   }
-
-  beforeEach('clear mongo', function (done) {
-    clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
-      done(e);
-    });
-  });
-
-  beforeEach('start cluster', function (done) {
-    this.timeout(20000);
-    test.HappnerCluster.create(localInstanceConfig(getSeq.getFirst(), 1)).then(function (local) {
-      localInstance = local;
-    });
-
-    setTimeout(() => {
-      Promise.all([
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-        test.HappnerCluster.create(remoteInstanceConfig(getSeq.getNext(), 1)),
-      ])
-        .then(function (_servers) {
-          servers = _servers;
-          //localInstance = servers[0];
-          return users.add(servers[0], 'username', 'password');
-        })
-        .then(function () {
-          done();
-        })
-        .catch(done);
-    }, 2000);
-  });
-
-  afterEach('stop cluster', function (done) {
-    if (!servers) return done();
-    stopCluster(servers.concat(localInstance), done);
-  });
-
-  // after('why is node still running', function(){
-  //   setTimeout(log, 5000);
-  // })
-
-  it('ensures a happner client without the correct permissions is unable to execute a remote components method', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method1'
-        );
-      })
-      .then(function () {
-        done(new Error('unexpected success'));
-      })
-      .catch(function (e) {
-        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-        done();
-      });
-  });
-
-  it('ensures a happner client without the correct permissions is able to execute a remote components method - asAdmin', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method1',
-          true
-        );
-      })
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  it('ensures a happner client without the correct permissions is unable to execute a remote components method, 2 levels deep', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method2');
-      })
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method2'
-        );
-      })
-      .then(function () {
-        done(new Error('unexpected success'));
-      })
-      .catch(function (e) {
-        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-        done();
-      });
-  });
-
-  it('ensures a happner client without the correct permissions is able to execute a remote components method, 2 levels deep - asAdmin', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method2');
-      })
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method2',
-          true
-        );
-      })
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteEvent();
-      })
-      .then(function () {
-        done(new Error('unexpected success'));
-      })
-      .catch(function (e) {
-        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-        done();
-      });
-  });
-
-  it('ensures a happner client without the correct permissions is able to subscribe to a remote components event - asAdmin', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteEvent')
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteEvent(true);
-      })
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  it('ensures a happner client without the correct permissions is unable to subscribe to a remote components event, 2 levels deep', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method3');
-      })
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method3'
-        );
-      })
-      .then(function () {
-        done(new Error('unexpected success'));
-      })
-      .catch(function (e) {
-        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-        done();
-      });
-  });
-
-  it('ensures a happner client without the correct permissions is able to subscribe to a remote components event, 2 levels deep - asAdmin', function (done) {
-    this.timeout(4000);
-
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToRemoteMethod')
-      .then(function () {
-        return users.allowMethod(localInstance, 'username', 'remoteComponent2', 'method3');
-      })
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        let thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToRemoteMethod(
-          'remoteComponent2',
-          'method3',
-          true
-        );
-      })
-      .then(function () {
-        done();
-      })
-      .catch(done);
-  });
-
-  it('ensures a happner client without the correct permissions is unable to modify a remote components data', function (done) {
-    this.timeout(4000);
-    let thisClient;
-    users
-      .allowMethod(localInstance, 'username', 'localComponent1', 'localMethodToData')
-      .then(function () {
-        return testclient.create('username', 'password', getSeq.getPort(1));
-      })
-      .then(function (client) {
-        thisClient = client;
-        //first test our broker components methods are directly callable
-        return thisClient.exchange.localComponent1.localMethodToData();
-      })
-      .then(function () {
-        done(new Error('unexpected success'));
-      })
-      .catch(function (e) {
-        test.expect(e.toString()).to.be('AccessDenied: unauthorized');
-        thisClient.disconnect(done);
-      });
-  });
 });
