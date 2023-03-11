@@ -131,7 +131,7 @@ describe(test.testName(), () => {
     });
   });
 
-  context('create cache intances', () => {
+  context('create cache instances', () => {
     it('creates StaticCache instance', () => {
       const instance = CacheService.create(null);
       const callback = test.sinon.stub();
