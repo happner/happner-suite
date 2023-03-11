@@ -39,11 +39,11 @@ describe(test.testName(), () => {
       test.chai.expect(instance.constructor.name).to.equal('CacheService');
     });
   });
+
   context('iniitialize', () => {
     it('initialized service, reassigns config ', () => {
       const instance = CacheService.create(null);
       const config = test.sinon.stub();
-	  
       const result = instance.initialize(config);
 
       test.chai.expect(result).to.be.undefined;
@@ -53,7 +53,6 @@ describe(test.testName(), () => {
     it('initialized service, config is null ', () => {
       const instance = CacheService.create(null);
       const callback = test.sinon.stub();
-
       const result = instance.initialize(null, callback);
 
       test.chai.expect(result).to.be.undefined;
@@ -64,7 +63,6 @@ describe(test.testName(), () => {
       const instance = CacheService.create(null);
       const callback = test.sinon.stub();
       const warnStub = test.sinon.stub(instance.log, 'warn');
-
       const result = instance.initialize({ statisticsInterval: 900 }, callback);
 
       test.chai
@@ -79,7 +77,6 @@ describe(test.testName(), () => {
       const instance = CacheService.create(null);
       const callback = test.sinon.stub();
       const callbackTwo = test.sinon.stub();
-
       const infoStub = test.sinon.stub(instance.log.json, 'info');
       const nowStub = test.sinon.stub(Date, 'now').returns(500);
       instance.happn = mockHappn;
@@ -115,7 +112,6 @@ describe(test.testName(), () => {
     it('initialized service and callback throws error', async () => {
       const instance = CacheService.create(null);
       const callback = test.sinon.stub();
-
       const warnStub = test.sinon.stub(instance.log, 'warn').throws(new Error('mockError'));
 
       instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
@@ -138,7 +134,6 @@ describe(test.testName(), () => {
       instance.happn = mockHappn;
 
       instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
-
       const result = instance.create('mockName', {});
 
       test.chai.expect(result).to.be.an.instanceOf(StaticCache);

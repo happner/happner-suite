@@ -22,6 +22,7 @@ describe(test.testName(), () => {
       const instance = new CachePersist('mockName', {
         dataStore: mockDatastore,
       });
+
       test.chai.expect(instance.constructor.name).to.equal('CachePersist');
       test.chai.expect(instance).to.be.an.instanceOf(CachePersist);
     });
