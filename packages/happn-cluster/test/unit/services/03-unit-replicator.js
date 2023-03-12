@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter;
 const Replicator = require('../../../lib/services/replicator');
 const MockHappn = require('../../mocks/mock-happn');
 const mockOpts = require('../../mocks/mock-opts');
-const SD_EVENTS = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
+const SecurityDirectoryEvents = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
 
 require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
   it('can initialize the replicator', function (done) {
@@ -26,7 +26,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
     };
     replicator.initialize({}, () => {
       replicator.start();
-      replicator.__replicate = (topic, batch) => {
+      replicator.replicate = (topic, batch) => {
         test.expect(Date.now() - started >= 3000).to.be(true);
         test.expect(topic).to.be('/security/dataChanged');
         test.expect(batch).to.eql({
@@ -50,7 +50,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
           },
         });
         //this should be emptied out
-        test.expect(replicator.securityChangeset).to.eql([]);
+        test.expect(replicator.securityChangeSet).to.eql([]);
         test.expect(replicator.unbatchSecurityUpdate(batch)).to.eql([
           {
             additionalInfo: undefined,
@@ -75,11 +75,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
       replicator.send(
         '/security/dataChanged',
         {
-          whatHappnd: SD_EVENTS.UNLINK_GROUP,
+          whatHappnd: SecurityDirectoryEvents.UNLINK_GROUP,
           changedData: { path: '/test/group1' },
         },
         () => {
-          test.expect(replicator.securityChangeset).to.eql([
+          test.expect(replicator.securityChangeSet).to.eql([
             {
               whatHappnd: 'unlink-group',
               changedData: { path: '/test/group1' },
@@ -89,11 +89,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
           replicator.send(
             '/security/dataChanged',
             {
-              whatHappnd: SD_EVENTS.UNLINK_GROUP,
+              whatHappnd: SecurityDirectoryEvents.UNLINK_GROUP,
               changedData: { path: '/test/group1' },
             },
             () => {
-              test.expect(replicator.securityChangeset).to.eql([
+              test.expect(replicator.securityChangeSet).to.eql([
                 {
                   whatHappnd: 'unlink-group',
                   changedData: { path: '/test/group1' },
@@ -107,11 +107,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
               replicator.send(
                 '/security/dataChanged',
                 {
-                  whatHappnd: SD_EVENTS.LINK_GROUP,
+                  whatHappnd: SecurityDirectoryEvents.LINK_GROUP,
                   changedData: { _meta: { path: '/test/group1' } },
                 },
                 () => {
-                  test.expect(replicator.securityChangeset).to.eql([
+                  test.expect(replicator.securityChangeSet).to.eql([
                     {
                       whatHappnd: 'unlink-group',
                       changedData: { path: '/test/group1' },
@@ -143,11 +143,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
     };
     replicator.initialize(
       {
-        securityChangesetReplicateInterval: 1000,
+        securityChangeSetReplicateInterval: 1000,
       },
       () => {
         replicator.start();
-        replicator.__replicate = (topic, batch) => {
+        replicator.replicate = (topic, batch) => {
           test.expect(Date.now() - started <= 3000).to.be(true);
           test.expect(topic).to.be('/security/dataChanged');
           test.expect(batch).to.eql({
@@ -171,7 +171,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
             },
           });
           //this should be emptied out
-          test.expect(replicator.securityChangeset).to.eql([]);
+          test.expect(replicator.securityChangeSet).to.eql([]);
           test.expect(replicator.unbatchSecurityUpdate(batch)).to.eql([
             {
               additionalInfo: undefined,
@@ -196,11 +196,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
         replicator.send(
           '/security/dataChanged',
           {
-            whatHappnd: SD_EVENTS.UNLINK_GROUP,
+            whatHappnd: SecurityDirectoryEvents.UNLINK_GROUP,
             changedData: { path: '/test/group1' },
           },
           () => {
-            test.expect(replicator.securityChangeset).to.eql([
+            test.expect(replicator.securityChangeSet).to.eql([
               {
                 whatHappnd: 'unlink-group',
                 changedData: { path: '/test/group1' },
@@ -210,11 +210,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
             replicator.send(
               '/security/dataChanged',
               {
-                whatHappnd: SD_EVENTS.UNLINK_GROUP,
+                whatHappnd: SecurityDirectoryEvents.UNLINK_GROUP,
                 changedData: { path: '/test/group1' },
               },
               () => {
-                test.expect(replicator.securityChangeset).to.eql([
+                test.expect(replicator.securityChangeSet).to.eql([
                   {
                     whatHappnd: 'unlink-group',
                     changedData: { path: '/test/group1' },
@@ -228,11 +228,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
                 replicator.send(
                   '/security/dataChanged',
                   {
-                    whatHappnd: SD_EVENTS.LINK_GROUP,
+                    whatHappnd: SecurityDirectoryEvents.LINK_GROUP,
                     changedData: { _meta: { path: '/test/group1' } },
                   },
                   () => {
-                    test.expect(replicator.securityChangeset).to.eql([
+                    test.expect(replicator.securityChangeSet).to.eql([
                       {
                         whatHappnd: 'unlink-group',
                         changedData: { path: '/test/group1' },
@@ -257,11 +257,11 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
   });
 
   it('can getChangedKey', function () {
-    const SD_EVENTS = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
+    const SecurityDirectoryEvents = require('happn-3').constants.SECURITY_DIRECTORY_EVENTS;
     const replicator = new Replicator(mockOpts);
     test
       .expect(
-        replicator.getChangedKey(SD_EVENTS.LINK_GROUP, {
+        replicator.getChangedKey(SecurityDirectoryEvents.LINK_GROUP, {
           _meta: {
             path: 'test/path',
           },
@@ -271,7 +271,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        replicator.getChangedKey(SD_EVENTS.UNLINK_GROUP, {
+        replicator.getChangedKey(SecurityDirectoryEvents.UNLINK_GROUP, {
           path: 'test/path',
         })
       )
@@ -279,7 +279,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        replicator.getChangedKey(SD_EVENTS.LOOKUP_TABLE_CHANGED, {
+        replicator.getChangedKey(SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED, {
           table: 'table',
         })
       )
@@ -287,7 +287,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        replicator.getChangedKey(SD_EVENTS.LOOKUP_PERMISSION_CHANGED, {
+        replicator.getChangedKey(SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED, {
           table: 'table',
         })
       )
@@ -295,7 +295,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.DELETE_USER, {
+        test.tryNonAsyncMethod(replicator, 'getChangedKey', SecurityDirectoryEvents.DELETE_USER, {
           obj: {
             _meta: {
               path: '/_SYSTEM/_SECURITY/_USER/path',
@@ -307,7 +307,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.DELETE_GROUP, {
+        test.tryNonAsyncMethod(replicator, 'getChangedKey', SecurityDirectoryEvents.DELETE_GROUP, {
           obj: {
             name: 'group-name',
           },
@@ -317,7 +317,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.UPSERT_GROUP, {
+        test.tryNonAsyncMethod(replicator, 'getChangedKey', SecurityDirectoryEvents.UPSERT_GROUP, {
           name: 'group-name',
         })
       )
@@ -325,23 +325,33 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.PERMISSION_REMOVED, {
-          groupName: 'group-name',
-        })
+        test.tryNonAsyncMethod(
+          replicator,
+          'getChangedKey',
+          SecurityDirectoryEvents.PERMISSION_REMOVED,
+          {
+            groupName: 'group-name',
+          }
+        )
       )
       .to.be('group-name');
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.PERMISSION_UPSERTED, {
-          groupName: 'group-name',
-        })
+        test.tryNonAsyncMethod(
+          replicator,
+          'getChangedKey',
+          SecurityDirectoryEvents.PERMISSION_UPSERTED,
+          {
+            groupName: 'group-name',
+          }
+        )
       )
       .to.be('group-name');
 
     test
       .expect(
-        test.tryNonAsyncMethod(replicator, 'getChangedKey', SD_EVENTS.UPSERT_USER, {
+        test.tryNonAsyncMethod(replicator, 'getChangedKey', SecurityDirectoryEvents.UPSERT_USER, {
           username: 'user-name',
         })
       )
@@ -357,84 +367,84 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
     replicator.happn = new MockHappn('http', 9000);
     let payload = {};
 
-    payload[SD_EVENTS.LINK_GROUP] = {
+    payload[SecurityDirectoryEvents.LINK_GROUP] = {
       key1: { changedData: 'changed1', additionalInfo: 'additional1' },
     };
-    payload[SD_EVENTS.UNLINK_GROUP] = {
+    payload[SecurityDirectoryEvents.UNLINK_GROUP] = {
       key2: { changedData: 'changed2', additionalInfo: 'additional2' },
     };
-    payload[SD_EVENTS.UPSERT_GROUP] = {
+    payload[SecurityDirectoryEvents.UPSERT_GROUP] = {
       key3: { changedData: 'changed3', additionalInfo: 'additional3' },
     };
-    payload[SD_EVENTS.UPSERT_USER] = {
+    payload[SecurityDirectoryEvents.UPSERT_USER] = {
       key4: { changedData: 'changed4', additionalInfo: 'additional4' },
     };
-    payload[SD_EVENTS.PERMISSION_REMOVED] = {
+    payload[SecurityDirectoryEvents.PERMISSION_REMOVED] = {
       key5: { changedData: 'changed5', additionalInfo: 'additional5' },
     };
-    payload[SD_EVENTS.PERMISSION_UPSERTED] = {
+    payload[SecurityDirectoryEvents.PERMISSION_UPSERTED] = {
       key6: { changedData: 'changed6', additionalInfo: 'additional6' },
     };
-    payload[SD_EVENTS.DELETE_USER] = {
+    payload[SecurityDirectoryEvents.DELETE_USER] = {
       key7: { changedData: 'changed7', additionalInfo: 'additional7' },
     };
-    payload[SD_EVENTS.DELETE_GROUP] = {
+    payload[SecurityDirectoryEvents.DELETE_GROUP] = {
       key8: { changedData: 'changed8', additionalInfo: 'additional8' },
     };
-    payload[SD_EVENTS.LOOKUP_TABLE_CHANGED] = {
+    payload[SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED] = {
       key9: { changedData: 'changed9', additionalInfo: 'additional9' },
     };
-    payload[SD_EVENTS.LOOKUP_PERMISSION_CHANGED] = {
+    payload[SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED] = {
       key10: { changedData: 'changed10', additionalInfo: 'additional10' },
     };
     test.expect(replicator.unbatchSecurityUpdate(payload)).to.eql([
       {
-        whatHappnd: SD_EVENTS.LINK_GROUP,
+        whatHappnd: SecurityDirectoryEvents.LINK_GROUP,
         changedData: 'changed1',
         additionalInfo: 'additional1',
       },
       {
-        whatHappnd: SD_EVENTS.UNLINK_GROUP,
+        whatHappnd: SecurityDirectoryEvents.UNLINK_GROUP,
         changedData: 'changed2',
         additionalInfo: 'additional2',
       },
       {
-        whatHappnd: SD_EVENTS.UPSERT_GROUP,
+        whatHappnd: SecurityDirectoryEvents.UPSERT_GROUP,
         changedData: 'changed3',
         additionalInfo: 'additional3',
       },
       {
-        whatHappnd: SD_EVENTS.UPSERT_USER,
+        whatHappnd: SecurityDirectoryEvents.UPSERT_USER,
         changedData: 'changed4',
         additionalInfo: 'additional4',
       },
       {
-        whatHappnd: SD_EVENTS.PERMISSION_REMOVED,
+        whatHappnd: SecurityDirectoryEvents.PERMISSION_REMOVED,
         changedData: 'changed5',
         additionalInfo: 'additional5',
       },
       {
-        whatHappnd: SD_EVENTS.PERMISSION_UPSERTED,
+        whatHappnd: SecurityDirectoryEvents.PERMISSION_UPSERTED,
         changedData: 'changed6',
         additionalInfo: 'additional6',
       },
       {
-        whatHappnd: SD_EVENTS.DELETE_USER,
+        whatHappnd: SecurityDirectoryEvents.DELETE_USER,
         changedData: 'changed7',
         additionalInfo: 'additional7',
       },
       {
-        whatHappnd: SD_EVENTS.DELETE_GROUP,
+        whatHappnd: SecurityDirectoryEvents.DELETE_GROUP,
         changedData: 'changed8',
         additionalInfo: 'additional8',
       },
       {
-        whatHappnd: SD_EVENTS.LOOKUP_TABLE_CHANGED,
+        whatHappnd: SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED,
         changedData: 'changed9',
         additionalInfo: 'additional9',
       },
       {
-        whatHappnd: SD_EVENTS.LOOKUP_PERMISSION_CHANGED,
+        whatHappnd: SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED,
         changedData: 'changed10',
         additionalInfo: 'additional10',
       },
@@ -495,7 +505,7 @@ require('../../lib/test-helper').describe({ timeout: 40e3 }, function (test) {
 
     replicator.initialize(
       {
-        securityChangesetReplicateInterval: 1000,
+        securityChangeSetReplicateInterval: 1000,
       },
       () => {
         replicator.start();

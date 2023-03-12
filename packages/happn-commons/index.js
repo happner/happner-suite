@@ -30,6 +30,7 @@ module.exports = {
   rimraf: require('rimraf'),
   path: require('path'),
   BaseDataProvider: require('./lib/base-data-provider'),
+  BaseBuilder: require('./lib/base-builder'),
   lruCache: require('lru-cache'),
   fastClone: require('fast-clone'),
   HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
