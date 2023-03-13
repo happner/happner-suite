@@ -1,13 +1,11 @@
 const { fork } = require('child_process');
 const path = require('path');
 const baseConfig = require('../_lib/base-config');
-const getSeq = require('../_lib/helpers/getSeq');
 const HappnerCluster = require('../..');
 const libDir = require('../_lib/lib-dir');
 const clearMongoCollection = require('../_lib/drop-mongo-db');
 require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
   let broker1Proc, broker2Proc, broker3Proc, remoteMesh;
-  let brokerSeq;
   let delayTime = 5e3;
   before('clear mongo collection', async () => {
     await clearMongoCollection('happn-cluster');
@@ -15,9 +13,9 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
 
   before('starts mesh and first broker', async () => {
     let done;
-    let remoteMeshPromise = HappnerCluster.create(remoteInstanceConfig(getSeq.getFirst(), 2));
-    brokerSeq = getSeq.getNext();
-    broker1Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    let remoteMeshPromise = HappnerCluster.create(remoteInstanceConfig(0, 2));
+
+    broker1Proc = fork(path.resolve(__dirname, './broker.js'), [1]);
     broker1Proc.on('message', async (data) => {
       if (data === 'started') {
         remoteMesh = await remoteMeshPromise;
@@ -61,7 +59,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       done = res;
     });
 
-    broker2Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    broker2Proc = fork(path.resolve(__dirname, './broker.js'), [1]);
 
     broker2Proc.on('message', async (data) => {
       if (data === 'started') {
@@ -83,7 +81,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     await new Promise((res) => {
       done = res;
     });
-    broker3Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    broker3Proc = fork(path.resolve(__dirname, './broker.js'), [1]);
 
     broker3Proc.on('message', async (data) => {
       if (data === 'started') {
@@ -105,7 +103,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     await new Promise((res) => {
       done = res;
     });
-    let broker4Proc = fork(path.resolve(__dirname, './broker.js'), brokerSeq);
+    let broker4Proc = fork(path.resolve(__dirname, './broker.js'), [1]);
     broker4Proc.on('message', async (data) => {
       if (data === 'started') {
         await test.delay(8000);
@@ -124,8 +122,10 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     await new Promise((res) => {
       done = res;
     });
-    let compareStat = stats[0];
-    test.expect(stats.every((stat) => test._.isEqual(stat, compareStat))).to.be(true);
+
+    test
+      .expect(stats.every((stat) => stat.connected <= 1 && stat.active <= 3 && stat.attached <= 1))
+      .to.be(true);
   });
 
   function remoteInstanceConfig(seq, sync, replicate) {

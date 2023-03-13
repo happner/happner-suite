@@ -1032,3 +1032,11 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - fix: prevent fatal when using "as" for a user that does not exist
   - feat: removed file watching in packager
   
+12.8.0 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix
+
+12.8.1 2023-03-04
+-----------------
+  - Mongo-based cluster membership - dependencies update

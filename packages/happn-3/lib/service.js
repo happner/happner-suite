@@ -97,6 +97,7 @@ module.exports = {
       }
 
       happn.__initialized = true;
+
       if (!config.deferListen) happn.listen(happn.config.host, happn.config.port, done);
       else done(null, happn);
     });

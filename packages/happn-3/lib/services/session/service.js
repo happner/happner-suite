@@ -33,6 +33,7 @@ SessionService.prototype.getClient = getClient;
 SessionService.prototype.getSession = getSession;
 SessionService.prototype.disconnectSession = disconnectSession;
 SessionService.prototype.disconnectSessions = disconnectSessions;
+SessionService.prototype.disconnectSessionsWithToken = disconnectSessionsWithToken;
 SessionService.prototype.__detachSessionExpired = __detachSessionExpired;
 SessionService.prototype.each = each;
 SessionService.prototype.destroyPrimus = destroyPrimus;
@@ -260,6 +261,22 @@ function disconnectSessions(parentSessionId, message, callback, includeParent = 
       if (!includeParent && session.data.id === parentSessionId) return sessionCb();
       if (session.data.parentId !== parentSessionId) return sessionCb();
       this.disconnectSession(sessionId, sessionCb, message);
+    },
+    (e) => {
+      return callback(e);
+    }
+  );
+}
+
+function disconnectSessionsWithToken(token, message, callback) {
+  async.eachSeries(
+    Object.keys(this.__sessions),
+    (sessionId, sessionCb) => {
+      const session = this.__sessions[sessionId];
+      if (session.data.token === token) {
+        return this.disconnectSession(sessionId, sessionCb, message);
+      }
+      return sessionCb();
     },
     (e) => {
       return callback(e);

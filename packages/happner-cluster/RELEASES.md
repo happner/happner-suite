@@ -448,3 +448,13 @@
 -----------------
   - happn-3 update
 
+12.4.2 2023-03-03
+-----------------
+  - feat: token revocation and logout
+  - fix: token revocation cluster fix
+
+13.0.0 2023-03-04
+-----------------
+  - happn-cluster membership updated to mongo-based system
+  - tests now use ports auto-assigned by OS
+

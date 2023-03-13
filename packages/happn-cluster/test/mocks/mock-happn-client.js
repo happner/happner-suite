@@ -1,4 +1,5 @@
 var lastLoginConfig;
+const NodeUtil = require('util');
 module.exports.getLastLoginConfig = function () {
   var cloned = JSON.parse(JSON.stringify(lastLoginConfig));
 
@@ -8,8 +9,12 @@ module.exports.getLastLoginConfig = function () {
 };
 
 var queuedLoginError = null;
-module.exports.queueLoginError = function (error) {
+let loginError = () => {
+  return true;
+};
+module.exports.queueLoginError = function (error, condition) {
   queuedLoginError = error;
+  if (condition) loginError = condition;
 };
 
 var queuedSubscriptionError = null;
@@ -17,8 +22,8 @@ module.exports.queueSubscriptionError = function (error) {
   queuedSubscriptionError = error;
 };
 
-module.exports.create = function (config, callback) {
-  if (queuedLoginError) {
+module.exports.create = NodeUtil.promisify(function (config, callback) {
+  if (queuedLoginError && loginError()) {
     var error = queuedLoginError;
     queuedLoginError = null;
     process.nextTick(function () {
@@ -41,7 +46,7 @@ module.exports.create = function (config, callback) {
   process.nextTick(function () {
     callback(null, new MockHappnClient(name));
   });
-};
+});
 
 module.exports.instances = {};
 
@@ -74,10 +79,10 @@ MockHappnClient.prototype.onEvent = function (event, handler) {
   this.eventHandlers[event] = this.eventHandlers[event] || [];
   this.eventHandlers[event].push(handler);
 };
-
+MockHappnClient.prototype.stop = function () {};
 MockHappnClient.prototype.offEvent = function () {};
-
-MockHappnClient.prototype.on = function (path, opts, handler, callback) {
+MockHappnClient.prototype.disconnect = () => {};
+MockHappnClient.prototype.on = NodeUtil.promisify(function (path, opts, handler, callback) {
   if (queuedSubscriptionError) {
     var error = queuedSubscriptionError;
     queuedSubscriptionError = null;
@@ -89,7 +94,7 @@ MockHappnClient.prototype.on = function (path, opts, handler, callback) {
   this.__subscribed.push(path);
   this.__subscriptionHandlers[path] = handler;
   process.nextTick(callback);
-};
+});
 
 MockHappnClient.prototype.emitDisconnect = function () {
   var handlers = this.eventHandlers['reconnect-scheduled'];

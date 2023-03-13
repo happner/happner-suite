@@ -59,27 +59,20 @@ Replicator.prototype.stop = function (options, callback) {
   callback();
 };
 
-Replicator.prototype.start = require('util').promisify(function (callback) {
-  property(this, 'localClient', this.happn.services.orchestrator.members.__self.client);
+Replicator.prototype.start = async function () {
+  property(this, 'localClient', this.happn.services.orchestrator.localClient);
   this.securityChangesetReplicate();
-  this.localClient.on(
-    '/__REPLICATE',
-    (data) => {
-      var topic = data.topic;
-      var payload = data.payload;
-      var origin = data.origin;
-      var isLocal = origin === this.happn.name;
+  await this.localClient.on('/__REPLICATE', (data) => {
+    var topic = data.topic;
+    var payload = data.payload;
+    var origin = data.origin;
+    var isLocal = origin === this.happn.name;
 
-      if (topic === '/security/dataChanged')
-        return this.emitSecurityDataChanged(payload, isLocal, origin);
-      this.emit(topic, payload, isLocal, origin);
-    },
-    function (err) {
-      if (err) return callback(err);
-      callback();
-    }
-  );
-});
+    if (topic === '/security/dataChanged')
+      return this.emitSecurityDataChanged(payload, isLocal, origin);
+    this.emit(topic, payload, isLocal, origin);
+  });
+};
 
 Replicator.prototype.failSecurityChangesetReplicate = function (e, endingProcess) {
   const errorMessage = `unable to replicate security data: ${e.message}`;
@@ -107,6 +100,10 @@ Replicator.prototype.securityChangesetReplicate = function (endingProcess) {
 
 Replicator.prototype.getChangedKey = function (whatHappnd, changedData) {
   switch (whatHappnd) {
+    case SD_EVENTS.TOKEN_REVOKED:
+      return changedData;
+    case SD_EVENTS.TOKEN_RESTORED:
+      return changedData;
     case SD_EVENTS.LINK_GROUP:
       return changedData._meta.path.split('/').pop();
     case SD_EVENTS.UNLINK_GROUP:
@@ -152,6 +149,8 @@ Replicator.prototype.unpackBywhatHappnd = function (payload, whatHappnd) {
 
 Replicator.prototype.unbatchSecurityUpdate = function (payload) {
   let unbatched = [];
+  unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.TOKEN_REVOKED));
+  unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.TOKEN_RESTORED));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.LINK_GROUP));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.UNLINK_GROUP));
   unbatched = unbatched.concat(this.unpackBywhatHappnd(payload, SD_EVENTS.UPSERT_GROUP));

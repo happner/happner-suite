@@ -1,7 +1,7 @@
 const HappnerCluster = require('../..');
 const baseConfig = require('../_lib/base-config');
 const libDir = require('../_lib/lib-dir');
-let seq = [parseInt(process.argv[2]), parseInt(process.argv[3])];
+let seq = parseInt(process.argv[2]);
 (async () => {
   let meshConfig = brokerConfig(seq, 2);
   let mesh = await HappnerCluster.create(meshConfig);

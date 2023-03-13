@@ -1,504 +1,404 @@
-module.exports = Orchestrator;
+//____________________________ ORCHESTRATOR_________________
+const Happn = require('happn-3');
+const _ = require('lodash');
+const clone = require('clone');
+const EventEmitter = require('events').EventEmitter;
+const ServiceEntry = require('./orchestrator/service-entry');
+const getAddress = require('../utils/get-address');
+const CONSTANTS = require('../constants/orchestrator-states');
+const property = require('../utils/property');
+const { performance } = require('perf_hooks');
+const NodeUtil = require('util');
 
-var Happn = require('happn-3');
-var util = require('util');
-var EventEmitter = require('events').EventEmitter;
-
-var Member = require('./orchestrator/member');
-var property = require('../utils/property');
-var GetAddress = require('../utils/get-address');
-const commons = require('happn-commons');
-const clone = commons.fastClone;
-function Orchestrator(opts) {
-  this.peers = {}; // list of ready (fully connected) members by happn.name
-
-  property(this, 'members', {}); // list of all members (by memberId/swim)
-  property(this, 'log', opts.logger.createLogger('Orchestrator'));
-  property(this, 'stabiliseWaiting', []); // callbacks waiting on stabilise
-  property(this, 'stableExpectationMask', {
-    name: 'defined',
-    connectingTo: false,
-    connectedTo: true,
-    connectedFrom: true,
-    subscribedTo: true,
-    subscribedFrom: true,
-    error: null,
-  });
-  property(this, 'stableReportInterval', null);
-  property(this, 'stableTimeout', null);
-  property(this, 'stableAwaitingMinimumPeers', null);
-  property(this, 'HappnClient', Happn.client);
-  property(this, 'Member', Member);
-  property(this, 'getAddress', GetAddress(this.log));
-}
-
-util.inherits(Orchestrator, EventEmitter);
-
-Orchestrator.prototype.initialize = function (config, callback) {
-  property(this, 'happn', this.happn);
-  property(this, 'config', config);
-  property(this, 'secure', this.happn.config.secure);
-  property(this, 'announceHost', this.happn.config.announceHost);
-
-  if (this.announceHost === '') {
-    // ansible is loading empty string
-    this.log.error('announceHost is empty string!');
-    process.exit(1);
+module.exports = class Orchestrator extends EventEmitter {
+  constructor(opts) {
+    super();
+    this.log = opts.logger.createLogger('Orchestrator');
+    this.constants = CONSTANTS.STATES;
+    this.state = this.constants.WARMUP;
+    this.HappnClient = Happn.client;
   }
 
-  if (this.secure) {
-    try {
-      property(this, 'adminUser', this.happn.services.security.config.adminUser);
-    } catch (e) {
-      return callback(new Error('missing services.security.config.adminUser'));
-    }
+  static create(opts) {
+    return new Orchestrator(opts);
   }
 
-  property(this, '__onConnectionFromHandler', this.__onConnectionFrom.bind(this));
-  property(this, '__onDisconnectionFromHandler', this.__onDisconnectionFrom.bind(this));
-
-  this.happn.services.session.on('authentic', this.__onConnectionFromHandler);
-  this.happn.services.session.on('disconnect', this.__onDisconnectionFromHandler);
-
-  this.__defaults(callback);
-};
-
-Orchestrator.prototype.stop = function (options, callback) {
-  if (typeof options === 'function') callback = options;
-  var members = this.members,
-    log = this.log;
-  log.debug('stopping');
-
-  if (this.membership) {
-    this.membership.removeListener('remove', this.__removeMembershipHandler);
-    this.membership.removeListener('add', this.__addMembershipHandler);
+  get peers() {
+    let peers = Object.values(this.registry).reduce(
+      (peers, service) => ({ ...peers, ...service.peers }),
+      {}
+    );
+    let self = this.registry[this.serviceName].members[this.endpoint];
+    if (self && self.peer) property(peers, '__self', self);
+    return peers;
   }
 
-  clearInterval(this.stableReportInterval);
-  clearTimeout(this.stableTimeout);
-
-  this.__stopMembers(members).then(callback).catch(callback);
-};
-
-Orchestrator.prototype.__stopMembers = async function (members) {
-  try {
-    for (let memberName of Object.keys(members)) {
-      await members[memberName].stop();
-    }
-    this.log.info('stopped');
-  } catch (e) {
-    this.log.error('failed to stop orchestrator', e);
-  }
-};
-
-Orchestrator.prototype.getLoginConfig = function () {
-  if (!this.loginConfig) return null;
-
-  var config = {
-    info: clone(this.loginConfig.info),
-  };
-
-  if (this.loginConfig.username) config.username = this.loginConfig.username.toString();
-  if (this.loginConfig.password) config.password = this.loginConfig.password.toString();
-
-  return config;
-};
-
-Orchestrator.prototype.prepare = require('util').promisify(function (callback) {
-  var protocol,
-    address,
-    happnUrl,
-    _this = this;
-
-  if (!this.happn.services.membership) return callback(new Error('missing membership service'));
-
-  protocol = this.happn.services.transport.config.mode;
-
-  address = this.happn.server.address();
-
-  if (address.address === '0.0.0.0') {
-    // using this to inform remote hosts where to attach
-    // 0.0.0.0 won't do, instead use first public ipv4 address
-    happnUrl = this.getAddress();
-  } else happnUrl = address.address;
-
-  if (this.announceHost) {
-    happnUrl = this.announceHost;
+  get members() {
+    return Object.values(this.registry).reduce(
+      (members, service) => ({ ...members, ...service.members }),
+      {}
+    );
   }
 
-  happnUrl += ':' + address.port;
-  happnUrl = protocol + '://' + happnUrl;
-
-  property(this, 'loginConfig', {
-    // used to login to remote cluster members as a cluster peer
-    info: {
-      name: this.happn.name, // a.k.a. mesh.name
-      clusterName: this.happn.services.membership.config.clusterName,
-      memberId: this.happn.services.membership.memberId,
-      url: happnUrl,
-    },
-  });
-
-  if (this.secure) {
-    this.loginConfig.username = this.adminUser.username;
-    this.loginConfig.password = this.adminUser.password;
+  get unstableMembers() {
+    return Object.values(this.members).filter((member) => !member.peer).length > 0;
   }
 
-  property(this, 'membership', this.happn.services.membership);
+  initialize(config, callback) {
+    this.config = this.defaults(config);
+    this.serviceName = this.config.serviceName;
+    this.deployment = this.config.deployment;
+    this.clusterName = this.config.clusterName;
+    this.ip = getAddress()();
+    this.announceHost = this.happn.config.announceHost;
+    this.memberRefresh = this.config.timing.memberRefresh;
+    this.keepAliveThreshold = this.config.timing.keepAliveThreshold;
+    this.intervals = {};
+    this.registry = {};
+    this.stabiliseWaiting = [];
+    this.stabilised = NodeUtil.promisify(this.stabilised);
+    for (let [service, expected] of Object.entries(this.config.cluster))
+      this.registry[service] = ServiceEntry.create(service, expected, this);
 
-  property(this, '__removeMembershipHandler', this.__onMembershipRemoveMember.bind(this));
-  property(this, '__addMembershipHandler', this.__onMembershipAddMember.bind(this));
-
-  this.membership.on('remove', this.__removeMembershipHandler);
-  this.membership.on('add', this.__addMembershipHandler);
-
-  // remove clusterName for localLogin (to self) so that
-  // in happner-cluster our self connection receives replicated events
-  // ie. not filtered out by happn when noCluster is set
-  var localLoginConfig = clone(this.loginConfig);
-  delete localLoginConfig.info.clusterName;
-
-  this.happn.services.session.localClient(localLoginConfig, function (error, client) {
-    if (error) return callback(error);
-
-    _this.members.__self = new _this.Member({
-      orchestrator: _this,
-      localClient: client,
-    });
-
+    this.secure = this.happn.config.secure;
+    this.happn.services.session.on('authentic', this.__onConnectionFrom.bind(this));
+    this.happn.services.session.on('disconnect', this.__onDisconnectionFrom.bind(this));
     callback();
-  });
-});
-
-Orchestrator.prototype.stabilised = require('bluebird').promisify(function (callback) {
-  this.log.$$TRACE('testing stabilised');
-
-  var _this = this;
-
-  if (typeof callback === 'function') this.stabiliseWaiting.push(callback);
-
-  if (this.stableReportInterval) return;
-
-  this.stableReportInterval = setInterval(function () {
-    _this.__stateUpdate(true);
-  }, this.config.stableReportInterval);
-
-  if (this.stableTimeout) return;
-
-  if (this.config.stabiliseTimeout !== 0) {
-    this.stableTimeout = setTimeout(function () {
-      var error = new Error('failed to stabilise in time');
-      error.name = 'StabiliseTimeout';
-
-      clearInterval(_this.stableReportInterval);
-      while ((callback = _this.stabiliseWaiting.shift()) !== undefined) callback(error);
-    }, this.config.stabiliseTimeout);
   }
 
-  this.__stateUpdate();
-});
-
-Orchestrator.prototype.__stateUpdate = function (report) {
-  var callback,
-    _this = this;
-  var peerCount;
-  var errors = [];
-  var reports = [];
-  var unstableCount = 0;
-
-  Object.keys(this.members).forEach(function (memberId) {
-    var error,
-      missing,
-      member = _this.members[memberId];
-
-    // skip existing peers, already stable
-    if (member.name && _this.peers[member.name]) return;
-
-    error = false;
-    missing = [];
-
-    Object.keys(_this.stableExpectationMask).forEach(function (key) {
-      var expectedValue = _this.stableExpectationMask[key];
-
-      if (key === 'error' && member.error) {
-        errors.push(member.error);
-        error = true;
-        return;
-      }
-
-      if (expectedValue === 'defined') {
-        if (!member[key]) missing.push(key);
-        return;
-      }
-
-      if (expectedValue !== member[key]) return missing.push(key);
+  defaults(config) {
+    config = config || {};
+    config = _.defaultsDeep({}, config, {
+      serviceName: 'happn-cluster-node',
+      deployment: 'Test-Deploy',
+      clusterName: 'happn-cluster',
+      timing: {
+        memberRefresh: 5e3,
+        keepAlive: 5e3,
+        keepAliveThreshold: 6e3,
+        healthReport: 10e3,
+      },
     });
+    if (config.stabiliseTimeout) config.timing.stabiliseTimeout = config.stabiliseTimeout;
+    config.replicate = config.replicate || ['*'];
+    config.replicate.push('/__REPLICATE');
+    config.replicate = this.__reducePaths(config.replicate);
+    if (config.cluster && Object.keys(config.cluster).length) return config;
+    config.cluster = {};
+    config.cluster[config.serviceName] = config.minimumPeers || 1;
+    return config;
+  }
 
-    if (!error && missing.length === 0) return _this.__addPeer(member);
+  async start() {
+    this.endpoint = this.announceHost
+      ? this.announceHost + ':' + this.happn.config.port
+      : this.ip + ':' + this.happn.config.port;
+    this.loginConfig = {
+      // used to login to remote cluster members as a cluster peer
+      info: {
+        name: this.happn.name, // a.k.a. mesh.name
+        clusterName: this.clusterName,
+        serviceName: this.serviceName,
+        endpoint: this.endpoint,
+      },
+    };
+    if (this.secure) {
+      this.adminUser = this.happn.services.security.config.adminUser;
+      this.loginConfig.username = this.adminUser.username;
+      this.loginConfig.password = this.adminUser.password;
+    }
+    let localLoginConfig = clone(this.loginConfig);
+    /**
+  remove clusterName for localLogin (to self) so that
+  in happner-cluster our self connection receives replicated events
+  ie. not filtered out by happn when noCluster is set
+  **/
+    delete localLoginConfig.info.clusterName;
+    this.localClient = await this.happn.services.session.localClient(localLoginConfig);
+    this.startIntervals();
+    this.memberCheck();
+  }
 
-    unstableCount++;
+  startIntervals() {
+    this.intervals.health = setInterval(
+      this.healthReport.bind(this),
+      this.config.timing.healthReport
+    );
+    this.keepAlive();
+    this.intervals.keepAlive = setInterval(this.keepAlive.bind(this), this.config.timing.keepAlive);
+  }
 
-    if (report) {
-      reports.push(
-        util.format('member %s awaiting %s', member.name || member.memberId, missing.join(', '))
+  stabilised(callback) {
+    if (this.stableTimeout) return;
+    if (typeof callback === 'function') this.stabiliseWaiting.push(callback);
+    if (this.config.timing.stabiliseTimeout) {
+      this.stableTimeout = setTimeout(() => {
+        var error = new Error('failed to stabilise in time');
+        error.name = 'StabiliseTimeout';
+        this.doStabilisedCallbacks(error);
+      }, this.config.timing.stabiliseTimeout);
+    }
+    this.__stateUpdate();
+  }
+
+  doStabilisedCallbacks(error) {
+    error = Array.isArray(error) ? error[0] : error;
+    let callback;
+    while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(error);
+  }
+
+  async stop(opts, cb) {
+    if (typeof opts === 'function') cb = opts;
+    Object.values(this.intervals).forEach(clearInterval);
+    this.stopped = true;
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+    await Promise.all(Object.values(this.registry).map((service) => service.stop()));
+    if (cb) cb();
+  }
+
+  async memberCheck() {
+    let start = performance.now();
+    try {
+      await this.lookup();
+      await this.addMembers();
+      await this.connect();
+      await this.subscribe();
+      await this.__stateUpdate();
+    } catch (e) {
+      this.log.warn(e);
+    }
+    if (!this.stopped) {
+      let end = performance.now();
+      if (start - end > this.memberRefresh) return this.memberCheck();
+      this.refreshTimeout = setTimeout(
+        this.memberCheck.bind(this),
+        Math.floor(this.memberRefresh + end - start)
       );
     }
-  });
-
-  if (errors.length > 0) {
-    // each erroring member already logged it's error
-    clearInterval(this.stableReportInterval);
-    clearInterval(this.stableTimeout);
-    // can only callback with one error
-    while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback(errors[0]);
-    return;
   }
 
-  if (reports.length > 0) {
-    this.log.debug('');
-    this.log.debug('--- stabilise report ---');
-    reports.forEach(function (line) {
-      _this.log.debug(line);
-    });
-    this.log.debug('');
-  }
-
-  if (unstableCount !== 0) return;
-
-  clearInterval(this.stableReportInterval);
-
-  if (this.stabiliseWaiting.length === 0) return;
-
-  peerCount = Object.keys(this.peers).length;
-  if (peerCount < this.config.minimumPeers) {
-    if (!this.stableAwaitingMinimumPeers) {
-      this.log.warn('requires %d more peers to stabilise', this.config.minimumPeers - peerCount);
+  async lookup() {
+    let endpoints = await this.fetchEndpoints();
+    for (let [name, service] of Object.entries(this.registry)) {
+      service.setEndpoints(endpoints[name] || []);
     }
-    this.stableAwaitingMinimumPeers = true;
-    return;
   }
 
-  this.stableAwaitingMinimumPeers = false;
-
-  this.log.info('stabilised');
-  clearInterval(this.stableTimeout);
-
-  while ((callback = this.stabiliseWaiting.shift()) !== undefined) callback();
-};
-
-Orchestrator.prototype.__addPeer = function (member) {
-  if (this.peers[member.name]) return;
-
-  this.peers[member.name] = member; // includes self by name
-  if (member.self) property(this.peers, '__self', member); // non enumerable __self
-  this.emit('peer/add', member.name, member);
-
-  if (this.stableAwaitingMinimumPeers) {
-    this.log.info(
-      'cluster size %d/%d (%s arrived)',
-      Object.keys(this.peers).length,
-      this.config.minimumPeers,
-      member.name
-    );
-    return;
-  }
-  this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
-};
-
-Orchestrator.prototype.removePeer = function (member) {
-  if (!this.peers[member.name]) return;
-  delete this.peers[member.name];
-  if (member.self) delete this.peers.__self;
-  this.emit('peer/remove', member.name, member);
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removePeer ${member.name}`);
-  if (this.stableAwaitingMinimumPeers) {
-    this.log.info(
-      'cluster size %d/%d (%s left)',
-      Object.keys(this.peers).length,
-      this.config.minimumPeers,
-      member.name
-    );
-    return;
-  }
-  this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
-};
-
-Orchestrator.prototype.removeMember = function (member) {
-  this.log.$$TRACE('remove member %s', member.name);
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removeMember ${member.name}`);
-  var _this = this;
-  member
-    .stop()
-    .then(function () {
-      delete _this.members[member.memberId];
-      _this.__stateUpdate();
-    })
-    .catch(function (error) {
-      _this.log.error('failed to cleanly remove member %s', member.name, error);
-      delete _this.members[member.memberId];
-      _this.__stateUpdate();
+  async fetchEndpoints() {
+    // Doing this in a seperate function so that we can alter it to allow for non-mongo-db cases if desired.
+    let data = await this.happn.services.data.get(`/SYSTEM/DEPLOYMENT/${this.deployment}/**`, {
+      criteria: {
+        '_meta.modified': { $gte: Date.now() - this.keepAliveThreshold },
+      },
     });
-};
+    return data
+      .map((entry) => entry.data)
+      .reduce((endpointMap, { service, endpoint }) => {
+        endpointMap[service] = endpointMap[service] || [];
+        endpointMap[service].push(endpoint);
+        return endpointMap;
+      }, {});
+  }
 
-Orchestrator.prototype.__onConnectionFrom = function (data) {
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
-  if (!data.info) return;
-  if (!data.info.clusterName) return;
+  async connect() {
+    await Promise.all(
+      Object.values(this.registry).map((service) => service.connect(this.getLoginConfig()))
+    );
+  }
 
-  if (this.secure) {
-    if (data.user.username !== this.adminUser.username) {
-      // ignore login from "claimed" cluster peers (got info.clusterName)
-      // where the remote is logging in with a different username.
-      //
-      // otherwise, anyone can login as cluster peers and we would
-      // log back into them, exposing our admin password
-      this.log.warn(
-        'ignoring connection from %s - wrong user %s',
-        data.info.name,
-        this.adminUser.username
-      );
+  async subscribe() {
+    await Promise.all(Object.values(this.registry).map((service) => service.subscribe()));
+  }
+
+  async addMembers() {
+    await Promise.all(Object.values(this.registry).map((service) => service.addMembers()));
+  }
+
+  keepAlive() {
+    let keepAlivePath = `/SYSTEM/DEPLOYMENT/${this.deployment}/${this.serviceName}/${this.endpoint}`;
+    let keepAliveData = {
+      service: this.serviceName,
+      endpoint: this.endpoint,
+    };
+    this.happn.services.data.upsert(keepAlivePath, keepAliveData);
+  }
+
+  getLoginConfig() {
+    if (!this.loginConfig) return null;
+    var config = {
+      info: clone(this.loginConfig.info),
+    };
+    if (this.loginConfig.username) config.username = this.loginConfig.username.toString();
+    if (this.loginConfig.password) config.password = this.loginConfig.password.toString();
+    config.protocol = this.happn.services.transport.config.mode;
+    return config;
+  }
+
+  peerStatusUpdate(member) {
+    if (!member.serviceName) return;
+    if (member.peer) return this.addPeer(member);
+    return this.removePeer(member);
+  }
+
+  addPeer(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator addPeer ${member.name}`);
+    if (member.peer === member.listedAsPeer) return;
+    member.listedAsPeer = true;
+    if (member.endpoint !== this.endpoint) {
+      this.emit('peer/add', member.name, member);
+      this.log.info('cluster size %d (%s arrived)', Object.keys(this.peers).length, member.name);
+    }
+  }
+
+  removePeer(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removePeer ${member.name}`);
+    if (!member.listedAsPeer) return;
+    member.listedAsPeer = false;
+    if (member.endpoint !== this.endpoint) {
+      this.emit('peer/remove', member.name, member);
+      member.connectedTo = false;
+      member.connectingTo = false;
+      this.log.info('cluster size %d (%s left)', Object.keys(this.peers).length, member.name);
+    }
+  }
+  removeMember(member) {
+    this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator removeMember ${member.name}`);
+    member.connectedTo = false;
+    member.connectingTo = false;
+    if (this.registry[member.serviceName]) this.registry[member.serviceName].removeMember(member);
+  }
+
+  __stateUpdate(member) {
+    let errors = this.__checkErroredMembers();
+    if (errors) return this.doStabilisedCallbacks(errors);
+    if (member && member.listedAsPeer !== member.peer) this.peerStatusUpdate(member);
+    if (
+      Object.values(this.registry).every((service) => {
+        return service.peersFulfilled;
+      }) &&
+      !this.unstableMembers
+    ) {
+      if (this.state !== this.constants.STABLE) {
+        this.log.info(`Node ${this.happn.name} in service ${this.serviceName} stabilized`);
+      }
+      this.state = this.constants.STABLE;
+      this.doStabilisedCallbacks();
+      clearTimeout(this.stableTimeout);
       return;
     }
+    if (Object.values(this.registry).every((service) => service.isConnected)) {
+      this.state = this.constants.SUBSCRIBING;
+      return;
+    }
+    if (Object.values(this.registry).every((service) => service.foundEnoughPeers)) {
+      this.state = this.constants.CONNECTING;
+      return;
+    }
+    if (Object.values(this.registry).some((service) => service.foundOthers)) {
+      this.state = this.constants.CONNECTING_INSUFFICIENT_PEERS;
+      return;
+    }
+    this.state = this.constants.ISOLATED;
   }
 
-  if (this.getLoginConfig().info.name === data.info.name) {
-    // dont re-login a replication client back to self
-    // (causes duplication)
-    return;
-  }
-
-  this.log.$$TRACE('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
-
-  if (data.info.clusterName !== this.membership.config.clusterName) {
-    this.log.warn(
-      'ignoring connection from %s - wrong cluster %s',
-      data.info.name,
-      data.info.clusterName
-    );
-    return;
-  }
-
-  var memberFromLogin,
-    member = this.members[data.info.memberId];
-  if (!member) {
-    // remote happn client login into here provides the necessary
-    // info to login straight back and thus stabilise without
-    // waiting for the swim member discovery
-
-    memberFromLogin = {
-      memberId: data.info.memberId,
-      url: data.info.url,
-      name: data.info.name,
-    };
-
-    member = this.members[memberFromLogin.memberId] = new this.Member({
-      memberFromLogin: memberFromLogin,
-      orchestrator: this,
-      clusterName: this.happn.services.membership.config.clusterName,
+  __checkErroredMembers() {
+    let error = false;
+    let errors = [];
+    Object.values(this.members).forEach((member) => {
+      if (member.error) {
+        error = true;
+        errors.push(member.error);
+      }
     });
+    if (error) return errors;
   }
 
-  member.connectedFrom = true;
-  this.__stateUpdate();
-};
+  healthReport() {
+    this.log.info(
+      `Member: name ${this.happn.name}, endpoint: ${this.endpoint}, service: ${this.serviceName}, state: ${this.state}`
+    );
 
-Orchestrator.prototype.__onDisconnectionFrom = function (data) {
-  this.log.info(`[CLUSTER_MEMBERSHIP]: orchestrator __onConnectionFrom ${JSON.stringify(data)}`);
-  if (!data.info) return;
-  if (!data.info.clusterName) return;
+    let peerReport = Object.values(this.registry)
+      .map((service) => {
+        return `\tService ${service.name} has ${service.numPeers} peers of ${service.expected} required`;
+      })
+      .join('\n');
+    this.log.info(`Node: ${this.happn.name} breakdown: \n` + peerReport);
+    let peerEndpoints = Object.values(this.peers).map((peer) => peer.endpoint);
+    const stats = {
+      MEMBER_ID: this.happn.name,
+      MEMBER_ENDPOINT: this.endpoint,
+      TOTAL_CLUSTER_MEMBERS: Object.keys(this.members).length,
+      TOTAL_CLUSTER_PEERS: Object.keys(this.peers).length,
+      UNHEALTHY_MEMBERS: Object.keys(this.members).filter((id) => !peerEndpoints.includes(id)),
+      STATUS: this.state,
+    };
+    if (this.__statsHaveChanged(stats)) {
+      if (stats.STATUS === this.constants.STABLE)
+        return this.log.json.info(stats, 'happn-cluster-health');
+      this.log.json.warn(stats, 'happn-cluster-health');
+    }
+  }
 
-  this.log.$$TRACE('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
+  __statsHaveChanged(stats) {
+    const statsHash = require('crypto')
+      .createHash('sha1')
+      .update(JSON.stringify([stats['UNHEALTHY_MEMBERS'], stats['STATUS']]))
+      .digest('hex');
+    const changed = this.__lastStats !== statsHash;
+    this.__lastStats = statsHash;
+    return changed;
+  }
 
-  if (data.info.clusterName !== this.membership.config.clusterName) return;
+  __onConnectionFrom(data) {
+    if (!data.info) return;
+    if (!data.info.clusterName) return;
+    this.log.debug('connect from (<-) %s/%s', data.info.clusterName, data.info.name);
+    if (data.info.clusterName !== this.clusterName) return;
+    const { serviceName } = data.info;
+    if (!this.registry[serviceName]) return;
+    this.registry[serviceName].connectionFrom(data.info);
+  }
 
-  var member = this.members[data.info.memberId];
-  if (!member) return;
+  __onDisconnectionFrom(data) {
+    if (!data.info || !data.info.clusterName || !data.info.serviceName) return;
+    this.log.debug('disconnect from (<-) %s/%s', data.info.clusterName, data.info.name);
+    if (data.info.clusterName !== this.clusterName) return;
+    this.registry[data.info.serviceName].disconnectionFrom(data.info);
+  }
 
-  member.connectedFrom = false;
-  this.removePeer(member);
-  if (!member.member) this.removeMember(member); //Left Swim as Well
-};
+  __reducePaths(paths) {
+    if (paths.length === 1) return paths;
 
-Orchestrator.prototype.__onMembershipAddMember = function (info) {
-  this.log.info(
-    `[CLUSTER_MEMBERSHIP]: orchestrator __onMembershipAddMember ${JSON.stringify(info)}`
-  );
-  var member = this.members[info.memberId];
-  if (member) return member.addMembership(info);
+    //* means match anything
+    if (paths.some((path) => path === '*')) return ['*'];
 
-  this.members[info.memberId] = new this.Member({
-    member: info,
-    orchestrator: this,
-    clusterName: this.happn.services.membership.config.clusterName,
-  });
-};
+    //remove any duplicates
+    let returnPaths = paths.filter((v, i) => paths.indexOf(v) === i);
 
-Orchestrator.prototype.__onMembershipRemoveMember = function (info) {
-  this.log.info(
-    `[CLUSTER_MEMBERSHIP]: orchestrator __onMembershipRemoveMember ${JSON.stringify(info)}`
-  );
-  var member = this.members[info.memberId];
-  if (!member) return;
+    let wildPaths = returnPaths.reduce((arr, path) => {
+      if (path.indexOf('*') > -1) arr.push(path.split('/'));
+      return arr;
+    }, []);
 
-  member.removeMembership(info);
+    let tamePaths = returnPaths.reduce((arr, path) => {
+      if (path.indexOf('*') === -1) arr.push(path.split('/'));
+      return arr;
+    }, []);
 
-  if (member.connectingTo || member.connectedTo) return; // ignore swim flap
-
-  this.removePeer(member);
-  this.removeMember(member);
-};
-
-Orchestrator.prototype.__defaults = function (callback) {
-  this.config.minimumPeers = this.config.minimumPeers || 1;
-  this.config.replicate = this.config.replicate || ['*'];
-  this.config.replicate.push('/__REPLICATE');
-  this.config.replicate = this.__reducePaths(this.config.replicate);
-  this.config.stableReportInterval = this.config.stableReportInterval || 5000;
-
-  if (typeof this.config.stabiliseTimeout === 'undefined')
-    this.config.stabiliseTimeout = 120 * 1000;
-
-  callback();
-};
-
-Orchestrator.prototype.__reducePaths = function (paths) {
-  if (paths.length === 1) return paths;
-
-  //* means match anything
-  if (
-    paths.some(function (path) {
-      return path === '*';
-    })
-  )
-    return ['*'];
-
-  //remove any duplicates
-  let returnPaths = paths.filter((v, i) => paths.indexOf(v) === i);
-
-  let wildPaths = returnPaths.reduce((arr, path) => {
-    if (path.indexOf('*') > -1) arr.push(path.split('/'));
-    return arr;
-  }, []);
-
-  let tamePaths = returnPaths.reduce((arr, path) => {
-    if (path.indexOf('*') === -1) arr.push(path.split('/'));
-    return arr;
-  }, []);
-
-  for (let wildPathArr of wildPaths) {
-    for (let tamePathArr of tamePaths) {
-      if (tamePathArr.length === wildPathArr.length) {
-        //same amount of segments
-        let wildPath = wildPathArr.join('/');
-        let tamePath = tamePathArr.join('/');
-        if (tamePath.match(new RegExp(wildPath.replace(/\*/g, '.*'))) != null) {
-          returnPaths.splice(returnPaths.indexOf(tamePath), 1);
+    for (let wildPathArr of wildPaths) {
+      for (let tamePathArr of tamePaths) {
+        if (tamePathArr.length === wildPathArr.length) {
+          //same amount of segments
+          let wildPath = wildPathArr.join('/');
+          let tamePath = tamePathArr.join('/');
+          if (tamePath.match(new RegExp(wildPath.replace(/\*/g, '.*'))) != null) {
+            returnPaths.splice(returnPaths.indexOf(tamePath), 1);
+          }
         }
       }
     }
+
+    return returnPaths;
   }
-
-  return returnPaths;
 };
-
-Orchestrator.prototype.checkMembersAndLogClusterHealth = function () {};

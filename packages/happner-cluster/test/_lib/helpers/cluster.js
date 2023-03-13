@@ -1,5 +1,6 @@
 const Helper = require('./helper');
 const HappnerCluster = require('../../..');
+const delay = require('await-delay');
 module.exports = class Cluster extends Helper {
   constructor() {
     super();
@@ -11,7 +12,7 @@ module.exports = class Cluster extends Helper {
       start: async (configuration, waitAfter, wait = 0) => {
         await this.delay(wait);
         // before you think you can tidy this up, we need to use the callback, otherwise the we cannot move on to start other test peers
-        HappnerCluster.create(configuration, (e, instance) => {
+        HappnerCluster.create(configuration, async (e, instance) => {
           if (e) {
             // eslint-disable-next-line no-console
             console.warn('ERROR STARTING TEST INSTANCE: ' + e.message);
@@ -65,7 +66,13 @@ module.exports = class Cluster extends Helper {
     });
     for (let instance of this.instances) {
       if (instance.stop) {
-        await instance.stop();
+        let orchestrator = instance._mesh.happn.server.services.orchestrator;
+        let dataService = instance._mesh.happn.server.services.data;
+        let keepAlivePath = `/SYSTEM/DEPLOYMENT/${orchestrator.deployment}/${orchestrator.serviceName}/${orchestrator.endpoint}`;
+        await orchestrator.stop();
+        await dataService.remove(keepAlivePath);
+        await instance.stop({ reconnect: false });
+        await delay(300);
       }
     }
   }

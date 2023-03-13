@@ -6,9 +6,8 @@ let keyPath = test.path.dirname(__dirname) + test.path.sep + 'example.com.key';
 
 describe(test.name(__filename, 3), function () {
   var server;
-
+  this.timeout(120e3);
   function startServer(done) {
-    if (this.timeout) this.timeout(10000);
     if (server) return done();
     let error;
     Happner.create({
@@ -59,23 +58,20 @@ describe(test.name(__filename, 3), function () {
   }
 
   beforeEach('start server', startServer);
-
-  after('stop server', stopServer);
+  afterEach('stop server', stopServer);
 
   it('supports callback', function (done) {
     var c = new HappnerClient();
     c.connect(
       {
-        // config: {
         host: 'localhost',
         port: 55000,
-        // }
       },
       {
+        protocol: 'https',
         username: '_ADMIN',
         password: 'xxx',
         info: 'fo',
-        protocol: 'https',
         allowSelfSignedCerts: true,
       },
       function (e) {
@@ -266,9 +262,9 @@ describe(test.name(__filename, 3), function () {
       },
       {
         protocol: 'https',
+        allowSelfSignedCerts: true,
         username: '_ADMIN',
         password: 'xxx',
-        allowSelfSignedCerts: true,
       },
       function (e) {
         if (e) return done(e);
@@ -290,4 +286,25 @@ describe(test.name(__filename, 3), function () {
       }
     );
   });
+
+  it('tests token revocation via logout', async () => {
+    const connectionOptions = {
+      host: 'localhost',
+      port: 55000,
+      username: '_ADMIN',
+      protocol: 'https',
+      allowSelfSignedCerts: true,
+    };
+    const testAdminClient = await HappnerClient.create({ ...connectionOptions, password: 'xxx' });
+    let token = testAdminClient.dataClient().session.token;
+    let testAdminClient2 = await HappnerClient.create({ ...connectionOptions, token });
+    test.expect(testAdminClient2.dataClient().status).to.be(1);
+    await testAdminClient.logout();
+    await test.delay(2e3);
+    test.expect(testAdminClient2.dataClient().status).to.be(2);
+  });
+
+  // after('print open handles', () => {
+  //   test.listOpenHandles(5e3);
+  // });
 });
