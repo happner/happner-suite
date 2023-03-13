@@ -4,8 +4,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
   const test_id = test.newid();
   const dbFileName =
     '.' + path.sep + 'temp' + path.sep + 'b1-permission-remove-vs-prohibit' + test_id + '.nedb';
-  let mesh;
 
+  /* 
+    Generally, at happn-3 level, it is possible to either remove a permission or to add a prohibition to some path.
+    These tests show, that happner-2 when removing group or user permissions, does not place a prohibition there. 
+    It seems that the only way currently to add a prohibition from Happner-2 is to upsert a group or user with an explicit
+    prohibition in its permissions. The only real reason for having an explicit permission, rather than just removing a permission is
+    when we have permission on e.g. PATH/1/2/* but we want to prohibit on e.g. PATH/1/2/3/4
+    
+    */
+
+  let mesh;
   let config = {
     name: 'meshname',
     happn: {
@@ -156,7 +165,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
     },
   };
 
-  it('can remove group permissions', async function () {
+  it('can remove group permissions, does not leave a prohibit', async function () {
     await adminClient.exchange.security.addGroupPermissions(groupName, addPermissions);
 
     let fetchedGroup = await adminClient.exchange.security.getGroup(groupName);
@@ -222,7 +231,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, (test)
     });
   });
 
-  it('upsert a user with permissions, and tests removing permissions from the user', async () => {
+  it('upsert a user with permissions, and tests removing permissions from the user does not leave a prohibit', async () => {
     let testUpsertUser = {
       username: 'REMOVE_USER',
       password: 'TEST PWD',
