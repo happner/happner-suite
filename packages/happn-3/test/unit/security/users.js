@@ -1562,7 +1562,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .to.have.been.calledWithExactly(
         test.sinon.match
           .instanceOf(Error)
-          .and(test.sinon.match.has('message', 'validation failure: no username specified'))
+          .and(test.sinon.match.has('message', 'username is null or undefined'))
       );
 
     stubCreateGroup.restore();
