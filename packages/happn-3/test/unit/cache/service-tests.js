@@ -186,4 +186,164 @@ describe(test.testName(), () => {
         .to.throw('unknown cache type: mocktype');
     });
   });
+
+  context('clear and clearAll', () => {
+    it('clears all cache', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(instance, 'clear');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      await instance.clearAll(true);
+
+      test.chai.expect(clearSpy).to.have.callCount(2);
+      test.chai.expect(clearSpy).to.have.been.calledWithExactly('static', true);
+      test.chai.expect(clearSpy).to.have.been.calledWithExactly('lru', true);
+      clearSpy.restore();
+    });
+
+    it('clears cache cache and deletes it', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(LRUCache.prototype, 'clear');
+      const emitSpy = test.sinon.spy(instance, 'emit');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      await instance.clear('lru', true);
+
+      test.chai.expect(clearSpy).to.have.been.calledOnce;
+      test.chai.expect(emitSpy).to.have.been.calledTwice;
+      test.chai.expect(emitSpy).to.have.been.calledWithExactly('cache-cleared', 'lru');
+      test.chai.expect(emitSpy).to.have.been.calledWithExactly('cache-deleted', 'lru');
+
+      clearSpy.restore();
+    });
+
+    it('checks if cache exists, it does not exists', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(LRUCache.prototype, 'clear');
+      const emitSpy = test.sinon.spy(instance, 'emit');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      const result = instance.clear('lru', true);
+
+      await test.chai.expect(result).to.eventually.be.undefined;
+      test.chai.expect(clearSpy).to.not.have.been.calledOnce;
+      test.chai.expect(emitSpy).to.not.have.been.calledTwice;
+
+      clearSpy.restore();
+      emitSpy.restore();
+    });
+
+    it('checks if deleteOnClear is true, it is undefined', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(LRUCache.prototype, 'clear');
+      const emitSpy = test.sinon.spy(instance, 'emit');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      await instance.clear('lru', undefined);
+
+      test.chai.expect(clearSpy).to.have.been.calledOnce;
+      test.chai.expect(emitSpy).to.have.been.calledOnce;
+      test.chai.expect(emitSpy).to.have.been.calledWithExactly('cache-cleared', 'lru');
+
+      emitSpy.restore();
+      clearSpy.restore();
+    });
+  });
+
+  context('delete', () => {
+    it('checks if cache is already cleared and emits cache-deleted', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(LRUCache.prototype, 'clear');
+      const emitSpy = test.sinon.spy(instance, 'emit');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      instance.delete('lru', false);
+
+      test.chai.expect(emitSpy).to.have.been.calledOnce;
+      test.chai.expect(emitSpy).to.have.been.calledWithExactly('cache-deleted', 'lru');
+      test.chai.expect(clearSpy).to.have.not.been.calledOnce;
+
+      clearSpy.restore();
+      emitSpy.restore();
+    });
+
+    it('checks if cache that needs to be deleted exist, it does not exist', () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const clearSpy = test.sinon.spy(LRUCache.prototype, 'clear');
+      const emitSpy = test.sinon.spy(instance, 'emit');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      const result = instance.delete('lru', undefined);
+
+      test.chai.expect(result).to.be.undefined;
+      test.chai.expect(emitSpy).to.not.have.been.calledOnce;
+      test.chai.expect(clearSpy).to.have.not.been.calledOnce;
+
+      clearSpy.restore();
+      emitSpy.restore();
+    });
+  });
+
+  context('stop', () => {
+    it('stops cache service, #statisticsInterval is falsy and callback is not a function', () => {
+      const instance = CacheService.create();
+      const stopAllSpy = test.sinon.spy(instance, 'stopAll');
+
+      instance.stop({}, 'mockCallback');
+
+      test.chai.expect(stopAllSpy).to.have.been.calledOnce;
+
+      stopAllSpy.restore();
+    });
+
+    it('stops cache service, options is a function', () => {
+      const instance = CacheService.create();
+      const stopAllSpy = test.sinon.spy(instance, 'stopAll');
+      const callback = test.sinon.stub();
+
+      instance.stop(callback);
+
+      test.chai.expect(stopAllSpy).to.have.been.calledOnce;
+      test.chaie.expect(callback).to.have.been.calledOnce;
+
+      stopAllSpy.restore();
+    });
+  });
+
+  context('getCache and getOrCreate', () => {
+    it('gets cache', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      const result = instance.getCache('lru');
+
+      test.chai.expect(result.instance).to.be.an.instanceOf(LRUCache);
+    });
+  });
 });
