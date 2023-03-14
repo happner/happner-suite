@@ -326,7 +326,7 @@ describe(test.testName(), () => {
       instance.stop(callback);
 
       test.chai.expect(stopAllSpy).to.have.been.calledOnce;
-      test.chaie.expect(callback).to.have.been.calledOnce;
+      test.chai.expect(callback).to.have.been.calledOnce;
 
       stopAllSpy.restore();
     });
