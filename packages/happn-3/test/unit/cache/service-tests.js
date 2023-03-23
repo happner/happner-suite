@@ -125,6 +125,28 @@ describe(test.testName(), () => {
 
       warnStub.restore();
     });
+
+    it('fails to logg statistics', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      const callbackTwo = test.sinon.stub();
+      const infoStub = test.sinon.stub(instance.log.json, 'info').throws(new Error('mockError'));
+      const nowStub = test.sinon.stub(Date, 'now').returns(500);
+      const warnStub = test.sinon.stub(instance.log, 'warn');
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 1500, overrides: null }, callback);
+      instance.create('mockName', { type: 'static' });
+      await require('timers/promises').setTimeout(1500);
+      instance.stop(null, callbackTwo);
+
+      test.chai
+        .expect(warnStub)
+        .to.have.been.calledWithExactly('failure logging statistics: mockError');
+
+      infoStub.restore();
+      nowStub.restore();
+    });
   });
 
   context('create cache instances', () => {
@@ -344,6 +366,31 @@ describe(test.testName(), () => {
       const result = instance.getCache('lru');
 
       test.chai.expect(result.instance).to.be.an.instanceOf(LRUCache);
+    });
+
+    it('finds cache', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      instance.create('lru', { cache: {}, type: 'lru' });
+      const result = instance.getOrCreate('lru', {});
+
+      test.chai.expect(result).to.be.an.instanceOf(LRUCache);
+    });
+
+    it('creates cahche if it was not found', async () => {
+      const instance = CacheService.create(null);
+      const callback = test.sinon.stub();
+      instance.happn = mockHappn;
+
+      instance.initialize({ statisticsInterval: 900, overrides: null }, callback);
+      instance.create('static', {});
+      const result = instance.getOrCreate('lru', { cache: {}, type: 'lru' });
+
+      test.chai.expect(result).to.be.an.instanceOf(LRUCache);
     });
   });
 });

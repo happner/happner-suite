@@ -60,7 +60,7 @@ describe(test.testName(), () => {
       test.chai.expect(callback).to.have.been.calledOnce;
     });
 
-    it('gets data from dataStore and upserts from dataStore.', () => {
+    it('gets data from dataStore and data gets persisted.', () => {
       mockDatastore.get.callsFake((_, cb) => cb(null, null));
       mockDatastore.upsert.callsFake((_, __, ___, cb) => cb(null));
       const callbackOne = test.sinon.stub().returns('test');
@@ -77,6 +77,32 @@ describe(test.testName(), () => {
 
       test.chai.expect(result).to.be.undefined;
       test.chai.expect(callbackOne).to.have.been.calledWithExactly(null, 'mockDefault');
+      test.chai.expect(callbackOne).to.have.been.calledOnce;
+      test.chai.expect(callbackTwo).to.have.been.calledOnce;
+      test.chai.expect(callbackTwo).to.have.been.calledWithExactly(null);
+    });
+
+    it('gets data from dataStore and  data gets persisted but an callback with an error is returned.', () => {
+      mockDatastore.get.callsFake((_, cb) => cb(null, null));
+      mockDatastore.upsert.callsFake((_, __, ___, cb) => cb(new Error('mockError')));
+      const callbackOne = test.sinon.stub().returns('test');
+      const callbackTwo = test.sinon.stub().returns('test');
+      let key = `test${testId}test`;
+
+      const instance = new CachePersist('mockName', {
+        dataStore: mockDatastore,
+        keyTransformers: [{ regex: /test(?<keyMask>[A-Za-z0-9]+)test/ }],
+      });
+
+      instance.sync(callbackTwo);
+      const result = instance.get(key, { default: { value: 'mockDefault' } }, callbackOne);
+
+      test.chai.expect(result).to.be.undefined;
+      test.chai
+        .expect(callbackOne)
+        .to.have.been.calledWithExactly(
+          test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'mockError'))
+        );
       test.chai.expect(callbackOne).to.have.been.calledOnce;
       test.chai.expect(callbackTwo).to.have.been.calledOnce;
       test.chai.expect(callbackTwo).to.have.been.calledWithExactly(null);
