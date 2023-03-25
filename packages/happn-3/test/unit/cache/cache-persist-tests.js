@@ -1,7 +1,7 @@
 const CachePersist = require('../../../lib/services/cache/cache-persist');
 const test = require('../../__fixtures/utils/test_helper').create();
 
-describe.only(test.testName(), () => {
+describe(test.testName(), () => {
   let mockDatastore;
   var testId = require('shortid').generate();
 
@@ -171,7 +171,7 @@ describe.only(test.testName(), () => {
   });
 
   context('set', () => {
-    it.only('', () => {
+    it('it does not persist data because syncing and checkSynced is false', () => {
       const instance = new CachePersist('mockName', {
         dataStore: mockDatastore,
         keyTransformers: [{ regex: /test(?<keyMask>[A-Za-z0-9]+)test/ }],
