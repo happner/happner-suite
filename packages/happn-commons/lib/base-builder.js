@@ -24,12 +24,12 @@ module.exports = class BaseBuilder {
       });
     return typeof prop.build === 'function' ? prop.build() : prop;
   }
-  build() {
+  build(pojo) {
     const fieldNames = Object.keys(this.__data);
     if (this.__required) this.checkRequired();
     return fieldNames.reduce((json, key) => {
       return _.set(json, key, this.buildValue(this.__data[key]));
-    }, {});
+    }, pojo || {});
   }
   push(fieldName, value, type, max) {
     if (type != null) this.checkType(value, type, fieldName);

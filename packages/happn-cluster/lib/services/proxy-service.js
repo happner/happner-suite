@@ -3,7 +3,7 @@ const proxy = require('http-proxy');
 const dface = require('dface');
 const commons = require('happn-commons');
 const ProxyStates = require('../constants/proxy-states');
-module.exports = class Proxy {
+module.exports = class ProxyService {
   #proxyServer;
   #logger;
   #config;
@@ -11,14 +11,19 @@ module.exports = class Proxy {
   #onServerErrorListener;
   #status = ProxyStates.UNINITIALIZED;
   #getAddress;
-
-  constructor(opts) {
-    this.#logger = opts.logger.createLogger('Proxy');
+  #externalPort;
+  constructor(config, logger) {
+    this.#config = config;
+    this.#logger = logger;
     this.initialize = commons.maybePromisify(this.#initialize);
     this.stop = commons.maybePromisify(this.#stop);
     this.#onProxyErrorListener = this.#onProxyError.bind(this);
     this.#onServerErrorListener = this.#onServerError.bind(this);
     this.#getAddress = require('../utils/get-address')(this.#logger);
+  }
+
+  static create(config, logger) {
+    return new ProxyService(config, logger);
   }
 
   get status() {
@@ -33,6 +38,10 @@ module.exports = class Proxy {
     return this.#config;
   }
 
+  set externalPort(port = 0) {
+    this.#externalPort = port;
+  }
+
   #initialize(config, callback) {
     this.#logger.debug('initialising proxy');
     try {
@@ -42,15 +51,6 @@ module.exports = class Proxy {
       this.#logger.error(err);
       return callback(err);
     }
-  }
-
-  #defaultPort() {
-    // Listen on default happn port (if available) so that unmodified happn clients default to the proxy
-    var address = this.happn.server.address();
-    if (address.port === 55000) {
-      return 57000;
-    }
-    return 55000;
   }
 
   #onProxyError(error) {
@@ -68,7 +68,7 @@ module.exports = class Proxy {
       this.#logger.debug('starting proxy');
       this.#status = ProxyStates.STARTING;
 
-      port = typeof this.#config.port !== 'undefined' ? this.#config.port : this.#defaultPort();
+      port = this.#externalPort;
       host = dface(this.#config.host);
 
       const protocol = this.happn.services.transport.config.mode || 'http';

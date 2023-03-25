@@ -6,6 +6,9 @@ module.exports = class PeerInfoBuilder extends BaseBuilder {
   static create() {
     return new PeerInfoBuilder();
   }
+  build() {
+    return super.build(require('../pojos/peer-info-pojo').create());
+  }
   withDeploymentId(deploymentId) {
     return this.set('deploymentId', deploymentId, BaseBuilder.Types.STRING);
   }

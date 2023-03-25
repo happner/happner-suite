@@ -35,6 +35,7 @@ module.exports = {
   fastClone: require('fast-clone'),
   HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
   lock: require('async-lock'),
+  delay: require('await-delay'),
 };
 // must be declared after we have attached other deps
 module.exports.clone = require('./lib/clone');

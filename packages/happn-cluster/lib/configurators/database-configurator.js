@@ -1,9 +1,7 @@
-//const commons = require('happn-commons');
 module.exports = class DatabaseConfigurator {
   static create() {
     return new DatabaseConfigurator();
   }
-
   configure(config) {
     if (config.services.data.config.datastores.length > 0) {
       // check that a mongodb store is present
@@ -17,6 +15,7 @@ module.exports = class DatabaseConfigurator {
     } else {
       this.addMongoDb(config.services.data.config);
     }
+    return config;
   }
   addMongoDb(dataConfig) {
     dataConfig.datastores.push({

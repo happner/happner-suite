@@ -142,7 +142,7 @@ module.exports = class TransportService extends require('events').EventEmitter {
       this.happn.log.warn(
         'port number ' + options.port + ' held by another process, retrying connection attempt...'
       );
-    }, 1000);
+    }, 2e3);
 
     this.#checkFreePort(options).then(
       () => {

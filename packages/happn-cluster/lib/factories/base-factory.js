@@ -8,6 +8,6 @@ module.exports = class BaseFactory {
     if (!makeable) {
       throw new Error(`unknown makeable ${componentName}`);
     }
-    return makeable.create(...args);
+    return new makeable(...args);
   }
 };
