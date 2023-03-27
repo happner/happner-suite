@@ -66,7 +66,6 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
         },
       },
     });
-    container.configure();
     container.registerDependencies();
     return container;
   }

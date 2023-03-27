@@ -1,3 +1,8 @@
+const ClusterHealthService = require('../../../lib/services/cluster-health-service');
+const ClusterPeerService = require('../../../lib/services/cluster-peer-service');
+const LocalReplicator = require('../../../lib/replicators/local-replicator');
+const ClusterReplicator = require('../../../lib/replicators/cluster-replicator');
+
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   const MEMBER_STATUSES = require('../../../lib/constants/member-statuses');
@@ -28,6 +33,14 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         }
       },
     });
+    const clusterPeerService = ClusterPeerService.create(
+      {},
+      logger,
+      peerConnectorFactory,
+      LocalReplicator.create(),
+      ClusterReplicator.create()
+    );
+    const clusterHealthService = ClusterHealthService.create({}, logger, registryService);
     const member1 = createMember(
       deploymentId,
       'cluster-1',
@@ -38,10 +51,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         'service-3': 2,
       },
       logger,
-      peerConnectorFactory,
       registryService,
       happnService,
-      proxyService
+      proxyService,
+      clusterPeerService,
+      clusterHealthService
     );
     test.expect(member1.deploymentId).to.equal(deploymentId);
     test.expect(member1.clusterName).to.equal('cluster-1');
@@ -61,10 +75,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         'service-3': 1,
       },
       logger,
-      peerConnectorFactory,
       registryService,
       happnService,
-      proxyService
+      proxyService,
+      clusterPeerService,
+      clusterHealthService
     );
     const member3 = createMember(
       deploymentId,
@@ -75,10 +90,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         'service-2': 1, //  circular
       },
       logger,
-      peerConnectorFactory,
       registryService,
       happnService,
-      proxyService
+      proxyService,
+      clusterPeerService,
+      clusterHealthService
     );
     const member4 = createMember(
       deploymentId,
@@ -89,10 +105,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         'service-2': 1, // circular
       },
       logger,
-      peerConnectorFactory,
       registryService,
       happnService,
-      proxyService
+      proxyService,
+      clusterPeerService,
+      clusterHealthService
     );
     member1.on('status-changed', async (status) => {
       if (status !== MEMBER_STATUSES.STABLE) {
@@ -103,13 +120,13 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       test.expect(member2.status).to.equal(MEMBER_STATUSES.STABLE); // stabilised
       test.expect(member3.status).to.equal(MEMBER_STATUSES.STABLE); // stabilised
       test.expect(member4.status).to.equal(MEMBER_STATUSES.STABLE); // stabilised
-      member1.stop();
+      await stopMember(member1);
       test.expect(member1.status).to.equal(MEMBER_STATUSES.STOPPED); // unintialized
-      member2.stop();
+      await stopMember(member2);
       test.expect(member2.status).to.equal(MEMBER_STATUSES.STOPPED); // unintialized
-      member3.stop();
+      await stopMember(member3);
       test.expect(member3.status).to.equal(MEMBER_STATUSES.STOPPED); // unintialized
-      member4.stop();
+      await stopMember(member4);
       test.expect(member4.status).to.equal(MEMBER_STATUSES.STOPPED); // unintialized
       done();
     });
@@ -147,6 +164,14 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         }
       },
     });
+    const clusterPeerService = ClusterPeerService.create(
+      {},
+      logger,
+      peerConnectorFactory,
+      LocalReplicator.create(),
+      ClusterReplicator.create()
+    );
+    const clusterHealthService = ClusterHealthService.create({}, logger, registryService);
     const member1 = createMember(
       deploymentId,
       'cluster-1',
@@ -157,10 +182,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         'service-3': 2,
       },
       logger,
-      peerConnectorFactory,
       registryService,
       happnService,
       proxyService,
+      clusterPeerService,
+      clusterHealthService,
       2e3
     );
     try {
@@ -168,8 +194,20 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       throw new Error('unexpected success');
     } catch (e) {
       test.expect(e.message).to.equal('discover timeout');
+      await stopMember(member1);
     }
   });
+
+  function stopMember(memberToStop) {
+    return new Promise((resolve, reject) => {
+      memberToStop.stop({}, (e) => {
+        if (e) {
+          return reject(e);
+        }
+        resolve();
+      });
+    });
+  }
 
   function createMember(
     deploymentId,
@@ -178,10 +216,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     memberName,
     dependencies,
     logger,
-    peerConnectorFactory,
     registryService,
     happnService,
     proxyService,
+    clusterPeerService,
+    clusterHealthService,
     discoverTimeoutMs = 10e3, // emits a stabilise timeout event if not healthy in 5 seconds
     healthReportIntervalMs = 1e3, // prints health every 5 seconds
     pulseIntervalMs = 500 // updates membership registryService every 500ms
@@ -214,7 +253,8 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       registryService,
       happnService,
       proxyService,
-      peerConnectorFactory
+      clusterPeerService,
+      clusterHealthService
     );
   }
   function mockMembershipDbFactory() {

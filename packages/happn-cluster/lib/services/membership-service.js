@@ -1,7 +1,6 @@
 const commons = require('happn-commons');
 const MemberStatuses = require('../constants/member-statuses');
 const getAddress = require('../utils/get-address');
-const PeerInfoBuilder = require('../builders/peer-info-builder');
 
 module.exports = class MembershipService extends require('events').EventEmitter {
   #log;
@@ -12,38 +11,46 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   #memberHost;
   #memberName;
   #discoverTimeoutMs;
-  #healthReportIntervalMs;
   #pulseIntervalMs;
   #dependencies;
   #status;
-  #peerConnectorFactory;
-  #peerConnectors = [];
   #pulseErrors;
   #pulseErrorThreshold;
   #happnService;
   #proxyService;
+  #clusterPeerService;
+  #clusterHealthService;
   #config;
+  #membershipServiceConfig;
 
-  constructor(config, logger, registryService, happnService, proxyService, peerConnectorFactory) {
+  constructor(
+    config,
+    logger,
+    registryService,
+    happnService,
+    proxyService,
+    clusterPeerService,
+    clusterHealthService
+  ) {
     super();
 
     // configuration settings
     this.#config = config;
-    this.#deploymentId = config?.services?.membership?.config?.deploymentId;
-    this.#clusterName = config?.services?.membership?.config?.clusterName;
-    this.#serviceName = config?.services?.membership?.config?.serviceName;
-    this.#memberName = config.name || `${this.#serviceName}-${commons.uuid.v4()}`;
-    this.#discoverTimeoutMs = config?.services?.membership?.config?.discoverTimeoutMs || 60e3; // 1 minute
-    this.#healthReportIntervalMs =
-      config?.services?.membership?.config?.healthReportIntervalMs || 5e3;
-    this.#pulseIntervalMs = config?.services?.membership?.config?.pulseIntervalMs || 1e3;
-    this.#pulseErrorThreshold = config?.services?.membership?.config?.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
-    this.#dependencies = config?.services?.membership?.config?.dependencies;
+    this.#membershipServiceConfig = this.#config.services.membership.config;
+    this.#deploymentId = this.#membershipServiceConfig.deploymentId;
+    this.#clusterName = this.#membershipServiceConfig.clusterName;
+    this.#serviceName = this.#membershipServiceConfig.serviceName;
+    this.#memberName = this.#membershipServiceConfig.memberName;
+    this.#discoverTimeoutMs = this.#membershipServiceConfig.discoverTimeoutMs || 60e3; // 1 minute
+    this.#pulseIntervalMs = this.#membershipServiceConfig.pulseIntervalMs || 1e3;
+    this.#pulseErrorThreshold = this.#membershipServiceConfig.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
+    this.#dependencies = this.#membershipServiceConfig.dependencies || {};
 
     // injected dependencies
-    this.#peerConnectorFactory = peerConnectorFactory;
     this.#log = logger;
+    this.#clusterPeerService = clusterPeerService;
     this.#registryService = registryService;
+    this.#clusterHealthService = clusterHealthService;
     this.#happnService = happnService;
     this.#proxyService = proxyService;
 
@@ -51,17 +58,25 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#memberHost = getAddress(this.#log)();
     this.#status = MemberStatuses.STOPPED;
 
-    this.stop = commons.maybePromisify(this.stop);
     this.#log.info(`initialized`);
   }
-  static create(config, logger, registryService, happnService, proxyService, peerConnectorFactory) {
+  static create(
+    config,
+    logger,
+    registryService,
+    happnService,
+    proxyService,
+    clusterPeerService,
+    clusterHealthService
+  ) {
     return new MembershipService(
       config,
       logger,
       registryService,
       happnService,
       proxyService,
-      peerConnectorFactory
+      clusterPeerService,
+      clusterHealthService
     );
   }
   get status() {
@@ -89,7 +104,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     await this.#happnService.start(this, this.#proxyService);
     this.#statusChanged(MemberStatuses.DISCOVERING);
     this.#startBeating();
-    this.#startHealthReporting();
     await this.#discover();
     this.#log.info(`starting proxy`);
     if (this.#config.services.proxy.config.defer) {
@@ -102,13 +116,10 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     if (typeof opts === 'function') {
       cb = opts;
     }
-    if (this.status === MemberStatuses.STOPPED) {
-      // because stop gets called again when happn service stops
-      this.#log.info(`stopped membership service`);
-      return cb();
-    }
     this.#statusChanged(MemberStatuses.STOPPED);
-    this.#happnService.stop(cb);
+    this.#clusterHealthService.stopHealthReporting();
+    this.#log.info(`stopped membership service`);
+    cb();
   }
   async #discover() {
     const startedDiscovering = Date.now();
@@ -127,7 +138,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         break;
       }
       if (Date.now() - startedDiscovering > this.#discoverTimeoutMs) {
-        this.stop();
         this.#log.error('discover timeout');
         throw new Error('discover timeout');
       }
@@ -141,23 +151,13 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       this.#memberName,
       [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
     );
-    const peerInfoItems = peers.map((peerListItem) => {
-      return PeerInfoBuilder.create()
-        .withDeploymentId(this.#deploymentId)
-        .withClusterName(this.#clusterName)
-        .withServiceName(peerListItem.serviceName)
-        .withMemberName(peerListItem.memberName)
-        .withMemberHost(peerListItem.memberHost)
-        .withMemberStatus(peerListItem.status)
-        .build();
-    });
-    for (const peerInfo of peerInfoItems) {
-      const connectorPeer = this.#peerConnectorFactory.createPeerConnector(peerInfo);
-      this.#peerConnectors.push(connectorPeer);
-      await connectorPeer.connect();
-    }
-
-    this.#startHealthReporting(); // we can start reporting health
+    await this.#clusterPeerService.connect(this.#deploymentId, this.#clusterName, peers);
+    this.#clusterHealthService.startHealthReporting(
+      this.#deploymentId,
+      this.#clusterName,
+      this.#dependencies,
+      this.#memberName
+    );
     return this.#statusChanged(MemberStatuses.STABLE);
   }
   async #startBeating() {
@@ -184,37 +184,11 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       await commons.delay(this.#pulseIntervalMs);
     }
   }
-  async #startHealthReporting() {
-    while (this.#status !== MemberStatuses.STOPPED) {
-      try {
-        const scanResult = await this.#registryService.scan(
-          this.#deploymentId,
-          this.#clusterName,
-          this.#dependencies,
-          this.#memberName,
-          [MemberStatuses.STABLE]
-        );
-        if (scanResult === true) {
-          this.#log.info('healthy');
-        } else {
-          // TODO: go into more detail
-          this.#log.warn('unhealthy');
-        }
-      } catch (e) {
-        this.#log.error(`failed health report: ${e.message}`);
-      }
-      await commons.delay(this.#healthReportIntervalMs);
-    }
-  }
   #statusChanged(newStatus) {
     this.#log.info(`status changed: ${newStatus}`);
     this.#status = newStatus;
     this.emit('status-changed', newStatus);
   }
-  #peerConnected(origin) {
-
-  }
-  #peerDisconnected(origin) {
-
-  }
+  #peerConnected(origin) {}
+  #peerDisconnected(origin) {}
 };

@@ -7,7 +7,7 @@
     "test-debug": "_mocha test/integration/* --recursive --exit",
     "test": "_mocha silence.js test/integration/* test/unit/* --recursive --exit",
     "test-unit": "mocha test/unit/* --recursive",
-    "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test-debug"
+    "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test"
   },
   "repository": {
     "type": "git",

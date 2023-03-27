@@ -1,11 +1,11 @@
 const Container = require('./container');
 module.exports = class HappnerClusterComponent {
   #container;
-  constructor() {
-    this.#container = Container.create();
+  constructor(config) {
+    this.#container = Container.create(config);
   }
-  static create() {
-    return new HappnerClusterComponent();
+  static create(config) {
+    return new HappnerClusterComponent(config);
   }
   async start() {
     this.#container.registerDependencies();

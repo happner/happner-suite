@@ -15,7 +15,6 @@ module.exports = class ProxyService {
   constructor(config, logger) {
     this.#config = config;
     this.#logger = logger;
-    this.initialize = commons.maybePromisify(this.#initialize);
     this.stop = commons.maybePromisify(this.#stop);
     this.#onProxyErrorListener = this.#onProxyError.bind(this);
     this.#onServerErrorListener = this.#onServerError.bind(this);
@@ -40,17 +39,6 @@ module.exports = class ProxyService {
 
   set externalPort(port = 0) {
     this.#externalPort = port;
-  }
-
-  #initialize(config, callback) {
-    this.#logger.debug('initialising proxy');
-    try {
-      this.#config = config;
-      callback();
-    } catch (err) {
-      this.#logger.error(err);
-      return callback(err);
-    }
   }
 
   #onProxyError(error) {

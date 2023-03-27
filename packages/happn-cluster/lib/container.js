@@ -1,12 +1,21 @@
 const PeerConnectorFactory = require('./factories/peer-connector-factory');
 const MembershipDbFactory = require('./factories/membership-db-factory');
 const Logger = require('happn-logger');
-
 module.exports = class Container {
   #dependencies = {};
   #config = {};
+  #serviceAndMemberName;
+  #log;
   constructor(config) {
-    this.#config = config;
+    Logger.configure();
+    this.#config = require('./configurators/cluster-configurator').create().configure(config);
+    this.#config = require('./configurators/database-configurator')
+      .create()
+      .configure(this.#config);
+    this.#serviceAndMemberName = `${this.#config.services.membership.config.serviceName}-${
+      this.#config.services.membership.config.memberName
+    }`;
+    this.#log = Logger.createLogger(`${this.#serviceAndMemberName}-container`);
   }
   static create(config) {
     return new Container(config);
@@ -14,17 +23,17 @@ module.exports = class Container {
   get dependencies() {
     return this.#dependencies;
   }
-  configure() {
-    this.#config = require('./configurators/cluster-configurator').create().configure(this.#config);
-    this.#config = require('./configurators/database-configurator')
-      .create()
-      .configure(this.#config);
-    Logger.configure();
-  }
   registerDependencies() {
-    const logger = Logger.createLogger();
-    const peerConnectorFactory = new PeerConnectorFactory();
-    const happnService = require('./services/happn-service').create(this.#config, logger);
+    const proxyService = require('./services/proxy-service').create(
+      this.#config,
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-proxy-service`)
+    );
+    const happnService = require('./services/happn-service').create(
+      this.#config,
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-happn-service`)
+    );
+
+    // membership scanning
     const membershipDbFactory = new MembershipDbFactory();
     const membershipDbProvider = membershipDbFactory.createMembershipDb(happnService);
     const membershipRegistryRepository =
@@ -32,16 +41,35 @@ module.exports = class Container {
     const registryService = require('./services/registry-service').create(
       this.#config.services.membership.config,
       membershipRegistryRepository,
-      logger
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-registry-service`)
     );
-    const proxyService = require('./services/proxy-service').create(this.#config, logger);
+
+    // health reporting
+    const clusterHealthService = require('./services/cluster-health-service').create(
+      this.#config,
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-health-service`),
+      registryService
+    );
+
+    // peer management
+    const localReplicator = require('./replicators/local-replicator').create();
+    const clusterReplicator = require('./replicators/cluster-replicator').create();
+    const peerConnectorFactory = new PeerConnectorFactory();
+    const clusterPeerService = require('./services/cluster-peer-service').create(
+      this.#config,
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-peer-service`),
+      peerConnectorFactory,
+      localReplicator,
+      clusterReplicator
+    );
     const membershipService = require('./services/membership-service').create(
       this.#config,
-      logger,
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-membership-service`),
       registryService,
       happnService,
       proxyService,
-      peerConnectorFactory
+      clusterPeerService,
+      clusterHealthService
     );
 
     this.#dependencies['happnService'] = happnService;
@@ -49,9 +77,17 @@ module.exports = class Container {
     this.#dependencies['membershipService'] = membershipService;
   }
   async start() {
-    await this.#dependencies['membershipService'].start();
+    try {
+      await this.#dependencies['membershipService'].start();
+    } catch (e) {
+      this.#log.info(`failed starting container: ${e.message}`);
+      await this.stop();
+      throw e;
+    }
   }
-  async stop() {
-    await this.#dependencies['membershipService'].stop();
+  async stop(opts = {}) {
+    this.#log.info('stopping container');
+    await this.#dependencies['happnService'].stop(opts);
+    this.#log.info(`stopped container successfully`);
   }
 };
