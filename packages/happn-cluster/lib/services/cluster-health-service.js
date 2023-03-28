@@ -41,9 +41,8 @@ module.exports = class ClusterHealthService extends require('events').EventEmitt
           this.#memberName,
           [MemberStatuses.STABLE]
         );
-        if (scanResult === true) {
-          this.#log.info('healthy');
-        } else {
+        // only log if we are not healthy
+        if (scanResult !== true) {
           // TODO: go into more detail
           this.#log.warn('unhealthy');
         }

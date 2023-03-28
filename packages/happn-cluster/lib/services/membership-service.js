@@ -129,7 +129,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#happnService.on('peer-connected', this.#peerConnected.bind(this));
     this.#happnService.on('peer-disconnected', this.#peerDisconnected.bind(this));
     await this.#happnService.start(this, this.#proxyService);
-    this.#statusChanged(MemberStatuses.DISCOVERING);
+    await this.#statusChanged(MemberStatuses.DISCOVERING);
     this.#startBeating();
     await this.#discover();
     this.#log.info(`starting proxy`);
@@ -143,12 +143,15 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     if (typeof opts === 'function') {
       cb = opts;
     }
-    this.#statusChanged(MemberStatuses.STOPPED);
     this.#clusterHealthService.stopHealthReporting();
-    this.#clusterPeerService.disconnect().then(() => {
-      this.#log.info(`stopped membership service`);
-      cb();
-    });
+    this.#statusChanged(MemberStatuses.STOPPED)
+      .then(() => {
+        return this.#clusterPeerService.disconnect();
+      })
+      .then(() => {
+        this.#log.info(`stopped membership service`);
+        cb();
+      });
   }
   async #discover() {
     const startedDiscovering = Date.now();
@@ -162,7 +165,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
       );
       if (scanResult === true) {
-        this.#statusChanged(MemberStatuses.CONNECTING);
+        await this.#statusChanged(MemberStatuses.CONNECTING);
         await this.#connect();
         break;
       }
@@ -181,35 +184,50 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
     );
     await this.#clusterPeerService.connect(this.#clusterCredentials, peers);
+    await this.#statusChanged(MemberStatuses.STABLE);
+
     this.#clusterHealthService.startHealthReporting(
       this.#deploymentId,
       this.#clusterName,
       this.#dependencies,
       this.#memberName
     );
-    return this.#statusChanged(MemberStatuses.STABLE);
+  }
+  async #pulse() {
+    try {
+      await this.#registryService.pulse(
+        ClusterPeerBuilder.create()
+          .withDeploymentId(this.#deploymentId)
+          .withClusterName(this.#clusterName)
+          .withServiceName(this.#serviceName)
+          .withMemberName(this.#memberName)
+          .withMemberHost(this.#proxyService.internalHost)
+          .withMemberPort(this.#proxyService.internalPort)
+          .withMemberStatus(this.#status)
+          .withTimestamp(Date.now())
+          .build()
+      );
+      this.#pulseErrors = 0; // reset our pulse errors
+    } catch (e) {
+      this.#log.error(`failed pulse: ${e.message}`);
+      this.#pulseErrors++;
+      if (this.#pulseErrors === this.#pulseErrorThreshold) {
+        // fatal as we are no longer cluster relevant
+        // TODO: inject process manager here for testing
+        process.exit(1);
+      }
+    }
   }
   async #startBeating() {
     while (this.#status !== MemberStatuses.STOPPED) {
       try {
-        await this.#registryService.pulse(
-          ClusterPeerBuilder.create()
-            .withDeploymentId(this.#deploymentId)
-            .withClusterName(this.#clusterName)
-            .withServiceName(this.#serviceName)
-            .withMemberName(this.#memberName)
-            .withMemberHost(this.#proxyService.internalHost)
-            .withMemberPort(this.#proxyService.internalPort)
-            .withMemberStatus(this.#status)
-            .withTimestamp(Date.now())
-            .build()
-        );
+        await this.#pulse();
         this.#pulseErrors = 0; // reset our pulse errors
       } catch (e) {
         this.#log.error(`failed pulse: ${e.message}`);
         this.#pulseErrors++;
         if (this.#pulseErrors === this.#pulseErrorThreshold) {
-          this.#statusChanged(MemberStatuses.FAILED_PULSE);
+          await this.#statusChanged(MemberStatuses.FAILED_PULSE);
           // TODO: what do we do now - is this a fatal?
           break;
         }
@@ -217,9 +235,10 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       await commons.delay(this.#pulseIntervalMs);
     }
   }
-  #statusChanged(newStatus) {
+  async #statusChanged(newStatus) {
     this.#log.info(`status changed: ${newStatus}`);
     this.#status = newStatus;
+    await this.#pulse();
     this.emit('status-changed', newStatus);
   }
   #peerConnected(origin) {}
