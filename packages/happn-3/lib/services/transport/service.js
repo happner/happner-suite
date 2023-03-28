@@ -85,6 +85,11 @@ module.exports = class TransportService extends require('events').EventEmitter {
   }
 
   listen(host, port, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+
     this.happn.__listening = false;
     this.happn.__listeningOn = false;
     this.happn.__errorOn = false;

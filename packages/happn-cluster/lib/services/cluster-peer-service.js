@@ -1,4 +1,4 @@
-const PeerInfoBuilder = require('../builders/peer-info-builder');
+const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class ClusterPeerService extends require('events').EventEmitter {
   #config;
   #log;
@@ -8,6 +8,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   #deploymentId;
   #clusterName;
   #peerConnectorFactory;
+  #clusterCredentials;
   constructor(config, logger, peerConnectorFactory, localReplicator, peerReplicator) {
     super();
     this.#config = config;
@@ -25,23 +26,37 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       peerReplicator
     );
   }
-  async connect(deploymentId, clusterName, peers) {
-    this.#deploymentId = deploymentId;
-    this.#clusterName = clusterName;
+  async connectPeer(peerInfo) {
+    const connectorPeer = this.#peerConnectorFactory.createPeerConnector(this.#log, peerInfo);
+    this.#peerConnectors.push(connectorPeer);
+    await connectorPeer.connect(this.#clusterCredentials);
+  }
+  async disconnect() {
+    for (let peerConnector of this.#peerConnectors) {
+      try {
+        await peerConnector.disconnect();
+      } catch (e) {
+        this.#log.warn(`failed disconnecting from peer ${peerConnector.memberName}: ${e.message}`);
+      }
+    }
+  }
+  async connect(clusterCredentials, peers) {
+    this.#clusterCredentials = clusterCredentials;
+    this.#deploymentId = clusterCredentials.info.deploymentId;
+    this.#clusterName = clusterCredentials.info.clusterName;
     const peerInfoItems = peers.map((peerListItem) => {
-      return PeerInfoBuilder.create()
+      return ClusterPeerBuilder.create()
         .withDeploymentId(this.#deploymentId)
         .withClusterName(this.#clusterName)
         .withServiceName(peerListItem.serviceName)
         .withMemberName(peerListItem.memberName)
         .withMemberHost(peerListItem.memberHost)
+        .withMemberPort(peerListItem.memberPort)
         .withMemberStatus(peerListItem.status)
         .build();
     });
     for (const peerInfo of peerInfoItems) {
-      const connectorPeer = this.#peerConnectorFactory.createPeerConnector(peerInfo);
-      this.#peerConnectors.push(connectorPeer);
-      await connectorPeer.connect();
+      await this.connectPeer(peerInfo);
     }
   }
   // events that spin the state machine

@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
-  const PeerInfoBuilder = require('../../../lib/builders/peer-info-builder');
+  const PeerInfoBuilder = require('../../../lib/builders/cluster-peer-builder');
   it('is to build a peer info pojo', function () {
     const peerInfoPojo = PeerInfoBuilder.create()
       .withDeploymentId('deploymentId')

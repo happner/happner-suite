@@ -1,7 +1,11 @@
 const Container = require('../../lib/container');
 const MemberStatuses = require('../../lib/constants/member-statuses');
 require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
-  const deploymentId = test.commons.uuid.v4();
+  let deploymentId;
+
+  beforeEach(() => {
+    deploymentId = test.commons.uuid.v4();
+  });
 
   it('creates a container', async () => {
     createContainer(null, null, null, {});
@@ -21,7 +25,9 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
-    const container2 = createContainer(12359, 'member2', 'service2', {});
+    const container2 = createContainer(12359, 'member2', 'service2', {
+      service1: 1,
+    });
 
     container1.start();
     container2.start();

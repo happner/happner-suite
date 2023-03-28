@@ -1,3 +1,4 @@
+const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class RegistryService extends require('events').EventEmitter {
   #staleMemberThreshold;
   #log;
@@ -28,24 +29,38 @@ module.exports = class RegistryService extends require('events').EventEmitter {
     }
     return items.map((item) => {
       const itemPathProperties = item.path.split('/');
-      return {
-        ...item,
-        deploymentId,
-        clusterName,
-        serviceName: itemPathProperties[2],
-        memberName: itemPathProperties[3],
-      };
+      return ClusterPeerBuilder.create()
+        .withDeploymentId(deploymentId)
+        .withClusterName(clusterName)
+        .withServiceName(itemPathProperties[2])
+        .withMemberName(itemPathProperties[3])
+        .withMemberHost(item.memberHost)
+        .withMemberPort(item.memberPort)
+        .withMemberStatus(item.status)
+        .withTimestamp(item.timestamp)
+        .withMembershipPath(item.path)
+        .build();
     });
   }
 
-  async pulse(deploymentId, clusterName, serviceName, memberName, memberHost, status) {
+  async pulse({
+    deploymentId,
+    clusterName,
+    serviceName,
+    memberName,
+    memberHost,
+    memberPort,
+    memberStatus,
+    timestamp,
+  }) {
     const path = `${deploymentId}/${clusterName}/${serviceName}/${memberName}`;
-    this.#log.info(`pulse: ${path}: ${status}`);
+    this.#log.info(`pulse: ${path}: ${memberStatus}`);
     await this.#membershipRegistryRepository.set(path, {
       path,
       memberHost,
-      timestamp: Date.now(),
-      status,
+      memberPort,
+      status: memberStatus,
+      timestamp,
     });
   }
 
@@ -54,7 +69,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
     return Object.keys(dependencies).every((serviceName) => {
       let expectedCount = dependencies[serviceName];
       let foundCount = currentMembers.filter((item) => {
-        return item.path.indexOf(`${deploymentId}/${clusterName}/${serviceName}/`) === 0;
+        return item.membershipPath.indexOf(`${deploymentId}/${clusterName}/${serviceName}/`) === 0;
       }).length;
       return foundCount >= expectedCount;
     });

@@ -3,4 +3,5 @@ module.exports = {
   CONNECTING: 1,
   STABLE: 2,
   ERROR: 3,
+  DISCONNECTING: 4,
 };

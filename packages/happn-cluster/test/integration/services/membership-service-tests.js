@@ -9,6 +9,19 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   const deploymentId = test.newid();
   const PeerConnectorFactory = require('../../../lib/factories/peer-connector-factory');
   const logger = test.mockLogger();
+  const peerConnectorFactory = new PeerConnectorFactory({
+    'peer-connector': class MockPeerConnector extends require('../../../lib/connectors/peer-connector-base') {
+      constructor(logger, peerInfo) {
+        super(logger, peerInfo);
+      }
+      async connectInternal() {
+        return true;
+      }
+      async disconnectInternal() {
+        return true;
+      }
+    },
+  });
   it('is able to create and configure and stabilise members', function (done) {
     const happnService = mockHappnService();
     const proxyService = mockProxyService();
@@ -23,16 +36,6 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       membershipRegistryRepository,
       logger
     );
-    const peerConnectorFactory = new PeerConnectorFactory({
-      'peer-connector': class MockPeerConnector extends require('../../../lib/connectors/peer-connector-base') {
-        constructor(peerInfo) {
-          super(peerInfo);
-        }
-        async connectInternal() {
-          return true;
-        }
-      },
-    });
     const clusterPeerService = ClusterPeerService.create(
       {},
       logger,
@@ -154,16 +157,6 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       membershipRegistryRepository,
       logger
     );
-    const peerConnectorFactory = new PeerConnectorFactory({
-      'peer-connector': class MockPeerConnector extends require('../../../lib/connectors/peer-connector-base') {
-        constructor(peerInfo) {
-          super(peerInfo);
-        }
-        async connectInternal() {
-          return true;
-        }
-      },
-    });
     const clusterPeerService = ClusterPeerService.create(
       {},
       logger,
@@ -300,6 +293,8 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     return {
       start: test.sinon.stub(),
       stop: test.sinon.stub(),
+      internalHost: '0.0.0.0',
+      internalPort: 0,
     };
   }
 });

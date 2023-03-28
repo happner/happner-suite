@@ -47,7 +47,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       },
       mockLogger
     );
-    proxy.externalPort = 8015;
+    proxy.setupAddressesAndPorts(8015);
     proxy
       .start()
       .then(function () {
@@ -70,7 +70,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
       },
       mockLogger
     );
-
+    proxy.setupAddressesAndPorts(8015);
     proxy
       .start()
       .catch(function (err) {
@@ -102,6 +102,7 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     // console.log('Target port: ' + targetPort);
     proxiedServer.listen(targetPort);
 
+    proxy.setupAddressesAndPorts(8015);
     proxy
       .start()
       .then(function () {

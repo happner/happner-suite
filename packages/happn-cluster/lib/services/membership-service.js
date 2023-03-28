@@ -1,7 +1,9 @@
 const commons = require('happn-commons');
 const MemberStatuses = require('../constants/member-statuses');
 const getAddress = require('../utils/get-address');
-
+const ClusterCredentialsBuilder = require('../builders/cluster-member-credentials-builder');
+const ClusterMemberInfoBuilder = require('../builders/cluster-member-builder');
+const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class MembershipService extends require('events').EventEmitter {
   #log;
   #registryService;
@@ -22,6 +24,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   #clusterHealthService;
   #config;
   #membershipServiceConfig;
+  #clusterCredentials;
 
   constructor(
     config,
@@ -37,14 +40,17 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     // configuration settings
     this.#config = config;
     this.#membershipServiceConfig = this.#config.services.membership.config;
+
     this.#deploymentId = this.#membershipServiceConfig.deploymentId;
     this.#clusterName = this.#membershipServiceConfig.clusterName;
     this.#serviceName = this.#membershipServiceConfig.serviceName;
     this.#memberName = this.#membershipServiceConfig.memberName;
+
     this.#discoverTimeoutMs = this.#membershipServiceConfig.discoverTimeoutMs || 60e3; // 1 minute
     this.#pulseIntervalMs = this.#membershipServiceConfig.pulseIntervalMs || 1e3;
     this.#pulseErrorThreshold = this.#membershipServiceConfig.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
     this.#dependencies = this.#membershipServiceConfig.dependencies || {};
+    this.#clusterCredentials = this.#getClusterCredentials();
 
     // injected dependencies
     this.#log = logger;
@@ -97,6 +103,27 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   get dependencies() {
     return this.#dependencies;
   }
+
+  #getClusterCredentials() {
+    const credentials = ClusterCredentialsBuilder.create().withClusterMemberInfo(
+      ClusterMemberInfoBuilder.create()
+        .withDeploymentId(this.#deploymentId)
+        .withClusterName(this.#clusterName)
+        .withServiceName(this.#serviceName)
+        .withMemberName(this.#memberName)
+    );
+    if (!this.secure) {
+      return credentials.build();
+    }
+    const adminUser = this.#happnService.services.security.config.adminUser;
+    return credentials
+      .withUsername(adminUser.username)
+      .withPassword(adminUser.password)
+      .withPublicKey(adminUser.publicKey)
+      .withPrivateKey(adminUser.privateKey)
+      .build();
+  }
+
   async start() {
     this.#log.info(`starting`);
     this.#happnService.on('peer-connected', this.#peerConnected.bind(this));
@@ -118,8 +145,10 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     }
     this.#statusChanged(MemberStatuses.STOPPED);
     this.#clusterHealthService.stopHealthReporting();
-    this.#log.info(`stopped membership service`);
-    cb();
+    this.#clusterPeerService.disconnect().then(() => {
+      this.#log.info(`stopped membership service`);
+      cb();
+    });
   }
   async #discover() {
     const startedDiscovering = Date.now();
@@ -151,7 +180,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       this.#memberName,
       [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
     );
-    await this.#clusterPeerService.connect(this.#deploymentId, this.#clusterName, peers);
+    await this.#clusterPeerService.connect(this.#clusterCredentials, peers);
     this.#clusterHealthService.startHealthReporting(
       this.#deploymentId,
       this.#clusterName,
@@ -164,12 +193,16 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     while (this.#status !== MemberStatuses.STOPPED) {
       try {
         await this.#registryService.pulse(
-          this.#deploymentId,
-          this.#clusterName,
-          this.#serviceName,
-          this.#memberName,
-          this.#memberHost,
-          this.status
+          ClusterPeerBuilder.create()
+            .withDeploymentId(this.#deploymentId)
+            .withClusterName(this.#clusterName)
+            .withServiceName(this.#serviceName)
+            .withMemberName(this.#memberName)
+            .withMemberHost(this.#proxyService.internalHost)
+            .withMemberPort(this.#proxyService.internalPort)
+            .withMemberStatus(this.#status)
+            .withTimestamp(Date.now())
+            .build()
         );
         this.#pulseErrors = 0; // reset our pulse errors
       } catch (e) {

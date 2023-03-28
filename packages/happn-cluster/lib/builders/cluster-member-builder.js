@@ -7,7 +7,7 @@ module.exports = class PeerInfoBuilder extends BaseBuilder {
     return new PeerInfoBuilder();
   }
   build() {
-    return super.build(require('../pojos/peer-info-pojo').create());
+    return super.build(require('../pojos/cluster-member-pojo').create());
   }
   withDeploymentId(deploymentId) {
     return this.set('deploymentId', deploymentId, BaseBuilder.Types.STRING);
@@ -24,7 +24,7 @@ module.exports = class PeerInfoBuilder extends BaseBuilder {
   withMemberHost(memberHost) {
     return this.set('memberHost', memberHost, BaseBuilder.Types.STRING);
   }
-  withMemberStatus(memberStatus) {
-    return this.set('memberStatus', memberStatus, BaseBuilder.Types.INTEGER);
+  withMemberPort(memberPort) {
+    return this.set('memberPort', memberPort, BaseBuilder.Types.INTEGER);
   }
 };

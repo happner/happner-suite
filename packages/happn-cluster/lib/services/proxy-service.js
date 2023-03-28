@@ -11,7 +11,10 @@ module.exports = class ProxyService {
   #onServerErrorListener;
   #status = ProxyStates.UNINITIALIZED;
   #getAddress;
+  #protocol;
+  #internalHost;
   #externalPort;
+  #internalPort;
   constructor(config, logger) {
     this.#config = config;
     this.#logger = logger;
@@ -41,12 +44,28 @@ module.exports = class ProxyService {
     this.#externalPort = port;
   }
 
+  get internalPort() {
+    return this.#internalPort;
+  }
+
+  get internalHost() {
+    return this.#internalHost;
+  }
+
   #onProxyError(error) {
     this.#logger.error('proxy error', error);
   }
 
   #onServerError(error) {
     this.#logger.error('server error', error);
+  }
+
+  setupAddressesAndPorts(externalPort) {
+    const endpoint = this.happn.server.address();
+    this.#protocol = this.happn.services.transport.config.mode || 'http';
+    this.#internalHost = endpoint.address === '0.0.0.0' ? this.#getAddress() : endpoint.address;
+    this.#internalPort = endpoint.port;
+    this.#externalPort = externalPort;
   }
 
   start() {
@@ -59,11 +78,7 @@ module.exports = class ProxyService {
       port = this.#externalPort;
       host = dface(this.#config.host);
 
-      const protocol = this.happn.services.transport.config.mode || 'http';
-      const endpoint = this.happn.server.address();
-      const targetHost = endpoint.address === '0.0.0.0' ? this.#getAddress() : endpoint.address;
-      const targetPort = endpoint.port;
-      const target = format('%s://%s:%d', protocol, targetHost, targetPort);
+      const target = format('%s://%s:%d', this.#protocol, this.#internalHost, this.#internalPort);
 
       const allowSelfSigned =
         typeof this.#config.allowSelfSignedCerts === 'boolean'

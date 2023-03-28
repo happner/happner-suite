@@ -24,9 +24,8 @@ module.exports = class HappnService extends require('events').EventEmitter {
     return this.#database;
   }
   async start(membershipService, proxyService) {
-    proxyService.externalPort = this.#externalPort;
-    this.#config.services.membership = { instance: membershipService };
     this.#config.services.proxy = { instance: proxyService };
+    this.#config.services.membership = { instance: membershipService };
     // we defer listening so we dont miss authentic and disconnect events
     this.#config.deferListen = true;
     this.#happn = await Happn.service.create(this.#config);
@@ -34,6 +33,7 @@ module.exports = class HappnService extends require('events').EventEmitter {
     this.#happn.services.session.on('disconnect', this.#onDisconnectionFrom.bind(this));
     this.#database = this.#happn.services.data;
     await this.#happn.listen();
+    proxyService.setupAddressesAndPorts(this.#externalPort);
   }
 
   async stop() {

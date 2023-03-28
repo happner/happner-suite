@@ -65,7 +65,7 @@ module.exports = {
       });
     });
 
-    happn.listen = function (host, port, options, listenCB) {
+    happn.listen = util.maybePromisify(function (host, port, options, listenCB) {
       if (typeof options === 'function') {
         listenCB = options;
         options = null;
@@ -88,7 +88,7 @@ module.exports = {
 
       if (!happn.__initialized) return listenCB(new Error('not initialized yet'));
       return happn.services.transport.listen(host, port, options, listenCB);
-    };
+    });
 
     happn.services.initialize(config, happn, function (e) {
       if (e) {
