@@ -1,55 +1,30 @@
-const MemberStatuses = require('../constants/member-statuses');
-const commons = require('happn-commons');
+const HealthStatuses = require('../constants/health-statuses');
 module.exports = class ClusterHealthService extends require('events').EventEmitter {
-  #active = false;
-  #healthReportIntervalMs;
-  #registryService;
   #log;
-  #deploymentId;
-  #clusterName;
-  #dependencies;
-  #memberName;
-  constructor(config, logger, registryService) {
+  #lastDependenciesFulfilled;
+  constructor(logger) {
     super();
     this.#log = logger;
-    this.#registryService = registryService;
-    this.#healthReportIntervalMs =
-      config?.services?.membership?.config?.healthReportIntervalMs || 5e3;
   }
 
-  static create(config, logger, registryService) {
-    return new ClusterHealthService(config, logger, registryService);
+  static create(logger) {
+    return new ClusterHealthService(logger);
   }
 
-  stopHealthReporting() {
-    this.#log.info(`stopping health reporting`);
-    this.#active = false;
-  }
-
-  async startHealthReporting(deploymentId, clusterName, dependencies, memberName) {
-    this.#deploymentId = deploymentId;
-    this.#clusterName = clusterName;
-    this.#dependencies = dependencies;
-    this.#active = true;
-    this.#memberName = memberName;
-    while (this.#active) {
-      try {
-        const scanResult = await this.#registryService.scan(
-          this.#deploymentId,
-          this.#clusterName,
-          this.#dependencies,
-          this.#memberName,
-          [MemberStatuses.STABLE]
-        );
-        // only log if we are not healthy
-        if (scanResult !== true) {
-          // TODO: go into more detail
-          this.#log.warn('unhealthy');
-        }
-      } catch (e) {
-        this.#log.error(`failed health report: ${e.message}`);
-      }
-      await commons.delay(this.#healthReportIntervalMs);
+  reportHealth(memberScanResult) {
+    let healthStatus = memberScanResult.dependenciesFulfilled
+      ? HealthStatuses.HEALTHY
+      : HealthStatuses.UNHEALTHY;
+    if (
+      this.#lastDependenciesFulfilled !== memberScanResult.dependenciesFulfilled &&
+      healthStatus === HealthStatuses.HEALTHY
+    ) {
+      this.#log.warn(`cluster member health status: ${healthStatus}`);
     }
+    if (healthStatus !== HealthStatuses.HEALTHY) {
+      // TODO: go into more detail
+      this.#log.warn(`cluster member health status: ${healthStatus}`);
+    }
+    this.#lastDependenciesFulfilled = memberScanResult.dependenciesFulfilled;
   }
 };

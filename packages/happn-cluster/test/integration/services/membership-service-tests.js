@@ -9,6 +9,8 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   const deploymentId = test.newid();
   const PeerConnectorFactory = require('../../../lib/factories/peer-connector-factory');
   const logger = test.mockLogger();
+  const clusterHealthService = ClusterHealthService.create(logger);
+  const processManagerService = mockProcessManagerService();
   const peerConnectorFactory = new PeerConnectorFactory({
     'peer-connector': class MockPeerConnector extends require('../../../lib/connectors/peer-connector-base') {
       constructor(logger, peerInfo) {
@@ -43,7 +45,6 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       LocalReplicator.create(),
       ClusterReplicator.create()
     );
-    const clusterHealthService = ClusterHealthService.create({}, logger, registryService);
     const member1 = createMember(
       deploymentId,
       'cluster-1',
@@ -164,7 +165,6 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       LocalReplicator.create(),
       ClusterReplicator.create()
     );
-    const clusterHealthService = ClusterHealthService.create({}, logger, registryService);
     const member1 = createMember(
       deploymentId,
       'cluster-1',
@@ -247,7 +247,8 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       happnService,
       proxyService,
       clusterPeerService,
-      clusterHealthService
+      clusterHealthService,
+      processManagerService
     );
   }
   function mockMembershipDbFactory() {
@@ -295,6 +296,11 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       stop: test.sinon.stub(),
       internalHost: '0.0.0.0',
       internalPort: 0,
+    };
+  }
+  function mockProcessManagerService() {
+    return {
+      fatal: test.sinon.stub(),
     };
   }
 });

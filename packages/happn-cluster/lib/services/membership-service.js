@@ -25,7 +25,9 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   #config;
   #membershipServiceConfig;
   #clusterCredentials;
-
+  #memberScanningErrors;
+  #memberScanningErrorThreshold;
+  #processManagerService;
   constructor(
     config,
     logger,
@@ -33,7 +35,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     happnService,
     proxyService,
     clusterPeerService,
-    clusterHealthService
+    clusterHealthService,
+    processManagerService
   ) {
     super();
 
@@ -49,6 +52,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#discoverTimeoutMs = this.#membershipServiceConfig.discoverTimeoutMs || 60e3; // 1 minute
     this.#pulseIntervalMs = this.#membershipServiceConfig.pulseIntervalMs || 1e3;
     this.#pulseErrorThreshold = this.#membershipServiceConfig.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
+    this.#memberScanningErrorThreshold =
+      this.#membershipServiceConfig.memberScanningErrorThreshold || 3; // allow 3 failed list errors in a row before we fail
     this.#dependencies = this.#membershipServiceConfig.dependencies || {};
     this.#clusterCredentials = this.#getClusterCredentials();
 
@@ -59,6 +64,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#clusterHealthService = clusterHealthService;
     this.#happnService = happnService;
     this.#proxyService = proxyService;
+    this.#processManagerService = processManagerService;
 
     // internal state
     this.#memberHost = getAddress(this.#log)();
@@ -73,7 +79,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     happnService,
     proxyService,
     clusterPeerService,
-    clusterHealthService
+    clusterHealthService,
+    processManagerService
   ) {
     return new MembershipService(
       config,
@@ -82,7 +89,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       happnService,
       proxyService,
       clusterPeerService,
-      clusterHealthService
+      clusterHealthService,
+      processManagerService
     );
   }
   get status() {
@@ -131,7 +139,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     await this.#happnService.start(this, this.#proxyService);
     await this.#statusChanged(MemberStatuses.DISCOVERING);
     this.#startBeating();
-    await this.#discover();
+    await this.#initialDiscovery();
     this.#log.info(`starting proxy`);
     if (this.#config.services.proxy.config.defer) {
       return;
@@ -139,11 +147,11 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     await this.#proxyService.start();
     this.#log.info(`started`);
   }
+
   stop(opts, cb) {
     if (typeof opts === 'function') {
       cb = opts;
     }
-    this.#clusterHealthService.stopHealthReporting();
     this.#statusChanged(MemberStatuses.STOPPED)
       .then(() => {
         return this.#clusterPeerService.disconnect();
@@ -153,7 +161,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         cb();
       });
   }
-  async #discover() {
+
+  async #initialDiscovery() {
     const startedDiscovering = Date.now();
     while (this.#status === MemberStatuses.DISCOVERING) {
       this.#log.info(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
@@ -164,7 +173,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         this.#memberName,
         [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
       );
-      if (scanResult === true) {
+      if (scanResult.dependenciesFulfilled === true) {
         await this.#statusChanged(MemberStatuses.CONNECTING);
         await this.#connect();
         break;
@@ -176,6 +185,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       await commons.delay(this.#pulseIntervalMs);
     }
   }
+
   async #connect() {
     const peers = await this.#registryService.list(
       this.#deploymentId,
@@ -185,14 +195,9 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     );
     await this.#clusterPeerService.connect(this.#clusterCredentials, peers);
     await this.#statusChanged(MemberStatuses.STABLE);
-
-    this.#clusterHealthService.startHealthReporting(
-      this.#deploymentId,
-      this.#clusterName,
-      this.#dependencies,
-      this.#memberName
-    );
+    this.#startMemberScanning();
   }
+
   async #pulse() {
     try {
       await this.#registryService.pulse(
@@ -218,6 +223,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       }
     }
   }
+
   async #startBeating() {
     while (this.#status !== MemberStatuses.STOPPED) {
       try {
@@ -227,20 +233,53 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         this.#log.error(`failed pulse: ${e.message}`);
         this.#pulseErrors++;
         if (this.#pulseErrors === this.#pulseErrorThreshold) {
-          await this.#statusChanged(MemberStatuses.FAILED_PULSE);
-          // TODO: what do we do now - is this a fatal?
-          break;
+          return this.#processManagerService.fatal(
+            `pulseErrorThreshold exceeded, shutting down cluster member`
+          );
         }
       }
       await commons.delay(this.#pulseIntervalMs);
     }
   }
+
+  async #startMemberScanning() {
+    while (this.#status !== MemberStatuses.STOPPED) {
+      try {
+        const memberScanResult = await this.#registryService.scan(
+          this.#deploymentId,
+          this.#clusterName,
+          this.#dependencies,
+          this.#memberName,
+          [MemberStatuses.STABLE]
+        );
+        this.#clusterHealthService.reportHealth(memberScanResult);
+        await this.#clusterPeerService.parseMemberScanResult(memberScanResult);
+        this.#memberScanningErrors = 0; // reset our pulse errors
+      } catch (e) {
+        this.#log.error(`failed member scan: ${e.message}`);
+        this.#memberScanningErrors++;
+        if (this.#memberScanningErrors === this.#memberScanningErrorThreshold) {
+          return this.#processManagerService.fatal(
+            `memberScanningErrorThreshold exceeded, shutting down cluster member`
+          );
+        }
+      }
+      await commons.delay(this.#pulseIntervalMs);
+    }
+  }
+
   async #statusChanged(newStatus) {
     this.#log.info(`status changed: ${newStatus}`);
     this.#status = newStatus;
     await this.#pulse();
     this.emit('status-changed', newStatus);
   }
-  #peerConnected(origin) {}
-  #peerDisconnected(origin) {}
+  // eslint-disable-next-line no-unused-vars
+  #peerConnected(origin) {
+    //TODO
+  }
+  // eslint-disable-next-line no-unused-vars
+  #peerDisconnected(origin) {
+    //TODO
+  }
 };

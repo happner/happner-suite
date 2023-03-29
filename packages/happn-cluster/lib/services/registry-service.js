@@ -66,12 +66,16 @@ module.exports = class RegistryService extends require('events').EventEmitter {
 
   async scan(deploymentId, clusterName, dependencies, memberName, statuses) {
     const currentMembers = await this.list(deploymentId, clusterName, memberName, statuses);
-    return Object.keys(dependencies).every((serviceName) => {
+    const dependenciesFulfilled = Object.keys(dependencies).every((serviceName) => {
       let expectedCount = dependencies[serviceName];
       let foundCount = currentMembers.filter((item) => {
         return item.membershipPath.indexOf(`${deploymentId}/${clusterName}/${serviceName}/`) === 0;
       }).length;
       return foundCount >= expectedCount;
     });
+    return {
+      dependenciesFulfilled,
+      currentMembers,
+    };
   }
 };

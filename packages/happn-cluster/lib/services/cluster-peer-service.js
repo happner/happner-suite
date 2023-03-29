@@ -59,6 +59,9 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       await this.connectPeer(peerInfo);
     }
   }
+  async parseMemberScanResult(memberScanResult) {
+    //TODO: check for new and missing members, add and prune accordingly
+  }
   // events that spin the state machine
   onPeerConnected(peerInfo) {}
   onPeerDisconnected(peerInfo) {}

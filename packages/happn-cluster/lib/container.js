@@ -24,6 +24,10 @@ module.exports = class Container {
     return this.#dependencies;
   }
   registerDependencies() {
+    const processManagerService = require('./services/process-manager-service').create(
+      Logger.createLogger(`${this.#serviceAndMemberName}-process-manager-service`),
+      process
+    );
     const proxyService = require('./services/proxy-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-proxy-service`)
@@ -46,9 +50,7 @@ module.exports = class Container {
 
     // health reporting
     const clusterHealthService = require('./services/cluster-health-service').create(
-      this.#config,
-      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-health-service`),
-      registryService
+      Logger.createLogger(`${this.#serviceAndMemberName}-cluster-health-service`)
     );
 
     // peer management
@@ -69,7 +71,8 @@ module.exports = class Container {
       happnService,
       proxyService,
       clusterPeerService,
-      clusterHealthService
+      clusterHealthService,
+      processManagerService
     );
 
     this.#dependencies['happnService'] = happnService;

@@ -1,13 +1,19 @@
 const PeerConnectorStatuses = require('../constants/peer-connector-statuses');
+const commons = require('happn-commons');
 module.exports = class PeerConnectorBase extends require('events').EventEmitter {
   #status;
   #peerInfo;
   #log;
+  #queue;
   constructor(logger, peerInfo) {
     super();
     this.#log = logger;
     this.#peerInfo = peerInfo;
     this.#status = PeerConnectorStatuses.DISCONNECTED;
+    // replication, connection and disconnection happen 1 at a time
+    this.#queue = commons.AsyncQueue.create({
+      concurrency: 1,
+    });
   }
   get peerInfo() {
     return this.#peerInfo;
@@ -18,6 +24,9 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   get log() {
     return this.#log;
   }
+  get queue() {
+    return this.#queue;
+  }
   async connectInternal() {
     throw new Error(`connectInternal not implemented`);
   }
@@ -25,17 +34,21 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     throw new Error(`disconnectInternal not implemented`);
   }
   async connect(clusterCredentials) {
-    this.#log.info(`connecting to peer: ${clusterCredentials.info.memberName}`);
-    this.#status = PeerConnectorStatuses.CONNECTING;
-    await this.connectInternal(clusterCredentials);
-    this.#status = PeerConnectorStatuses.STABLE;
-    this.#log.info(`connected to peer: ${clusterCredentials.info.memberName}`);
+    await this.queue.lock(async () => {
+      this.#log.info(`connecting to peer: ${clusterCredentials.info.memberName}`);
+      this.#status = PeerConnectorStatuses.CONNECTING;
+      await this.connectInternal(clusterCredentials);
+      this.#status = PeerConnectorStatuses.STABLE;
+      this.#log.info(`connected to peer: ${clusterCredentials.info.memberName}`);
+    });
   }
   async disconnect() {
-    this.#log.info(`disconnecting from peer: ${this.#peerInfo.memberName}`);
-    this.#status = PeerConnectorStatuses.DISCONNECTING;
-    await this.disconnectInternal();
-    this.#status = PeerConnectorStatuses.DISCONNECTED;
-    this.#log.info(`disconnected from peer: ${this.#peerInfo.memberName}`);
+    await this.queue.lock(async () => {
+      this.#log.info(`disconnecting from peer: ${this.#peerInfo.memberName}`);
+      this.#status = PeerConnectorStatuses.DISCONNECTING;
+      await this.disconnectInternal();
+      this.#status = PeerConnectorStatuses.DISCONNECTED;
+      this.#log.info(`disconnected from peer: ${this.#peerInfo.memberName}`);
+    });
   }
 };
