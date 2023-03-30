@@ -287,6 +287,10 @@ function upsertUser(user, options, callback) {
   if (typeof user !== 'object' || user == null)
     return callback(new Error('user is null or not an object'));
 
+  if (commons._.isEmpty(user.username)) return callback(new Error('username is null or undefined'));
+  if (typeof user.username !== 'string' || !user.username.trim().length)
+    return callback(new Error('username must be a non-empty string'));
+
   user.username = this.prepareUserName(user.username);
   this.__validate('user', options, user, async (e) => {
     if (e) return callback(e);
