@@ -33,14 +33,30 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   }
   async disconnect() {
     for (let peerConnector of this.#peerConnectors) {
-      try {
-        await peerConnector.disconnect();
-      } catch (e) {
-        this.#log.warn(`failed disconnecting from peer ${peerConnector.memberName}: ${e.message}`);
-      }
+      await this.#disconnectPeerConnector(peerConnector);
     }
   }
-  async connect(clusterCredentials, peers) {
+  async #disconnectPeerConnector(peerConnector) {
+    try {
+      await peerConnector.disconnect();
+    } catch (e) {
+      // TODO: should we fatal here?
+      this.#log.warn(`failed disconnecting from peer ${peerConnector.memberName}: ${e.message}`);
+    }
+  }
+  async removePeers(peers) {
+    const peerConnectorsToRemove = this.#peerConnectors.filter((peerConnector) => {
+      return peers.find((peer) => peer.memberName === peerConnector.peerInfo.memberName) != null;
+    });
+    for (let peerConnector of peerConnectorsToRemove) {
+      await this.#disconnectPeerConnector(peerConnector);
+      this.#peerConnectors.splice(this.#peerConnectors.indexOf(peerConnector), 1);
+    }
+  }
+  listPeerConnectors() {
+    return this.#peerConnectors.slice();
+  }
+  async addPeers(clusterCredentials, peers) {
     this.#clusterCredentials = clusterCredentials;
     this.#deploymentId = clusterCredentials.info.deploymentId;
     this.#clusterName = clusterCredentials.info.clusterName;

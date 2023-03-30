@@ -28,6 +28,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   #memberScanningErrors;
   #memberScanningErrorThreshold;
   #processManagerService;
+  #memberScanningIntervalMs;
   constructor(
     config,
     logger,
@@ -52,6 +53,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#discoverTimeoutMs = this.#membershipServiceConfig.discoverTimeoutMs || 60e3; // 1 minute
     this.#pulseIntervalMs = this.#membershipServiceConfig.pulseIntervalMs || 1e3;
     this.#pulseErrorThreshold = this.#membershipServiceConfig.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
+    this.#memberScanningIntervalMs = this.#membershipServiceConfig.memberScanningIntervalMs || 3e3;
     this.#memberScanningErrorThreshold =
       this.#membershipServiceConfig.memberScanningErrorThreshold || 3; // allow 3 failed list errors in a row before we fail
     this.#dependencies = this.#membershipServiceConfig.dependencies || {};
@@ -193,7 +195,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
       this.#memberName,
       [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
     );
-    await this.#clusterPeerService.connect(this.#clusterCredentials, peers);
+    await this.#clusterPeerService.addPeers(this.#clusterCredentials, peers);
     await this.#statusChanged(MemberStatuses.STABLE);
     this.#startMemberScanning();
   }
@@ -253,7 +255,15 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           [MemberStatuses.STABLE]
         );
         this.#clusterHealthService.reportHealth(memberScanResult);
-        await this.#clusterPeerService.parseMemberScanResult(memberScanResult);
+        if (memberScanResult.newMembers.length > 0) {
+          await this.#clusterPeerService.addPeers(
+            this.#clusterCredentials,
+            memberScanResult.newMembers
+          );
+        }
+        if (memberScanResult.missingSinceLastMembers.length > 0) {
+          await this.#clusterPeerService.removePeers(memberScanResult.missingSinceLastMembers);
+        }
         this.#memberScanningErrors = 0; // reset our pulse errors
       } catch (e) {
         this.#log.error(`failed member scan: ${e.message}`);
@@ -264,7 +274,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           );
         }
       }
-      await commons.delay(this.#pulseIntervalMs);
+      await commons.delay(this.#memberScanningIntervalMs);
     }
   }
 

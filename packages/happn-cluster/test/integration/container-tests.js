@@ -21,7 +21,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     }
   });
 
-  it('creates and starts 2 containers, stabilises', async () => {
+  it('creates and starts 2 containers, stabilises, creates another container - we ensure it can join later', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
@@ -32,13 +32,29 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     container1.start();
     container2.start();
 
-    await test.delay(6e3);
+    await test.delay(5e3);
 
     test.expect(container1.dependencies['membershipService'].status).to.be(MemberStatuses.STABLE);
     test.expect(container2.dependencies['membershipService'].status).to.be(MemberStatuses.STABLE);
 
+    const container3 = createContainer(12360, 'member3', 'service3', {
+      service1: 1,
+      service2: 1,
+    });
+    container3.start();
+
+    await test.delay(5e3);
+
+    test.expect(container3.dependencies['membershipService'].status).to.be(MemberStatuses.STABLE);
+    const container1PeerConnectors =
+      container1.dependencies['clusterPeerService'].listPeerConnectors();
+    test.expect(container1PeerConnectors.length).to.be(2);
+    test.expect(container1PeerConnectors[0].peerInfo.memberName).to.be('member2');
+    test.expect(container1PeerConnectors[1].peerInfo.memberName).to.be('member3');
+
     container1.stop();
     container2.stop();
+    container3.stop();
   });
 
   function createContainer(

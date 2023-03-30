@@ -3,6 +3,8 @@ module.exports = class RegistryService extends require('events').EventEmitter {
   #staleMemberThreshold;
   #log;
   #membershipRegistryRepository;
+  #lastMembersList = [];
+  #totalScansSinceStartup = 0;
   constructor(config, membershipRegistryRepository, logger) {
     super();
     this.#staleMemberThreshold = config.staleMemberThreshold || 5e3;
@@ -65,6 +67,8 @@ module.exports = class RegistryService extends require('events').EventEmitter {
   }
 
   async scan(deploymentId, clusterName, dependencies, memberName, statuses) {
+    this.#totalScansSinceStartup++;
+    let prevLastMembers = this.#lastMembersList;
     const currentMembers = await this.list(deploymentId, clusterName, memberName, statuses);
     const dependenciesFulfilled = Object.keys(dependencies).every((serviceName) => {
       let expectedCount = dependencies[serviceName];
@@ -73,9 +77,28 @@ module.exports = class RegistryService extends require('events').EventEmitter {
       }).length;
       return foundCount >= expectedCount;
     });
+    let newMembers = [];
+    let missingSinceLastMembers = [];
+    if (this.#lastMembersList.length === 0) {
+      newMembers = this.#lastMembersList.slice();
+    } else {
+      newMembers = currentMembers.filter((currentMemberInfo) => {
+        return !this.#lastMembersList.find(
+          (lastMemberInfo) => lastMemberInfo.memberName === currentMemberInfo.memberName
+        );
+      });
+      missingSinceLastMembers = this.#lastMembersList.filter((lastMemberInfo) => {
+        return !currentMembers.find(
+          (currentMemberInfo) => currentMemberInfo.memberName === lastMemberInfo.memberName
+        );
+      });
+    }
+    this.#lastMembersList = currentMembers;
     return {
       dependenciesFulfilled,
       currentMembers,
+      newMembers,
+      missingSinceLastMembers,
     };
   }
 };

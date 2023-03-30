@@ -77,6 +77,7 @@ module.exports = class Container {
 
     this.#dependencies['happnService'] = happnService;
     this.#dependencies['proxyService'] = proxyService;
+    this.#dependencies['clusterPeerService'] = clusterPeerService;
     this.#dependencies['membershipService'] = membershipService;
   }
   async start() {
