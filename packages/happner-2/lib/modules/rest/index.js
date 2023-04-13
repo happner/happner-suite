@@ -105,14 +105,16 @@ Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
   const response = {
     message,
     data: typeof data === 'undefined' ? null : data,
-    error : null
-  }
+    error: null,
+  };
 
   if (error) {
     const plainError = utilities.plainError(error, false);
     if (!code) code = 500;
-    response.error = plainError
-    $happn.log.warn(`rpc request failure: ${error.message ? error.message : JSON.stringify(plainError)}`);
+    response.error = plainError;
+    $happn.log.warn(
+      `rpc request failure: ${error.message ? error.message : JSON.stringify(plainError)}`
+    );
   } else {
     if (!code) code = 200;
   }

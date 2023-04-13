@@ -283,7 +283,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
     };
 
-    restModule.__respond(mock$Happn, 'test success response', { test: '$$data$&' }, null, mockResponse);
+    restModule.__respond(
+      mock$Happn,
+      'test success response',
+      { test: '$$data$&' },
+      null,
+      mockResponse
+    );
   });
 
   it('tests the rest components __parseBody method', function (done) {

@@ -152,12 +152,11 @@ module.exports.plainError = function (err, includeStack = true) {
   if (!includeStack) {
     delete plainErr.stack;
   }
-  return plainErr
+  return plainErr;
 };
 
-
 module.exports.stringifyError = function (err, includeStack = true) {
-  return JSON.stringify(plainError(err,includeStack));
+  return JSON.stringify(module.exports.plainError(err, includeStack));
 };
 
 module.exports.clone = function (obj) {
