@@ -246,7 +246,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
           case 'success':
             test.expect(response.message).to.be('test success response');
             test.expect(response.message).to.be('test success response');
-            test.expect(response.data.test).to.be('data');
+            test.expect(response.data.test).to.be('$$data$&');
             testStage = 'success-empty';
             restModule.__respond(
               mock$Happn,
@@ -283,7 +283,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
     };
 
-    restModule.__respond(mock$Happn, 'test success response', { test: 'data' }, null, mockResponse);
+    restModule.__respond(mock$Happn, 'test success response', { test: '$$data$&' }, null, mockResponse);
   });
 
   it('tests the rest components __parseBody method', function (done) {

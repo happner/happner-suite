@@ -98,27 +98,27 @@ Rest.prototype.describe = function ($happn, _req, res, $origin) {
 };
 
 Rest.prototype.__respond = function ($happn, message, data, error, res, code) {
-  let responseString = '{"message":"' + message + '", "data":{{DATA}}, "error":{{ERROR}}}';
-
   const header = {
     'Content-Type': 'application/json',
   };
 
-  //doing the replacements to the response string, allows us to stringify errors without issues.
+  const response = {
+    message,
+    data: typeof data === 'undefined' ? null : data,
+    error : null
+  }
+
   if (error) {
-    const stringifiedError = utilities.stringifyError(error, false);
+    const plainError = utilities.plainError(error, false);
     if (!code) code = 500;
-    responseString = responseString.replace('{{ERROR}}', stringifiedError);
-    $happn.log.warn(`rpc request failure: ${error.message ? error.message : stringifiedError}`);
+    response.error = plainError
+    $happn.log.warn(`rpc request failure: ${error.message ? error.message : JSON.stringify(plainError)}`);
   } else {
     if (!code) code = 200;
-    responseString = responseString.replace('{{ERROR}}', 'null');
   }
 
   res.writeHead(code, header);
-  if (typeof data === 'undefined') data = null;
-  responseString = responseString.replace('{{DATA}}', JSON.stringify(data));
-  res.end(responseString);
+  res.end(JSON.stringify(response));
 };
 
 Rest.prototype.__authorizeMethod = function ($happn, $origin, methodURI, callback) {
