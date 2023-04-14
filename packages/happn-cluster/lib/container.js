@@ -24,14 +24,19 @@ module.exports = class Container {
     return this.#dependencies;
   }
   registerDependencies() {
+    // testable process management
     const processManagerService = require('./services/process-manager-service').create(
       Logger.createLogger(`${this.#serviceAndMemberName}-process-manager-service`),
       process
     );
+
+    //proxy service (listens for external connections when cluster member is stable)
     const proxyService = require('./services/proxy-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-proxy-service`)
     );
+
+    // wraps and controls happn-3
     const happnService = require('./services/happn-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-happn-service`)
@@ -53,17 +58,33 @@ module.exports = class Container {
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-health-service`)
     );
 
+    // replication
+    const securityDirectoryReplicator =
+      require('./replicators/security-directory-replicator').create(
+        this.#config,
+        Logger.createLogger(`${this.#serviceAndMemberName}-security-directory-replicator`),
+        happnService,
+        processManagerService
+      );
+
+    const eventReplicator = require('./replicators/event-replicator').create(
+      this.#config,
+      Logger.createLogger(`${this.#serviceAndMemberName}-event-replicator`),
+      happnService,
+      processManagerService
+    );
+
     // peer management
-    const localReplicator = require('./replicators/local-replicator').create();
-    const clusterReplicator = require('./replicators/cluster-replicator').create();
     const peerConnectorFactory = new PeerConnectorFactory();
     const clusterPeerService = require('./services/cluster-peer-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-peer-service`),
       peerConnectorFactory,
-      localReplicator,
-      clusterReplicator
+      securityDirectoryReplicator,
+      eventReplicator
     );
+
+    // membership and cluster control
     const membershipService = require('./services/membership-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-membership-service`),

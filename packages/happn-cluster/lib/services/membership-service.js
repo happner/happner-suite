@@ -125,12 +125,11 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     if (!this.secure) {
       return credentials.build();
     }
-    const adminUser = this.#happnService.services.security.config.adminUser;
     return credentials
-      .withUsername(adminUser.username)
-      .withPassword(adminUser.password)
-      .withPublicKey(adminUser.publicKey)
-      .withPrivateKey(adminUser.privateKey)
+      .withUsername(this.#happnService.clusterCredentials.username)
+      .withPassword(this.#happnService.clusterCredentials.password)
+      .withPublicKey(this.#happnService.clusterCredentials.publicKey)
+      .withPrivateKey(this.#happnService.clusterCredentials.privateKey)
       .build();
   }
 

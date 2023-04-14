@@ -1,7 +1,6 @@
 const ClusterHealthService = require('../../../lib/services/cluster-health-service');
 const ClusterPeerService = require('../../../lib/services/cluster-peer-service');
-const LocalReplicator = require('../../../lib/replicators/local-replicator');
-const ClusterReplicator = require('../../../lib/replicators/cluster-replicator');
+const ClusterSecurityDirectoryReplicationService = require('../../../lib/services/cluster-security-directory-replicator-service');
 
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
@@ -42,8 +41,12 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       {},
       logger,
       peerConnectorFactory,
-      LocalReplicator.create(),
-      ClusterReplicator.create()
+      ClusterSecurityDirectoryReplicationService.create(
+        {},
+        logger,
+        happnService,
+        processManagerService
+      )
     );
     const member1 = createMember(
       deploymentId,
@@ -162,8 +165,12 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       {},
       logger,
       peerConnectorFactory,
-      LocalReplicator.create(),
-      ClusterReplicator.create()
+      ClusterSecurityDirectoryReplicationService.create(
+        {},
+        logger,
+        happnService,
+        processManagerService
+      )
     );
     const member1 = createMember(
       deploymentId,
@@ -223,6 +230,14 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       {
         name: memberName,
         services: {
+          security: {
+            config: {
+              adminUser: {
+                username: '_ADMIN',
+                password: 'happn',
+              },
+            },
+          },
           proxy: {
             config: {
               defer: false,

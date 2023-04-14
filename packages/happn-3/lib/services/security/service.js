@@ -116,7 +116,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.#initializeOnBehalfOfCache(config);
     await this.#ensureAdminUser(config);
     this.anonymousUser = await this.#ensureAnonymousUser(config);
-    await this.#initializeReplication(config);
     await this.#initializeSessionTokenSecret(config);
     await this.#initializeAuthProviders(config);
     this.cache_security_authentication_nonce = this.cacheService.create(
@@ -385,22 +384,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   async unlinkAnonymousGroup(group) {
     if (!this.config.allowAnonymousAccess) throw new Error('Anonymous access is not configured');
     return await this.groups.unlinkGroup(group, this.anonymousUser);
-  }
-
-  #initializeReplication() {
-    if (!this.happn.services.replicator) return;
-
-    this.happn.services.replicator.on('/security/dataChanged', (payload, self) => {
-      if (self) return;
-
-      let whatHappnd = payload.whatHappnd;
-      let changedData = payload.changedData;
-      let additionalInfo = payload.additionalInfo;
-
-      // flag as learned from replication - to not replicate again
-      changedData.replicated = true;
-      this.dataChanged(whatHappnd, changedData, additionalInfo);
-    });
   }
 
   #initializeCheckPoint(config) {
@@ -1145,7 +1128,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     });
   }
 
-  emitChanges(whatHappnd, changedData, effectedSessions) {
+  emitChanges(whatHappnd, changedData, effectedSessions, additionalInfo) {
     return new Promise((resolve, reject) => {
       try {
         let changedDataSerialized = null;
@@ -1162,11 +1145,11 @@ module.exports = class SecurityService extends require('events').EventEmitter {
           ]);
         });
         this.emit('security-data-changed', {
-          whatHappnd: whatHappnd,
-          changedData: changedData,
-          effectedSessions: effectedSessions,
+          whatHappnd,
+          changedData,
+          effectedSessions,
+          additionalInfo,
         });
-
         resolve();
       } catch (e) {
         reject(e);
@@ -1221,9 +1204,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       })
       .then((effectedSessions) => {
         return this.emitChanges(whatHappnd, changedData, effectedSessions, additionalInfo);
-      })
-      .then(() => {
-        return this.#replicateDataChanged(whatHappnd, changedData, additionalInfo);
       })
       .then(() => {
         if (callback) callback();

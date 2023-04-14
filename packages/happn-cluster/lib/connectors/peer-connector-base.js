@@ -35,16 +35,14 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   }
   async connect(clusterCredentials) {
     await this.queue.lock(async () => {
-      this.#log.info(`connecting to peer: ${clusterCredentials.info.memberName}`);
       this.#status = PeerConnectorStatuses.CONNECTING;
       await this.connectInternal(clusterCredentials);
       this.#status = PeerConnectorStatuses.STABLE;
-      this.#log.info(`connected to peer: ${clusterCredentials.info.memberName}`);
+      this.#log.info(`connected to peer: ${this.#peerInfo.memberName}`);
     });
   }
   async disconnect() {
     await this.queue.lock(async () => {
-      this.#log.info(`disconnecting from peer: ${this.#peerInfo.memberName}`);
       this.#status = PeerConnectorStatuses.DISCONNECTING;
       await this.disconnectInternal();
       this.#status = PeerConnectorStatuses.DISCONNECTED;

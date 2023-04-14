@@ -4,7 +4,6 @@ module.exports = class RegistryService extends require('events').EventEmitter {
   #log;
   #membershipRegistryRepository;
   #lastMembersList = [];
-  #totalScansSinceStartup = 0;
   constructor(config, membershipRegistryRepository, logger) {
     super();
     this.#staleMemberThreshold = config.staleMemberThreshold || 5e3;
@@ -56,7 +55,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
     timestamp,
   }) {
     const path = `${deploymentId}/${clusterName}/${serviceName}/${memberName}`;
-    this.#log.info(`pulse: ${path}: ${memberStatus}`);
+    this.#log.debug(`pulse: ${path}: ${memberStatus}`);
     await this.#membershipRegistryRepository.set(path, {
       path,
       memberHost,
@@ -67,8 +66,6 @@ module.exports = class RegistryService extends require('events').EventEmitter {
   }
 
   async scan(deploymentId, clusterName, dependencies, memberName, statuses) {
-    this.#totalScansSinceStartup++;
-    let prevLastMembers = this.#lastMembersList;
     const currentMembers = await this.list(deploymentId, clusterName, memberName, statuses);
     const dependenciesFulfilled = Object.keys(dependencies).every((serviceName) => {
       let expectedCount = dependencies[serviceName];

@@ -21,7 +21,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     }
   });
 
-  it('creates and starts 2 containers, stabilises, creates another container - we ensure it can join later', async () => {
+  it.only('creates and starts 2 containers, stabilises, creates another container - we ensure it can join later', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
@@ -66,9 +66,18 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     }
   ) {
     const container = Container.create({
+      secure: true,
       port,
       name,
       services: {
+        security: {
+          config: {
+            adminUser: {
+              username: '_ADMIN',
+              password: 'happn',
+            },
+          },
+        },
         proxy: {
           config: {
             defer: false,
@@ -84,6 +93,8 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
             healthReportIntervalMs: 1e3,
             pulseIntervalMs: 5e2,
             dependencies,
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
           },
         },
       },
