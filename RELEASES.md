@@ -1,3 +1,7 @@
+2.7.1 2023-04-14
+-----------------
+  - fix: happner-2 rest stringify ignores special characters
+
 2.7.0 2023-03-03
 -----------------
   - feat: token revocation and logout
