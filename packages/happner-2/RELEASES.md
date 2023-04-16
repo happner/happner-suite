@@ -1037,3 +1037,8 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - feat: token revocation and logout
   - fix: token revocation cluster fix
   
+
+12.8.1 2023-04-13
+-----------------
+- fix: rest payload stringify
+  

@@ -414,3 +414,7 @@
 -----------------
   - feat: token revocation and logout
   - fix: token revocation cluster fix
+
+12.6.1 2023-04-13
+-----------------
+- fix: rest payload stringify

@@ -144,15 +144,19 @@ module.exports.findInModules = function (filename, modulePaths, callback) {
   });
 };
 
-module.exports.stringifyError = function (err, includeStack = true) {
-  var plainError = {};
+module.exports.plainError = function (err, includeStack = true) {
+  var plainErr = {};
   Object.getOwnPropertyNames(err).forEach(function (key) {
-    plainError[key] = err[key];
+    plainErr[key] = err[key];
   });
   if (!includeStack) {
-    delete plainError.stack;
+    delete plainErr.stack;
   }
-  return JSON.stringify(plainError);
+  return plainErr;
+};
+
+module.exports.stringifyError = function (err, includeStack = true) {
+  return JSON.stringify(module.exports.plainError(err, includeStack));
 };
 
 module.exports.clone = function (obj) {
