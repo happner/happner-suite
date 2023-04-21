@@ -24,12 +24,12 @@ module.exports = class BaseBuilder {
       });
     return typeof prop.build === 'function' ? prop.build() : prop;
   }
-  build(pojo) {
+  build(obj) {
     const fieldNames = Object.keys(this.__data);
     if (this.__required) this.checkRequired();
     return fieldNames.reduce((json, key) => {
       return _.set(json, key, this.buildValue(this.__data[key]));
-    }, pojo || {});
+    }, obj || {});
   }
   push(fieldName, value, type, max) {
     if (type != null) this.checkType(value, type, fieldName);
@@ -41,7 +41,11 @@ module.exports = class BaseBuilder {
   }
   set(fieldName, value, type) {
     if (type != null) this.checkType(value, type, fieldName);
-    this.__data[fieldName] = value;
+    if (fieldName === '.') {
+      this.__data = value;
+    } else {
+      this.__data[fieldName] = value;
+    }
     return this;
   }
   required(arrPropertyNames) {

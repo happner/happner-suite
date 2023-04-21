@@ -70,8 +70,7 @@ module.exports = class Container {
     const eventReplicator = require('./replicators/event-replicator').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-event-replicator`),
-      happnService,
-      processManagerService
+      happnService
     );
 
     // peer management
@@ -80,7 +79,6 @@ module.exports = class Container {
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-peer-service`),
       peerConnectorFactory,
-      securityDirectoryReplicator,
       eventReplicator
     );
 
@@ -100,6 +98,7 @@ module.exports = class Container {
     this.#dependencies['proxyService'] = proxyService;
     this.#dependencies['clusterPeerService'] = clusterPeerService;
     this.#dependencies['membershipService'] = membershipService;
+    this.#dependencies['securityDirectoryReplicator'] = securityDirectoryReplicator;
   }
   async start() {
     try {

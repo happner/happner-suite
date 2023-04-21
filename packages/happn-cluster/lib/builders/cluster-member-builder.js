@@ -7,7 +7,7 @@ module.exports = class PeerInfoBuilder extends BaseBuilder {
     return new PeerInfoBuilder();
   }
   build() {
-    return super.build(require('../pojos/cluster-member-pojo').create());
+    return super.build(require('../objects/cluster-member-object').create());
   }
   withDeploymentId(deploymentId) {
     return this.set('deploymentId', deploymentId, BaseBuilder.Types.STRING);

@@ -6,7 +6,7 @@ module.exports = class ClusterPeerBuilder extends require('./cluster-member-buil
     return new ClusterPeerBuilder();
   }
   build() {
-    return super.build(require('../pojos/cluster-peer-pojo').create());
+    return super.build(require('../objects/cluster-peer-object').create());
   }
   withMemberStatus(memberStatus) {
     return this.set('memberStatus', memberStatus, ClusterPeerBuilder.Types.INTEGER);

@@ -1,18 +1,16 @@
 const Constants = require('../constants/all-constants');
+const ReplicatedMessageBuilder = require('../builders/replicated-message-builder');
+const commons = require('happn-commons');
 module.exports = class EventReplicator extends require('events').EventEmitter {
-  #config;
   #log;
   #happnService;
   #stopped;
-  #processManager;
-  constructor(config, logger, happnService, processManager) {
+  #config;
+  constructor(config, logger, happnService) {
     super();
-    this.#config = config;
-    this.#config.securityChangeSetReplicateInterval =
-      config?.services?.membership?.config?.securityChangeSetReplicateInterval || 3e3;
     this.#log = logger;
     this.#happnService = happnService;
-    this.#processManager = processManager;
+    this.#config = this.#defaults(config);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
@@ -33,5 +31,54 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
   #stop() {
     this.#stopped = true;
     this.#log.info('stopped');
+  }
+
+  async attachPeerConnector(peerConnector) {
+    // eslint-disable-next-line no-useless-catch
+    try {
+      await peerConnector.subscribe(
+        this.#config.replicationPaths,
+        this.handleReplicationSubscription.bind(this)
+      );
+    } catch (e) {
+      //TODO: what now
+      throw e;
+    }
+  }
+
+  async detachPeerConnector(peerConnector) {
+    // eslint-disable-next-line no-useless-catch
+    try {
+      await peerConnector.unsubscribe(this.#config.replicationPaths);
+    } catch (e) {
+      //TODO: what now
+      throw e;
+    }
+  }
+
+  async handleReplicationSubscription(data, meta) {
+    if (this.#stopped) {
+      return;
+    }
+    const replicatedMessage = ReplicatedMessageBuilder.create().withDataAndMeta(data, meta).build();
+
+    replicatedMessage.recipients =
+      this.#happnService.subscriptionService.getRecipients(replicatedMessage);
+
+    this.#happnService.publisherService.processPublish(replicatedMessage, function (error) {
+      if (error) {
+        this.#log.error(`event replication error: ${error.message}`);
+        return this.emit(Constants.EVENT_KEYS.REPLICATOR_PUBLISH_ERROR, { error });
+      }
+    });
+  }
+
+  #defaults(config) {
+    const cloned = commons._.cloneDeep(config?.services?.cluster?.config || {});
+    if (!cloned.replicationPaths || cloned.replicationPaths.length === 0) {
+      cloned.replicationPaths = ['**'];
+    }
+    cloned.replicationPaths.push(Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE);
+    return cloned;
   }
 };

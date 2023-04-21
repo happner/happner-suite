@@ -1,6 +1,6 @@
 const Container = require('../../lib/container');
 const MemberStatuses = require('../../lib/constants/member-statuses');
-require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   let deploymentId;
 
   beforeEach(() => {
@@ -21,7 +21,7 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     }
   });
 
-  it.only('creates and starts 2 containers, stabilises, creates another container - we ensure it can join later', async () => {
+  it('creates and starts 2 containers, stabilises, creates another container - we ensure it can join later', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
@@ -51,6 +51,69 @@ require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
     test.expect(container1PeerConnectors.length).to.be(2);
     test.expect(container1PeerConnectors[0].peerInfo.memberName).to.be('member2');
     test.expect(container1PeerConnectors[1].peerInfo.memberName).to.be('member3');
+
+    container1.stop();
+    container2.stop();
+    container3.stop();
+  });
+
+  it('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
+    const container1 = createContainer(12358, 'member1', 'service1', {
+      service2: 1,
+    });
+    const container2 = createContainer(12359, 'member2', 'service2', {
+      service1: 1,
+    });
+    const container3 = createContainer(12360, 'member3', 'service3', {
+      service1: 1,
+      service2: 1,
+    });
+
+    container1.start();
+    container2.start();
+    container3.start();
+
+    await test.delay(5e3);
+
+    await test.createUserOnContainer(container1, 'test1', 'password', {
+      'test/path/1': { actions: ['*'] },
+    });
+
+    await test.delay(5e3);
+
+    const session1 = await test.createSession(12358, 'test1', 'password');
+    const session2 = await test.createSession(12359, 'test1', 'password');
+    const session3 = await test.createSession(12360, 'test1', 'password');
+
+    let eventData = [];
+    await session3.on('test/path/1', (data) => {
+      eventData.push(data);
+    });
+
+    await session1.set('test/path/1', { test: 1 });
+    await session2.set('test/path/1', { test: 1 });
+
+    // remove all user permissions, wait 5 seconds
+    await test.updateUserPermissionsOnContainer(
+      container1,
+      'test1',
+      {
+        'test/path/1': { remove: true, actions: ['*'] },
+      },
+      5e3
+    );
+
+    let eMessage;
+    try {
+      await session2.set('test/path/1', { test: 1 });
+    } catch (e) {
+      eMessage = e.message;
+    }
+
+    test.expect(eMessage).to.equal('unauthorized');
+    test.expect(eventData.length).to.equal(2);
+
+    await test.destroySessions(session1, session2, session3);
 
     container1.stop();
     container2.stop();

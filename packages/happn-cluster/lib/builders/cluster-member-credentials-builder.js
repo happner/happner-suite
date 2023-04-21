@@ -7,7 +7,7 @@ module.exports = class ClusterMemberCredentialsBuilder extends CredentialsBuilde
     return new ClusterMemberCredentialsBuilder();
   }
   build() {
-    return super.build(require('../pojos/cluster-member-credentials-pojo').create());
+    return super.build(require('../objects/cluster-member-credentials-object').create());
   }
   withClusterMemberInfo(info) {
     return this.set('info', info, ClusterMemberCredentialsBuilder.Types.OBJECT);

@@ -1,7 +1,8 @@
 module.exports = {
   DISCONNECTED: 0,
   CONNECTING: 1,
-  STABLE: 2,
-  ERROR: 3,
-  DISCONNECTING: 4,
+  SUBSCRIBING: 2,
+  STABLE: 3,
+  ERROR: 4,
+  DISCONNECTING: 5,
 };

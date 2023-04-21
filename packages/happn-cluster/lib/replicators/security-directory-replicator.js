@@ -23,8 +23,8 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     });
     this.#happnService.on(
       Constants.EVENT_KEYS.HAPPN_SECURITY_DIRECTORY_CHANGED,
-      (securityDirectory) => {
-        this.#replicateSecurityDirectoryChanges(securityDirectory);
+      (securityDirectoryChanges) => {
+        this.#replicate(securityDirectoryChanges);
       }
     );
   }
@@ -37,12 +37,12 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     return this.#securityChangeSet;
   }
 
-  #replicateSecurityDirectoryChanges(securityDirectory) {
+  #replicate(securityDirectoryChanges) {
     if (!this.#happnService.localClient) {
       this.#log.warn(`attempt to replicate when not ready`);
       return;
     }
-    const { whatHappnd, changedData, additionalInfo } = securityDirectory;
+    const { whatHappnd, changedData, additionalInfo } = securityDirectoryChanges;
     if (changedData.replicated) return; // don't re-replicate
     this.#securityChangeSet.push({ whatHappnd, changedData, additionalInfo });
   }

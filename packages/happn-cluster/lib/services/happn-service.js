@@ -14,7 +14,6 @@ module.exports = class HappnService extends require('events').EventEmitter {
   constructor(config, logger, processManagerService) {
     super();
     this.#config = commons._.clone(config);
-    console.log('constructor config:::', JSON.stringify(config, null, 2));
     // external port
     this.#externalPort = this.#config?.port;
     // internal inter-cluster port
@@ -45,6 +44,18 @@ module.exports = class HappnService extends require('events').EventEmitter {
   }
   get secure() {
     return this.#happn.config.secure || this.#happn.services.security.config.secure || false;
+  }
+  get sessionService() {
+    return this.#happn.services.session;
+  }
+  get securityService() {
+    return this.#happn.services.security;
+  }
+  get subscriptionService() {
+    return this.#happn.services.subscription;
+  }
+  get publisherService() {
+    return this.#happn.services.publisher;
   }
   async upsertUser(username, password, publicKey, userPermissions, groups) {
     const user = {
@@ -93,7 +104,6 @@ module.exports = class HappnService extends require('events').EventEmitter {
   }
 
   async #createLocalClient() {
-    console.log('creating local client:::', this.#clusterCredentials);
     return await this.#happn.services.session.localClient(this.#clusterCredentials);
   }
 
@@ -101,7 +111,6 @@ module.exports = class HappnService extends require('events').EventEmitter {
     const credentialsBuilder = CredentialsBuilder.create();
     if (this.secure) {
       const membershipConfig = this.#config.services.membership.config;
-      console.log('assignClusterCredentials config:::', JSON.stringify(membershipConfig));
       if (membershipConfig.clusterUsername) {
         await this.upsertUser(
           membershipConfig.clusterUsername,

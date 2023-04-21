@@ -2,18 +2,18 @@ const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class ClusterPeerService extends require('events').EventEmitter {
   #config;
   #log;
-  #clusterReplicatorService;
+  #eventReplicator;
   #peerConnectors = [];
   #deploymentId;
   #clusterName;
   #peerConnectorFactory;
   #clusterCredentials;
-  constructor(config, logger, peerConnectorFactory, clusterReplicatorService) {
+  constructor(config, logger, peerConnectorFactory, eventReplicator) {
     super();
     this.#config = config;
     this.#log = logger;
     this.#peerConnectorFactory = peerConnectorFactory;
-    this.#clusterReplicatorService = clusterReplicatorService;
+    this.#eventReplicator = eventReplicator;
   }
 
   static create(config, logger, peerConnectorFactory, clusterReplicatorService) {
@@ -21,9 +21,14 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   }
 
   async connectPeer(peerInfo) {
-    const connectorPeer = this.#peerConnectorFactory.createPeerConnector(this.#log, peerInfo);
-    this.#peerConnectors.push(connectorPeer);
-    await connectorPeer.connect(this.#clusterCredentials);
+    const peerConnector = this.#peerConnectorFactory.createPeerConnector(
+      this.#log,
+      peerInfo,
+      this.#config.replicationPaths
+    );
+    this.#peerConnectors.push(peerConnector);
+    await peerConnector.connect(this.#clusterCredentials);
+    await this.#eventReplicator.attachPeerConnector(peerConnector);
   }
 
   async disconnect() {
@@ -34,6 +39,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
 
   async #disconnectPeerConnector(peerConnector) {
     try {
+      await this.#eventReplicator.detachPeerConnector(peerConnector);
       await peerConnector.disconnect();
     } catch (e) {
       // TODO: should we fatal here?
@@ -75,8 +81,13 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     }
   }
 
-  async parseMemberScanResult(memberScanResult) {
-    //TODO: check for new and missing members, add and prune accordingly
+  async processMemberScanResult(memberScanResult) {
+    if (memberScanResult.newMembers.length > 0) {
+      await this.addPeers(this.#clusterCredentials, memberScanResult.newMembers);
+    }
+    if (memberScanResult.missingSinceLastMembers.length > 0) {
+      await this.removePeers(memberScanResult.missingSinceLastMembers);
+    }
   }
 
   // events that spin the state machine

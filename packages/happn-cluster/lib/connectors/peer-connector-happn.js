@@ -20,4 +20,12 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
       await this.#client.disconnect();
     }
   }
+
+  async subscribeInternal(path, handler) {
+    return await this.#client.on(path, handler);
+  }
+
+  async unsubscribeInternal(path) {
+    return await this.#client.offPath(path);
+  }
 };

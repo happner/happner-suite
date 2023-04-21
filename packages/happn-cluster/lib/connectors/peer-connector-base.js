@@ -1,4 +1,5 @@
-const PeerConnectorStatuses = require('../constants/peer-connector-statuses');
+const Constants = require('../constants/all-constants');
+const PeerConnectorStatuses = Constants.PEER_CONNECTOR_STATUSES;
 const commons = require('happn-commons');
 module.exports = class PeerConnectorBase extends require('events').EventEmitter {
   #status;
@@ -27,12 +28,23 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   get queue() {
     return this.#queue;
   }
+
   async connectInternal() {
     throw new Error(`connectInternal not implemented`);
   }
+
   async disconnectInternal() {
     throw new Error(`disconnectInternal not implemented`);
   }
+
+  async subscribeInternal() {
+    throw new Error(`subscribeInternal not implemented`);
+  }
+
+  async unsubscribeInternal() {
+    throw new Error(`unsubscribeInternal not implemented`);
+  }
+
   async connect(clusterCredentials) {
     await this.queue.lock(async () => {
       this.#status = PeerConnectorStatuses.CONNECTING;
@@ -41,6 +53,7 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
       this.#log.info(`connected to peer: ${this.#peerInfo.memberName}`);
     });
   }
+
   async disconnect() {
     await this.queue.lock(async () => {
       this.#status = PeerConnectorStatuses.DISCONNECTING;
@@ -48,5 +61,17 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
       this.#status = PeerConnectorStatuses.DISCONNECTED;
       this.#log.info(`disconnected from peer: ${this.#peerInfo.memberName}`);
     });
+  }
+
+  async subscribe(paths, handler) {
+    for (let path of paths) {
+      await this.subscribeInternal(path, handler);
+    }
+  }
+
+  async unsubscribe(paths) {
+    for (let path of paths) {
+      await this.unsubscribeInternal(path);
+    }
   }
 };

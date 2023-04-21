@@ -254,15 +254,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           [MemberStatuses.STABLE]
         );
         this.#clusterHealthService.reportHealth(memberScanResult);
-        if (memberScanResult.newMembers.length > 0) {
-          await this.#clusterPeerService.addPeers(
-            this.#clusterCredentials,
-            memberScanResult.newMembers
-          );
-        }
-        if (memberScanResult.missingSinceLastMembers.length > 0) {
-          await this.#clusterPeerService.removePeers(memberScanResult.missingSinceLastMembers);
-        }
+        await this.#clusterPeerService.processMemberScanResult(memberScanResult);
         this.#memberScanningErrors = 0; // reset our pulse errors
       } catch (e) {
         this.#log.error(`failed member scan: ${e.message}`);

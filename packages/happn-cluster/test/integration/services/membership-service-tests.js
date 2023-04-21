@@ -1,9 +1,8 @@
-const ClusterHealthService = require('../../../lib/services/cluster-health-service');
-const ClusterPeerService = require('../../../lib/services/cluster-peer-service');
-const ClusterSecurityDirectoryReplicationService = require('../../../lib/services/cluster-security-directory-replicator-service');
-
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  const ClusterHealthService = require('../../../lib/services/cluster-health-service');
+  const ClusterPeerService = require('../../../lib/services/cluster-peer-service');
+  const ClusterSecurityDirectoryReplicationService = require('../../../lib/replicators/security-directory-replicator');
   const MEMBER_STATUSES = require('../../../lib/constants/member-statuses');
   const deploymentId = test.newid();
   const PeerConnectorFactory = require('../../../lib/factories/peer-connector-factory');
@@ -23,6 +22,7 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       }
     },
   });
+
   it('is able to create and configure and stabilise members', function (done) {
     const happnService = mockHappnService();
     const proxyService = mockProxyService();

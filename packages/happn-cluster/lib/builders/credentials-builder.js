@@ -9,7 +9,7 @@ module.exports = class CredentialsBuilder extends BaseBuilder {
     return new CredentialsBuilder();
   }
   build() {
-    return super.build(require('../pojos/credentials-pojo').create());
+    return super.build(require('../objects/credentials-object').create());
   }
   withUsername(username) {
     return this.set('username', username, CredentialsBuilder.Types.STRING);
