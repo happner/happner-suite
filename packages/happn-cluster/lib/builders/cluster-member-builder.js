@@ -1,10 +1,10 @@
 const BaseBuilder = require('happn-commons').BaseBuilder;
-module.exports = class PeerInfoBuilder extends BaseBuilder {
+module.exports = class ClusterMemberBuilder extends BaseBuilder {
   constructor() {
     super();
   }
   static create() {
-    return new PeerInfoBuilder();
+    return new ClusterMemberBuilder();
   }
   build() {
     return super.build(require('../objects/cluster-member-object').create());

@@ -74,7 +74,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
   }
 
   #defaults(config) {
-    const cloned = commons._.cloneDeep(config?.services?.cluster?.config || {});
+    const cloned = commons._.cloneDeep(config?.services?.membership?.config || {});
     if (!cloned.replicationPaths || cloned.replicationPaths.length === 0) {
       cloned.replicationPaths = ['**'];
     }

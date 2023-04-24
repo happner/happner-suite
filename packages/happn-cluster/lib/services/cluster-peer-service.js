@@ -89,8 +89,4 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       await this.removePeers(memberScanResult.missingSinceLastMembers);
     }
   }
-
-  // events that spin the state machine
-  onPeerConnected(peerInfo) {}
-  onPeerDisconnected(peerInfo) {}
 };

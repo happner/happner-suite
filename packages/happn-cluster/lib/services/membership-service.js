@@ -135,8 +135,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
 
   async start() {
     this.#log.info(`starting`);
-    this.#happnService.on('peer-connected', this.#peerConnected.bind(this));
-    this.#happnService.on('peer-disconnected', this.#peerDisconnected.bind(this));
     await this.#happnService.start(this, this.#proxyService);
     await this.#statusChanged(MemberStatuses.DISCOVERING);
     this.#startBeating();
@@ -274,13 +272,5 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#status = newStatus;
     await this.#pulse();
     this.emit('status-changed', newStatus);
-  }
-  // eslint-disable-next-line no-unused-vars
-  #peerConnected(origin) {
-    //TODO
-  }
-  // eslint-disable-next-line no-unused-vars
-  #peerDisconnected(origin) {
-    //TODO
   }
 };

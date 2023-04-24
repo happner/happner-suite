@@ -1550,14 +1550,10 @@
     }
   };
 
-  HappnClient.prototype.__handleServerSideDisconnect = function (message) {
-    this.emit('session-ended', message.data);
-  };
-
   HappnClient.prototype.__handleSystemMessage = function (message) {
     if (message.eventKey === 'server-side-disconnect') {
       this.status = STATUS.DISCONNECTED;
-      this.__handleServerSideDisconnect(message);
+      this.emit('session-ended', message.data);
     }
     if (message.eventKey === 'security-data-changed') this.__updateSecurityDirectory(message);
 

@@ -1,4 +1,5 @@
 const Happn = require('happn-3');
+const Constants = require('../constants/all-constants');
 module.exports = class PeerConnectorHappn extends require('./peer-connector-base') {
   #client;
   constructor(logger, peerInfo) {
@@ -14,6 +15,15 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
       privateKey: clusterCredentials.privateKey,
       info: clusterCredentials.info,
     });
+    this.#client.onEvent(
+      Constants.EVENT_KEYS.HAPPN_CLIENT_RECONNECT_SCHEDULED,
+      this.onReconnectScheduled
+    );
+    this.#client.onEvent(Constants.EVENT_KEYS.HAPPN_CLIENT_RECONNECTED, this.onReconnected);
+    this.#client.onEvent(
+      Constants.EVENT_KEYS.HAPPN_CLIENT_SESSION_ENDED,
+      this.onServerSideDisconnect
+    );
   }
   async disconnectInternal() {
     if (this.#client) {

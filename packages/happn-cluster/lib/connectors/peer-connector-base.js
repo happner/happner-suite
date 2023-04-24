@@ -64,14 +64,42 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   }
 
   async subscribe(paths, handler) {
-    for (let path of paths) {
-      await this.subscribeInternal(path, handler);
-    }
+    await this.queue.lock(async () => {
+      for (let path of paths) {
+        await this.subscribeInternal(path, handler);
+      }
+    });
   }
 
   async unsubscribe(paths) {
-    for (let path of paths) {
-      await this.unsubscribeInternal(path);
-    }
+    await this.queue.lock(async () => {
+      for (let path of paths) {
+        await this.unsubscribeInternal(path);
+      }
+    });
+  }
+
+  async onReconnectScheduled() {
+    await this.queue.lock(async () => {
+      this.#log.warn(`peer connector reconnect scheduled: ${this.#peerInfo.memberName}`);
+    });
+  }
+
+  async onReconnected() {
+    await this.queue.lock(async () => {
+      this.#log.info(`peer connector reconnected: ${this.#peerInfo.memberName}`);
+    });
+  }
+
+  async onServerSideDisconnect() {
+    await this.queue.lock(async () => {
+      this.#log.info(`peer connector server side disconnect: ${this.#peerInfo.memberName}`);
+    });
+  }
+
+  async onPulseMissed() {
+    await this.queue.lock(async () => {
+      this.#log.info(`peer connector pulse missed: ${this.#peerInfo.memberName}`);
+    });
   }
 };

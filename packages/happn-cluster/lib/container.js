@@ -58,7 +58,7 @@ module.exports = class Container {
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-health-service`)
     );
 
-    // replication
+    // replication - security directory changes
     const securityDirectoryReplicator =
       require('./replicators/security-directory-replicator').create(
         this.#config,
@@ -66,7 +66,7 @@ module.exports = class Container {
         happnService,
         processManagerService
       );
-
+    // replication - event propagation
     const eventReplicator = require('./replicators/event-replicator').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-event-replicator`),
