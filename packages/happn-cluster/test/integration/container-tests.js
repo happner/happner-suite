@@ -148,16 +148,28 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
         },
         membership: {
           config: {
+            // dynamic (uuid) for the current deployment, so we dont have old membership data being acted on
             deploymentId,
+            // a virtual cluster grouping, inside this deployment
             clusterName: 'clusterName',
+            // classification for the set of services this member provides, members with the same service name should be identical
             serviceName,
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
             memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
             discoverTimeoutMs: 5e3,
             healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
             pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // only stabilise if members with correct services and counts are present
             dependencies,
+            // intra-cluster credentials
             clusterUsername: '_CLUSTER',
             clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
           },
         },
       },

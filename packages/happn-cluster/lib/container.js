@@ -47,6 +47,7 @@ module.exports = class Container {
     const membershipDbProvider = membershipDbFactory.createMembershipDb(happnService);
     const membershipRegistryRepository =
       require('./repositories/membership-registry-repository').create(membershipDbProvider);
+
     const registryService = require('./services/registry-service').create(
       this.#config.services.membership.config,
       membershipRegistryRepository,
