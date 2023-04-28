@@ -1,3 +1,4 @@
+const happn = require('../../../../lib');
 require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (test) => {
   const path = require('path');
   it('Tests that with blank config, we get a standard (happn-3) auth provider', async () => {
@@ -55,6 +56,56 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
       eMessage = e.message;
     }
     test.expect(eMessage).to.include.string('Cannot find module');
+    await test.destroyAllInstances();
+  });
+
+  it('Tests we can change the password of the session', async () => {
+    let instance = await test.createInstance({ secure: true });
+    let testUser = {
+      username: 'passwordTest',
+      password: 'abc',
+      custom_data: {
+        something: 'usefull',
+      },
+    };
+    await instance.services.security.users.upsertUser(testUser);
+
+    let client = await happn.client.create({
+      port: 55000,
+      ...testUser,
+    });
+    await client.changePassword({ oldPassword: 'abc', newPassword: 'newPassword' });
+    await client.disconnect();
+    let testError;
+    try {
+      await happn.client.create({
+        port: 55000,
+        ...testUser,
+      });
+    } catch (e) {
+      testError = e;
+    }
+    test
+      .expect(testError)
+      .to.eql({ name: 'AccessDenied', code: 401, message: 'Invalid credentials' });
+    client = await happn.client.create({
+      port: 55000,
+      username: 'passwordTest',
+      password: 'newPassword',
+    });
+    try {
+      await client.resetPassword();
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError).to.eql({
+      name: 'SystemError',
+      message: 'providerResetPassword not implemented.',
+      code: 500,
+      severity: 0,
+    });
+
+    await client.disconnect();
     await test.destroyAllInstances();
   });
 });

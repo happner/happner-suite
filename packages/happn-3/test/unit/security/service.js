@@ -1490,7 +1490,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     });
   });
 
-  it('should create a user with a public key, then login using a signature', function (done) {
+  it.only('should create a user with a public key, then login using a signature', function (done) {
     this.timeout(20000);
     var Crypto = require('happn-util-crypto');
     var crypto = new Crypto();

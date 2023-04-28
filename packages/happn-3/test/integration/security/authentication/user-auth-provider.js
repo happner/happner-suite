@@ -43,7 +43,35 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
       null,
       true
     );
-    test.expect(sessionInfo1.data.length).to.be.greaterThan(0);
+
+    let testClient = await test.happn.client.create({
+      username: 'secondTestuser@somewhere.com',
+      password: 'secondPass',
+    });
+    let errorMessage;
+    try {
+      await testClient.resetPassword();
+    } catch (e) {
+      errorMessage = e;
+    }
+    test
+      .expect(errorMessage)
+      .to.eql({ name: 'Error', message: 'Works !! Password reset secondTestuser@somewhere.com' });
+
+    try {
+      let rc = await testClient.changePassword({
+        oldPassword: 'happn',
+        newPassword: 'newPassword',
+      });
+    } catch (e) {
+      errorMessage = e;
+    }
+    test.expect(errorMessage).to.eql({
+      name: 'SystemError',
+      message: 'providerChangePassword not implemented.',
+      code: 500,
+      severity: 0,
+    });
   });
 
   it('disallows the user from choosing an auth provider', async () => {

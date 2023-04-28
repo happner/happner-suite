@@ -155,17 +155,6 @@ function __processSinglePath(transformed, callback) {
       });
     }
 
-    if (authorized.request.action === 'remove')
-      return this.happn.services.data.processRemove(authorized, (e, publication) => {
-        if (e) return callback(e);
-        if (publication.request.options && publication.request.options.noPublish)
-          return callback(null, publication);
-        this.happn.services.publisher.processPublish(publication, (e, result) => {
-          if (e) return callback(e);
-          callback(null, result);
-        });
-      });
-
     if (authorized.request.action === 'get') {
       return this.happn.services.data.processGet(authorized, (e, result) => {
         if (e) return callback(e);
@@ -223,13 +212,40 @@ function __processSinglePath(transformed, callback) {
       });
     }
 
+    if (authorized.request.action === 'remove')
+      return this.happn.services.data.processRemove(authorized, (e, publication) => {
+        if (e) return callback(e);
+        if (publication.request.options && publication.request.options.noPublish)
+          return callback(null, publication);
+        this.happn.services.publisher.processPublish(publication, (e, result) => {
+          if (e) return callback(e);
+          callback(null, result);
+        });
+      });
+
     if (authorized.request.action === 'ack')
       return this.happn.services.publisher.processAcknowledge(authorized, (e, result) => {
         if (e) return callback(e);
         callback(null, result);
       });
 
-    if (authorized.request.action === 'revoke-token')
+    if (authorized.request.action === 'reset-password') {
+      if (!this.config.secure) return callback('Cannot reset-password Not Secure');
+      return this.happn.services.security.resetPassword(authorized, (e, result) => {
+        if (e) return callback(e);
+        callback(null, result);
+      });
+    }
+
+    if (authorized.request.action === 'change-password') {
+      if (!this.config.secure) return callback('Cannot change-password Not Secure');
+      return this.happn.services.security.changePassword(authorized, (e, result) => {
+        if (e) return callback(e);
+        callback(null, result);
+      });
+    }
+    if (authorized.request.action === 'revoke-token') {
+      if (!this.config.secure) return callback('Cannot revoke-token Not Secure');
       return this.happn.services.session.processRevokeSessionToken(
         authorized,
         'CLIENT',
@@ -237,6 +253,7 @@ function __processSinglePath(transformed, callback) {
           callback(e, result);
         }
       );
+    }
 
     if (authorized.request.action === 'disconnect-child-sessions')
       return this.happn.services.session.disconnectSessions(

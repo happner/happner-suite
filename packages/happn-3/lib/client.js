@@ -1832,6 +1832,14 @@
     return this.__performSystemRequest('revoke-token', null, null, callback);
   };
 
+  HappnClient.prototype.changePassword = utils.promisify(function (passwordDetails, callback) {
+    return this.__performSystemRequest('change-password', passwordDetails, null, callback);
+  });
+
+  HappnClient.prototype.resetPassword = utils.promisify(function (callback) {
+    return this.__performSystemRequest('reset-password', null, null, callback);
+  });
+
   HappnClient.prototype.__destroySocket = function (socket, callback) {
     //possible socket end needs to do its thing, we destroy in the next tick
     setTimeout(() => {
