@@ -43,6 +43,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
       null,
       true
     );
+    test.expect(sessionInfo1.data.length).to.be.greaterThan(0);
 
     let testClient = await test.happn.client.create({
       username: 'secondTestuser@somewhere.com',
