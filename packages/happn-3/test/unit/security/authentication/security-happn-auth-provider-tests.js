@@ -372,9 +372,9 @@ describe(test.testName(), () => {
       test.expect(testThrowCatchError).to.eql('SystemError');
 
       mockSecurityFacade.security.matchPassword.returns(true);
-      let upsertUserDetails;
+      let userDeets;
       mockSecurityFacade.users.upsertUser = async (user) => {
-        upsertUserDetails = user;
+        userDeets = user;
         throw new Error('Things can go wrong');
       };
       try {
@@ -386,13 +386,11 @@ describe(test.testName(), () => {
         testThrowCatchError = e;
       }
       test.expect(testThrowCatchError.message).to.eql('Things can go wrong');
-      test
-        .expect(upsertUserDetails)
-        .to.eql({
-          username: 'mockUsername',
-          password: 'newMockPassword',
-          publicKey: 'mockPublicKey',
-        });
+      test.expect(userDeets).to.eql({
+        username: 'mockUsername',
+        password: 'newMockPassword',
+        publicKey: 'mockPublicKey',
+      });
     });
   });
 });
