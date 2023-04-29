@@ -538,7 +538,7 @@
     };
   };
 
-  HappnClient.prototype.getScript = function (url, callback) {
+  HappnClient.prototype.getScript = utils.maybePromisify(function (url, callback) {
     if (!browser) return callback(new Error('only for browser'));
 
     var script = document.createElement('script');
@@ -560,9 +560,9 @@
     };
 
     head.appendChild(script);
-  };
+  });
 
-  HappnClient.prototype.getResources = function (callback) {
+  HappnClient.prototype.getResources = utils.maybePromisify(function (callback) {
     if (typeof Primus !== 'undefined') return callback();
 
     this.getScript(this.options.url + '/browser_primus.js', function (e) {
@@ -576,7 +576,7 @@
         callback();
       }
     });
-  };
+  });
 
   HappnClient.prototype.stop = utils.maybePromisify(function (callback) {
     this.__connectionCleanup(callback);
@@ -940,7 +940,10 @@
   };
 
   HappnClient.prototype.__performSystemRequest = function (action, data, options, callback) {
-    var message = {
+    if (typeof callback !== 'function') {
+      throw new Error('Invalid system call');
+    }
+    let message = {
       action: action,
       eventId: this.getEventId(),
     };
@@ -1828,15 +1831,15 @@
     });
   };
 
-  HappnClient.prototype.revokeToken = function (callback) {
+  HappnClient.prototype.revokeToken = utils.maybePromisify(function (callback) {
     return this.__performSystemRequest('revoke-token', null, null, callback);
-  };
+  });
 
-  HappnClient.prototype.changePassword = utils.promisify(function (passwordDetails, callback) {
+  HappnClient.prototype.changePassword = utils.maybePromisify(function (passwordDetails, callback) {
     return this.__performSystemRequest('change-password', passwordDetails, null, callback);
   });
 
-  HappnClient.prototype.resetPassword = utils.promisify(function (callback) {
+  HappnClient.prototype.resetPassword = utils.maybePromisify(function (callback) {
     return this.__performSystemRequest('reset-password', null, null, callback);
   });
 

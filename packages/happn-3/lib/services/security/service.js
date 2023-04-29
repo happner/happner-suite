@@ -50,8 +50,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.login = util.maybePromisify(this.login);
     this.matchPassword = util.maybePromisify(this.matchPassword);
     this.verifyAuthenticationDigest = util.maybePromisify(this.verifyAuthenticationDigest);
-    this.resetPassword = util.maybePromisify(this.__resetPassword);
-    this.changePassword = util.maybePromisify(this.__changePassword);
+    this.resetPassword = util.maybePromisify(this.#resetPassword);
+    this.changePassword = util.maybePromisify(this.#changePassword);
     this.revokeToken = util.maybePromisify(this.revokeToken);
   }
 
@@ -746,11 +746,11 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return ttl || 0; // Infinity turns to null over the wire, 0 can be 0
   }
 
-  __resetPassword(authorized, callback) {
+  #resetPassword(authorized, callback) {
     let session = authorized.session;
     this.#matchAuthProvider(session.user.username, (e, authProvider) => {
       if (e) return callback(e);
-      let result, error;
+      let error;
       authProvider.instance
         .providerResetPassword(authorized.session.user)
         .catch((e) => {
@@ -762,7 +762,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     });
   }
 
-  __changePassword(authorized, callback) {
+  #changePassword(authorized, callback) {
     let session = authorized.session;
     let passwordDetails = authorized.request.data;
     this.#matchAuthProvider(session.user.username, (e, authProvider) => {

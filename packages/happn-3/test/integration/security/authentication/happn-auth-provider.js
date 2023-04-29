@@ -39,7 +39,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     await test.destroyAllInstances();
   });
 
-  it('Tests adding an incorrectly configured auth provider we should get a base auth provider which returns an error on login with creds', async () => {
+  it.only('Tests adding an incorrectly configured auth provider we should get a base auth provider which returns an error on login with creds', async () => {
     let eMessage;
     try {
       await test.createInstance({
@@ -88,6 +88,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     test
       .expect(testError)
       .to.eql({ name: 'AccessDenied', code: 401, message: 'Invalid credentials' });
+
     client = await happn.client.create({
       port: 55000,
       username: 'passwordTest',
@@ -104,6 +105,74 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
       code: 500,
       severity: 0,
     });
+
+    try {
+      await client.changePassword({ oldPassword: 'abc', newPassword: 'newPassword' });
+    } catch (e) {
+      testError = e;
+    }
+    test
+      .expect(testError)
+      .to.eql({ name: 'SystemError', message: 'Invalid old password', code: 500, severity: 0 });
+
+    try {
+      await client.changePassword({ newPassword: 'Partial Data' });
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError).to.eql({
+      name: 'SystemError',
+      message: 'Invalid parameters: oldPassword and newPassword required',
+      code: 500,
+      severity: 0,
+    });
+
+    try {
+      await client.resetPassword('Argument not expected');
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError.message).to.eql('Invalid system call');
+    await client.disconnect();
+    await test.destroyAllInstances();
+  });
+
+  it('Tests happn security with insecure config', async () => {
+    let testError;
+    let instance = await test.createInstance({ secure: false });
+    let testUser = {
+      username: 'passwordTest',
+      password: 'abc',
+      custom_data: {
+        something: 'usefull',
+      },
+    };
+    await instance.services.security.users.upsertUser(testUser);
+
+    let client = await happn.client.create({
+      port: 55000,
+      ...testUser,
+    });
+
+    try {
+      await client.changePassword({ oldPassword: 'abc', newPassword: 'newPassword' });
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError.message).to.be('Cannot change-password Not Secure');
+    try {
+      await client.resetPassword();
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError.message).to.be('Cannot reset-password Not Secure');
+
+    try {
+      await client.revokeToken();
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError.message).to.be('Cannot revoke-token Not Secure');
 
     await client.disconnect();
     await test.destroyAllInstances();

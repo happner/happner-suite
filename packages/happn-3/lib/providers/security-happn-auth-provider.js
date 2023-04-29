@@ -58,16 +58,16 @@ module.exports = class HappnAuthProvider extends SecurityBaseAuthProvider {
   async providerChangePassword(credentials, passwordDetails) {
     const user = await this.securityFacade.users.getUser(credentials.username);
     if (user == null) {
-      return this.accessDenied(`bad username: ${credentials.username}`);
+      return this.systemError(`bad username: ${credentials.username}`);
     }
-    if (passwordDetails?.oldPassword && passwordDetails?.newPassword) {
-      const hash = await this.securityFacade.users.getPasswordHash(credentials.username);
-      if (!(await this.securityFacade.security.matchPassword(passwordDetails.oldPassword, hash))) {
-        return this.accessDenied(`Invalid old password`);
-      }
-      user.password = passwordDetails.newPassword;
-      return this.securityFacade.users.upsertUser(user);
+    if (!passwordDetails?.oldPassword || !passwordDetails?.newPassword) {
+      return this.systemError('Invalid parameters: oldPassword and newPassword required');
     }
-    return this.loginFailed(credentials.username, 'Invalid parameters.');
+    const hash = await this.securityFacade.users.getPasswordHash(credentials.username);
+    if (!(await this.securityFacade.security.matchPassword(passwordDetails.oldPassword, hash))) {
+      return this.systemError(`Invalid old password`);
+    }
+    user.password = passwordDetails.newPassword;
+    return this.securityFacade.users.upsertUser(user);
   }
 };

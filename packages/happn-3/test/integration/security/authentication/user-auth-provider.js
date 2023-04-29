@@ -32,7 +32,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
     await connectAndVerifyAuthProvider('_ADMIN', 'happn', 'happn');
   });
 
-  it('tests doing a login directed at the test auth provider, we also login with the tokin and ensure that works', async () => {
+  it('tests doing a login directed at the test auth provider, we also login with the token and ensure that works', async () => {
     const sessionInfo = await test.doRequest(
       '/auth/login?username=secondTestuser@somewhere.com&password=secondPass',
       null,
@@ -60,7 +60,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
       .to.eql({ name: 'Error', message: 'Works !! Password reset secondTestuser@somewhere.com' });
 
     try {
-      let rc = await testClient.changePassword({
+      await testClient.changePassword({
         oldPassword: 'happn',
         newPassword: 'newPassword',
       });
@@ -73,6 +73,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
       code: 500,
       severity: 0,
     });
+    await testClient.disconnect();
   });
 
   it('disallows the user from choosing an auth provider', async () => {
