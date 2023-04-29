@@ -214,8 +214,7 @@ function __processSinglePath(transformed, callback) {
     if (authorized.request.action === 'remove')
       return this.happn.services.data.processRemove(authorized, (e, publication) => {
         if (e) return callback(e);
-        if (publication.request.options && publication.request.options.noPublish)
-          return callback(null, publication);
+        if (publication.request?.options?.noPublish) return callback(null, publication);
         this.happn.services.publisher.processPublish(publication, (e, result) => {
           if (e) return callback(e);
           callback(null, result);
