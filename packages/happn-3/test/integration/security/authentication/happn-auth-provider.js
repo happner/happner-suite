@@ -39,7 +39,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     await test.destroyAllInstances();
   });
 
-  it.only('Tests adding an incorrectly configured auth provider we should get a base auth provider which returns an error on login with creds', async () => {
+  it('Tests adding an incorrectly configured auth provider we should get a base auth provider which returns an error on login with creds', async () => {
     let eMessage;
     try {
       await test.createInstance({
