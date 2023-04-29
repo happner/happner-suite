@@ -940,6 +940,9 @@
   };
 
   HappnClient.prototype.__performSystemRequest = function (action, data, options, callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Invalid system call');
+    }
     let message = {
       action: action,
       eventId: this.getEventId(),
