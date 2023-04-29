@@ -386,13 +386,11 @@ describe(test.testName(), () => {
         testThrowCatchError = e;
       }
       test.expect(testThrowCatchError.message).to.eql('Things can go wrong');
-      test
-        .expect(upsertUserDetails)
-        .to.eql({
-          username: 'mockUsername',
-          password: 'newMockPassword',
-          publicKey: 'mockPublicKey',
-        });
+      test.expect(upsertUserDetails).to.eql({
+        username: 'mockUsername',
+        password: 'newMockPassword',
+        publicKey: 'mockPublicKey',
+      });
     });
   });
 });
