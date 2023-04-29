@@ -18,6 +18,7 @@ describe(test.testName(), () => {
       error: {
         AccessDeniedError: test.sinon.stub().returns('AccessDeniedError'),
         InvalidCredentialsError: test.sinon.stub().returns('InvalidCredentialsError'),
+        SystemError: test.sinon.stub().returns('SystemError'),
       },
       users: {
         getUser: test.sinon.stub(),
@@ -327,6 +328,60 @@ describe(test.testName(), () => {
         undefined,
         undefined
       );
+    });
+  });
+
+  context('providerChangePassword', () => {
+    it('getUser method returns null', async () => {
+      let testThrowCatchError;
+      const happnerAuthProvider = new HappnerAuthProvider(mockSecurityFacade, mockConfig);
+      const mockCredentials = {
+        username: 'mockUsername',
+        password: 'mockPassword',
+        digest: 'mockLearning',
+        publicKey: 'mockPublicKey',
+      };
+      try {
+        await happnerAuthProvider.providerChangePassword(mockCredentials);
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError).to.eql('SystemError');
+
+      mockSecurityFacade.users.getUser.returns({
+        username: 'mockUsername',
+        password: 'mockPassword',
+        publicKey: 'mockPublicKey',
+      });
+
+      try {
+        await happnerAuthProvider.providerChangePassword(mockCredentials, 'bad Options');
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError).to.eql('SystemError');
+
+      try {
+        await happnerAuthProvider.providerChangePassword(mockCredentials, {
+          oldPassword: 'wrong',
+          newPassword: 'new',
+        });
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError).to.eql('SystemError');
+
+      mockSecurityFacade.security.matchPassword.returns(true);
+      let pass;
+      mockSecurityFacade.users.upsertUser = async () => {
+        pass = true;
+        return;
+      };
+      await happnerAuthProvider.providerChangePassword(mockCredentials, {
+        oldPassword: 'wrong',
+        newPassword: 'newMockPassword',
+      });
+      test.expect(pass).to.eql(true);
     });
   });
 });
