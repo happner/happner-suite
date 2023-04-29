@@ -372,16 +372,27 @@ describe(test.testName(), () => {
       test.expect(testThrowCatchError).to.eql('SystemError');
 
       mockSecurityFacade.security.matchPassword.returns(true);
-      let pass;
-      mockSecurityFacade.users.upsertUser = async () => {
-        pass = true;
-        return;
+      let upsertUserDetails;
+      mockSecurityFacade.users.upsertUser = async (user) => {
+        upsertUserDetails = user;
+        throw new Error('Things can go wrong');
       };
-      await happnerAuthProvider.providerChangePassword(mockCredentials, {
-        oldPassword: 'wrong',
-        newPassword: 'newMockPassword',
-      });
-      test.expect(pass).to.eql(true);
+      try {
+        await happnerAuthProvider.providerChangePassword(mockCredentials, {
+          oldPassword: 'wrong',
+          newPassword: 'newMockPassword',
+        });
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError.message).to.eql('Things can go wrong');
+      test
+        .expect(upsertUserDetails)
+        .to.eql({
+          username: 'mockUsername',
+          password: 'newMockPassword',
+          publicKey: 'mockPublicKey',
+        });
     });
   });
 });
