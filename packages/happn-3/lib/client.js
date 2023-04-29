@@ -255,7 +255,7 @@
     //ensure session scope is not on the prototype
     this.session = null;
     if (browser) {
-      return this.getResources((e) => {
+      return this.__getResources((e) => {
         if (e) return callback(e);
         this.connect((e) => {
           if (e) return callback(e);
@@ -538,7 +538,7 @@
     };
   };
 
-  HappnClient.prototype.getScript = utils.maybePromisify(function (url, callback) {
+  HappnClient.prototype.__getScript = function (url, callback) {
     if (!browser) return callback(new Error('only for browser'));
 
     var script = document.createElement('script');
@@ -560,12 +560,12 @@
     };
 
     head.appendChild(script);
-  });
+  };
 
-  HappnClient.prototype.getResources = utils.maybePromisify(function (callback) {
+  HappnClient.prototype.__getResources = function (callback) {
     if (typeof Primus !== 'undefined') return callback();
 
-    this.getScript(this.options.url + '/browser_primus.js', function (e) {
+    this.__getScript(this.options.url + '/browser_primus.js', function (e) {
       if (e) return callback(e);
 
       if (typeof Primus === 'undefined') {
@@ -576,7 +576,7 @@
         callback();
       }
     });
-  });
+  };
 
   HappnClient.prototype.stop = utils.maybePromisify(function (callback) {
     this.__connectionCleanup(callback);
@@ -586,7 +586,7 @@
     if (crypto) return callback();
 
     if (browser) {
-      this.getScript(this.options.url + '/browser_crypto.js', function (e) {
+      this.__getScript(this.options.url + '/browser_crypto.js', function (e) {
         if (e) return callback(e);
         crypto = new window.Crypto();
         callback();
@@ -940,9 +940,6 @@
   };
 
   HappnClient.prototype.__performSystemRequest = function (action, data, options, callback) {
-    if (typeof callback !== 'function') {
-      throw new Error('Invalid system call');
-    }
     let message = {
       action: action,
       eventId: this.getEventId(),
