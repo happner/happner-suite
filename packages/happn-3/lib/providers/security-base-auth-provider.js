@@ -181,6 +181,14 @@ module.exports = class SecurityBaseAuthProvider {
     return this.systemError('providerCredsLogin not implemented.');
   }
 
+  async providerResetPassword() {
+    return this.systemError('providerResetPassword not implemented.');
+  }
+
+  async providerChangePassword() {
+    return this.systemError('providerChangePassword not implemented.');
+  }
+
   loginFailed(username, specificMessage, e, overrideLockout) {
     let message = 'Invalid credentials';
     if (specificMessage) message = specificMessage;

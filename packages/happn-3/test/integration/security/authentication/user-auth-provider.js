@@ -32,7 +32,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
     await connectAndVerifyAuthProvider('_ADMIN', 'happn', 'happn');
   });
 
-  it('tests doing a login directed at the test auth provider, we also login with the tokin and ensure that works', async () => {
+  it('tests doing a login directed at the test auth provider, we also login with the token and ensure that works', async () => {
     const sessionInfo = await test.doRequest(
       '/auth/login?username=secondTestuser@somewhere.com&password=secondPass',
       null,
@@ -44,6 +44,36 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
       true
     );
     test.expect(sessionInfo1.data.length).to.be.greaterThan(0);
+
+    let testClient = await test.happn.client.create({
+      username: 'secondTestuser@somewhere.com',
+      password: 'secondPass',
+    });
+    let errorMessage;
+    try {
+      await testClient.resetPassword();
+    } catch (e) {
+      errorMessage = e;
+    }
+    test
+      .expect(errorMessage)
+      .to.eql({ name: 'Error', message: 'Works !! Password reset secondTestuser@somewhere.com' });
+
+    try {
+      await testClient.changePassword({
+        oldPassword: 'happn',
+        newPassword: 'newPassword',
+      });
+    } catch (e) {
+      errorMessage = e;
+    }
+    test.expect(errorMessage).to.eql({
+      name: 'SystemError',
+      message: 'providerChangePassword not implemented.',
+      code: 500,
+      severity: 0,
+    });
+    await testClient.disconnect();
   });
 
   it('disallows the user from choosing an auth provider', async () => {
