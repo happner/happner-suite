@@ -1065,4 +1065,4 @@
 13.11.0 2023-04-29
 -----------------
   - feat: changePassword in client
-  - feat: resetPassword supported by auth provider:
+  - feat: resetPassword supported by auth provider
