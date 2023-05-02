@@ -457,3 +457,8 @@
 -----------------
 - fix: rest payload stringify
 
+12.5.0 2023-04-29
+-----------------
+  - feat: changePassword in client
+  - feat: resetPassword supported by auth provider
+

@@ -113,3 +113,8 @@
 -----------------
   - feat: token revocation and logout
   - fix: token revocation cluster fix
+
+1.1.9 2023-04-29
+-----------------
+  - feat: happn-3 changePassword in client
+  - feat: happn-3 resetPassword supported by auth provider

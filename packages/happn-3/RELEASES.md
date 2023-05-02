@@ -1061,3 +1061,8 @@
 -----------------
   - feat: token revocation and logout
   - fix: token revocation cluster fix
+
+13.11.0 2023-04-29
+-----------------
+  - feat: changePassword in client
+  - feat: resetPassword supported by auth provider

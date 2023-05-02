@@ -1041,4 +1041,9 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 12.8.1 2023-04-13
 -----------------
 - fix: rest payload stringify
+
+12.9.0 2023-04-29
+-----------------
+  - feat: happn-3 changePassword in client
+  - feat: happn-3 resetPassword supported by auth provider
   

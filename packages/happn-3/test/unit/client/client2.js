@@ -323,7 +323,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
 
   it('tests the getScript function returns an error when not called from a browser', function (done) {
     happnClient = mockHappnClient();
-    happnClient.getScript('http://www.google.com', function (err) {
+    happnClient.__getScript('http://www.google.com', function (err) {
       test.expect(err.toString()).to.eql('Error: only for browser');
       done();
     });
@@ -332,7 +332,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test)
   it('tests the getResources function returns a callback.', function (done) {
     happnClient = mockHappnClient();
 
-    happnClient.getResources(function () {
+    happnClient.__getResources(function () {
       done();
     });
   });

@@ -839,4 +839,35 @@ describe(test.testName(), function () {
         );
     });
   });
+  context('providerFunctions', () => {
+    it('Test provider functions not implemented', async () => {
+      let testThrowCatchError;
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+      try {
+        await instance.providerTokenLogin();
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError.message).to.eql('providerTokenLogin not implemented.');
+      try {
+        await instance.providerCredsLogin();
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError.message).to.eql('providerCredsLogin not implemented.');
+      try {
+        await instance.providerResetPassword();
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError.message).to.eql('providerResetPassword not implemented.');
+      try {
+        await instance.providerChangePassword();
+      } catch (e) {
+        testThrowCatchError = e;
+      }
+      test.expect(testThrowCatchError.message).to.eql('providerChangePassword not implemented.');
+    });
+  });
 });

@@ -255,7 +255,7 @@
     //ensure session scope is not on the prototype
     this.session = null;
     if (browser) {
-      return this.getResources((e) => {
+      return this.__getResources((e) => {
         if (e) return callback(e);
         this.connect((e) => {
           if (e) return callback(e);
@@ -538,7 +538,7 @@
     };
   };
 
-  HappnClient.prototype.getScript = function (url, callback) {
+  HappnClient.prototype.__getScript = function (url, callback) {
     if (!browser) return callback(new Error('only for browser'));
 
     var script = document.createElement('script');
@@ -562,10 +562,10 @@
     head.appendChild(script);
   };
 
-  HappnClient.prototype.getResources = function (callback) {
+  HappnClient.prototype.__getResources = function (callback) {
     if (typeof Primus !== 'undefined') return callback();
 
-    this.getScript(this.options.url + '/browser_primus.js', function (e) {
+    this.__getScript(this.options.url + '/browser_primus.js', function (e) {
       if (e) return callback(e);
 
       if (typeof Primus === 'undefined') {
@@ -586,7 +586,7 @@
     if (crypto) return callback();
 
     if (browser) {
-      this.getScript(this.options.url + '/browser_crypto.js', function (e) {
+      this.__getScript(this.options.url + '/browser_crypto.js', function (e) {
         if (e) return callback(e);
         crypto = new window.Crypto();
         callback();
@@ -940,7 +940,10 @@
   };
 
   HappnClient.prototype.__performSystemRequest = function (action, data, options, callback) {
-    var message = {
+    if (typeof callback !== 'function') {
+      throw new Error('Invalid system call');
+    }
+    let message = {
       action: action,
       eventId: this.getEventId(),
     };
@@ -1828,9 +1831,17 @@
     });
   };
 
-  HappnClient.prototype.revokeToken = function (callback) {
+  HappnClient.prototype.revokeToken = utils.maybePromisify(function (callback) {
     return this.__performSystemRequest('revoke-token', null, null, callback);
-  };
+  });
+
+  HappnClient.prototype.changePassword = utils.maybePromisify(function (passwordDetails, callback) {
+    return this.__performSystemRequest('change-password', passwordDetails, null, callback);
+  });
+
+  HappnClient.prototype.resetPassword = utils.maybePromisify(function (callback) {
+    return this.__performSystemRequest('reset-password', null, null, callback);
+  });
 
   HappnClient.prototype.__destroySocket = function (socket, callback) {
     //possible socket end needs to do its thing, we destroy in the next tick
