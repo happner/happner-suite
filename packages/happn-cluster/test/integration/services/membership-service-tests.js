@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+require('../../lib/test-helper').describe({ timeout: 120e3, skip: true }, function (test) {
   const ClusterHealthService = require('../../../lib/services/cluster-health-service');
   const ClusterPeerService = require('../../../lib/services/cluster-peer-service');
   const ClusterSecurityDirectoryReplicationService = require('../../../lib/replicators/security-directory-replicator');

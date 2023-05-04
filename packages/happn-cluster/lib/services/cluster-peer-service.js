@@ -20,6 +20,10 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     return new ClusterPeerService(config, logger, peerConnectorFactory, clusterReplicatorService);
   }
 
+  get peerCount() {
+    return this.#peerConnectors.length;
+  }
+
   async connectPeer(peerInfo) {
     // TODO: check for connector with same name - and just reconnect it
     const peerConnector = this.#peerConnectorFactory.createPeerConnector(
