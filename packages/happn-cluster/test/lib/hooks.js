@@ -23,7 +23,10 @@ module.exports.startCluster = function (clusterOpts) {
   before('start cluster', async function () {
     const deploymentId = test.commons.uuid.v4();
 
-    const createConfig = clusterConfig ? testUtils.createMultiServiceMemberConfigs : testUtils.createMemberConfigs;
+    const createConfig = clusterConfig
+      ? testUtils.createMultiServiceMemberConfigs
+      : testUtils.createMemberConfigs;
+
     this.__configs = createConfig(
       deploymentId,
       clusterSize,
@@ -50,7 +53,7 @@ module.exports.startCluster = function (clusterOpts) {
       }
       servers.push(HappnCluster.create(clone(config)));
     }
-    this.servers = await Promise.all(servers.map(server => server.start().then(() => server)));
+    this.servers = await Promise.all(servers.map((server) => server.start().then(() => server)));
     await test.delay(2000);
     return this.servers;
   });

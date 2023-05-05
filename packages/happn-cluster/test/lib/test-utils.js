@@ -109,6 +109,14 @@ module.exports.createMemberConfigs = function (
           },
         },
       };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
     }
 
     if (proxySecure) {
@@ -186,21 +194,6 @@ module.exports.createMultiServiceMemberConfigs = function (
             ],
           },
         },
-        orchestrator: {
-          config: {
-            clusterName: 'cluster1',
-            minimumPeers: clusterSize,
-            deployment: 'myDeploy',
-            cluster: clusterConfig,
-            serviceName: clusterServiceNameArr[i - 1],
-            timing: {
-              keepAlive: 2e3,
-              memberRefresh: 3e3,
-              keepAliveThreshold: 3e3,
-              stabilisedTimeout: 7e3,
-            },
-          },
-        },
         proxy: {
           config: {
             host: '0.0.0.0',
@@ -226,7 +219,9 @@ module.exports.createMultiServiceMemberConfigs = function (
             // check membership registry every 3 seconds
             memberScanningIntervalMs: 3e3,
             // only stabilise if members with correct services and counts are present
-            dependencies: clusterConfig,
+            dependencies: Object.fromEntries(
+              Object.entries(clusterConfig).filter(([key]) => key !== clusterServiceNameArr[i - 1])
+            ),
             // intra-cluster credentials
             clusterUsername: '_CLUSTER',
             clusterPassword: 'PASSWORD',
@@ -247,6 +242,14 @@ module.exports.createMultiServiceMemberConfigs = function (
           },
         },
       };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
     }
 
     if (proxySecure) {
