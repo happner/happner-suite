@@ -72,8 +72,8 @@ module.exports = class HappnService extends require('events').EventEmitter {
     }
   }
   async start(membershipService, proxyService) {
-    this.#config.services.proxy = { instance: proxyService };
-    this.#config.services.membership = { instance: membershipService };
+    this.#config.services.proxy.instance = proxyService;
+    this.#config.services.membership.instance = membershipService;
     // we defer listening so we dont miss authentic and disconnect events
     this.#config.deferListen = true;
     this.#happn = await Happn.service.create(this.#config);
@@ -117,7 +117,9 @@ module.exports = class HappnService extends require('events').EventEmitter {
           membershipConfig.clusterPassword,
           membershipConfig.clusterPublicKey,
           {
-            '*': ['*'],
+            '*': {
+              actions: ['*'],
+            },
           }
         );
         credentialsBuilder
