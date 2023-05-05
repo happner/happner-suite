@@ -164,6 +164,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #initialDiscovery() {
+    this.#log.error('delaying discovery');
+    await commons.delay(15e2);
     const startedDiscovering = Date.now();
     while (this.#status === MemberStatuses.DISCOVERING) {
       this.#log.info(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
