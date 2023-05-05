@@ -59,7 +59,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#memberScanningErrorThreshold =
       this.#membershipServiceConfig.memberScanningErrorThreshold || 3; // allow 3 failed list errors in a row before we fail
     this.#dependencies = this.#membershipServiceConfig.dependencies || {};
-    this.#clusterCredentials = this.#getClusterCredentials();
 
     // injected dependencies
     this.#log = logger;
@@ -139,6 +138,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#log.info(`starting`);
     await this.#happnService.start(this, this.#proxyService);
     await this.#statusChanged(MemberStatuses.DISCOVERING);
+    this.#clusterCredentials = this.#getClusterCredentials();
     this.#startBeating();
     await this.#initialDiscovery();
     this.#log.info(`starting proxy`);
