@@ -25,6 +25,12 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   }
 
   async connectPeer(peerInfo) {
+    const connectedOldPeer = this.#peerConnectors.find(
+      (oldPeer) => oldPeer.peerInfo.memberName === peerInfo.memberName
+    );
+    if (connectedOldPeer !== undefined) {
+      this.#log.warn(`duplicate peer is connecting: ${peerInfo.memberName}`);
+    }
     // TODO: check for connector with same name - and just reconnect it
     const peerConnector = this.#peerConnectorFactory.createPeerConnector(
       this.#log,
