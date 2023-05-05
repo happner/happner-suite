@@ -7,6 +7,7 @@ const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class MembershipService extends require('events').EventEmitter {
   #log;
   #registryService;
+  #secure;
   #deploymentId;
   #clusterName;
   #serviceName;
@@ -43,6 +44,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
 
     // configuration settings
     this.#config = config;
+    this.#secure = this.#config.secure;
     this.#membershipServiceConfig = this.#config.services.membership.config;
 
     this.#deploymentId = this.#membershipServiceConfig.deploymentId;
@@ -122,7 +124,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         .withServiceName(this.#serviceName)
         .withMemberName(this.#memberName)
     );
-    if (!this.secure) {
+    if (!this.#secure) {
       return credentials.build();
     }
     return credentials

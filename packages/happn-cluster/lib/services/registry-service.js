@@ -22,7 +22,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
       this.#staleMemberThreshold
     );
     if (excludeMemberName) {
-      // exclude the member
+      // exclude the members
       items = items.filter((item) => !item.path.includes(`/${excludeMemberName}`));
     }
     if (statuses) {
