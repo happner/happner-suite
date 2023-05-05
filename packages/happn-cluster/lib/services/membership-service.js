@@ -246,7 +246,12 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #startMemberScanning() {
-    while (this.#status !== MemberStatuses.STOPPED) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      await Promise.race([commons.delay(this.#memberScanningIntervalMs), this.#waitForStop()]);
+
+      if (this.#status === MemberStatuses.STOPPED) break;
+
       try {
         const memberScanResult = await this.#registryService.scan(
           this.#deploymentId,
@@ -267,8 +272,23 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           );
         }
       }
-      await commons.delay(this.#memberScanningIntervalMs);
     }
+  }
+
+  #waitForStop() {
+    return new Promise((resolve) => {
+      const callback = (newStatus) => {
+        if (newStatus === MemberStatuses.STOPPED) {
+          resolve();
+        }
+      };
+
+      this.on('status-changed', callback);
+
+      commons.delay(this.#memberScanningIntervalMs).then(() => {
+        this.off('status-changed', callback);
+      });
+    });
   }
 
   async #statusChanged(newStatus) {
