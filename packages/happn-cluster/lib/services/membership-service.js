@@ -123,15 +123,20 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         .withServiceName(this.#serviceName)
         .withMemberName(this.#memberName)
     );
-    if (!this.#secure) {
-      return credentials.build();
+    if (this.#secure) {
+      // happn-service has already performed validation,
+      // so we can assume there is a username, keypair or password
+      credentials.withUsername(this.#happnService.clusterCredentials.username);
+      if (this.#happnService.clusterCredentials.password) {
+        credentials.withPassword(this.#happnService.clusterCredentials.password);
+      }
+      if (this.#happnService.clusterCredentials.publicKey) {
+        credentials
+          .withPublicKey(this.#happnService.clusterCredentials.publicKey)
+          .withPrivateKey(this.#happnService.clusterCredentials.privateKey);
+      }
     }
-    return credentials
-      .withUsername(this.#happnService.clusterCredentials.username)
-      .withPassword(this.#happnService.clusterCredentials.password)
-      .withPublicKey(this.#happnService.clusterCredentials.publicKey)
-      .withPrivateKey(this.#happnService.clusterCredentials.privateKey)
-      .build();
+    return credentials.build();
   }
 
   async start() {
@@ -164,11 +169,11 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #initialDiscovery() {
-    this.#log.error('delaying discovery');
+    this.#log.debug('delaying discovery');
     await commons.delay(15e2);
     const startedDiscovering = Date.now();
     while (this.#status === MemberStatuses.DISCOVERING) {
-      this.#log.info(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
+      this.#log.debug(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
       const scanResult = await this.#registryService.scan(
         this.#deploymentId,
         this.#clusterName,

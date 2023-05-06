@@ -15,6 +15,10 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     this.#queue = commons.AsyncQueue.create({
       concurrency: 1,
     });
+    this.onReconnectScheduled = this.onReconnectScheduled.bind(this);
+    this.onReconnected = this.onReconnected.bind(this);
+    this.onServerSideDisconnect = this.onServerSideDisconnect.bind(this);
+    this.onPulseMissed = this.onPulseMissed.bind(this);
   }
   get peerInfo() {
     return this.#peerInfo;

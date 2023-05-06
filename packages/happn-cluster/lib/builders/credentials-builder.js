@@ -4,6 +4,7 @@ module.exports = class CredentialsBuilder extends BaseBuilder {
     super();
     this.set('username', '_ADMIN', CredentialsBuilder.Types.STRING);
     this.set('password', 'happn', CredentialsBuilder.Types.STRING);
+    this.required(['username']);
   }
   static create() {
     return new CredentialsBuilder();

@@ -112,6 +112,15 @@ module.exports = class HappnService extends require('events').EventEmitter {
     if (this.secure) {
       const membershipConfig = this.#config.services.membership.config;
       if (membershipConfig.clusterUsername) {
+        if (
+          !membershipConfig.clusterPassword &&
+          !(membershipConfig.clusterPublicKey && membershipConfig.clusterPrivateKey)
+        ) {
+          throw new Error(
+            `invalid credentials configuration, requires clusterPassword or keypair config: clusterPublicKey and clusterPrivateKey`
+          );
+        }
+
         await this.upsertUser(
           membershipConfig.clusterUsername,
           membershipConfig.clusterPassword,
@@ -122,11 +131,15 @@ module.exports = class HappnService extends require('events').EventEmitter {
             },
           }
         );
-        credentialsBuilder
-          .withUsername(membershipConfig.clusterUsername)
-          .withPassword(membershipConfig.clusterPassword)
-          .withPublicKey(membershipConfig.clusterPublicKey)
-          .withPrivateKey(membershipConfig.clusterPrivateKey);
+        credentialsBuilder.withUsername(membershipConfig.clusterUsername);
+        if (membershipConfig.clusterPassword) {
+          credentialsBuilder.withPassword(membershipConfig.clusterPassword);
+        }
+        if (membershipConfig.clusterPublicKey) {
+          credentialsBuilder
+            .withPublicKey(membershipConfig.clusterPublicKey)
+            .withPrivateKey(membershipConfig.clusterPrivateKey);
+        }
       } else {
         const adminUserConfig = this.#happn.services.security.config.adminUser;
         credentialsBuilder
