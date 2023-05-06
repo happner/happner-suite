@@ -1,7 +1,16 @@
-3.0.0 2023-03-04
+3.0.0 2023-05-06
 -----------------
   - happn-cluster membership updated to mongo-based system
   - tests now use ports auto-assigned by OS
+
+2.8.0 2023-04-29
+-----------------
+  - feat: happn-3 changePassword in client
+  - feat: happn-3 resetPassword supported by auth provider
+
+2.7.1 2023-04-14
+-----------------
+  - fix: happner-2 rest stringify ignores special characters
 
 2.7.0 2023-03-03
 -----------------

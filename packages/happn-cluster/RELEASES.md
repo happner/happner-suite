@@ -327,6 +327,11 @@ non-release 2017-12-14
   - feat: token revocation and logout
   - fix: token revocation cluster fix
 
+12.4.0 2023-04-29
+-----------------
+  - feat: changePassword in client
+  - feat: resetPassword supported by auth provider
+
 13.0.0 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update

@@ -114,6 +114,11 @@
   - feat: token revocation and logout
   - fix: token revocation cluster fix
 
-1.1.9 2023-03-04
+1.1.9 2023-04-29
+-----------------
+  - feat: happn-3 changePassword in client
+  - feat: happn-3 resetPassword supported by auth provider
+
+1.1.10 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update

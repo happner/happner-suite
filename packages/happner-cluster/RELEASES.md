@@ -453,6 +453,15 @@
   - feat: token revocation and logout
   - fix: token revocation cluster fix
 
+12.4.3 2023-04-13
+-----------------
+- fix: rest payload stringify
+
+12.5.0 2023-04-29
+-----------------
+  - feat: changePassword in client
+  - feat: resetPassword supported by auth provider
+
 13.0.0 2023-03-04
 -----------------
   - happn-cluster membership updated to mongo-based system
