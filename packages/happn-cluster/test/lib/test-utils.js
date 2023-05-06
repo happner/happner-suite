@@ -11,13 +11,12 @@ module.exports.clearMongoCollection = function (callback, mongoCollectionArg, mo
   Mongo.clearCollection(mongoUrlArg || mongoUrl, mongoCollectionArg || mongoCollection, callback);
 };
 
-module.exports.createMemberConfigs = Util.promisify(function (
-  testSequence,
+module.exports.createMemberConfigs = function (
+  deploymentId,
   clusterSize,
   happnSecure,
   proxySecure,
-  services,
-  callback
+  services
 ) {
   var transport = null;
 
@@ -68,23 +67,33 @@ module.exports.createMemberConfigs = Util.promisify(function (
             ],
           },
         },
-        orchestrator: {
-          config: {
-            clusterName: 'cluster1',
-            minimumPeers: clusterSize,
-            deployment: 'myDeploy',
-            timing: {
-              keepAlive: 1e3,
-              memberRefresh: 2e3,
-              keepAliveThreshold: 2e3,
-            },
-          },
-        },
         proxy: {
           config: {
             host: '0.0.0.0',
             port: 0,
             allowSelfSignedCerts: true,
+          },
+        },
+        membership: {
+          config: {
+            // dynamic (uuid) for the current deployment, so we dont have old membership data being acted on
+            deploymentId,
+            // a virtual cluster grouping, inside this deployment
+            clusterName: 'clusterName',
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
           },
         },
       },
@@ -100,6 +109,14 @@ module.exports.createMemberConfigs = Util.promisify(function (
           },
         },
       };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
     }
 
     if (proxySecure) {
@@ -112,17 +129,16 @@ module.exports.createMemberConfigs = Util.promisify(function (
     configs.push(config);
   }
 
-  callback(null, configs);
-});
+  return configs;
+};
 
-module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
-  testSequence,
+module.exports.createMultiServiceMemberConfigs = function (
+  deploymentId,
   clusterSize,
   happnSecure,
   proxySecure,
   services,
-  clusterConfig,
-  callback
+  clusterConfig
 ) {
   var transport = null;
 
@@ -178,26 +194,39 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
             ],
           },
         },
-        orchestrator: {
-          config: {
-            clusterName: 'cluster1',
-            minimumPeers: clusterSize,
-            deployment: 'myDeploy',
-            cluster: clusterConfig,
-            serviceName: clusterServiceNameArr[i - 1],
-            timing: {
-              keepAlive: 2e3,
-              memberRefresh: 3e3,
-              keepAliveThreshold: 3e3,
-              stabilisedTimeout: 7e3,
-            },
-          },
-        },
         proxy: {
           config: {
             host: '0.0.0.0',
             port: 0,
             allowSelfSignedCerts: true,
+          },
+        },
+        membership: {
+          config: {
+            // dynamic (uuid) for the current deployment, so we dont have old membership data being acted on
+            deploymentId,
+            // a virtual cluster grouping, inside this deployment
+            clusterName: 'clusterName',
+            // classification for the set of services this member provides, members with the same service name should be identical
+            serviceName: clusterServiceNameArr[i - 1],
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // only stabilise if members with correct services and counts are present
+            dependencies: Object.fromEntries(
+              Object.entries(clusterConfig).filter(([key]) => key !== clusterServiceNameArr[i - 1])
+            ),
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
           },
         },
       },
@@ -213,6 +242,14 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
           },
         },
       };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
     }
 
     if (proxySecure) {
@@ -225,8 +262,8 @@ module.exports.createMultiServiceMemberConfigs = Util.promisify(function (
     configs.push(config);
   }
 
-  callback(null, configs);
-});
+  return configs;
+};
 
 module.exports.awaitExactMembershipCount = Util.promisify(function (servers, count, callback) {
   // Changed to await > or equal member count, as members are updated faster

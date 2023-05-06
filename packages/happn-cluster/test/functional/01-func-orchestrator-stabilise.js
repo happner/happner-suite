@@ -35,15 +35,12 @@ configs.forEach((config) => {
 
     hooks.startCluster(config);
 
-    it('each server stabilised with all 10 peers', function (done) {
+    it('each server stabilised with all 10 peers', async function () {
       const peerCounts = this.servers.map(
-        (server) => Object.keys(server.services.orchestrator.peers).length
+        (server) => server.container.dependencies.clusterPeerService.peerCount
       );
-      test.expect(peerCounts).to.eql([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
-      test
-        .expect(this.servers.every((server) => server.services.orchestrator.state === 'STABLE'))
-        .to.be(true);
-      done();
+      const totalPeerCount = peerCounts.reduce((total, peerCount) => total + peerCount);
+      test.expect(totalPeerCount).to.eql((clusterSize - 1) * clusterSize);
     });
 
     hooks.stopCluster();

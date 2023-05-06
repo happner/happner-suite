@@ -7,6 +7,7 @@ const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
 module.exports = class MembershipService extends require('events').EventEmitter {
   #log;
   #registryService;
+  #secure;
   #deploymentId;
   #clusterName;
   #serviceName;
@@ -43,6 +44,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
 
     // configuration settings
     this.#config = config;
+    this.#secure = this.#config.secure;
     this.#membershipServiceConfig = this.#config.services.membership.config;
 
     this.#deploymentId = this.#membershipServiceConfig.deploymentId;
@@ -57,7 +59,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#memberScanningErrorThreshold =
       this.#membershipServiceConfig.memberScanningErrorThreshold || 3; // allow 3 failed list errors in a row before we fail
     this.#dependencies = this.#membershipServiceConfig.dependencies || {};
-    this.#clusterCredentials = this.#getClusterCredentials();
 
     // injected dependencies
     this.#log = logger;
@@ -122,7 +123,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
         .withServiceName(this.#serviceName)
         .withMemberName(this.#memberName)
     );
-    if (!this.secure) {
+    if (!this.#secure) {
       return credentials.build();
     }
     return credentials
@@ -137,6 +138,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#log.info(`starting`);
     await this.#happnService.start(this, this.#proxyService);
     await this.#statusChanged(MemberStatuses.DISCOVERING);
+    this.#clusterCredentials = this.#getClusterCredentials();
     this.#startBeating();
     await this.#initialDiscovery();
     this.#log.info(`starting proxy`);
@@ -162,6 +164,8 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #initialDiscovery() {
+    this.#log.error('delaying discovery');
+    await commons.delay(15e2);
     const startedDiscovering = Date.now();
     while (this.#status === MemberStatuses.DISCOVERING) {
       this.#log.info(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
@@ -242,7 +246,12 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #startMemberScanning() {
-    while (this.#status !== MemberStatuses.STOPPED) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      await Promise.race([commons.delay(this.#memberScanningIntervalMs), this.#waitForStop()]);
+
+      if (this.#status === MemberStatuses.STOPPED) break;
+
       try {
         const memberScanResult = await this.#registryService.scan(
           this.#deploymentId,
@@ -263,8 +272,23 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           );
         }
       }
-      await commons.delay(this.#memberScanningIntervalMs);
     }
+  }
+
+  #waitForStop() {
+    return new Promise((resolve) => {
+      const callback = (newStatus) => {
+        if (newStatus === MemberStatuses.STOPPED) {
+          resolve();
+        }
+      };
+
+      this.on('status-changed', callback);
+
+      commons.delay(this.#memberScanningIntervalMs).then(() => {
+        this.off('status-changed', callback);
+      });
+    });
   }
 
   async #statusChanged(newStatus) {

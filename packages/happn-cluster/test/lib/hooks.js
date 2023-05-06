@@ -9,58 +9,53 @@ const wait = require('await-delay');
 const test = require('happn-commons-test').create();
 
 module.exports.startCluster = function (clusterOpts) {
-  let testSequence = clusterOpts.testSequence || 1;
   let clusterSize = clusterOpts.size || 5;
   let happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
   let proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
   let services = clusterOpts.services || {};
   let clusterConfig = clusterOpts.clusterConfig;
   let additionalDatastore = clusterOpts.datastore;
+
   before('clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });
 
   before('start cluster', async function () {
-    let self = this;
+    const deploymentId = test.commons.uuid.v4();
 
-    if (!clusterConfig)
-      self.__configs = await testUtils.createMemberConfigs(
-        testSequence,
-        clusterSize,
-        happnSecure,
-        proxySecure,
-        services
-      );
-    else
-      self.__configs = await testUtils.createMultiServiceMemberConfigs(
-        testSequence,
-        clusterSize,
-        happnSecure,
-        proxySecure,
-        services,
-        clusterConfig
-      );
+    const createConfig = clusterConfig
+      ? testUtils.createMultiServiceMemberConfigs
+      : testUtils.createMemberConfigs;
+
+    this.__configs = createConfig(
+      deploymentId,
+      clusterSize,
+      happnSecure,
+      proxySecure,
+      services,
+      clusterConfig
+    );
+
     if (additionalDatastore) {
-      self.__configs.forEach((config) => {
+      this.__configs.forEach((config) => {
         config.services.data.config.datastores.push(additionalDatastore);
       });
     }
     let servers = [];
-    servers.push(HappnCluster.create(clone(self.__configs[0])));
+    servers.push(HappnCluster.create(clone(this.__configs[0])));
     await test.delay(2000);
     // start first peer immediately and other a moment
     // later so they don't all fight over creating the
     // admin user in the shared database
-    for (let [sequence, config] of self.__configs.entries()) {
+    for (let [sequence, config] of this.__configs.entries()) {
       if (sequence === 0) {
         continue;
       }
       servers.push(HappnCluster.create(clone(config)));
     }
-    self.servers = await Promise.all(servers);
-    self.ports = self.servers.map((server) => server.config.port);
+    this.servers = await Promise.all(servers.map((server) => server.start().then(() => server)));
     await test.delay(2000);
-    return self.servers;
+    return this.servers;
   });
 };
 
@@ -97,7 +92,7 @@ module.exports.startMultiProcessCluster = function (clusterOpts) {
   before('start cluster', async function () {
     let self = this;
 
-    self.__configs = await testUtils.createMemberConfigs(
+    self.__configs = testUtils.createMemberConfigs(
       testSequence,
       clusterSize,
       happnSecure,
