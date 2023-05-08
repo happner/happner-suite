@@ -24,6 +24,13 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     return this.#peerConnectors.length;
   }
 
+  async #peerDisconnected(peerInfo) {
+    const peerConnectorToRemove = this.#peerConnectors.find(
+      (peerConnector) => peerInfo.memberName === peerConnector.peerInfo.memberName
+    );
+    this.#peerConnectors.splice(this.#peerConnectors.indexOf(peerConnectorToRemove), 1);
+  }
+
   async connectPeer(peerInfo) {
     const connectedOldPeer = this.#peerConnectors.find(
       (oldPeer) => oldPeer.peerInfo.memberName === peerInfo.memberName
@@ -32,10 +39,8 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       this.#log.warn(`duplicate peer is connecting: ${peerInfo.memberName}`);
     }
     // TODO: check for connector with same name - and just reconnect it
-    const peerConnector = this.#peerConnectorFactory.createPeerConnector(
-      this.#log,
-      peerInfo,
-      this.#config.replicationPaths
+    const peerConnector = this.#peerConnectorFactory.createPeerConnector(this.#log, peerInfo, () =>
+      this.#peerDisconnected(peerInfo)
     );
     this.#peerConnectors.push(peerConnector);
     await peerConnector.connect(this.#clusterCredentials);
@@ -54,13 +59,15 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       await peerConnector.disconnect();
     } catch (e) {
       // TODO: should we fatal here?
-      this.#log.warn(`failed disconnecting from peer ${peerConnector.memberName}: ${e.message}`);
+      this.#log.warn(
+        `failed disconnecting from peer ${peerConnector.peerInfo.memberName}: ${e.message}`
+      );
     }
   }
 
   async removePeers(peers) {
     const peerConnectorsToRemove = this.#peerConnectors.filter((peerConnector) => {
-      return peers.find((peer) => peer.memberName === peerConnector.peerInfo.memberName) != null;
+      return peers.some((peer) => peer.memberName === peerConnector.peerInfo.memberName);
     });
     for (let peerConnector of peerConnectorsToRemove) {
       await this.#disconnectPeerConnector(peerConnector);

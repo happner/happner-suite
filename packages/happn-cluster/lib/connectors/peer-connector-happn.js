@@ -2,9 +2,12 @@ const Happn = require('happn-3');
 const Constants = require('../constants/all-constants');
 module.exports = class PeerConnectorHappn extends require('./peer-connector-base') {
   #client;
-  constructor(logger, peerInfo) {
+  #disconnectHandler;
+  constructor(logger, peerInfo, disconnectHandler) {
     super(logger, peerInfo);
+    this.#disconnectHandler = disconnectHandler;
   }
+
   async connectInternal(clusterCredentials) {
     this.#client = await Happn.client.create({
       host: this.peerInfo.memberHost,
@@ -14,6 +17,9 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
       publicKey: clusterCredentials.publicKey,
       privateKey: clusterCredentials.privateKey,
       info: clusterCredentials.info,
+      socket: {
+        strategy: 'online',
+      },
     });
     this.#client.onEvent(
       Constants.EVENT_KEYS.HAPPN_CLIENT_RECONNECT_SCHEDULED,
@@ -24,7 +30,9 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
       Constants.EVENT_KEYS.HAPPN_CLIENT_SESSION_ENDED,
       this.onServerSideDisconnect
     );
+    this.#client.onEvent(Constants.EVENT_KEYS.HAPPN_CLIENT_CONNECTION_ENDED, this.onDisconnected);
   }
+
   async disconnectInternal() {
     if (this.#client) {
       await this.#client.disconnect();
@@ -37,5 +45,9 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
 
   async unsubscribeInternal(path) {
     return await this.#client.offPath(path);
+  }
+
+  async onDisconnectedInternal() {
+    await this.#disconnectHandler();
   }
 };

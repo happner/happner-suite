@@ -12,4 +12,5 @@ module.exports = {
   HAPPN_CLIENT_RECONNECT_SCHEDULED: 'reconnect-scheduled',
   HAPPN_CLIENT_RECONNECTED: 'reconnect-successful',
   HAPPN_CLIENT_SESSION_ENDED: 'session-ended',
+  HAPPN_CLIENT_CONNECTION_ENDED: 'connection-ended',
 };

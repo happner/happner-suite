@@ -19,6 +19,7 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     this.onReconnected = this.onReconnected.bind(this);
     this.onServerSideDisconnect = this.onServerSideDisconnect.bind(this);
     this.onPulseMissed = this.onPulseMissed.bind(this);
+    this.onDisconnected = this.onDisconnected.bind(this);
   }
   get peerInfo() {
     return this.#peerInfo;
@@ -98,6 +99,22 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   async onServerSideDisconnect() {
     await this.queue.lock(async () => {
       this.#log.info(`peer connector server side disconnect: ${this.#peerInfo.memberName}`);
+    });
+  }
+
+  async onDisconnected() {
+    await this.queue.lock(async () => {
+      if (
+        this.#status === PeerConnectorStatuses.DISCONNECTING ||
+        this.#status === PeerConnectorStatuses.DISCONNECTED
+      ) {
+        return;
+      }
+
+      this.#status = PeerConnectorStatuses.DISCONNECTING;
+      await this.onDisconnectedInternal();
+      this.#status = PeerConnectorStatuses.DISCONNECTED;
+      this.#log.info(`peer connector disconnect: ${this.#peerInfo.memberName}`);
     });
   }
 

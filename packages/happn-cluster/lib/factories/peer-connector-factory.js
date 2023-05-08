@@ -6,7 +6,7 @@ module.exports = class PeerConnectorFactory extends require('./base-factory') {
       }
     );
   }
-  createPeerConnector(logger, peerInfo) {
-    return this.create('peer-connector', logger, peerInfo);
+  createPeerConnector(logger, peerInfo, disconnectHandler) {
+    return this.create('peer-connector', logger, peerInfo, disconnectHandler);
   }
 };
