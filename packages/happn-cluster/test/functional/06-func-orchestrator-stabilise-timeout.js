@@ -39,18 +39,18 @@ testConfigs.forEach((testConfig) => {
       try {
         await testUtils.awaitExactPeerCount(this.servers, clusterSize);
         let config;
-        if (!testConfig.clusterConfig)
-          config = (
-            await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {
+        if (!testConfig.clusterConfig) {
+          config = testUtils
+            .createMemberConfigs(testSequence, clusterSize + 1, false, false, {
               orchestrator: {
                 minimumPeers: clusterSize + 2,
                 stabiliseTimeout: 4000,
               },
             })
-          ).pop();
-        else {
-          config = (
-            await testUtils.createMultiServiceMemberConfigs(
+            .pop();
+        } else {
+          config = testUtils
+            .createMultiServiceMemberConfigs(
               testSequence,
               clusterSize + 1,
               false,
@@ -65,7 +65,7 @@ testConfigs.forEach((testConfig) => {
                 'cluster-service-2': 4,
               }
             )
-          ).pop();
+            .pop();
         }
 
         let server = await HappnCluster.create(config);

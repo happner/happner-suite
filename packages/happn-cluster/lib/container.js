@@ -1,11 +1,17 @@
 const PeerConnectorFactory = require('./factories/peer-connector-factory');
 const MembershipDbFactory = require('./factories/membership-db-factory');
 const Logger = require('happn-logger');
+const commons = require('happn-commons');
 module.exports = class Container {
   #dependencies = {};
   #config = {};
   #serviceAndMemberName;
   #log;
+
+  get config() {
+    return commons.clone(this.#config);
+  }
+
   constructor(config) {
     Logger.configure();
     this.#config = require('./configurators/cluster-configurator').create().configure(config);

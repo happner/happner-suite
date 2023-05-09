@@ -46,12 +46,12 @@ testConfigs.forEach((testConfig) => {
       // so the member is removed from the test.expectation list of members-that-must-be-connected-to-for-stabilise
       let config;
       if (!testConfig.clusterConfig)
-        config = (
-          await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {})
-        ).pop();
+        config = testUtils
+          .createMemberConfigs(testSequence, clusterSize + 1, false, false, {})
+          .pop();
       else {
-        config = (
-          await testUtils.createMultiServiceMemberConfigs(
+        config = testUtils
+          .createMultiServiceMemberConfigs(
             testSequence,
             clusterSize,
             false,
@@ -62,7 +62,7 @@ testConfigs.forEach((testConfig) => {
               'cluster-service-2': 2,
             }
           )
-        ).pop();
+          .pop();
       }
 
       var stopServer = this.servers.pop();

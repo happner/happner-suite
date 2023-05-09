@@ -73,7 +73,7 @@ testConfigs.forEach((testConfig) => {
           replicatedEvents = [];
 
         for (let [i, client] of Object.entries(this.clients)) {
-          await client.onAsync('/some/*/*/set', (data, meta) => {
+          await client.onAsync('/some/*/*/set', { depth: 4 }, (data, meta) => {
             delete meta.sessionId; // not the same across events
             if (parseInt(i) === 0) {
               controlEvent = {
@@ -110,7 +110,7 @@ testConfigs.forEach((testConfig) => {
           replicatedEvents = [];
 
         for (let [i, client] of Object.entries(this.clients)) {
-          await client.onAsync('/some/path/to/set/on', function (data, meta) {
+          await client.onAsync('/some/path/to/set/on', { depth: 4 }, function (data, meta) {
             delete meta.sessionId;
             if (parseInt(i) === 0) {
               controlEvent = {
@@ -156,7 +156,7 @@ testConfigs.forEach((testConfig) => {
 
         await Promise.all(
           this.clients.map(function (client, i) {
-            return client.onAsync('/some/path/to/remove/*', function (data, meta) {
+            return client.onAsync('/some/path/to/remove/*', { depth: 4 }, function (data, meta) {
               delete meta.sessionId;
               if (i === 0) {
                 controlEvent = {
@@ -293,7 +293,7 @@ testConfigs.forEach((testConfig) => {
         });
         await Promise.all(
           this.clients.map(function (client, i) {
-            return client.onAsync('/some/path/to/merge/on', function (data, meta) {
+            return client.onAsync('/some/path/to/merge/on', { depth: 1 }, function (data, meta) {
               delete meta.sessionId;
               if (i === 0) {
                 controlEvent = {
