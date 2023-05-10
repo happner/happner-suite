@@ -6,7 +6,7 @@ var hooks = require('../lib/hooks');
 var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
 var clusterSize = 1;
 var happnSecure = true;
-var proxySecure = true;
+var proxySecure = false;
 require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
@@ -23,8 +23,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   var port;
 
   before(function () {
-    var address = this.servers[0].services.proxy.server.address();
-    port = address.port;
+    port = this.servers[0].container.config.port;
   });
 
   it('does not replicate to self in infinite loop', function (done) {
@@ -32,7 +31,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
       count = 0;
     HappnClient.create({
       config: {
-        url: 'https://127.0.0.1:' + port,
+        url: 'http://127.0.0.1:' + port,
         username: '_ADMIN',
         password: 'secret',
       },
@@ -62,6 +61,9 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
       })
       .then(function () {
         test.expect(count).to.be(1);
+      })
+      .then(function () {
+        return client.disconnect();
       })
       .then(function () {
         done();
