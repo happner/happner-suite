@@ -21,7 +21,7 @@ module.exports.startCluster = function (clusterOpts) {
   });
 
   before('start cluster', async function () {
-    const deploymentId = test.commons.uuid.v4();
+    const deploymentId = (this.deploymentId = test.commons.uuid.v4());
 
     const createConfig = clusterConfig
       ? testUtils.createMultiServiceMemberConfigs
