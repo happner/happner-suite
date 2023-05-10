@@ -108,9 +108,15 @@ configs.forEach((config) => {
           // test.expect(result.path.split('/').pop()).to.eql(result.data.endpoint);
         });
 
-        let stored2 = await client.db('happn-cluster').collection('happn-cluster').find({}).toArray();
+        let stored2 = await client
+          .db('happn-cluster')
+          .collection('happn-cluster')
+          .find({})
+          .toArray();
         test
-          .expect(stored2.every((result) => !result.path.startsWith('/SYSTEM/DEPLOYMENT/myDeploy/')))
+          .expect(
+            stored2.every((result) => !result.path.startsWith('/SYSTEM/DEPLOYMENT/myDeploy/'))
+          )
           .to.be(true); //Membership paths should not be stored in the mmain/default DB.
       } finally {
         await client.close();
