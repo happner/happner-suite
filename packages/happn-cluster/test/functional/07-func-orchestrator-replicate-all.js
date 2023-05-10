@@ -37,11 +37,9 @@ testConfigs.forEach((testConfig) => {
       let clients = await Promise.all(
         this.servers.map(function (server) {
           var loginConfig = {
-            config: {
-              host: server.config.services.proxy.config.host,
-              port: server.config.services.proxy.config.port,
-              protocol: 'http',
-            },
+            port: server.container.config.port,
+            host: server.container.config.host,
+            protocol: 'http',
           };
 
           return Happn.client.create(loginConfig);
