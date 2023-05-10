@@ -29,10 +29,10 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     },
   });
 
-  xit('deferred proxy does not start the proxy until start is called', function (done) {
+  it('deferred proxy does not start the proxy until start is called', function (done) {
     var _this = this;
 
-    var port = this.servers[0].config.services.proxy.config.port;
+    var port = this.servers[0].container.config.port;
     test.expect(port).to.be(0);
     // console.log(port)
     let connection = net.connect(port, '127.0.0.1');
@@ -45,10 +45,11 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     connection.on('error', function (e) {
       test.expect(e.code).to.be('ECONNREFUSED');
 
-      _this.servers[0].services.proxy
+      _this.servers[0].container.dependencies.proxyService
         .start()
         .then(function () {
-          let port = this.servers[0].config.services.proxy.config.port;
+          let port = _this.servers[0].container.config.port;
+
           test.expect(port).not.to.be(0);
           let connection = net.connect(port, '127.0.0.1');
 
