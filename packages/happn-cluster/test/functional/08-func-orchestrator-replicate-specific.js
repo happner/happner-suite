@@ -13,8 +13,8 @@ let testConfigs = [
     size: clusterSize,
     happnSecure: happnSecure,
     services: {
-      orchestrator: {
-        replicate: ['/*/*/this', '/and/that'], // <---------------
+      membership: {
+        replicationPaths: ['/*/*/this', '/and/that'], // <---------------
       },
     },
   },
@@ -23,8 +23,8 @@ let testConfigs = [
     size: clusterSize,
     happnSecure: happnSecure,
     services: {
-      orchestrator: {
-        replicate: ['/*/*/this', '/and/that'], // <---------------
+      membership: {
+        replicationPaths: ['/*/*/this', '/and/that'], // <---------------
       },
     },
     clusterConfig: {
@@ -45,16 +45,14 @@ testConfigs.forEach((testConfig) => {
     before('connect a client to each server', async function () {
       let clients = await Promise.all(
         this.servers.map((server) => {
-          let config = server.config;
+          let config = server.container.config;
           var loginConfig = {
-            config: {
-              secure: happnSecure,
-              host: config.services.proxy.config.host,
-              port: config.services.proxy.config.port,
-              protocol: 'http',
-              username: config.services.security.config.adminUser.username,
-              password: config.services.security.config.adminUser.password,
-            },
+            secure: happnSecure,
+            host: config.host,
+            port: config.port,
+            protocol: 'http',
+            username: config.services.security.config.adminUser.username,
+            password: config.services.security.config.adminUser.password,
           };
 
           return Happn.client.create(loginConfig);
