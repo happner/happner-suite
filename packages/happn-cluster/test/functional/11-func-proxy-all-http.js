@@ -45,9 +45,9 @@ testConfigs.forEach((testConfig) => {
       async.eachSeries(
         self.servers,
         function (server, configCB) {
-          let config = server.config;
-          var port = config.services.proxy.config.port;
-          var host = config.services.proxy.config.host;
+          let config = server.container.config;
+          var port = config.port;
+          var host = config.host;
 
           // create happn client instance and log in
           testUtils.createClientInstance(host, port, function (err, instance) {
