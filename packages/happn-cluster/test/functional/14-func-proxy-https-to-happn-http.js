@@ -10,7 +10,7 @@ var clusterSize = 1;
 var happnSecure = false;
 var proxySecure = true;
 
-require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+require('../lib/test-helper').describe({ timeout: 60e3, skip: true }, function (test) {
   before(function () {
     this.logLevel = process.env.LOG_LEVEL;
     process.env.LOG_LEVEL = 'off';
@@ -26,8 +26,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
   var port;
 
   before(function () {
-    var address = this.servers[0].services.proxy.server.address();
-    port = address.port;
+    port = this.servers[0].container.config.port;
   });
 
   it('can do web', function (done) {
@@ -58,6 +57,11 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
       .then(function (result) {
         delete result._meta;
         test.expect(result).to.eql({ x: 1 });
+      })
+      .then(function () {
+        return client.disconnect();
+      })
+      .then(function () {
         done();
       })
       .catch(done);

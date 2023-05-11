@@ -24,6 +24,10 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     return this.#peerConnectors.length;
   }
 
+  get peerConnectors() {
+    return this.#peerConnectors;
+  }
+
   async #peerDisconnected(peerInfo) {
     const peerConnectorToRemove = this.#peerConnectors.find(
       (peerConnector) => peerInfo.memberName === peerConnector.peerInfo.memberName
@@ -36,7 +40,10 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       (oldPeer) => oldPeer.peerInfo.memberName === peerInfo.memberName
     );
     if (connectedOldPeer !== undefined) {
-      this.#log.warn(`duplicate peer is connecting: ${peerInfo.memberName}`);
+      this.#log.warn(
+        `duplicate peer is connecting: ${peerInfo.memberName} - not adding to list of peers`
+      );
+      return;
     }
     // TODO: check for connector with same name - and just reconnect it
     const peerConnector = this.#peerConnectorFactory.createPeerConnector(this.#log, peerInfo, () =>
@@ -100,8 +107,15 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   }
 
   async processMemberScanResult(memberScanResult) {
-    if (memberScanResult.newMembers.length > 0) {
-      await this.addPeers(this.#clusterCredentials, memberScanResult.newMembers);
+    const skipMembers = [
+      ...memberScanResult.missingSinceLastMembers.map((peer) => peer.memberName),
+      ...this.peerConnectors.map((peerConnector) => peerConnector.peerInfo.memberName),
+    ];
+    const filteredCurrentMembers = memberScanResult.currentMembers.filter(
+      (currentMember) => !skipMembers.includes(currentMember.memberName)
+    );
+    if (filteredCurrentMembers.length > 0) {
+      await this.addPeers(this.#clusterCredentials, memberScanResult.currentMembers);
     }
     if (memberScanResult.missingSinceLastMembers.length > 0) {
       await this.removePeers(memberScanResult.missingSinceLastMembers);

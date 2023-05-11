@@ -19,7 +19,7 @@ module.exports = class ClusterHealthService extends require('events').EventEmitt
       this.#lastDependenciesFulfilled !== memberScanResult.dependenciesFulfilled &&
       healthStatus === HealthStatuses.HEALTHY
     ) {
-      this.#log.warn(`cluster member health status: ${healthStatus}`);
+      this.#log.info(`cluster member health status: ${healthStatus}`);
     }
     if (healthStatus !== HealthStatuses.HEALTHY) {
       // TODO: go into more detail
