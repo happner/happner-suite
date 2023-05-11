@@ -15,11 +15,11 @@ require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   });
 
   before('create mock happn', function () {
-    Object.defineProperty(Proxy.prototype, 'happn', {
-      get: function () {
-        return new MockHappn('http', 9000);
-      },
-    });
+    Proxy.prototype.happn = new MockHappn('http', 9000);
+  });
+
+  after('create mock happn', function () {
+    delete Proxy.prototype.happn;
   });
 
   it('can start and stop the proxy', function (done) {

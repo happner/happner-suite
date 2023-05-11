@@ -99,7 +99,7 @@ module.exports = class HappnService extends require('events').EventEmitter {
   }
 
   async stop() {
-    await this.#happn.stop();
+    await this.#happn?.stop();
     this.emit(Constants.EVENT_KEYS.HAPPN_SERVICE_STOPPED);
   }
 

@@ -6,6 +6,7 @@
   "scripts": {
     "test-debug": "_mocha test/integration/* --recursive --exit",
     "test": "_mocha silence.js test/integration/* test/unit/* --recursive --exit",
+    "test-inc-functional": "_mocha silence.js test/integration test/unit test/functional --recursive --exclude **/*.skip.js",
     "test-unit": "mocha test/unit/* --recursive",
     "test-cover": "LOG_LEVEL=warn nyc --reporter=lcov --reporter=text --reporter=html npm run test"
   },
