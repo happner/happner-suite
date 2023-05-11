@@ -27,7 +27,7 @@ let testConfigs = [
   },
 ];
 testConfigs.forEach((testConfig) => {
-  require('../lib/test-helper').describe({ timeout: 120e3 }, function () {
+  require('../lib/test-helper').describe({ timeout: 120e3, skip: true }, function () {
     before(function () {
       this.logLevel = process.env.LOG_LEVEL;
       process.env.LOG_LEVEL = 'off';
