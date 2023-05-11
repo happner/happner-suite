@@ -52,6 +52,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
   afterEach(() => {
     mockHappn = null;
     mockConfig = null;
+    test.sinon.restore();
   });
 
   Services.SecurityService = require('../../../lib/services/security/service');
@@ -2069,12 +2070,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       password: 'mockPassword',
     };
     const mockCallbackOne = test.sinon.stub();
-    const mockCallBackTwo = test.sinon.stub();
     const dataChanged = test.sinon.stub();
     const mockSecurityService = {
       dataChanged: dataChanged,
     };
-    const stubUpsertMultiplePermissions = test.sinon.stub();
+    const stubUpsertMultiplePermissions = test.sinon.stub().resolves();
     const stubCreatePermissions = test.sinon
       .stub(PermissionsManager, 'create')
       .returns({ upsertMultiplePermissions: stubUpsertMultiplePermissions });
@@ -2085,11 +2085,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
-    users.upsertPermissions(mockUser, mockCallBackTwo);
+    const result = users.upsertPermissions(mockUser);
 
     await require('node:timers/promises').setTimeout(50);
 
-    test.chai.expect(mockCallBackTwo).to.have.been.calledWithExactly(null, {
+    await test.chai.expect(result).to.eventually.deep.equal({
       username: 'mockUsername',
       name: 'mockName',
       permissions: {},
@@ -2119,12 +2119,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       password: 'mockPassword',
     };
     const mockCallbackOne = test.sinon.stub();
-    const mockCallBackTwo = test.sinon.stub();
-    const dataChanged = test.sinon.stub().throws(new Error('mockError'));
+    const mockError = new Error('mockError');
+    const dataChanged = test.sinon.stub().throws(mockError);
     const mockSecurityService = {
       dataChanged: dataChanged,
     };
-    const stubUpsertMultiplePermissions = test.sinon.stub();
+    const stubUpsertMultiplePermissions = test.sinon.stub().resolves();
     const stubCreatePermissions = test.sinon
       .stub(PermissionsManager, 'create')
       .returns({ upsertMultiplePermissions: stubUpsertMultiplePermissions });
@@ -2135,16 +2135,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
-    const result = users.upsertPermissions(mockUser, mockCallBackTwo);
+    const result = users.upsertPermissions(mockUser);
 
-    await require('node:timers/promises').setTimeout(50);
+    await require('node:timers/promises').setTimeout(500);
 
-    test.chai
-      .expect(mockCallBackTwo)
-      .to.have.been.calledWithExactly(
-        test.sinon.match.instanceOf(Error).and(test.sinon.match.has('message', 'mockError'))
-      );
-    await test.chai.expect(result).to.eventually.be.undefined;
+    await test.chai.expect(result).to.eventually.be.rejectedWith(mockError);
 
     stubCreateGroup.restore();
     stubCreatePermissions.restore();

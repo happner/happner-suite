@@ -40,6 +40,7 @@ describe(test.testName(__filename, 3), function () {
 
   afterEach(() => {
     mockHappn = null;
+    test.sinon.restore();
   });
 
   it('should test the stats method', function () {

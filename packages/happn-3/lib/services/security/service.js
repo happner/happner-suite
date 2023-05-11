@@ -1248,38 +1248,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       });
   }
 
-  #replicateDataChanged(whatHappnd, changedData, additionalInfo) {
-    let replicator = this.happn.services.replicator;
-    if (!replicator) return;
-    if (changedData.replicated) return; // don't re-replicate
-
-    return new Promise((resolve, reject) => {
-      replicator.send(
-        '/security/dataChanged',
-        {
-          whatHappnd: whatHappnd,
-          changedData: changedData,
-          additionalInfo: additionalInfo,
-        },
-        (e) => {
-          if (e) {
-            if (e.message === 'Replicator not ready') {
-              // means not connected to self (or other peers in cluster)
-              // not a problem, there will be no user/group changes to replicate
-              // (other than the initial admin user create)
-              // - no clients connected to this node
-              // - no component start methods modifying users
-              //   (the start methods only run after cluster is up)
-              return resolve();
-            }
-            return reject(e);
-          }
-          resolve();
-        }
-      );
-    });
-  }
-
   generatePermissionSetKey(user) {
     return require('crypto')
       .createHash('sha1')

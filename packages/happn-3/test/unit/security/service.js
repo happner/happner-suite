@@ -322,6 +322,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     }
     mockHappn = null;
     serviceInstance = null;
+    test.sinon.restore();
   });
   // integration test
   it('should test the session filtering capability', function (done) {
@@ -3721,38 +3722,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     unlinkGroupStub.restore();
   });
 
-  it('tests #initializeReplication - happn.services.replicator is false , replicator.on callback returned', async () => {
-    initializer({ disableDefaultAdminNetworkConnections: false }, mockHappn, true);
-
-    serviceInstance.happn.services.replicator = {
-      on: test.sinon.stub().callsFake((_, cb) => {
-        cb({ whatHappnd: {}, changedData: {}, additionalInfo: {} }, {});
-      }),
-    };
-
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai
-      .expect(serviceInstance.happn.services.replicator.on)
-      .to.have.been.calledWithExactly('/security/dataChanged', test.sinon.match.func);
-  });
-
-  it('tests #initializeReplication - happn.services.replicator is false, this.dataChanged is called.', async () => {
-    initializer({ disableDefaultAdminNetworkConnections: false }, mockHappn, true);
-
-    const spyDataChanged = test.sinon.spy(serviceInstance, 'dataChanged');
-
-    serviceInstance.happn.services.replicator = {
-      on: test.sinon.stub().callsFake((_, cb) => {
-        cb({ whatHappnd: {}, changedData: {}, additionalInfo: {} }, null);
-      }),
-    };
-
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai.expect(spyDataChanged).to.have.callCount(1);
-  });
-
   it('tests #initializeCheckPoint - promise is rejected', async () => {
     initializer(
       { disableDefaultAdminNetworkConnections: false, sessionTokenSecret: 'mockToken' },
@@ -6409,13 +6378,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     const spyEmit = test.sinon.spy(serviceInstance, 'emit');
 
     serviceInstance.onDataChanged(test.sinon.stub());
-    const result = serviceInstance.emitChanges({}, {}, {});
+    const result = serviceInstance.emitChanges({}, {}, {}, {});
 
     await test.chai.expect(result).to.eventually.equal(undefined);
     test.chai.expect(spyEmit).to.have.been.calledWithExactly('security-data-changed', {
       whatHappnd: {},
       changedData: {},
       effectedSessions: {},
+      additionalInfo: {},
     });
   });
 
@@ -6528,262 +6498,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
     test.chai
       .expect(stubResetSessionPermissions)
       .to.have.been.calledWithExactly('link-group', null, null);
-
-    stubResetSessionPermissions.restore();
-    stubQue.restore();
-  });
-
-  it('tests __replicateDataChanged - calls replicator.send and reject promise', async () => {
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockConfig = {};
-    const handleFatal = test.sinon.stub();
-    serviceInst.happn = {
-      config: {},
-      services: {
-        error: {
-          handleFatal,
-        },
-        data: {},
-        replicator: {
-          send: test.sinon.stub().callsFake((_, __, callback) => {
-            callback('mockError');
-          }),
-        },
-      },
-    };
-    await new Promise((resolve) => {
-      serviceInst.initialize(mockConfig, () => {
-        // ignore errors, gets as far as creating queue
-        resolve();
-      });
-    });
-    const stubResetSessionPermissions = test.sinon
-      .stub(serviceInst, 'resetSessionPermissions')
-      .resolves('mock test');
-
-    serviceInst.checkpoint = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.users = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.groups = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.dataChanged('link-group', {});
-    await test.delay(2e3);
-
-    test.chai
-      .expect(stubResetSessionPermissions)
-      .to.have.been.calledWithExactly('link-group', {}, undefined);
-
-    test.chai
-      .expect(handleFatal)
-      .to.have.been.calledWithExactly('failure updating cached security data', 'mockError');
-
-    stubResetSessionPermissions.restore();
-  });
-
-  it('tests __replicateDataChanged - changedData.replicated is true .', async () => {
-    const async = require('happn-commons').async;
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockConfig = {};
-    const stubQue = test.sinon.stub(async, 'queue');
-    const mockCallback = test.sinon.stub();
-    const mockTask = {
-      whatHappnd: 'link-group',
-      changedData: { replicated: true },
-      additionalInfo: null,
-    };
-    stubQue.callsFake((callback) => {
-      callback(mockTask, null);
-    });
-    const stubResetSessionPermissions = test.sinon
-      .stub(serviceInst, 'resetSessionPermissions')
-      .resolves('mock test');
-
-    serviceInst.checkpoint = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.users = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.groups = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.happn = {
-      services: {
-        cache: 'mockCache',
-        data: 'mockData',
-        session: null,
-        replicator: {
-          send: test.sinon.stub(),
-        },
-      },
-      config: {
-        disableDefaultAdminNetworkConnections: false,
-      },
-      error: {
-        handleFatal: test.sinon.stub(),
-      },
-    };
-    serviceInst.happn.services.replicator.send.callsFake((_, __, callback) => {
-      callback({ message: 'Replicator not ready' });
-    });
-
-    serviceInst.initialize(mockConfig, mockCallback);
-
-    test.chai
-      .expect(stubResetSessionPermissions)
-      .to.have.been.calledWithExactly('link-group', { replicated: true }, null);
-
-    stubResetSessionPermissions.restore();
-    stubQue.restore();
-  });
-
-  it('tests __replicateDataChanged - calls replicator.send and callback function called with error. Promise is resolved.', async () => {
-    const async = require('happn-commons').async;
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockConfig = {};
-    const callback = test.sinon.stub();
-    const stubQue = test.sinon.stub(async, 'queue');
-    const mockCallback = null;
-
-    stubQue.callsFake((callback) => {
-      const task = {
-        whatHappnd: 'link-group',
-        changedData: { replicated: false },
-        additionalInfo: null,
-      };
-      callback(task, mockCallback);
-    });
-    const stubResetSessionPermissions = test.sinon
-      .stub(serviceInst, 'resetSessionPermissions')
-      .resolves('mock test');
-
-    serviceInst.checkpoint = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.users = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.groups = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.happn = {
-      services: {
-        cache: 'mockCache',
-        data: 'mockData',
-        session: null,
-        replicator: {
-          send: test.sinon.stub(),
-        },
-      },
-      config: {
-        disableDefaultAdminNetworkConnections: false,
-      },
-      error: {
-        handleFatal: test.sinon.stub(),
-      },
-    };
-    serviceInst.happn.services.replicator.send.callsFake((_, __, callback) => {
-      callback({ message: 'Replicator not ready' });
-    });
-
-    serviceInst.initialize(mockConfig, callback);
-
-    serviceInst.initialize(mockConfig, callback);
-
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai.expect(serviceInst.happn.services.replicator.send).to.have.been.calledWithExactly(
-      '/security/dataChanged',
-      {
-        whatHappnd: 'link-group',
-        changedData: {
-          replicated: false,
-        },
-        additionalInfo: null,
-      },
-      test.sinon.match.func
-    );
-
-    stubResetSessionPermissions.restore();
-    stubQue.restore();
-  });
-
-  it('tests __replicateDataChanged - calls replicator.send and resolves promise', async () => {
-    const async = require('happn-commons').async;
-    const serviceInst = new SecurityService({
-      logger: Logger,
-    });
-    const mockConfig = {};
-    const callback = test.sinon.stub();
-    const stubQue = test.sinon.stub(async, 'queue');
-    const mockCallback = null;
-
-    stubQue.callsFake((callback) => {
-      const task = {
-        whatHappnd: 'link-group',
-        changedData: { replicated: false },
-        additionalInfo: null,
-      };
-      callback(task, mockCallback);
-    });
-    const stubResetSessionPermissions = test.sinon
-      .stub(serviceInst, 'resetSessionPermissions')
-      .resolves('mock test');
-
-    serviceInst.checkpoint = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.users = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.groups = {
-      clearCaches: test.sinon.stub(),
-    };
-    serviceInst.happn = {
-      services: {
-        cache: 'mockCache',
-        data: 'mockData',
-        session: null,
-        replicator: {
-          send: test.sinon.stub(),
-        },
-      },
-      config: {
-        disableDefaultAdminNetworkConnections: false,
-      },
-      error: {
-        handleFatal: test.sinon.stub(),
-      },
-    };
-    serviceInst.happn.services.replicator.send.callsFake((_, __, callback) => {
-      callback(null);
-    });
-
-    serviceInst.initialize(mockConfig, callback);
-
-    await require('node:timers/promises').setTimeout(50);
-
-    test.chai.expect(serviceInst.happn.services.replicator.send).to.have.been.calledWithExactly(
-      '/security/dataChanged',
-      {
-        whatHappnd: 'link-group',
-        changedData: {
-          replicated: false,
-        },
-        additionalInfo: null,
-      },
-      test.sinon.match.func
-    );
 
     stubResetSessionPermissions.restore();
     stubQue.restore();
