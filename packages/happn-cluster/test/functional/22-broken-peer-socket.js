@@ -51,7 +51,7 @@ testConfigs.forEach((testConfig) => {
       setTimeout(() => {
         test.expect(clusterPeerService.peerCount).to.be(1);
         done();
-      }, 50000);
+      }, 5000);
     });
 
     function getBigMessage() {

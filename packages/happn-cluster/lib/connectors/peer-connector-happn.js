@@ -8,6 +8,10 @@ module.exports = class PeerConnectorHappn extends require('./peer-connector-base
     this.#disconnectHandler = disconnectHandler;
   }
 
+  get client() {
+    return this.#client;
+  }
+
   async connectInternal(clusterCredentials) {
     this.#client = await Happn.client.create({
       host: this.peerInfo.memberHost,
