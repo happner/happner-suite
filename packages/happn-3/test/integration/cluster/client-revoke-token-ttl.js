@@ -7,13 +7,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     loaded: true,
     exports: happn,
   };
+  const DEPLOYMENT_ID = test.newid();
+  let mongoUrl = 'mongodb://127.0.0.1:27017';
+  let mongoDatabase = 'happn-cluster';
+  let mongoCollection = 'happn-cluster-test';
   let clearMongo = require('../../__fixtures/utils/cluster/clear-mongodb');
   let getClusterConfig = require('../../__fixtures/utils/cluster/get-cluster-config');
   let clusterServices = [];
-  let mongoUrl = 'mongodb://127.0.0.1:27017';
-  let mongoCollection = 'happn-cluster-test';
   let HappnCluster = require('happn-cluster');
-  let getAddress = require('../../__fixtures/utils/cluster/get-address');
 
   before('start cluster', async () => {
     await clearMongoDb();
@@ -51,13 +52,16 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   before(
     'creates a group and a user, adds the group to the user, logs in with test user',
     async () => {
-      addedTestGroup = await clusterServices[0].services.security.users.upsertGroup(testGroup, {
-        overwrite: false,
-      });
-      addedTestUser = await clusterServices[0].services.security.users.upsertUser(testUser, {
-        overwrite: false,
-      });
-      await clusterServices[0].services.security.users.linkGroup(addedTestGroup, addedTestUser);
+      addedTestGroup = await clusterServices[0].happnService.securityService.users.upsertGroup(
+        testGroup
+      );
+      addedTestUser = await clusterServices[0].happnService.securityService.users.upsertUser(
+        testUser
+      );
+      await clusterServices[0].happnService.securityService.users.linkGroup(
+        addedTestGroup,
+        addedTestUser
+      );
     }
   );
 
@@ -65,9 +69,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     let client1 = await getClient({
       username: testUser.username,
       password: 'TEST PWD',
-      port: 56000,
+      port: 55000,
     });
-    let client2 = await getClient({ token: client1.session.token, port: 56001 });
+    let client2 = await getClient({ token: client1.session.token, port: 55001 });
     await doEventRoundTripClient(client2);
     await client1.disconnect({ revokeToken: true });
     try {
@@ -135,7 +139,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   }
 
   async function revocationInPlace(service, token) {
-    return (await service.services.security.cache_revoked_tokens.get(token)) != null;
+    return (await service.happnService.securityService.cache_revoked_tokens.get(token)) != null;
   }
 
   async function clearMongoDb() {
@@ -148,35 +152,28 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
 
   async function startCluster() {
     let clusterConfig1 = getClusterConfig(
-      55000,
-      56000,
-      57000,
-      [`${getAddress()}:57001`],
-      mongoCollection,
       mongoUrl,
-      1,
+      mongoDatabase,
+      mongoCollection,
+      DEPLOYMENT_ID,
+      55000,
       true,
       true,
-      true
+      securityProfiles
     );
     let clusterConfig2 = getClusterConfig(
-      55001,
-      56001,
-      57001,
-      [`${getAddress()}:57000`],
-      mongoCollection,
       mongoUrl,
-      2,
-      false,
+      mongoDatabase,
+      mongoCollection,
+      DEPLOYMENT_ID,
+      55001,
       true,
-      true
+      true,
+      securityProfiles
     );
 
-    clusterConfig1.services.security.config.profiles = securityProfiles;
-    clusterConfig2.services.security.config.profiles = securityProfiles;
-
-    let clusterInstance1 = await HappnCluster.create(clusterConfig1);
-    let clusterInstance2 = await HappnCluster.create(clusterConfig2);
+    let clusterInstance1 = await HappnCluster.create(clusterConfig1).start();
+    let clusterInstance2 = await HappnCluster.create(clusterConfig2).start();
 
     clusterServices.push(clusterInstance1);
     clusterServices.push(clusterInstance2);
