@@ -33,6 +33,7 @@ module.exports = class ClusterConfigurator extends require('./base-configurator'
         mode: 'http',
       },
       services: {
+        proxy: {},
         data: {
           config: {
             datastores: [],
