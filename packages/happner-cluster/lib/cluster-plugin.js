@@ -1,4 +1,5 @@
 const HappnerClient = require('happner-client');
+const { captureRejectionSymbol } = require('http-proxy');
 
 module.exports = function (clusterConfig) {
   return function (mesh, logger) {
@@ -67,7 +68,7 @@ module.exports = function (clusterConfig) {
           });
 
           // mount .peers in orchestrator
-          client.mount(mesh._mesh.happn.server.services.orchestrator);
+          client.mount(mesh._mesh.happn.server);
 
           if (Object.keys(brokeredModels).length > 0) {
             this.brokerage = require('./brokerage').create(
@@ -84,6 +85,7 @@ module.exports = function (clusterConfig) {
           }
           callback();
         } catch (e) {
+          console.log(e.stack);
           callback(e);
         }
       },

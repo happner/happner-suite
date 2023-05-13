@@ -28,7 +28,7 @@ module.exports = class ClusterConfigurator extends require('./base-configurator'
   }
   getDefaultConfig() {
     return {
-      port: 57000,
+      port: 55000,
       transport: {
         mode: 'http',
       },

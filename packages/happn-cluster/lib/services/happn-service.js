@@ -60,6 +60,9 @@ module.exports = class HappnService extends require('events').EventEmitter {
   get services() {
     return this.#happn.services;
   }
+  get connect() {
+    return this.#happn.connect;
+  }
   async upsertUser(username, password, publicKey, userPermissions, groups) {
     const user = {
       username,

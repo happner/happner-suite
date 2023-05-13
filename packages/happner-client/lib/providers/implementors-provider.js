@@ -105,16 +105,16 @@
   };
 
   ImplementorsProvider.prototype.subscribeToPeerEvents = function () {
-    this.connection.clients.on('peer/add', (this.addPeerHandler = this.addPeer.bind(this)));
-    this.connection.clients.on(
+    this.connection.clusterInstance.on('peer/add', (this.addPeerHandler = this.addPeer.bind(this)));
+    this.connection.clusterInstance.on(
       'peer/remove',
       (this.removePeerHandler = this.removePeer.bind(this))
     );
   };
 
   ImplementorsProvider.prototype.unsubscribeFromPeerEvents = function () {
-    this.connection.clients.removeListener('peer/add', this.addPeerHandler);
-    this.connection.clients.removeListener('peer/remove', this.removePeerHandler);
+    this.connection.clusterInstance.removeListener('peer/add', this.addPeerHandler);
+    this.connection.clusterInstance.removeListener('peer/remove', this.removePeerHandler);
   };
 
   ImplementorsProvider.prototype.stop = function () {
@@ -124,7 +124,7 @@
 
   ImplementorsProvider.prototype.addPeer = function (name) {
     var _this = this;
-    var peer = this.connection.clients.peers[name];
+    var peer = this.connection.clusterInstance.peers[name];
     var onSuccess = function (description) {
       var clonedDescription = Object.assign({}, description);
       _this.log.debug('logging dependencies met on addPeer');
@@ -137,7 +137,7 @@
       _this.log.debug(reason);
     };
 
-    this.getSingleDescription(peer.client, peer.self, true, onSuccess, onFailure, onIgnore);
+    this.getSingleDescription(peer.client, false, true, onSuccess, onFailure, onIgnore);
   };
 
   ImplementorsProvider.prototype.removePeer = function (name) {
@@ -194,11 +194,9 @@
 
       var fetchMultiple = function (clients) {
         return Promise.all(
-          Object.keys(clients).map(function (name) {
+          clients.map(function (client) {
             return new Promise(function (resolve) {
-              var client = clients[name].client;
-              var self = clients[name].self;
-              _this.getSingleDescription(client, self, true, resolve, resolve, (reason) => {
+              _this.getSingleDescription(client, false, client.self, resolve, resolve, (reason) => {
                 _this.log.debug(reason);
                 resolve();
               });
@@ -207,8 +205,12 @@
         );
       };
 
-      if (_this.connection.clients) {
-        return fetchMultiple(_this.connection.clients.peers).then(success);
+      if (_this.connection.clusterInstance) {
+        const clients = _this.connection.clusterInstance.peers.map(
+          (clusterPeerConnector) => clusterPeerConnector.client
+        );
+        clients.unshift(_this.connection.client);
+        return fetchMultiple(clients).then(success);
       }
 
       if (_this.connection.client) {
