@@ -369,7 +369,7 @@ function __initializeLayersConfig(config) {
   }
 }
 
-function connect(mesh, happnServer, callback) {
+function connect(_mesh, happnServer, callback) {
   happnServer.create(
     this.config.happn,
 

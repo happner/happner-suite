@@ -1,4 +1,4 @@
-require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, function (test) {
   let server, client;
   test.hooks.standardHooks(test);
 
@@ -15,6 +15,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
           data: {
             config: {
               autoUpdateDBVersion: true,
+            },
+          },
+          membership: {
+            config: {
+              deploymentId: test.newid(),
             },
           },
         },

@@ -13,7 +13,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   let mongoCollection = 'happn-cluster-test';
   let clearMongo = require('../../__fixtures/utils/cluster/clear-mongodb');
   let getClusterConfig = require('../../__fixtures/utils/cluster/get-cluster-config');
-  let clusterServices = [];
+  let clusterMembers = [];
   let HappnCluster = require('happn-cluster');
 
   before('start cluster', async () => {
@@ -52,16 +52,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   before(
     'creates a group and a user, adds the group to the user, logs in with test user',
     async () => {
-      addedTestGroup = await clusterServices[0].happnService.securityService.users.upsertGroup(
-        testGroup
-      );
-      addedTestUser = await clusterServices[0].happnService.securityService.users.upsertUser(
-        testUser
-      );
-      await clusterServices[0].happnService.securityService.users.linkGroup(
-        addedTestGroup,
-        addedTestUser
-      );
+      addedTestGroup = await clusterMembers[0].services.security.users.upsertGroup(testGroup);
+      addedTestUser = await clusterMembers[0].services.security.users.upsertUser(testUser);
+      await clusterMembers[0].services.security.users.linkGroup(addedTestGroup, addedTestUser);
     }
   );
 
@@ -81,12 +74,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       throw new Error('was not meant to happen');
     } catch (e) {
       test.expect(e.message).to.be('client is disconnected');
-      test.expect(await revocationInPlace(clusterServices[0], client1.session.token)).to.be(true);
-      test.expect(await revocationInPlace(clusterServices[1], client1.session.token)).to.be(true);
+      test.expect(await revocationInPlace(clusterMembers[0], client1.session.token)).to.be(true);
+      test.expect(await revocationInPlace(clusterMembers[1], client1.session.token)).to.be(true);
       test.log(`waiting 12 seconds for ttl...`);
       await test.delay(12e3);
-      test.expect(await revocationInPlace(clusterServices[0], client1.session.token)).to.be(false);
-      test.expect(await revocationInPlace(clusterServices[1], client1.session.token)).to.be(false);
+      test.expect(await revocationInPlace(clusterMembers[0], client1.session.token)).to.be(false);
+      test.expect(await revocationInPlace(clusterMembers[1], client1.session.token)).to.be(false);
       await client2.disconnect();
     }
   });
@@ -139,7 +132,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   }
 
   async function revocationInPlace(service, token) {
-    return (await service.happnService.securityService.cache_revoked_tokens.get(token)) != null;
+    return (await service.services.security.cache_revoked_tokens.get(token)) != null;
   }
 
   async function clearMongoDb() {
@@ -147,7 +140,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   }
 
   async function stopCluster() {
-    for (let i = 0; i < 2; i++) await clusterServices[i].stop();
+    for (let i = 0; i < 2; i++) await clusterMembers[i].stop();
   }
 
   async function startCluster() {
@@ -172,11 +165,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       securityProfiles
     );
 
-    let clusterInstance1 = await HappnCluster.create(clusterConfig1).start();
-    let clusterInstance2 = await HappnCluster.create(clusterConfig2).start();
+    let clusterInstance1 = await HappnCluster.create(clusterConfig1);
+    let clusterInstance2 = await HappnCluster.create(clusterConfig2);
 
-    clusterServices.push(clusterInstance1);
-    clusterServices.push(clusterInstance2);
+    clusterMembers.push(clusterInstance1);
+    clusterMembers.push(clusterInstance2);
 
     await test.delay(2000);
   }

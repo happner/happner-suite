@@ -41,19 +41,9 @@ module.exports.startCluster = function (clusterOpts) {
         config.services.data.config.datastores.push(additionalDatastore);
       });
     }
-    let servers = [];
-    servers.push(HappnCluster.create(clone(this.__configs[0])));
-    await test.delay(2000);
-    // start first peer immediately and other a moment
-    // later so they don't all fight over creating the
-    // admin user in the shared database
-    for (let [sequence, config] of this.__configs.entries()) {
-      if (sequence === 0) {
-        continue;
-      }
-      servers.push(HappnCluster.create(clone(config)));
-    }
-    this.servers = await Promise.all(servers.map((server) => server.start().then(() => server)));
+    this.servers = await Promise.all(
+      this.__configs.map((config) => HappnCluster.create(clone(config)))
+    );
     await test.delay(2000);
     return this.servers;
   });

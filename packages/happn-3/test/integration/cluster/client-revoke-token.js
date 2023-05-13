@@ -18,7 +18,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   let clearMongo = require('../../__fixtures/utils/cluster/clear-mongodb');
   let getClusterConfig = require('../../__fixtures/utils/cluster/get-cluster-config');
 
-  let clusterServices = [];
+  let clusterMembers = [];
   let HappnCluster = require('happn-cluster');
 
   before('start cluster', async () => {
@@ -57,27 +57,17 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   before(
     'creates a group and a user, adds the group to the user, logs in with test user',
     function (done) {
-      clusterServices[0].happnService.securityService.users.upsertGroup(
-        testGroup,
-        function (e, result) {
+      clusterMembers[0].services.security.users.upsertGroup(testGroup, function (e, result) {
+        if (e) return done(e);
+        addedTestGroup = result;
+
+        clusterMembers[0].services.security.users.upsertUser(testUser, function (e, result) {
           if (e) return done(e);
-          addedTestGroup = result;
+          addedTestuser = result;
 
-          clusterServices[0].happnService.securityService.users.upsertUser(
-            testUser,
-            function (e, result) {
-              if (e) return done(e);
-              addedTestuser = result;
-
-              clusterServices[0].happnService.securityService.users.linkGroup(
-                addedTestGroup,
-                addedTestuser,
-                done
-              );
-            }
-          );
-        }
-      );
+          clusterMembers[0].services.security.users.linkGroup(addedTestGroup, addedTestuser, done);
+        });
+      });
     }
   );
 
@@ -173,7 +163,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
 
   function restoreToken(token) {
     return new Promise((resolve, reject) => {
-      clusterServices[0].happnService.securityService.restoreToken(token, function (e) {
+      clusterMembers[0].services.security.restoreToken(token, function (e) {
         if (e) return reject(e);
         resolve();
       });
@@ -210,7 +200,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   }
 
   async function stopCluster() {
-    for (let i = 0; i < 2; i++) await clusterServices[i].stop();
+    for (let i = 0; i < 2; i++) await clusterMembers[i].stop();
   }
 
   async function startCluster() {
@@ -233,11 +223,11 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       true
     );
 
-    let clusterInstance1 = await HappnCluster.create(clusterConfig1).start();
-    let clusterInstance2 = await HappnCluster.create(clusterConfig2).start();
+    let clusterInstance1 = await HappnCluster.create(clusterConfig1);
+    let clusterInstance2 = await HappnCluster.create(clusterConfig2);
 
-    clusterServices.push(clusterInstance1);
-    clusterServices.push(clusterInstance2);
+    clusterMembers.push(clusterInstance1);
+    clusterMembers.push(clusterInstance2);
 
     await delay(2000);
   }
