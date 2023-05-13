@@ -53,7 +53,11 @@ require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
       .then(function () {
         return restart();
       })
-      .then(done)
-      .catch(done);
+      .then(() => {
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
   });
 });
