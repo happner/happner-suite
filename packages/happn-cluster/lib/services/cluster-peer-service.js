@@ -62,7 +62,6 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
 
   async #disconnectPeerConnector(peerConnector) {
     try {
-      await this.#eventReplicator.detachPeerConnector(peerConnector);
       await peerConnector.disconnect();
     } catch (e) {
       // TODO: should we fatal here?

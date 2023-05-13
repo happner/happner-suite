@@ -46,16 +46,6 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     }
   }
 
-  async detachPeerConnector(peerConnector) {
-    // eslint-disable-next-line no-useless-catch
-    try {
-      await peerConnector.unsubscribe(this.#config.replicationPaths);
-    } catch (e) {
-      //TODO: what now
-      throw e;
-    }
-  }
-
   async handleReplicationSubscription(data, meta) {
     if (this.#stopped) {
       return;

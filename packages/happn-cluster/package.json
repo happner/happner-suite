@@ -4,7 +4,7 @@
   "description": "extends happn with cluster ability",
   "main": "index.js",
   "scripts": {
-    "test-debug": "_mocha test/integration/* --recursive --exit",
+    "test-debug": "_mocha test/functional/* --recursive --exit",
     "test": "_mocha silence.js test/unit/* test/integration/* test/functional/* --recursive --exit",
     "test-inc-functional": "_mocha silence.js test/integration test/unit test/functional --recursive --exclude **/*.skip.js",
     "test-unit": "mocha test/unit/* --recursive",

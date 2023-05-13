@@ -46,10 +46,6 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     throw new Error(`subscribeInternal not implemented`);
   }
 
-  async unsubscribeInternal() {
-    throw new Error(`unsubscribeInternal not implemented`);
-  }
-
   async connect(clusterCredentials) {
     await this.queue.lock(async () => {
       this.#status = PeerConnectorStatuses.CONNECTING;
@@ -72,14 +68,6 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     await this.queue.lock(async () => {
       for (let path of paths) {
         await this.subscribeInternal(path, handler);
-      }
-    });
-  }
-
-  async unsubscribe(paths) {
-    await this.queue.lock(async () => {
-      for (let path of paths) {
-        await this.unsubscribeInternal(path);
       }
     });
   }
