@@ -30,7 +30,6 @@ require('../lib/test-helper').describe({ timeout: 90e3 }, function (test) {
         })
         .then(function (server) {
           _this.servers.push(server);
-          return server.start();
         });
     }
 
