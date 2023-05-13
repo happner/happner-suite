@@ -60,20 +60,6 @@ class HappnerClusterComponent extends require('events').EventEmitter {
   }
 }
 
-HappnerClusterComponent.stop = commons.maybePromisify((cb) => {
-  const component = new HappnerClusterComponent(config);
-  let error;
-  component
-    .start()
-    .catch((e) => {
-      error = e;
-    })
-    .finally(() => {
-      if (error) return cb(error);
-      cb(null, component);
-    });
-});
-
 HappnerClusterComponent.create = commons.maybePromisify((config, cb) => {
   const component = new HappnerClusterComponent(config);
   let error;
