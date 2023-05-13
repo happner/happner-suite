@@ -1,4 +1,4 @@
-require('../_lib/test-helper').describe({ timeout: 120e3, only: true }, function (test) {
+require('../_lib/test-helper').describe({ timeout: 10e3, only: true }, function (test) {
   let server, client;
   test.hooks.standardHooks(test);
 

@@ -4,6 +4,7 @@ class HappnerClusterComponent extends require('events').EventEmitter {
   #container;
   constructor(config) {
     super();
+    this.stop = commons.maybePromisify(this.stop);
     this.#container = Container.create(config);
   }
   get services() {
@@ -39,13 +40,39 @@ class HappnerClusterComponent extends require('events').EventEmitter {
     await this.#container.start();
     return this;
   }
-  async stop() {
-    await this.#container.stop();
+  async stop(options, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+    }
+    let error;
+    this.#container
+      .stop()
+      .catch((e) => {
+        error = e;
+      })
+      .finally(() => {
+        if (error) return cb(error);
+        cb();
+      });
   }
   get container() {
     return this.#container;
   }
 }
+
+HappnerClusterComponent.stop = commons.maybePromisify((cb) => {
+  const component = new HappnerClusterComponent(config);
+  let error;
+  component
+    .start()
+    .catch((e) => {
+      error = e;
+    })
+    .finally(() => {
+      if (error) return cb(error);
+      cb(null, component);
+    });
+});
 
 HappnerClusterComponent.create = commons.maybePromisify((config, cb) => {
   const component = new HappnerClusterComponent(config);
