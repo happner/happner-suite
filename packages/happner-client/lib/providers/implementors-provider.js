@@ -77,7 +77,7 @@
       if (!client.session) return onFailure(new Error('client session not set, no longer active'));
 
       description.meshName = client.session.happn.name;
-      description.self = self;
+      description.self = self === true;
       description.url = client.options && client.options.url ? client.options.url : null;
 
       if (self) {
@@ -123,20 +123,24 @@
   };
 
   ImplementorsProvider.prototype.addPeer = function (name) {
-    var _this = this;
-    var peer = this.connection.clusterInstance.peers[name];
-    var onSuccess = function (description) {
-      var clonedDescription = Object.assign({}, description);
-      _this.log.debug('logging dependencies met on addPeer');
-      _this.logDependenciesMet(clonedDescription);
+    const peer = this.connection.clusterInstance.peers.find(
+      (peerConnector) => peerConnector.peerInfo.memberName === name
+    );
+    if (!peer) {
+      this.log.error(`failed to find peer: ${name}`);
+      return;
+    }
+    const onSuccess = (description) => {
+      const clonedDescription = Object.assign({}, description);
+      this.log.debug('logging dependencies met on addPeer');
+      this.logDependenciesMet(clonedDescription);
     };
-    var onFailure = function (e) {
-      _this.log.error('failed to get description for %s', name, e);
+    const onFailure = (e) => {
+      this.log.error('failed to get description for %s', name, e);
     };
-    var onIgnore = function (reason) {
-      _this.log.debug(reason);
+    const onIgnore = (reason) => {
+      this.log.debug(reason);
     };
-
     this.getSingleDescription(peer.client, false, true, onSuccess, onFailure, onIgnore);
   };
 
@@ -196,7 +200,7 @@
         return Promise.all(
           clients.map(function (client) {
             return new Promise(function (resolve) {
-              _this.getSingleDescription(client, false, client.self, resolve, resolve, (reason) => {
+              _this.getSingleDescription(client, client.self, true, resolve, resolve, (reason) => {
                 _this.log.debug(reason);
                 resolve();
               });

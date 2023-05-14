@@ -240,29 +240,24 @@ describe(test.name(__filename, 2), function () {
         .catch(done);
     });
 
-    it('can get descriptions from a list of peers', function (done) {
-      delete mockConnection.client;
-
-      mockConnection.clients = {
-        peers: {
-          NAME_0: {
-            self: true,
-            client: {
-              session: {
-                happn: {
-                  name: 'SERVER_0',
-                },
-              },
-              get: function (path, callback) {
-                callback(null, {
-                  initializing: false,
-                  name: 'DOMAIN_NAME',
-                });
-              },
-            },
+    it('can get descriptions from a list of peers', async () => {
+      mockConnection.client = {
+        self: true,
+        session: {
+          happn: {
+            name: 'SERVER_0',
           },
-          NAME_1: {
-            self: false,
+        },
+        get: function (path, callback) {
+          callback(null, {
+            initializing: false,
+            name: 'DOMAIN_NAME',
+          });
+        },
+      };
+      mockConnection.clusterInstance = {
+        peers: [
+          {
             client: {
               session: {
                 happn: {
@@ -277,8 +272,7 @@ describe(test.name(__filename, 2), function () {
               },
             },
           },
-          NAME_2: {
-            self: false,
+          {
             client: {
               session: {
                 happn: {
@@ -293,32 +287,28 @@ describe(test.name(__filename, 2), function () {
               },
             },
           },
-        },
+        ],
       };
 
-      var i = new ImplementorsProvider(mockClient, mockConnection);
+      const implementorsProvider = new ImplementorsProvider(mockClient, mockConnection);
+      await implementorsProvider.getDescriptions();
 
-      i.getDescriptions()
-        .then(function () {
-          test.expect(i.descriptions).to.eql([
-            {
-              initializing: false,
-              name: 'DOMAIN_NAME',
-              self: false,
-              meshName: 'SERVER_1',
-              url: null,
-            },
-            {
-              initializing: false,
-              name: 'DOMAIN_NAME',
-              self: false,
-              meshName: 'SERVER_2',
-              url: null,
-            },
-          ]);
-        })
-        .then(done)
-        .catch(done);
+      test.expect(implementorsProvider.descriptions).to.eql([
+        {
+          initializing: false,
+          name: 'DOMAIN_NAME',
+          self: false,
+          meshName: 'SERVER_1',
+          url: null,
+        },
+        {
+          initializing: false,
+          name: 'DOMAIN_NAME',
+          self: false,
+          meshName: 'SERVER_2',
+          url: null,
+        },
+      ]);
     });
 
     it('addDescription will store version as well', (done) => {
@@ -720,9 +710,65 @@ describe(test.name(__filename, 2), function () {
     });
 
     it('adds implementations and description on peer arrival', function (done) {
-      var i = new ImplementorsProvider(mockClient, mockConnection);
+      mockConnection.clusterInstance = {
+        peers: [
+          {
+            peerInfo: {
+              memberName: 'NAME',
+            },
+            client: {
+              session: {
+                happn: {
+                  name: 'NAME',
+                },
+              },
+              get: function (path, callback) {
+                callback(null, {
+                  name: 'DOMAIN_NAME',
+                  initializing: false,
+                  components: {
+                    component2: {
+                      name: 'component2',
+                      version: '1.3.1',
+                      methods: {
+                        method1: {},
+                        method2: {},
+                      },
+                    },
+                    component3: {
+                      name: 'component3',
+                      version: '1.30.324',
+                      methods: {
+                        method1: {},
+                        method2: {},
+                      },
+                    },
+                  },
+                });
+              },
+            },
+          },
+          {
+            client: {
+              session: {
+                happn: {
+                  name: 'SERVER_2',
+                },
+              },
+              get: function (path, callback) {
+                callback(null, {
+                  initializing: false,
+                  name: 'DOMAIN_NAME',
+                });
+              },
+            },
+          },
+        ],
+      };
 
-      i.maps = {
+      const implementorsProvider = new ImplementorsProvider(mockClient, mockConnection);
+
+      implementorsProvider.maps = {
         'component1/^1.0.0/method1': [
           { local: false, name: 'MESH_2' },
           { local: false, name: 'MESH_3' },
@@ -739,11 +785,11 @@ describe(test.name(__filename, 2), function () {
           { local: false, name: 'MESH_4' },
         ],
       };
-      i.descriptions = [];
 
-      i.addPeer('NAME');
+      implementorsProvider.descriptions = [];
+      implementorsProvider.addPeer('NAME');
 
-      test.expect(i.maps).to.eql({
+      test.expect(implementorsProvider.maps).to.eql({
         'component1/^1.0.0/method1': [
           { local: false, name: 'MESH_2' },
           { local: false, name: 'MESH_3' },
@@ -761,7 +807,7 @@ describe(test.name(__filename, 2), function () {
           { local: false, name: 'MESH_4' },
         ],
       });
-      test.expect(i.descriptions.length).to.equal(1);
+      test.expect(implementorsProvider.descriptions.length).to.equal(1);
       done();
     });
   });
