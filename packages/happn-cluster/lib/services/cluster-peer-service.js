@@ -1,4 +1,5 @@
 const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
+const Constants = require('../constants/all-constants');
 module.exports = class ClusterPeerService extends require('events').EventEmitter {
   #config;
   #log;
@@ -35,7 +36,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     this.#peerConnectors.splice(this.#peerConnectors.indexOf(peerConnectorToRemove), 1);
   }
 
-  async connectPeer(peerInfo) {
+  async #connectPeerConnector(peerInfo) {
     const connectedOldPeer = this.#peerConnectors.find(
       (oldPeer) => oldPeer.peerInfo.memberName === peerInfo.memberName
     );
@@ -52,9 +53,11 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
     this.#peerConnectors.push(peerConnector);
     await peerConnector.connect(this.#clusterCredentials);
     await this.#eventReplicator.attachPeerConnector(peerConnector);
+    this.emit(Constants.EVENT_KEYS.PEER_CONNECTED, peerConnector.peerInfo);
   }
 
   async disconnect() {
+    this.removeAllListeners();
     for (let peerConnector of this.#peerConnectors) {
       await this.#disconnectPeerConnector(peerConnector);
     }
@@ -63,6 +66,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   async #disconnectPeerConnector(peerConnector) {
     try {
       await peerConnector.disconnect();
+      this.emit(Constants.EVENT_KEYS.PEER_DISCONNECTED, peerConnector.peerInfo);
     } catch (e) {
       // TODO: should we fatal here?
       this.#log.warn(
@@ -101,7 +105,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
         .build();
     });
     for (const peerInfo of peerInfoItems) {
-      await this.connectPeer(peerInfo);
+      await this.#connectPeerConnector(peerInfo);
     }
   }
 

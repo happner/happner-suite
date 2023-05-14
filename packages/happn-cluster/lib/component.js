@@ -1,5 +1,6 @@
 const Container = require('./container');
 const commons = require('happn-commons');
+const Constants = require('./constants/all-constants');
 class HappnerClusterComponent extends require('events').EventEmitter {
   #container;
   constructor(config) {
@@ -31,13 +32,10 @@ class HappnerClusterComponent extends require('events').EventEmitter {
     }
     return this.#container.dependencies.clusterPeerService.peerConnectors;
   }
-  static create(config) {
-    const component = new HappnerClusterComponent(config);
-    return component.start();
-  }
   async start() {
     this.#container.registerDependencies();
     await this.#container.start();
+    this.attachToEvents();
     return this;
   }
   async stop(options, cb) {
@@ -57,6 +55,20 @@ class HappnerClusterComponent extends require('events').EventEmitter {
   }
   get container() {
     return this.#container;
+  }
+  attachToEvents() {
+    this.#container.dependencies.clusterPeerService.on(
+      Constants.EVENT_KEYS.PEER_CONNECTED,
+      (peerInfo) => {
+        this.emit(Constants.EVENT_KEYS.PEER_CONNECTED, peerInfo);
+      }
+    );
+    this.#container.dependencies.clusterPeerService.on(
+      Constants.EVENT_KEYS.PEER_DISCONNECTED,
+      (peerInfo) => {
+        this.emit(Constants.EVENT_KEYS.PEER_DISCONNECTED, peerInfo);
+      }
+    );
   }
 }
 

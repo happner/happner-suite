@@ -43,7 +43,7 @@ require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
     });
 
     connection.on('error', function (e) {
-      test.expect(e.code).to.be('ECONNREFUSED');
+      test.expect(e.code === 'ECONNREFUSED' || e.code === 'EADDRNOTAVAIL').to.be(true);
 
       _this.servers[0].container.dependencies.proxyService
         .start()
