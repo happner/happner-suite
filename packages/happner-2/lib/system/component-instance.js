@@ -780,7 +780,11 @@ module.exports = class ComponentInstance {
     if (callbackPeer) {
       // for cluster the set is performed back at the originating peer
       try {
-        client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
+
+        const peer = mesh.happn.server.peers.find(
+          (peer) => peer.peerInfo.memberName === callbackPeer
+        );
+        client = peer.client;
       } catch (e) {
         // no peer at callback (race conditions on servers stopping and starting) dead end...
         this.log.warn(`Failure on callback, missing peer: ${callbackPeer}`, e);

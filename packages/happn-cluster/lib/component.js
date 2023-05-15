@@ -8,6 +8,12 @@ class HappnerClusterComponent extends require('events').EventEmitter {
     this.stop = commons.maybePromisify(this.stop);
     this.#container = Container.create(config);
   }
+  get config() {
+    if (!this.#container?.dependencies?.happnService) {
+      throw new Error('cannot access happnService: container not started yet');
+    }
+    return this.#container.config;
+  }
   get services() {
     if (!this.#container?.dependencies?.happnService) {
       throw new Error('cannot access happnService: container not started yet');

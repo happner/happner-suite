@@ -25,18 +25,15 @@ module.exports.create = require('util').promisify(function (config, callback) {
   cursor = config.happn.services.membership;
   cursor.config = cursor.config || {};
 
-  if (cursor.config.replicate === false) {
+  if (cursor.config.replicationPaths === false) {
     // we are explicitly not interested in cluster events
-    cursor.config.replicate = [];
+    cursor.config.replicationPaths = [];
   } else {
-    if (cursor.config.replicate == null) {
-      cursor.config.replicate = [];
-    }
-    if (!Array.isArray(cursor.config.replicate)) {
-      throw new Error('[happn.services.membership.replicate] must be an array');
+    if (cursor.config.replicationPaths && !Array.isArray(cursor.config.replicationPaths)) {
+      throw new Error('[happn.services.membership.replicationPaths] must be an array');
     }
     //receive replicated events from the configured cluster domain
-    cursor.config.replicate = cursor.config.replicate.concat([
+    cursor.config.replicationPaths = cursor.config.replicationPaths.concat([
       `/_events/${config.domain}/*/*`,
       `/_events/${config.domain}/*/*/*`,
       `/_events/${config.domain}/*/*/*/*`,

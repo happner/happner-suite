@@ -105,16 +105,16 @@
   };
 
   ImplementorsProvider.prototype.subscribeToPeerEvents = function () {
-    this.connection.clusterInstance.on('peer/add', (this.addPeerHandler = this.addPeer.bind(this)));
+    this.connection.clusterInstance.on('PEER_CONNECTED', (this.addPeerHandler = this.addPeer.bind(this)));
     this.connection.clusterInstance.on(
-      'peer/remove',
+      'PEER_DISCONNECTED',
       (this.removePeerHandler = this.removePeer.bind(this))
     );
   };
 
   ImplementorsProvider.prototype.unsubscribeFromPeerEvents = function () {
-    this.connection.clusterInstance.removeListener('peer/add', this.addPeerHandler);
-    this.connection.clusterInstance.removeListener('peer/remove', this.removePeerHandler);
+    this.connection.clusterInstance.removeListener('PEER_CONNECTED', this.addPeerHandler);
+    this.connection.clusterInstance.removeListener('PEER_DISCONNECTED', this.removePeerHandler);
   };
 
   ImplementorsProvider.prototype.stop = function () {

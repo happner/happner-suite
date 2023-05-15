@@ -10,7 +10,7 @@ require('../_lib/test-helper').describe({ timeout: 10e3 }, (test) => {
     createLogger: () => {},
     info: () => {},
   };
-  it('tests that a cluster plugin correctly reigsters non-brokered dependencies', (done) => {
+  it('tests that a cluster plugin correctly registers non-brokered dependencies', (done) => {
     let elements = require('../_lib/configurations/04/0');
     let cp = ClusterPlugin();
     let mesh = {

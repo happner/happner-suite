@@ -80,6 +80,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function localInstanceConfig(seq) {
     let config = baseConfig(seq);
+    config.happn.services.membership.config.serviceName = 'local-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       localComponent1: {
         path: libDir + 'integration-02-local-component1',
@@ -110,6 +112,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function remoteInstance1Config(seq) {
     let config = baseConfig(seq);
+    config.happn.services.membership.config.serviceName = 'remote-service-1';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent3: {
         path: libDir + 'integration-02-remote-component3',
@@ -140,6 +144,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function remoteInstance2Config(seq) {
     let config = baseConfig(seq);
+    config.happn.services.membership.config.serviceName = 'remote-service-2';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent3: {
         path: libDir + 'integration-02-remote-component3',

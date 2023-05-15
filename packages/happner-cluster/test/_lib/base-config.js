@@ -54,18 +54,37 @@ module.exports = function (
             port: 0,
           },
         },
-        orchestrator: {
+        membership: {
           config: {
-            minimumPeers: minPeers || 3,
-            replicate,
-            timing: {
-              keepAlive: 2e3,
-              memberRefresh: 2e3,
-              keepAliveThreshold: 3e3,
-              stabilisedTimeout: 10e3,
-            },
+            clusterName: 'clusterName',
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
           },
         },
+        // orchestrator: {
+        //   config: {
+        //     minimumPeers: minPeers || 3,
+        //     replicate,
+        //     timing: {
+        //       keepAlive: 2e3,
+        //       memberRefresh: 2e3,
+        //       keepAliveThreshold: 3e3,
+        //       stabilisedTimeout: 10e3,
+        //     },
+        //   },
+        // },
       },
     },
   };
