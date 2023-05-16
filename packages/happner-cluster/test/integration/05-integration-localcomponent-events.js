@@ -16,6 +16,15 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       name: 'NODE-01',
       domain: 'DOMAIN_NAME',
       port: 0,
+      happn: {
+        services: {
+          membership: {
+            config: {
+              deploymentId: test.newid(),
+            },
+          },
+        },
+      },
       modules: {
         component1: {
           instance: {
