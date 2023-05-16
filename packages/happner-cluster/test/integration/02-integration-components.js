@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  deploymentId = test.newid();
   let config = {
     cluster: {
       functions: [localInstanceConfig, remoteInstance1Config, remoteInstance2Config],
