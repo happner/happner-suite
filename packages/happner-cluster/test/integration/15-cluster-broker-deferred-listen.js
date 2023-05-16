@@ -1,7 +1,9 @@
 var libDir = require('../_lib/lib-dir');
 var baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  deploymentId = test.newid();
   test.hooks.clusterStartedSeperatelyHooks(test);
   let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
 
@@ -56,6 +58,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       ? libDir + 'integration-10-broker-component-dynamic'
       : libDir + 'integration-09-broker-component';
 
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.cluster = config.cluster || {};
     config.cluster.dependenciesSatisfiedDeferListen = true;
     config.modules = {
@@ -81,6 +85,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   function remoteInstanceConfig(seq, sync) {
     var config = baseConfig(seq, sync, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent: {
         path: libDir + 'integration-09-remote-component',

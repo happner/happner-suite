@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  deploymentId = test.newid();
   let hooksConfig = {
     cluster: {
       functions: [
@@ -59,6 +61,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   function localInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       localComponent1: {
         path: libDir + 'integration-10-local-component1',
@@ -72,6 +76,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   function remoteInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent2: {
         path: libDir + 'integration-10-remote-component2',

@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+  deploymentId = test.newid();
   test.hooks.clusterStartedSeperatelyHooks(test);
   let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
   let localInstance, client;
@@ -673,6 +675,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   function localInstanceConfig(seq, sync, dynamic) {
     var config = baseConfig(seq, sync, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.authorityDelegationOn = true;
     let brokerComponentPath = dynamic
       ? libDir + 'integration-10-broker-component-dynamic'
@@ -700,6 +704,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   function remoteInstanceConfig(seq, sync) {
     var config = baseConfig(seq, sync, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent: {
         path: libDir + 'integration-09-remote-component',

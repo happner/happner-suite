@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
+  deploymentId = test.newid();
   test.hooks.clusterStartedSeperatelyHooks(test);
   let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
   let localInstance, client;
@@ -346,6 +348,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function localInstanceConfig(seq, sync, replicate) {
     var config = baseConfig(seq, sync, true, null, null, null, null, replicate);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       localComponent: {
         path: libDir + 'integration-09-local-component',
@@ -369,6 +373,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function remoteInstanceConfig(seq, sync, replicate) {
     var config = baseConfig(seq, sync, true, null, null, null, null, replicate);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent: {
         path: libDir + 'integration-09-remote-component',
