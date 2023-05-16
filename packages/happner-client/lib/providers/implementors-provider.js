@@ -105,7 +105,10 @@
   };
 
   ImplementorsProvider.prototype.subscribeToPeerEvents = function () {
-    this.connection.clusterInstance.on('PEER_CONNECTED', (this.addPeerHandler = this.addPeer.bind(this)));
+    this.connection.clusterInstance.on(
+      'PEER_CONNECTED',
+      (this.addPeerHandler = this.addPeer.bind(this))
+    );
     this.connection.clusterInstance.on(
       'PEER_DISCONNECTED',
       (this.removePeerHandler = this.removePeer.bind(this))
@@ -124,7 +127,7 @@
 
   ImplementorsProvider.prototype.addPeer = function (name) {
     const peer = this.connection.clusterInstance.peers.find(
-      (peerConnector) => peerConnector.peerInfo.memberName === name
+      (peerConnector) => peerConnector.peerInfo.memberName === name.memberName
     );
     if (!peer) {
       this.log.error(`failed to find peer: ${name}`);
