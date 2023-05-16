@@ -34,6 +34,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       (peerConnector) => peerInfo.memberName === peerConnector.peerInfo.memberName
     );
     this.#peerConnectors.splice(this.#peerConnectors.indexOf(peerConnectorToRemove), 1);
+    this.emit(Constants.EVENT_KEYS.PEER_DISCONNECTED, peerInfo);
   }
 
   async #connectPeerConnector(peerInfo) {

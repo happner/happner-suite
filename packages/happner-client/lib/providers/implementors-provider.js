@@ -125,12 +125,12 @@
     this.clear();
   };
 
-  ImplementorsProvider.prototype.addPeer = function (name) {
+  ImplementorsProvider.prototype.addPeer = function (peerInfo) {
     const peer = this.connection.clusterInstance.peers.find(
-      (peerConnector) => peerConnector.peerInfo.memberName === name.memberName
+      (peerConnector) => peerConnector.peerInfo.memberName === peerInfo.memberName
     );
     if (!peer) {
-      this.log.error(`failed to find peer: ${name}`);
+      this.log.error(`failed to find peer: ${peerInfo.memberName}`);
       return;
     }
     const onSuccess = (description) => {
@@ -139,7 +139,7 @@
       this.logDependenciesMet(clonedDescription);
     };
     const onFailure = (e) => {
-      this.log.error('failed to get description for %s', name, e);
+      this.log.error('failed to get description for %s', peerInfo.memberName, e);
     };
     const onIgnore = (reason) => {
       this.log.debug(reason);
@@ -147,8 +147,8 @@
     this.getSingleDescription(peer.client, false, true, onSuccess, onFailure, onIgnore);
   };
 
-  ImplementorsProvider.prototype.removePeer = function (name) {
-    var removedPeerDescription = this.removeDescription(name);
+  ImplementorsProvider.prototype.removePeer = function (peerInfo) {
+    var removedPeerDescription = this.removeDescription(peerInfo.memberName);
     if (removedPeerDescription)
       this.happnerClient.emit('peer/departed/description', removedPeerDescription);
   };
