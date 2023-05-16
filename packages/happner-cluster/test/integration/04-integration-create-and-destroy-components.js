@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  deploymentId = test.newid();
   let config = {
     cluster: {
       functions: [localInstanceConfig],
@@ -81,6 +83,8 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   function localInstanceConfig(seq) {
     let config = baseConfig(seq, 1);
+    config.happn.services.membership.config.serviceName = 'local-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       dependency1: {
         instance: {},

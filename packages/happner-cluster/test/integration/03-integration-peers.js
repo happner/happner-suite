@@ -98,7 +98,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
   function remoteInstanceConfig(seq) {
     let config = baseConfig(seq);
-    config.happn.services.membership.config.serviceName = 'local-service';
+    config.happn.services.membership.config.serviceName = 'remote-service';
     config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       remoteComponent2: {
