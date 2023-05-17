@@ -83,7 +83,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
           origin: this.#happnService.name,
         },
         { noStore: true },
-        function (e) {
+        (e) => {
           if (!e) {
             return;
           }
