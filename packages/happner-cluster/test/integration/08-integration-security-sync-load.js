@@ -1,4 +1,7 @@
+let deploymentId;
 require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
+  deploymentId = test.newid();
+
   const libDir = require('../_lib/lib-dir');
   const baseConfig = require('../_lib/base-config');
   const stopCluster = require('../_lib/stop-cluster');
@@ -143,6 +146,8 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
 
   function serverConfig(seq, minPeers) {
     let config = baseConfig(seq, minPeers, true);
+    config.happn.services.membership.config.serviceName = 'remote-service';
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       component1: {
         path: libDir + 'integration-08-component',
@@ -167,11 +172,7 @@ require('../_lib/test-helper').describe({ timeout: 30e3 }, (test) => {
       component4: {},
       component5: {},
     };
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
-      },
-    };
+    config.happn.services.membership.config.securityChangeSetReplicateInterval = 1e2;
     return config;
   }
 
