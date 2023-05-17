@@ -346,6 +346,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     config.components = {
       component1: {},
     };
+    config.happn.services.membership.config.securityChangeSetReplicateInterval = 1e2;
     return config;
   }
 });
