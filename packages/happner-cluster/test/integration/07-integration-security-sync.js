@@ -346,11 +346,6 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, function (test) {
     config.components = {
       component1: {},
     };
-    config.happn.services.replicator = {
-      config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
-      },
-    };
     return config;
   }
 });

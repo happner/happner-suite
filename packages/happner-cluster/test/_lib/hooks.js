@@ -53,14 +53,14 @@ function stopClientsHook(test, timing) {
     case 'after': {
       after('stop clients', async function () {
         if (!test.clients?.length) return;
-        await stopClient.bind(test.clients);
+        await stopClient(test.clients);
         test.clients = [];
       });
       break;
     }
     case 'afterEach':
     default: {
-      after('stop clients', async function () {
+      afterEach('stop clients', async function () {
         if (!test.clients?.length) return;
         await stopClient(test.clients);
         test.clients = [];
