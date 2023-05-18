@@ -623,7 +623,7 @@ describe(test.name(__filename, 2), function () {
         ],
       };
 
-      i.removePeer('MESH_3');
+      i.removePeer({ memberName: 'MESH_3' });
 
       test.expect(i.descriptions).to.eql([
         {
@@ -787,7 +787,7 @@ describe(test.name(__filename, 2), function () {
       };
 
       implementorsProvider.descriptions = [];
-      implementorsProvider.addPeer('NAME');
+      implementorsProvider.addPeer({ memberName: 'NAME' });
 
       test.expect(implementorsProvider.maps).to.eql({
         'component1/^1.0.0/method1': [
