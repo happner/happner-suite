@@ -61,6 +61,22 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             actions: ['on'],
             description: 'mesh system request permission',
           },
+          '/_exchange/requests/{{happn.name}}/security/changePassword': {
+            actions: ['set'],
+            description: 'mesh system permission',
+          },
+          '/_exchange/responses/*/security/changePassword/{{id}}/*': {
+            actions: ['on'],
+            description: 'mesh system request permission',
+          },
+          '/_exchange/requests/{{happn.name}}/security/resetPassword': {
+            actions: ['set'],
+            description: 'mesh system permission',
+          },
+          '/_exchange/responses/*/security/resetPassword/{{id}}/*': {
+            actions: ['on'],
+            description: 'mesh system request permission',
+          },
         };
       }
       if (groupName === '_MESH_DELEGATE') {
@@ -167,36 +183,6 @@ Security.prototype.__validateRequest = function (methodName, callArguments, call
     return callback(
       new Error('security module not initialized, is your happn configured to be secure?')
     );
-  }
-
-  if (methodName === 'updateOwnUser') {
-    var sessionInfo = callArguments[1];
-    var userUpdate = callArguments[2];
-
-    if (userUpdate.username === '_ANONYMOUS') {
-      return callback(new Error('updates to the _ANONYMOUS user are forbidden'));
-    }
-
-    var session = this.__sessionService.getSession(sessionInfo.id);
-    if (userUpdate.password && !userUpdate.oldPassword)
-      return callback(new Error('missing oldPassword parameter'));
-    if (!session) return callback(new Error('matching session was not found for security update'));
-    if (session.user.username !== sessionInfo.username)
-      return callback(new Error('session with the matching id is for a different user'));
-    if (sessionInfo.username !== userUpdate.username)
-      return callback(new Error("attempt to update someone else's user details"));
-
-    if (userUpdate.password) {
-      // we need to validate against the previous password
-      return this.__securityService.users.getPasswordHash(userUpdate.username, (e, hash) => {
-        if (e) return callback(e);
-        this.__securityService.matchPassword(userUpdate.oldPassword, hash, (e, match) => {
-          if (e) return callback(e);
-          if (!match) return callback(new Error('old password incorrect'));
-          callback();
-        });
-      });
-    }
   }
 
   if (['addGroup', 'updateGroup'].indexOf(methodName) > -1) {
@@ -806,19 +792,23 @@ Security.prototype.addUser = function ($happn, user, callback) {
   });
 };
 
-Security.prototype.updateOwnUser = function ($happn, $origin, user, callback) {
-  this.__validateRequest('updateOwnUser', arguments, (e) => {
-    if (e) return callback(e);
-    delete user.oldPassword;
-    //this is a special field that can only be updated by the administrator
-    delete user.application_data;
-    if ($happn.config.allowOwnCustomDataUpdates === false) {
-      //dont allow the user to edit custom_data (essentially becomes the same as application_data)
-      delete user.custom_data;
-    }
+Security.prototype.changePassword = async function ($happn, $origin, oldPassword, newPassword) {
+  if (typeof oldPassword !== 'string' || typeof newPassword !== 'string') {
+    throw new Error('Bad Password Arguments');
+  }
+  await this.__securityService.changePassword($origin, { oldPassword, newPassword });
+};
 
-    this.__securityService.users.upsertUser(this.__transformMeshUser($happn, user), callback);
-  });
+Security.prototype.updateOwnUser = function ($happn, $origin, user, callback) {
+  let updateError;
+  $happn.log.warn(`Deprecated function, please use changePassword`);
+  this.changePassword($happn, $origin, user.oldPassword, user.password)
+    .catch((e) => {
+      updateError = e;
+    })
+    .finally(() => {
+      callback(updateError, user);
+    });
 };
 
 Security.prototype.updateUser = function ($happn, user, callback) {
@@ -826,6 +816,13 @@ Security.prototype.updateUser = function ($happn, user, callback) {
     if (e) return callback(e);
     this.__securityService.users.upsertUser(this.__transformMeshUser($happn, user), callback);
   });
+};
+
+Security.prototype.resetPassword = async function (emailAddress) {
+  if (typeof emailAddress !== 'string') {
+    throw new Error('Invalid arguments');
+  }
+  return this.__securityService.resetPassword(emailAddress);
 };
 
 Security.prototype.linkGroupName = function ($happn, groupName, user, callback) {

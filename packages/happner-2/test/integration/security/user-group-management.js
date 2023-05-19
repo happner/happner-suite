@@ -346,7 +346,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               testUser.custom_data = { changedCustom: 'changedCustom' };
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
-                test.expect(e.toString()).to.be('Error: missing oldPassword parameter');
+                test.expect(e.toString()).to.be('Error: Bad Password Arguments');
                 done();
               });
             })
@@ -409,7 +409,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
               testUser.custom_data = { changedCustom: 'changedCustom' };
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
-                test.expect(e.toString()).to.be('Error: old password incorrect');
+                test.expect(e.toString()).to.be('SystemError: Invalid old password');
                 done();
               });
             })
@@ -421,7 +421,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  it('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
+  it.skip('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
     var testGroup = {
       name: 'TESTGROUP6' + test_id,
 
@@ -826,5 +826,31 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     test.expect(resultscontrol.length).to.be(2);
 
     test.expect(results3.value).to.be(2);
+  });
+
+  it('Test ability to change password over the security exchange.', async () => {
+    let testError;
+    const testUser = {
+      username: 'TESTUSER_SEARCH1@testing34.com',
+      password: 'TEST PWD',
+      custom_data: {
+        cadre: 0,
+      },
+    };
+    await adminClient.exchange.security.addUser(testUser);
+    let testUserClient = new Mesh.MeshClient({ secure: true, port: 8003 });
+
+    await testUserClient.login(testUser);
+    // await testUserClient.exchange.security.updateOwnUser({ oldPassword: '123', ...testUser });
+    await testUserClient.exchange.security.changePassword('TEST PWD', 'new');
+    try {
+      await testUserClient.exchange.security.changePassword('old', 'new');
+    } catch (e) {
+      testError = e.message;
+    }
+    test.expect(testError).to.eql('Invalid old password');
+    await testUserClient.disconnect();
+    testUser.password = 'new';
+    await testUserClient.login(testUser);
   });
 });
