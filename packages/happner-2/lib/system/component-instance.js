@@ -780,7 +780,6 @@ module.exports = class ComponentInstance {
     if (callbackPeer) {
       // for cluster the set is performed back at the originating peer
       try {
-
         const peer = mesh.happn.server.peers.find(
           (peer) => peer.peerInfo.memberName === callbackPeer
         );

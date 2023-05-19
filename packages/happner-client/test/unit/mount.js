@@ -26,8 +26,8 @@ describe(test.name(__filename, 3), function () {
 
     c.mount(mockClusterComponent);
     test.expect(subscriptions).to.eql({
-      'PEER_CONNECTED': 1,
-      'PEER_DISCONNECTED': 1,
+      PEER_CONNECTED: 1,
+      PEER_DISCONNECTED: 1,
     });
     c.__operations.stop();
     c.__implementors.stop();
