@@ -135,7 +135,8 @@ module.exports = class HappnService extends require('events').EventEmitter {
             '*': {
               actions: ['*'],
             },
-          }
+          },
+          ['_MESH_DELEGATE']
         );
         credentialsBuilder.withUsername(membershipConfig.clusterUsername);
         if (membershipConfig.clusterPassword) {

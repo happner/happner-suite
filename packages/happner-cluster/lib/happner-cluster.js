@@ -28,7 +28,10 @@ module.exports.create = require('util').promisify(function (config, callback) {
   if (cursor.config.replicationPaths === false) {
     // we are explicitly not interested in cluster events
     cursor.config.replicationPaths = [];
-  } else if (cursor.config.replicationPaths) {
+  } else {
+    if (!cursor.config.replicationPaths) {
+      cursor.config.replicationPaths = [];
+    }
     if (!Array.isArray(cursor.config.replicationPaths)) {
       throw new Error('[happn.services.membership.replicationPaths] must be an array');
     }

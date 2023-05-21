@@ -116,7 +116,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.#initializeProfiles(config);
     await this.#initializeSessionManagement(config);
     this.#initializeOnBehalfOfCache(config);
-    await this.#ensureAdminUser(config);
+    await this.#ensureAdminUserAndGroups(config);
     this.anonymousUser = await this.#ensureAnonymousUser(config);
     await this.#initializeSessionTokenSecret(config);
     await this.#initializeAuthProviders(config);
@@ -336,7 +336,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return this.happn.services.error.AccessDeniedError(message, reason);
   }
 
-  async #ensureAdminUser(config) {
+  async #ensureAdminUserAndGroups(config) {
     if (!config.adminUser)
       config.adminUser = {
         custom_data: {},
@@ -358,6 +358,13 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     };
     // recreate admin group, so that base system permissions are always in place
     const adminGroup = await this.groups.upsertGroupWithoutValidation(config.adminGroup, {});
+
+    // upsert mesh delegate group
+    await this.groups.upsertGroupWithoutValidation({
+      name: '_MESH_DELEGATE',
+      permissions: {},
+    });
+
     const foundUser = await this.users.getUser('_ADMIN');
 
     if (foundUser) return;

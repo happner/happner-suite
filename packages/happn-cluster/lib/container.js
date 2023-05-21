@@ -106,6 +106,7 @@ module.exports = class Container {
     this.#dependencies['clusterPeerService'] = clusterPeerService;
     this.#dependencies['membershipService'] = membershipService;
     this.#dependencies['securityDirectoryReplicator'] = securityDirectoryReplicator;
+    this.#dependencies['eventReplicator'] = eventReplicator;
   }
   async start() {
     try {

@@ -214,7 +214,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
     it('connects a client to the local instance, and is able to access the remote component events via the broker, negative test', async function () {
       let edgeClient, internalClient;
-      await clusterStarter.startClusterInternalFirst();
+      await clusterStarter.startClusterInternalFirst(false);
       test.clients.push(
         (edgeClient = await test.client.create('_ADMIN', 'happn', test.proxyPorts[1]))
       );
@@ -398,6 +398,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function errorInstanceConfigDuplicateBrokered(seq, sync, replicate) {
     var config = baseConfig(seq, sync, true, true, null, null, null, null, replicate);
+    config.happn.services.membership.config.deploymentId = deploymentId;
     config.modules = {
       localComponent: {
         path: libDir + 'integration-09-local-component',

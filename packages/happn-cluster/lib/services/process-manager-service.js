@@ -5,8 +5,8 @@ module.exports = class ProcessManagerService {
     this.#log = logger;
     this.#process = nodeProcess;
   }
-  static create(logger) {
-    return new ProcessManagerService(logger);
+  static create(logger, nodeProcess) {
+    return new ProcessManagerService(logger, nodeProcess);
   }
   fatal(message) {
     this.#log.error(`FATAL: ${message}`);

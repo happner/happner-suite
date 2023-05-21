@@ -69,8 +69,8 @@ module.exports = function (
             // intra-cluster credentials
             clusterUsername: '_CLUSTER',
             clusterPassword: 'PASSWORD',
-            // event paths we want to replicate on, in this case everything
-            replicationPaths: ['**'],
+            // event paths we want to replicate on, by default everything
+            replicationPaths: replicate === false ? false : replicate || ['**'],
           },
         },
         // orchestrator: {

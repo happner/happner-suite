@@ -17,13 +17,13 @@ require('../_lib/test-helper').describe({ timeout: 10e3 }, (test) => {
       _mesh: {
         elements,
         config: {},
-        happn: { server: { services: { orchestrator: {} } } },
+        happn: { server: { services: {} } },
       },
     };
     let node = cp(mesh, logger);
     mesh._mesh.clusterClient.mount = test.sinon.fake();
     mesh._mesh.clusterClient.construct = test.sinon.fake();
-    mesh._mesh.clusterClient.__operations.connection.clients = {
+    mesh._mesh.clusterClient.__operations.connection.clusterInstance = {
       removeListener: test.sinon.fake(),
     };
     node.start((e) => {
@@ -52,13 +52,13 @@ require('../_lib/test-helper').describe({ timeout: 10e3 }, (test) => {
       _mesh: {
         elements,
         config: {},
-        happn: { server: { services: { orchestrator: {} } } },
+        happn: { server: { services: {} } },
       },
     };
     let node = cp(mesh, logger);
     mesh._mesh.clusterClient.mount = test.sinon.fake();
     mesh._mesh.clusterClient.construct = test.sinon.fake();
-    mesh._mesh.clusterClient.__operations.connection.clients = {
+    mesh._mesh.clusterClient.__operations.connection.clusterInstance = {
       removeListener: test.sinon.fake(),
     };
     node.start((e) => {
