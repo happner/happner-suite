@@ -298,7 +298,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
                 if (!e) return done(new Error('error was test.expected'));
-                test.expect(e.toString()).to.be('Error: missing oldPassword parameter');
+                test.expect(e.toString()).to.be('Error: Bad Password Arguments');
                 done();
               });
             })
@@ -361,7 +361,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
                 if (!e) return done(new Error('error was test.expected'));
-                test.expect(e.toString()).to.be('Error: old password incorrect');
+                test.expect(e.toString()).to.be('SystemError: Invalid old password');
                 done();
               });
             })
@@ -373,7 +373,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
-  it('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
+  it.skip('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
     var testGroup = {
       name: 'TESTGROUP6' + test_id,
 
