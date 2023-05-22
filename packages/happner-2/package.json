@@ -47,7 +47,7 @@
     "change-case": "2.3.0",
     "commander": "2.9.0",
     "diskspace": "0.1.7",
-    "happn-3": "13.11.0",
+    "happn-3": "../happn-3",
     "happn-commons": "1.5.0",
     "happn-logger": "2.2.4",
     "happn-sillyname": "^0.1.1",

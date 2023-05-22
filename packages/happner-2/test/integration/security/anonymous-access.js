@@ -148,7 +148,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     } catch (e) {
       eMessage = e.message;
     }
-    test.expect(eMessage).to.be('updates to the _ANONYMOUS user are forbidden');
+    test.expect(eMessage).to.be('Bad Password Arguments');
 
     try {
       await anonymousUserClient.exchange.security.resetPassword('test@test.com');
