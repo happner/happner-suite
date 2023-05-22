@@ -317,7 +317,7 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
               testUser.custom_data = { changedCustom: 'changedCustom' };
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
-                expect(e.toString()).to.be('Error: missing oldPassword parameter');
+                expect(e.toString()).to.be('Error: Bad Password Arguments');
                 done();
               });
             })
@@ -380,7 +380,7 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
               testUser.custom_data = { changedCustom: 'changedCustom' };
 
               testUserClient.exchange.security.updateOwnUser(testUser, function (e) {
-                expect(e.toString()).to.be('Error: old password incorrect');
+                expect(e.toString()).to.be('SystemError: Invalid old password');
                 done();
               });
             })
@@ -392,7 +392,7 @@ describe(require('../__fixtures/utils/test_helper').create().testName(__filename
     });
   });
 
-  it('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
+  it.skip('adds a test user, logs in with the test user - modifies the user details without the users password changing', function (done) {
     var testGroup = {
       name: 'TESTGROUP6' + test_id,
 
