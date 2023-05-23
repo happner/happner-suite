@@ -2,6 +2,7 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  let deploymentId = test.newid();
   let internalInstance;
   let thisClient, adminClient;
   test.hooks.clusterStartedSeperatelyHooks(test);
@@ -208,9 +209,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
-    config.happn.services.replicator = {
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;
@@ -242,9 +244,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     };
-    config.happn.services.replicator = {
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

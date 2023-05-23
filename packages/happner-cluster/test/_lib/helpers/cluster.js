@@ -53,7 +53,7 @@ module.exports = class Cluster extends Helper {
     console.log(`cleared test cluster events`);
     this.events.data = [];
   }
-  async destroy(index) {
+  async destroy(index, deploymentId = '*') {
     if (index >= 0) {
       await this.instances[index].stop();
       this.instances.splice(index, 1);
@@ -66,11 +66,8 @@ module.exports = class Cluster extends Helper {
     });
     for (let instance of this.instances) {
       if (instance.stop) {
-        let orchestrator = instance._mesh.happn.server.services.orchestrator;
         let dataService = instance._mesh.happn.server.services.data;
-        let keepAlivePath = `/SYSTEM/DEPLOYMENT/${orchestrator.deployment}/${orchestrator.serviceName}/${orchestrator.endpoint}`;
-        await orchestrator.stop();
-        await dataService.remove(keepAlivePath);
+        await dataService.remove(`/SYSTEM/DEPLOYMENT/${deploymentId}/*`);
         await instance.stop({ reconnect: false });
         await delay(300);
       }

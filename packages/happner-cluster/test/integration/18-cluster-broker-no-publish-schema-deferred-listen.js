@@ -4,6 +4,7 @@ const baseConfig = require('../_lib/base-config');
 require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
   let client;
   test.hooks.clusterStartedSeperatelyHooks(test);
+  let deploymentId = test.newid();
   let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
 
   it('starts the cluster broker first, client connects and receives no further schema updates, when we flip-flop internal host', async () => {
@@ -51,6 +52,12 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -72,6 +79,12 @@ require('../_lib/test-helper').describe({ timeout: 40e3 }, (test) => {
       remoteComponent1: {
         startMethod: 'start',
         stopMethod: 'stop',
+      },
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

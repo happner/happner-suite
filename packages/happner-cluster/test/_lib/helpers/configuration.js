@@ -8,6 +8,15 @@ module.exports = class Configuration extends require('./helper') {
     return new Configuration();
   }
 
+  getExternalPorts(cluster) {
+    return cluster.instances
+      .sort((a, b) => {
+        if (a._mesh.config.name < b._mesh.config.name) return -1;
+        return 1;
+      })
+      .map((server) => server._mesh.happn.server.config.services.proxy.port);
+  }
+
   extract(test, index, name) {
     const configuration = this.get(test, index);
     return {
@@ -26,12 +35,18 @@ module.exports = class Configuration extends require('./helper') {
     return require(`../configurations/${test}/${index}`);
   }
 
-  construct(test, index, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix) {
-    const base = this.base(index, secure, minPeers, hosts, joinTimeout, replicate, nameSuffix);
+  construct(deploymentId, test, index, secure = true, replicate, nameSuffix) {
+    const base = this.base(index, secure, replicate, nameSuffix);
+    base.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return _.defaultsDeep(base, this.get(test, index));
   }
 
-  base(index, secure = true, minPeers, hosts, joinTimeout, replicate, nameSuffix = '') {
+  base(index, secure = true, replicate, nameSuffix = '') {
     replicate = replicate || ['*'];
 
     return {
@@ -58,18 +73,6 @@ module.exports = class Configuration extends require('./helper') {
           proxy: {
             config: {
               port: 0,
-            },
-          },
-          orchestrator: {
-            config: {
-              minimumPeers: minPeers || 3,
-              replicate,
-              timing: {
-                keepAlive: 2e3,
-                memberRefresh: 2e3,
-                keepAliveThreshold: 3e3,
-                stabilisedTimeout: 10e3,
-              },
             },
           },
         },

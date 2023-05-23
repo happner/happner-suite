@@ -8,28 +8,22 @@ const helpers = {
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+  let deploymentId = test.newid();
   beforeEach('clear mongo collection', function (done) {
     clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
   });
-  let proxyPorts;
-  let getProxyPorts = (cluster) => {
-    return cluster.instances
-      .sort((a, b) => {
-        if (a._mesh.config.name < b._mesh.config.name) return -1;
-        return 1;
-      })
-      .map((server) => server._mesh.happn.server.config.services.proxy.port);
-  };
+  let externalPorts;
   it('starts up a cluster with no interdependencies, happy path, we ensure we can start and teardown the cluster', async () => {
     const cluster = helpers.cluster.create();
 
-    await cluster.member.start(helpers.configuration.construct(20, 0), 1000);
-    await cluster.member.start(helpers.configuration.construct(20, 1), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 4), 3000);
-    await cluster.member.start(helpers.configuration.construct(20, 5), 4000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 0), 1000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 1), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 3000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 5), 4000);
+
     await test.delay(4e3);
-    proxyPorts = getProxyPorts(cluster);
-    const client = await helpers.client.create(username, password, proxyPorts[1]); //Unlike others, membership starts at 0 here
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
+    const client = await helpers.client.create(username, password, externalPorts[1]); //Unlike others, membership starts at 0 here
     const result = await client.exchange.component1.use();
     test.expect(result).to.be(1);
     await helpers.client.destroy(client);
@@ -39,22 +33,22 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('starts up a cluster with interdependencies, happy path, we ensure the startup order is correct', async () => {
     const cluster = helpers.cluster.create();
     // start member 0
-    await cluster.member.start(helpers.configuration.construct(20, 0), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 0), 0, 1e3);
     // start member 1
-    await cluster.member.start(helpers.configuration.construct(20, 1), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 1), 0, 1e3);
     // start member 2, depends on 4
-    await cluster.member.start(helpers.configuration.construct(20, 2), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 2), 0, 1e3);
     // start member 3, depends on 5
-    await cluster.member.start(helpers.configuration.construct(20, 3), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 3), 0, 1e3);
     await test.delay(6e3); // sizeable delay
     // start member 4
-    await cluster.member.start(helpers.configuration.construct(20, 4), 0, 7e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 0, 7e3);
     // start member 5
-    await cluster.member.start(helpers.configuration.construct(20, 5), 0, 7e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 5), 0, 7e3);
     await test.delay(10e3);
-    proxyPorts = getProxyPorts(cluster);
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
     //check member 2 (depending on member 4) is accessible
-    const client = await helpers.client.create(username, password, proxyPorts[2]);
+    const client = await helpers.client.create(username, password, externalPorts[2]);
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
 
@@ -88,16 +82,16 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('starts up a cluster with interdependencies, with intra-mesh dependencies', async () => {
     const cluster = helpers.cluster.create();
     // start member 4
-    await cluster.member.start(helpers.configuration.construct(20, 4), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 0, 1e3);
     // start member 5
-    await cluster.member.start(helpers.configuration.construct(20, 5), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 5), 0, 1e3);
     // start member 6
-    await cluster.member.start(helpers.configuration.construct(20, 6), 0, 1e3);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 6), 0, 1e3);
     test.log(`waiting 16 seconds...`);
     await test.delay(16e3);
-    proxyPorts = getProxyPorts(cluster);
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
     //check member 2 (depending on member 4) is accessible
-    const client = await helpers.client.create(username, password, proxyPorts[2]);
+    const client = await helpers.client.create(username, password, externalPorts[2]);
     const result = await client.exchange.component6.use();
     test.expect(result).to.be(6);
     await helpers.client.destroy(client);
@@ -107,10 +101,10 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('starts up a cluster with interdependencies, we ensure that members with unsatisfied dependencies are not accessible', async () => {
     const cluster = helpers.cluster.create();
 
-    await cluster.member.start(helpers.configuration.construct(20, 0), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 1), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 2), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 3), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 0), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 1), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 2), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 3), 2000);
     await test.delay(7000);
 
     const values = cluster.events.data.map((item) => {
@@ -123,13 +117,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     // with auto-assigned ports, they won't have a proxy port yet.
 
     //start member 4 up - this should make member 2 available
-    await cluster.member.start(helpers.configuration.construct(20, 4), 6000);
-    proxyPorts = getProxyPorts(cluster);
-    const client = await helpers.client.create(username, password, proxyPorts[2]);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 6000);
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
+    const client = await helpers.client.create(username, password, externalPorts[2]);
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
     //start member 5 up So that we can cleanly destroy cluster
-    await cluster.member.start(helpers.configuration.construct(20, 5), 6000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 5), 6000);
     await helpers.client.destroy(client);
     await test.delay(2000);
 
@@ -139,14 +133,14 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('starts up a cluster, we inject a component with dependencies - ensure it starts because its existing dependencies are there', async () => {
     const cluster = helpers.cluster.create();
 
-    await cluster.member.start(helpers.configuration.construct(20, 0), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 1), 2000);
-    await cluster.member.start(helpers.configuration.construct(20, 4), 7000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 0), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 1), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 7000);
     await cluster.component.inject(1, helpers.configuration.extract(20, 2, 'component2'));
     await test.delay(6000);
-    proxyPorts = getProxyPorts(cluster);
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
     //check member 2 (depending on member 4) is accessible
-    const client = await helpers.client.create(username, password, proxyPorts[1]);
+    const client = await helpers.client.create(username, password, externalPorts[1]);
     await test.delay(4000);
     const result = await client.exchange.component2.use();
     test.expect(result).to.be(2);
@@ -157,20 +151,20 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   it('starts up a cluster with interdependencies, we inject a component with dependencies - ensure it start is delayed as it depends on a follow on injected component', async () => {
     const cluster = helpers.cluster.create();
 
-    await cluster.member.start(helpers.configuration.construct(20, 0), 4000);
-    await cluster.member.start(helpers.configuration.construct(20, 1), 4000);
-    await cluster.member.start(helpers.configuration.construct(20, 5), 9000); //Need mesh to sttabilize before adding component
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 0), 4000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 1), 4000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 5), 9000); //Need mesh to sttabilize before adding component
     //dont await this - as it will hold up the  test
     cluster.component.inject(1, helpers.configuration.extract(20, 2, 'component2'));
     await test.delay(6000);
-    proxyPorts = getProxyPorts(cluster);
+    externalPorts = helpers.configuration.getExternalPorts(cluster);
     //check component2 (depending on member 4) is not accessible
-    let client = await helpers.client.create(username, password, proxyPorts[1]);
+    let client = await helpers.client.create(username, password, externalPorts[1]);
     test.expect(client.exchange.component2).to.be(undefined);
     await helpers.client.destroy(client);
-    await cluster.member.start(helpers.configuration.construct(20, 4), 4000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 20, 4), 4000);
     await test.delay(6000);
-    client = await helpers.client.create(username, password, proxyPorts[1]);
+    client = await helpers.client.create(username, password, externalPorts[1]);
     test.expect((await client.exchange.component2.is()).initialized).to.be(true);
     test.expect((await client.exchange.component2.is()).started).to.be(true);
     await helpers.client.destroy(client);
