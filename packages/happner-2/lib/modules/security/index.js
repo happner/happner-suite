@@ -818,11 +818,11 @@ Security.prototype.updateUser = function ($happn, user, callback) {
   });
 };
 
-Security.prototype.resetPassword = async function (emailAddress) {
-  if (typeof emailAddress !== 'string') {
+Security.prototype.resetPassword = async function (username) {
+  if (typeof username !== 'string') {
     throw new Error('Invalid arguments');
   }
-  return this.__securityService.resetPassword(emailAddress);
+  return this.__securityService.resetPassword(username);
 };
 
 Security.prototype.linkGroupName = function ($happn, groupName, user, callback) {

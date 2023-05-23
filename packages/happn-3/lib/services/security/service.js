@@ -748,19 +748,19 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return ttl || 0; // Infinity turns to null over the wire, 0 can be 0
   }
 
-  #resetPassword(emailAddress, callback) {
-    this.#getAuthProviderForUser(emailAddress, (e, authProvider) => {
+  #resetPassword(username, callback) {
+    this.#getAuthProviderForUser(username, (e, authProvider) => {
       if (e) {
         return callback(e);
       }
       let error;
       authProvider.instance
-        .providerResetPassword(emailAddress)
+        .providerResetPassword(username)
         .catch((e) => {
           error = e;
         })
         .finally(() => {
-          callback(error, emailAddress);
+          callback(error, username);
         });
     });
   }
