@@ -56,6 +56,10 @@ module.exports = class HappnAuthProvider extends SecurityBaseAuthProvider {
   }
 
   async providerChangePassword(credentials, passwordDetails) {
+    if (credentials.username === '_ANONYMOUS' || credentials.username === '_ADMIN') {
+      return this.systemError(`updates to the ${credentials.username} user are forbidden`);
+    }
+
     const user = await this.securityFacade.users.getUser(credentials.username);
     if (user == null) {
       return this.systemError(`bad username: ${credentials.username}`);

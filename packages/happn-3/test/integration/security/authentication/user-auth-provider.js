@@ -10,7 +10,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
               '../../../__fixtures/test/integration/security/authentication/workingAuth.js'
             ),
           },
-          defaultAuthProvider: 'test',
+          defaultAuthProvider: 'happn',
           allowUserChooseAuthProvider: false,
         },
       },
@@ -45,20 +45,27 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (t
     );
     test.expect(sessionInfo1.data.length).to.be.greaterThan(0);
 
-    let testClient = await test.happn.client.create({
-      username: 'secondTestuser@somewhere.com',
-      password: 'secondPass',
-    });
     let errorMessage;
     try {
-      await testClient.resetPassword();
+      await test.instances[0].services.security.resetPassword('BAD_USER');
+    } catch (e) {
+      errorMessage = e;
+    }
+    test.expect(errorMessage.message).to.eql('providerResetPassword not implemented.');
+
+    try {
+      await test.instances[0].services.security.resetPassword('secondTestuser@somewhere.com');
     } catch (e) {
       errorMessage = e;
     }
     test
-      .expect(errorMessage)
-      .to.eql({ name: 'Error', message: 'Works !! Password reset secondTestuser@somewhere.com' });
+      .expect(errorMessage.message)
+      .to.eql('Works !! Password reset secondTestuser@somewhere.com');
 
+    let testClient = await test.happn.client.create({
+      username: 'secondTestuser@somewhere.com',
+      password: 'secondPass',
+    });
     try {
       await testClient.changePassword({
         oldPassword: 'happn',

@@ -28,8 +28,8 @@ module.exports = class TestAuthProvider extends (
     return this.loginFailed(credentials.username, 'Invalid credentials');
   }
 
-  async providerResetPassword(credentials) {
-    throw new Error(`Works !! Password reset ${credentials.username}`);
+  async providerResetPassword(username) {
+    throw new Error(`Works !! Password reset ${username}`);
   }
 
   defaults(options) {

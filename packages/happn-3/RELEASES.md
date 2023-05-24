@@ -1066,3 +1066,7 @@
 -----------------
   - feat: changePassword in client
   - feat: resetPassword supported by auth provider
+
+13.11.1 2023-05-20
+-----------------
+- feat: add happner-2 support for reset password
