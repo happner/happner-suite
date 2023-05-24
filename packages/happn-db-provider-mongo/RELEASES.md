@@ -118,3 +118,8 @@
 -----------------
   - feat: happn-3 changePassword in client
   - feat: happn-3 resetPassword supported by auth provider
+
+1.1.10 2023-05-24
+-----------------
+  - fix: happn-3 resetpassword
+  - feat: happner-2 resetpassword

@@ -1,3 +1,8 @@
+3.0.0 2023-05-24
+-----------------
+  - fix: happn-3 resetpassword
+  - feat: happner-2 resetpassword
+
 2.8.0 2023-04-29
 -----------------
   - feat: happn-3 changePassword in client

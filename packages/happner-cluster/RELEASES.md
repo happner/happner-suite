@@ -462,3 +462,8 @@
   - feat: changePassword in client
   - feat: resetPassword supported by auth provider
 
+13.0.0 2023-05-24
+-----------------
+  - fix: happn-3 resetpassword
+  - feat: happner-2 resetpassword (major)
+
