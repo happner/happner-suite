@@ -60,6 +60,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
   });
 
   it('Tests we can change the password of the session', async () => {
+    let testError;
     let instance = await test.createInstance({ secure: true });
     let testUser = {
       username: 'passwordTest',
@@ -70,13 +71,24 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
     };
     await instance.services.security.users.upsertUser(testUser);
 
+    try {
+      await instance.services.security.resetPassword('passwordTest');
+    } catch (e) {
+      testError = e;
+    }
+    test.expect(testError).to.eql({
+      code: 500,
+      message: 'providerResetPassword not implemented.',
+      name: 'SystemError',
+      severity: 0,
+    });
+
     let client = await happn.client.create({
       port: 55000,
       ...testUser,
     });
     await client.changePassword({ oldPassword: 'abc', newPassword: 'newPassword' });
     await client.disconnect();
-    let testError;
     try {
       await happn.client.create({
         port: 55000,
@@ -94,18 +106,6 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
       username: 'passwordTest',
       password: 'newPassword',
     });
-    try {
-      await client.resetPassword();
-    } catch (e) {
-      testError = e;
-    }
-    test.expect(testError).to.eql({
-      name: 'SystemError',
-      message: 'providerResetPassword not implemented.',
-      code: 500,
-      severity: 0,
-    });
-
     try {
       await client.changePassword({ oldPassword: 'abc', newPassword: 'newPassword' });
     } catch (e) {
@@ -127,12 +127,6 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
       severity: 0,
     });
 
-    try {
-      await client.resetPassword('Argument not expected');
-    } catch (e) {
-      testError = e;
-    }
-    test.expect(testError.message).to.eql('Invalid system call');
     await client.disconnect();
     await test.destroyAllInstances();
   });
@@ -160,12 +154,6 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 30e3 }, (te
       testError = e;
     }
     test.expect(testError.message).to.be('Cannot change-password Not Secure');
-    try {
-      await client.resetPassword();
-    } catch (e) {
-      testError = e;
-    }
-    test.expect(testError.message).to.be('Cannot reset-password Not Secure');
 
     try {
       await client.revokeToken();

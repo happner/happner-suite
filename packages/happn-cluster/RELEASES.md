@@ -332,6 +332,11 @@ non-release 2017-12-14
   - feat: changePassword in client
   - feat: resetPassword supported by auth provider
 
+12.4.1 2023-05-24
+-----------------
+  - fix: happn-3 resetpassword
+  - feat: happner-2 resetpassword
+
 13.0.0 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update
