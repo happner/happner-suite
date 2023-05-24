@@ -4,7 +4,8 @@ const HappnerCluster = require('../..');
 const users = require('./users');
 let localInstance;
 
-let seq = process.argv.slice(2).map((num) => parseInt(num))[0];
+let deploymentId = process.argv.pop();
+let seq = process.argv.pop();
 
 (async () => {
   if (seq === 1) {
@@ -32,6 +33,12 @@ function remoteInstanceConfig(seq, sync) {
     breakingComponent: {
       startMethod: 'start',
       stopMethod: 'stop',
+    },
+  };
+  config.happn.services.membership = {
+    config: {
+      deploymentId,
+      securityChangeSetReplicateInterval: 20, // 50 per second
     },
   };
   return config;

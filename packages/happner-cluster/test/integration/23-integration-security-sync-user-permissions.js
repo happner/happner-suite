@@ -3,6 +3,7 @@ const baseConfig = require('../_lib/base-config');
 const users = require('../_lib/user-permissions');
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  let deploymentId = test.newid();
   let hooksConfig = {
     cluster: {
       functions: [serverConfig, serverConfig],
@@ -253,9 +254,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     config.components = {
       component1: {},
     };
-    config.happn.services.replicator = {
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

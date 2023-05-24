@@ -2,6 +2,7 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+  let deploymentId = test.newid();
   test.hooks.clusterStartedSeperatelyHooks(test);
   let localInstance, proxyPorts;
 
@@ -359,6 +360,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       },
       data: {},
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -373,6 +380,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       brokerComponent: {
         startMethod: 'start',
         stopMethod: 'stop',
+      },
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;
@@ -392,6 +405,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       },
       data: {},
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -405,6 +424,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.components = {
       remoteComponent: {},
       data: {},
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
     };
     return config;
   }

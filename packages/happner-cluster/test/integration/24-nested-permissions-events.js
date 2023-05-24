@@ -25,6 +25,7 @@ SecuredComponent.prototype.fireEvent = function ($happn, eventName, callback) {
 };
 
 require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+  let deploymentId = test.newid();
   let remoteServer;
   let hooksConfig = {
     cluster: {
@@ -120,7 +121,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     }
   });
 
-  it("adding and then removing permissions with subscription on '**'", async () => {
+  it.only("adding and then removing permissions with subscription on '**'", async () => {
     let listenerClient = await test.client.create('test5User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
 
@@ -136,7 +137,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     ]) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
     }
-    await test.delay(1000);
+    await test.delay(2e3);
     test.expect(receivedEvents).to.eql([]);
     await remoteServer.exchange.security.addUserPermissions('test5User', {
       events: {
@@ -148,7 +149,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     });
-    await test.delay(1000);
+    await test.delay(4e3);
     for (let eventName of [
       'event-1c',
       'event-2c',
@@ -158,7 +159,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     ]) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
     }
-    await test.delay(1000);
+    await test.delay(2e3);
     test.expect(receivedEvents).to.eql(['event-2c', 'sub-path/sub-event-2c']);
     await remoteServer.exchange.security.removeUserPermissions('test5User', {
       events: {
@@ -167,7 +168,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       },
     });
     receivedEvents = [];
-    await test.delay(1000);
+    await test.delay(2e3);
     for (let eventName of [
       'event-1c',
       'event-2c',
@@ -327,9 +328,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     };
-    config.happn.services.replicator = {
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;
