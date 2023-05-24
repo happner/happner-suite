@@ -227,20 +227,15 @@ function __processSinglePath(transformed, callback) {
         callback(null, result);
       });
 
-    if (authorized.request.action === 'reset-password') {
-      if (!this.config.secure) return callback(new Error('Cannot reset-password Not Secure'));
-      return this.happn.services.security.resetPassword(authorized, (e, result) => {
-        if (e) return callback(e);
-        callback(null, result);
-      });
-    }
-
     if (authorized.request.action === 'change-password') {
       if (!this.config.secure) return callback(new Error('Cannot change-password Not Secure'));
-      return this.happn.services.security.changePassword(authorized, (e, result) => {
-        if (e) return callback(e);
-        callback(null, result);
-      });
+      return this.happn.services.security.changePassword(
+        authorized.session.user,
+        authorized.request.data,
+        (e) => {
+          callback(e, authorized);
+        }
+      );
     }
     if (authorized.request.action === 'revoke-token') {
       if (!this.config.secure) return callback(new Error('Cannot revoke-token Not Secure'));

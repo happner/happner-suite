@@ -15,6 +15,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   #sessionManagementActive;
   #locks;
   #profilesConfigurator;
+
   constructor(opts) {
     super();
     this.log = opts.logger.createLogger('Security');
@@ -125,6 +126,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       'security_authentication_nonce'
     );
   }
+
   processUnsecureLogin(message, callback) {
     let session = this.generateEmptySession(message.session.id);
     session.info = message.request.data.info;
@@ -746,35 +748,34 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return ttl || 0; // Infinity turns to null over the wire, 0 can be 0
   }
 
-  #resetPassword(authorized, callback) {
-    let session = authorized.session;
-    this.#matchAuthProvider(session.user.username, (e, authProvider) => {
-      if (e) return callback(e);
+  #resetPassword(username, callback) {
+    this.#getAuthProviderForUser(username, (e, authProvider) => {
+      if (e) {
+        return callback(e);
+      }
       let error;
       authProvider.instance
-        .providerResetPassword(authorized.session.user)
+        .providerResetPassword(username)
         .catch((e) => {
           error = e;
         })
         .finally(() => {
-          callback(error, authorized);
+          callback(error, username);
         });
     });
   }
 
-  #changePassword(authorized, callback) {
-    let session = authorized.session;
-    let passwordDetails = authorized.request.data;
-    this.#matchAuthProvider(session.user.username, (e, authProvider) => {
+  #changePassword(user, passwordDetails, callback) {
+    this.#matchAuthProvider(user, (e, authProvider) => {
       if (e) return callback(e);
       let error;
       authProvider.instance
-        .providerChangePassword(authorized.session.user, passwordDetails)
+        .providerChangePassword(user, passwordDetails)
         .catch((e) => {
           error = e;
         })
         .finally(() => {
-          callback(error, authorized);
+          callback(error);
         });
     });
   }

@@ -1839,10 +1839,6 @@
     return this.__performSystemRequest('change-password', passwordDetails, null, callback);
   });
 
-  HappnClient.prototype.resetPassword = utils.maybePromisify(function (callback) {
-    return this.__performSystemRequest('reset-password', null, null, callback);
-  });
-
   HappnClient.prototype.__destroySocket = function (socket, callback) {
     //possible socket end needs to do its thing, we destroy in the next tick
     setTimeout(() => {
