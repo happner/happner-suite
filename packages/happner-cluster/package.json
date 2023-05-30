@@ -4,6 +4,7 @@
   "description": "Extends happner with clustering capabilities",
   "main": "index.js",
   "scripts": {
+    "test-debug": "mocha test/integration/* --recursive",
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
     "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",

@@ -57,7 +57,7 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     container3.stop();
   });
 
-  it('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
+  it.only('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });

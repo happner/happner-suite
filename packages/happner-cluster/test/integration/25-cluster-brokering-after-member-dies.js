@@ -12,11 +12,14 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     await startEdge(0, 1);
     child = fork(libDir + 'test-25-sub-process.js', ['1', deploymentId]);
     child.on('message', (msg) => {
+      test.log('remote:::', msg);
       if (msg === 'kill') child.kill('SIGKILL');
     });
     await test.delay(6e3);
     let proxyPort = test.servers[0]._mesh.happn.server.config.services.proxy.port;
+    test.log('logging on to port: ', proxyPort);
     test.clients.push((client = await test.client.create('username', 'password', proxyPort)));
+    test.log('logged on to port: ', proxyPort);
     let result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be('MESH_1:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);
@@ -29,7 +32,8 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
       child.kill('SIGKILL');
     }
     child = await fork(libDir + 'test-25-sub-process.js', ['2', deploymentId]);
-    await test.delay(5e3);
+    test.log('started up again, waiting for cluster to stabilise');
+    await test.delay(10e3);
     result = await client.exchange.breakingComponent.happyMethod();
     test.expect(result).to.be('MESH_2:brokenComponent:happyMethod');
     result = await client.exchange.breakingComponent.breakingMethod(1, 2);

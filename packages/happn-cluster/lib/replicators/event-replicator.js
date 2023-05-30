@@ -11,6 +11,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     this.#log = logger;
     this.#happnService = happnService;
     this.#config = this.#defaults(config);
+    this.handleReplicationSubscription = this.handleReplicationSubscription.bind(this);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
@@ -38,7 +39,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     try {
       await peerConnector.subscribe(
         this.#config.replicationPaths,
-        this.handleReplicationSubscription.bind(this)
+        this.handleReplicationSubscription
       );
     } catch (e) {
       //TODO: what now

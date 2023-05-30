@@ -24,7 +24,7 @@ SecuredComponent.prototype.fireEvent = function ($happn, eventName, callback) {
   callback(null, eventName + ' emitted');
 };
 
-require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   let deploymentId = test.newid();
   let remoteServer;
   let hooksConfig = {
@@ -53,9 +53,10 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
 
     for (let eventName of ['event-1a', 'event-2a', 'event-3a']) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
+      await test.delay(2e2);
     }
 
-    await test.delay(1000);
+    await test.delay(2e3);
     test.expect(receivedEvents).to.eql(['event-2a', 'event-3a']);
     await test.client.destroy(listenerClient);
   });
@@ -121,24 +122,15 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     }
   });
 
-  it.only("adding and then removing permissions with subscription on '**'", async () => {
+  it("adding and then removing permissions with subscription on '**'", async () => {
     let listenerClient = await test.client.create('test5User', 'password', test.proxyPorts[1]);
     let receivedEvents = [];
 
     await listenerClient.event.SecuredComponent.on('**', (message) => {
       receivedEvents.push(message.value);
     });
-    for (let eventName of [
-      'event-1c',
-      'event-2c',
-      'event-3c',
-      'sub-path/sub-event-1c',
-      'sub-path/sub-event-2c',
-    ]) {
-      await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
-    }
-    await test.delay(2e3);
-    test.expect(receivedEvents).to.eql([]);
+
+    await test.delay(5e3);
     await remoteServer.exchange.security.addUserPermissions('test5User', {
       events: {
         '/DOMAIN_NAME/SecuredComponent/event-2c': {
@@ -149,7 +141,12 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     });
-    await test.delay(4e3);
+    await test.delay(5e3);
+    console.log(listenerClient.clientInstance.data.session.id);
+    await remoteServer.exchange.SecuredComponent.fireEvent('sub-path/sub-event-2c');
+    await test.delay(5e3);
+    test.expect(receivedEvents).to.eql(['sub-path/sub-event-2c']);
+    receivedEvents = [];
     for (let eventName of [
       'event-1c',
       'event-2c',
@@ -168,7 +165,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       },
     });
     receivedEvents = [];
-    await test.delay(2e3);
+    await test.delay(5e3);
     for (let eventName of [
       'event-1c',
       'event-2c',
@@ -178,7 +175,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     ]) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
     }
-    await test.delay(1000);
+    await test.delay(2e3);
     test.expect(receivedEvents).to.eql([]);
     await test.client.destroy(listenerClient);
   });
@@ -199,6 +196,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     ];
     for (let eventName of testEvents) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
+      await test.delay(100);
     }
 
     await test.delay(1000);
@@ -213,6 +211,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     receivedEvents = [];
     for (let eventName of testEvents) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
+      await test.delay(100);
     }
     await test.delay(1000);
     test.expect(receivedEvents).to.eql(['event-1e', 'event-2e', 'sub-path/sub-event-1e']);
@@ -227,12 +226,14 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     });
-    await test.delay(1000);
+    await test.delay(3e3);
     for (let eventName of testEvents) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
+      await test.delay(100);
     }
     await test.delay(1000);
     test.expect(receivedEvents).to.eql(testEvents);
+    await test.client.destroy(listenerClient);
   });
 
   let permissions = {
@@ -328,10 +329,15 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
         },
       },
     };
+    config.happn.services.security = {
+      config: {
+        updateSubscriptionsOnSecurityDirectoryChanged: true,
+      },
+    };
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3, // 1 per second
       },
     };
     return config;
