@@ -4,6 +4,7 @@ const { fork } = require('child_process');
 
 require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
   let deploymentId = test.newid();
+  test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   test.hooks.clusterStartedSeperatelyHooks(test);
 
   it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
@@ -12,7 +13,6 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
     await startEdge(0, 1);
     child = fork(libDir + 'test-25-sub-process.js', ['1', deploymentId]);
     child.on('message', (msg) => {
-      test.log('remote:::', msg);
       if (msg === 'kill') child.kill('SIGKILL');
     });
     await test.delay(6e3);

@@ -63,7 +63,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     this.#log.info('started');
   }
 
-  #stop() {
+  async #stop() {
     if (this.securityChangeSetReplicateTimeout) {
       clearTimeout(this.securityChangeSetReplicateTimeout);
       //flush the replication changeset
