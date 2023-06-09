@@ -6,6 +6,8 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   #happnService;
   #securityChangeSet = [];
   #processManager;
+  #state = Constants.REPLICATOR_STATUSES.UNINITIALIZED;
+  #securityChangeSetReplicateTimeout;
   constructor(config, logger, happnService, processManager) {
     super();
     this.#config = config;
@@ -14,6 +16,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     this.#log = logger;
     this.#happnService = happnService;
     this.#processManager = processManager;
+    this.securityChangeSetReplicate = this.securityChangeSetReplicate.bind(this);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
@@ -55,54 +58,58 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
           // dont replicate changes that originated here
           return;
         }
-        return this.writeSecurityDirectoryChange(payload);
+        this.writeSecurityDirectoryChange(payload);
       }
     );
+
     // kick off replication cycle
-    this.securityChangeSetReplicate();
+    this.securityChangeSetReplicateBounce();
     this.#log.info('started');
   }
 
   async #stop() {
-    if (this.securityChangeSetReplicateTimeout) {
-      clearTimeout(this.securityChangeSetReplicateTimeout);
-      //flush the replication changeset
-      this.securityChangeSetReplicate(true);
-    }
+    clearTimeout(this.#securityChangeSetReplicateTimeout);
+    //flush the replication changeset
+    await this.securityChangeSetReplicate(true);
     this.#log.info('stopped');
   }
 
-  securityChangeSetReplicate(endingProcess) {
-    if (this.#securityChangeSet.length > 0) {
-      const batchedSecurityUpdates = this.#batchSecurityUpdate();
+  securityChangeSetReplicateBounce(endingProcess) {
+    this.securityChangeSetReplicate(endingProcess).then(() => {
+      if (!endingProcess) {
+        // bounce another replication after securityChangeSetReplicateInterval
+        this.#securityChangeSetReplicateTimeout = setTimeout(
+          this.securityChangeSetReplicate,
+          this.#config.securityChangeSetReplicateInterval
+        );
+      }
+    });
+  }
 
-      this.#happnService.localClient.set(
-        Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE,
-        {
-          payload: batchedSecurityUpdates,
-          origin: this.#happnService.name,
-        },
-        { noStore: true },
-        (e) => {
-          if (!e) {
-            return;
-          }
-          const errorMessage = `unable to replicate security data: ${e.message}`;
-          if (!endingProcess) {
-            // we need to fatal out
-            return this.#processManager.fatal(errorMessage);
-          }
-          this.#log.error(errorMessage);
-        }
-      );
-    }
-
-    if (!endingProcess) {
-      // bounce another replication after securityChangeSetReplicateInterval
-      this.securityChangeSetReplicateTimeout = setTimeout(
-        this.securityChangeSetReplicate.bind(this),
-        this.#config.securityChangeSetReplicateInterval
-      );
+  async securityChangeSetReplicate(endingProcess) {
+    let error;
+    try {
+      if (this.#securityChangeSet.length > 0) {
+        const batchedSecurityUpdates = this.#batchSecurityUpdate();
+        await this.#happnService.localClient.set(
+          Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE,
+          {
+            payload: batchedSecurityUpdates,
+            origin: this.#happnService.name,
+          },
+          { noStore: true }
+        );
+      }
+    } catch (e) {
+      error = e;
+    } finally {
+      if (error) {
+        const errorMessage = `unable to replicate security data: ${error.message}`;
+        if (!endingProcess) {
+          // we need to fatal out
+          this.#processManager.fatal(errorMessage);
+        } else this.#log.warn(`ending process and ${errorMessage}`);
+      }
     }
   }
 

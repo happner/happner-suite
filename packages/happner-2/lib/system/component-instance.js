@@ -793,8 +793,9 @@ module.exports = class ComponentInstance {
     client.publish(callbackAddress, response, options, (e) => {
       if (e) {
         var logMessage = 'Failure to set callback data on address ' + callbackAddress;
-        if (e.message && e.message === 'client is disconnected')
-          return this.log.warn(logMessage + ':client is disconnected');
+        if (e.message === 'client is disconnected' || e.message.includes('api request timed out')) {
+          return this.log.warn(`${logMessage}:${e.message}`);
+        }
         this.log.error(logMessage, e);
       }
     });

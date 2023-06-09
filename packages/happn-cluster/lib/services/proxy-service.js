@@ -2,7 +2,7 @@ const format = require('util').format;
 const proxy = require('http-proxy');
 const dface = require('dface');
 const commons = require('happn-commons');
-const ProxyStates = require('../constants/proxy-states');
+const ProxyStates = require('../constants/proxy-statuses');
 module.exports = class ProxyService {
   #proxyServer;
   #logger;
@@ -137,6 +137,7 @@ module.exports = class ProxyService {
     if (this.#proxyServer) {
       try {
         this.#proxyServer.close();
+        this.#logger.info('stopped proxy');
         callback();
       } catch (err) {
         callback(err);

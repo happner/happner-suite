@@ -19,7 +19,8 @@
   let utils, CONSTANTS;
 
   if (!browser) {
-    CONSTANTS = require('./constants-builder');
+    const commons = require('happn-commons');
+    CONSTANTS = commons.constants;
     utils = require('happn-commons').utils;
     Logger = require('happn-logger');
     PROTOCOL = 'happn_' + require('../package.json').protocol; //we can access our package
