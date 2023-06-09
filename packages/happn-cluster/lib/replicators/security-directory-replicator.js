@@ -6,7 +6,6 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   #happnService;
   #securityChangeSet = [];
   #processManager;
-  #state = Constants.REPLICATOR_STATUSES.UNINITIALIZED;
   #securityChangeSetReplicateTimeout;
   constructor(config, logger, happnService, processManager) {
     super();
@@ -40,12 +39,11 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   }
 
   #replicate(securityDirectoryChanges) {
-    if (!this.#happnService.localClient) {
-      this.#log.warn(`attempt to replicate when not ready`);
+    const { whatHappnd, changedData, additionalInfo } = securityDirectoryChanges;
+    // don't re-replicate or attempt to replicate before we have a local client
+    if (changedData.replicated || !this.#happnService.localClient) {
       return;
     }
-    const { whatHappnd, changedData, additionalInfo } = securityDirectoryChanges;
-    if (changedData.replicated) return; // don't re-replicate
     this.#securityChangeSet.push({ whatHappnd, changedData, additionalInfo });
   }
 
@@ -91,6 +89,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     try {
       if (this.#securityChangeSet.length > 0) {
         const batchedSecurityUpdates = this.#batchSecurityUpdate();
+        console.log('batched:::', batchedSecurityUpdates);
         await this.#happnService.localClient.set(
           Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE,
           {
