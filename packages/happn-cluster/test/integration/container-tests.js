@@ -93,6 +93,7 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     await session1.set('test/path/1', { test: 1 });
     await session2.set('test/path/1', { test: 1 });
 
+    test.log('removing permission...');
     // remove all user permissions, wait 5 seconds
     await test.updateUserPermissionsOnContainer(
       container1,

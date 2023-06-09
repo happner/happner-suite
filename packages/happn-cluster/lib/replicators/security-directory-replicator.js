@@ -16,6 +16,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     this.#happnService = happnService;
     this.#processManager = processManager;
     this.securityChangeSetReplicate = this.securityChangeSetReplicate.bind(this);
+    this.securityChangeSetReplicateBounce = this.securityChangeSetReplicateBounce.bind(this);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
@@ -77,7 +78,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
       if (!endingProcess) {
         // bounce another replication after securityChangeSetReplicateInterval
         this.#securityChangeSetReplicateTimeout = setTimeout(
-          this.securityChangeSetReplicate,
+          this.securityChangeSetReplicateBounce,
           this.#config.securityChangeSetReplicateInterval
         );
       }
@@ -89,7 +90,6 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     try {
       if (this.#securityChangeSet.length > 0) {
         const batchedSecurityUpdates = this.#batchSecurityUpdate();
-        console.log('batched:::', batchedSecurityUpdates);
         await this.#happnService.localClient.set(
           Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE,
           {

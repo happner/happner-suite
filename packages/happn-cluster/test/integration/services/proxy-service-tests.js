@@ -4,7 +4,7 @@
 var assert = require('assert');
 var Proxy = require('../../../lib/services/proxy-service');
 var MockHappn = require('../../mocks/mock-happn');
-const ProxyStatuses = require('../../../lib/constants/proxy-states');
+const ProxyStatuses = require('../../../lib/constants/proxy-statuses');
 
 require('../../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
   // test.printOpenHandlesAfter(5e3);
