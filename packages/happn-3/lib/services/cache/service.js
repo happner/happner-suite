@@ -40,7 +40,9 @@ module.exports = class CacheService extends require('events').EventEmitter {
         typeof this.#config.statisticsInterval === 'number' &&
         this.#config.statisticsInterval < 1e3
       ) {
-        this.log.warn(`statisticsInterval smaller than a second, ignoring`);
+        this.log.warn(
+          `statisticsInterval ${this.#config.statisticsInterval} smaller than a second, ignoring`
+        );
       }
       if (this.#config.statisticsInterval >= 1e3) this.#startLoggingStatistics();
       callback();

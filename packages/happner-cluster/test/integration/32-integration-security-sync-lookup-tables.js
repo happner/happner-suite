@@ -1,4 +1,5 @@
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+  let deploymentId = test.newid();
   const baseConfig = require('../_lib/base-config');
   const users = require('../_lib/user-permissions');
   let testClient, savedUsers, savedGroups;
@@ -213,9 +214,10 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.components = {
       data: {},
     };
-    config.happn.services.replicator = {
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 100, // 10 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

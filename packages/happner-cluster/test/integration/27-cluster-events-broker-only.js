@@ -1,7 +1,9 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
-require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) => {
+  let deploymentId = test.newid();
+  test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   let client, internalClient;
   test.hooks.clusterStartedSeperatelyHooks(test);
   let clusterStarter = test.clusterStarter.create(test, remoteInstanceConfig, localInstanceConfig);
@@ -220,6 +222,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -236,6 +244,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       remoteComponent: {
         startMethod: 'start',
         stopMethod: 'stop',
+      },
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

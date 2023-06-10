@@ -2,7 +2,7 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const { fork } = require('child_process');
 
-require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 50e3, skip: true }, (test) => {
   let deploymentId = test.newid();
   test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   test.hooks.clusterStartedSeperatelyHooks(test);

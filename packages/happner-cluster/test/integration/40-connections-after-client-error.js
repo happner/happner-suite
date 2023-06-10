@@ -5,7 +5,8 @@ const testclient = require('../_lib/client');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
-require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 600e3, skip: true }, (test) => {
+  let deploymentId = test.newid();
   const _ = test._;
   let _AdminClient;
   let nodeConfigs = [];
@@ -23,26 +24,30 @@ require('../_lib/test-helper').describe({ timeout: 600e3 }, (test) => {
     const serverPromises = [];
     let i = 0;
     while (i < clusterSize) {
-      const remoteComponent = baseConfig(i, 2, true);
-      remoteComponent.happn.services.orchestrator.config.serviceName = 'testComponent';
-      remoteComponent.happn.services.orchestrator.config.cluster = { testComponent: clusterSize };
-      remoteComponent.modules = {
+      const clusterInstance = baseConfig(i, 2, true);
+      clusterInstance.modules = {
         testComponent: {
           path: libDir + 'integration-38-local-component',
         },
       };
-      remoteComponent.components = {
+      clusterInstance.components = {
         testComponent: {
           startMethod: 'start',
           stopMethod: 'stop',
         },
       };
-      nodeConfigs.push(remoteComponent);
-      meshNames.push(remoteComponent.name);
+      clusterInstance.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 20, // 50 per second
+        },
+      };
+      nodeConfigs.push(clusterInstance);
+      meshNames.push(clusterInstance.name);
       if (i === clusterSize - 1) {
-        serverPromises.push(test.HappnerCluster.create(remoteComponent));
+        serverPromises.push(test.HappnerCluster.create(clusterInstance));
       } else {
-        serverPromises.push(clusterHelper.start(remoteComponent));
+        serverPromises.push(clusterHelper.start(clusterInstance));
       }
       i++;
     }

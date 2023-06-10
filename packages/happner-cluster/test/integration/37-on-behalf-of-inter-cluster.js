@@ -5,6 +5,7 @@ const HappnerClient = require('happner-client');
 const LightClient = require('happner-client').Light;
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+  let deploymentId = test.newid();
   const restClient = require('restler');
   let adminUser,
     adminUserHappnerClient,
@@ -378,6 +379,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         },
       },
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -397,6 +404,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     };
     config.components = {
       test: {},
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
     };
     return config;
   }

@@ -1,4 +1,5 @@
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+  let deploymentId = test.newid();
   const libDir = require('../_lib/lib-dir').concat(
     'integration-28-cluster-broker-wildcard-version' + test.path.sep
   );
@@ -70,6 +71,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     return config;
   }
 
@@ -91,6 +98,12 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       remoteComponent1: {
         startMethod: 'start',
         stopMethod: 'stop',
+      },
+    };
+    config.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

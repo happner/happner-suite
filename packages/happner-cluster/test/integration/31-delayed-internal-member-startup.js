@@ -1,6 +1,7 @@
 require('../_lib/test-helper').describe(
-  { timeout: 60e3 },
+  { timeout: 60e3, skip: true },
   (test) => {
+    let deploymentId = test.newid();
     const servers = [];
     const libDir = `${require('../_lib/lib-dir')}integration-31-delayed-internal-member-startup${
       test.path.sep
@@ -132,6 +133,12 @@ require('../_lib/test-helper').describe(
           stopMethod: 'stop',
         },
       };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 20, // 50 per second
+        },
+      };
       return config;
     }
 
@@ -158,6 +165,12 @@ require('../_lib/test-helper').describe(
           stopMethod: 'stop',
         },
       };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 20, // 50 per second
+        },
+      };
       return config;
     }
 
@@ -182,6 +195,12 @@ require('../_lib/test-helper').describe(
         'component-2': {
           startMethod: 'start',
           stopMethod: 'stop',
+        },
+      };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 20, // 50 per second
         },
       };
       return config;

@@ -29,7 +29,7 @@ module.exports = function (
       responseTimeout: clusterResponseTimeout,
     },
     happn: {
-      secure: secure,
+      secure,
       utils: {
         logFile,
       },

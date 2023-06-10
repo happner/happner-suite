@@ -142,7 +142,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       },
     });
     await test.delay(5e3);
-    console.log(listenerClient.clientInstance.data.session.id);
     await remoteServer.exchange.SecuredComponent.fireEvent('sub-path/sub-event-2c');
     await test.delay(5e3);
     test.expect(receivedEvents).to.eql(['sub-path/sub-event-2c']);

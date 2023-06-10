@@ -297,7 +297,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
 
   async #statusChanged(newStatus) {
-    this.#log.info(`status changed: ${newStatus}`);
     this.#status = newStatus;
     await this.#pulse();
     this.emit('status-changed', newStatus);

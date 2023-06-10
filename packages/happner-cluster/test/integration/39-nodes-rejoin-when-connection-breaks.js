@@ -5,6 +5,7 @@ const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').crea
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
+  let deploymentId = test.newid();
   let _AdminClient, client, proxyPorts;
 
   before('clear mongo collection', (done) => {
@@ -25,6 +26,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         stopMethod: 'stop',
       },
     };
+    remoteComponent.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
+      },
+    };
     serverPromises.push(clusterHelper.start(remoteComponent));
     const brokerComponent = baseConfig(1, 2, true);
     brokerComponent.modules = {
@@ -36,6 +43,12 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       brokerComponent: {
         startMethod: 'start',
         stopMethod: 'stop',
+      },
+    };
+    brokerComponent.happn.services.membership = {
+      config: {
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     serverPromises.push(clusterHelper.start(brokerComponent));

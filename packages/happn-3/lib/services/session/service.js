@@ -7,6 +7,7 @@ const Primus = require('happn-primus-wrapper'),
   CONSTANTS = commons.constants;
 module.exports = class SessionService extends require('events').EventEmitter {
   #state = CONSTANTS.SERVICE_STATE.UNINITIALIZED;
+  #localClients = [];
   constructor(opts) {
     super();
     this.log = opts.logger.createLogger('Session');
@@ -316,14 +317,15 @@ module.exports = class SessionService extends require('events').EventEmitter {
     if (!options.timeout) options.timeout = 20000;
     this.__stopUnconfiguredSessionCleanup();
 
-    if (options.reconnect !== false) {
-      return this.destroyPrimus(options, callback);
-    }
-
-    // this must happen rarely or in test cases
-    this.disconnectAllClients((e) => {
-      if (e) this.log.warn('failed disconnecting clients gracefully', e);
-      this.destroyPrimus(options, callback);
+    this.disconnectLocalClients().finally(() => {
+      if (options.reconnect !== false) {
+        return this.destroyPrimus(options, callback);
+      }
+      // this must happen rarely or in test cases
+      this.disconnectAllClients((e) => {
+        if (e) this.log.warn('failed disconnecting clients gracefully', e);
+        this.destroyPrimus(options, callback);
+      });
     });
   }
 
@@ -397,6 +399,21 @@ module.exports = class SessionService extends require('events').EventEmitter {
     }
   }
 
+  disconnectLocalClients() {
+    return Promise.all(this.#localClients.splice(0).map((client) => client.disconnect()));
+  }
+
+  detachLocalClient(instance) {
+    const handler = () => {
+      const localClientInstanceIndex = this.#localClients.indexOf(instance);
+      if (localClientInstanceIndex > -1) {
+        instance.offEvent(instance.$$eventHandlerId);
+        this.#localClients.splice(localClientInstanceIndex, 1);
+      }
+    };
+    return handler;
+  }
+
   localClient(config, callback) {
     if (typeof config === 'function') {
       callback = config;
@@ -414,6 +431,12 @@ module.exports = class SessionService extends require('events').EventEmitter {
       },
       (e, instance) => {
         if (e) return callback(e);
+        // ensure local clients are cleaned up after the disconnect
+        instance.$$eventHandlerId = instance.onEvent(
+          'connection-ended',
+          this.detachLocalClient(instance)
+        );
+        this.#localClients.push(instance);
         callback(null, instance);
       }
     );
@@ -434,6 +457,7 @@ module.exports = class SessionService extends require('events').EventEmitter {
       },
       (e, instance) => {
         if (e) return callback(e);
+        this.#localClients.push(instance);
         callback(null, instance);
       }
     );
@@ -468,7 +492,7 @@ module.exports = class SessionService extends require('events').EventEmitter {
   }
 
   handleMessage(message, client) {
-    if (this.#state !== CONSTANTS.SERVICE_STATE.STARTED) {
+    if (this.#state === CONSTANTS.SERVICE_STATE.STOPPED) {
       // dont process anything
       return;
     }

@@ -1,6 +1,8 @@
 const multiAuthConfig = require('../_lib/multi-auth-provider-config.js');
 
 require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
+  let deploymentId = test.newid();
+  test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   let hooksConfig = {
     cluster: {
       functions: [serverConfig, serverConfig],
@@ -64,10 +66,11 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
   });
 
   function serverConfig(seq, minPeers) {
-    var config = multiAuthConfig(seq, minPeers, true);
-    config.happn.services.replicator = {
+    const config = multiAuthConfig(seq, minPeers, true);
+    config.happn.services.membership = {
       config: {
-        securityChangesetReplicateInterval: 10, // 100 per second
+        deploymentId,
+        securityChangeSetReplicateInterval: 20, // 50 per second
       },
     };
     return config;

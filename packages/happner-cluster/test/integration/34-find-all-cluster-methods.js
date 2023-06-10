@@ -1,4 +1,5 @@
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+  let deploymentId = test.newid();
   const helpers = {
     client: require('../_lib/client'),
     configuration: require('../_lib/helpers/configuration').create(),
@@ -27,16 +28,26 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   async function startCluster() {
     cluster = helpers.cluster.create();
 
-    await cluster.member.start(helpers.configuration.construct(34, 0, true, 1), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 34, 0, true, 1), 2000);
 
-    await cluster.member.start(helpers.configuration.construct(34, 1, true, 1), 2000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 34, 1, true, 1), 2000);
 
     await cluster.member.start(
-      helpers.configuration.construct(34, 1, true, 1, undefined, undefined, undefined, 'b'),
+      helpers.configuration.construct(
+        deploymentId,
+        34,
+        1,
+        true,
+        1,
+        undefined,
+        undefined,
+        undefined,
+        'b'
+      ),
       2000
     );
 
-    await cluster.member.start(helpers.configuration.construct(34, 2, true, 1), 6000);
+    await cluster.member.start(helpers.configuration.construct(deploymentId, 34, 2, true, 1), 6000);
 
     meshNames = cluster.instances.map((instance) => instance._mesh.config.name);
   }
