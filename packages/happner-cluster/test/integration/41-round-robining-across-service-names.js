@@ -28,7 +28,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) =>
   let timing = { all: 'before/after' };
   test.hooks.standardHooks(test, hooksConfig, timing, true);
 
-  it.only('ensures that calls to a component are round-robined, even though the component is on different services', async function () {
+  it('ensures that calls to a component are round-robined, even though the component is on different services', async function () {
     await test.users.allowMethod(
       test.localInstance,
       'username',
