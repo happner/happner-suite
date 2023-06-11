@@ -56,8 +56,9 @@ function buildBoundProxy(propertyNames, bindTo) {
 
 function ensureRegexCache(cacheKey, cacheSize, cacheAsObject) {
   cacheKey = cacheKey || "default";
-  if (cacheAsObject && cacheKey === "default")
+  if (cacheAsObject && cacheKey === "default") {
     throw new Error("The default regex cache must be of type LRU");
+  }
   if (!this.regexCaches[cacheKey]) {
     if (cacheAsObject)
       this.regexCaches[cacheKey] = {

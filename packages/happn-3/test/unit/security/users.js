@@ -82,14 +82,13 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       });
 
       serviceInstance.happn = happn;
-      serviceInstance.config = config;
+      serviceInstance.config = config === false ? {} : config;
 
       happn.services[serviceName.toLowerCase()] = serviceInstance;
 
       if (typeof serviceInstance.initialize !== 'function' || config === false) return callback();
 
       serviceInstance.initialize(config, function () {
-        //console.log(`service ${serviceName} initialized...`);
         callback();
       });
     } catch (e) {
@@ -116,10 +115,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
       .then(mockService(happn, 'Security'))
       .then(mockService(happn, 'Subscription'))
       .then(function () {
-        happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
-          if (e) return callback(e);
-          callback(null, happn);
-        });
+        happn.services.session.initializeCaches();
+        callback(null, happn);
       })
       .catch(callback);
   };
@@ -2135,11 +2132,10 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120000 }, func
     stubBindInEachGroup(users);
 
     users.initialize(mockConfig, mockSecurityService, mockCallbackOne);
-    const result = users.upsertPermissions(mockUser);
 
-    await require('node:timers/promises').setTimeout(500);
-
-    await test.chai.expect(result).to.eventually.be.rejectedWith(mockError);
+    await test.chai
+      .expect(users.upsertPermissions(mockUser))
+      .to.eventually.be.rejectedWith(mockError);
 
     stubCreateGroup.restore();
     stubCreatePermissions.restore();

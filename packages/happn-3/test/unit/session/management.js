@@ -36,7 +36,7 @@ describe(testHelper.testName(__filename, 3), function () {
       });
 
       serviceInstance.happn = happn;
-      serviceInstance.config = config;
+      serviceInstance.config = config === false ? {} : config;
       happn.services[serviceName.toLowerCase()] = serviceInstance;
       if (typeof serviceInstance.initialize !== 'function' || config === false) return callback();
 
@@ -47,7 +47,7 @@ describe(testHelper.testName(__filename, 3), function () {
   });
 
   var mockServices = function (sessionManagementActive, callback) {
-    var happn = {
+    const happn = {
       services: {},
       config: {
         secure: true,
@@ -80,10 +80,8 @@ describe(testHelper.testName(__filename, 3), function () {
       .then(mockService(happn, 'Subscription'))
       .then(function () {
         setTimeout(function () {
-          happn.services.session.initializeCaches.bind(happn.services.session)(function (e) {
-            if (e) return callback(e);
-            callback(null, happn);
-          });
+          happn.services.session.initializeCaches();
+          callback(null, happn);
         }, 5000);
       })
       .catch(callback);

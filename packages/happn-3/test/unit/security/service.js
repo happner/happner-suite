@@ -241,7 +241,8 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 20e3 }, functi
 
         if (serviceName === 'session') {
           happnMock.services[serviceName].config = {};
-          return happnMock.services[serviceName].initializeCaches(eachServiceCB);
+          happnMock.services[serviceName].initializeCaches();
+          return eachServiceCB();
         }
 
         if (!happnMock.services[serviceName].initialize) return eachServiceCB();

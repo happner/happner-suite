@@ -5,7 +5,7 @@ describe(
 
     var expect = require('expect.js');
     var HappnClient = require('../../../lib/client');
-    var Constants = require('../../../lib/constants');
+    const Constants = require('happn-commons').constants;
 
     it('tests the handle_error function, non fatal error', function (done) {
       var happnClient = new HappnClient();
