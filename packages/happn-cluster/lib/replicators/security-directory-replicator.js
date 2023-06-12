@@ -20,9 +20,6 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
-    this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STOPPED, () => {
-      this.#stop();
-    });
     this.#happnService.on(
       Constants.EVENT_KEYS.HAPPN_SECURITY_DIRECTORY_CHANGED,
       (securityDirectoryChanges) => {
@@ -66,7 +63,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     this.#log.info('started');
   }
 
-  async #stop() {
+  async stop() {
     clearTimeout(this.#securityChangeSetReplicateTimeout);
     //flush the replication changeset
     await this.securityChangeSetReplicate(true);

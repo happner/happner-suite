@@ -15,9 +15,6 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
-    this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STOPPED, () => {
-      this.#stop();
-    });
   }
 
   static create(config, logger, happnService, processManager) {
@@ -29,7 +26,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     this.#log.info('started');
   }
 
-  #stop() {
+  stop() {
     this.#stopped = true;
     this.#log.info('stopped');
   }

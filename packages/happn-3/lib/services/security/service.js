@@ -12,6 +12,7 @@ const jwt = require('jwt-simple'),
 module.exports = class SecurityService extends require('events').EventEmitter {
   #dataHooks;
   #dataChangedQueue;
+  #dataChangedQueueStopped = false;
   #sessionManagementActive;
   #locks;
   #profilesConfigurator;
@@ -1205,12 +1206,17 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       callback = additionalInfo;
       additionalInfo = undefined;
     }
+    if (this.#dataChangedQueueStopped) {
+      // we are no longer queueing data changes
+      return callback();
+    }
     this.#dataChangedQueue.push({ whatHappnd, changedData, additionalInfo }, callback);
   }
 
   #dataChangedInternal(whatHappnd, changedData, additionalInfo, callback) {
-    if (CONSTANTS.SECURITY_DIRECTORY_EVENTS_COLLECTION.indexOf(whatHappnd) === -1)
+    if (CONSTANTS.SECURITY_DIRECTORY_EVENTS_COLLECTION.indexOf(whatHappnd) === -1) {
       return callback();
+    }
     this.users.clearCaches();
     this.groups.clearCaches();
     this.#clearOnBehalfOfCache();
@@ -1219,30 +1225,30 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         this.checkpoint.clearCaches();
         return new Promise((resolve, reject) => {
           if (
-            this.happn.services.subscription &&
-            this.config.updateSubscriptionsOnSecurityDirectoryChanged
-          )
-            this.happn.services.subscription
-              .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
-              .then(() => {
-                resolve(effectedSessions);
-              })
-              .catch(reject);
-          else {
-            resolve(effectedSessions);
+            !this.happn.services.subscription ||
+            !this.config.updateSubscriptionsOnSecurityDirectoryChanged
+          ) {
+            return resolve(effectedSessions);
           }
+          this.happn.services.subscription
+            .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
+            .then(() => {
+              resolve(effectedSessions);
+            })
+            .catch(reject);
         });
       })
       .then((effectedSessions) => {
         return new Promise((resolve, reject) => {
-          if (this.happn.services.session)
-            this.happn.services.session
-              .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
-              .then(() => {
-                resolve(effectedSessions);
-              })
-              .catch(reject);
-          else resolve(effectedSessions);
+          if (!this.happn.services.session) {
+            return resolve(effectedSessions);
+          }
+          this.happn.services.session
+            .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
+            .then(() => {
+              resolve(effectedSessions);
+            })
+            .catch(reject);
         });
       })
       .then((effectedSessions) => {
@@ -1571,17 +1577,28 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     if (this.cache_revoked_tokens) this.cache_revoked_tokens.stop();
     if (this.cache_security_authentication_nonce) this.cache_security_authentication_nonce.stop();
 
-    this.checkpoint.stop();
-    this.#stopAuthProviders()
-      .then(
-        () => {
-          this.log.info(`stopped auth providers`);
-        },
-        (e) => {
-          this.log.warn(`error stopping auth providers: ${e.message}`);
-        }
-      )
-      .finally(callback);
+    //stop security data changed queue
+    this.#drainDataChangedQueue().finally(() => {
+      this.checkpoint.stop();
+      this.#stopAuthProviders()
+        .then(
+          () => {
+            this.log.info(`stopped auth providers`);
+          },
+          (e) => {
+            this.log.warn(`error stopping auth providers: ${e.message}`);
+          }
+        )
+        .finally(callback);
+    });
+  }
+
+  async #drainDataChangedQueue() {
+    if (!this.#dataChangedQueue) {
+      return;
+    }
+    this.#dataChangedQueueStopped = true;
+    await this.#dataChangedQueue.kill();
   }
 
   validateName(name, validationType) {

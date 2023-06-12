@@ -119,6 +119,10 @@ module.exports = class Container {
   }
   async stop(opts = {}) {
     this.#log.info('stopping container');
+    // stop replication activities
+    await this.#dependencies['securityDirectoryReplicator'].stop();
+    this.#dependencies['eventReplicator'].stop();
+    // stop happn
     await this.#dependencies['happnService'].stop(opts);
     this.#log.info(`stopped container successfully`);
   }
