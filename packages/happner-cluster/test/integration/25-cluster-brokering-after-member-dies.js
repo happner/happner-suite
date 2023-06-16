@@ -4,7 +4,6 @@ const { fork } = require('child_process');
 
 require('../_lib/test-helper').describe({ timeout: 50e3, skip: true }, (test) => {
   let deploymentId = test.newid();
-  test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   test.hooks.clusterStartedSeperatelyHooks(test);
 
   it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
@@ -59,7 +58,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3, skip: true }, (test) =>
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

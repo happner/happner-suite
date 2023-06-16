@@ -74,7 +74,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -103,7 +103,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

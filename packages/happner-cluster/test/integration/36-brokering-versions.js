@@ -19,7 +19,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(version)
       .to.eql({ mesh: 'MESH_0', version: '2.1.2', component: 'remoteComponent1' });
     await startInternal2(2, 2);
-    await test.delay(3000);
+    await test.delay(3e3);
     let version2;
     [version, version2] = await Promise.all([
       thisClient.exchange.remoteComponent.getVersion(),
@@ -44,7 +44,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       .expect(version)
       .to.eql({ mesh: 'MESH_0', version: '3.4.5', component: 'remoteComponent2' });
     await clusterStarter.startInternal(2, 2);
-    await test.delay(2e3);
+    await test.delay(3e3);
     version = await thisClient.exchange.remoteComponent.getVersion();
     let version2 = await thisClient.exchange.remoteComponent.getVersion(); //To test that it doesn't round robin to a lower version component
     test
@@ -74,7 +74,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -96,7 +96,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -118,7 +118,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -133,7 +133,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   async function startClusterHighVersionFirst(dynamic) {
     test.localInstance = await startInternal2(0, 1, dynamic);
     await clusterStarter.startEdge(1, 2, dynamic);
-    await test.delay(2e3);
+    await test.delay(3e3);
     await test.users.add(test.localInstance, 'username', 'password');
     test.proxyPorts = test.servers.map(
       (server) => server._mesh.happn.server.config.services.proxy.port

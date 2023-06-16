@@ -39,7 +39,7 @@ require('../_lib/test-helper').describe({ timeout: 600e3, skip: true }, (test) =
       clusterInstance.happn.services.membership = {
         config: {
           deploymentId,
-          securityChangeSetReplicateInterval: 20, // 50 per second
+          securityChangeSetReplicateInterval: 1e3,
         },
       };
       nodeConfigs.push(clusterInstance);

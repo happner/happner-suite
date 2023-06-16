@@ -3,7 +3,6 @@ const baseConfig = require('../_lib/base-config');
 
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   let deploymentId = test.newid();
-  test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   let hooksConfig = {
     cluster: {
       functions: [localInstanceConfig, remoteInstance1Config, remoteInstance2Config],
@@ -19,7 +18,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       //     package.json happner dependency declaration
       // ... and round robin second call to second remote component
 
-      await test.delay(5000); //wait for discovery
+      await test.delay(5e3); //wait for discovery
 
       var results = {};
 
@@ -102,13 +101,13 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     }
 
     it('dropped remote servers - not implemented message, re-implemented on connection', async () => {
-      await test.delay(5000); //wait for discovery
+      await test.delay(5e3); //wait for discovery
       const outcomes = [];
       outcomes.push(await tryCallDependency('remoteComponent5', 'method1'));
       outcomes.push(await tryCallDependency('remoteComponent3', 'method1'));
       test.expect(outcomes).to.eql([true, true]);
       await promiseStopCluster(test.servers.splice(1, 2));
-      await test.delay(5000);
+      await test.delay(5e3);
       outcomes.push(await tryCallDependency('remoteComponent5', 'method1'));
       outcomes.push(await tryCallDependency('remoteComponent3', 'method1'));
       test.expect(outcomes).to.eql([true, true, false, false]);
@@ -118,7 +117,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
           test.HappnerCluster.create(remoteInstance2Config(2)),
         ])
       );
-      await test.delay(3000); //wait for discvery
+      await test.delay(4e3); //wait for discvery
       outcomes.push(await tryCallDependency('remoteComponent5', 'method1'));
       outcomes.push(await tryCallDependency('remoteComponent3', 'method1'));
       test.expect(outcomes).to.eql([true, true, false, false, true, true]);
@@ -155,7 +154,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -191,7 +190,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;
@@ -227,7 +226,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

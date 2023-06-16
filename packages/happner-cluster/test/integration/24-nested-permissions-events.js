@@ -77,7 +77,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     ]) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
     }
-    await test.delay(1000);
+    await test.delay(1e3);
     test.expect(receivedEvents).to.eql(['event-2b', 'event-3b', 'sub-path/sub-event-2b']);
     await test.client.destroy(listenerClient);
   });
@@ -98,7 +98,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     ]) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
     }
-    await test.delay(1000);
+    await test.delay(1e3);
     test
       .expect(receivedEvents)
       .to.eql(['event-2d', 'event-3d', 'sub-path/sub-event-1d', 'sub-path/sub-event-2d']);
@@ -198,7 +198,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       await test.delay(100);
     }
 
-    await test.delay(1000);
+    await test.delay(1e3);
     test.expect(receivedEvents).to.eql(testEvents);
     await remoteServer.exchange.security.removeUserPermissions('test6User', {
       events: {
@@ -206,13 +206,13 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         '/DOMAIN_NAME/SecuredComponent/sub-path/sub-event-2e': {},
       },
     });
-    await test.delay(1000);
+    await test.delay(1e3);
     receivedEvents = [];
     for (let eventName of testEvents) {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
       await test.delay(100);
     }
-    await test.delay(1000);
+    await test.delay(1e3);
     test.expect(receivedEvents).to.eql(['event-1e', 'event-2e', 'sub-path/sub-event-1e']);
     receivedEvents = [];
     await remoteServer.exchange.security.addUserPermissions('test6User', {
@@ -230,7 +230,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       await remoteServer.exchange.SecuredComponent.fireEvent(eventName);
       await test.delay(100);
     }
-    await test.delay(1000);
+    await test.delay(1e3);
     test.expect(receivedEvents).to.eql(testEvents);
     await test.client.destroy(listenerClient);
   });
@@ -336,7 +336,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 1e3, // 1 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

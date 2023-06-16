@@ -57,7 +57,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       ]);
 
     await users.allowMethod(test.servers[0], 'username', 'component1', 'method1');
-    await test.delay(2000);
+    await test.delay(4e3);
 
     test
       .expect(
@@ -104,7 +104,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       users.allowMethod(test.servers[0], 'username', 'component1', 'method2'),
     ]);
 
-    await test.delay(2000);
+    await test.delay(4e3);
 
     test
       .expect(
@@ -172,7 +172,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       users.allowEvent(test.servers[0], 'username', 'component1', 'event2'),
     ]);
 
-    await test.delay(1000);
+    await test.delay(4e3);
 
     test
       .expect(
@@ -202,7 +202,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     });
 
     await users.denyEvent(test.servers[0], 'username', 'component1', 'event1');
-    await test.delay(1000);
+    await test.delay(4e3);
 
     await test.servers[0].exchange.component1.emitEvents();
 
@@ -257,7 +257,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

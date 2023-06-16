@@ -72,7 +72,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     }
 
     await test.servers[0].exchange.security.linkGroup(savedGroups[0], savedUsers[0]);
-    await test.delay(1000);
+    await test.delay(4e3);
 
     let data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
     test.expect(data).to.be.ok();
@@ -81,7 +81,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       'STANDARD_ABC1',
       'device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_1'
     );
-    await test.delay(1000);
+    await test.delay(4e3);
 
     try {
       await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_1');
@@ -94,7 +94,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       'STANDARD_ABC1',
       'device/OEM_ABC/COMPANY_ABC/SPECIAL_DEVICE_ID_2'
     );
-    await test.delay(1000);
+    await test.delay(4e3);
     data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
     test.expect(data).to.be.ok();
   });
@@ -135,7 +135,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     );
 
     await test.servers[0].exchange.security.linkGroup(savedGroups[1], savedUsers[1]);
-    await test.delay(1000);
+    await test.delay(4e3);
 
     data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
     test.expect(data).to.be.ok();
@@ -144,7 +144,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       'LOOKUP_TABLES_GRP2',
       permission1
     );
-    await test.delay(1000);
+    await test.delay(4e3);
     try {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
       throw new Error('Test Error : Should not be authorized');
@@ -190,7 +190,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     );
 
     await test.servers[0].exchange.security.linkGroup(savedGroups[2], savedUsers[2]);
-    await test.delay(1000);
+    await test.delay(4e3);
 
     data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
     test.expect(data).to.be.ok();
@@ -199,7 +199,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
       'LOOKUP_TABLES_GRP3',
       'STANDARD_ABC3'
     );
-    await test.delay(1000);
+    await test.delay(4e3);
     try {
       data = await testClient.data.get('/_data/historianStore/SPECIAL_DEVICE_ID_2');
       throw new Error('Test Error : Should not be authorized');
@@ -217,7 +217,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

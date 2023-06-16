@@ -31,7 +31,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         'prereleaseComponentNotFound',
         'brokeredMethod1'
       );
-      await test.delay(3e3);
+      await test.delay(4e3);
       test.clients.push(
         (client = await test.client.create('username', 'password', test.proxyPorts[1]))
       );
@@ -76,7 +76,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
         'prereleaseComponentNotFound',
         'brokeredMethod1'
       );
-      await test.delay(3e3);
+      await test.delay(4e3);
       test.clients.push(
         (client = await test.client.create('username', 'password', test.proxyPorts[1]))
       );
@@ -160,7 +160,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3,
       },
     };
     return config;

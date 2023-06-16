@@ -23,7 +23,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
 
   before('add happn test user', async () => {
     await test.users.add(test.servers[0], testUser.username, testUser.password);
-    await test.delay(5000);
+    await test.delay(6e3);
   });
 
   it('we should be able to log in using happn3 auth with testUser', async () => {
@@ -70,7 +70,7 @@ require('../_lib/test-helper').describe({ timeout: 70e3 }, (test) => {
     config.happn.services.membership = {
       config: {
         deploymentId,
-        securityChangeSetReplicateInterval: 20, // 50 per second
+        securityChangeSetReplicateInterval: 1e3, // 1 per second
       },
     };
     return config;
