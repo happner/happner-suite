@@ -1,6 +1,5 @@
-const PORT_CONSTANTS = require('./helpers/port-constants');
 module.exports = function (
-  extendedSeq,
+  seq,
   minPeers,
   secure,
   requestTimeout,
@@ -8,14 +7,11 @@ module.exports = function (
   hosts,
   joinTimeout,
   replicate,
-  logFile,
-  cacheStatisticsInterval
+  logFile
 ) {
-  let [first, seq] = extendedSeq;
   var clusterRequestTimeout = requestTimeout ? requestTimeout : 10 * 1000;
   var clusterResponseTimeout = responseTimeout ? responseTimeout : 20 * 1000;
 
-  hosts = hosts ? hosts.split(',') : ['127.0.0.1:' + (PORT_CONSTANTS.SWIM_BASE + first).toString()];
   joinTimeout = joinTimeout || 300;
   if (logFile) {
     process.env.LOG_FILE = logFile;
@@ -26,21 +22,21 @@ module.exports = function (
   return {
     name: 'MESH_' + seq,
     domain: 'DOMAIN_NAME',
-    port: PORT_CONSTANTS.HAPPN_BASE + seq,
+    port: 0,
     ignoreDependenciesOnStartup: true,
     cluster: {
       requestTimeout: clusterRequestTimeout,
       responseTimeout: clusterResponseTimeout,
     },
     happn: {
-      secure: secure,
+      secure,
       utils: {
         logFile,
       },
       services: {
         cache: {
           config: {
-            statisticsInterval: cacheStatisticsInterval,
+            statisticsInterval: 0,
           },
         },
         security: {
@@ -53,25 +49,28 @@ module.exports = function (
             autoUpdateDBVersion: true,
           },
         },
-        membership: {
-          config: {
-            host: '127.0.0.1',
-            port: PORT_CONSTANTS.SWIM_BASE + seq,
-            seed: seq === first,
-            seedWait: 1000,
-            hosts,
-            joinTimeout,
-          },
-        },
         proxy: {
           config: {
-            port: PORT_CONSTANTS.PROXY_BASE + seq,
+            port: 0,
           },
         },
-        orchestrator: {
+        membership: {
           config: {
-            minimumPeers: minPeers || 3,
-            replicate,
+            clusterName: 'clusterName',
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, by default everything
+            replicationPaths: replicate === false ? false : replicate || ['**'],
           },
         },
       },

@@ -1,11 +1,12 @@
 {
   "name": "happner-cluster",
-  "version": "13.0.0",
+  "version": "14.0.0-prerelease-1",
   "description": "Extends happner with clustering capabilities",
   "main": "index.js",
   "scripts": {
+    "test-debug": "mocha test/integration/* --recursive",
     "test-unit": "mocha silence.js test/unit/* --recursive --exit",
-    "test": "mocha silence.js test/unit/* test/integration/* --recursive --exit",
+    "test": "mocha test/unit/* test/integration/* --recursive --exit",
     "test-cover": "nyc --reporter=lcov --reporter=text --reporter=html npm test",
     "test-browser": "mocha test/browser/*test*.js"
   },
@@ -27,9 +28,9 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
-    "happn-cluster": "12.4.1",
+    "happn-cluster": "13.0.0-prerelease-8",
     "happn-commons": "1.5.0",
-    "happner-2": "13.0.0",
+    "happner-2": "13.0.1-prerelease-1",
     "http-proxy": "1.18.1",
     "semver": "^5.3.0"
   }

@@ -48,6 +48,7 @@ describe(test.testName(), function () {
           },
           log: {
             warn: test.sinon.stub(),
+            error: test.sinon.stub(),
           },
           authorize: test.sinon.stub(),
           generatePermissionSetKey: test.sinon.stub(),
@@ -96,11 +97,50 @@ describe(test.testName(), function () {
       const instance = BaseAuthProvider.create(
         mockAuthProviderPath,
         SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
-        mockConfig
+        undefined
       );
 
       test.chai.expect(instance.constructor.name).to.equal('TestAuthProvider');
       test.chai.expect(instance).to.be.an.instanceOf(BaseAuthProvider);
+    });
+
+    it('returns providerPathOrInstance if providerPathOrInstance is an instance of SecurityBaseAuthProvider ', async () => {
+      mockHappn.services.security.cacheService.happn = mockHappn;
+      const mockAuth = mockAuthProviderFactory.createAuthProvider(
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security)
+      );
+
+      await mockHappn.services.security.cacheService.initialize();
+      const instance = BaseAuthProvider.create(
+        { provider: mockAuth },
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        undefined
+      );
+
+      test.chai.expect(instance).to.equal(mockAuth);
+    });
+
+    it('failed to resolve or instantiate auth provider', async () => {
+      mockHappn.services.security.cacheService.happn = mockHappn;
+      await mockHappn.services.security.cacheService.initialize();
+
+      try {
+        BaseAuthProvider.create(
+          '',
+          SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+          undefined
+        );
+      } catch (error) {
+        test.chai
+          .expect(error.message)
+          .to.equal("The argument 'id' must be a non-empty string. Received ''");
+        test.chai.expect(mockHappn.services.security.log.error).to.have.callCount(1);
+        test.chai
+          .expect(mockHappn.services.security.log.error)
+          .to.have.been.calledWithExactly(
+            'failed to resolve or instantiate auth provider on path: '
+          );
+      }
     });
 
     it('can create an instance, various configs', async () => {
@@ -213,6 +253,64 @@ describe(test.testName(), function () {
     });
   });
 
+  context('getters', () => {
+    it('gets securityfacade', () => {
+      const instance = BaseAuthProvider.create(
+        mockAuthProviderPath,
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        mockConfig
+      );
+      const keys = ['security', 'users', 'groups', 'log', 'utils', 'cache', 'error', 'system'];
+      const result = instance.securityFacade;
+
+      Object.keys(result).forEach((item, i) => {
+        test.chai.expect(item).to.equal(keys[i]);
+      });
+    });
+
+    it('gets config', () => {
+      const instance = BaseAuthProvider.create(
+        mockAuthProviderPath,
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        mockConfig
+      );
+      const result = instance.config;
+
+      test.chai.expect(result).to.eql({
+        accountLockout: { enabled: true, attempts: 4, retryInterval: 600000 },
+        allowAnonymousAccess: true,
+        lockTokenToLoginType: null,
+        disableDefaultAdminNetworkConnections: null,
+      });
+    });
+
+    it('gets options', () => {
+      const instance = BaseAuthProvider.create(
+        mockAuthProviderPath,
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        mockConfig
+      );
+      const result = instance.options;
+
+      test.chai.expect(result).to.eql({ test: 1 });
+    });
+
+    it('gets locks', () => {
+      const getOrCreateStub = test.sinon.stub(cacheService, 'getOrCreate').returns('mock');
+      const instance = BaseAuthProvider.create(
+        mockAuthProviderPath,
+        SecurityFacadeFactory.createNewFacade(mockHappn.services.security),
+        mockConfig
+      );
+      const result = instance.locks;
+
+      test.chai.expect(result).to.equal('mock');
+      test.chai.expect(getOrCreateStub).to.have.been.calledWithExactly('security_account_lockout');
+      test.chai.expect(getOrCreateStub).to.have.callCount(1);
+      getOrCreateStub.restore();
+    });
+  });
+
   context('accessDenied', () => {
     it('calls callback with error', async () => {
       mockHappn.services.security.cacheService.happn = mockHappn;
@@ -251,6 +349,9 @@ describe(test.testName(), function () {
         instance.invalidCredentials('mockErrorMessage');
       } catch (e) {
         test.chai.expect(e.message).to.equal('mockErrorMessage');
+        test.chai
+          .expect(mockHappn.services.security.errorService.InvalidCredentialsError)
+          .to.have.callCount(1);
       }
     });
   });
@@ -441,20 +542,51 @@ describe(test.testName(), function () {
         test.chai.expect(e.message).to.equal('Account locked out');
       }
     });
+
+    it('throws system error credentials login not implemented', async () => {
+      mockConfig.accountLockout = { enabled: false };
+      const systemErrorStub = test.sinon
+        .stub(errorService, 'SystemError')
+        .returns('credentials login not implemented');
+
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      try {
+        await instance.login(credentials, 1, request);
+      } catch (error) {
+        test.chai.expect(error).to.equal('credentials login not implemented');
+      }
+
+      systemErrorStub.restore();
+    });
   });
 
   context('tokenLogin', async () => {
     it('accessDenied, calls callback with error, previousSession equal to null', async () => {
       mockConfig.allowAnonymousAccess = true;
       mockConfig.disableDefaultAdminNetworkConnections = true;
-
       const get = test.sinon.stub();
-      mockHappn.services.cache.getOrCreate.returns({
+
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns({
         get: get.returns({
           attempts: 4,
         }),
       });
-
       const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
       const instance = new BaseAuthProvider(securityFacade, mockConfig);
       const credentials = {
@@ -700,6 +832,7 @@ describe(test.testName(), function () {
 
       mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
       mockHappn.services.security.decodeToken.returns({
+        ttl: 1,
         username: '_ADMIN',
         type: 'mockType',
         origin: 'mockOrigin',
@@ -763,6 +896,47 @@ describe(test.testName(), function () {
         throw new Error('should have failed');
       } catch (e) {
         test.chai.expect(e.toString()).to.equal(`Error: test error`);
+      }
+    });
+
+    it('returns invalid credentials: token timed out , ', async () => {
+      const dateStub = test.sinon.stub(Date, 'now').returns(10);
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+        type: 1,
+        token: null,
+        digest: 1,
+      };
+      const request = {
+        data: {
+          info: {
+            _local: false,
+          },
+        },
+      };
+
+      mockHappn.services.security.checkRevocations.resolves(['mockAuthorize', 'mockReason']);
+      mockHappn.services.security.decodeToken.returns({
+        ttl: 1,
+        timestamp: 2,
+        policy: [
+          'item1',
+          {
+            disallowTokenLogins: false,
+            lockTokenToOrigin: false,
+          },
+        ],
+      });
+      try {
+        await instance.tokenLogin(credentials, 1, request);
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials: token timed out');
+        test.chai.expect(dateStub).to.have.callCount(1);
+      } finally {
+        dateStub.restore();
       }
     });
   });
@@ -837,6 +1011,123 @@ describe(test.testName(), function () {
           'mockTokenLogin',
           'mockAdditionalInfo'
         );
+    });
+
+    it('session disconnected during login', () => {
+      mockHappn.services.cache.getOrCreate = test.sinon.stub().returns(null);
+
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      const credentials = {
+        username: 'mockUsername',
+        password: null,
+      };
+
+      mockHappn.services.security.generateSession.returns(null);
+
+      test.chai
+        .expect(() =>
+          instance.loginOK(
+            credentials,
+            { password: 'mockPassword', username: 'username' },
+            'mockSessionId',
+            'mockTokenLogin',
+            'mockAdditionalInfo'
+          )
+        )
+        .to.throw('session disconnected during login');
+    });
+  });
+
+  context('login failed', () => {
+    it('returns invalidCredentials, specific message is truthy', () => {
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', 'mockMessage', null, 'mockOverrideLockout');
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('mockMessage');
+      }
+    });
+
+    it('returns invalidCredentials, specific message is falsy', () => {
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', null, null, 'mockOverrideLockout');
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials');
+      }
+    });
+
+    it('returns invalidCredentials, e is truthy', () => {
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', null, new Error('mockError'), 'mockOverrideLockout');
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials: mockError');
+      }
+    });
+
+    it('returns invalidCredentials, e is an error object', () => {
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', null, 'mockError', 'mockOverrideLockout');
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials: mockError');
+      }
+    });
+
+    it('returns invalidCredentials, currentLock is falsy', () => {
+      const getStub = test.sinon.stub();
+      const setStub = test.sinon.stub();
+      mockHappn.services.cache.getOrCreate.returns({
+        get: getStub,
+        set: setStub,
+      });
+
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', null, 'mockError', null);
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials: mockError');
+        test.chai.expect(getStub).to.have.been.calledWithExactly('mockUsername');
+        test.chai
+          .expect(setStub)
+          .to.have.been.calledWithExactly('mockUsername', { attempts: 1 }, { ttl: 600000 });
+      }
+    });
+
+    it('returns invalidCredentials, currentLock is truthy', () => {
+      const getStub = test.sinon.stub().returns({
+        attempts: 1,
+      });
+      const setStub = test.sinon.stub();
+      mockHappn.services.cache.getOrCreate.returns({
+        get: getStub,
+        set: setStub,
+      });
+      const securityFacade = SecurityFacadeFactory.createNewFacade(mockHappn.services.security);
+      const instance = new BaseAuthProvider(securityFacade, mockConfig);
+
+      try {
+        instance.loginFailed('mockUsername', null, 'mockError', null);
+      } catch (error) {
+        test.chai.expect(error.message).to.equal('Invalid credentials: mockError');
+        test.chai.expect(getStub).to.have.been.calledWithExactly('mockUsername');
+        test.chai
+          .expect(setStub)
+          .to.have.been.calledWithExactly('mockUsername', { attempts: 2 }, { ttl: 600000 });
+      }
     });
   });
   context('providerFunctions', () => {

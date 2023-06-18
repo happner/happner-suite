@@ -1070,3 +1070,7 @@
 13.11.1 2023-05-20
 -----------------
 - feat: add happner-2 support for reset password
+
+13.11.2 2023-03-04
+-----------------
+  - Mongo-based cluster membership - dependencies update

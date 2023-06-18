@@ -11,6 +11,12 @@ module.exports = {
     TRANSACTIONAL: 2, //waits until all recipients have been written to
     ACKNOWLEDGED: 3, //waits until all recipients have acknowledged
   },
+  SERVICE_STATE: {
+    UNINITIALIZED: 0,
+    STARTED: 1,
+    STOPPING: 2,
+    STOPPED: 3,
+  },
   CLIENT_STATE: {
     UNINITIALIZED: 0,
     ACTIVE: 1,

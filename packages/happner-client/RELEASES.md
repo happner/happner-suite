@@ -428,3 +428,7 @@
 -----------------
   - fix: happn-3 resetpassword
   - feat: happner-2 resetpassword
+
+12.7.2 2023-05-06
+-----------------
+  - Mongo-based cluster membership - dependencies update

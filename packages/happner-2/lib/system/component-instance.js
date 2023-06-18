@@ -780,7 +780,10 @@ module.exports = class ComponentInstance {
     if (callbackPeer) {
       // for cluster the set is performed back at the originating peer
       try {
-        client = mesh.happn.server.services.orchestrator.peers[callbackPeer].client;
+        const peer = mesh.happn.server.peers.find(
+          (peer) => peer.peerInfo.memberName === callbackPeer
+        );
+        client = peer.client;
       } catch (e) {
         // no peer at callback (race conditions on servers stopping and starting) dead end...
         this.log.warn(`Failure on callback, missing peer: ${callbackPeer}`, e);
@@ -790,8 +793,9 @@ module.exports = class ComponentInstance {
     client.publish(callbackAddress, response, options, (e) => {
       if (e) {
         var logMessage = 'Failure to set callback data on address ' + callbackAddress;
-        if (e.message && e.message === 'client is disconnected')
-          return this.log.warn(logMessage + ':client is disconnected');
+        if (e.message === 'client is disconnected' || e.message.includes('api request timed out')) {
+          return this.log.warn(`${logMessage}:${e.message}`);
+        }
         this.log.error(logMessage, e);
       }
     });
