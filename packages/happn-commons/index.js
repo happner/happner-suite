@@ -40,3 +40,7 @@ module.exports = {
 };
 // must be declared after we have attached other deps
 module.exports.clone = require('./lib/clone');
+module.exports.hashString = (str) => {
+  const crypto = require('crypto');
+  return crypto.createHash('md5').update(str).digest('hex');
+};

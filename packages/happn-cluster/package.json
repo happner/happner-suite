@@ -4,7 +4,7 @@
   "description": "extends happn with cluster ability",
   "main": "index.js",
   "scripts": {
-    "test-debug": "_mocha test/functional/* --recursive --exit",
+    "test-debug": "_mocha test/integration/* --recursive --exit",
     "test": "_mocha silence.js test/unit/* test/integration/* test/functional/* --recursive --exit",
     "test-inc-functional": "_mocha silence.js test/integration test/unit test/functional --recursive --exclude **/*.skip.js",
     "test-unit": "mocha test/unit/* --recursive",
@@ -44,6 +44,8 @@
     "happn-commons": "1.5.0",
     "happn-db-provider-mongo": "1.1.11-prerelease-1",
     "http-proxy": "^1.18.1",
-    "mongodb": "^4.1.4"
+    "kafkajs": "^2.2.4",
+    "mongodb": "^4.1.4",
+    "pulsar-client": "^1.8.2"
   }
 }
