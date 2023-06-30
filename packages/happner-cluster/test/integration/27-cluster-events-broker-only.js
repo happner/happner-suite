@@ -224,7 +224,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     };
     config.happn.services.membership = {
       config: {
-        // preserve the other propertied from baseConfig
+        // preserve the other properties from baseConfig
         ...config.happn.services.membership.config,
         deploymentId,
         securityChangeSetReplicateInterval: 1e3,
@@ -250,7 +250,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
     };
     config.happn.services.membership = {
       config: {
-        // preserve the other propertied from baseConfig
+        // preserve the other properties from baseConfig
         ...config.happn.services.membership.config,
         deploymentId,
         securityChangeSetReplicateInterval: 1e3,
