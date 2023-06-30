@@ -70,7 +70,7 @@ module.exports = function (
             clusterUsername: '_CLUSTER',
             clusterPassword: 'PASSWORD',
             // event paths we want to replicate on, by default everything
-            replicationPaths: replicate === false ? false : replicate || ['**'],
+            replicationPaths: replicate === false ? false : replicate || [],
           },
         },
       },
