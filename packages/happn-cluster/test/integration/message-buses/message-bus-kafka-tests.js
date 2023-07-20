@@ -1,17 +1,19 @@
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   it.only('starts, publishes, subscribes, consumes and stops the kafka message bus', async () => {
-    const domain = `DOMAIN`;
     const deploymentId = test.commons.uuid.v4();
+    const domain = `DOMAIN`;
+
     const replicationPathsHash1 = test.commons.hashString(
       JSON.stringify(['test/1/2/3', 'test/1/*'])
     );
+
     const replicationPathsHash2 = test.commons.hashString(
       JSON.stringify(['test/1/2/3', 'test/1/*', 'test/2/*'])
     );
 
-    const topic1 = `${domain}-${deploymentId}-${replicationPathsHash1}`;
-    const topic2 = `${domain}-${deploymentId}-${replicationPathsHash2}`;
+    const topic1 = `${deploymentId}-${domain}-${replicationPathsHash1}`;
+    const topic2 = `${deploymentId}-${domain}-${replicationPathsHash2}`;
 
     const posted = [];
 
