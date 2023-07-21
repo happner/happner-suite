@@ -1,3 +1,7 @@
+13.0.1 2023-07-21
+-----------------
+  - happner-2: response subscription filter fix
+
 3.0.0 2023-05-24
 -----------------
   - fix: happn-3 resetpassword
