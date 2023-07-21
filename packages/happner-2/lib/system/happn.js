@@ -250,10 +250,7 @@ function __initializeDbConfig(config) {
 
 function __inboundLayer(message, callback) {
   try {
-    if (
-      message.raw.action === 'on' &&
-      message.raw.path.indexOf('/SET@/_exchange/responses') === 0
-    ) {
+    if (message.raw.action === 'on' && message.raw.path.includes('/_exchange/responses')) {
       //we are not allowed to listen in any response paths that dont contain our sessions
       if (message.raw.path.indexOf(message.session.id) === -1) {
         //we need to write an ok and emulate a successful subscription
