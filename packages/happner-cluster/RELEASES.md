@@ -467,3 +467,7 @@
   - fix: happn-3 resetpassword
   - feat: happner-2 resetpassword (major)
 
+13.0.1 2023-07-21
+-----------------
+  - happner-2: response subscription filter fix
+
