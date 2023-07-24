@@ -467,8 +467,13 @@
   - fix: happn-3 resetpassword
   - feat: happner-2 resetpassword (major)
 
+13.0.1 2023-07-21
+-----------------
+  - happner-2: response subscription filter fix
+
 14.0.0 2023-03-04
 -----------------
   - happn-cluster membership updated to mongo-based system
   - tests now use ports auto-assigned by OS
+
 

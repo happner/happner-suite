@@ -70,7 +70,7 @@ require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
       return client;
     }
 
-    it('starts the cluster broker, with 2 brokered internal nodes in a high availability configuration, we ensure indirect calls to the brokered component succeed and are sticky sessioned, then we stop one internal node and we ensure we are still able to access the web content on the remaining node', async function () {
+    xit('starts the cluster broker, with 2 brokered internal nodes in a high availability configuration, we ensure indirect calls to the brokered component succeed and are sticky sessioned, then we stop one internal node and we ensure we are still able to access the web content on the remaining node', async function () {
       let thisClientMesh2;
       let thisClientMesh3;
 

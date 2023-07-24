@@ -1,4 +1,5 @@
-require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
+  const _ = require('lodash');
   let deploymentId = test.newid();
   const baseConfig = require('../_lib/base-config');
   const libDir = require('../_lib/lib-dir');
@@ -78,7 +79,9 @@ require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) =>
     }
     config.happn.services.membership = {
       config: {
-        dependencies,
+        // make sure we remove self from list of dependencies
+        // registry-service list method excludes own service name from list of current members
+        dependencies: _.omit(dependencies, clusterServiceNameArr[seq]),
         serviceName: clusterServiceNameArr[seq],
         deploymentId,
         securityChangeSetReplicateInterval: 1e3, // 1 per second

@@ -1052,6 +1052,10 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - feat: Happner-2 security reset password as anonymouse
   - feat: deprecate updateOwnUser (breaking)
 
-13.0.1 2023-03-04
+13.0.2 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update
+
+13.0.1 2023-07-21
+-----------------
+  - happner-2: response subscription filter fix

@@ -1,7 +1,7 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
-require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   let deploymentId = test.newid();
   test.log(`DEPLOYMENT_ID: ${deploymentId}`);
   let client, internalClient;
@@ -224,6 +224,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) =>
     };
     config.happn.services.membership = {
       config: {
+        // preserve the other properties from baseConfig
+        ...config.happn.services.membership.config,
         deploymentId,
         securityChangeSetReplicateInterval: 1e3,
       },
@@ -248,6 +250,8 @@ require('../_lib/test-helper').describe({ timeout: 60e3, skip: true }, (test) =>
     };
     config.happn.services.membership = {
       config: {
+        // preserve the other properties from baseConfig
+        ...config.happn.services.membership.config,
         deploymentId,
         securityChangeSetReplicateInterval: 1e3,
       },

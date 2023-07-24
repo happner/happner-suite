@@ -30,8 +30,12 @@ module.exports = class ReplicationSubscriptionCache {
     return this.#indexer.unsubscribeAll(subscriberKey);
   }
   lookupTopics(path) {
-    return this.#indexer
-      .search(path)
-      .map((result) => `${this.#deploymentId}-${this.#domain}-${result.hash}`);
+    return [
+      ...new Set( // this deduplicates the items
+        this.#indexer
+          .search(path)
+          .map((result) => `${this.#deploymentId}-${this.#domain}-${result.hash}`)
+      ),
+    ];
   }
 };
