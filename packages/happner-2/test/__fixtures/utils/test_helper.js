@@ -730,9 +730,13 @@ class TestHelper extends BaseTestHelper {
     });
   };
 
+  createHappnerSession(credentials) {
+    return this.Mesh.MeshClient.create(credentials);
+  }
+
   createHappnerSessionBefore(username, password, port = 55e3)  {
     before (`it creates test session for ${username} before`, async () => {
-      this.#sessions.push(await this.Mesh.MeshClient.create({
+      this.#sessions.push(await this.createHappnerSession({
         username,
         password,
         port
