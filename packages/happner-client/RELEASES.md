@@ -432,3 +432,7 @@
 12.7.2 2023-07-21
 -----------------
   - happner-2: response subscription filter fix
+
+12.7.3 2023-07-25
+-----------------
+  - happner-2: MESH_GST permissions updated not to have {{id}} in path
