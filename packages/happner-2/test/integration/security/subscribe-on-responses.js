@@ -27,7 +27,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
       }
     );
     await test.sessions[0].exchange.security.changePassword('test', 'test1');
-    await anonymousSession.disconnect();
     if (eventHappened) {
       throw new Error('test failed');
     }
