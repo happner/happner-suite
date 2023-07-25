@@ -10,7 +10,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     const token = test.sessions[0].data.session.token;
     const tokenSession = await test.createHappnerSession({ token });
     await tokenSession.exchange.security.changePassword('test', 'new');
-    await tokenSession.disconnect();
   });
   test.destroySessionsAfter();
   test.destroyServersAfter();
