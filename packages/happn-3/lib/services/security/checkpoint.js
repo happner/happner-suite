@@ -342,7 +342,14 @@ CheckPoint.prototype.__setAuthCache = function (session, path, action, authorize
 CheckPoint.prototype.listRelevantPermissions = function (session, path, action, callback) {
   this.__constructPermissionSet(session, (e, permissionSet) => {
     if (e) return callback(e);
-    const permissions = permissionSet.wildcardPathSearch(path, action);
+    let permissions = permissionSet.wildcardPathSearch(path, action);
+    if (permissions instanceof Error) {
+      this.log.error(`Bad Path ${path} - ${permissions.message}`);
+      permissions = {
+        allowed: [],
+        prohibited: [],
+      };
+    }
     callback(null, permissions);
   });
 };

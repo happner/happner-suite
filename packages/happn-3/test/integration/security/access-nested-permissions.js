@@ -198,7 +198,7 @@ describe(test.testName(__filename, 3), function () {
       test.expect(results.length).to.be(3);
 
       try {
-        results = await testClient.get('/TEST/5/6/*');
+        await testClient.get('/TEST/5/6/*');
         throw new Error('Should not be authorized');
       } catch (e) {
         test.expect(e instanceof Error).to.be(true);
@@ -206,7 +206,15 @@ describe(test.testName(__filename, 3), function () {
       }
 
       try {
-        results = await testClient.get('/TEST/5/6/7/9');
+        await testClient.get('/TEST/5/6/7/9');
+        throw new Error('Should not be authorized');
+      } catch (e) {
+        test.expect(e instanceof Error).to.be(true);
+        test.expect(e.message).to.eql('unauthorized');
+      }
+
+      try {
+        await testClient.get('/**/5/**');
         throw new Error('Should not be authorized');
       } catch (e) {
         test.expect(e instanceof Error).to.be(true);
