@@ -766,38 +766,33 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   }
 
   #changePassword(user, passwordDetails, callback) {
+    let credentials = user;
+    let decodedToken = null;
+    // this.#matchAuthProvider(user, (e, authProvider) => {
     const sessionInfo = this.sessionService.getSession(user.id);
-    if (sessionInfo == null) {
-      return callback(
-        this.happn.services.error.InvalidCredentialsError(
-          'Invalid credentials: missing session token'
-        )
-      );
+    if (sessionInfo != null) {
+      decodedToken = this.decodeToken(sessionInfo.token);
+      if (decodedToken == null) {
+        return callback(
+          this.happn.services.error.InvalidCredentialsError(
+            'Invalid credentials: invalid session token'
+          )
+        );
+      }
+      credentials = decodedToken;
     }
-    let decodedToken = this.decodeToken(sessionInfo.token);
-    if (decodedToken == null) {
-      return callback(
-        this.happn.services.error.InvalidCredentialsError(
-          'Invalid credentials: invalid session token'
-        )
-      );
-    }
-    this.#matchAuthProvider(
-      decodedToken,
-      (e, authProvider) => {
-        if (e) return callback(e);
-        let error;
-        authProvider.instance
-          .providerChangePassword(user, passwordDetails, decodedToken)
-          .catch((e) => {
-            error = e;
-          })
-          .finally(() => {
-            callback(error);
-          });
-      },
-      true
-    );
+    this.#matchAuthProvider(credentials, (e, authProvider) => {
+      if (e) return callback(e);
+      let error;
+      authProvider.instance
+        .providerChangePassword(user, passwordDetails, decodedToken)
+        .catch((e) => {
+          error = e;
+        })
+        .finally(() => {
+          callback(error);
+        });
+    });
   }
 
   revokeToken(token, reason, callback) {

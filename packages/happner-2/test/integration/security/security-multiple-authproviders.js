@@ -110,7 +110,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       }
     });
 
-    it('Change password on a 2nd auth provider and check meta data', async () => {
+    it('change password on a 2nd auth provider and check meta data', async () => {
       await server.exchange.security.addUser(testUser2);
       let client = new test.Mesh.MeshClient();
       await client.login({
