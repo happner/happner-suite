@@ -768,7 +768,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   #changePassword(user, passwordDetails, callback) {
     let credentials = user;
     let decodedToken = null;
-    // this.#matchAuthProvider(user, (e, authProvider) => {
     const sessionInfo = this.sessionService.getSession(user.id);
     if (sessionInfo != null) {
       decodedToken = this.decodeToken(sessionInfo.token);
