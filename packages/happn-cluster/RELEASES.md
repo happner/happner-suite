@@ -364,3 +364,7 @@ non-release 2017-12-14
 -----------------
   - fix: happn-3 resetpassword
   - feat: happner-2 resetpassword
+
+12.4.2 2023-08-05
+-----------------
+- feat: fixed mesh_gst paths in happner-2
