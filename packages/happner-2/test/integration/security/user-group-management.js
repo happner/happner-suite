@@ -767,7 +767,6 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     let testUserClient = new Mesh.MeshClient({ secure: true, port: 8003 });
 
     await testUserClient.login(testUser);
-    // await testUserClient.exchange.security.updateOwnUser({ oldPassword: '123', ...testUser });
     await testUserClient.exchange.security.changePassword('TEST PWD', 'new');
     try {
       await testUserClient.exchange.security.changePassword('old', 'new');

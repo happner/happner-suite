@@ -766,11 +766,25 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   }
 
   #changePassword(user, passwordDetails, callback) {
-    this.#matchAuthProvider(user, (e, authProvider) => {
+    let credentials = user;
+    let decodedToken = null;
+    const sessionInfo = this.sessionService.getSession(user.id);
+    if (sessionInfo != null) {
+      decodedToken = this.decodeToken(sessionInfo.token);
+      if (decodedToken == null) {
+        return callback(
+          this.happn.services.error.InvalidCredentialsError(
+            'Invalid credentials: invalid session token'
+          )
+        );
+      }
+      credentials = decodedToken;
+    }
+    this.#matchAuthProvider(credentials, (e, authProvider) => {
       if (e) return callback(e);
       let error;
       authProvider.instance
-        .providerChangePassword(user, passwordDetails)
+        .providerChangePassword(user, passwordDetails, decodedToken)
         .catch((e) => {
           error = e;
         })

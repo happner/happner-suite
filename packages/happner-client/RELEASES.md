@@ -436,3 +436,7 @@
 12.7.3 2023-07-25
 -----------------
   - happner-2: MESH_GST permissions updated not to have {{id}} in path
+
+12.7.4 2023-08-05
+-----------------
+  - happner-2: happn-3 auth provider updates
