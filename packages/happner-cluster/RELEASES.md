@@ -471,9 +471,16 @@
 -----------------
   - happner-2: response subscription filter fix
 
+13.0.2 2023-07-25
+-----------------
+  - happner-2: MESH_GST permissions updated not to have {{id}} in path
+
+13.0.3 2023-08-05
+-----------------
+  - happner-2: happn-3 auth provider updates
+
 14.0.0 2023-03-04
 -----------------
   - happn-cluster membership updated to mongo-based system
   - tests now use ports auto-assigned by OS
-
 

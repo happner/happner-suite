@@ -1059,3 +1059,11 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 13.0.1 2023-07-21
 -----------------
   - happner-2: response subscription filter fix
+
+13.0.2 2023-07-25
+-----------------
+  - happner-2: MESH_GST permissions updated not to have {{id}} in path
+
+13.0.3 2023-08-05
+-----------------
+  - happner-2: happn-3 auth provider updates

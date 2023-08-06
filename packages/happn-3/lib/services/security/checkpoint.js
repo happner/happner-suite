@@ -49,7 +49,6 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
     if (!config.groupPermissionsPolicy) config.groupPermissionsPolicy = 'most_restrictive';
 
     this.__checkpoint_permissionset = PermissionsStore.create();
-    this.__checkpoint_permissionset_token = PermissionsStore.create();
 
     this.__cache_checkpoint_authorization = this.cacheService.create(
       'checkpoint_cache_authorization',
@@ -88,7 +87,6 @@ CheckPoint.prototype.initialize = function (config, securityService, callback) {
 
 CheckPoint.prototype.stop = function () {
   if (this.__checkpoint_permissionset) this.__checkpoint_permissionset.clear();
-  if (this.__checkpoint_permissionset) this.__checkpoint_permissionset_token.clear();
   if (this.__cache_checkpoint_authorization) this.__cache_checkpoint_authorization.clear();
   if (this.__cache_checkpoint_authorization_token)
     this.__cache_checkpoint_authorization_token.clear();
@@ -99,7 +97,6 @@ CheckPoint.prototype.stop = function () {
 CheckPoint.prototype.clearCaches = function () {
   this.__cache_checkpoint_authorization.clear();
   this.__checkpoint_permissionset.clear();
-  this.__checkpoint_permissionset_token.clear();
   this.__cache_checkpoint_authorization_token.clear();
 };
 
@@ -136,9 +133,7 @@ CheckPoint.prototype.__createPermissionSet = function (permissions, identity) {
 };
 
 CheckPoint.prototype.__loadPermissionSet = function (identity, callback) {
-  const permissionSetStore = identity.isToken
-    ? this.__checkpoint_permissionset_token
-    : this.__checkpoint_permissionset;
+  const permissionSetStore = this.__checkpoint_permissionset;
   let permissionSet = permissionSetStore.get(identity.permissionSetKey, identity.user.username);
   if (permissionSet) {
     return callback(null, permissionSet);
@@ -342,7 +337,14 @@ CheckPoint.prototype.__setAuthCache = function (session, path, action, authorize
 CheckPoint.prototype.listRelevantPermissions = function (session, path, action, callback) {
   this.__constructPermissionSet(session, (e, permissionSet) => {
     if (e) return callback(e);
-    const permissions = permissionSet.wildcardPathSearch(path, action);
+    let permissions = permissionSet.wildcardPathSearch(path, action);
+    if (permissions instanceof Error) {
+      this.log.error(`Bad Path ${path} - ${permissions.message}`);
+      permissions = {
+        allowed: [],
+        prohibited: [],
+      };
+    }
     callback(null, permissions);
   });
 };
