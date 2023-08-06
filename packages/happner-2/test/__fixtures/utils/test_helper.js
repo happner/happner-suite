@@ -730,13 +730,19 @@ class TestHelper extends BaseTestHelper {
     });
   };
 
+  async createHappnerSession(credentials) {
+    const session = await this.Mesh.MeshClient.create(credentials);
+    this.#sessions.push(session);
+    return session;
+  }
+
   createHappnerSessionBefore(username, password, port = 55e3)  {
     before (`it creates test session for ${username} before`, async () => {
-      this.#sessions.push(await this.Mesh.MeshClient.create({
+      await this.createHappnerSession({
         username,
         password,
         port
-      }));
+      });
     });
   }
 
@@ -775,8 +781,8 @@ class TestHelper extends BaseTestHelper {
     after ('it destroys sessions after', async () => {
       for (const session of this.#sessions) {
         await session.disconnect();
-        this.#sessions.splice(this.#sessions.indexOf(session), 1);
       }
+      this.#sessions = [];
     });
   }
 

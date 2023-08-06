@@ -57,7 +57,7 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             actions: ['set'],
             description: 'mesh system permission',
           },
-          '/_exchange/responses/*/security/updateOwnUser/{{id}}/*': {
+          '/_exchange/responses/{{happn.name}}/security/updateOwnUser/*/*': {
             actions: ['on'],
             description: 'mesh system request permission',
           },
@@ -65,7 +65,7 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             actions: ['set'],
             description: 'mesh system permission',
           },
-          '/_exchange/responses/*/security/changePassword/{{id}}/*': {
+          '/_exchange/responses/{{happn.name}}/security/changePassword/*/*': {
             actions: ['on'],
             description: 'mesh system request permission',
           },
@@ -73,7 +73,7 @@ Security.prototype.__createSystemGroups = function (adminUser, callback) {
             actions: ['set'],
             description: 'mesh system permission',
           },
-          '/_exchange/responses/*/security/resetPassword/{{id}}/*': {
+          '/_exchange/responses/{{happn.name}}/security/resetPassword/*/*': {
             actions: ['on'],
             description: 'mesh system request permission',
           },

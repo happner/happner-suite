@@ -424,13 +424,11 @@ describe(test.testName(__filename), function () {
           expect(authorized).to.be(false);
 
           var cached = checkpoint.__checkpoint_permissionset.get(testPermissionSetKey, 'TEST');
-          expect(cached).to.be(null);
-
-          cached = checkpoint.__checkpoint_permissionset_token.get(testPermissionSetKey, 'TEST');
           expect(cached).to.not.be(null);
+
           checkpoint.clearCaches();
 
-          expect(checkpoint.__checkpoint_permissionset_token.get(testPermissionSetKey)).to.be(null);
+          expect(checkpoint.__checkpoint_permissionset.get(testPermissionSetKey)).to.be(null);
 
           done();
         }
@@ -837,7 +835,6 @@ describe(test.testName(__filename), function () {
   it('tests stop function, with properties', function () {
     const checkPointOpts = [
       '__checkpoint_permissionset',
-      '__checkpoint_permissionset_token',
       '__cache_checkpoint_authorization',
       '__checkpoint_inactivity_threshold',
       '__checkpoint_usage_limit',
