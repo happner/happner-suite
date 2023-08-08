@@ -75,6 +75,11 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     await clusterHelper.destroy();
   });
 
+  after("wait", done => {
+    setTimeout(done, 5000)
+  })
+  
+
   it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
     await client.exchange.brokerComponent.block();
     await test.delay(15000); //wait for component to stop blocking and reconnect to mesh
