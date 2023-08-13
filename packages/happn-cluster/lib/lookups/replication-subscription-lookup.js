@@ -3,26 +3,30 @@ module.exports = class ReplicationSubscriptionCache {
   #replicationPaths = {};
   #indexer;
   #deploymentId;
-  #domain;
-  constructor(deploymentId, domain) {
+  #clusterName;
+  constructor(deploymentId, clusterName) {
     this.#indexer = require('tame-search').create();
     this.#deploymentId = deploymentId;
-    this.#domain = domain;
+    this.#clusterName = clusterName;
   }
-  static create(deploymentId, domain) {
-    return new ReplicationSubscriptionCache(deploymentId, domain);
+  static create(deploymentId, clusterName) {
+    return new ReplicationSubscriptionCache(deploymentId, clusterName);
   }
   get replicationPaths() {
     return commons.clone(this.#replicationPaths);
   }
+  getReplicationPathsHash(replicationPaths) {
+    const pathsClone = commons.clone(replicationPaths);
+    pathsClone.sort();
+    return commons.hashString(JSON.stringify(pathsClone));
+  }
   addReplicationPaths(subscriberKey, replicationPaths) {
-    const pathsClone = commons.clone(replicationPaths).sort();
-    const hash = commons.hashString(JSON.stringify(pathsClone));
+    const hash = this.getReplicationPathsHash(replicationPaths);
     if (this.#replicationPaths[`${hash}-${subscriberKey}`]) {
       return;
     }
-    this.#replicationPaths[`${hash}-${subscriberKey}`] = pathsClone;
-    pathsClone.forEach((path) => {
+    this.#replicationPaths[`${hash}-${subscriberKey}`] = replicationPaths;
+    replicationPaths.forEach((path) => {
       this.#indexer.subscribe(subscriberKey, path, { hash });
     });
   }
@@ -34,7 +38,7 @@ module.exports = class ReplicationSubscriptionCache {
       ...new Set( // this deduplicates the items
         this.#indexer
           .search(path)
-          .map((result) => `${this.#deploymentId}-${this.#domain}-${result.hash}`)
+          .map((result) => `${this.#deploymentId}-${this.#clusterName}-${result.hash}`)
       ),
     ];
   }

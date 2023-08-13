@@ -47,7 +47,6 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
       );
       return;
     }
-    // TODO: check for connector with same name - and just reconnect it
     const peerConnector = this.#peerConnectorFactory.createPeerConnector(this.#log, peerInfo, () =>
       this.#peerDisconnected(peerInfo)
     );
@@ -67,6 +66,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   async #disconnectPeerConnector(peerConnector) {
     try {
       await peerConnector.disconnect();
+      await this.#eventReplicator.detachPeerConnector(peerConnector);
       this.emit(Constants.EVENT_KEYS.PEER_DISCONNECTED, peerConnector.peerInfo);
     } catch (e) {
       // TODO: should we fatal here?
@@ -103,6 +103,7 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
         .withMemberHost(peerListItem.memberHost)
         .withMemberPort(peerListItem.memberPort)
         .withMemberStatus(peerListItem.status)
+        .withReplicationPaths(peerListItem.replicationPaths)
         .build();
     });
     for (const peerInfo of peerInfoItems) {

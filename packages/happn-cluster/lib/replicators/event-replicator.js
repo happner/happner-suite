@@ -4,12 +4,26 @@ const commons = require('happn-commons');
 module.exports = class EventReplicator extends require('events').EventEmitter {
   #log;
   #happnService;
+  #messageBus;
+  #replicationSubscriptionLookup;
+  #processManager;
   #stopped;
   #config;
-  constructor(config, logger, happnService) {
+  #replicationTopic;
+  constructor(
+    config,
+    logger,
+    happnService,
+    messageBus,
+    replicationSubscriptionLookup,
+    processManager
+  ) {
     super();
     this.#log = logger;
     this.#happnService = happnService;
+    this.#messageBus = messageBus;
+    this.#replicationSubscriptionLookup = replicationSubscriptionLookup;
+    this.#processManager = processManager;
     this.#config = this.#defaults(config);
     this.handleReplicationSubscription = this.handleReplicationSubscription.bind(this);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
@@ -17,30 +31,88 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     });
   }
 
-  static create(config, logger, happnService, processManager) {
-    return new EventReplicator(config, logger, happnService, processManager);
+  static create(config, logger, happnService, messageBus, processManager) {
+    return new EventReplicator(config, logger, happnService, messageBus, processManager);
   }
 
   async #start() {
     this.#stopped = false;
     this.#log.info('started');
+    await this.#initializeAndStartMessageBus();
+    // attach to all local events
+    await this.#happnService.localClient.onAll(this.#handleLocalClientEvent.bind(this));
   }
 
-  stop() {
+  async stop() {
     this.#stopped = true;
+    await this.#messageBus.stop();
     this.#log.info('stopped');
   }
 
+  async #initializeAndStartMessageBus() {
+    this.#replicationTopic = this.#getReplicationTopic();
+    await this.#messageBus.initialize();
+    this.#log.info(`subscribing to replication topic: ${this.#replicationTopic}`);
+    await this.#messageBus.subscribe(
+      this.#replicationTopic,
+      { fromBeginning: false },
+      this.#handleReplicatedEvent.bind(this)
+    );
+    await this.#messageBus.start();
+  }
+
+  async #handleLocalClientEvent(data, meta) {
+    // this is a replicated event, replicated: true prevents infinite recursion
+    if (meta.replicated) {
+      return;
+    }
+    const replicationPayload = { data, meta: { ...meta, replicated: true } }; // shallow clone of meta with replicated: true
+    const replicationTopics = this.#replicationSubscriptionLookup.lookupTopics(meta.path);
+    for (let topic of replicationTopics) {
+      this.#log.info(`publishing to replication topic: ${topic}`, replicationPayload);
+      await this.#messageBus.publish(topic, replicationPayload);
+    }
+  }
+
+  async #handleReplicatedEvent(payload) {
+    this.#log.info(`replicated:::`, payload);
+  }
+
+  #getReplicationTopic() {
+    const replicationPathsHash = this.#replicationSubscriptionLookup.getReplicationPathsHash(
+      this.#config.replicationPaths
+    );
+    return `${this.#config.deploymentId}-${this.#config.clusterName}-${replicationPathsHash}`;
+  }
+
+  async detachPeerConnector(peerConnector) {
+    try {
+      this.#replicationSubscriptionLookup.removeReplicationPaths(peerConnector.peerInfo.memberName);
+      this.#log.info('peer detached: ', peerConnector.peerInfo.memberName);
+    } catch (e) {
+      // bounce the process as the cluster is now broken
+      this.#processManager.fatal(
+        `failed attaching peer ${peerConnector.peerInfo.memberName}: ${e.messsage}`
+      );
+    }
+  }
+
   async attachPeerConnector(peerConnector) {
-    // eslint-disable-next-line no-useless-catch
     try {
       await peerConnector.subscribe(
         this.#config.replicationPaths,
         this.handleReplicationSubscription
       );
+      this.#replicationSubscriptionLookup.addReplicationPaths(
+        peerConnector.peerInfo.memberName,
+        peerConnector.peerInfo.replicationPaths
+      );
+      this.#log.info('peer attached: ', peerConnector.peerInfo.memberName);
     } catch (e) {
-      //TODO: what now
-      throw e;
+      // bounce the process as the cluster is now broken
+      this.#processManager.fatal(
+        `failed attaching peer ${peerConnector.peerInfo.memberName}: ${e.messsage}`
+      );
     }
   }
 
@@ -63,10 +135,6 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
 
   #defaults(config) {
     const cloned = commons._.cloneDeep(config?.services?.membership?.config || {});
-    if (!cloned.replicationPaths) {
-      cloned.replicationPaths = ['**'];
-    }
-    cloned.replicationPaths.push(Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE);
     return cloned;
   }
 };

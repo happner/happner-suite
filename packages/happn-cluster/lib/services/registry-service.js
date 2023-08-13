@@ -40,6 +40,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
         .withMemberStatus(item.status)
         .withTimestamp(item.timestamp)
         .withMembershipPath(item.path)
+        .withReplicationPaths(item.replicationPaths)
         .build();
     });
   }
@@ -53,6 +54,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
     memberPort,
     memberStatus,
     timestamp,
+    replicationPaths,
   }) {
     const path = `${deploymentId}/${clusterName}/${serviceName}/${memberName}`;
     this.#log.debug(`pulse: ${path}: ${memberStatus}`);
@@ -62,6 +64,7 @@ module.exports = class RegistryService extends require('events').EventEmitter {
       memberPort,
       status: memberStatus,
       timestamp,
+      replicationPaths,
     });
   }
 

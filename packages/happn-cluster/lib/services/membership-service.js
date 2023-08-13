@@ -217,6 +217,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
           .withMemberHost(this.#proxyService.internalHost)
           .withMemberPort(this.#proxyService.internalPort)
           .withMemberStatus(this.#status)
+          .withReplicationPaths(this.#membershipServiceConfig.replicationPaths)
           .withTimestamp(Date.now())
           .build()
       );

@@ -54,8 +54,10 @@ module.exports = class Container {
     const membershipRegistryRepository =
       require('./repositories/membership-registry-repository').create(membershipDbProvider);
 
+    const membershipConfig = this.#config.services.membership.config;
+
     const registryService = require('./services/registry-service').create(
-      this.#config.services.membership.config,
+      membershipConfig,
       membershipRegistryRepository,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-registry-service`)
     );
@@ -73,11 +75,27 @@ module.exports = class Container {
         happnService,
         processManagerService
       );
+
     // replication - event propagation
+    const replicationSubscriptionLookup =
+      require('./lookups/replication-subscription-lookup').create(
+        membershipConfig.deploymentId,
+        membershipConfig.clusterName
+      );
+    // yes a factory - in case we want to switch to a different message bus by configuration
+    const messageBusFactory = require('./factories/message-bus-factory').create();
+    const messageBus = messageBusFactory.createMessageBus(
+      membershipConfig.messageBusType,
+      membershipConfig.messageBus
+    );
+
     const eventReplicator = require('./replicators/event-replicator').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-event-replicator`),
-      happnService
+      happnService,
+      messageBus,
+      replicationSubscriptionLookup,
+      processManagerService
     );
 
     // peer management
@@ -121,7 +139,7 @@ module.exports = class Container {
     this.#log.info('stopping container');
     // stop replication activities
     await this.#dependencies['securityDirectoryReplicator'].stop();
-    this.#dependencies['eventReplicator'].stop();
+    await this.#dependencies['eventReplicator'].stop();
     // stop happn
     await this.#dependencies['happnService'].stop(opts);
     this.#log.info(`stopped container successfully`);

@@ -49,12 +49,11 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     await this.#happnService.localClient.on(
       Constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE,
       (data) => {
-        const payload = data.payload;
         if (data.origin === this.#happnService.name) {
           // dont replicate changes that originated here
           return;
         }
-        this.writeSecurityDirectoryChange(payload);
+        this.writeSecurityDirectoryChange(data.payload);
       }
     );
 
@@ -111,10 +110,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
 
   async writeSecurityDirectoryChange(payload) {
     for (const update of this.#unbatchSecurityUpdate(payload)) {
-      const whatHappnd = update.whatHappnd;
-      const changedData = update.changedData;
-      const additionalInfo = update.additionalInfo;
-
+      const { whatHappnd, changedData, additionalInfo } = update;
       // flag as learned from replication - to not replicate again
       changedData.replicated = true;
       await this.#happnService.securityDirectoryChanged(whatHappnd, changedData, additionalInfo);
@@ -124,7 +120,6 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   #getChangedKey(whatHappnd, changedData) {
     switch (whatHappnd) {
       case SecurityDirectoryEvents.TOKEN_REVOKED:
-        return changedData;
       case SecurityDirectoryEvents.TOKEN_RESTORED:
         return changedData;
       case SecurityDirectoryEvents.LINK_GROUP:
@@ -138,13 +133,11 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
       case SecurityDirectoryEvents.UPSERT_GROUP:
         return changedData.name;
       case SecurityDirectoryEvents.PERMISSION_REMOVED:
-        return changedData.groupName;
       case SecurityDirectoryEvents.PERMISSION_UPSERTED:
         return changedData.groupName;
       case SecurityDirectoryEvents.UPSERT_USER:
         return changedData.username;
       case SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED:
-        return changedData.table;
       case SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED:
         return changedData.table;
       default:
@@ -153,6 +146,7 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   }
 
   #batchSecurityUpdate() {
+    // splicing clears the changeset, the result is then reduced into a batch
     return this.#securityChangeSet.splice(0).reduce((reduced, change) => {
       if (!reduced[change.whatHappnd]) reduced[change.whatHappnd] = {};
       reduced[change.whatHappnd][this.#getChangedKey(change.whatHappnd, change.changedData)] = {
@@ -163,51 +157,16 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
     }, {});
   }
 
+  #unbatchSecurityUpdate(payload) {
+    return Object.values(SecurityDirectoryEvents).reduce((unbatched, securityDirectoryEvent) => {
+      return unbatched.concat(this.#unpackBywhatHappnd(payload, securityDirectoryEvent));
+    }, []);
+  }
+
   #unpackBywhatHappnd(payload, whatHappnd) {
     if (payload[whatHappnd] == null) return [];
     return Object.keys(payload[whatHappnd]).map((changedKey) => {
       return { whatHappnd, ...payload[whatHappnd][changedKey] };
     });
-  }
-
-  #unbatchSecurityUpdate(payload) {
-    let unbatched = [];
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.TOKEN_REVOKED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.TOKEN_RESTORED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LINK_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UNLINK_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UPSERT_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UPSERT_USER)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.PERMISSION_REMOVED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.PERMISSION_UPSERTED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.DELETE_USER)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.DELETE_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED)
-    );
-    return unbatched;
   }
 };

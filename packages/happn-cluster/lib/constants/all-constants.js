@@ -5,4 +5,5 @@ module.exports = {
   MEMBER_STATUSES: require('./member-statuses'),
   PEER_CONNECTOR_STATUSES: require('./peer-connector-statuses'),
   PROXY_STATUSES: require('./proxy-statuses'),
+  MESSAGE_BUS_TYPES: require('./message-bus-types'),
 };

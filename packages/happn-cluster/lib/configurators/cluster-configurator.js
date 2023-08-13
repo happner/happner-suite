@@ -2,6 +2,7 @@ const commons = require('happn-commons');
 const dface = require('dface');
 const defaultName = require('../utils/default-name');
 const Defaults = require('../constants/defaults');
+const constants = require('../constants/all-constants');
 module.exports = class ClusterConfigurator extends require('./base-configurator') {
   constructor() {
     super();
@@ -20,10 +21,23 @@ module.exports = class ClusterConfigurator extends require('./base-configurator'
       definedConfig?.services?.membership?.config?.serviceName || Defaults.SERVICE_NAME;
     const clusterName =
       definedConfig?.services?.membership?.config?.clusterName || Defaults.CLUSTER_NAME;
-    config.services.membership.config.clusterName = clusterName;
-    config.services.membership.config.serviceName = serviceName;
-    config.services.membership.config.memberName =
-      config.name || `${serviceName}-${commons.uuid.v4()}`;
+    let membershipConfig = config.services.membership.config;
+
+    membershipConfig.clusterName = clusterName;
+    membershipConfig.serviceName = serviceName;
+    membershipConfig.memberName = config.name || `${serviceName}-${commons.uuid.v4()}`;
+    membershipConfig.messageBusType =
+      membershipConfig.messageBusType || constants.MESSAGE_BUS_TYPES.KAFKA;
+    membershipConfig.messageBus = membershipConfig.messageBus || {
+      kafka: {
+        clientId: membershipConfig.memberName,
+        brokers: ['localhost:9092'],
+      },
+    };
+    membershipConfig.replicationPaths = membershipConfig.replicationPaths || ['**'];
+    membershipConfig.replicationPaths.push(
+      constants.EVENT_KEYS.SYSTEM_CLUSTER_SECURITY_DIRECTORY_REPLICATE
+    );
     return config;
   }
   getDefaultConfig() {

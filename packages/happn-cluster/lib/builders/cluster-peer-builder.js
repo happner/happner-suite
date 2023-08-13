@@ -17,4 +17,7 @@ module.exports = class ClusterPeerBuilder extends require('./cluster-member-buil
   withMembershipPath(membershipPath) {
     return this.set('membershipPath', membershipPath, ClusterPeerBuilder.Types.STRING);
   }
+  withReplicationPaths(replicationPaths) {
+    return this.set('replicationPaths', replicationPaths, ClusterPeerBuilder.Types.ARRAY);
+  }
 };
