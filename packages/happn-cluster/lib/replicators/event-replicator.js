@@ -25,7 +25,6 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     this.#replicationSubscriptionLookup = replicationSubscriptionLookup;
     this.#processManager = processManager;
     this.#config = this.#defaults(config);
-    this.handleReplicationSubscription = this.handleReplicationSubscription.bind(this);
     this.#happnService.on(Constants.EVENT_KEYS.HAPPN_SERVICE_STARTED, () => {
       this.#start();
     });
@@ -62,8 +61,8 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
   }
 
   async #handleLocalClientEvent(data, meta) {
-    // this is a replicated event, replicated: true prevents infinite recursion
-    if (meta.replicated) {
+    // this is a replicated event, replicated: true prevents recursion
+    if (this.#stopped || meta.replicated) {
       return;
     }
     const replicationPayload = { data, meta: { ...meta, replicated: true } }; // shallow clone of meta with replicated: true
@@ -101,7 +100,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     try {
       await peerConnector.subscribe(
         this.#config.replicationPaths,
-        this.handleReplicationSubscription
+        this.#handleReplicationSubscription.bind(this)
       );
       this.#replicationSubscriptionLookup.addReplicationPaths(
         peerConnector.peerInfo.memberName,
@@ -116,7 +115,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     }
   }
 
-  async handleReplicationSubscription(data, meta) {
+  async #handleReplicationSubscription(data, meta) {
     if (this.#stopped) {
       return;
     }
