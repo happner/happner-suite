@@ -442,7 +442,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   after('stop cluster', function (done) {
     if (!servers) return done();
-    stopCluster(servers.concat(localInstance), done);
+    stopCluster(servers, done);
   });
 
   async function createHappnerClientAndAPI(opts, port) {

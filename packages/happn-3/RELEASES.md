@@ -1071,6 +1071,11 @@
 -----------------
 - feat: add happner-2 support for reset password
 
-13.11.2 2023-03-04
+13.11.2 2023-08-05
+-----------------
+- feat: fixed mesh_gst paths in happner-2
+
+13.11.3 2023-08-06
 -----------------
   - Mongo-based cluster membership - dependencies update
+

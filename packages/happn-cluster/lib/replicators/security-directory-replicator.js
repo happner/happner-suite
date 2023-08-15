@@ -171,43 +171,8 @@ module.exports = class ClusterReplicator extends require('events').EventEmitter 
   }
 
   #unbatchSecurityUpdate(payload) {
-    let unbatched = [];
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.TOKEN_REVOKED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.TOKEN_RESTORED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LINK_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UNLINK_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UPSERT_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.UPSERT_USER)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.PERMISSION_REMOVED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.PERMISSION_UPSERTED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.DELETE_USER)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.DELETE_GROUP)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LOOKUP_TABLE_CHANGED)
-    );
-    unbatched = unbatched.concat(
-      this.#unpackBywhatHappnd(payload, SecurityDirectoryEvents.LOOKUP_PERMISSION_CHANGED)
-    );
-    return unbatched;
+    return Object.values(SecurityDirectoryEvents).reduce((unbatched, securityDirectoryEvent) => {
+      return unbatched.concat(this.#unpackBywhatHappnd(payload, securityDirectoryEvent));
+    }, []);
   }
 };

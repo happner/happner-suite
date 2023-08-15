@@ -28,3 +28,7 @@
 1.2.1 2023-01-18
 -----------------
   - feat: commons update
+
+1.2.2 2023-08-04
+-----------------
+  - refactor: commons update

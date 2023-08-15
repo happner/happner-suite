@@ -1,7 +1,7 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
-
+const stopCluster = require('../_lib/stop-cluster');
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
@@ -74,13 +74,8 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   after('stop cluster', async () => {
     await clusterHelper.destroy();
   });
-
-  after("wait", done => {
-    setTimeout(done, 5000)
-  })
   
-
-  it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
+ it('broker rejoins cluster after event loop block causes it to disconnect', async () => {
     await client.exchange.brokerComponent.block();
     await test.delay(15000); //wait for component to stop blocking and reconnect to mesh
     let result = await client.exchange.remoteComponent.brokeredMethod1(); //mesh deemed healthy if function can be called through mesh

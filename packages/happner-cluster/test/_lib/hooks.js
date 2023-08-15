@@ -141,11 +141,14 @@ async function stopClient(clients) {
 }
 
 async function startCluster(test, config) {
+  let firstFunction = config.functions[0]
+  let firstInstance = HappnerCluster.create(firstFunction(0, 1, config.dynamic));
   await test.delay(500);
-  let servers = await Promise.all(
-    config.functions.map(async (configFunction, index) => {
-      return HappnerCluster.create(configFunction(index, index + 1, config.dynamic));
-    })
+  let servers = await Promise.all([
+    firstInstance,
+    ...config.functions.slice(1).map(async (configFunction, index) => {
+      return HappnerCluster.create(configFunction(index + 1, index + 2, config.dynamic));
+    })]
   );
   await test.delay(2e3);
   test.servers = servers.sort((a, b) => {

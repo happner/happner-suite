@@ -50,3 +50,7 @@
 1.1.3 2023-01-18
 -----------------
   - feat: commons update
+
+1.1.4 2023-08-05
+-----------------
+- feat: fixed mesh_gst paths in happner-2
