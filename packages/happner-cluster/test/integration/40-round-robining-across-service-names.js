@@ -1,5 +1,3 @@
-const clearMongoCollection = require('../_lib/clear-mongo-collection');
-
 require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   const _ = require('lodash');
   let deploymentId = test.newid();

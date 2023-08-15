@@ -266,7 +266,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     return config;
   }
 
-   function clearMongo(done) {
+  function clearMongo(done) {
     clearMongoCollection('mongodb://localhost', 'happn-cluster', function (e) {
       done(e);
     });
