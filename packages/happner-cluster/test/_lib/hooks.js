@@ -126,8 +126,8 @@ function clearMongoCollectionHook(timing) {
       });
       break;
     case 'beforeEach':
-      default:
-        beforeEach('clear mongo collection', (done) => {
+    default:
+      beforeEach('clear mongo collection', (done) => {
         clearMongoCollection('mongodb://127.0.0.1', 'happn-cluster', done);
       });
   }
