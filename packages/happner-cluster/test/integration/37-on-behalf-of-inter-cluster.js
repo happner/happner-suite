@@ -311,7 +311,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
     test.expect(errorMessage).to.be('unauthorized');
   });
 
-  var servers, localInstance;
+  var servers;
 
   function localInstanceConfig(seq) {
     var config = baseConfig(seq, undefined, true);
@@ -430,8 +430,6 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
       test.HappnerCluster.create(remoteInstanceConfig(2, 1)),
       test.HappnerCluster.create(remoteInstanceConfig(3, 1)),
     ]);
-
-    localInstance = servers[0];
     proxyPorts = servers.map((server) => server._mesh.happn.server.config.services.proxy.port);
     await test.users.add(servers[0], 'username', 'password');
     await test.delay(3e3);
@@ -442,7 +440,7 @@ require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
 
   after('stop cluster', function (done) {
     if (!servers) return done();
-    stopCluster(servers.concat(localInstance), done);
+    stopCluster(servers, done);
   });
 
   async function createHappnerClientAndAPI(opts, port) {

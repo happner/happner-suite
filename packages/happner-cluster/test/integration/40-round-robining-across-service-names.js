@@ -3,6 +3,7 @@ require('../_lib/test-helper').describe({ timeout: 60e3 }, (test) => {
   let deploymentId = test.newid();
   const baseConfig = require('../_lib/base-config');
   const libDir = require('../_lib/lib-dir');
+
   let brokerComponentPath = libDir + 'integration-41-broker-component';
   let remoteComponentPath = libDir + 'integration-41-remote-component';
   let dependencies = {

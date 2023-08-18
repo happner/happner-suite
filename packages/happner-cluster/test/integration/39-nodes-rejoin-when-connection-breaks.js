@@ -1,7 +1,6 @@
 const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 const clusterHelper = require('../_lib/helpers/multiProcessClusterManager').create();
-
 const clearMongoCollection = require('../_lib/clear-mongo-collection');
 
 require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
