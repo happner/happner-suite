@@ -141,8 +141,8 @@ async function stopClient(clients) {
 }
 
 async function startCluster(test, config) {
-  let firstFunction = config.functions[0];
-  let firstInstance = HappnerCluster.create(firstFunction(0, 1, config.dynamic));
+  let firstClusterNodeConfigurator = config.functions[0];
+  let firstInstance = HappnerCluster.create(firstClusterNodeConfigurator(0, 1, config.dynamic));
   await test.delay(500);
   let servers = await Promise.all([
     firstInstance,
