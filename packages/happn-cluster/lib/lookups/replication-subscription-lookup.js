@@ -41,12 +41,16 @@ module.exports = class ReplicationSubscriptionCache {
   }
 
   lookupTopics(path) {
-    return [
+    const lookedUp = [
       ...new Set( // this deduplicates the items
         this.#indexer
           .search(path)
           .map((result) => `${this.#deploymentId}-${this.#clusterName}-${result.hash}`)
       ),
     ];
+
+    console.log('lookedUp:::', lookedUp);
+
+    return lookedUp;
   }
 };

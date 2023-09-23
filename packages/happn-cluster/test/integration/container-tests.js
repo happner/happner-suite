@@ -57,7 +57,7 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     container3.stop();
   });
 
-  it.only('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
+  it('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
@@ -119,6 +119,45 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     container1.stop();
     container2.stop();
     container3.stop();
+  });
+
+  it.only('creates and starts 2 containers, stabilises, ensures an event is propagated', async () => {
+    const container1 = createContainer(12358, 'member1', 'service1', {
+      service2: 1,
+    });
+    const container2 = createContainer(12359, 'member2', 'service2', {
+      service1: 1,
+    });
+
+    container1.start();
+    container2.start();
+
+    await test.delay(5e3);
+
+    await test.createUserOnContainer(container1, 'test1', 'password', {
+      'test/path/1': { actions: ['*'] },
+    });
+
+    await test.delay(5e3);
+
+    const session1 = await test.createSession(12358, 'test1', 'password');
+    const session2 = await test.createSession(12359, 'test1', 'password');
+
+    let eventData = [];
+    await session2.on('test/path/1', (data) => {
+      eventData.push(data);
+    });
+
+    test.log('SETTING EVENT, PROPAGATING...');
+    await session1.set('test/path/1', { test: 1 });
+    await test.delay(2e3);
+    test.expect(eventData.length).to.equal(1);
+    test.log('SET EVENT, PROPAGATED...');
+
+    await test.destroySessions(session1, session2);
+
+    container1.stop();
+    container2.stop();
   });
 
   function createContainer(

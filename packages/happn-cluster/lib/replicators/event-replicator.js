@@ -61,7 +61,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
   }
 
   async #handleLocalClientEvent(data, meta) {
-    // this is a replicated event, replicated: true prevents recursion
+    // this is a replicated event, replicated: true prevents infinite recursion
     if (this.#stopped || meta.replicated) {
       return;
     }
@@ -74,7 +74,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
   }
 
   async #handleReplicatedEvent(payload) {
-    this.#log.info(`replicated:::`, payload);
+    if (payload.meta.path === 'test/path/1') this.#log.info(`replicated:::`, payload);
   }
 
   #getReplicationTopic() {
