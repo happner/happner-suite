@@ -4,15 +4,17 @@ module.exports = class ReplicationSubscriptionCache {
   #indexer;
   #deploymentId;
   #clusterName;
+  #memberName;
 
-  constructor(deploymentId, clusterName) {
+  constructor(deploymentId, clusterName, memberName) {
     this.#indexer = require('tame-search').create();
     this.#deploymentId = deploymentId;
     this.#clusterName = clusterName;
+    this.#memberName = memberName;
   }
 
-  static create(deploymentId, clusterName) {
-    return new ReplicationSubscriptionCache(deploymentId, clusterName);
+  static create(deploymentId, clusterName, memberName) {
+    return new ReplicationSubscriptionCache(deploymentId, clusterName, memberName);
   }
 
   get replicationPaths() {
@@ -25,14 +27,18 @@ module.exports = class ReplicationSubscriptionCache {
     return commons.hashString(JSON.stringify(pathsClone));
   }
 
-  addReplicationPaths(subscriberKey, replicationPaths) {
-    const hash = this.getReplicationPathsHash(replicationPaths);
-    if (this.#replicationPaths[`${hash}-${subscriberKey}`]) {
+  addReplicationPaths(memberName, replicationPaths) {
+    if (memberName === this.#memberName) {
+      // ignore self
       return;
     }
-    this.#replicationPaths[`${hash}-${subscriberKey}`] = replicationPaths;
+    const hash = this.getReplicationPathsHash(replicationPaths);
+    if (this.#replicationPaths[`${hash}-${memberName}`]) {
+      return;
+    }
+    this.#replicationPaths[`${hash}-${memberName}`] = replicationPaths;
     replicationPaths.forEach((path) => {
-      this.#indexer.subscribe(subscriberKey, path, { hash });
+      this.#indexer.subscribe(memberName, path, { hash });
     });
   }
 
@@ -45,12 +51,12 @@ module.exports = class ReplicationSubscriptionCache {
       ...new Set( // this deduplicates the items
         this.#indexer
           .search(path)
-          .map((result) => `${this.#deploymentId}-${this.#clusterName}-${result.hash}`)
+          .map(
+            (result) =>
+              `${this.#deploymentId}-${this.#clusterName}-${result.hash}-${result.subscriberKey}`
+          )
       ),
     ];
-
-    console.log('lookedUp:::', lookedUp);
-
     return lookedUp;
   }
 };

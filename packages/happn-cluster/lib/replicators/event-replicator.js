@@ -55,7 +55,7 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     await this.#messageBus.subscribe(
       this.#replicationTopic,
       { fromBeginning: false },
-      this.#handleReplicatedEvent.bind(this)
+      this.#handleReplicationSubscription.bind(this)
     );
     await this.#messageBus.start();
   }
@@ -68,20 +68,18 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     const replicationPayload = { data, meta: { ...meta, replicated: true } }; // shallow clone of meta with replicated: true
     const replicationTopics = this.#replicationSubscriptionLookup.lookupTopics(meta.path);
     for (let topic of replicationTopics) {
-      this.#log.info(`publishing to replication topic: ${topic}`, replicationPayload);
+      // this.#log.info(`publishing to replication topic: ${topic}`, replicationPayload);
       await this.#messageBus.publish(topic, replicationPayload);
     }
-  }
-
-  async #handleReplicatedEvent(payload) {
-    if (payload.meta.path === 'test/path/1') this.#log.info(`replicated:::`, payload);
   }
 
   #getReplicationTopic() {
     const replicationPathsHash = this.#replicationSubscriptionLookup.getReplicationPathsHash(
       this.#config.replicationPaths
     );
-    return `${this.#config.deploymentId}-${this.#config.clusterName}-${replicationPathsHash}`;
+    return `${this.#config.deploymentId}-${this.#config.clusterName}-${replicationPathsHash}-${
+      this.#config.memberName
+    }`;
   }
 
   async detachPeerConnector(peerConnector) {
@@ -98,10 +96,10 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
 
   async attachPeerConnector(peerConnector) {
     try {
-      await peerConnector.subscribe(
-        this.#config.replicationPaths,
-        this.#handleReplicationSubscription.bind(this)
-      );
+      // await peerConnector.subscribe(
+      //   this.#config.replicationPaths,
+      //   this.#handleReplicationSubscription.bind(this)
+      // );
       this.#replicationSubscriptionLookup.addReplicationPaths(
         peerConnector.peerInfo.memberName,
         peerConnector.peerInfo.replicationPaths
@@ -115,11 +113,14 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     }
   }
 
-  async #handleReplicationSubscription(data, meta) {
+  async #handleReplicationSubscription(payload) {
     if (this.#stopped) {
       return;
     }
+    const { data, meta } = payload;
     const replicatedMessage = ReplicatedMessageBuilder.create().withDataAndMeta(data, meta).build();
+
+    // this.#log.info(`received replicated message:::`, JSON.stringify(payload, null, 2));
 
     replicatedMessage.recipients =
       this.#happnService.subscriptionService.getRecipients(replicatedMessage);

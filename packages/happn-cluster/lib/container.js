@@ -80,7 +80,8 @@ module.exports = class Container {
     const replicationSubscriptionLookup =
       require('./lookups/replication-subscription-lookup').create(
         membershipConfig.deploymentId,
-        membershipConfig.clusterName
+        membershipConfig.clusterName,
+        this.#config.services.membership.config.memberName
       );
     // yes a factory - in case we want to switch to a different message bus by configuration
     const messageBusFactory = require('./factories/message-bus-factory').create();
