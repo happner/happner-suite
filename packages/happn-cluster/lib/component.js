@@ -1,5 +1,4 @@
 const Container = require('./container');
-const commons = require('happn-commons');
 const Constants = require('./constants/all-constants');
 class HappnerClusterComponent extends require('events').EventEmitter {
   #container;

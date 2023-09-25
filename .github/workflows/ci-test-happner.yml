@@ -32,6 +32,9 @@ jobs:
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
 
+    - name: Start Bitname Kafka
+      uses: bbcCorp/kafka-actions@v1
+
     - run: npm i -g npm@7 --registry=https://registry.npmjs.org
     - run: npm install
 
