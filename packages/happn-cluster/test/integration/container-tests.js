@@ -52,9 +52,9 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     test.expect(container1PeerConnectors[0].peerInfo.memberName).to.be('member2');
     test.expect(container1PeerConnectors[1].peerInfo.memberName).to.be('member3');
 
-    container1.stop();
-    container2.stop();
-    container3.stop();
+    await container1.stop();
+    await container2.stop();
+    await container3.stop();
   });
 
   it('creates and starts 3 containers, stabilises, ensures security directory changes are propagated', async () => {
@@ -116,12 +116,12 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
     await test.destroySessions(session1, session2, session3);
 
-    container1.stop();
-    container2.stop();
-    container3.stop();
+    await container1.stop();
+    await container2.stop();
+    await container3.stop();
   });
 
-  it.only('creates and starts 2 containers, stabilises, ensures an event is propagated', async () => {
+  it('creates and starts 2 containers, stabilises, ensures an event is propagated', async () => {
     const container1 = createContainer(12358, 'member1', 'service1', {
       service2: 1,
     });
@@ -156,8 +156,8 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
     await test.destroySessions(session1, session2);
 
-    container1.stop();
-    container2.stop();
+    await container1.stop();
+    await container2.stop();
   });
 
   function createContainer(

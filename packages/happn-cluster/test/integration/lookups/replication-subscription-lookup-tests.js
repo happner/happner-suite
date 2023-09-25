@@ -25,12 +25,14 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     test
       .expect(lookup.sort())
       .to.eql([
-        `${deploymentId}-${domain}-affe5f3f1a51ffd8b208c19c73056077`,
-        `${deploymentId}-${domain}-bf995208370d693d8f7884984e45dde6`,
+        `${deploymentId}-${domain}-affe5f3f1a51ffd8b208c19c73056077-origin1`,
+        `${deploymentId}-${domain}-bf995208370d693d8f7884984e45dde6-origin2`,
       ]);
     // cluster peer goes away
     replicationSubscriptionLookup.removeReplicationPaths('origin1');
     lookup = replicationSubscriptionLookup.lookupTopics('test/1/2');
-    test.expect(lookup).to.eql([`${deploymentId}-${domain}-bf995208370d693d8f7884984e45dde6`]);
+    test
+      .expect(lookup)
+      .to.eql([`${deploymentId}-${domain}-bf995208370d693d8f7884984e45dde6-origin2`]);
   });
 });

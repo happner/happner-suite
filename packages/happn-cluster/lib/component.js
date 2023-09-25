@@ -5,49 +5,61 @@ class HappnerClusterComponent extends require('events').EventEmitter {
   #container;
   constructor(config) {
     super();
-    this.stop = commons.maybePromisify(this.stop);
     this.#container = Container.create(config);
   }
+
   get config() {
     if (!this.#container?.dependencies?.happnService) {
       throw new Error('cannot access happnService: container not started yet');
     }
     return this.#container.config;
   }
+
   get services() {
     if (!this.#container?.dependencies?.happnService) {
       throw new Error('cannot access happnService: container not started yet');
     }
     return this.#container.dependencies.happnService.services;
   }
+
   get connect() {
     if (!this.#container?.dependencies?.happnService) {
       throw new Error('cannot access happnService: container not started yet');
     }
     return this.#container.dependencies.happnService.connect;
   }
+
   get happnService() {
     if (!this.#container?.dependencies?.happnService) {
       throw new Error('cannot access happnService: container not started yet');
     }
     return this.#container.dependencies.happnService;
   }
+
   get peers() {
     if (!this.#container?.dependencies?.clusterPeerService) {
       throw new Error('cannot access clusterPeerService: container not started yet');
     }
     return this.#container.dependencies.clusterPeerService.peerConnectors;
   }
+
   async start() {
     this.#container.registerDependencies();
     await this.#container.start();
     this.attachToEvents();
     return this;
   }
-  async stop(options, cb) {
+
+  // ugly - but this interface needs to satisfy happner-cluster
+  stop(options, cb) {
     if (typeof options === 'function') {
       cb = options;
+      options = {};
     }
+
+    // stop is a promise
+    if (!cb) return this.#container.stop(options);
+
     let error;
     this.#container
       .stop()
@@ -78,8 +90,15 @@ class HappnerClusterComponent extends require('events').EventEmitter {
   }
 }
 
-HappnerClusterComponent.create = commons.maybePromisify((config, cb) => {
+// also ugly - but this interface needs to satisfy happner-cluster
+HappnerClusterComponent.create = (config, cb) => {
+  if (typeof config === 'function') {
+    cb = config;
+    config = {};
+  }
   const component = new HappnerClusterComponent(config);
+  if (!cb) return component.start();
+
   let error;
   component
     .start()
@@ -90,6 +109,6 @@ HappnerClusterComponent.create = commons.maybePromisify((config, cb) => {
       if (error) return cb(error);
       cb(null, component);
     });
-});
+};
 
 module.exports = HappnerClusterComponent;

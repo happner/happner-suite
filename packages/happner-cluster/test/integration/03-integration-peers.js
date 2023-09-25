@@ -3,7 +3,7 @@ const libDir = require('../_lib/lib-dir');
 const baseConfig = require('../_lib/base-config');
 
 let deploymentId;
-require('../_lib/test-helper').describe({ timeout: 20e3 }, (test) => {
+require('../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   deploymentId = test.newid();
   let config = {
     cluster: {

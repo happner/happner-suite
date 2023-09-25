@@ -61,6 +61,7 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
       memberPort: port++,
       status,
       timestamp: Date.now(),
+      replicationPaths: [],
     };
   }
 

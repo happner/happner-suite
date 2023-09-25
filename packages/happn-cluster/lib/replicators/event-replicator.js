@@ -30,8 +30,22 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     });
   }
 
-  static create(config, logger, happnService, messageBus, processManager) {
-    return new EventReplicator(config, logger, happnService, messageBus, processManager);
+  static create(
+    config,
+    logger,
+    happnService,
+    messageBus,
+    replicationSubscriptionLookup,
+    processManager
+  ) {
+    return new EventReplicator(
+      config,
+      logger,
+      happnService,
+      messageBus,
+      replicationSubscriptionLookup,
+      processManager
+    );
   }
 
   async #start() {
@@ -68,8 +82,16 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
     const replicationPayload = { data, meta: { ...meta, replicated: true } }; // shallow clone of meta with replicated: true
     const replicationTopics = this.#replicationSubscriptionLookup.lookupTopics(meta.path);
     for (let topic of replicationTopics) {
-      // this.#log.info(`publishing to replication topic: ${topic}`, replicationPayload);
-      await this.#messageBus.publish(topic, replicationPayload);
+      try {
+        // this.#log.info(`publishing to replication topic: ${topic}`, replicationPayload);
+        await this.#messageBus.publish(topic, replicationPayload);
+      } catch (e) {
+        // TODO: what now? some kind of QoS, or retry logic?
+        this.#log.error(
+          `failed posting replication message on path: ${meta.path} to peer on replication path: ${topic}`,
+          e
+        );
+      }
     }
   }
 
@@ -96,10 +118,6 @@ module.exports = class EventReplicator extends require('events').EventEmitter {
 
   async attachPeerConnector(peerConnector) {
     try {
-      // await peerConnector.subscribe(
-      //   this.#config.replicationPaths,
-      //   this.#handleReplicationSubscription.bind(this)
-      // );
       this.#replicationSubscriptionLookup.addReplicationPaths(
         peerConnector.peerInfo.memberName,
         peerConnector.peerInfo.replicationPaths

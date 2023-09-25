@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
-  it.only('starts, publishes, subscribes, consumes and stops the kafka message bus', async () => {
+  it('starts, publishes, subscribes, consumes and stops the kafka message bus', async () => {
     const deploymentId = test.commons.uuid.v4();
     const domain = `DOMAIN`;
 
@@ -43,8 +43,9 @@ require('../../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
   });
 
   async function createMessageBus() {
+    const constants = require('../../../lib/constants/all-constants');
     const messageBusFactory = require('../../../lib/factories/message-bus-factory').create();
-    const messageBusKafka = messageBusFactory.createMessageBusKafka({
+    const messageBusKafka = messageBusFactory.createMessageBus(constants.MESSAGE_BUS_TYPES.KAFKA, {
       kafka: {
         clientId: test.commons.uuid.v4(),
         brokers: ['localhost:9092'],
