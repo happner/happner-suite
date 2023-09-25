@@ -1,27 +1,31 @@
 require('../_lib/test-helper').describe(
   { timeout: 60e3 },
   (test) => {
+    let deploymentId = test.newid();
     const servers = [];
     const libDir = `${require('../_lib/lib-dir')}integration-31-delayed-internal-member-startup${
       test.path.sep
     }`;
     let meshClientHelper = require('../_lib/client');
-    let happnerClient, clientPort, meshClient;
+    let happnerEdgeClient, clientPort, meshClient, happner1Client;
 
     before('starts the edge', startEdge);
     before('starts internal 1', startInternal1);
-    before('connects the test.client', connectClient);
+    // edge client does not accept incoming connections or allocate a port until all dependencies are met
+    // This means a client can't connect to the edge mesh until Internal2 is running.
+    before('connects the test.client', connectClient1);
     after('destroys the cluster', destroyServers);
     after('disconnects the test.clients', disconnectClients);
 
     it('can construct the edge for rest requests after a delayed internal node start', async () => {
-      await test.delay(3000);
-      test.expect(await checkHappnerMethodAvailable()).to.be(false);
-      test.expect(await checkRestMethodAvailable()).to.be(false);
+      test.expect(await checkHappnerMethodAvailable(happner1Client)).to.be(false);
+      test.expect(await checkRestMethodAvailable(happner1Client)).to.be(false);
       await startInternal2();
+      // wait for dependencies to be met and allow clients to connect
       await test.delay(3000);
-      test.expect(await checkHappnerMethodAvailable()).to.be(true);
-      test.expect(await checkRestMethodAvailable()).to.be(true);
+      await connectClient();
+      test.expect(await checkHappnerMethodAvailable(happnerEdgeClient)).to.be(true);
+      test.expect(await checkRestMethodAvailable(happnerEdgeClient)).to.be(true);
       await checkRestDescribe();
 
       await connectMeshClient();
@@ -29,25 +33,21 @@ require('../_lib/test-helper').describe(
     });
 
     async function startEdge() {
-      const config = localInstanceConfig(test.getSeq.getFirst(), 1);
+      const config = localInstanceConfig(0, 1);
       config.cluster.dependenciesSatisfiedDeferListen = true;
       config.authorityDelegationOn = true;
-      clientPort = config.port;
+
       servers.push(await test.HappnerCluster.create(config));
       return servers[0];
     }
 
     async function startInternal1() {
-      servers.push(
-        await test.HappnerCluster.create(remoteInstanceConfig1(test.getSeq.getNext(), 1))
-      );
+      servers.push(await test.HappnerCluster.create(remoteInstanceConfig1(1, 1)));
       return servers[1];
     }
 
     async function startInternal2() {
-      servers.push(
-        await test.HappnerCluster.create(remoteInstanceConfig2(test.getSeq.getNext(), 2))
-      );
+      servers.push(await test.HappnerCluster.create(remoteInstanceConfig2(2, 2)));
       return servers[2];
     }
 
@@ -60,19 +60,19 @@ require('../_lib/test-helper').describe(
       });
     }
 
-    async function checkHappnerMethodAvailable() {
+    async function checkHappnerMethodAvailable(_happnerEdgeClient) {
       try {
-        await happnerClient.exchange['component-2'].method();
+        await _happnerEdgeClient.exchange['component-2'].method();
       } catch (e) {
         return false;
       }
       return true;
     }
 
-    async function checkRestMethodAvailable() {
+    async function checkRestMethodAvailable(_happnerEdgeClient) {
       try {
         await test.axios.post(
-          `http://127.0.0.1:${clientPort}/rest/method/component-2/method?happn_token=${happnerClient.token}`,
+          `http://127.0.0.1:${clientPort}/rest/method/component-2/method?happn_token=${_happnerEdgeClient.token}`,
           {
             parameters: {
               opts: { number: 1 },
@@ -88,7 +88,7 @@ require('../_lib/test-helper').describe(
     async function checkRestDescribe() {
       try {
         const result = await test.axios.post(
-          `http://127.0.0.1:${clientPort}/rest/describe?happn_token=${happnerClient.token}`,
+          `http://127.0.0.1:${clientPort}/rest/describe?happn_token=${happnerEdgeClient.token}`,
           {
             parameters: {
               opts: { number: 1 },
@@ -103,7 +103,13 @@ require('../_lib/test-helper').describe(
     }
 
     async function connectClient() {
-      happnerClient = await test.client.create('_ADMIN', 'happn', clientPort);
+      clientPort = servers[0]._mesh.happn.server.config.port;
+      happnerEdgeClient = await test.client.create('_ADMIN', 'happn', clientPort);
+    }
+
+    async function connectClient1() {
+      const client1Port = servers[1]._mesh.happn.server.config.port;
+      happner1Client = await test.client.create('_ADMIN', 'happn', client1Port);
     }
 
     async function connectMeshClient() {
@@ -111,7 +117,9 @@ require('../_lib/test-helper').describe(
     }
 
     async function disconnectClients() {
-      if (happnerClient) await happnerClient.disconnect();
+      if (happnerEdgeClient) await happnerEdgeClient.disconnect();
+      if (happner1Client) await happner1Client.disconnect();
+      if (meshClient) await meshClient.disconnect();
     }
 
     function destroyServers() {
@@ -133,6 +141,12 @@ require('../_lib/test-helper').describe(
         brokerComponent: {
           startMethod: 'start',
           stopMethod: 'stop',
+        },
+      };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 1e3,
         },
       };
       return config;
@@ -161,6 +175,12 @@ require('../_lib/test-helper').describe(
           stopMethod: 'stop',
         },
       };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 1e3,
+        },
+      };
       return config;
     }
 
@@ -185,6 +205,12 @@ require('../_lib/test-helper').describe(
         'component-2': {
           startMethod: 'start',
           stopMethod: 'stop',
+        },
+      };
+      config.happn.services.membership = {
+        config: {
+          deploymentId,
+          securityChangeSetReplicateInterval: 1e3,
         },
       };
       return config;

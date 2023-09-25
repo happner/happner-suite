@@ -1,3 +1,8 @@
+4.0.0 2023-05-06
+-----------------
+  - happn-cluster membership updated to mongo-based system
+  - tests now use ports auto-assigned by OS
+
 3.0.3 2023-08-05
 -----------------
   - happn-3: auth provider changes

@@ -30,10 +30,17 @@ module.exports = {
   rimraf: require('rimraf'),
   path: require('path'),
   BaseDataProvider: require('./lib/base-data-provider'),
+  BaseBuilder: require('./lib/base-builder'),
   lruCache: require('lru-cache'),
   fastClone: require('fast-clone'),
   HashRingSemaphore: require('./lib/concurrency/hashring-semaphore'),
+  AsyncQueue: require('./lib/concurrency/async-queue'),
   lock: require('async-lock'),
+  delay: require('await-delay'),
 };
 // must be declared after we have attached other deps
 module.exports.clone = require('./lib/clone');
+module.exports.hashString = (str) => {
+  const crypto = require('crypto');
+  return crypto.createHash('md5').update(str).digest('hex');
+};

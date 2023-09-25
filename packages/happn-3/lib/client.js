@@ -19,7 +19,8 @@
   let utils, CONSTANTS;
 
   if (!browser) {
-    CONSTANTS = require('./constants-builder');
+    const commons = require('happn-commons');
+    CONSTANTS = commons.constants;
     utils = require('happn-commons').utils;
     Logger = require('happn-logger');
     PROTOCOL = 'happn_' + require('../package.json').protocol; //we can access our package
@@ -1553,14 +1554,10 @@
     }
   };
 
-  HappnClient.prototype.__handleServerSideDisconnect = function (message) {
-    this.emit('session-ended', message.data);
-  };
-
   HappnClient.prototype.__handleSystemMessage = function (message) {
     if (message.eventKey === 'server-side-disconnect') {
       this.status = STATUS.DISCONNECTED;
-      this.__handleServerSideDisconnect(message);
+      this.emit('session-ended', message.data);
     }
     if (message.eventKey === 'security-data-changed') this.__updateSecurityDirectory(message);
 

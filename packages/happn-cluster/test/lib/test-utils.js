@@ -2,30 +2,23 @@
  * Created by grant on 2016/10/05.
  */
 
-var getAddress = require('../../lib/utils/get-address');
 var Mongo = require('./mongo');
-
-var mongoUrl = 'mongodb://127.0.0.1:27017';
-var mongoCollection = 'happn-cluster-test';
-
+const Util = require('util');
+const mongoUrl = 'mongodb://127.0.0.1:27017';
+const mongoCollection = 'happn-cluster';
+const path = require('path');
 module.exports.clearMongoCollection = function (callback, mongoCollectionArg, mongoUrlArg) {
   Mongo.clearCollection(mongoUrlArg || mongoUrl, mongoCollectionArg || mongoCollection, callback);
 };
 
-module.exports.createMemberConfigs = require('util').promisify(function (
-  testSequence,
+module.exports.createMemberConfigs = function (
+  deploymentId,
   clusterSize,
   happnSecure,
   proxySecure,
-  services,
-  callback
+  services
 ) {
-  var ipAddress = getAddress()();
   var transport = null;
-
-  var happnPortBase = testSequence * 200 + 1025;
-  var swimPortBase = happnPortBase + clusterSize * 2;
-  var proxyPortBase = swimPortBase + clusterSize * 2;
 
   if (happnSecure) {
     transport = {
@@ -55,16 +48,9 @@ module.exports.createMemberConfigs = require('util').promisify(function (
     i++;
 
     var config = {
-      port: happnPortBase + i,
+      port: 0,
       transport: transport,
       services: {
-        // data: {
-        //   path: 'happn-db-provider-mongo',
-        //   config: {
-        //     collection: mongoCollection,
-        //     url: mongoUrl
-        //   }
-        // }
         data: {
           config: {
             datastores: [
@@ -81,35 +67,33 @@ module.exports.createMemberConfigs = require('util').promisify(function (
             ],
           },
         },
-        orchestrator: {
+        proxy: {
           config: {
-            minimumPeers: clusterSize,
+            host: '0.0.0.0',
+            port: 0,
+            allowSelfSignedCerts: true,
           },
         },
         membership: {
           config: {
-            clusterName: 'cluster1',
-            seed: i === 1,
-            seedWait: 1000,
-            joinType: 'static',
-            host: ipAddress,
-            port: swimPortBase + i,
-            hosts: [
-              ipAddress + ':' + (swimPortBase + 1),
-              ipAddress + ':' + (swimPortBase + 2),
-              ipAddress + ':' + (swimPortBase + 3),
-            ],
-            joinTimeout: 2000,
-            pingInterval: 1000,
-            pingTimeout: 200,
-            pingReqTimeout: 600,
-          },
-        },
-        proxy: {
-          config: {
-            host: '0.0.0.0',
-            port: proxyPortBase + i,
-            allowSelfSignedCerts: true,
+            // dynamic (uuid) for the current deployment, so we dont have old membership data being acted on
+            deploymentId,
+            // a virtual cluster grouping, inside this deployment
+            clusterName: 'clusterName',
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
           },
         },
       },
@@ -125,6 +109,147 @@ module.exports.createMemberConfigs = require('util').promisify(function (
           },
         },
       };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
+    }
+
+    if (proxySecure) {
+      config.services.proxy.config.certPath = path.resolve(__dirname, '../keys/proxy.com.cert');
+      config.services.proxy.config.keyPath = path.resolve(__dirname, '../keys/proxy.com.key');
+    }
+
+    ammendConfig(config);
+
+    configs.push(config);
+  }
+
+  return configs;
+};
+
+module.exports.createMultiServiceMemberConfigs = function (
+  deploymentId,
+  clusterSize,
+  happnSecure,
+  proxySecure,
+  services,
+  clusterConfig
+) {
+  var transport = null;
+
+  if (happnSecure) {
+    transport = {
+      mode: 'https',
+      certPath: 'test/keys/happn.com.cert',
+      keyPath: 'test/keys/happn.com.key',
+    };
+  }
+  let clusterServiceNameArr = Object.entries(clusterConfig).reduce(
+    (serviceNameArray, [name, number]) => {
+      return serviceNameArray.concat(Array(number).fill(name));
+    },
+    []
+  );
+  var configs = [];
+  var i = 0;
+
+  function ammendConfig(config) {
+    Object.keys(services).forEach(function (serviceName) {
+      var ammendDefaultService = services[serviceName];
+      Object.keys(ammendDefaultService).forEach(function (keyName) {
+        if (!config.services[serviceName])
+          config.services[serviceName] = {
+            config: {},
+          };
+        config.services[serviceName].config[keyName] = ammendDefaultService[keyName];
+      });
+    });
+  }
+
+  while (i < clusterSize) {
+    i++;
+
+    var config = {
+      port: 0,
+      transport: transport,
+      services: {
+        data: {
+          config: {
+            datastores: [
+              {
+                name: 'mongo',
+                provider: 'happn-db-provider-mongo',
+                isDefault: true,
+                settings: {
+                  collection: mongoCollection,
+                  database: mongoCollection,
+                  url: mongoUrl,
+                },
+              },
+            ],
+          },
+        },
+        proxy: {
+          config: {
+            host: '0.0.0.0',
+            port: 0,
+            allowSelfSignedCerts: true,
+          },
+        },
+        membership: {
+          config: {
+            // dynamic (uuid) for the current deployment, so we dont have old membership data being acted on
+            deploymentId,
+            // a virtual cluster grouping, inside this deployment
+            clusterName: 'clusterName',
+            // classification for the set of services this member provides, members with the same service name should be identical
+            serviceName: clusterServiceNameArr[i - 1],
+            // the identifier for this member, NB: config.name overrides this in utils/default-name
+            memberName: 'memberName',
+            // abort start and exit, as dependencies and members not found on startup cycle
+            discoverTimeoutMs: 5e3,
+            healthReportIntervalMs: 1e3,
+            // announce presence every 500ms
+            pulseIntervalMs: 5e2,
+            // check membership registry every 3 seconds
+            memberScanningIntervalMs: 3e3,
+            // only stabilise if members with correct services and counts are present
+            dependencies: Object.fromEntries(
+              Object.entries(clusterConfig).filter(([key]) => key !== clusterServiceNameArr[i - 1])
+            ),
+            // intra-cluster credentials
+            clusterUsername: '_CLUSTER',
+            clusterPassword: 'PASSWORD',
+            // event paths we want to replicate on, in this case everything
+            replicationPaths: ['**'],
+          },
+        },
+      },
+    };
+
+    if (happnSecure) {
+      config.secure = true;
+      config.services.security = {
+        config: {
+          adminUser: {
+            username: '_ADMIN',
+            password: 'secret',
+          },
+        },
+      };
+      config.services.membership.config.clusterPublicKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key.pub'
+      );
+      config.services.membership.config.clusterPrivateKey = path.resolve(
+        __dirname,
+        '../keys/cluster.key'
+      );
     }
 
     if (proxySecure) {
@@ -134,19 +259,14 @@ module.exports.createMemberConfigs = require('util').promisify(function (
 
     ammendConfig(config);
 
-    // console.log(JSON.stringify(config, null, 2));
-
     configs.push(config);
   }
 
-  callback(null, configs);
-});
+  return configs;
+};
 
-module.exports.awaitExactMembershipCount = require('util').promisify(function (
-  servers,
-  count,
-  callback
-) {
+module.exports.awaitExactMembershipCount = Util.promisify(function (servers, count, callback) {
+  // Changed to await > or equal member count, as members are updated faster
   var interval,
     gotExactCount = false;
 
@@ -157,11 +277,10 @@ module.exports.awaitExactMembershipCount = require('util').promisify(function (
 
   interval = setInterval(function () {
     if (servers.length !== count) return;
-
     gotExactCount = true;
 
     servers.forEach(function (server) {
-      if (Object.keys(server.services.membership.members).length !== count - 1) {
+      if (Object.keys(server.services.orchestrator.members).length < count - 1) {
         gotExactCount = false;
       }
     });
@@ -173,7 +292,7 @@ module.exports.awaitExactMembershipCount = require('util').promisify(function (
   }, 100);
 });
 
-module.exports.awaitExactPeerCount = require('util').promisify(function (servers, count, callback) {
+module.exports.awaitExactPeerCount = Util.promisify(function (servers, count, callback) {
   var interval,
     gotExactCount = false;
 

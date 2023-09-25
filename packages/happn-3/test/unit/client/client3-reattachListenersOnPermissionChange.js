@@ -2,7 +2,7 @@ const test = require('../../__fixtures/utils/test_helper').create();
 describe(test.testName(__filename, 3), function () {
   this.timeout(15000);
   const HappnClient = require('../../../lib/client');
-  const Constants = require('../../../lib/constants');
+  const Constants = require('happn-commons').constants;
   const sinon = test.sinon;
   function mockHappnClient(
     log,

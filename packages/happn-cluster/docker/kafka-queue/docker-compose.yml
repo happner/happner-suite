@@ -1,0 +1,10 @@
+version: "3"
+services:
+  kafka:
+    image: 'bitnami/kafka:latest'
+    hostname: localhost
+    ports:
+      - '9092:9092'
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - AUTO_CREATE_TOPICS=true

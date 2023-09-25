@@ -346,15 +346,15 @@ describe(
 
       expect(utils.regexCaches.default.length > 0).to.be(true);
       expect(utils.regexCaches.defaultMax.max).to.be(10000);
-      expect(utils.regexCaches.defaultMax.length).to.be(6);
+      expect(utils.regexCaches.defaultMax.length).to.be(4);
       expect(utils.regexCaches.small.length).to.be(3);
       expect(utils.regexCaches.small.max).to.be(3);
 
-      expect(utils.regexCaches.object.length).to.be(6);
+      expect(utils.regexCaches.object.length).to.be(4);
       expect(utils.regexCaches.object.max).to.be(undefined);
       var errMessage = '';
       try {
-        expect(utils.wildcardMatch('/test*', '/tes/complex/and/short', undefined, 1, true)).to.be(
+        expect(utils.wildcardMatch('/tes*', '/tes/complex/and/short', undefined, 1, true)).to.be(
           false
         );
       } catch (e) {
