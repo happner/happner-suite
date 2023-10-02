@@ -1,6 +1,6 @@
 {
   "name": "happn-nedb",
-  "version": "2.0.11",
+  "version": "2.0.12-prerelease-3",
   "description": "File-based embedded data store for node.js",
   "keywords": [
     "database",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "commander": "1.1.1",
     "exec-time": "0.0.2",
-    "happn-commons-test": "1.2.2",
+    "happn-commons-test": "1.2.3-prerelease-1",
     "request": "2.9.x"
   }
 }
