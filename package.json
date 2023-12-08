@@ -1,12 +1,16 @@
 {
   "name": "happner-suite",
   "version": "3.0.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/happner/happner-suite"
+  },
   "scripts": {
     "test": "echo \"tests are not run from the main package of the workspace\" && exit 1",
     "re-install": "rm -rf node_modules && rm -rf ./packages/*/node_modules && rm -rf package-lock.json && npm i",
     "pre-publish": "node bin/pre-publish",
-    "lint": "eslint ./packages/$npm_config_package_name --ext .js",
-    "lint-fix": "eslint ./packages/$npm_config_package_name --ext .js --fix",
+    "lint": "eslint ./packages/$npm_config_package_name --ext .js --cache",
+    "lint-fix": "eslint ./packages/$npm_config_package_name --ext .js --fix --cache",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "workspaces": [

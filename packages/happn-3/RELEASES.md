@@ -1074,3 +1074,7 @@
 13.11.2 2023-08-05
 -----------------
 - feat: fixed mesh_gst paths in happner-2
+
+13.11.3 2023-12-08
+------------------
+- SMCGT-1755 - bugfix - fix listening on self-assigned port
