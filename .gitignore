@@ -33,7 +33,6 @@ coverage-web
 .jshintrc
 report.*
 .vscode
-tmp
 
 # happner rules
 packages/happner-2/test/temp
@@ -57,3 +56,4 @@ packages/happn-primus-wrapper/test/primus.save.sync.js
 
 temp/*
 
+/.eslintcache
