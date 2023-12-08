@@ -1,6 +1,6 @@
 {
   "name": "happner-2",
-  "version": "13.0.3",
+  "version": "13.0.4",
   "description": "distributed application engine with evented storage and mesh services",
   "main": "lib/mesh.js",
   "bin": {
@@ -47,7 +47,7 @@
     "change-case": "2.3.0",
     "commander": "2.9.0",
     "diskspace": "0.1.7",
-    "happn-3": "13.11.2",
+    "happn-3": "13.11.3",
     "happn-commons": "1.5.1",
     "happn-logger": "2.2.5",
     "happn-sillyname": "^0.1.1",
