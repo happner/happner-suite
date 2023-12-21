@@ -1,6 +1,6 @@
 {
   "name": "happn-db-provider-nedb",
-  "version": "1.1.5-prerelease-2",
+  "version": "1.1.5-prerelease-3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,10 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "happn-nedb": "2.0.12-prerelease-3",
-    "happn-commons": "1.5.1"
+    "happn-nedb": "2.0.12-prerelease-4",
+    "happn-commons": "1.6.0-prerelease-1"
   },
   "devDependencies": {
-    "happn-commons-test": "1.2.3-prerelease-1"
+    "happn-commons-test": "1.2.3-prerelease-2"
   }
 }

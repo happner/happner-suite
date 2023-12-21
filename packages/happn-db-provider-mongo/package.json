@@ -17,15 +17,15 @@
     "url": "https://github.com/happner/happn-service-mongo-2.git"
   },
   "dependencies": {
-    "happn-commons": "1.5.1",
+    "happn-commons": "1.6.0-prerelease-1",
     "mongodb": "^4.11.0",
     "parse-mongo-url": "^1.1.1"
   },
   "devDependencies": {
     "byline": "^5.0.0",
     "gulp": "^3.9.0",
-    "happn-3": "13.11.3-prerelease-4",
-    "happn-commons-test": "1.2.3-prerelease-1"
+    "happn-3": "13.11.3-prerelease-5",
+    "happn-commons-test": "1.2.3-prerelease-2"
   },
   "readmeFilename": "README.md"
 }

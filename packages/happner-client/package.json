@@ -21,12 +21,12 @@
     "test-browser": "gulp --gulpfile test/browser/gulp-01.js"
   },
   "dependencies": {
-    "happn-3": "13.11.3-prerelease-4",
-    "happn-commons": "1.5.1",
+    "happn-3": "13.11.3-prerelease-5",
+    "happn-commons": "1.6.0-prerelease-1",
     "happner-semver": "^1.0.1"
   },
   "devDependencies": {
-    "happn-commons-test": "1.2.3-prerelease-1",
-    "happner-2": "13.0.4-prerelease-3"
+    "happn-commons-test": "1.2.3-prerelease-2",
+    "happner-2": "13.0.4-prerelease-4"
   }
 }
