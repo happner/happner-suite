@@ -209,9 +209,16 @@
 
       if (origin) requestOptions.onBehalfOf = origin.username;
 
-      const client = implementation.local
-        ? _this.connection.client
-        : _this.connection.clients.peers[implementation.name].client;
+      let client;
+
+      if (implementation.local) {
+        client = _this.connection.client;
+      } else {
+        const peer = _this.connection.clusterInstance.peers.find(
+          (peer) => peer.peerInfo.memberName === implementation.name
+        );
+        client = peer.client;
+      }
 
       // need to create the response handler before calling set() because
       // if it is only created in set()'s callback there is a race condition

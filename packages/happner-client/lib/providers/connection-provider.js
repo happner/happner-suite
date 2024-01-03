@@ -125,14 +125,17 @@
     });
   };
 
-  ConnectionProvider.prototype.mount = function (orchestrator) {
+  ConnectionProvider.prototype.mount = function (clusterInstance) {
     this.connected = true;
-    this.clients = orchestrator;
-    Object.keys(orchestrator.peers).forEach((name) => {
-      var peer = orchestrator.peers[name];
-      if (peer.self) {
-        this.client = peer.client;
-      }
-    });
+    this.client = clusterInstance.happnService.localClient;
+    this.client.self = true;
+    this.clusterInstance = clusterInstance;
+    // this.clients = orchestrator;
+    // Object.keys(orchestrator.peers).forEach((name) => {
+    //   var peer = orchestrator.peers[name];
+    //   if (peer.self) {
+    //     this.client = peer.client;
+    //   }
+    // });
   };
 })(typeof module !== 'undefined' && typeof module.exports !== 'undefined' ? false : true);

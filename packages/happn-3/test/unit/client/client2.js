@@ -1,6 +1,6 @@
 require('../../__fixtures/utils/test_helper').describe({ timeout: 10e3 }, (test) => {
   const HappnClient = require('../../../lib/client');
-  const Constants = require('../../../lib/constants');
+  const Constants = require('happn-commons').constants;
   let happnClient;
   it('tests that the initialize function calls connect and login if there is a socket', function (done) {
     happnClient = mockHappnClient();

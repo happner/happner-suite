@@ -1,6 +1,6 @@
 const test = require('../../__fixtures/utils/test_helper').create();
 describe(test.testName(__filename, 3), function () {
-  const CONSTANTS = require('../../../lib/constants');
+  const CONSTANTS = require('happn-commons').constants;
   const happn = require('../../../lib/index');
   const service = happn.service;
 

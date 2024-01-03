@@ -60,7 +60,7 @@ describe('01 - unit - cluster create', function () {
 
   it('defines replication path', function (done) {
     Happner.create = function (config) {
-      expect(config.happn.services.orchestrator.config.replicate).to.eql([
+      expect(config.happn.services.membership.config.replicationPaths).to.eql([
         '/_events/test-domain/*/*',
         '/_events/test-domain/*/*/*',
         '/_events/test-domain/*/*/*/*',

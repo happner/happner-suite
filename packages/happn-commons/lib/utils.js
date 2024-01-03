@@ -14,9 +14,12 @@ module.exports = {
     return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
   },
   wildcardPreliminaryMatch: function (pattern, matchTo) {
+    // do an explicit check
     if (pattern.indexOf('*') === -1) return pattern === matchTo;
     const preparedPattern = pattern.replace(/(.)\1+/g, '*'); //strip out *** ****** and replace with *
     if (preparedPattern === '*') return true;
+    // do a starts with check
+    if (!matchTo.startsWith(preparedPattern.split('*')[0])) return false;
     return preparedPattern;
   },
   wildcardMatch: function (pattern, matchTo) {
@@ -30,10 +33,10 @@ module.exports = {
     }
     const preparedOrMatched = this.wildcardPreliminaryMatch(pattern, matchTo);
     if (typeof preparedOrMatched === 'boolean') return preparedOrMatched; //we have a match result, return it
-    //try a starts with reject
-    const initialSegment = preparedOrMatched.split('*').pop();
-    if (initialSegment.length > 0 && matchTo.indexOf(initialSegment) === -1) return false;
     return this.makeRe(preparedOrMatched).test(matchTo);
+  },
+  addLeadingSlashIfNone: function (path) {
+    return path.startsWith('/') ? path : '/' + path;
   },
   stripLeadingSlashes: function (path) {
     return path.replace(/^\//, '');

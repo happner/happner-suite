@@ -50,7 +50,7 @@ SubscriptionService.prototype.__removeExplicitlyRevokedSubscriptions =
 SubscriptionService.prototype.__addNewProhibitions = __addNewProhibitions;
 SubscriptionService.prototype.__addNewSubscriptions = __addNewSubscriptions;
 SubscriptionService.prototype.__processUnnestedSubscriptions = __processUnnestedSubscriptions;
-SubscriptionService.prototype.__startsWithMask = __startsWithMask;
+SubscriptionService.prototype.matchPathToWildCardPattern = matchPathToWildCardPattern;
 
 function initialize(config, callback) {
   try {
@@ -66,6 +66,8 @@ function initialize(config, callback) {
     this.dataService = this.happn.services.data;
     this.securityService = this.happn.services.security;
     this.subscriptions = TameSearch.create(config.subscriptionTree);
+
+    this.subscriptions.name = this.happn.name;
 
     this.config = config;
 
@@ -314,7 +316,9 @@ function addListener(action, path, sessionId, data, wildPath, searchPath) {
 }
 
 function removeListener(referenceId, sessionId, action, path) {
-  if (action === '*' && path === '*') return this.clearSessionSubscriptions(sessionId);
+  if (action === '*' && path === '*') {
+    return this.clearSessionSubscriptions(sessionId);
+  }
 
   const unsubOpts = {
     returnRemoved: true,
@@ -440,8 +444,8 @@ function filterRecipients(message, recipients) {
       sessionList.wild &&
       sessionList.wild.some(
         (path) =>
-          this.__startsWithMask(rec.data.searchPath, path) ||
-          this.__startsWithMask(message.request.path, path)
+          this.matchPathToWildCardPattern(rec.data.searchPath, path) ||
+          this.matchPathToWildCardPattern(message.request.path, path)
       )
     )
       return false;
@@ -451,51 +455,58 @@ function filterRecipients(message, recipients) {
 }
 
 function __processChangedSubscriptions(effectedSession, callback) {
-  try {
-    let references = this.allListeners(effectedSession.id);
-    this.securityService.checkpoint.listRelevantPermissions(
-      effectedSession,
-      '/**',
-      'on',
-      (e, relevantPaths) => {
-        let prohibitedPaths = {
-          explicit: relevantPaths.prohibited,
-          wild: relevantPaths.prohibited
-            .filter((path) => path.endsWith('*'))
-            .map((path) => path.replace(/\/\*+$/, '/')),
-        };
-        let allowedPaths = {
-          explicit: relevantPaths.allowed,
-          wild: relevantPaths.allowed
-            .filter((path) => path.endsWith('*'))
-            .map((path) => path.replace(/\/\*+$/, '/')),
-        };
-        let prohibitedSubs, allowedSubs, wildSubs;
-        [prohibitedSubs, allowedSubs] = _.partition(references, ['data.options.prohibited', true]);
-        [wildSubs, allowedSubs] = _.partition(allowedSubs, ['data.options.wild', true]);
+  this.securityService.checkpoint.listRelevantPermissions(
+    effectedSession,
+    '/**',
+    'on',
+    (e, relevantPaths) => {
+      if (e) return callback(e);
 
-        let nestedWildSubs = wildSubs.filter((sub) => sub.data.path.endsWith('/**'));
-        let wildSubPaths = wildSubs.map((sub) => sub.data.path.replace(/\/\*+$/, '/'));
-        let nestedWildSubPaths = nestedWildSubs.map((sub) => sub.data.path.replace(/\/\*+$/, '/'));
+      let [prohibitedWildPaths, prohibitedExplicitPaths] = _.partition(
+        relevantPaths.prohibited,
+        (path) => path.includes('*')
+      );
 
-        this.__removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths);
-        this.__removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths);
-        this.__removeExplicitlyRevokedSubscriptions(effectedSession, allowedSubs, prohibitedPaths);
-        this.__addNewProhibitions(effectedSession, prohibitedSubs, prohibitedPaths, wildSubPaths);
-        this.__addNewSubscriptions(
-          effectedSession,
-          allowedSubs,
-          nestedWildSubs,
-          allowedPaths,
-          prohibitedPaths,
-          nestedWildSubPaths
-        );
-        callback();
-      }
-    );
-  } catch (e) {
-    callback(e);
-  }
+      let [allowedWildPaths, allowedExplicitPaths] = _.partition(relevantPaths.allowed, (path) =>
+        path.includes('*')
+      );
+
+      let prohibitedPaths = {
+        explicit: prohibitedExplicitPaths,
+        wild: prohibitedWildPaths,
+      };
+
+      let allowedPaths = {
+        explicit: allowedExplicitPaths,
+        wild: allowedWildPaths,
+      };
+
+      let prohibitedSubs, allowedSubs, wildSubs;
+      let references = this.allListeners(effectedSession.id);
+
+      [prohibitedSubs, allowedSubs] = _.partition(references, ['data.options.prohibited', true]);
+      [wildSubs, allowedSubs] = _.partition(allowedSubs, ['data.options.wild', true]);
+
+      let wildSubPaths = wildSubs.map((sub) => sub.data.path);
+      let nestedWildSubs = wildSubs.filter((sub) => sub.data.path.endsWith('/**'));
+      let nestedWildSubPaths = nestedWildSubs.map((sub) => sub.data.path);
+
+      this.__removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths);
+      this.__removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths);
+      this.__removeExplicitlyRevokedSubscriptions(effectedSession, allowedSubs, prohibitedPaths);
+      this.__addNewProhibitions(effectedSession, prohibitedSubs, prohibitedPaths, wildSubPaths);
+
+      this.__addNewSubscriptions(
+        effectedSession,
+        allowedSubs,
+        nestedWildSubs,
+        allowedPaths,
+        prohibitedPaths,
+        nestedWildSubPaths
+      );
+      callback();
+    }
+  );
 }
 
 function __removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibitedPaths) {
@@ -503,7 +514,9 @@ function __removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibited
     (sub) =>
       !(
         prohibitedPaths.explicit.includes(sub.data.searchPath) ||
-        prohibitedPaths.wild.some((path) => this.__startsWithMask(sub.data.searchPath, path))
+        prohibitedPaths.wild.some((path) =>
+          this.matchPathToWildCardPattern(sub.data.searchPath, path)
+        )
       )
   );
   removeProhibitions.forEach((sub) => {
@@ -519,8 +532,13 @@ function __removeInvalidProhibitions(effectedSession, prohibitedSubs, prohibited
 function __removeInvalidSubscriptions(effectedSession, allowedSubs, allowedPaths) {
   let noLongerValidSubs = allowedSubs.filter(
     (sub) =>
-      allowedPaths.explicit.indexOf(sub.data.searchPath) < 0 &&
-      !allowedPaths.wild.some((wildPath) => this.__startsWithMask(sub.data.searchPath, wildPath))
+      !allowedPaths.explicit.includes(sub.data.searchPath) &&
+      !allowedPaths.wild.some((wildPath) =>
+        commons.utils.wildcardMatch(
+          wildPath,
+          commons.utils.addLeadingSlashIfNone(sub.data.searchPath)
+        )
+      )
   );
   noLongerValidSubs.forEach((sub) => {
     this.removeListenerExtended(
@@ -542,7 +560,9 @@ function __removeExplicitlyRevokedSubscriptions(effectedSession, allowedSubs, pr
   let revoked = allowedSubs.filter(
     (sub) =>
       prohibitedPaths.explicit.includes(sub.data.searchPath) ||
-      prohibitedPaths.wild.some((path) => this.__startsWithMask(sub.data.searchPath, path))
+      prohibitedPaths.wild.some((path) =>
+        this.matchPathToWildCardPattern(sub.data.searchPath, path)
+      )
   );
   revoked.forEach((sub) => {
     this.removeListenerExtended(
@@ -566,9 +586,9 @@ function __addNewProhibitions(effectedSession, prohibitedSubs, prohibitedPaths, 
     .map((sub) => sub.data.searchPath.replace(/\*+$/, ''));
   let newProhibitions = prohibitedPaths.explicit.filter(
     (prohibitPath) =>
-      wildSubPaths.some((subPath) => this.__startsWithMask(prohibitPath, subPath)) &&
+      wildSubPaths.some((subPath) => this.matchPathToWildCardPattern(prohibitPath, subPath)) &&
       !prohibitedSubs.some((sub) => sub.data.searchPath === prohibitPath) &&
-      !wildProhibitedSubsPaths.some((path) => this.__startsWithMask(prohibitPath, path))
+      !wildProhibitedSubsPaths.some((path) => this.matchPathToWildCardPattern(prohibitPath, path))
   );
   //Need to add a reference for these prohibitions (?)
   newProhibitions.forEach((path) => {
@@ -592,20 +612,19 @@ function __addNewSubscriptions(
   let subscriptionsOnStarPermission = allowedSubPaths.filter((path) => path.endsWith('/*'));
   let newSubPaths = allowedPaths.explicit.filter(
     (allowedPath) =>
-      !allowedPath.endsWith('*') &&
-      allowedSubPaths.indexOf(allowedPath) < 0 &&
-      wildSubPaths.some((subPath) => this.__startsWithMask(allowedPath, subPath)) &&
+      !allowedSubPaths.includes(allowedPath) &&
+      wildSubPaths.some((subPath) => this.matchPathToWildCardPattern(allowedPath, subPath)) &&
       !subscriptionsOnStarPermission.some((subPath) =>
-        this.__startsWithMask(allowedPath, subPath)
+        this.matchPathToWildCardPattern(allowedPath, subPath)
       ) &&
-      prohibitedPaths.explicit.indexOf(allowedPath) < 0 &&
+      !prohibitedPaths.explicit.includes(allowedPath) &&
       !prohibitedPaths.wild.some((prohibitedPath) =>
-        this.__startsWithMask(allowedPath, prohibitedPath)
+        this.matchPathToWildCardPattern(allowedPath, prohibitedPath)
       )
   );
   newSubPaths.forEach((newPath) => {
     wildSubs
-      .filter((wildSub) => this.__startsWithMask(newPath, wildSub.data.path.replace(/\/\*+$/, '/')))
+      .filter((wildSub) => this.matchPathToWildCardPattern(newPath, wildSub.data.path))
       .forEach((sub) => {
         let action = sub.data.action;
         this.addListener(
@@ -657,14 +676,6 @@ function __processUnnestedSubscriptions(effectedSession, sessionCB) {
   }
 }
 
-function __startsWithMask(first, second) {
-  if (first.indexOf('*') === -1 && second.indexOf('*') === -1) return first.startsWith(second);
-  let firstArray = first.split('/');
-  let secondArray = second.split('/');
-  if (secondArray.length > firstArray.length) return false;
-  for (let [index] of secondArray.entries()) {
-    if (firstArray[index] === '*') firstArray[index] = secondArray[index];
-    if (secondArray[index] === '*') secondArray[index] = firstArray[index];
-  }
-  return firstArray.join('/').startsWith(secondArray.join('/'));
+function matchPathToWildCardPattern(path, pattern) {
+  return commons.utils.wildcardMatch(pattern, commons.utils.addLeadingSlashIfNone(path));
 }

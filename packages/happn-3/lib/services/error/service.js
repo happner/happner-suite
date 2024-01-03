@@ -119,8 +119,12 @@ ErrorService.prototype.handleSystem = function (e, area, severity, callback) {
 };
 
 ErrorService.prototype.handleFatal = function (message, e, area) {
-  if (!area) area = 'System';
-  this.happn.services.log.write('fatal error', 'fatal', this.SystemError(e.toString()), area);
+  this.happn.services.log.write(
+    'fatal error',
+    'fatal',
+    this.SystemError(`${message}:${e.toString()}`),
+    area || 'System'
+  );
   // eslint-disable-next-line no-console
   console.warn(e.stack);
   process.exit(1);

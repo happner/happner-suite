@@ -2,7 +2,6 @@
 const baseConfig = require('../../_lib/base-config');
 const stopCluster = require('../../_lib/stop-cluster');
 const clearMongoCollection = require('../../_lib/clear-mongo-collection');
-const getSeq = require('../../_lib/helpers/getSeq');
 const { fork } = require('child_process');
 const path = require('path');
 let addUser = async function (server, username) {
@@ -25,8 +24,8 @@ require('../../_lib/test-helper').describe({ timeout: 120e3 }, (test) => {
   beforeEach('start cluster', async function () {
     this.timeout(20000);
     servers = await Promise.all([
-      test.HappnerCluster.create(baseConfig(getSeq.getFirst(), 2, true)),
-      test.HappnerCluster.create(baseConfig(getSeq.getNext(), 2, true)),
+      test.HappnerCluster.create(baseConfig(0, 2, true)),
+      test.HappnerCluster.create(baseConfig(1, 2, true)),
     ]);
   });
 

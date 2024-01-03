@@ -10,6 +10,23 @@ require('happn-commons-test').describe({ timeout: 5000 }, (test) => {
     done();
   });
 
+  it('adds a subscription', function (done) {
+    var tameSearch = new TameSearch();
+    tameSearch.subscribe('testSubscriberKey', '_SYSTEM/CLUSTER_SECURITY_DIRECTORY_REPLICATE', {
+      test: 'data',
+    });
+    test
+      .expect(tameSearch.subscriptionsExplicit['/_SYSTEM/CLUSTER_SECURITY_DIRECTORY_REPLICATE'][0])
+      .to.eql({
+        subscriberKey: 'testSubscriberKey',
+        test: 'data',
+      });
+    test
+      .expect(tameSearch.search('_SYSTEM/CLUSTER_SECURITY_DIRECTORY_REPLICATE')[0].test)
+      .to.be('data');
+    done();
+  });
+
   it('adds and finds a subscription', function (done) {
     var tameSearch = TameSearch.create();
     tameSearch.subscribe('testSubscriberKey', '/test/2', { test: 'data' });

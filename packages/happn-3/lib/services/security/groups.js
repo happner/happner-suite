@@ -166,7 +166,7 @@ function __validate(validationType, options, obj, callback) {
   return callback(new Error('Unknown validation type: ' + validationType));
 }
 
-function __upsertGroup(group, options) {
+function __upsertGroup(group, options = {}) {
   var groupPath;
   if (options.parent) groupPath = options.parent._meta.path + '/' + group.name;
   else groupPath = '/_SYSTEM/_SECURITY/_GROUP/' + group.name;

@@ -53,4 +53,8 @@
 
 1.1.4 2023-08-05
 -----------------
-- feat: fixed mesh_gst paths in happner-2
+  - feat: fixed mesh_gst paths in happner-2
+
+1.1.5 2023-09-29
+-----------------
+  - dep: update happn commons

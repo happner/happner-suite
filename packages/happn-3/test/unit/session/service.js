@@ -40,6 +40,7 @@ describe(test.testName(__filename, 3), function () {
 
   afterEach(() => {
     mockHappn = null;
+    test.sinon.restore();
   });
 
   it('should test the stats method', function () {
@@ -907,15 +908,13 @@ describe(test.testName(__filename, 3), function () {
     const sessionService = new SessionService({
       logger: Logger,
     });
-    const callback = test.sinon.stub();
 
     mockHappn.services.cache.create.returns('mockActiveSession');
     sessionService.happn = mockHappn;
 
     sessionService.initialize({ activeSessionsCache: null }, test.sinon.stub());
-    sessionService.initializeCaches(callback);
+    sessionService.initializeCaches();
 
-    test.chai.expect(callback).to.have.been.calledOnceWithExactly();
     test.chai
       .expect(mockHappn.services.cache.create)
       .to.have.been.calledOnceWithExactly('service_session_active_sessions', {
@@ -930,15 +929,13 @@ describe(test.testName(__filename, 3), function () {
     const sessionService = new SessionService({
       logger: Logger,
     });
-    const callback = test.sinon.stub();
 
     mockHappn.services.cache.create.returns('mockActiveSession');
     sessionService.happn = mockHappn;
 
     sessionService.initialize({ activeSessionsCache: { type: 'dynamic' } }, test.sinon.stub());
-    sessionService.initializeCaches(callback);
+    sessionService.initializeCaches();
 
-    test.chai.expect(callback).to.have.been.calledOnceWithExactly();
     test.chai
       .expect(mockHappn.services.cache.create)
       .to.have.been.calledOnceWithExactly('service_session_active_sessions', {
@@ -986,8 +983,10 @@ describe(test.testName(__filename, 3), function () {
 
     sessionService.happn = mockHappn;
 
+    const clientInstance = { onEvent: test.sinon.stub(), $$eventHandlerId: undefined };
+
     const createStub = test.sinon.stub(ClientBase, 'create').callsFake((_, cb) => {
-      cb(null, ClientBase);
+      cb(null, clientInstance);
     });
 
     sessionService.localClient(config, callback);
@@ -1000,8 +999,7 @@ describe(test.testName(__filename, 3), function () {
       },
       test.sinon.match.instanceOf(Function)
     );
-    test.chai.expect(config).to.have.been.calledOnceWithExactly(null, ClientBase);
-
+    test.chai.expect(config).to.have.been.calledOnceWithExactly(null, clientInstance);
     createStub.restore();
   });
 

@@ -27,3 +27,8 @@
 1.5.1 2023-08-04
 -----------------
   - refactor: lint
+
+1.6.0 2023-08-04
+-----------------
+  - BaseBuilder added to index previously, bad version change
+

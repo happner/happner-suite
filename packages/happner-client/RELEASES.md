@@ -433,6 +433,7 @@
 -----------------
   - happner-2: response subscription filter fix
 
+
 12.7.3 2023-07-25
 -----------------
   - happner-2: MESH_GST permissions updated not to have {{id}} in path
@@ -440,3 +441,7 @@
 12.7.4 2023-08-05
 -----------------
   - happner-2: happn-3 auth provider updates
+
+12.7.5 2023-07-22
+-----------------
+  - Mongo-based cluster membership - dependencies update

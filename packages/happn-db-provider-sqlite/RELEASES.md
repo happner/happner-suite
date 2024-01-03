@@ -30,6 +30,7 @@
   - feat: happn-3 changePassword in client
   - feat: happn-3 resetPassword supported by auth provider
 
+
 1.0.7 2023-05-24
 -----------------
   - fix: happn-3 resetpassword
@@ -38,3 +39,7 @@
 1.0.8 2023-08-05
 -----------------
 - feat: fixed mesh_gst paths in happner-2
+
+1.0.9 2023-02-18
+-----------------
+  - Mongo-based cluster membership - dependencies update

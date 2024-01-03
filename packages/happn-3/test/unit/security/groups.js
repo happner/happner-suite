@@ -31,14 +31,16 @@ describe(test.testName(__filename, 3), function () {
     }
 
     try {
-      var serviceClass = Services[serviceName + 'Service'];
-      var serviceInstance = new serviceClass({
+      const serviceClass = Services[serviceName + 'Service'];
+      const serviceInstance = new serviceClass({
         logger: Logger,
       });
       serviceInstance.happn = happn;
-      serviceInstance.config = config;
+      serviceInstance.config = config === false ? {} : config;
       happn.services[serviceName.toLowerCase()] = serviceInstance;
-      if (typeof serviceInstance.initialize !== 'function' || config === false) return callback();
+      if (typeof serviceInstance.initialize !== 'function' || config === false) {
+        return callback();
+      }
       serviceInstance.initialize(config, callback);
     } catch (e) {
       callback(e);
@@ -88,10 +90,8 @@ describe(test.testName(__filename, 3), function () {
         return mockService(happn, 'Subscription');
       })
       .then(function () {
-        happn.services.session.initializeCaches.bind(happn.services.session)(async (e) => {
-          if (e) return callback(e);
-          callback(null, happn);
-        });
+        happn.services.session.initializeCaches();
+        callback(null, happn);
       })
       .catch(callback);
   };
@@ -148,7 +148,6 @@ describe(test.testName(__filename, 3), function () {
   it('tests adding a group with no permissions', function (done) {
     mockServices(function (e, happn) {
       if (e) return done(e);
-
       var testGroup = {
         name: 'TEST_GR_1',
       };

@@ -195,6 +195,34 @@ class TestHelper {
     }
     return lineIndex;
   }
+  mockLogger() {
+    return {
+      info: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('info', msg);
+      }),
+      error: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('error', msg);
+      }),
+      warn: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('warn', msg);
+      }),
+      trace: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('trace', msg);
+      }),
+      debug: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('debug', msg);
+      }),
+      fatal: this.sinon.stub().callsFake((msg) => {
+        // eslint-disable-next-line no-console
+        console.log('fatal', msg);
+      }),
+    };
+  }
 }
 
 module.exports = TestHelper;

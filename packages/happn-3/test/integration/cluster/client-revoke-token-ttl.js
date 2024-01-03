@@ -7,13 +7,14 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     loaded: true,
     exports: happn,
   };
+  const DEPLOYMENT_ID = test.newid();
+  let mongoUrl = 'mongodb://127.0.0.1:27017';
+  let mongoDatabase = 'happn-cluster';
+  let mongoCollection = 'happn-cluster-test';
   let clearMongo = require('../../__fixtures/utils/cluster/clear-mongodb');
   let getClusterConfig = require('../../__fixtures/utils/cluster/get-cluster-config');
-  let clusterServices = [];
-  let mongoUrl = 'mongodb://127.0.0.1:27017';
-  let mongoCollection = 'happn-cluster-test';
+  let clusterMembers = [];
   let HappnCluster = require('happn-cluster');
-  let getAddress = require('../../__fixtures/utils/cluster/get-address');
 
   before('start cluster', async () => {
     await clearMongoDb();
@@ -51,13 +52,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   before(
     'creates a group and a user, adds the group to the user, logs in with test user',
     async () => {
-      addedTestGroup = await clusterServices[0].services.security.users.upsertGroup(testGroup, {
-        overwrite: false,
-      });
-      addedTestUser = await clusterServices[0].services.security.users.upsertUser(testUser, {
-        overwrite: false,
-      });
-      await clusterServices[0].services.security.users.linkGroup(addedTestGroup, addedTestUser);
+      addedTestGroup = await clusterMembers[0].services.security.users.upsertGroup(testGroup);
+      addedTestUser = await clusterMembers[0].services.security.users.upsertUser(testUser);
+      await clusterMembers[0].services.security.users.linkGroup(addedTestGroup, addedTestUser);
     }
   );
 
@@ -65,9 +62,9 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
     let client1 = await getClient({
       username: testUser.username,
       password: 'TEST PWD',
-      port: 56000,
+      port: 55000,
     });
-    let client2 = await getClient({ token: client1.session.token, port: 56001 });
+    let client2 = await getClient({ token: client1.session.token, port: 55001 });
     await doEventRoundTripClient(client2);
     await client1.disconnect({ revokeToken: true });
     try {
@@ -77,12 +74,12 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
       throw new Error('was not meant to happen');
     } catch (e) {
       test.expect(e.message).to.be('client is disconnected');
-      test.expect(await revocationInPlace(clusterServices[0], client1.session.token)).to.be(true);
-      test.expect(await revocationInPlace(clusterServices[1], client1.session.token)).to.be(true);
+      test.expect(await revocationInPlace(clusterMembers[0], client1.session.token)).to.be(true);
+      test.expect(await revocationInPlace(clusterMembers[1], client1.session.token)).to.be(true);
       test.log(`waiting 12 seconds for ttl...`);
       await test.delay(12e3);
-      test.expect(await revocationInPlace(clusterServices[0], client1.session.token)).to.be(false);
-      test.expect(await revocationInPlace(clusterServices[1], client1.session.token)).to.be(false);
+      test.expect(await revocationInPlace(clusterMembers[0], client1.session.token)).to.be(false);
+      test.expect(await revocationInPlace(clusterMembers[1], client1.session.token)).to.be(false);
       await client2.disconnect();
     }
   });
@@ -143,43 +140,36 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 60e3 }, (test)
   }
 
   async function stopCluster() {
-    for (let i = 0; i < 2; i++) await clusterServices[i].stop();
+    for (let i = 0; i < 2; i++) await clusterMembers[i].stop();
   }
 
   async function startCluster() {
     let clusterConfig1 = getClusterConfig(
-      55000,
-      56000,
-      57000,
-      [`${getAddress()}:57001`],
-      mongoCollection,
       mongoUrl,
-      1,
+      mongoDatabase,
+      mongoCollection,
+      DEPLOYMENT_ID,
+      55000,
       true,
       true,
-      true
+      securityProfiles
     );
     let clusterConfig2 = getClusterConfig(
-      55001,
-      56001,
-      57001,
-      [`${getAddress()}:57000`],
-      mongoCollection,
       mongoUrl,
-      2,
-      false,
+      mongoDatabase,
+      mongoCollection,
+      DEPLOYMENT_ID,
+      55001,
       true,
-      true
+      true,
+      securityProfiles
     );
-
-    clusterConfig1.services.security.config.profiles = securityProfiles;
-    clusterConfig2.services.security.config.profiles = securityProfiles;
 
     let clusterInstance1 = await HappnCluster.create(clusterConfig1);
     let clusterInstance2 = await HappnCluster.create(clusterConfig2);
 
-    clusterServices.push(clusterInstance1);
-    clusterServices.push(clusterInstance2);
+    clusterMembers.push(clusterInstance1);
+    clusterMembers.push(clusterInstance2);
 
     await test.delay(2000);
   }

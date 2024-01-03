@@ -77,7 +77,7 @@
       if (!client.session) return onFailure(new Error('client session not set, no longer active'));
 
       description.meshName = client.session.happn.name;
-      description.self = self;
+      description.self = self === true;
       description.url = client.options && client.options.url ? client.options.url : null;
 
       if (self) {
@@ -105,16 +105,19 @@
   };
 
   ImplementorsProvider.prototype.subscribeToPeerEvents = function () {
-    this.connection.clients.on('peer/add', (this.addPeerHandler = this.addPeer.bind(this)));
-    this.connection.clients.on(
-      'peer/remove',
+    this.connection.clusterInstance.on(
+      'PEER_CONNECTED',
+      (this.addPeerHandler = this.addPeer.bind(this))
+    );
+    this.connection.clusterInstance.on(
+      'PEER_DISCONNECTED',
       (this.removePeerHandler = this.removePeer.bind(this))
     );
   };
 
   ImplementorsProvider.prototype.unsubscribeFromPeerEvents = function () {
-    this.connection.clients.removeListener('peer/add', this.addPeerHandler);
-    this.connection.clients.removeListener('peer/remove', this.removePeerHandler);
+    this.connection.clusterInstance.removeListener('PEER_CONNECTED', this.addPeerHandler);
+    this.connection.clusterInstance.removeListener('PEER_DISCONNECTED', this.removePeerHandler);
   };
 
   ImplementorsProvider.prototype.stop = function () {
@@ -122,26 +125,30 @@
     this.clear();
   };
 
-  ImplementorsProvider.prototype.addPeer = function (name) {
-    var _this = this;
-    var peer = this.connection.clients.peers[name];
-    var onSuccess = function (description) {
-      var clonedDescription = Object.assign({}, description);
-      _this.log.debug('logging dependencies met on addPeer');
-      _this.logDependenciesMet(clonedDescription);
+  ImplementorsProvider.prototype.addPeer = function (peerInfo) {
+    const peer = this.connection.clusterInstance.peers.find(
+      (peerConnector) => peerConnector.peerInfo.memberName === peerInfo.memberName
+    );
+    if (!peer) {
+      this.log.error(`failed to find peer: ${peerInfo.memberName}`);
+      return;
+    }
+    const onSuccess = (description) => {
+      const clonedDescription = Object.assign({}, description);
+      this.log.debug('logging dependencies met on addPeer');
+      this.logDependenciesMet(clonedDescription);
     };
-    var onFailure = function (e) {
-      _this.log.error('failed to get description for %s', name, e);
+    const onFailure = (e) => {
+      this.log.error('failed to get description for %s', peerInfo.memberName, e);
     };
-    var onIgnore = function (reason) {
-      _this.log.debug(reason);
+    const onIgnore = (reason) => {
+      this.log.debug(reason);
     };
-
-    this.getSingleDescription(peer.client, peer.self, true, onSuccess, onFailure, onIgnore);
+    this.getSingleDescription(peer.client, false, true, onSuccess, onFailure, onIgnore);
   };
 
-  ImplementorsProvider.prototype.removePeer = function (name) {
-    var removedPeerDescription = this.removeDescription(name);
+  ImplementorsProvider.prototype.removePeer = function (peerInfo) {
+    var removedPeerDescription = this.removeDescription(peerInfo.memberName);
     if (removedPeerDescription)
       this.happnerClient.emit('peer/departed/description', removedPeerDescription);
   };
@@ -194,11 +201,9 @@
 
       var fetchMultiple = function (clients) {
         return Promise.all(
-          Object.keys(clients).map(function (name) {
+          clients.map(function (client) {
             return new Promise(function (resolve) {
-              var client = clients[name].client;
-              var self = clients[name].self;
-              _this.getSingleDescription(client, self, true, resolve, resolve, (reason) => {
+              _this.getSingleDescription(client, client.self, true, resolve, resolve, (reason) => {
                 _this.log.debug(reason);
                 resolve();
               });
@@ -207,8 +212,12 @@
         );
       };
 
-      if (_this.connection.clients) {
-        return fetchMultiple(_this.connection.clients.peers).then(success);
+      if (_this.connection.clusterInstance) {
+        const clients = _this.connection.clusterInstance.peers.map(
+          (clusterPeerConnector) => clusterPeerConnector.client
+        );
+        clients.unshift(_this.connection.client);
+        return fetchMultiple(clients).then(success);
       }
 
       if (_this.connection.client) {

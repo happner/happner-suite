@@ -1,14 +1,12 @@
 module.exports = function(
-  port,
-  proxyPort,
-  swimPort,
-  swimHosts,
-  mongoCollection,
   mongoUrl,
-  clusterSize,
-  seed,
+  mongoDatabase,
+  mongoCollection,
+  deploymentId,
+  port,
   secure,
-  activateSessionManagement
+  activateSessionManagement,
+  securityProfiles
 ) {
   let config = {
     port,
@@ -22,37 +20,20 @@ module.exports = function(
               isDefault: true,
               settings: {
                 collection: mongoCollection,
-                database: mongoCollection,
+                database: mongoDatabase,
                 url: mongoUrl
               }
             }
           ]
         }
       },
-      orchestrator: {
-        config: {
-          minimumPeers: clusterSize
-        }
-      },
       membership: {
         config: {
-          clusterName: 'cluster1',
-          seed: seed,
-          seedWait: 2000,
-          joinType: 'static',
-          host: '0.0.0.0',
-          port: swimPort,
-          hosts: swimHosts,
-          joinTimeout: 2000,
-          pingInterval: 1000,
-          pingTimeout: 200,
-          pingReqTimeout: 600
+          deploymentId,
         }
       },
       proxy: {
         config: {
-          host: '0.0.0.0',
-          port: proxyPort,
           allowSelfSignedCerts: true
         }
       }
@@ -63,6 +44,7 @@ module.exports = function(
     config.secure = true;
     config.services.security = {
       config: {
+        profiles: securityProfiles,
         activateSessionManagement: activateSessionManagement,
         sessionTokenSecret: 'sessionTokenSecret',
         adminUser: {

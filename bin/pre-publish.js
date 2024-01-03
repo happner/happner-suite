@@ -34,6 +34,9 @@ function fetchPackage(packageName) {
     })
   });
 }
+
+var masterPackage;
+
 Promise.all(
   workspacePackageNames.map((packageName) => {
       return fetchPackage(packageName);
@@ -53,7 +56,8 @@ Promise.all(
       const newVersion = localPackage.version;
       const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
       console.log(`highest current version:${lastVersion}, local version: ${newVersion}`);
-      const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
+      const isPrerelease = newVersion.toLowerCase().includes('prerelease');
+      const isNonStandard = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
         publishOrder: getPackagePublishOrder(localPackage.name),
         isPrerelease,
@@ -62,7 +66,8 @@ Promise.all(
           newVersion,
           lastVersion,
           localPackage.name,
-          isPrerelease
+          isPrerelease,
+          isNonStandard
         ),
         newVersion,
         lastVersion,
@@ -72,6 +77,7 @@ Promise.all(
         ),
         releasesUpToDate: checkReleasesUpToDate(localPackage),
         possibleOnlyInTests: checkOnlyInTests(localPackage),
+        previousVersions: Object.values(metaDataItem.data["dist-tags"]),
       };
     }).filter((item) => item !== null);
     console.log('fetching master package...');
@@ -79,10 +85,12 @@ Promise.all(
       `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
     );
   })
+  
   .then((masterPackage) => {
     console.log('fetched master package...');
     verifyPublish(packagesMetaData, masterPackage.data);
   })
+
   .catch((e) => {
     throw e;
   });
@@ -132,9 +140,10 @@ function getLatestNonPrereleaseVersion(versions) {
 
 function verifyPublish(packagesMetaData, masterPackage) {
   let issues = [],
-    successes = [];
+    successes = [],
+    alreadyPublished = [];
   packagesMetaData.forEach((packageMetaData) =>
-    verifyPackage(packageMetaData, packagesMetaData, issues, successes)
+    verifyPackage(packageMetaData, packagesMetaData, issues, successes, alreadyPublished)
   );
   const packageLockVersion = require('../package-lock.json').version;
   const packageVersion = require('../package.json').version;
@@ -181,15 +190,20 @@ function verifyPublish(packagesMetaData, masterPackage) {
     );
   }
 
+  if (alreadyPublished.length > 0) {
+    console.warn('\r\n ALREADY PUBLISHED:');
+    alreadyPublished.forEach((alreadyPublish) => console.warn(alreadyPublish));
+  }
+
   if (issues.length > 0) {
-    console.warn('ISSUES:');
+    console.warn('\r\n ISSUES:');
     issues.forEach((issue) => console.warn(issue));
     if (successes.length > 0) {
       console.info('OK:');
       successes.forEach((success) => { console.info(`- ${success.name}: ${success.newVersion} - ${success.versionJumped ? 'new' : 'unchanged'}`) });
     }
     if (prereleases.length > 0) {
-      console.info('PRERELEASES READY FOR PUBLISH:');
+      console.info('\r\n PRERELEASES READY FOR PUBLISH:');
       getPublishOrder().forEach((packageName) => {
         const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
         if (found) {
@@ -199,7 +213,7 @@ function verifyPublish(packagesMetaData, masterPackage) {
     }
     return;
   }
-  console.info('READY FOR PUBLISH:');
+  console.info('\r\n READY FOR PUBLISH:');
   successes
     .sort((a, b) => a.publishOrder - b.publishOrder)
     .forEach((success) => {
@@ -209,13 +223,18 @@ function verifyPublish(packagesMetaData, masterPackage) {
     });
 }
 
-function verifyPackage(packageMetaData, packagesMetaData, issues, successes) {
+function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alreadyPublished) {
   let foundIssue = false;
   if (packageMetaData.versionJumpMadeSense !== true) {
     issues.push(
       `bad version jump for package ${packageMetaData.name}: ${packageMetaData.versionJumpMadeSense}`
     );
     foundIssue = true;
+  }
+  if (packageMetaData.previousVersions.includes(packageMetaData.newVersion)) {
+    alreadyPublished.push(
+      `package already published ${packageMetaData.name}: ${packageMetaData.newVersion}`
+    );
   }
   if (packageMetaData.possibleOnlyInTests) {
     issues.push(
