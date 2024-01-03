@@ -56,7 +56,8 @@ Promise.all(
       const newVersion = localPackage.version;
       const lastVersion = getLatestNonPrereleaseVersion(metaDataItem.data['versions']);
       console.log(`highest current version:${lastVersion}, local version: ${newVersion}`);
-      const isPrerelease = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
+      const isPrerelease = newVersion.toLowerCase().includes('prerelease');
+      const isNonStandard = newVersion.match(/^([0-9]\d*)\.([0-9]\d*)\.([0-9]\d*)$/) == null;
       return {
         publishOrder: getPackagePublishOrder(localPackage.name),
         isPrerelease,
@@ -65,7 +66,8 @@ Promise.all(
           newVersion,
           lastVersion,
           localPackage.name,
-          isPrerelease
+          isPrerelease,
+          isNonStandard
         ),
         newVersion,
         lastVersion,
