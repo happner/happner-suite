@@ -80,7 +80,7 @@ describe('loki reset on snapshot plugin stress tests', function () {
       const files = commons.fs
         .readdirSync(testDirPath)
         .filter((fileName) => !fileName.includes('heapsnapshot'));
-      expect(files.length).to.equal(RECORDCOUNT / 2 + 2);
+      expect(files.length).to.equal(RECORDCOUNT / 2 + 1);
       const found = await testRepository.search(0);
       expect(found.length).to.equal(RECORDCOUNT);
       expect(found[0].sequence).to.equal(0);
