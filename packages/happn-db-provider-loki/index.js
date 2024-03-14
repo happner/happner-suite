@@ -637,12 +637,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
-        console.log(
-          'SIZE LIMIT REACHED',
-          this.operationCount,
-          this.settings.snapshotRollOverThreshold,
-          currentSize - this.baselineFileSize
-        );
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
