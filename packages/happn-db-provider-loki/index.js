@@ -70,7 +70,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
-    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 2e4;
+    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 3e4;
 
     if (!this.settings.archiveFolder) {
       const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
@@ -637,6 +637,12 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
+        console.log(
+          'SIZE LIMIT REACHED',
+          this.operationCount,
+          this.settings.snapshotRollOverThreshold,
+          currentSize - this.baselineFileSize
+        );
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
