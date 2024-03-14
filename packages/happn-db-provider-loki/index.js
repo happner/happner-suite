@@ -30,6 +30,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.archive = util.maybePromisify(this.archive);
     this.operationCount = 0;
+    this.baselineFileSize = 0;
     // attach our plugin
     if (settings?.plugin) {
       this.#plugin = settings.plugin;
@@ -69,6 +70,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
+    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 2e4;
 
     if (!this.settings.archiveFolder) {
       const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
@@ -609,7 +611,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (fs.existsSync(this.settings.filename)) {
       fs.unlinkSync(this.settings.filename);
     }
-    fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
+    fs.rename(this.settings.tempDataFilename, this.settings.filename, callback);
   }
 
   copyMainDataToArchive(suffix, callback) {
@@ -628,7 +630,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           this.logger.error('failed persisting operation data', appendFailure);
           return callback(appendFailure);
         }
-        if (this.operationCount < this.settings.snapshotRollOverThreshold) {
+        const currentSize = this.#getFileSize(this.settings.filename);
+        if (
+          this.operationCount < this.settings.snapshotRollOverThreshold &&
+          currentSize - this.baselineFileSize < this.settings.fileSizeDifferenceLimit
+        ) {
           return callback(null, result);
         }
         this.snapshot((e) => {
@@ -720,6 +726,8 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             callback(errorSyncing);
             return;
           }
+          if (fs.existsSync(this.settings.tempDataFilename))
+            this.baselineFileSize = this.#getFileSize(this.settings.tempDataFilename);
           callback(null);
         });
       });
@@ -827,5 +835,17 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (parameters?.archiveId) {
       throw new Error('Loaded archives only support read-only operations!');
     }
+  }
+
+  #getFileSize(filepath) {
+    let fileStats = null;
+    try {
+      fileStats = fs.statSync(filepath);
+    } catch (err) {
+      this.logger.error(err.message);
+    }
+    if (!fileStats) return 0;
+    if (!fileStats.size) return 0;
+    return fileStats.size;
   }
 };
