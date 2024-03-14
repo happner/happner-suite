@@ -272,7 +272,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     reader.on('line', (line) => {
       try {
         if (++lineNumber === 1) {
-          this.logger.info('loading snapshot...');
           this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
           this.collection = this.db.collections.find((collection) => collection.name === 'happn');
           this.archiveCollection = this.db.collections.find(
@@ -282,7 +281,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             indices: ['sequence'],
             unique: ['sequence'],
           });
-          this.logger.info('loaded snapshot...');
         } else {
           if (lineNumber % 10 === 0) {
             this.logger.info('parsing line ', lineNumber);
