@@ -434,13 +434,11 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       zip.writeZip(zipFileName, (error) => {
         fs.unlink(`${this.settings.filename}.${sequence}`, (err) => {
           if (err) this.logger.error(err.message);
+          if (error) {
+            return callback(error);
+          }
+          callback();
         });
-
-        if (error) {
-          return callback(error);
-        }
-
-        callback();
       });
     };
 
