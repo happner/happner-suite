@@ -1,3 +1,4 @@
+const prettyBytes = require('pretty-bytes');
 const LokiArchiveDataProvider = require('./archived');
 
 const db = require('lokijs'),
@@ -70,7 +71,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
-    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 3e4;
+    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 1e7;
 
     if (!this.settings.archiveFolder) {
       const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
@@ -282,9 +283,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             unique: ['sequence'],
           });
         } else {
-          if (lineNumber % 10 === 0) {
-            this.logger.info('parsing line ', lineNumber);
-          }
           const parsedOperation = this.parsePersistedOperation(line);
           if (parsedOperation == null) {
             // skip empty or corrupted
@@ -434,7 +432,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       const zip = new AdmZip();
       zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
       zip.writeZip(zipFileName, (error) => {
-        fs.unlinkSync(`${this.settings.filename}.${sequence}`);
+        fs.unlink(`${this.settings.filename}.${sequence}`, (err) => {
+          if (err) this.logger.error(err.message);
+        });
 
         if (error) {
           return callback(error);
@@ -607,14 +607,18 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
 
   copyTempDataToMain(callback) {
     if (fs.existsSync(this.settings.filename)) {
-      fs.unlinkSync(this.settings.filename);
+      fs.unlink(this.settings.filename, (err) => {
+        if (err) this.logger.error(err.message);
+      });
     }
     fs.rename(this.settings.tempDataFilename, this.settings.filename, callback);
   }
 
   copyMainDataToArchive(suffix, callback) {
     if (fs.existsSync(`${this.settings.filename}.${suffix}`))
-      fs.unlinkSync(`${this.settings.filename}.${suffix}`);
+      fs.unlink(`${this.settings.filename}.${suffix}`, (err) => {
+        if (err) this.logger.error(err.message);
+      });
     fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
   }
 
@@ -635,6 +639,8 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
+        if (this.logger)
+          this.logger.info('Snapshot Started - Current DB Size ', prettyBytes(currentSize));
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
@@ -823,6 +829,8 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
       if (e) return callback(e);
       this.copyTempDataToMain(callback);
+      if (this.logger)
+        this.logger.info('Snapshot Complete - New DB Size ', prettyBytes(this.baselineFileSize));
     });
   }
 

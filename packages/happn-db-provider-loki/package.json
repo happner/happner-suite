@@ -12,7 +12,8 @@
   "dependencies": {
     "adm-zip": "^0.5.9",
     "happn-commons": "1.5.1",
-    "lokijs": "^1.5.12"
+    "lokijs": "^1.5.12",
+    "pretty-bytes": "^5.6.0"
   },
   "devDependencies": {
     "happn-commons-test": "1.2.2"
