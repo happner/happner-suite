@@ -606,20 +606,17 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   copyTempDataToMain(callback) {
-    if (fs.existsSync(this.settings.filename)) {
-      fs.unlink(this.settings.filename, (err) => {
-        if (err) this.logger.error(err.message);
-      });
-    }
-    fs.rename(this.settings.tempDataFilename, this.settings.filename, callback);
+    this.ensureDeleted(this.settings.filename, (err) => {
+      if (err) return callback(err);
+      fs.rename(this.settings.tempDataFilename, this.settings.filename, callback);
+    });
   }
 
   copyMainDataToArchive(suffix, callback) {
-    if (fs.existsSync(`${this.settings.filename}.${suffix}`))
-      fs.unlink(`${this.settings.filename}.${suffix}`, (err) => {
-        if (err) this.logger.error(err.message);
-      });
-    fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
+    this.ensureDeleted(`${this.settings.filename}.${suffix}`, (err) => {
+      if (err) return callback(err);
+      fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
+    });
   }
 
   storePlayback(operation, callback) {
@@ -639,8 +636,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
-        if (this.logger)
+        if (this.logger) {
           this.logger.info('Snapshot Started - Current DB Size ', prettyBytes(currentSize));
+        }
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
@@ -824,13 +822,22 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     return recordToIncrement.data[counterName].value;
   }
 
+  ensureDeleted(filename, callback) {
+    if (!fs.existsSync(filename)) return callback();
+    fs.unlink(filename, (err) => {
+      if (err) this.logger.error(err.message);
+      callback(err);
+    });
+  }
+
   #completeSnapshot(callback) {
     this.operationCount = 0;
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
       if (e) return callback(e);
       this.copyTempDataToMain(callback);
-      if (this.logger)
+      if (this.logger) {
         this.logger.info('Snapshot Complete - New DB Size ', prettyBytes(this.baselineFileSize));
+      }
     });
   }
 
