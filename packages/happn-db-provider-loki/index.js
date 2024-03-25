@@ -634,9 +634,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
-        if (this.logger) {
-          this.logger.info('Snapshot Started - Current DB Size ', prettyBytes(currentSize));
-        }
+        this.logger.info('Snapshot Started - Current DB Size ', prettyBytes(currentSize));
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
@@ -833,9 +831,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
       if (e) return callback(e);
       this.copyTempDataToMain(callback);
-      if (this.logger) {
-        this.logger.info('Snapshot Complete - New DB Size ', prettyBytes(this.baselineFileSize));
-      }
+      this.logger.info('Snapshot Complete - New DB Size ', prettyBytes(this.baselineFileSize));
     });
   }
 
