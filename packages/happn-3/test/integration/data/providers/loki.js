@@ -75,7 +75,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   });
 
   async function testRemove(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -112,7 +112,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   }
 
   async function testMerge(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -130,7 +130,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   }
 
   async function testIncrement(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -149,7 +149,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   }
 
   async function testCount(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     const created = 1634804510343;
     const modified = created;
     lokiProvider.settings = {
