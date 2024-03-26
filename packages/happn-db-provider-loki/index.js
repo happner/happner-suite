@@ -844,6 +844,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
   }
 
+  // stat sync has been quantitatively tested - takes between 0.3 and 1ms on target hardware, which is deemed acceptable
   #getFileSize(filepath) {
     let fileStats = null;
     try {
