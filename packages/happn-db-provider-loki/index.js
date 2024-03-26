@@ -71,7 +71,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
-    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 1e7;
+    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 0;
 
     if (!this.settings.archiveFolder) {
       const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
@@ -627,10 +627,14 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           this.logger.error('failed persisting operation data', appendFailure);
           return callback(appendFailure);
         }
-        const currentSize = this.#getFileSize(this.settings.filename);
+        let currentSize = 0;
+        if (this.settings.fileSizeDifferenceLimit > 0) {
+          currentSize = this.#getFileSize(this.settings.filename);
+        }
         if (
           this.operationCount < this.settings.snapshotRollOverThreshold &&
-          currentSize - this.baselineFileSize < this.settings.fileSizeDifferenceLimit
+          (this.settings.fileSizeDifferenceLimit === 0 ||
+            currentSize - this.baselineFileSize < this.settings.fileSizeDifferenceLimit)
         ) {
           return callback(null, result);
         }
@@ -724,8 +728,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             callback(errorSyncing);
             return;
           }
-          if (fs.existsSync(this.settings.tempDataFilename))
+          if (fs.existsSync(this.settings.tempDataFilename)) {
             this.baselineFileSize = this.#getFileSize(this.settings.tempDataFilename);
+          }
           callback(null);
         });
       });
