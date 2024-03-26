@@ -9,6 +9,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const testFileName = `${testDirPath}${test.commons.path.sep}db.loki`;
       const mockLogger = {
         info: test.sinon.stub(),
+        debug: test.sinon.stub(),
         error: test.sinon.stub(),
         warn: test.sinon.stub(),
         trace: test.sinon.stub(),

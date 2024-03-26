@@ -12,6 +12,7 @@ describe('loki reset on snapshot plugin stress tests', function () {
     const testFileName = `${testDirPath}${commons.path.sep}db.loki`;
     const mockLogger = {
       info: () => {},
+      debug: () => {},
       error: () => {},
       warn: () => {},
       trace: () => {},
