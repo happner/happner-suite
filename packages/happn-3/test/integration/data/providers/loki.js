@@ -3,6 +3,7 @@ require('../../../__fixtures/utils/test_helper').describe({ timeout: 20000 }, (t
   const testFileName = test.newTestFile();
   const mockLogger = {
     info: test.sinon.stub(),
+    debug: test.sinon.stub(),
     error: test.sinon.stub(),
     warn: test.sinon.stub(),
     trace: test.sinon.stub(),
