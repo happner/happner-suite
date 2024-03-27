@@ -1,6 +1,6 @@
 {
   "name": "happn-3",
-  "version": "13.11.2",
+  "version": "13.12.0",
   "description": "pub/sub api as a service using primus and mongo & redis or nedb, can work as cluster, single process or embedded using nedb",
   "keywords": [
     "mongo",
@@ -31,7 +31,7 @@
     "connect-cookies": "^0.0.0",
     "dev-null": "^0.1.1",
     "happn-commons": "1.5.1",
-    "happn-db-provider-loki": "1.2.2",
+    "happn-db-provider-loki": "1.3.0",
     "happn-logger": "2.2.5",
     "happn-password-hash-and-salt": "^1.2.0",
     "happn-primus-wrapper": "^9.0.0",
@@ -58,9 +58,9 @@
     "commander": "^4.1.0",
     "debug": "4.1.1",
     "gulp": "^4.0.2",
-    "happn-cluster": "12.4.2",
+    "happn-cluster": "12.4.3",
     "happn-commons-test": "1.2.2",
-    "happn-db-provider-mongo": "1.1.11",
+    "happn-db-provider-mongo": "1.1.12",
     "happn-random-activity-generator": "0.2.1",
     "jsprim": "^2.0.0",
     "mongodb": "^4.1.3",

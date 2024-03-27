@@ -479,3 +479,7 @@
 -----------------
   - happner-2: happn-3 auth provider updates
 
+13.0.4 2024-03-27
+-----------------
+- feat: loki provider has new file-size compaction threshold
+
