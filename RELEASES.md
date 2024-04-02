@@ -1,3 +1,7 @@
+3.1.0 2024-03-27
+-----------------
+  - happn-db-provider-loki: new file-size compaction threshold
+
 3.0.3 2023-08-05
 -----------------
   - happn-3: auth provider changes
