@@ -149,7 +149,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
     }
   });
   async function testMerge(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -167,7 +167,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   }
 
   async function testIncrement(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     lokiProvider.settings = {
       ...{
         filename: testFileName,
@@ -186,7 +186,7 @@ require('happn-commons-test').describe({ timeout: 20e3 }, (test) => {
   }
 
   async function testCount(settings) {
-    const lokiProvider = new LokiDataProvider(mockLogger);
+    const lokiProvider = new LokiDataProvider(null, mockLogger);
     const created = 1634804510343;
     const modified = created;
     lokiProvider.settings = {
