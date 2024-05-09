@@ -1,5 +1,4 @@
 const PeerConnectorFactory = require('./factories/peer-connector-factory');
-const MembershipDbFactory = require('./factories/membership-db-factory');
 const Logger = require('happn-logger');
 const commons = require('happn-commons');
 module.exports = class Container {
@@ -49,8 +48,7 @@ module.exports = class Container {
     );
 
     // membership scanning
-    const membershipDbFactory = new MembershipDbFactory();
-    const membershipDbProvider = membershipDbFactory.createMembershipDb(happnService);
+    const membershipDbProvider = require('./providers/membership-db-provider').create(happnService)
     const membershipRegistryRepository =
       require('./repositories/membership-registry-repository').create(membershipDbProvider);
 
@@ -81,11 +79,10 @@ module.exports = class Container {
     );
 
     // peer management
-    const peerConnectorFactory = new PeerConnectorFactory();
     const clusterPeerService = require('./services/cluster-peer-service').create(
       this.#config,
       Logger.createLogger(`${this.#serviceAndMemberName}-cluster-peer-service`),
-      peerConnectorFactory,
+      new PeerConnectorFactory(),
       eventReplicator
     );
 

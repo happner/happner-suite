@@ -114,47 +114,53 @@ module.exports = class HappnService extends require('events').EventEmitter {
   }
 
   async #assignClusterCredentials() {
-    const credentialsBuilder = CredentialsBuilder.create();
-    if (this.secure) {
-      const membershipConfig = this.#config.services.membership.config;
-      if (membershipConfig.clusterUsername) {
-        if (
-          !membershipConfig.clusterPassword &&
-          !(membershipConfig.clusterPublicKey && membershipConfig.clusterPrivateKey)
-        ) {
-          throw new Error(
-            `invalid credentials configuration, requires clusterPassword or keypair config: clusterPublicKey and clusterPrivateKey`
-          );
-        }
+    if (!this.secure) return;
 
-        await this.upsertUser(
-          membershipConfig.clusterUsername,
-          membershipConfig.clusterPassword,
-          membershipConfig.clusterPublicKey,
-          {
-            '*': {
-              actions: ['*'],
-            },
-          },
-          ['_MESH_DELEGATE']
-        );
-        credentialsBuilder.withUsername(membershipConfig.clusterUsername);
-        if (membershipConfig.clusterPassword) {
-          credentialsBuilder.withPassword(membershipConfig.clusterPassword);
-        }
-        if (membershipConfig.clusterPublicKey) {
-          credentialsBuilder
-            .withPublicKey(membershipConfig.clusterPublicKey)
-            .withPrivateKey(membershipConfig.clusterPrivateKey);
-        }
-      } else {
-        const adminUserConfig = this.#happn.services.security.config.adminUser;
-        credentialsBuilder
-          .withUsername(adminUserConfig.username)
-          .withPassword(adminUserConfig.password);
-      }
+    const credentialsBuilder = CredentialsBuilder.create();
+    const membershipConfig = this.#config.services.membership.config;
+
+    if (!membershipConfig.clusterUsername) {
+      const adminUserConfig = this.#happn.services.security.config.adminUser;
+      this.#clusterCredentials = credentialsBuilder
+        .withUsername(adminUserConfig.username)
+        .withPassword(adminUserConfig.password)
+        .build();
+      return;
     }
-    this.#clusterCredentials = credentialsBuilder.build();
+
+    if (!membershipConfig.clusterPassword && (!membershipConfig.clusterPrivateKey || !membershipConfig.clusterPublicKey))
+    {
+      throw new Error(
+        `invalid credentials configuration, requires clusterPassword or keypair (clusterPrivateKey & clusterPublicKey)`
+      );
+    }
+
+    await this.upsertUser(
+      membershipConfig.clusterUsername,
+      membershipConfig.clusterPassword,
+      membershipConfig.clusterPublicKey,
+      {
+        '*': {
+          actions: ['*'],
+        },
+      },
+      ['_MESH_DELEGATE']
+    );
+
+    credentialsBuilder.withUsername(membershipConfig.clusterUsername);
+
+    if (membershipConfig.clusterPassword) {
+      this.#clusterCredentials = credentialsBuilder
+        .withPassword(membershipConfig.clusterPassword)
+        .build();
+    }
+
+    if (membershipConfig.clusterPublicKey) {
+      this.#clusterCredentials = credentialsBuilder
+        .withPublicKey(membershipConfig.clusterPublicKey)
+        .withPrivateKey(membershipConfig.clusterPrivateKey)
+        .build();
+    }
   }
 
   #onConnectionFrom(data) {

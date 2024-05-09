@@ -1,16 +1,20 @@
 const Constants = require('../constants/all-constants');
 const PeerConnectorStatuses = Constants.PEER_CONNECTOR_STATUSES;
 const commons = require('happn-commons');
-module.exports = class PeerConnectorBase extends require('events').EventEmitter {
+const Happn = require('happn-3');
+module.exports = class PeerConnector extends require('events').EventEmitter {
   #status;
   #peerInfo;
   #log;
   #queue;
-  constructor(logger, peerInfo) {
+  #disconnectHandler;
+  #client;
+  constructor(logger, peerInfo, disconnectHandler) {
     super();
     this.#log = logger;
     this.#peerInfo = peerInfo;
     this.#status = PeerConnectorStatuses.DISCONNECTED;
+    this.#disconnectHandler = disconnectHandler;
     // replication, connection and disconnection happen 1 at a time
     this.#queue = commons.AsyncQueue.create({
       concurrency: 1,
@@ -34,22 +38,35 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
     return this.#queue;
   }
 
-  async connectInternal() {
-    throw new Error(`connectInternal not implemented`);
-  }
-
-  async disconnectInternal() {
-    throw new Error(`disconnectInternal not implemented`);
-  }
-
-  async subscribeInternal() {
-    throw new Error(`subscribeInternal not implemented`);
+  async #attachHappnClient(clusterCredentials) {
+    this.#client = await Happn.client.create({
+      host: this.peerInfo.memberHost,
+      port: this.peerInfo.memberPort,
+      username: clusterCredentials.username,
+      password: clusterCredentials.password,
+      publicKey: clusterCredentials.publicKey,
+      privateKey: clusterCredentials.privateKey,
+      info: clusterCredentials.info,
+      socket: {
+        strategy: 'online',
+      },
+    });
+    this.#client.onEvent(
+      Constants.EVENT_KEYS.HAPPN_CLIENT_RECONNECT_SCHEDULED,
+      this.onReconnectScheduled
+    );
+    this.#client.onEvent(Constants.EVENT_KEYS.HAPPN_CLIENT_RECONNECTED, this.onReconnected);
+    this.#client.onEvent(
+      Constants.EVENT_KEYS.HAPPN_CLIENT_SESSION_ENDED,
+      this.onServerSideDisconnect
+    );
+    this.#client.onEvent(Constants.EVENT_KEYS.HAPPN_CLIENT_CONNECTION_ENDED, this.onDisconnected);
   }
 
   async connect(clusterCredentials) {
     await this.queue.lock(async () => {
       this.#status = PeerConnectorStatuses.CONNECTING;
-      await this.connectInternal(clusterCredentials);
+      await this.#attachHappnClient(clusterCredentials);
       this.#status = PeerConnectorStatuses.STABLE;
       this.#log.info(`connected to peer: ${this.#peerInfo.memberName}`);
     });
@@ -58,7 +75,9 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   async disconnect() {
     await this.queue.lock(async () => {
       this.#status = PeerConnectorStatuses.DISCONNECTING;
-      await this.disconnectInternal();
+      if (this.#client) {
+        await this.#client.disconnect();
+      }
       this.#status = PeerConnectorStatuses.DISCONNECTED;
       this.#log.info(`disconnected from peer: ${this.#peerInfo.memberName}`);
     });
@@ -67,7 +86,7 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
   async subscribe(paths, handler) {
     await this.queue.lock(async () => {
       for (let path of paths) {
-        await this.subscribeInternal(path, handler);
+        await this.#client.on(path, handler);
       }
     });
   }
@@ -100,7 +119,7 @@ module.exports = class PeerConnectorBase extends require('events').EventEmitter 
       }
 
       this.#status = PeerConnectorStatuses.DISCONNECTING;
-      await this.onDisconnectedInternal();
+      await this.#disconnectHandler();
       this.#status = PeerConnectorStatuses.DISCONNECTED;
       this.#log.info(`peer connector disconnect: ${this.#peerInfo.memberName}`);
     });

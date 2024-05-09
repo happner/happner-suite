@@ -2,7 +2,7 @@ module.exports = class PeerConnectorFactory extends require('./base-factory') {
   constructor(makeables) {
     super(
       makeables || {
-        'peer-connector': require('../connectors/peer-connector-happn'),
+        'peer-connector': require('../connectors/peer-connector'),
       }
     );
   }

@@ -1,8 +1,10 @@
-module.exports = class MembershipDbHappnProvider extends require('./membership-db-base-provider') {
+module.exports = class MembershipDbHappnProvider {
   #happnService;
   constructor(happnService) {
-    super();
     this.#happnService = happnService;
+  }
+  static create(happnService) {
+    return new MembershipDbHappnProvider(happnService);
   }
   // eslint-disable-next-line no-unused-vars
   get(path, options) {
