@@ -9,9 +9,11 @@ Extends happn with cluster ability.
 ## Prerequisites
  - you need mongo v5+ running and accessible to all cluster members
 
-## Configure
+## Get started
 
 See [happn](https://github.com/happner-suite/happn-3) for full complement of happn config.
+
+As per the example [here](./example/readme-example.js);
 
 ```javascript
 const HappnCluster = require('happn-cluster');
