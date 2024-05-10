@@ -58,7 +58,7 @@ module.exports.create = require('util').promisify(function (config, callback) {
   cursor = config.happn.services.subscription;
   cursor.config = cursor.config || {};
   cursor.config.filter = filterEventVersions;
-  if (!config.happn.port) config.happn.port = config.port;
+  if (config.happn.port == null) config.happn.port = config.port;
   config.plugins = config.plugins || [];
   config.cluster = config.cluster || {};
 
