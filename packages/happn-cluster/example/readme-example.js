@@ -1,8 +1,8 @@
 const HappnCluster = require('happn-cluster');
 const defaultConfig = {
   host: '0.0.0.0', // happn service ip
-  port: 0,    // external port member will listen on, if left as 0 will pick a port from the system
-  secure: true,  // to enable security
+  port: 0, // external port member will listen on, if left as 0 will pick a port from the system
+  secure: true, // to enable security
   services: {
     membership: {
       config: {
@@ -16,7 +16,7 @@ const defaultConfig = {
         memberScanningIntervalMs: 3e3, // scans the membership database for new members - or members falling away
         memberScanningErrorThreshold: 3, // how many scan errors that can be tolerated in a row before your member fails
         dependencies: {
-          historian: 2 // our cluster needs 3 historian services started before it is ready to run
+          historian: 2, // our cluster needs 3 historian services started before it is ready to run
         },
         replicationPaths: ['**'], // what paths we want to replicate events across - defaults to all events
         // security stuff
@@ -25,7 +25,7 @@ const defaultConfig = {
         // clusterPassword: 'MY-CLUSTER-PWD', // for inter-cluster access
         // clusterPrivateKey: '[private key]', // for inter-cluster access - using keypair auth
         // clusterPublicKey: '[public key]', // for inter-cluster access - using keypair auth
-      }
+      },
     },
     // proxy sub-config (defaults displayed)
     proxy: {
@@ -37,12 +37,12 @@ const defaultConfig = {
         // defer: false,
         // keyPath: 'path/to/key',
         // certPath: 'path/to/cert'
-      }
+      },
     },
     transport: {
       config: {
         mode: 'http', // listen on http
-      }
+      },
     },
 
     // // security sub-config (to enable security)
@@ -50,9 +50,9 @@ const defaultConfig = {
       config: {
         adminUser: {
           username: '_ADMIN', // <---- leave this as _ADMIN
-          password: 'happn'
-        }
-      }
+          password: 'happn',
+        },
+      },
     },
 
     // shared data plugin sub-config (defaults displayed)
@@ -70,31 +70,36 @@ const defaultConfig = {
           //     },
           //     isDefault: true,
           // },
-        ]
-      }
-    },      
-  }
+        ],
+      },
+    },
+  },
 };
 
 let startedMembers;
 
 Promise.all([
-    // start the cluster - we have 3 horizontally scalable historian services - each requiring 2 others to be available
-    HappnCluster.create(defaultConfig),
-    HappnCluster.create(defaultConfig),
-    HappnCluster.create(defaultConfig)])
-    .then((members) => {
-        startedMembers = members;
-        console.log('cluster up :)');
-        // wait 10 seconds for stabilisation
-       return new Promise(resolve => setTimeout(resolve, 10e3));
-    })
-    .then(() => {
-        // stop them all
-        return Promise.all(startedMembers.map(member => {
-            return member.stop();
-        }));
-    })
-    .then(() => {
-        console.log('cluster down :(');
-    });
+  // start the cluster - we have 3 horizontally scalable historian services - each requiring 2 others to be available
+  HappnCluster.create(defaultConfig),
+  HappnCluster.create(defaultConfig),
+  HappnCluster.create(defaultConfig),
+])
+  .then((members) => {
+    startedMembers = members;
+    /* eslint-disable no-console */
+    console.log('cluster up :)');
+    // wait 10 seconds for stabilisation
+    return new Promise((resolve) => setTimeout(resolve, 10e3));
+  })
+  .then(() => {
+    // stop them all
+    return Promise.all(
+      startedMembers.map((member) => {
+        return member.stop();
+      })
+    );
+  })
+  .then(() => {
+    /* eslint-disable no-console */
+    console.log('cluster down :(');
+  });

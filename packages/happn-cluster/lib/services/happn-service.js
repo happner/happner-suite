@@ -128,8 +128,10 @@ module.exports = class HappnService extends require('events').EventEmitter {
       return;
     }
 
-    if (!membershipConfig.clusterPassword && (!membershipConfig.clusterPrivateKey || !membershipConfig.clusterPublicKey))
-    {
+    if (
+      !membershipConfig.clusterPassword &&
+      (!membershipConfig.clusterPrivateKey || !membershipConfig.clusterPublicKey)
+    ) {
       throw new Error(
         `invalid credentials configuration, requires clusterPassword or keypair (clusterPrivateKey & clusterPublicKey)`
       );

@@ -48,7 +48,7 @@ module.exports = class Container {
     );
 
     // membership scanning
-    const membershipDbProvider = require('./providers/membership-db-provider').create(happnService)
+    const membershipDbProvider = require('./providers/membership-db-provider').create(happnService);
     const membershipRegistryRepository =
       require('./repositories/membership-registry-repository').create(membershipDbProvider);
 
