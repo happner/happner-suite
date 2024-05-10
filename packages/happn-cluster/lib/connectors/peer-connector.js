@@ -25,6 +25,7 @@ module.exports = class PeerConnector extends require('events').EventEmitter {
     this.onPulseMissed = this.onPulseMissed.bind(this);
     this.onDisconnected = this.onDisconnected.bind(this);
   }
+
   get peerInfo() {
     return this.#peerInfo;
   }
@@ -36,6 +37,9 @@ module.exports = class PeerConnector extends require('events').EventEmitter {
   }
   get queue() {
     return this.#queue;
+  }
+  get client() {
+    return this.#client;
   }
 
   async #attachHappnClient(clusterCredentials) {

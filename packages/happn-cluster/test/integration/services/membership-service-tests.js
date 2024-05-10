@@ -10,9 +10,12 @@ require('../../lib/test-helper').describe({ timeout: 120e3, skip: true }, functi
   const clusterHealthService = ClusterHealthService.create(logger);
   const processManagerService = mockProcessManagerService();
   const peerConnectorFactory = new PeerConnectorFactory({
-    'peer-connector': class MockPeerConnector extends require('../../../lib/connectors/peer-connector-base') {
+    'peer-connector': class MockPeerConnector {
+      #logger;
+      #peerInfo;
       constructor(logger, peerInfo) {
-        super(logger, peerInfo);
+        this.#logger = logger;
+        this.#peerInfo = peerInfo;
       }
       async connectInternal() {
         return true;
