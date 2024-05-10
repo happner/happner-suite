@@ -442,6 +442,6 @@
 -----------------
   - happner-2: happn-3 auth provider updates
 
-12.7.5 2023-07-22
+12.8.0 2023-07-22
 -----------------
   - Mongo-based cluster membership - dependencies update

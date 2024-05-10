@@ -128,6 +128,6 @@
 -----------------
 - feat: fixed mesh_gst paths in happner-2
 
-1.1.12 2023-03-04
+1.1.13 2023-03-04
 -----------------
   - Mongo-based cluster membership - dependencies update

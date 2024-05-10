@@ -61,7 +61,7 @@ Promise.all(
       return {
         publishOrder: getPackagePublishOrder(localPackage.name),
         isPrerelease,
-        versionJumped: newVersion !== lastVersion,
+        versionJumped: versionGreaterThan(newVersion, lastVersion),
         versionJumpMadeSense: versionJumpMadeSense(
           newVersion,
           lastVersion,
@@ -283,7 +283,7 @@ function getWorkspaceDependencies(package, dev) {
 }
 
 function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease) {
-  if (newVersion === oldVersion) return true;
+  if (newVersion === oldVersion || versionGreaterThan(oldVersion, newVersion)) return true;
   const jump = getVersionJump(newVersion, oldVersion);
   if (jump.section === -1) {
     return `new version ${newVersion} for package ${packageName} should be one of the following: ${jump.possibleOptions.join(
@@ -308,6 +308,15 @@ function getVersionJump(newVersion, oldVersion) {
   ].map((optionSet) => optionSet.join('.'));
 
   return { section: possibleOptions.indexOf(newVersion.split('-')[0]), possibleOptions };
+}
+
+function versionGreaterThan(greaterThanVersion, compareVersion) {
+    const arrGreaterThanVersion = greaterThanVersion.split('-')[0].split('.');
+    const arrCompareVersion = compareVersion.split('-')[0].split('.');
+
+    return arrGreaterThanVersion.find((majorMinorPatch, majorMinorPatchIndex) => {
+        return majorMinorPatch > arrCompareVersion[majorMinorPatchIndex];
+    });
 }
 
 function getPackageRootPath(packageName) {
