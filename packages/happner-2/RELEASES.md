@@ -1052,10 +1052,6 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - feat: Happner-2 security reset password as anonymouse
   - feat: deprecate updateOwnUser (breaking)
 
-13.0.2 2023-03-04
------------------
-  - Mongo-based cluster membership - dependencies update
-
 13.0.1 2023-07-21
 -----------------
   - happner-2: response subscription filter fix
@@ -1071,3 +1067,11 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 13.0.4 2023-09-29
 -----------------
 - dep: update happn commons
+
+13.1.0 2024-03-27
+-----------------
+- feat: loki provider has new file-size compaction threshold
+
+14.0.0 2024-05-12
+-----------------
+  - Mongo-based cluster membership - dependencies update

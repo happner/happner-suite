@@ -30,6 +30,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.count = util.maybePromisify(this.count);
     this.archive = util.maybePromisify(this.archive);
     this.operationCount = 0;
+    this.baselineFileSize = 0;
     // attach our plugin
     if (settings?.plugin) {
       this.#plugin = settings.plugin;
@@ -69,6 +70,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     }
 
     this.settings.snapshotRollOverThreshold = this.settings.snapshotRollOverThreshold || 1e3; // take a snapshot and compact every 1000 records
+    this.settings.fileSizeDifferenceLimit = this.settings.fileSizeDifferenceLimit || 0;
 
     if (!this.settings.archiveFolder) {
       const lastForwardSlashIdx = this.settings.filename.lastIndexOf('/');
@@ -270,7 +272,6 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     reader.on('line', (line) => {
       try {
         if (++lineNumber === 1) {
-          this.logger.info('loading snapshot...');
           this.db.loadJSON(JSON.parse(line).snapshot, { retainDirtyFlags: false });
           this.collection = this.db.collections.find((collection) => collection.name === 'happn');
           this.archiveCollection = this.db.collections.find(
@@ -280,11 +281,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             indices: ['sequence'],
             unique: ['sequence'],
           });
-          this.logger.info('loaded snapshot...');
         } else {
-          if (lineNumber % 10 === 0) {
-            this.logger.info('parsing line ', lineNumber);
-          }
           const parsedOperation = this.parsePersistedOperation(line);
           if (parsedOperation == null) {
             // skip empty or corrupted
@@ -434,13 +431,13 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
       const zip = new AdmZip();
       zip.addLocalFile(this.settings.filename, undefined, archivedFileName);
       zip.writeZip(zipFileName, (error) => {
-        fs.unlinkSync(`${this.settings.filename}.${sequence}`);
-
-        if (error) {
-          return callback(error);
-        }
-
-        callback();
+        fs.unlink(`${this.settings.filename}.${sequence}`, (err) => {
+          if (err) this.logger.error(err.message);
+          if (error) {
+            return callback(error);
+          }
+          callback();
+        });
       });
     };
 
@@ -606,16 +603,17 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
   }
 
   copyTempDataToMain(callback) {
-    if (fs.existsSync(this.settings.filename)) {
-      fs.unlinkSync(this.settings.filename);
-    }
-    fs.copy(this.settings.tempDataFilename, this.settings.filename, callback);
+    this.ensureDeleted(this.settings.filename, (err) => {
+      if (err) return callback(err);
+      fs.rename(this.settings.tempDataFilename, this.settings.filename, callback);
+    });
   }
 
   copyMainDataToArchive(suffix, callback) {
-    if (fs.existsSync(`${this.settings.filename}.${suffix}`))
-      fs.unlinkSync(`${this.settings.filename}.${suffix}`);
-    fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
+    this.ensureDeleted(`${this.settings.filename}.${suffix}`, (err) => {
+      if (err) return callback(err);
+      fs.copy(this.settings.filename, `${this.settings.filename}.${suffix}`, callback);
+    });
   }
 
   storePlayback(operation, callback) {
@@ -628,9 +626,18 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
           this.logger.error('failed persisting operation data', appendFailure);
           return callback(appendFailure);
         }
-        if (this.operationCount < this.settings.snapshotRollOverThreshold) {
+        let currentSize = 0;
+        if (this.settings.fileSizeDifferenceLimit > 0) {
+          currentSize = this.#getFileSize(this.settings.filename);
+        }
+        if (
+          this.operationCount < this.settings.snapshotRollOverThreshold &&
+          (currentSize === 0 ||
+            currentSize - this.baselineFileSize < this.settings.fileSizeDifferenceLimit)
+        ) {
           return callback(null, result);
         }
+        this.logger.debug('Snapshot Started - Current DB Size ', currentSize);
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
@@ -719,6 +726,9 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
             this.logger.error(`fsync to file ${this.settings.filename} failed`, e);
             callback(errorSyncing);
             return;
+          }
+          if (fs.existsSync(this.settings.tempDataFilename)) {
+            this.baselineFileSize = this.#getFileSize(this.settings.tempDataFilename);
           }
           callback(null);
         });
@@ -812,11 +822,20 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     return recordToIncrement.data[counterName].value;
   }
 
+  ensureDeleted(filename, callback) {
+    if (!fs.existsSync(filename)) return callback();
+    fs.unlink(filename, (err) => {
+      if (err) this.logger.error(err.message);
+      callback(err);
+    });
+  }
+
   #completeSnapshot(callback) {
     this.operationCount = 0;
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
       if (e) return callback(e);
       this.copyTempDataToMain(callback);
+      this.logger.debug('Snapshot Complete - New DB Size ', this.baselineFileSize);
     });
   }
 
@@ -827,5 +846,18 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     if (parameters?.archiveId) {
       throw new Error('Loaded archives only support read-only operations!');
     }
+  }
+
+  // stat sync has been quantitatively tested - takes between 0.3 and 1ms on target hardware, which is deemed acceptable
+  #getFileSize(filepath) {
+    let fileStats = null;
+    try {
+      fileStats = fs.statSync(filepath);
+    } catch (err) {
+      this.logger.error(err.message);
+    }
+    if (!fileStats) return 0;
+    if (!fileStats.size) return 0;
+    return fileStats.size;
   }
 };

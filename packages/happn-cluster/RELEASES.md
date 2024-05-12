@@ -341,7 +341,10 @@ non-release 2017-12-14
 -----------------
 - feat: fixed mesh_gst paths in happner-2
 
-13.0.0 2023-03-04
+12.4.3 2024-03-27
+-----------------
+- feat: loki provider has new file-size compaction threshold
+
+13.0.0 2024-05-12
 -----------------
   - Mongo-based cluster membership - dependencies update
-

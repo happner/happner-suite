@@ -109,6 +109,7 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 15e3 }, (test)
       delete config.happn.services.data.config.datastores[0].settings.filename;
       delete config.happn.services.data.config.datastores[0].settings.archiveFolder;
       delete config.happn.services.data.config.datastores[0].settings.tempDataFilename;
+      delete config.happn.services.data.config.datastores[0].settings.fileSizeDifferenceLimit;
 
       test.expect(config.happn.services.data.config).to.eql({
         datastores: [

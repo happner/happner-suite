@@ -9,6 +9,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       const testFileName = `${testDirPath}${test.commons.path.sep}db.loki`;
       const mockLogger = {
         info: test.sinon.stub(),
+        debug: test.sinon.stub(),
         error: test.sinon.stub(),
         warn: test.sinon.stub(),
         trace: test.sinon.stub(),
@@ -49,9 +50,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
         const records = await testRepository.get('test/path/*');
         test.expect(records.length).to.equal(0);
         const files = test.fs.readdirSync(testDirPath);
-        test
-          .expect(files.sort())
-          .to.eql(['db-14', 'db-19', 'db-4', 'db-9', 'db.loki', 'temp_db.loki']);
+        test.expect(files.sort()).to.eql(['db-14', 'db-19', 'db-4', 'db-9', 'db.loki']);
       });
 
       // relies on above test
