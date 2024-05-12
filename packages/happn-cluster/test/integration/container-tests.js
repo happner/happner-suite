@@ -32,6 +32,7 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     container1.start();
     container2.start();
 
+    test.log('5 second delay...');
     await test.delay(5e3);
 
     test.expect(container1.dependencies['membershipService'].status).to.be(MemberStatuses.STABLE);
@@ -123,7 +124,7 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
 
   function createContainer(
     port = 12358,
-    name = 'memberName',
+    memberName,
     serviceName = 'serviceName',
     dependencies = {
       testService1: 1,
@@ -132,7 +133,6 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
     const container = Container.create({
       secure: true,
       port,
-      name,
       services: {
         security: {
           config: {
@@ -155,8 +155,8 @@ require('../lib/test-helper').describe({ timeout: 120e3 }, function (test) {
             clusterName: 'clusterName',
             // classification for the set of services this member provides, members with the same service name should be identical
             serviceName,
-            // the identifier for this member, NB: config.name overrides this in utils/default-name
-            memberName: 'memberName',
+            // the unique identifier for this member, NB: config.name overrides this
+            memberName,
             // abort start and exit, as dependencies and members not found on startup cycle
             discoverTimeoutMs: 5e3,
             healthReportIntervalMs: 1e3,

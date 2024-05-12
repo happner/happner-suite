@@ -1,21 +1,15 @@
-var path = require('path');
-var filename = path.basename(__filename);
-var HappnCluster = require('../..');
-var hooks = require('../lib/hooks');
-var testUtils = require('../lib/test-utils');
-
-var testSequence = parseInt(filename.split('-')[0]) * 2 - 1;
-var clusterSize = 10;
-var happnSecure = false;
-
+const HappnCluster = require('../..');
+const hooks = require('../lib/hooks');
+const testUtils = require('../lib/test-utils');
+const clusterSize = 10;
+const happnSecure = false;
+const EventKeys = require('../../lib/constants/event-keys');
 let configs = [
   {
-    testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
   }, // Single service ('happn-cluster-node')
   {
-    testSequence: testSequence,
     size: clusterSize,
     happnSecure: happnSecure,
     clusterConfig: {
@@ -25,7 +19,8 @@ let configs = [
   },
 ];
 configs.forEach((config) => {
-  require('../lib/test-helper').describe({ timeout: 60e3, skip: true }, function (test) {
+  require('../lib/test-helper').describe({ timeout: 60e3 }, function (test) {
+    config.deploymentId = test.commons.uuid.v4();
     before(function () {
       this.logLevel = process.env.LOG_LEVEL;
       process.env.LOG_LEVEL = 'off';
@@ -36,19 +31,19 @@ configs.forEach((config) => {
     before('create extra config', async function () {
       if (!config.clusterConfig)
         this.extraConfig = (
-          await testUtils.createMemberConfigs(testSequence, clusterSize + 1, false, false, {})
+          await testUtils.createMemberConfigs(config.deploymentId, 1, false, false, {})
         ).pop();
       else {
         this.extraConfig = (
           await testUtils.createMultiServiceMemberConfigs(
-            testSequence,
-            clusterSize + 1,
+            config.deploymentId,
+            1,
             false,
             false,
             {},
             {
               'cluster-service-1': 4,
-              'cluster-service-2': 7,
+              'cluster-service-2': 6,
             }
           )
         ).pop();
@@ -62,13 +57,19 @@ configs.forEach((config) => {
       var emittedRemove = {};
 
       this.servers.forEach(function (server, i) {
-        server.services.orchestrator.on('peer/add', function (name, member) {
-          emittedAdd[i] = member;
-        });
+        server.services.membership.clusterPeerService.on(
+          EventKeys.PEER_CONNECTED,
+          function (peerInfo) {
+            emittedAdd[i] = peerInfo;
+          }
+        );
 
-        server.services.orchestrator.on('peer/remove', function (name, member) {
-          emittedRemove[i] = member;
-        });
+        server.services.membership.clusterPeerService.on(
+          EventKeys.PEER_DISCONNECTED,
+          function (peerInfo) {
+            emittedRemove[i] = peerInfo;
+          }
+        );
       });
 
       HappnCluster.create(this.extraConfig)
@@ -82,8 +83,7 @@ configs.forEach((config) => {
         })
 
         .then(function () {
-          var server = _this.servers.pop(); // remove and stop new server
-          return server.stop({ reconnect: false });
+          _this.servers.pop().stop({ reconnect: false }); // remove and stop new server
         })
         .then(function () {
           return test.delay(6000); //Need time for peer to become stale in DB
@@ -105,7 +105,6 @@ configs.forEach((config) => {
     hooks.stopCluster();
 
     after(function () {
-      testSequence++;
       process.env.LOG_LEVEL = this.logLevel;
     });
   });

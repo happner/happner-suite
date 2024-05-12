@@ -111,15 +111,17 @@ module.exports = class ClusterPeerService extends require('events').EventEmitter
   }
 
   async processMemberScanResult(memberScanResult) {
-    const skipMembers = [
-      ...memberScanResult.missingSinceLastMembers.map((peer) => peer.memberName),
-      ...this.peerConnectors.map((peerConnector) => peerConnector.peerInfo.memberName),
-    ];
+    // filter out members we already know about
+    // members we can skip
+    const skipMembers = this.peerConnectors.map(
+      (peerConnector) => peerConnector.peerInfo.memberName
+    );
+    // do the filter
     const filteredCurrentMembers = memberScanResult.currentMembers.filter(
       (currentMember) => !skipMembers.includes(currentMember.memberName)
     );
     if (filteredCurrentMembers.length > 0) {
-      await this.addPeers(this.#clusterCredentials, memberScanResult.currentMembers);
+      await this.addPeers(this.#clusterCredentials, filteredCurrentMembers);
     }
     if (memberScanResult.missingSinceLastMembers.length > 0) {
       await this.removePeers(memberScanResult.missingSinceLastMembers);

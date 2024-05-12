@@ -80,8 +80,6 @@ module.exports.createMemberConfigs = function (
             deploymentId,
             // a virtual cluster grouping, inside this deployment
             clusterName: 'clusterName',
-            // the identifier for this member, NB: config.name overrides this in utils/default-name
-            memberName: 'memberName',
             // abort start and exit, as dependencies and members not found on startup cycle
             discoverTimeoutMs: 5e3,
             healthReportIntervalMs: 1e3,
@@ -209,8 +207,6 @@ module.exports.createMultiServiceMemberConfigs = function (
             clusterName: 'clusterName',
             // classification for the set of services this member provides, members with the same service name should be identical
             serviceName: clusterServiceNameArr[i - 1],
-            // the identifier for this member, NB: config.name overrides this in utils/default-name
-            memberName: 'memberName',
             // abort start and exit, as dependencies and members not found on startup cycle
             discoverTimeoutMs: 5e3,
             healthReportIntervalMs: 1e3,
@@ -280,7 +276,7 @@ module.exports.awaitExactMembershipCount = Util.promisify(function (servers, cou
     gotExactCount = true;
 
     servers.forEach(function (server) {
-      if (Object.keys(server.services.orchestrator.members).length < count - 1) {
+      if (server.services.membership.clusterPeerService.peerCount < count - 1) {
         gotExactCount = false;
       }
     });
@@ -307,7 +303,7 @@ module.exports.awaitExactPeerCount = Util.promisify(function (servers, count, ca
     gotExactCount = true;
 
     servers.forEach(function (server) {
-      if (Object.keys(server.services.orchestrator.peers).length !== count) {
+      if (server.services.membership.clusterPeerService.peerCount !== count - 1) {
         gotExactCount = false;
       }
     });
@@ -316,7 +312,7 @@ module.exports.awaitExactPeerCount = Util.promisify(function (servers, count, ca
       clearInterval(interval);
       callback();
     }
-  }, 100);
+  }, 1e3);
 });
 
 module.exports.createClientInstance = function (host, port, callback) {

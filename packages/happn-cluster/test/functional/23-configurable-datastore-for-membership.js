@@ -36,6 +36,7 @@ let configs = [
 ];
 configs.forEach((config) => {
   require('../lib/test-helper').describe({ timeout: 30e3 }, function (test) {
+    config.deploymentId = test.commons.uuid.v4();
     before(function () {
       this.logLevel = process.env.LOG_LEVEL;
       process.env.LOG_LEVEL = 'off';
@@ -78,7 +79,7 @@ configs.forEach((config) => {
             test
               .expect(
                 result.path.startsWith(
-                  `/_SYSTEM/DEPLOYMENT/${this.deploymentId}/clusterName/default-service`
+                  `/_SYSTEM/DEPLOYMENT/${config.deploymentId}/clusterName/default-service`
                 )
               )
               .to.be(true);
@@ -91,7 +92,7 @@ configs.forEach((config) => {
               test
                 .expect(
                   result.path.startsWith(
-                    `/_SYSTEM/DEPLOYMENT/${this.deploymentId}/clusterName/cluster-service-1`
+                    `/_SYSTEM/DEPLOYMENT/${config.deploymentId}/clusterName/cluster-service-1`
                   )
                 )
                 .to.be(true);
@@ -99,13 +100,12 @@ configs.forEach((config) => {
               test
                 .expect(
                   result.path.startsWith(
-                    `/_SYSTEM/DEPLOYMENT/${this.deploymentId}/clusterName/cluster-service-2`
+                    `/_SYSTEM/DEPLOYMENT/${config.deploymentId}/clusterName/cluster-service-2`
                   )
                 )
                 .to.be(true);
             }
           }
-          // test.expect(result.path.split('/').pop()).to.eql(result.data.endpoint);
         });
 
         let stored2 = await client

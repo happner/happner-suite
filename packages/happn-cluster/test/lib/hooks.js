@@ -9,6 +9,7 @@ const wait = require('await-delay');
 const test = require('happn-commons-test').create();
 
 module.exports.startCluster = function (clusterOpts) {
+  let deploymentId = clusterOpts.deploymentId || test.commons.uuid.v4();
   let clusterSize = clusterOpts.size || 5;
   let happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
   let proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
@@ -21,8 +22,6 @@ module.exports.startCluster = function (clusterOpts) {
   });
 
   before('start cluster', async function () {
-    const deploymentId = (this.deploymentId = test.commons.uuid.v4());
-
     const createConfig = clusterConfig
       ? testUtils.createMultiServiceMemberConfigs
       : testUtils.createMemberConfigs;

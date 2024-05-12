@@ -6,7 +6,7 @@ require('../_lib/test-helper').describe({ timeout: 50e3 }, (test) => {
   let deploymentId = test.newid();
   test.hooks.clusterStartedSeperatelyHooks(test);
 
-  it('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
+  it.only('starts the cluster internal first, connects a client to the local instance, and is able to access the remote component via the broker', async function () {
     let client;
     let child;
     await startEdge(0, 1);

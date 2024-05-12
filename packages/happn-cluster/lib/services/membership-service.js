@@ -1,6 +1,5 @@
 const commons = require('happn-commons');
 const MemberStatuses = require('../constants/member-statuses');
-const getAddress = require('../utils/get-address');
 const ClusterCredentialsBuilder = require('../builders/cluster-member-credentials-builder');
 const ClusterMemberInfoBuilder = require('../builders/cluster-member-builder');
 const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
@@ -11,7 +10,6 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   #deploymentId;
   #clusterName;
   #serviceName;
-  #memberHost;
   #memberName;
   #discoverTimeoutMs;
   #pulseIntervalMs;
@@ -70,9 +68,7 @@ module.exports = class MembershipService extends require('events').EventEmitter 
     this.#processManagerService = processManagerService;
 
     // internal state
-    this.#memberHost = getAddress(this.#log)();
     this.#status = MemberStatuses.STOPPED;
-
     this.#log.info(`initialized`);
   }
   static create(
@@ -113,6 +109,9 @@ module.exports = class MembershipService extends require('events').EventEmitter 
   }
   get dependencies() {
     return this.#dependencies;
+  }
+  get clusterPeerService() {
+    return this.#clusterPeerService;
   }
 
   #getClusterCredentials() {
