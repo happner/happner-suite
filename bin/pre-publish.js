@@ -6,46 +6,45 @@ const workspacePackages = basePackage.workspaces.map((path) => require(`../${pat
 const workspacePackageNames = basePackage.workspaces.map((path) => path.split('/')[1]);
 
 let lastHighestVersionJump = -1;
-let packagesMetaData = null;
 let prereleases = [];
+let alreadyPublishedNames = [];
+
+async function run() {
+  try {
+    console.log('fetching metadata from npm...');
+    const packagesMetaData = await fetchPackages();
+
+    console.log('fetching master package...');
+    const masterPackage = await require('axios').default.get(
+      `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
+    );
+
+    console.log('fetched master package...');
+    verifyPublish(packagesMetaData, masterPackage.data);
+  } catch (e) {
+    console.log('run failed');
+    throw e;
+  }
+}
+
+run();
 
 const { execSync } = require('child_process');
-
 function executeGitCommand(command) {
   return execSync(command)
     .toString('utf8')
     .replace(/[\n\r\s]+$/, '');
 }
 
-console.log('fetching metadata from npm...');
-function fetchPackage(packageName) {
-  let foundPackage, errorPackage;
-  return new Promise((resolve) => {
-    require('axios').default.get(`https://registry.npmjs.org/${packageName}`).then(found => {
-      foundPackage = found;
-    }).catch(error => {
-      errorPackage = error;
-    }).finally(() => {
-      if (errorPackage) {
-        console.warn(`WARNING: failed fetching npm package: ${packageName}`);
-        return resolve(null);
-      }
-      resolve(foundPackage);
-    })
-  });
-}
-
-var masterPackage;
-
-Promise.all(
-  workspacePackageNames.map((packageName) => {
+async function fetchPackages() {
+  const rawPackages = await Promise.all(
+    workspacePackageNames.map((packageName) => {
       return fetchPackage(packageName);
-    }
-  )
-)
-  .then((metaData) => {
-    console.log('fetched data from npm');
-    packagesMetaData = metaData.map((metaDataItem) => {
+    })
+  );
+
+  return rawPackages
+    .map((metaDataItem) => {
       if (metaDataItem == null) {
         console.warn('WARNING: One of the package fetches failed');
         return null;
@@ -77,27 +76,30 @@ Promise.all(
         ),
         releasesUpToDate: checkReleasesUpToDate(localPackage),
         possibleOnlyInTests: checkOnlyInTests(localPackage),
-        previousVersions: Object.values(metaDataItem.data["dist-tags"]),
+        previousVersions: Object.values(metaDataItem.data['dist-tags']),
       };
-    }).filter((item) => item !== null);
-    console.log('fetching master package...');
-    return require('axios').default.get(
-      `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
-    );
-  })
-  
-  .then((masterPackage) => {
-    console.log('fetched master package...');
-    verifyPublish(packagesMetaData, masterPackage.data);
-  })
+    })
+    .filter((item) => item !== null);
+}
 
-  .catch((e) => {
-    throw e;
-  });
+async function fetchPackage(packageName) {
+  let foundPackage, errorPackage;
+  try {
+    foundPackage = await require('axios').default.get(`https://registry.npmjs.org/${packageName}`);
+  } catch (error) {
+    errorPackage = error;
+  } finally {
+    if (errorPackage) {
+      console.warn(`WARNING: failed fetching npm package: ${packageName}: ${errorPackage.message}`);
+      return null;
+    }
+    return foundPackage;
+  }
+}
 
 function getVersionObject(versionString) {
   const split = versionString.split('.');
-  const versionObject= {
+  const versionObject = {
     versionString,
     major: parseInt(split[0]),
     minor: parseInt(split[1]),
@@ -109,8 +111,8 @@ function getVersionObject(versionString) {
 
 function getLatestNonPrereleaseVersion(versions) {
   const nonPrereleaseVersions = Object.keys(versions)
-    .map(versionString => getVersionObject(versionString))
-    .filter(versionObject => {
+    .map((versionString) => getVersionObject(versionString))
+    .filter((versionObject) => {
       return versionObject.isPrerelease === false;
     });
 
@@ -200,12 +202,21 @@ function verifyPublish(packagesMetaData, masterPackage) {
     issues.forEach((issue) => console.warn(issue));
     if (successes.length > 0) {
       console.info('OK:');
-      successes.forEach((success) => { console.info(`- ${success.name}: ${success.newVersion} - ${success.versionJumped ? 'new' : 'unchanged'}`) });
+      successes.forEach((success) => {
+        console.info(
+          `- ${success.name}: ${success.newVersion} - ${
+            success.versionJumped ? 'new' : 'unchanged'
+          }`
+        );
+      });
     }
     if (prereleases.length > 0) {
       console.info('\r\n PRERELEASES READY FOR PUBLISH:');
       getPublishOrder().forEach((packageName) => {
-        const found = prereleases.find((prerelease) => prerelease.packageName === packageName);
+        const found = prereleases.find(
+          (prerelease) =>
+            prerelease.packageName === packageName && !alreadyPublishedNames.includes(packageName)
+        );
         if (found) {
           console.info(`npm publish --workspace=${packageName} --tag prerelease-${found.major}`);
         }
@@ -232,6 +243,7 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alr
     foundIssue = true;
   }
   if (packageMetaData.previousVersions.includes(packageMetaData.newVersion)) {
+    alreadyPublishedNames.push(packageMetaData.name);
     alreadyPublished.push(
       `package already published ${packageMetaData.name}: ${packageMetaData.newVersion}`
     );
@@ -250,7 +262,10 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alr
     const dependencyInfo = packagesMetaData.find(
       (packageMetaData) => packageMetaData.name === dependency.name
     );
-    if (dependencyInfo.newVersion !== dependency.version && dependencyInfo.newVersion !== dependency.version.slice(1)) {
+    if (
+      dependencyInfo.newVersion !== dependency.version &&
+      dependencyInfo.newVersion !== dependency.version.slice(1)
+    ) {
       issues.push(
         `${packageMetaData.name}: update dependency version dependency ${dependencyInfo.name} from ${dependency.version} to ${dependencyInfo.newVersion}`
       );
@@ -269,8 +284,9 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alr
   }
 }
 
-function getWorkspaceDependencies(package, dev) {
-  let dependencyGraph = dev === true ? package.devDependencies : package.dependencies;
+function getWorkspaceDependencies(workspacePackage, dev) {
+  let dependencyGraph =
+    dev === true ? workspacePackage.devDependencies : workspacePackage.dependencies;
   if (dependencyGraph == null) return [];
   return Object.keys(dependencyGraph)
     .filter((depdendencyName) => workspacePackageNames.indexOf(depdendencyName) > -1)
@@ -311,12 +327,16 @@ function getVersionJump(newVersion, oldVersion) {
 }
 
 function versionGreaterThan(greaterThanVersion, compareVersion) {
-    const arrGreaterThanVersion = greaterThanVersion.split('-')[0].split('.');
-    const arrCompareVersion = compareVersion.split('-')[0].split('.');
+  const arrGreaterThanVersion = greaterThanVersion.split('-')[0].split('.');
+  const arrCompareVersion = compareVersion.split('-')[0].split('.');
 
-    return arrGreaterThanVersion.find((majorMinorPatch, majorMinorPatchIndex) => {
-        return majorMinorPatch > arrCompareVersion[majorMinorPatchIndex];
-    });
+  if (arrGreaterThanVersion[0] - arrCompareVersion[0] > 0) return true;
+  if (arrGreaterThanVersion[0] - arrCompareVersion[0] < 0) return false;
+  if (arrGreaterThanVersion[1] - arrCompareVersion[1] > 0) return true;
+  if (arrGreaterThanVersion[1] - arrCompareVersion[1] < 0) return false;
+  if (arrGreaterThanVersion[2] - arrCompareVersion[2] > 0) return true;
+
+  return false;
 }
 
 function getPackageRootPath(packageName) {
