@@ -18,8 +18,6 @@ async function run() {
     const masterPackage = await require('axios').default.get(
       `https://raw.githubusercontent.com/happner/happner-suite/master/package.json`
     );
-
-    console.log('fetched master package...');
     verifyPublish(packagesMetaData, masterPackage.data);
   } catch (e) {
     console.log('run failed');
@@ -155,9 +153,6 @@ function verifyPublish(packagesMetaData, masterPackage) {
     );
   }
   const branch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
-  if (branch !== 'master') {
-    issues.push(`DO NOT PUBLISH FROM FEATURE OR DEV BRANCH: ${branch}`);
-  }
 
   let masterPackageVersion = masterPackage.version;
   let localMasterPackageVersion = require('../package.json').version;
@@ -192,11 +187,6 @@ function verifyPublish(packagesMetaData, masterPackage) {
     );
   }
 
-  if (alreadyPublished.length > 0) {
-    console.warn('\r\n ALREADY PUBLISHED:');
-    alreadyPublished.forEach((alreadyPublish) => console.warn(alreadyPublish));
-  }
-
   if (issues.length > 0) {
     console.warn('\r\n ISSUES:');
     issues.forEach((issue) => console.warn(issue));
@@ -210,28 +200,47 @@ function verifyPublish(packagesMetaData, masterPackage) {
         );
       });
     }
-    if (prereleases.length > 0) {
+  }
+
+  if (alreadyPublished.length > 0) {
+    console.warn('\r\n ALREADY PUBLISHED:');
+    alreadyPublished.forEach((alreadyPublish) => console.warn(alreadyPublish));
+  }
+
+  if (prereleases.length > 0) {
+    let prereleaseCommands = [];
+    getPublishOrder().forEach((packageName) => {
+      const found = prereleases.find(
+        (prerelease) =>
+          prerelease.packageName === packageName && !alreadyPublishedNames.includes(packageName)
+      );
+      if (found) {
+        prereleaseCommands.push(`npm publish --workspace=${packageName} --tag prerelease-${found.major}`);
+      }
+    });
+    if (prereleaseCommands.length > 0) {
       console.info('\r\n PRERELEASES READY FOR PUBLISH:');
-      getPublishOrder().forEach((packageName) => {
-        const found = prereleases.find(
-          (prerelease) =>
-            prerelease.packageName === packageName && !alreadyPublishedNames.includes(packageName)
-        );
-        if (found) {
-          console.info(`npm publish --workspace=${packageName} --tag prerelease-${found.major}`);
-        }
-      });
+      prereleaseCommands.forEach(command => console.info(command));
+      if (branch === 'master') {
+        console.warn(`YOU ARE PUBLISHING PRERELEASES FROM THE MASTER BRANCH: ${branch}`);
+      }
     }
     return;
   }
-  console.info('\r\n READY FOR PUBLISH:');
-  successes
-    .sort((a, b) => a.publishOrder - b.publishOrder)
-    .forEach((success) => {
-      if (success.versionJumped) {
-        console.info(`npm publish --workspace=${success.name}`);
-      }
-    });
+
+  if (successes.length > 0) {
+    if (branch !== 'master') {
+      console.warn(`YOU ARE PUBLISHING FROM A FEATURE OR DEV BRANCH: ${branch}`);
+    }
+    console.info('\r\n READY FOR PUBLISH:');
+    successes
+      .sort((a, b) => a.publishOrder - b.publishOrder)
+      .forEach((success) => {
+        if (success.versionJumped) {
+          console.warn(`npm publish --workspace=${success.name}`);
+        }
+      });
+  }
 }
 
 function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alreadyPublished) {
@@ -245,7 +254,7 @@ function verifyPackage(packageMetaData, packagesMetaData, issues, successes, alr
   if (packageMetaData.previousVersions.includes(packageMetaData.newVersion)) {
     alreadyPublishedNames.push(packageMetaData.name);
     alreadyPublished.push(
-      `package already published ${packageMetaData.name}: ${packageMetaData.newVersion}`
+      `${packageMetaData.name}@${packageMetaData.newVersion}`
     );
   }
   if (packageMetaData.possibleOnlyInTests) {
@@ -309,7 +318,6 @@ function versionJumpMadeSense(newVersion, oldVersion, packageName, isPrerelease)
   if (lastHighestVersionJump < jump.section) lastHighestVersionJump = jump.section;
   if (isPrerelease) {
     prereleases.push({ packageName, major: newVersion.split('.').shift() });
-    return `package version ${newVersion} is pre-release or non standard`;
   }
   return true;
 }
@@ -381,6 +389,7 @@ function getPublishOrder() {
     'happn-commons-test',
     'happn-nedb',
     'tame-search',
+    'happn-primus-wrapper',
     'happn-db-provider-loki',
     'happn-db-provider-nedb',
     'happn-db-provider-mongo',
