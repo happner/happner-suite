@@ -1,9 +1,10 @@
 const packager = require('./packager');
+const commons = require('happn-commons');
 
 module.exports = {
   client: require('./client'),
   service: require('./service'),
-  constants: require('./constants-builder'),
+  constants: commons.constants,
   packager,
   package: packager,
   protocol: packager.protocol,

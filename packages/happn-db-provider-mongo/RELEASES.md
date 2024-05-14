@@ -131,3 +131,7 @@
 1.1.12 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+1.1.13 2023-05-12
+-----------------
+  - Mongo-based cluster membership - dependencies update

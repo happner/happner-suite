@@ -12,6 +12,7 @@ const jwt = require('jwt-simple'),
 module.exports = class SecurityService extends require('events').EventEmitter {
   #dataHooks;
   #dataChangedQueue;
+  #dataChangedQueueStopped = false;
   #sessionManagementActive;
   #locks;
   #profilesConfigurator;
@@ -117,9 +118,8 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     this.#initializeProfiles(config);
     await this.#initializeSessionManagement(config);
     this.#initializeOnBehalfOfCache(config);
-    await this.#ensureAdminUser(config);
+    await this.#ensureAdminUserAndGroups(config);
     this.anonymousUser = await this.#ensureAnonymousUser(config);
-    await this.#initializeReplication(config);
     await this.#initializeSessionTokenSecret(config);
     await this.#initializeAuthProviders(config);
     this.cache_security_authentication_nonce = this.cacheService.create(
@@ -339,7 +339,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     return this.happn.services.error.AccessDeniedError(message, reason);
   }
 
-  async #ensureAdminUser(config) {
+  async #ensureAdminUserAndGroups(config) {
     if (!config.adminUser)
       config.adminUser = {
         custom_data: {},
@@ -361,6 +361,13 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     };
     // recreate admin group, so that base system permissions are always in place
     const adminGroup = await this.groups.upsertGroupWithoutValidation(config.adminGroup, {});
+
+    // upsert mesh delegate group
+    await this.groups.upsertGroupWithoutValidation({
+      name: '_MESH_DELEGATE',
+      permissions: {},
+    });
+
     const foundUser = await this.users.getUser('_ADMIN');
 
     if (foundUser) return;
@@ -389,22 +396,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
   async unlinkAnonymousGroup(group) {
     if (!this.config.allowAnonymousAccess) throw new Error('Anonymous access is not configured');
     return await this.groups.unlinkGroup(group, this.anonymousUser);
-  }
-
-  #initializeReplication() {
-    if (!this.happn.services.replicator) return;
-
-    this.happn.services.replicator.on('/security/dataChanged', (payload, self) => {
-      if (self) return;
-
-      let whatHappnd = payload.whatHappnd;
-      let changedData = payload.changedData;
-      let additionalInfo = payload.additionalInfo;
-
-      // flag as learned from replication - to not replicate again
-      changedData.replicated = true;
-      this.dataChanged(whatHappnd, changedData, additionalInfo);
-    });
   }
 
   #initializeCheckPoint(config) {
@@ -1195,7 +1186,7 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     });
   }
 
-  emitChanges(whatHappnd, changedData, effectedSessions) {
+  emitChanges(whatHappnd, changedData, effectedSessions, additionalInfo) {
     return new Promise((resolve, reject) => {
       try {
         let changedDataSerialized = null;
@@ -1212,11 +1203,11 @@ module.exports = class SecurityService extends require('events').EventEmitter {
           ]);
         });
         this.emit('security-data-changed', {
-          whatHappnd: whatHappnd,
-          changedData: changedData,
-          effectedSessions: effectedSessions,
+          whatHappnd,
+          changedData,
+          effectedSessions,
+          additionalInfo,
         });
-
         resolve();
       } catch (e) {
         reject(e);
@@ -1229,12 +1220,17 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       callback = additionalInfo;
       additionalInfo = undefined;
     }
+    if (this.#dataChangedQueueStopped) {
+      // we are no longer queueing data changes
+      return callback();
+    }
     this.#dataChangedQueue.push({ whatHappnd, changedData, additionalInfo }, callback);
   }
 
   #dataChangedInternal(whatHappnd, changedData, additionalInfo, callback) {
-    if (CONSTANTS.SECURITY_DIRECTORY_EVENTS_COLLECTION.indexOf(whatHappnd) === -1)
+    if (CONSTANTS.SECURITY_DIRECTORY_EVENTS_COLLECTION.indexOf(whatHappnd) === -1) {
       return callback();
+    }
     this.users.clearCaches();
     this.groups.clearCaches();
     this.#clearOnBehalfOfCache();
@@ -1243,37 +1239,34 @@ module.exports = class SecurityService extends require('events').EventEmitter {
         this.checkpoint.clearCaches();
         return new Promise((resolve, reject) => {
           if (
-            this.happn.services.subscription &&
-            this.config.updateSubscriptionsOnSecurityDirectoryChanged
-          )
-            this.happn.services.subscription
-              .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
-              .then(() => {
-                resolve(effectedSessions);
-              })
-              .catch(reject);
-          else {
-            resolve(effectedSessions);
+            !this.happn.services.subscription ||
+            !this.config.updateSubscriptionsOnSecurityDirectoryChanged
+          ) {
+            return resolve(effectedSessions);
           }
+          this.happn.services.subscription
+            .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
+            .then(() => {
+              resolve(effectedSessions);
+            })
+            .catch(reject);
         });
       })
       .then((effectedSessions) => {
         return new Promise((resolve, reject) => {
-          if (this.happn.services.session)
-            this.happn.services.session
-              .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
-              .then(() => {
-                resolve(effectedSessions);
-              })
-              .catch(reject);
-          else resolve(effectedSessions);
+          if (!this.happn.services.session) {
+            return resolve(effectedSessions);
+          }
+          this.happn.services.session
+            .securityDirectoryChanged(whatHappnd, changedData, effectedSessions, additionalInfo)
+            .then(() => {
+              resolve(effectedSessions);
+            })
+            .catch(reject);
         });
       })
       .then((effectedSessions) => {
         return this.emitChanges(whatHappnd, changedData, effectedSessions, additionalInfo);
-      })
-      .then(() => {
-        return this.#replicateDataChanged(whatHappnd, changedData, additionalInfo);
       })
       .then(() => {
         if (callback) callback();
@@ -1281,38 +1274,6 @@ module.exports = class SecurityService extends require('events').EventEmitter {
       .catch((e) => {
         this.happn.services.error.handleFatal('failure updating cached security data', e);
       });
-  }
-
-  #replicateDataChanged(whatHappnd, changedData, additionalInfo) {
-    let replicator = this.happn.services.replicator;
-    if (!replicator) return;
-    if (changedData.replicated) return; // don't re-replicate
-
-    return new Promise((resolve, reject) => {
-      replicator.send(
-        '/security/dataChanged',
-        {
-          whatHappnd: whatHappnd,
-          changedData: changedData,
-          additionalInfo: additionalInfo,
-        },
-        (e) => {
-          if (e) {
-            if (e.message === 'Replicator not ready') {
-              // means not connected to self (or other peers in cluster)
-              // not a problem, there will be no user/group changes to replicate
-              // (other than the initial admin user create)
-              // - no clients connected to this node
-              // - no component start methods modifying users
-              //   (the start methods only run after cluster is up)
-              return resolve();
-            }
-            return reject(e);
-          }
-          resolve();
-        }
-      );
-    });
   }
 
   generatePermissionSetKey(user) {
@@ -1630,17 +1591,28 @@ module.exports = class SecurityService extends require('events').EventEmitter {
     if (this.cache_revoked_tokens) this.cache_revoked_tokens.stop();
     if (this.cache_security_authentication_nonce) this.cache_security_authentication_nonce.stop();
 
-    this.checkpoint.stop();
-    this.#stopAuthProviders()
-      .then(
-        () => {
-          this.log.info(`stopped auth providers`);
-        },
-        (e) => {
-          this.log.warn(`error stopping auth providers: ${e.message}`);
-        }
-      )
-      .finally(callback);
+    //stop security data changed queue
+    this.#drainDataChangedQueue().finally(() => {
+      this.checkpoint.stop();
+      this.#stopAuthProviders()
+        .then(
+          () => {
+            this.log.info(`stopped auth providers`);
+          },
+          (e) => {
+            this.log.warn(`error stopping auth providers: ${e.message}`);
+          }
+        )
+        .finally(callback);
+    });
+  }
+
+  async #drainDataChangedQueue() {
+    if (!this.#dataChangedQueue) {
+      return;
+    }
+    this.#dataChangedQueueStopped = true;
+    await this.#dataChangedQueue.kill();
   }
 
   validateName(name, validationType) {

@@ -1,4 +1,3 @@
-const prettyBytes = require('pretty-bytes');
 const LokiArchiveDataProvider = require('./archived');
 
 const db = require('lokijs'),
@@ -638,7 +637,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         ) {
           return callback(null, result);
         }
-        this.logger.debug('Snapshot Started - Current DB Size ', prettyBytes(currentSize));
+        this.logger.debug('Snapshot Started - Current DB Size ', currentSize);
         this.snapshot((e) => {
           if (e) {
             this.logger.error('snapshot rollover failed', e);
@@ -836,7 +835,7 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
     this.persistSnapshotData({ snapshot: this.db.serialize() }, (e) => {
       if (e) return callback(e);
       this.copyTempDataToMain(callback);
-      this.logger.debug('Snapshot Complete - New DB Size ', prettyBytes(this.baselineFileSize));
+      this.logger.debug('Snapshot Complete - New DB Size ', this.baselineFileSize);
     });
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "happn-commons",
-  "version": "1.5.1",
+  "version": "1.6.0-prerelease-2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^3.2.2",
     "async-lock": "^1.4.0",
+    "await-delay": "^1.0.0",
     "custom-env": "^2.0.1",
     "fast-clone": "^1.5.13",
     "flat": "^5.0.2",

@@ -20,23 +20,23 @@ module.exports.create = require('util').promisify(function (config, callback) {
 
   config.happn = config.happn || {};
   config.happn.services = config.happn.services || {};
-  config.happn.services.orchestrator = config.happn.services.orchestrator || {};
+  config.happn.services.membership = config.happn.services.membership || {};
 
-  cursor = config.happn.services.orchestrator;
+  cursor = config.happn.services.membership;
   cursor.config = cursor.config || {};
 
-  if (cursor.config.replicate === false) {
+  if (cursor.config.replicationPaths === false) {
     // we are explicitly not interested in cluster events
-    cursor.config.replicate = [];
+    cursor.config.replicationPaths = [];
   } else {
-    if (cursor.config.replicate == null) {
-      cursor.config.replicate = [];
+    if (!cursor.config.replicationPaths) {
+      cursor.config.replicationPaths = [];
     }
-    if (!Array.isArray(cursor.config.replicate)) {
-      throw new Error('[happn.services.orchestrator.replicate] must be an array');
+    if (!Array.isArray(cursor.config.replicationPaths)) {
+      throw new Error('[happn.services.membership.replicationPaths] must be an array');
     }
     //receive replicated events from the configured cluster domain
-    cursor.config.replicate = cursor.config.replicate.concat([
+    cursor.config.replicationPaths = cursor.config.replicationPaths.concat([
       `/_events/${config.domain}/*/*`,
       `/_events/${config.domain}/*/*/*`,
       `/_events/${config.domain}/*/*/*/*`,
@@ -45,6 +45,7 @@ module.exports.create = require('util').promisify(function (config, callback) {
       `/_events/${config.domain}/*/*/*/*/*/*/*`, // replication will work for topics with up to 6 segments
     ]);
   }
+
   config.happn.services.proxy = config.happn.services.proxy || {};
   cursor = config.happn.services.proxy;
   cursor.config = cursor.config || {};
@@ -57,7 +58,7 @@ module.exports.create = require('util').promisify(function (config, callback) {
   cursor = config.happn.services.subscription;
   cursor.config = cursor.config || {};
   cursor.config.filter = filterEventVersions;
-
+  if (config.happn.port == null) config.happn.port = config.port;
   config.plugins = config.plugins || [];
   config.cluster = config.cluster || {};
 

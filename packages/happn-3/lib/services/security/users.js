@@ -299,15 +299,22 @@ function upsertUser(user, options, callback) {
   });
 }
 
-async function upsertPermissions(user, callback) {
-  try {
-    await this.permissionManager.upsertMultiplePermissions(user.username, user.permissions);
-    await this.securityService.dataChanged(CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER, user); // Using the upsert event, as the logic is the same.
-  } catch (e) {
-    callback(e);
-    return;
-  }
-  callback(null, user);
+function upsertPermissions(user, callback) {
+  let error;
+  this.permissionManager
+    .upsertMultiplePermissions(user.username, user.permissions)
+    .then(() => {
+      return this.securityService.dataChanged(
+        CONSTANTS.SECURITY_DIRECTORY_EVENTS.UPSERT_USER,
+        user
+      ); // Using the upsert event, as the logic is the same.
+    })
+    .catch((e) => {
+      error = e;
+    })
+    .finally(() => {
+      callback(error, user);
+    });
 }
 
 function validateDeleteUser(username) {

@@ -16,5 +16,6 @@ Component.prototype.breakingMethod = function ($happn, a, b, callback) {
 };
 
 Component.prototype.happyMethod = function ($happn, callback) {
+  $happn.log.info('RECEIVED HAPPY CALL');
   callback(null, $happn.info.mesh.name + ':brokenComponent:happyMethod');
 };

@@ -66,8 +66,11 @@ module.exports = function (clusterConfig) {
             client.construct(dependencies, $happn);
           });
 
+          // backward compatibility hack, some people use this old path for _mesh level access
+          mesh._mesh.happn.server.server = mesh._mesh.happn.server;
+
           // mount .peers in orchestrator
-          client.mount(mesh._mesh.happn.server.services.orchestrator);
+          client.mount(mesh._mesh.happn.server);
 
           if (Object.keys(brokeredModels).length > 0) {
             this.brokerage = require('./brokerage').create(

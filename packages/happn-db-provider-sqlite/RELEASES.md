@@ -30,6 +30,7 @@
   - feat: happn-3 changePassword in client
   - feat: happn-3 resetPassword supported by auth provider
 
+
 1.0.7 2023-05-24
 -----------------
   - fix: happn-3 resetpassword
@@ -42,3 +43,7 @@
 1.0.9 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+1.0.10 2024-05-12
+-----------------
+  - Mongo-based cluster membership - dependencies update

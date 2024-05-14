@@ -1031,12 +1031,11 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
   - feat: allow "as" for rest call to exchange when using a params array
   - fix: prevent fatal when using "as" for a user that does not exist
   - feat: removed file watching in packager
-
+  
 12.8.0 2023-03-03
 -----------------
   - feat: token revocation and logout
   - fix: token revocation cluster fix
-  
 
 12.8.1 2023-04-13
 -----------------
@@ -1046,7 +1045,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - feat: happn-3 changePassword in client
   - feat: happn-3 resetPassword supported by auth provider
-
+  
 13.0.0 2023-05-20
 -----------------
   - feat: Happner-2 security change password
@@ -1065,6 +1064,14 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 -----------------
   - happner-2: happn-3 auth provider updates
 
+13.0.4 2023-09-29
+-----------------
+- dep: update happn commons
+
 13.1.0 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+14.0.0 2024-05-12
+-----------------
+  - Mongo-based cluster membership - dependencies update

@@ -32,3 +32,7 @@
 1.2.2 2023-08-04
 -----------------
   - refactor: commons update
+
+1.2.3 2023-09-29
+-----------------
+  - dep: update happn commons

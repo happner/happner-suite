@@ -59,7 +59,15 @@
 
 1.2.2 2023-08-05
 -----------------
-- feat: fixed mesh_gst paths in happner-2
+  - feat: fixed mesh_gst paths in happner-2
+
+1.3.0 2024-03-27
+-----------------
+- feat: loki provider has new file-size compaction threshold
+
+1.3.1 2023-09-29
+-----------------
+  - dep: updated happn commons 
 
 1.3.0 2024-03-27
 -----------------

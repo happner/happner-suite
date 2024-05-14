@@ -1,45 +1,50 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-var path = require('path');
-var ChildProcess = require('child_process');
-var clone = require('clone');
-var HappnCluster = require('../../');
-var testUtils = require('./test-utils');
+let path = require('path');
+let ChildProcess = require('child_process');
+let clone = require('clone');
+let HappnCluster = require('../../');
+let testUtils = require('./test-utils');
+const wait = require('await-delay');
 const test = require('happn-commons-test').create();
 
 module.exports.startCluster = function (clusterOpts) {
-  var testSequence = clusterOpts.testSequence || 1;
-  var clusterSize = clusterOpts.size || 5;
-  var happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
-  var proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
-  var services = clusterOpts.services || {};
+  let deploymentId = clusterOpts.deploymentId || test.commons.uuid.v4();
+  let clusterSize = clusterOpts.size || 5;
+  let happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
+  let proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
+  let services = clusterOpts.services || {};
+  let clusterConfig = clusterOpts.clusterConfig;
+  let additionalDatastore = clusterOpts.datastore;
 
   before('clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });
 
   before('start cluster', async function () {
-    var self = this;
+    const createConfig = clusterConfig
+      ? testUtils.createMultiServiceMemberConfigs
+      : testUtils.createMemberConfigs;
 
-    self.__configs = await testUtils.createMemberConfigs(
-      testSequence,
+    this.__configs = createConfig(
+      deploymentId,
       clusterSize,
       happnSecure,
       proxySecure,
-      services
+      services,
+      clusterConfig
     );
-    let sequence = 0;
-    self.servers = [];
-    for (let config of self.__configs) {
-      if (sequence > 0) {
-        await test.delay(2000);
-      }
-      HappnCluster.create(clone(config)).then((server) => {
-        self.servers.push(server);
+
+    if (additionalDatastore) {
+      this.__configs.forEach((config) => {
+        config.services.data.config.datastores.push(additionalDatastore);
       });
-      sequence++;
     }
-    await test.delay(10000);
+    this.servers = await Promise.all(
+      this.__configs.map((config) => HappnCluster.create(clone(config)))
+    );
+    await test.delay(2000);
+    return this.servers;
   });
 };
 
@@ -48,6 +53,10 @@ module.exports.stopCluster = function () {
     if (!this.servers) return;
     for (let server of this.servers) {
       await server.stop({ reconnect: false });
+      // stopping all at once causes replicator client happn logouts to timeout
+      // because happn logout attempts unsubscribe on server, and all servers
+      // are gone
+      await wait(1000); // ...so pause between stops (long for travis)
     }
   });
 
@@ -57,57 +66,44 @@ module.exports.stopCluster = function () {
 };
 
 module.exports.startMultiProcessCluster = function (clusterOpts) {
-  let Promise = test.bluebird;
   before('multi clear collection (before)', function (done) {
     testUtils.clearMongoCollection(done);
   });
 
-  var testSequence = clusterOpts.testSequence || 1;
-  var clusterSize = clusterOpts.size || 5;
-  var happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
-  var proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
-  var services = clusterOpts.services || {};
+  let testSequence = clusterOpts.testSequence || 1;
+  let clusterSize = clusterOpts.size || 5;
+  let happnSecure = typeof clusterOpts.happnSecure === 'boolean' ? clusterOpts.happnSecure : false;
+  let proxySecure = typeof clusterOpts.proxySecure === 'boolean' ? clusterOpts.proxySecure : false;
+  let services = clusterOpts.services || {};
 
-  var peerPath = __dirname + path.sep + 'peer.js';
+  let peerPath = __dirname + path.sep + 'peer.js';
 
-  before('start cluster', function (done) {
-    var self = this;
+  before('start cluster', async function () {
+    let self = this;
 
-    testUtils.createMemberConfigs(
+    self.__configs = testUtils.createMemberConfigs(
       testSequence,
       clusterSize,
       happnSecure,
       proxySecure,
-      services,
-      function (err, result) {
-        if (err) return done(err);
-
-        self.__configs = result;
-
-        Promise.resolve(self.__configs)
-          .map(function (config) {
-            var configJson = [JSON.stringify(config)];
-
-            return new Promise(function (resolve) {
-              var peerProcess = ChildProcess.fork(peerPath, configJson);
-              peerProcess.on('message', function (message) {
-                if (message === 'ready') return resolve(peerProcess);
-              });
-            });
-          })
-
-          .then(function (processes) {
-            self.peerProcesses = processes;
-            self.servers = 'see .peerProcesses[n].send';
-          })
-          .then(function (e) {
-            done(e);
-          })
-          .catch(function (e) {
-            done(e);
-          });
-      }
+      services
     );
+
+    let processes = await Promise.all(
+      self.__configs.map(function (config) {
+        let configJson = [JSON.stringify(config)];
+
+        return new Promise(function (resolve) {
+          let peerProcess = ChildProcess.fork(peerPath, configJson);
+          peerProcess.on('message', function (message) {
+            if (message === 'ready') return resolve(peerProcess);
+          });
+        });
+      })
+    );
+
+    self.peerProcesses = processes;
+    self.servers = 'see .peerProcesses[n].send';
   });
 };
 
@@ -122,5 +118,13 @@ module.exports.stopMultiProcessCluster = function () {
 
   after('multi clear collection (after)', function (done) {
     testUtils.clearMongoCollection(done);
+  });
+};
+module.exports.clearNamedCollection = function (collectionName) {
+  before('clear collection (before)', function (done) {
+    testUtils.clearMongoCollection(done, collectionName);
+  });
+  afterEach('clear collection (after)', function (done) {
+    testUtils.clearMongoCollection(done, collectionName);
   });
 };

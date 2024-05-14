@@ -1,0 +1,303 @@
+const commons = require('happn-commons');
+const MemberStatuses = require('../constants/member-statuses');
+const ClusterCredentialsBuilder = require('../builders/cluster-member-credentials-builder');
+const ClusterMemberInfoBuilder = require('../builders/cluster-member-builder');
+const ClusterPeerBuilder = require('../builders/cluster-peer-builder');
+module.exports = class MembershipService extends require('events').EventEmitter {
+  #log;
+  #registryService;
+  #secure;
+  #deploymentId;
+  #clusterName;
+  #serviceName;
+  #memberName;
+  #discoverTimeoutMs;
+  #pulseIntervalMs;
+  #dependencies;
+  #status;
+  #pulseErrors;
+  #pulseErrorThreshold;
+  #happnService;
+  #proxyService;
+  #clusterPeerService;
+  #clusterHealthService;
+  #config;
+  #membershipServiceConfig;
+  #clusterCredentials;
+  #memberScanningErrors;
+  #memberScanningErrorThreshold;
+  #processManagerService;
+  #memberScanningIntervalMs;
+  constructor(
+    config,
+    logger,
+    registryService,
+    happnService,
+    proxyService,
+    clusterPeerService,
+    clusterHealthService,
+    processManagerService
+  ) {
+    super();
+
+    // configuration settings
+    this.#config = config;
+    this.#secure = this.#config.secure;
+    this.#membershipServiceConfig = this.#config.services.membership.config;
+
+    this.#deploymentId = this.#membershipServiceConfig.deploymentId;
+    this.#clusterName = this.#membershipServiceConfig.clusterName;
+    this.#serviceName = this.#membershipServiceConfig.serviceName;
+    this.#memberName = this.#membershipServiceConfig.memberName;
+
+    this.#discoverTimeoutMs = this.#membershipServiceConfig.discoverTimeoutMs || 60e3; // 1 minute
+    this.#pulseIntervalMs = this.#membershipServiceConfig.pulseIntervalMs || 1e3;
+    this.#pulseErrorThreshold = this.#membershipServiceConfig.pulseErrorThreshold || 5; // allow 5 failed pulses in a row before we fail
+    this.#memberScanningIntervalMs = this.#membershipServiceConfig.memberScanningIntervalMs || 3e3;
+    this.#memberScanningErrorThreshold =
+      this.#membershipServiceConfig.memberScanningErrorThreshold || 3; // allow 3 failed list errors in a row before we fail
+    this.#dependencies = this.#membershipServiceConfig.dependencies || {};
+
+    // injected dependencies
+    this.#log = logger;
+    this.#clusterPeerService = clusterPeerService;
+    this.#registryService = registryService;
+    this.#clusterHealthService = clusterHealthService;
+    this.#happnService = happnService;
+    this.#proxyService = proxyService;
+    this.#processManagerService = processManagerService;
+
+    // internal state
+    this.#status = MemberStatuses.STOPPED;
+    this.#log.info(`initialized`);
+  }
+  static create(
+    config,
+    logger,
+    registryService,
+    happnService,
+    proxyService,
+    clusterPeerService,
+    clusterHealthService,
+    processManagerService
+  ) {
+    return new MembershipService(
+      config,
+      logger,
+      registryService,
+      happnService,
+      proxyService,
+      clusterPeerService,
+      clusterHealthService,
+      processManagerService
+    );
+  }
+  get status() {
+    return this.#status;
+  }
+  get clusterName() {
+    return this.#clusterName;
+  }
+  get serviceName() {
+    return this.#serviceName;
+  }
+  get memberName() {
+    return this.#memberName;
+  }
+  get deploymentId() {
+    return this.#deploymentId;
+  }
+  get dependencies() {
+    return this.#dependencies;
+  }
+  get clusterPeerService() {
+    return this.#clusterPeerService;
+  }
+
+  #getClusterCredentials() {
+    const credentials = ClusterCredentialsBuilder.create().withClusterMemberInfo(
+      ClusterMemberInfoBuilder.create()
+        .withDeploymentId(this.#deploymentId)
+        .withClusterName(this.#clusterName)
+        .withServiceName(this.#serviceName)
+        .withMemberName(this.#memberName)
+    );
+    if (this.#secure) {
+      // happn-service has already performed validation,
+      // so we can assume there is a username, keypair or password
+      credentials.withUsername(this.#happnService.clusterCredentials.username);
+      if (this.#happnService.clusterCredentials.password) {
+        credentials.withPassword(this.#happnService.clusterCredentials.password);
+      }
+      if (this.#happnService.clusterCredentials.publicKey) {
+        credentials
+          .withPublicKey(this.#happnService.clusterCredentials.publicKey)
+          .withPrivateKey(this.#happnService.clusterCredentials.privateKey);
+      }
+    }
+    return credentials.build();
+  }
+
+  async start() {
+    this.#log.info(`starting`);
+    await this.#happnService.start(this, this.#proxyService);
+    await this.#statusChanged(MemberStatuses.DISCOVERING);
+    this.#clusterCredentials = this.#getClusterCredentials();
+    this.#startBeating();
+    await this.#initialDiscovery();
+    this.#log.info(`starting proxy`);
+    if (this.#config.services.proxy.config.defer) {
+      return;
+    }
+    await this.#proxyService.start();
+    this.#log.info(`started`);
+  }
+
+  stop(opts, cb) {
+    if (typeof opts === 'function') {
+      cb = opts;
+    }
+    this.#statusChanged(MemberStatuses.STOPPED)
+      .then(() => {
+        return this.#clusterPeerService.disconnect();
+      })
+      .then(() => {
+        this.#log.info(`stopped membership service`);
+        cb();
+      });
+  }
+
+  async #initialDiscovery() {
+    this.#log.debug('delaying discovery');
+    await commons.delay(15e2);
+    const startedDiscovering = Date.now();
+    while (this.#status === MemberStatuses.DISCOVERING) {
+      this.#log.debug(`scanning deployment: ${this.#deploymentId}, cluster: ${this.#clusterName}`);
+      const scanResult = await this.#registryService.scan(
+        this.#deploymentId,
+        this.#clusterName,
+        this.#dependencies,
+        this.#memberName,
+        [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
+      );
+      if (scanResult.dependenciesFulfilled === true) {
+        await this.#statusChanged(MemberStatuses.CONNECTING);
+        await this.#connect();
+        break;
+      }
+      if (Date.now() - startedDiscovering > this.#discoverTimeoutMs) {
+        this.#log.error('discover timeout');
+        throw new Error('discover timeout');
+      }
+      await commons.delay(this.#pulseIntervalMs);
+    }
+  }
+
+  async #connect() {
+    const peers = await this.#registryService.list(
+      this.#deploymentId,
+      this.#clusterName,
+      this.#memberName,
+      [MemberStatuses.DISCOVERING, MemberStatuses.CONNECTING, MemberStatuses.STABLE]
+    );
+    await this.#clusterPeerService.addPeers(this.#clusterCredentials, peers);
+    await this.#statusChanged(MemberStatuses.STABLE);
+    this.#startMemberScanning();
+  }
+
+  async #pulse() {
+    try {
+      await this.#registryService.pulse(
+        ClusterPeerBuilder.create()
+          .withDeploymentId(this.#deploymentId)
+          .withClusterName(this.#clusterName)
+          .withServiceName(this.#serviceName)
+          .withMemberName(this.#memberName)
+          .withMemberHost(this.#proxyService.internalHost)
+          .withMemberPort(this.#proxyService.internalPort)
+          .withMemberStatus(this.#status)
+          .withTimestamp(Date.now())
+          .build()
+      );
+      this.#pulseErrors = 0; // reset our pulse errors
+    } catch (e) {
+      this.#log.error(`failed pulse: ${e.message}`);
+      this.#pulseErrors++;
+      if (this.#pulseErrors === this.#pulseErrorThreshold) {
+        // fatal as we are no longer cluster relevant
+        // TODO: inject process manager here for testing
+        process.exit(1);
+      }
+    }
+  }
+
+  async #startBeating() {
+    while (this.#status !== MemberStatuses.STOPPED) {
+      try {
+        await this.#pulse();
+        this.#pulseErrors = 0; // reset our pulse errors
+      } catch (e) {
+        this.#log.error(`failed pulse: ${e.message}`);
+        this.#pulseErrors++;
+        if (this.#pulseErrors === this.#pulseErrorThreshold) {
+          return this.#processManagerService.fatal(
+            `pulseErrorThreshold exceeded, shutting down cluster member`
+          );
+        }
+      }
+      await commons.delay(this.#pulseIntervalMs);
+    }
+  }
+
+  async #startMemberScanning() {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      await Promise.race([commons.delay(this.#memberScanningIntervalMs), this.#waitForStop()]);
+
+      if (this.#status === MemberStatuses.STOPPED) break;
+
+      try {
+        const memberScanResult = await this.#registryService.scan(
+          this.#deploymentId,
+          this.#clusterName,
+          this.#dependencies,
+          this.#memberName,
+          [MemberStatuses.STABLE]
+        );
+        this.#clusterHealthService.reportHealth(memberScanResult);
+        await this.#clusterPeerService.processMemberScanResult(memberScanResult);
+        this.#memberScanningErrors = 0; // reset our pulse errors
+      } catch (e) {
+        this.#log.error(`failed member scan: ${e.message}`);
+        this.#memberScanningErrors++;
+        if (this.#memberScanningErrors === this.#memberScanningErrorThreshold) {
+          return this.#processManagerService.fatal(
+            `memberScanningErrorThreshold exceeded, shutting down cluster member`
+          );
+        }
+      }
+    }
+  }
+
+  #waitForStop() {
+    return new Promise((resolve) => {
+      const callback = (newStatus) => {
+        if (newStatus === MemberStatuses.STOPPED) {
+          resolve();
+        }
+      };
+
+      this.on('status-changed', callback);
+
+      commons.delay(this.#memberScanningIntervalMs).then(() => {
+        this.off('status-changed', callback);
+      });
+    });
+  }
+
+  async #statusChanged(newStatus) {
+    this.#status = newStatus;
+    await this.#pulse();
+    this.emit('status-changed', newStatus);
+  }
+};

@@ -1,3 +1,8 @@
+4.0.0 2024-05-12
+-----------------
+  - happn-cluster membership updated to mongo-based system
+  - tests now use ports auto-assigned by OS
+
 3.1.0 2024-03-27
 -----------------
   - happn-db-provider-loki: new file-size compaction threshold
