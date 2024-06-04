@@ -218,8 +218,9 @@ module.exports.configure = function (config) {
     Config.rawLogWriter[level](tryStringify(obj, level, tag));
   };
 
-  Config.log = function (level, context, component, message, array) {
+  Config.log = function (level, context, component, messageRaw, array) {
     var now, ms, string, last;
+    const message = messageRaw.split('\n');
 
     if (Config.logComponents.length > 0) {
       if (level !== 'fatal' && level !== 'error' && level !== 'warn') {
@@ -252,11 +253,10 @@ module.exports.configure = function (config) {
 
     if (context) string = string + context + ' ';
     if (component) string = string + '(' + component + ') ';
-    string = string + message;
 
     emitter.emit('before');
 
-    Config.logWriter[level](string);
+    Config.logWriter[level](string + message);
 
     if (Config.listener) {
       Config.listener(level, string);
@@ -266,17 +266,20 @@ module.exports.configure = function (config) {
 
     if (Config.logStackTraces) {
       if ((last = array[array.length - 1])) {
+        let logMessage;
         if (last.name && last.name === 'MeshError') {
           if (last.data && last.data.stack) {
-            Config.logWriter[level](last.data.stack);
+            logMessage = last.data.stack;
           }
         } else if (last.stack) {
-          Config.logWriter[level](last.stack);
+          logMessage = last.stack;
         }
+        if (logMessage)
+          Config.logWriter[level](string + 'Stack Trace:'+logMessage.split('\n'));
       }
     }
 
-    emitter.emit('after', level, string, Config.logStackTraces ? last : null);
+    emitter.emit('after', level, string + message, Config.logStackTraces ? last : null);
   };
 };
 
