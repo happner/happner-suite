@@ -158,6 +158,63 @@ require('../../__fixtures/utils/test_helper').describe({ timeout: 120e3 }, (test
     });
   });
 
+  it('test adding users without null, undedfined or problematic username username', async () => {
+    try {
+      let testUser = {
+        password: 'TEST PWD',
+        custom_data: {
+          something: 'useful',
+        },
+      };
+
+      await adminClient.exchange.security.addUser(testUser);
+    } catch (e) {
+      test.expect(e.toString()).to.eql('Error: username is null or undefined');
+    }
+    for (let emptyUsername of [undefined, null, '', 4]) {
+      //_.isEmpty sees 4 as empty (?)
+      let testUser = {
+        username: emptyUsername,
+        password: 'TEST PWD',
+        custom_data: {
+          something: 'useful',
+        },
+      };
+      try {
+        await adminClient.exchange.security.addUser(testUser);
+      } catch (e) {
+        test.expect(e.toString()).to.eql('Error: username is null or undefined');
+      }
+    }
+    for (let invalidUsername of ['      ', { some: 'object' }, ['a', 'list']]) {
+      let testUser = {
+        username: invalidUsername, //long empty string
+        password: 'TEST PWD',
+        custom_data: {
+          something: 'useful',
+        },
+      };
+      try {
+        await adminClient.exchange.security.addUser(testUser);
+      } catch (e) {
+        test.expect(e.toString()).to.eql('Error: username must be a non-empty string');
+      }
+    }
+    //Check that client and server are still working by adding and fetching a user
+    let testUser = {
+      username: 'AFTER_INVALID',
+      password: 'TEST PWD',
+      custom_data: {
+        something: 'useful',
+      },
+    };
+    await adminClient.exchange.security.addUser(testUser);
+    let fetchedUser = await adminClient.exchange.security.getUser(testUser.username);
+    test
+      .expect([fetchedUser.username, fetchedUser.customData])
+      .to.eql([testUser.username, testUser.customData]);
+  });
+
   it('adds a test user, logs in with the test user - modifies the users password, fetches modified user and ensures oldPassword is not present', function (done) {
     var testGroup = {
       name: 'TESTGROUP2' + test_id,
