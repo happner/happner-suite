@@ -244,7 +244,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
     });
 
     it('fsync, fs.open returns if errorOpening is true', () => {
-      mockSettings.fsync = 'mcokFsync';
+      mockSettings.fsync = 'mockFsync';
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const mockFsOpen = test.sinon.stub(fs, 'open');
@@ -269,7 +269,7 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
         );
     });
 
-    it('fsync, fs.fsync returns if errorSyncing is true', () => {
+    it('fsync, fs.fsync returns if errorSyncing is true', async () => {
       mockSettings.fsync = 'mockFsync';
       mockSettings.snapshotRollOverThreshold = 0;
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
@@ -284,14 +284,16 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
       mockFsOpen.withArgs('mockFileName', 'r+', test.sinon.match.func).callArgWith(2, null, 1);
       mockFsFsync.withArgs(1, test.sinon.match.func).callArgWith(1, 'mockErrorSyncing');
 
+      await test.delay(2e3);
+
       test.chai
         .expect(mockLogger.error)
         .to.have.been.calledWith(`fsync to file ${mockSettings.filename} failed`);
       test.chai.expect(mockCallback).to.have.been.calledWithExactly('mockErrorSyncing');
     });
 
-    it('fsync, calls callback with null', () => {
-      mockSettings.fsync = 'mcokFsync';
+    it('fsync, calls callback with null', async () => {
+      mockSettings.fsync = 'mockFsync';
       const lokiDataProvider = new LokiDataProvider(mockSettings, mockLogger);
       const mockCallback = test.sinon.stub();
       const mockFsOpen = test.sinon.stub(fs, 'open');
@@ -302,6 +304,8 @@ require('happn-commons-test').describe({ timeout: 120e3 }, (test) => {
 
       mockFsOpen.withArgs('mockFileName', 'r+', test.sinon.match.func).callArgWith(2, null, 1);
       mockFsFsync.withArgs(1, test.sinon.match.func).callArgWith(1, null);
+
+      await test.delay(2e3);
 
       test.chai.expect(mockCallback).to.have.been.calledWithExactly(null);
     });
