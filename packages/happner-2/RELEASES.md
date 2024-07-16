@@ -1068,3 +1068,7 @@ SMC-1645: made error messages more consistent, encapsulating mesh.component.meth
 13.1.0 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+13.1.1 2024-07-16
+-----------------
+- fix: loki provider fsync not releasing file handles

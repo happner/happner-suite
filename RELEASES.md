@@ -1,3 +1,7 @@
+3.1.1 2024-07-16
+-----------------
+- fix: loki provider fsync not releasing file handles
+
 3.1.0 2024-03-27
 -----------------
   - happn-db-provider-loki: new file-size compaction threshold

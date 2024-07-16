@@ -444,3 +444,7 @@
 12.7.5 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+12.7.6 2024-07-16
+-----------------
+- fix: loki provider fsync not releasing file handles
