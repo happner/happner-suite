@@ -57,3 +57,4 @@ packages/happn-primus-wrapper/test/primus.save.sync.js
 
 temp/*
 
+/.eslintcache

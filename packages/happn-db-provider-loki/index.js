@@ -725,13 +725,13 @@ module.exports = class LokiDataProvider extends commons.BaseDataProvider {
         fs.fsync(fd, (errorSyncing) => {
           if (errorSyncing) {
             this.logger.error(`fsync to file ${this.settings.filename} failed`, e);
-            callback(errorSyncing);
+            fs.close(fd, (errorClosing) => callback(errorSyncing ?? errorClosing));
             return;
           }
           if (fs.existsSync(this.settings.tempDataFilename)) {
             this.baselineFileSize = this.#getFileSize(this.settings.tempDataFilename);
           }
-          callback(null);
+          fs.close(fd, callback);
         });
       });
     };
