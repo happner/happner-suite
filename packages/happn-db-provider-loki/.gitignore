@@ -26,4 +26,5 @@ report.*
 .vscode
 tmp
 test/__fixtures/test-data-files/*test
+/.eslintcache
 
