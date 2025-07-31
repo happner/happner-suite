@@ -1030,7 +1030,7 @@ Mesh.prototype.__getMiddlewareHandlers = function (middleware) {
   // and so the method declaration needs the unused next argument
   //eslint-disable-next-line
   methods.push(function (err, req, res, next) {
-    _this.log.error(err.message);
+    _this.log.debug(err.message);
     res.statusCode = 500;
     res.statusMessage = 'system middleware failure';
     res.end();
