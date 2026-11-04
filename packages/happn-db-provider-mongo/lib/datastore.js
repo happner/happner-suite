@@ -123,7 +123,8 @@ function update(criteria, data, options, callback) {
 }
 
 function findAndModify(criteria, data, callback) {
-  return this.update(criteria, data, callback);
+  // this.update is already promisified, so call the callback-style function
+  update.call(this, criteria, data, {}, callback);
 }
 
 function remove(criteria, callback) {

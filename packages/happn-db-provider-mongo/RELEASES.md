@@ -131,3 +131,7 @@
 1.1.12 2024-03-27
 -----------------
 - feat: loki provider has new file-size compaction threshold
+
+1.1.13 2026-11-04
+-----------------
+- fix: PAR-2249 removed double promisify of findAndModify (DEP0174 deprecation warning)
